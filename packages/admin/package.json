@@ -27,6 +27,7 @@
     "react-dom": ">=19"
   },
   "devDependencies": {
+    "@storybook/react": "^8.6.15",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "typescript": "5.9.2"
