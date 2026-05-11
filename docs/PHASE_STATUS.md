@@ -173,9 +173,16 @@ Tracks completion state per build-order phase. Updated as each phase ships.
 
 ---
 
-## Phase 5 — Storybook + docs ⬜ Pending
+## Phase 5 — Storybook + docs ✅ Complete
 
-Depends on: All Phase 3 + 4 complete ✅
+**Commit:** `7919fe3`
 
-Stories needed per shell: minimal, fully configured, error/empty/loading states.
-Packages: `@zetsel/admin` (DataTableShell, FormShell, DataTableModalShell), `@zetsel/ui` (AppWrapper, QueryClientWrapper).
+### Checklist
+- [x] `apps/storybook/.storybook/preview.tsx` — global `MantineProvider` + `QueryClientWrapper` + `ModalsProvider` decorator
+- [x] `apps/storybook/tsconfig.json` — `moduleResolution: bundler`, explicit `paths` for all `@zetsel/*` packages, stories use package aliases not relative paths
+- [x] `packages/admin` excludes `*.stories.tsx` from `check-types` (checked by storybook tsconfig instead)
+- [x] `@storybook/react` added to `@zetsel/admin` devDeps
+- [x] `DataTableShell.stories.tsx` — Minimal, FullyConfigured, EmptyState, LoadingState, ErrorState
+- [x] `FormShell.stories.tsx` — Minimal, WithBreadcrumbsAndCancel, MultiStep, SubmitError
+- [x] `DataTableModalShell.stories.tsx` — Minimal, WithFilters, EmptyState
+- [x] `tsc --noEmit` passes in both `packages/admin` and `apps/storybook`
