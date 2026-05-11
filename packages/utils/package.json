@@ -1,12 +1,25 @@
 {
-  "name": "utils",
+  "name": "@zetsel/utils",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Pure hooks and utility functions for the Zetsel framework",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "check-types": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "peerDependencies": {
+    "react": ">=19"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "typescript": "5.9.2"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.20",
+    "zod": "^4.4.3"
+  }
 }
