@@ -2,9 +2,9 @@ import type { StorybookConfig } from "@storybook/react-webpack5";
 
 const config: StorybookConfig = {
   stories: [
-    "../../packages/ui/**/*.stories.@(ts|tsx)",
-    "../../packages/admin/**/*.stories.@(ts|tsx)",
-    "../../packages/kanban/**/*.stories.@(ts|tsx)",
+    "../../packages/ui/src/**/*.stories.@(ts|tsx)",
+    "../../packages/admin/src/**/*.stories.@(ts|tsx)",
+    "../../packages/kanban/src/**/*.stories.@(ts|tsx)",
   ],
   addons: [
     "@storybook/addon-links",
