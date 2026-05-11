@@ -1,18 +1,29 @@
 {
   "name": "@zetsel/admin",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-   "exports": {
+  "description": "Admin UI wrappers, shells, and notification helpers for the Zetsel framework",
+  "exports": {
     ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@mantine/notifications": "^9.2.0",
+    "@zetsel/api-client": "workspace:*",
+    "@zetsel/ui": "workspace:*",
     "zustand": "^5.0.13"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "react-dom": ">=19"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "5.9.2"
   }
 }

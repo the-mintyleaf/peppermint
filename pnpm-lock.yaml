@@ -136,9 +136,34 @@ importers:
 
   packages/admin:
     dependencies:
+      '@mantine/notifications':
+        specifier: ^9.2.0
+        version: 9.2.0(@mantine/core@9.2.0(@mantine/hooks@9.2.0(react@19.2.4))(@types/react@19.2.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.2.0(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@zetsel/api-client':
+        specifier: workspace:*
+        version: link:../api-client
+      '@zetsel/ui':
+        specifier: workspace:*
+        version: link:../ui
+      react:
+        specifier: '>=19'
+        version: 19.2.4
+      react-dom:
+        specifier: '>=19'
+        version: 19.2.4(react@19.2.4)
       zustand:
         specifier: ^5.0.13
         version: 5.0.13(@types/react@19.2.2)(immer@11.1.8)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
+    devDependencies:
+      '@types/react':
+        specifier: ^19
+        version: 19.2.2
+      '@types/react-dom':
+        specifier: ^19
+        version: 19.2.2(@types/react@19.2.2)
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
 
   packages/api-client:
     dependencies:
