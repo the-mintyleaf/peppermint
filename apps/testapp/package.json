@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@zetsel/admin": "workspace:*",
-    "@zetsel/api": "workspace:*",
+    "@zetsel/api-client": "workspace:*",
     "@zetsel/config": "workspace:*",
     "@zetsel/kanban": "workspace:*",
     "@zetsel/ui": "workspace:*",

@@ -84,7 +84,7 @@ importers:
       '@zetsel/admin':
         specifier: workspace:*
         version: link:../../packages/admin
-      '@zetsel/api':
+      '@zetsel/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
       '@zetsel/config':
@@ -142,18 +142,9 @@ importers:
 
   packages/api-client:
     dependencies:
-      '@mantine/hooks':
-        specifier: ^9.1.1
-        version: 9.1.1(react@19.2.4)
-      '@tanstack/react-query':
-        specifier: ^5.100.9
-        version: 5.100.9(react@19.2.4)
       axios:
         specifier: ^1.16.0
         version: 1.16.0
-      zustand:
-        specifier: ^5.0.13
-        version: 5.0.13(@types/react@19.2.2)(immer@11.1.8)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
 
   packages/config: {}
 
@@ -818,11 +809,6 @@ packages:
     peerDependencies:
       react: ^19.2.0
 
-  '@mantine/hooks@9.1.1':
-    resolution: {integrity: sha512-tTJK73nGFyy1v214TLdvBq0be7QCoc6osfbXVuJgOH3YG85lWk9Mvvor6k+w6hC6HXSqKMqLKePyiGm83xGcMg==}
-    peerDependencies:
-      react: ^19.2.0
-
   '@mantine/hooks@9.2.0':
     resolution: {integrity: sha512-xSt33F84+zgESHqyhJQvVTvCGN1GyQUuHIvh1cAZavXK7Uwy0Fqckno/5OP29ZNJUgu+H/jYuSluu100tMUeAQ==}
     peerDependencies:
@@ -1272,14 +1258,6 @@ packages:
 
   '@tailwindcss/postcss@4.3.0':
     resolution: {integrity: sha512-Jm05Tjx+9yCLGv5qw1c+84Psds8MnyrEQYCB+FFk2lgGiUjlRqdxke4mVTuYrj2xnVZqKim2Apr5ySuQRYAw/w==}
-
-  '@tanstack/query-core@5.100.9':
-    resolution: {integrity: sha512-SJSFw1S8+kQ0+knv/XGfrbocWoAlT7vDKsSImtLx3ZPQmEcR46hkDjLSvynSy25N8Ms4tIEini1FuBd5k7IscQ==}
-
-  '@tanstack/react-query@5.100.9':
-    resolution: {integrity: sha512-Oa44XkaI3kCNN6ME0KByU3xT3SEUNOMfZpHxL6+wFoTm+OeUFYHKdeYVe0aOXlRDm/f15sgLwEt2HDorIdW8+A==}
-    peerDependencies:
-      react: ^18 || ^19
 
   '@testing-library/dom@10.4.0':
     resolution: {integrity: sha512-pemlzrSESWbdAloYml3bAJMEfNh1Z7EduzqPKprCH5S341frlpYnUEW0H72dLxa6IsYr+mPno20GiSm+h9dEdQ==}
@@ -4683,10 +4661,6 @@ snapshots:
       klona: 2.0.6
       react: 19.2.4
 
-  '@mantine/hooks@9.1.1(react@19.2.4)':
-    dependencies:
-      react: 19.2.4
-
   '@mantine/hooks@9.2.0(react@19.2.4)':
     dependencies:
       react: 19.2.4
@@ -5214,13 +5188,6 @@ snapshots:
       '@tailwindcss/oxide': 4.3.0
       postcss: 8.5.14
       tailwindcss: 4.3.0
-
-  '@tanstack/query-core@5.100.9': {}
-
-  '@tanstack/react-query@5.100.9(react@19.2.4)':
-    dependencies:
-      '@tanstack/query-core': 5.100.9
-      react: 19.2.4
 
   '@testing-library/dom@10.4.0':
     dependencies:
