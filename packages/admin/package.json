@@ -12,9 +12,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@mantine/form": "^9.2.0",
     "@mantine/notifications": "^9.2.0",
     "@zetsel/api-client": "workspace:*",
     "@zetsel/ui": "workspace:*",
+    "@zetsel/utils": "workspace:*",
+    "zod": "^4.4.3",
     "zustand": "^5.0.13"
   },
   "peerDependencies": {
