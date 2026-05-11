@@ -6,7 +6,47 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+   "exports": {
+    ".": "./src/index.ts"
+  },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@mantine/carousel": "^9.1.1",
+    "@mantine/charts": "^9.1.1",
+    "@mantine/code-highlight": "^9.1.1",
+    "@mantine/core": "^9.1.1",
+    "@mantine/dates": "^9.1.1",
+    "@mantine/dropzone": "^9.1.1",
+    "@mantine/form": "^9.1.1",
+    "@mantine/hooks": "^9.1.1",
+    "@mantine/modals": "^9.1.1",
+    "@mantine/notifications": "^9.1.1",
+    "@mantine/nprogress": "^9.1.1",
+    "@mantine/spotlight": "^9.1.1",
+    "@mantine/tiptap": "^9.1.1",
+    "@phosphor-icons/react": "github:phosphor-icons/react",
+    "@tiptap/extension-link": "^3.23.1",
+    "@tiptap/pm": "^3.23.1",
+    "@tiptap/react": "^3.23.1",
+    "@tiptap/starter-kit": "^3.23.1",
+    "dayjs": "^1.11.20",
+    "embla-carousel": "^8.5.2",
+    "embla-carousel-react": "^8.5.2",
+    "framer-motion": "^12.38.0",
+    "next": "^16.2.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "recharts": "^3.8.1",
+    "zustand": "^5.0.13"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "postcss": "^8.5.14",
+    "postcss-preset-mantine": "^1.18.0",
+    "postcss-simple-vars": "^7.0.1"
+  }
 }
