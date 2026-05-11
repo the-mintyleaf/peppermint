@@ -7,3 +7,5 @@ export { DataTableShell, useExport } from './shells/DataTableShell';
 export type { DataTableShellProps } from './shells/DataTableShell';
 export { FormShell, useUnsavedWarning, FormHeader, FormStepper, FormFooter } from './shells/FormShell';
 export type { FormShellProps, BreadcrumbItem } from './shells/FormShell';
+export { DataTableModalShell } from './shells/DataTableModalShell';
+export type { DataTableModalShellProps } from './shells/DataTableModalShell';

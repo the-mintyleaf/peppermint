@@ -145,9 +145,18 @@ Tracks completion state per build-order phase. Updated as each phase ships.
 
 ---
 
-## Phase 3f — `@zetsel/admin` › `DataTableModalShell` ⬜ Pending
+## Phase 3f — `@zetsel/admin` › `DataTableModalShell` ✅ Complete
 
-Depends on: Phases 3d + 3e complete
+### Checklist
+- [x] `DataTableModalShell.types.ts` — `DataTableModalShellProps<T, TCreate, TEdit>`
+- [x] `DataTableModalShell.tsx` — composes `DataTableShell` + three modals, manages open/close state
+- [x] `CreateModal` — wraps `FormWrapper`, clears on success, invalidates query
+- [x] `EditModal` — wraps `FormWrapper` with `editInitial(record)`, invalidates query
+- [x] `DeleteConfirmModal` — fires `onDeleteApi` per id in parallel, error/success notifications
+- [x] Barrel exports wired
+- [x] `pnpm check-types` passes with zero errors
+- [x] `packages/admin/docs/DataTableModalShell.md`
+- [x] `usage-doc/admin/DataTableModalShell.md`
 
 ---
 
