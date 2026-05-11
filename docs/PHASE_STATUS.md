@@ -160,9 +160,16 @@ Tracks completion state per build-order phase. Updated as each phase ships.
 
 ---
 
-## Phase 4 — `@zetsel/ui` additions ⬜ Pending
+## Phase 4 — `@zetsel/ui` additions ✅ Complete
 
-Depends on: Phase 2a complete ✅ (no React in api-client — safe to wire)
+### Checklist
+- [x] `QueryClientWrapper` — `QueryClientProvider` with default stale/cache config (5min stale, 10min gc, retry 1, no refetchOnWindowFocus)
+- [x] `AppWrapper` gains `withQuery?: boolean` — mounts `QueryClientWrapper` when true
+- [x] `@tanstack/react-query` added to `@zetsel/ui` deps
+- [x] `QueryClientWrapper` re-exported from `@zetsel/ui` root index
+- [x] `tsc --noEmit` passes in `packages/ui`
+- [x] `packages/ui/docs/QueryClientWrapper.md`
+- [x] `usage-doc/ui/QueryClientWrapper.md`
 
 ---
 
