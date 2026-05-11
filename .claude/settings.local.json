@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd '\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\decoffee\\\\Projects\\\\zutsel' && git status)",
+      "Read(///wsl.localhost/Ubuntu/home/decoffee/Projects/**)",
+      "Bash(git config *)",
+      "Bash(git checkout *)",
+      "Bash(pnpm install *)",
+      "Bash(npm --version)",
+      "Bash(npm list *)",
+      "Read(//c/Users/anamo/AppData/**)",
+      "PowerShell(npm --version)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'chore: setup Storybook with a11y addon *)"
+    ]
+  }
+}
