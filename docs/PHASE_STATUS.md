@@ -61,21 +61,52 @@ Tracks completion state per build-order phase. Updated as each phase ships.
 
 ---
 
-## Phase 3a — `@zetsel/admin` › `triggerNotification` ⬜ Pending
+## Phase 3a — `@zetsel/admin` › `triggerNotification` ✅ Complete
 
-Depends on: Phase 2b complete ✅
+**Commit:** `ee4d246`
+
+### Checklist
+- [x] `triggerNotification.success/error/info/warning` — pre-set colours and timeouts
+- [x] `triggerNotification.loading(message): string` — persistent spinner, returns id
+- [x] `triggerNotification.update(id, data)` — updates any notification by id
+- [x] `triggerNotification.form.isLoading/isSuccess/isError` — fixed `'form-submit'` id lifecycle
+- [x] `pnpm check-types` passes
+- [x] `packages/admin/docs/triggerNotification.md`
+- [x] `usage-doc/admin/triggerNotification.md`
 
 ---
 
-## Phase 3b — `@zetsel/admin` › `FormWrapper` ⬜ Pending
+## Phase 3b — `@zetsel/admin` › `FormWrapper` ✅ Complete
 
-Depends on: Phase 3a complete
+**Commit:** `e885b41`
+
+### Checklist
+- [x] `FormWrapper.types.ts` — `FormWrapperProps`, `FormInstanceContextValue`, `FormControlsContextValue`
+- [x] `FormWrapper.context.ts` — two independent contexts: `FormInstanceContext` (stable) + `FormControlsContext` (navigation)
+- [x] `FormWrapper.utils.ts` — `validateStep`, `shallowEqual`, `draftSerialize`
+- [x] `FormWrapper.hooks.ts` — `useFormInstance()`, `useFormControls()` (throw outside provider)
+- [x] `FormWrapper.tsx` — all 7 form correctness rules enforced
+- [x] Barrel exports wired
+- [x] `pnpm check-types` passes
+- [x] `packages/admin/docs/FormWrapper.md`
+- [x] `usage-doc/admin/FormWrapper.md`
 
 ---
 
-## Phase 3c — `@zetsel/admin` › `DataTableWrapper` ⬜ Pending
+## Phase 3c — `@zetsel/admin` › `DataTableWrapper` ✅ Complete
 
-Depends on: Phase 3a complete
+**Commit:** `aae06eb`
+
+### Checklist
+- [x] `DataTableWrapper.types.ts` — `ColumnDef`, `FilterDef`, `ActionDef`, `ModuleInfo`, `DataTableStoreState`, `DataContextValue`
+- [x] `DataTableWrapper.store.ts` — instance-scoped `createDataTableStore` (not global singleton), page-1 reset on search/filter/sort
+- [x] `DataTableWrapper.context.ts` — `DataContext` (server data) + `StoreContext` (Zustand instance)
+- [x] `DataTableWrapper.hooks.ts` — `useDataTableContext`, `useDataTableStore(selector)`, `useInvalidateTable`
+- [x] `DataTableWrapper.tsx` — `useQuery` integration, merged params, both contexts mounted
+- [x] Barrel exports wired
+- [x] `pnpm check-types` passes
+- [x] `packages/admin/docs/DataTableWrapper.md`
+- [x] `usage-doc/admin/DataTableWrapper.md`
 
 ---
 
