@@ -1,13 +1,13 @@
-# Storybook Setup
+# Storybook
 
-Storybook is configured to showcase components from `@zetsel/ui`, `@zetsel/admin`, and `@zetsel/kanban` packages.
+Component showcase and testing environment for Zetsel UI components.
 
 ## Getting Started
 
 ### Run Storybook
 
 ```bash
-pnpm storybook
+pnpm dev
 ```
 
 Storybook will start on `http://localhost:6006`.
@@ -15,7 +15,7 @@ Storybook will start on `http://localhost:6006`.
 ### Build Storybook
 
 ```bash
-pnpm storybook:build
+pnpm build
 ```
 
 ## Creating Stories
