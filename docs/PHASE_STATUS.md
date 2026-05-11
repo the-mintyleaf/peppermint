@@ -110,15 +110,38 @@ Tracks completion state per build-order phase. Updated as each phase ships.
 
 ---
 
-## Phase 3d — `@zetsel/admin` › `DataTableShell` ⬜ Pending
+## Phase 3d — `@zetsel/admin` › `DataTableShell` ✅ Complete
 
-Depends on: Phase 3c complete
+**Commit:** `732cdf6`
+
+### Checklist
+- [x] `DataTableShell.types.ts` — `DataTableShellProps<T>` extending all wrapper + sub-component props
+- [x] `DataTableShell.tsx` — composes `DataTableWrapper` + all five sub-components
+- [x] `DataTableShell.hooks.ts` — `useExport(columns, filename?)` CSV export hook
+- [x] `DataTableShell.module.css` — `.shell` and `.tableWrapper` layout classes
+- [x] Sub-components: `TableHeader`, `TableFilters`, `TableToolbar`, `TableBody`, `TablePagination`
+- [x] `packages/admin/declaration.d.ts` — CSS module + `@phosphor-icons/react` type stubs
+- [x] Barrel exports wired (`DataTableShell`, `useExport`, `DataTableShellProps`)
+- [x] `pnpm check-types` passes with zero errors
+- [x] `packages/admin/docs/DataTableShell.md`
+- [x] `usage-doc/admin/DataTableShell.md`
 
 ---
 
-## Phase 3e — `@zetsel/admin` › `FormShell` ⬜ Pending
+## Phase 3e — `@zetsel/admin` › `FormShell` ✅ Complete
 
-Depends on: Phase 3b complete
+### Checklist
+- [x] `FormShell.types.ts` — `FormShellProps<T>`, `BreadcrumbItem`
+- [x] `FormShell.hooks.ts` — `useUnsavedWarning(isDirty)` — `beforeunload` guard
+- [x] `FormShell.module.css` — `.shell`, `.body`, `.footer` layout classes
+- [x] `FormShell.tsx` — wraps `FormWrapper`, renders header/stepper/body/footer
+- [x] `FormHeader` — title or breadcrumb trail + saving indicator
+- [x] `FormStepper` — Mantine `Stepper`, reads `current` + `stepStatus` from context
+- [x] `FormFooter` — sticky Cancel/Back/Next/Save buttons, multi-step aware
+- [x] Barrel exports wired
+- [x] `pnpm check-types` passes with zero errors
+- [x] `packages/admin/docs/FormShell.md`
+- [x] `usage-doc/admin/FormShell.md`
 
 ---
 

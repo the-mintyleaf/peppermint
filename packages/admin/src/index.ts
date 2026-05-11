@@ -5,3 +5,5 @@ export { DataTableWrapper, useDataTableContext, useDataTableStore, useInvalidate
 export type { DataTableWrapperProps, DataContextValue, DataTableStoreState, ColumnDef, FilterDef, ActionDef, RowExpansionDef, ModuleInfo, SortState, FilterState } from './wrappers/DataTableWrapper';
 export { DataTableShell, useExport } from './shells/DataTableShell';
 export type { DataTableShellProps } from './shells/DataTableShell';
+export { FormShell, useUnsavedWarning, FormHeader, FormStepper, FormFooter } from './shells/FormShell';
+export type { FormShellProps, BreadcrumbItem } from './shells/FormShell';
