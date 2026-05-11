@@ -12,7 +12,12 @@
       "PowerShell(npm --version)",
       "Bash(git add *)",
       "Bash(git commit -m 'chore: setup Storybook with a11y addon *)",
-      "Bash(git commit -m 'chore: move Storybook setup to apps/storybook *)"
+      "Bash(git commit -m 'chore: move Storybook setup to apps/storybook *)",
+      "WebSearch",
+      "Bash(pnpm store *)",
+      "Bash(cd \"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\decoffee\\\\Projects\\\\zutsel\")",
+      "Bash(pnpm list *)",
+      "Bash(ls -la \\\\\\\\wsl.localhost/Ubuntu/home/decoffee/Projects/zutsel/node_modules/@storybook/react-webpack5)"
     ]
   }
 }
