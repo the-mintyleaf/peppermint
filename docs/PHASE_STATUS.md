@@ -175,4 +175,7 @@ Tracks completion state per build-order phase. Updated as each phase ships.
 
 ## Phase 5 — Storybook + docs ⬜ Pending
 
-Depends on: All Phase 3 complete
+Depends on: All Phase 3 + 4 complete ✅
+
+Stories needed per shell: minimal, fully configured, error/empty/loading states.
+Packages: `@zetsel/admin` (DataTableShell, FormShell, DataTableModalShell), `@zetsel/ui` (AppWrapper, QueryClientWrapper).
