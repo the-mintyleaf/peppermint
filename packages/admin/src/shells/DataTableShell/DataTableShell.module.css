@@ -1,0 +1,10 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  flex: 1;
+}
