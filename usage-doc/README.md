@@ -73,6 +73,17 @@ Full API references are in `packages/<pkg>/docs/`. Usage examples are in `usage-
 
 ---
 
+## Module patterns (app-level)
+
+When building a full CRUD module inside an app, use one of these two patterns. Both define the same internal file structure (`module.config.ts`, `module.api.ts`, `form/`, `pages/`, `index.ts`).
+
+| Pattern | When to use | Read |
+|---|---|---|
+| **ModalModule** | Simple form (≤ ~8 fields). List, create, edit, delete all on one route. | [module-patterns/ModalModule.md](module-patterns/ModalModule.md) |
+| **RouteModule** | Complex form, multi-step wizard, or dedicated detail/profile view needed. Each action gets its own route. | [module-patterns/RouteModule.md](module-patterns/RouteModule.md) |
+
+---
+
 ## Dependency order
 
 ```
