@@ -1,77 +1,86 @@
-# Zetsel Framework — Usage Docs
+# Zetsel Framework — Agent Route Map
 
-Practical examples for every public API. Each file shows real import paths and working code snippets.
-
-For the full API reference (props tables, type signatures, architecture notes), see `packages/<pkg>/docs/`.
-
----
-
-## `@zetsel/utils`
-
-| What | File |
-|---|---|
-| Hooks (`useDebounce`, `useLocalStorage`, `usePrevious`, `useWindowSize`) + formatting + Zod validation resolver | [utils/utils.md](utils/utils.md) |
+Read this file first. It tells you what exists and when to read the detail doc.
+Full API references are in `packages/<pkg>/docs/`. Usage examples are in `usage-doc/<pkg>/`.
 
 ---
 
-## `@zetsel/api-client`
+## Quick rule
 
-| What | File |
-|---|---|
-| HTTP client — `configureApiClient`, `api.get/post/patch/del/login`, offline queue | [api-client/apiDispatch.md](api-client/apiDispatch.md) |
-| CRUD helpers — `getRecords`, `createRecord`, `editRecord`, `deleteRecord` | [api-client/moduleApiCall.md](api-client/moduleApiCall.md) |
-| Batch helpers — `createGroupRecords`, `editGroupRecords`, `deleteGroupRecords` | [api-client/moduleApiCall.md](api-client/moduleApiCall.md) |
+> If you are building a page, shell, or form — check this map before writing any component from scratch. Everything here is already built.
 
 ---
 
-## `@zetsel/ui`
+## What's available
 
-| What | File |
-|---|---|
-| `AppWrapper` — Next.js root layout with Mantine + Modals + Notifications | [ui/AppWrapper.md](ui/AppWrapper.md) |
-| `QueryClientWrapper` — React Query provider, standalone or via `AppWrapper withQuery` | [ui/QueryClientWrapper.md](ui/QueryClientWrapper.md) |
+### Boot / providers
 
----
-
-## `@zetsel/admin`
-
-### Notification
-
-| What | File |
-|---|---|
-| `triggerNotification` — imperative success/error/loading toasts, form lifecycle helpers | [admin/triggerNotification.md](admin/triggerNotification.md) |
-
-### Low-level wrappers (build your own UI on top)
-
-| What | File |
-|---|---|
-| `FormWrapper` — form state engine, `useFormInstance`, `useFormControls` | [admin/FormWrapper.md](admin/FormWrapper.md) |
-| `DataTableWrapper` — table state engine, `useDataTableContext`, `useDataTableStore` | [admin/DataTableWrapper.md](admin/DataTableWrapper.md) |
-
-### Shells (drop-in full pages)
-
-| What | File |
-|---|---|
-| `DataTableShell` — full table page: search, filters, pagination, bulk delete, export | [admin/DataTableShell.md](admin/DataTableShell.md) |
-| `FormShell` — full form page: breadcrumbs, stepper, sticky footer, unsaved warning | [admin/FormShell.md](admin/FormShell.md) |
-| `DataTableModalShell` — table + create/edit/delete modals wired together | [admin/DataTableModalShell.md](admin/DataTableModalShell.md) |
+| Export | Package | Read when |
+|---|---|---|
+| `AppWrapper` | `@zetsel/ui` | Setting up a Next.js root layout | [usage](ui/AppWrapper.md) · [api](../packages/ui/docs/AppWrapper.md) |
+| `QueryClientWrapper` | `@zetsel/ui` | Need React Query outside AppWrapper, or custom QueryClient config | [usage](ui/QueryClientWrapper.md) · [api](../packages/ui/docs/QueryClientWrapper.md) |
+| `configureApiClient` | `@zetsel/api-client` | Wiring auth token key, refresh endpoint, logout callback at app boot | [usage](api-client/apiDispatch.md) · [api](../packages/api-client/docs/apiDispatch.md) |
 
 ---
 
-## Decision guide
+### HTTP / data fetching
 
-**Starting a new CRUD page with a table?**
-→ Use [`DataTableModalShell`](admin/DataTableModalShell.md) if your create/edit forms open in modals.
-→ Use [`DataTableShell`](admin/DataTableShell.md) if create/edit navigate to separate pages.
+| Export | Package | Read when |
+|---|---|---|
+| `api.get/post/patch/del/login` | `@zetsel/api-client` | Making raw HTTP calls with auth, retry, or offline queue | [usage](api-client/apiDispatch.md) |
+| `getRecords`, `getSingleRecord` | `@zetsel/api-client` | Fetching a list or single record for use with `useQuery` | [usage](api-client/moduleApiCall.md) |
+| `createRecord`, `editRecord`, `deleteRecord` | `@zetsel/api-client` | Single-item mutations | [usage](api-client/moduleApiCall.md) |
+| `createGroupRecords`, `editGroupRecords`, `deleteGroupRecords` | `@zetsel/api-client` | Bulk mutations | [usage](api-client/moduleApiCall.md) · [api](../packages/api-client/docs/moduleApiCall.md) |
 
-**Starting a new form page?**
-→ Use [`FormShell`](admin/FormShell.md). Add `steps` for a multi-step wizard.
+---
 
-**Need custom table or form UI not covered by the shells?**
-→ Use [`DataTableWrapper`](admin/DataTableWrapper.md) or [`FormWrapper`](admin/FormWrapper.md) directly and compose your own layout.
+### Notifications
 
-**Fetching data outside a shell?**
-→ Use [`getRecords` / `getSingleRecord`](api-client/moduleApiCall.md) with `useQuery` from `@tanstack/react-query`.
+| Export | Package | Read when |
+|---|---|---|
+| `triggerNotification.success/error/info/warning` | `@zetsel/admin` | Showing a toast from any event handler | [usage](admin/triggerNotification.md) |
+| `triggerNotification.loading` / `.update` | `@zetsel/admin` | Async operations that need a persistent spinner then a result | [usage](admin/triggerNotification.md) |
+| `triggerNotification.form.isLoading/isSuccess/isError` | `@zetsel/admin` | Form submit lifecycle feedback | [usage](admin/triggerNotification.md) |
 
-**Showing a toast notification?**
-→ Use [`triggerNotification`](admin/triggerNotification.md).
+---
+
+### Table pages
+
+| Export | Package | Read when |
+|---|---|---|
+| `DataTableModalShell` | `@zetsel/admin` | **Start here for any CRUD table page.** Create/edit open in modals. | [usage](admin/DataTableModalShell.md) · [api](../packages/admin/docs/DataTableModalShell.md) |
+| `DataTableShell` | `@zetsel/admin` | Table page where create/edit navigate to separate routes instead of modals | [usage](admin/DataTableShell.md) · [api](../packages/admin/docs/DataTableShell.md) |
+| `DataTableWrapper` + `useDataTableContext` + `useDataTableStore` | `@zetsel/admin` | Custom table layout not covered by the shells | [usage](admin/DataTableWrapper.md) · [api](../packages/admin/docs/DataTableWrapper.md) |
+
+---
+
+### Form pages
+
+| Export | Package | Read when |
+|---|---|---|
+| `FormShell` | `@zetsel/admin` | **Start here for any create/edit form page.** Add `steps` for a wizard. | [usage](admin/FormShell.md) · [api](../packages/admin/docs/FormShell.md) |
+| `FormWrapper` + `useFormInstance` + `useFormControls` | `@zetsel/admin` | Custom form layout not covered by FormShell, or embedding a form inside another component | [usage](admin/FormWrapper.md) · [api](../packages/admin/docs/FormWrapper.md) |
+
+---
+
+### Utilities
+
+| Export | Package | Read when |
+|---|---|---|
+| `useDebounce`, `useLocalStorage`, `usePrevious`, `useWindowSize` | `@zetsel/utils` | Need one of these hooks | [usage](utils/utils.md) |
+| `formatDate`, `formatCurrency`, `truncate`, `slugify`, etc. | `@zetsel/utils` | Formatting a value for display | [usage](utils/utils.md) |
+| `zodResolver`, `parseOrNull` | `@zetsel/utils` | Connecting a Zod schema to a Mantine form, or safely parsing unknown data | [usage](utils/utils.md) · [api](../packages/utils/docs/utils.md) |
+
+---
+
+## Dependency order
+
+```
+@zetsel/utils          ← no monorepo deps
+@zetsel/api-client     ← no monorepo deps
+@zetsel/ui             ← no monorepo deps (re-exports Mantine)
+@zetsel/admin          ← depends on ui, api-client, utils
+apps/*                 ← depends on any of the above
+```
+
+An app should never import `@mantine/*` directly — always go through `@zetsel/ui`.
