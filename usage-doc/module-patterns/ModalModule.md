@@ -87,6 +87,8 @@ export const userColumns: ColumnDef<User>[] = [
 
 ### 4. `form/UserForm.tsx`
 
+IMPORTANT: When building any form, always design it with a clear structure, logical field grouping, and strong usability principles to ensure an intuitive, efficient, and user-friendly experience. Organize related fields into meaningful sections, maintain consistent spacing and hierarchy, and prioritize clarity and ease of completion. Field placeholders should use realistic, relatable, and context-aware examples that help users immediately understand the expected input format.
+
 Fields only — no submit button. Rendered inside modals by `DataTableModalShell`.
 
 ```tsx

@@ -1,1 +1,0 @@
-export { triggerNotification } from './notification';

@@ -81,6 +81,9 @@ importers:
 
   apps/testapp:
     dependencies:
+      '@phosphor-icons/react':
+        specifier: ^2.1.10
+        version: 2.1.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@zetsel/admin':
         specifier: workspace:*
         version: link:../../packages/admin
@@ -143,8 +146,8 @@ importers:
         specifier: ^9.2.0
         version: 9.2.0(@mantine/core@9.2.0(@mantine/hooks@9.2.0(react@19.2.4))(@types/react@19.2.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.2.0(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@phosphor-icons/react':
-        specifier: github:phosphor-icons/react
-        version: https://codeload.github.com/phosphor-icons/react/tar.gz/81ac06f9bf4b4dedf9b8fead0a1ebd47c41d67ef(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: '>=2'
+        version: 2.1.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@tanstack/react-query':
         specifier: ^5.100.9
         version: 5.100.10(react@19.2.4)
@@ -157,6 +160,9 @@ importers:
       '@zetsel/utils':
         specifier: workspace:*
         version: link:../utils
+      mantine-datatable:
+        specifier: ^8.3.13
+        version: 8.3.13(@mantine/core@9.2.0(@mantine/hooks@9.2.0(react@19.2.4))(@types/react@19.2.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.2.0(react@19.2.4))(clsx@2.1.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
         specifier: '>=19'
         version: 19.2.4
@@ -985,6 +991,13 @@ packages:
   '@nolyfill/is-core-module@1.0.39':
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
+
+  '@phosphor-icons/react@2.1.10':
+    resolution: {integrity: sha512-vt8Tvq8GLjheAZZYa+YG/pW7HDbov8El/MANW8pOAz4eGxrwhnbfrQZq0Cp4q8zBEu8NIhHdnr+r8thnfRSNYA==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      react: '>= 16.8'
+      react-dom: '>= 16.8'
 
   '@phosphor-icons/react@https://codeload.github.com/phosphor-icons/react/tar.gz/81ac06f9bf4b4dedf9b8fead0a1ebd47c41d67ef':
     resolution: {tarball: https://codeload.github.com/phosphor-icons/react/tar.gz/81ac06f9bf4b4dedf9b8fead0a1ebd47c41d67ef}
@@ -3170,6 +3183,15 @@ packages:
     resolution: {integrity: sha512-g3FeP20LNwhALb/6Cz6Dd4F2ngze0jz7tbzrD2wAV+o9FeNHe4rL+yK2md0J/fiSf1sa1ADhXqi5+oVwOM/eGw==}
     engines: {node: '>=8'}
 
+  mantine-datatable@8.3.13:
+    resolution: {integrity: sha512-MQ7FNSyKCPeijiWHSeVmFU38m7MgHkomOm/VXm1XFpCAjVxdK8ZCVHGA2e5GK/dIkPX9Sdiwt812YDOhchPiHQ==}
+    peerDependencies:
+      '@mantine/core': '>=8.3'
+      '@mantine/hooks': '>=8.3'
+      clsx: '>=2'
+      react: '>=19'
+      react-dom: '>=19'
+
   map-or-similar@1.5.0:
     resolution: {integrity: sha512-0aF7ZmVon1igznGI4VS30yugpduQW3y3GkcgGJOp7d8x8QrizhigUxjI/m2UojsXXto+jLAH3KSz+xOJTiORjg==}
 
@@ -4820,6 +4842,11 @@ snapshots:
       fastq: 1.19.1
 
   '@nolyfill/is-core-module@1.0.39': {}
+
+  '@phosphor-icons/react@2.1.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
 
   '@phosphor-icons/react@https://codeload.github.com/phosphor-icons/react/tar.gz/81ac06f9bf4b4dedf9b8fead0a1ebd47c41d67ef(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
@@ -7302,6 +7329,14 @@ snapshots:
   make-dir@3.1.0:
     dependencies:
       semver: 6.3.1
+
+  mantine-datatable@8.3.13(@mantine/core@9.2.0(@mantine/hooks@9.2.0(react@19.2.4))(@types/react@19.2.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.2.0(react@19.2.4))(clsx@2.1.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+    dependencies:
+      '@mantine/core': 9.2.0(@mantine/hooks@9.2.0(react@19.2.4))(@types/react@19.2.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@mantine/hooks': 9.2.0(react@19.2.4)
+      clsx: 2.1.1
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
 
   map-or-similar@1.5.0: {}
 

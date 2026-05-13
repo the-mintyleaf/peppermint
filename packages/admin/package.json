@@ -14,15 +14,16 @@
   "dependencies": {
     "@mantine/form": "^9.2.0",
     "@mantine/notifications": "^9.2.0",
-    "@phosphor-icons/react": "github:phosphor-icons/react",
     "@tanstack/react-query": "^5.100.9",
     "@zetsel/api-client": "workspace:*",
     "@zetsel/ui": "workspace:*",
     "@zetsel/utils": "workspace:*",
+    "mantine-datatable": "^8.3.13",
     "zod": "^4.4.3",
     "zustand": "^5.0.13"
   },
   "peerDependencies": {
+    "@phosphor-icons/react": ">=2",
     "react": ">=19",
     "react-dom": ">=19"
   },
