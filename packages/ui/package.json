@@ -28,7 +28,7 @@
     "@mantine/nprogress": "^9.2.0",
     "@mantine/spotlight": "^9.2.0",
     "@mantine/tiptap": "^9.2.0",
-    "@phosphor-icons/react": "github:phosphor-icons/react",
+    "@phosphor-icons/react": "^2.1.10",
     "@tiptap/extension-link": "^3.23.1",
     "@tiptap/pm": "^3.23.1",
     "@tiptap/react": "^3.23.1",

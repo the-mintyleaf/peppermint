@@ -79,7 +79,7 @@ importers:
         specifier: ^5
         version: 5.9.2
 
-  apps/testapp:
+  apps/zetsel-admin:
     dependencies:
       '@phosphor-icons/react':
         specifier: ^2.1.10
@@ -87,15 +87,6 @@ importers:
       '@zetsel/admin':
         specifier: workspace:*
         version: link:../../packages/admin
-      '@zetsel/api-client':
-        specifier: workspace:*
-        version: link:../../packages/api-client
-      '@zetsel/config':
-        specifier: workspace:*
-        version: link:../../packages/config
-      '@zetsel/kanban':
-        specifier: workspace:*
-        version: link:../../packages/kanban
       '@zetsel/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -108,9 +99,6 @@ importers:
       react-dom:
         specifier: 19.2.4
         version: 19.2.4(react@19.2.4)
-      zustand:
-        specifier: ^5.0.13
-        version: 5.0.13(@types/react@19.2.2)(immer@11.1.8)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
     devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4
@@ -243,8 +231,8 @@ importers:
         specifier: ^9.2.0
         version: 9.2.0(@mantine/core@9.2.0(@mantine/hooks@9.2.0(react@19.2.4))(@types/react@19.2.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.2.0(react@19.2.4))(@tiptap/extension-link@3.23.1(@tiptap/core@3.23.1(@tiptap/pm@3.23.1))(@tiptap/pm@3.23.1))(@tiptap/react@3.23.1(@floating-ui/dom@1.7.6)(@tiptap/core@3.23.1(@tiptap/pm@3.23.1))(@tiptap/pm@3.23.1)(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@phosphor-icons/react':
-        specifier: github:phosphor-icons/react
-        version: https://codeload.github.com/phosphor-icons/react/tar.gz/81ac06f9bf4b4dedf9b8fead0a1ebd47c41d67ef(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: ^2.1.10
+        version: 2.1.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@tanstack/react-query':
         specifier: ^5.100.9
         version: 5.100.10(react@19.2.4)
@@ -277,7 +265,7 @@ importers:
         version: 12.38.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       next:
         specifier: ^16.2.6
-        version: 16.2.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        version: 16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
         specifier: 19.2.4
         version: 19.2.4
@@ -994,14 +982,6 @@ packages:
 
   '@phosphor-icons/react@2.1.10':
     resolution: {integrity: sha512-vt8Tvq8GLjheAZZYa+YG/pW7HDbov8El/MANW8pOAz4eGxrwhnbfrQZq0Cp4q8zBEu8NIhHdnr+r8thnfRSNYA==}
-    engines: {node: '>=10'}
-    peerDependencies:
-      react: '>= 16.8'
-      react-dom: '>= 16.8'
-
-  '@phosphor-icons/react@https://codeload.github.com/phosphor-icons/react/tar.gz/81ac06f9bf4b4dedf9b8fead0a1ebd47c41d67ef':
-    resolution: {tarball: https://codeload.github.com/phosphor-icons/react/tar.gz/81ac06f9bf4b4dedf9b8fead0a1ebd47c41d67ef}
-    version: 2.1.10
     engines: {node: '>=10'}
     peerDependencies:
       react: '>= 16.8'
@@ -1990,11 +1970,6 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
 
-  baseline-browser-mapping@2.10.8:
-    resolution: {integrity: sha512-PCLz/LXGBsNTErbtB6i5u4eLpHeMfi93aUv5duMmj6caNu6IphS4q6UevDnL36sZQv9lrP11dbPKGMaXPwMKfQ==}
-    engines: {node: '>=6.0.0'}
-    hasBin: true
-
   better-opn@3.0.2:
     resolution: {integrity: sha512-aVNobHnJqLiUelTaHat9DZ1qM2w0C0Eym4LPI/3JxOnSokGVdsl1T1kN7TFvsEAD8G47A6VKQ0TVHqbBnYMJlQ==}
     engines: {node: '>=12.0.0'}
@@ -2049,9 +2024,6 @@ packages:
   camelcase-css@2.0.1:
     resolution: {integrity: sha512-QOSvevhslijgYwRx6Rv7zKdMF8lbRmx+uQGx2+vDc+KI/eBnsy9kit5aj23AgGu3pa4t9AgwbnXWqS+iOY+2aA==}
     engines: {node: '>= 6'}
-
-  caniuse-lite@1.0.30001761:
-    resolution: {integrity: sha512-JF9ptu1vP2coz98+5051jZ4PwQgd2ni8A+gYSN7EA7dPKIMf0pDlSUxhdmVOaV3/fYK5uWBkgSXJaRLr4+3A6g==}
 
   caniuse-lite@1.0.30001792:
     resolution: {integrity: sha512-hVLMUZFgR4JJ6ACt1uEESvQN1/dBVqPAKY0hgrV70eN3391K6juAfTjKZLKvOMsx8PxA7gsY1/tLMMTcfFLLpw==}
@@ -4848,11 +4820,6 @@ snapshots:
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
 
-  '@phosphor-icons/react@https://codeload.github.com/phosphor-icons/react/tar.gz/81ac06f9bf4b4dedf9b8fead0a1ebd47c41d67ef(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
-    dependencies:
-      react: 19.2.4
-      react-dom: 19.2.4(react@19.2.4)
-
   '@reduxjs/toolkit@2.11.2(react-redux@9.2.0(@types/react@19.2.2)(react@19.2.4)(redux@5.0.1))(react@19.2.4)':
     dependencies:
       '@standard-schema/spec': 1.1.0
@@ -6012,8 +5979,6 @@ snapshots:
 
   baseline-browser-mapping@2.10.29: {}
 
-  baseline-browser-mapping@2.10.8: {}
-
   better-opn@3.0.2:
     dependencies:
       open: 8.4.2
@@ -6072,8 +6037,6 @@ snapshots:
       tslib: 2.8.1
 
   camelcase-css@2.0.1: {}
-
-  caniuse-lite@1.0.30001761: {}
 
   caniuse-lite@1.0.30001792: {}
 
@@ -7396,30 +7359,6 @@ snapshots:
   neo-async@2.6.2: {}
 
   next@16.2.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
-    dependencies:
-      '@next/env': 16.2.6
-      '@swc/helpers': 0.5.15
-      baseline-browser-mapping: 2.10.8
-      caniuse-lite: 1.0.30001761
-      postcss: 8.4.31
-      react: 19.2.4
-      react-dom: 19.2.4(react@19.2.4)
-      styled-jsx: 5.1.6(@babel/core@7.29.0)(react@19.2.4)
-    optionalDependencies:
-      '@next/swc-darwin-arm64': 16.2.6
-      '@next/swc-darwin-x64': 16.2.6
-      '@next/swc-linux-arm64-gnu': 16.2.6
-      '@next/swc-linux-arm64-musl': 16.2.6
-      '@next/swc-linux-x64-gnu': 16.2.6
-      '@next/swc-linux-x64-musl': 16.2.6
-      '@next/swc-win32-arm64-msvc': 16.2.6
-      '@next/swc-win32-x64-msvc': 16.2.6
-      sharp: 0.34.5
-    transitivePeerDependencies:
-      - '@babel/core'
-      - babel-plugin-macros
-
-  next@16.2.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
     dependencies:
       '@next/env': 16.2.6
       '@swc/helpers': 0.5.15
