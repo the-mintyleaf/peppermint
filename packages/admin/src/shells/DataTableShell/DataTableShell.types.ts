@@ -1,0 +1,137 @@
+import type { DataTableColumn, DataTableRowExpansionProps } from 'mantine-datatable';
+import type { FilterState, DataTableWrapperProps } from '../../wrappers/DataTableWrapper';
+
+export interface DataTableShellTab {
+  label: string;
+  /** Merged into store.setFilters on tab switch — sent to server in server mode. */
+  filter?: FilterState;
+  /** Applied client-side after the wrapper resolves rows. */
+  forceFilter?: <T>(rows: T[]) => T[];
+}
+
+export type DataTableShellColumn<T> = DataTableColumn<T> & {
+  /** Key used in columnVisibility map. Defaults to String(accessor). */
+  key?: string;
+  /** Initial visibility before any user preference. Defaults to true. */
+  defaultVisible?: boolean;
+};
+
+export interface DataTableShellModuleInfo {
+  /** Used as the persistence storageKey and the "New X" button label. */
+  name: string;
+  /** Human-readable display label. Defaults to name. */
+  label?: string;
+  description?: string;
+}
+
+export interface DataTableShellProps<T extends Record<string, unknown> = Record<string, unknown>>
+  extends Omit<DataTableWrapperProps<T>, 'children' | 'persistence'> {
+  columns: DataTableShellColumn<T>[];
+  moduleInfo: DataTableShellModuleInfo;
+  /** Row unique id field. Defaults to 'id'. */
+  idAccessor?: string;
+  /**
+   * Base path used to build navigation hrefs (e.g. `/admin/users`).
+   * New button navigates to `${basePath}/new`, edit to `${basePath}/${id}/edit`, etc.
+   * Falls back to `newButtonHref` for the New button.
+   */
+  basePath?: string;
+
+  tabs?: DataTableShellTab[];
+
+  newButtonHref?: string;
+  onNewClick?: () => void;
+  disableCreateButton?: boolean;
+
+  onEditClick?: (record: T) => void;
+  onDeleteClick?: (ids: Array<string | number>) => Promise<void> | void;
+  onReviewClick?: (record: T) => void;
+  disableEditButton?: boolean;
+  disableDeleteButton?: boolean;
+  disableReviewButton?: boolean;
+
+  pageSizes?: number[];
+  /** Client-side post-filter applied after tab forceFilter. */
+  forceFilter?: (rows: T[]) => T[];
+  rowStyle?: (record: T, index: number) => React.CSSProperties;
+  rowExpansion?: DataTableRowExpansionProps<T>;
+
+  hideToolbar?: boolean;
+  disableActions?: boolean;
+  /** When true, New/Edit trigger callbacks instead of navigating. */
+  sustained?: boolean;
+}
+
+// ── Internal props passed to DataTableShellInner ──────────────────────────────
+
+export interface DataTableShellInnerProps<T extends Record<string, unknown>> {
+  columns: DataTableShellColumn<T>[];
+  moduleInfo: DataTableShellModuleInfo;
+  idAccessor: string;
+  basePath?: string;
+  tabs: DataTableShellTab[];
+  newButtonHref?: string;
+  onNewClick?: () => void;
+  disableCreateButton?: boolean;
+  onEditClick?: (record: T) => void;
+  onDeleteClick?: (ids: Array<string | number>) => Promise<void> | void;
+  onReviewClick?: (record: T) => void;
+  disableEditButton?: boolean;
+  disableDeleteButton?: boolean;
+  disableReviewButton?: boolean;
+  pageSizes: number[];
+  forceFilter?: (rows: T[]) => T[];
+  rowStyle?: (record: T, index: number) => React.CSSProperties;
+  rowExpansion?: DataTableRowExpansionProps<T>;
+  hideToolbar: boolean;
+  disableActions: boolean;
+  sustained: boolean;
+  activeTab: number;
+  onTabChange: (index: number) => void;
+  activeTabForceFilter?: (rows: T[]) => T[];
+}
+
+// ── Sub-component prop types ──────────────────────────────────────────────────
+
+export interface DataTableShellHeaderProps {
+  moduleInfo: DataTableShellModuleInfo;
+  basePath?: string;
+  newButtonHref?: string;
+  onNewClick?: () => void;
+  disableCreateButton?: boolean;
+  sustained?: boolean;
+}
+
+export interface DataTableShellToolbarProps<T extends Record<string, unknown>> {
+  moduleInfo: DataTableShellModuleInfo;
+  columns: DataTableShellColumn<T>[];
+  tabs?: DataTableShellTab[];
+  basePath?: string;
+  newButtonHref?: string;
+  onNewClick?: () => void;
+  disableCreateButton?: boolean;
+  sustained?: boolean;
+}
+
+export interface DataTableShellTableProps<T extends Record<string, unknown>> {
+  columns: DataTableShellColumn<T>[];
+  idAccessor: string;
+  pageSizes: number[];
+  forceFilter?: (rows: T[]) => T[];
+  activeTabForceFilter?: (rows: T[]) => T[];
+  rowStyle?: (record: T, index: number) => React.CSSProperties;
+  rowExpansion?: DataTableRowExpansionProps<T>;
+  disableActions?: boolean;
+}
+
+export interface DataTableShellTableActionsProps<T extends Record<string, unknown>> {
+  idAccessor: string;
+  basePath?: string;
+  sustained?: boolean;
+  onEditClick?: (record: T) => void;
+  onDeleteClick?: (ids: Array<string | number>) => Promise<void> | void;
+  onReviewClick?: (record: T) => void;
+  disableEditButton?: boolean;
+  disableDeleteButton?: boolean;
+  disableReviewButton?: boolean;
+}

@@ -1,0 +1,1 @@
+export { DataTableShellActiveFilters } from './DataTableShellActiveFilters';

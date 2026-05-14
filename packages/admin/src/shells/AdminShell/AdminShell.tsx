@@ -2,8 +2,17 @@
 
 import { AppShell, useDisclosure } from "@zetsel/ui";
 import { AdminShellNavbar } from "./components/Navbar/AdminShell.Navbar";
+import type { AdminShellNav } from "./AdminShell.types";
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+import "mantine-datatable/styles.css";
+
+interface AdminShellProps {
+  children: React.ReactNode;
+  nav?: AdminShellNav;
+  pathname?: string;
+}
+
+export function AdminShell({ children, nav = [], pathname }: AdminShellProps) {
   const [opened, { toggle }] = useDisclosure();
   const [collapsedNav, navActions] = useDisclosure();
 
@@ -22,6 +31,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           onToggle={navActions.toggle}
           onOpen={navActions.close}
           onClose={navActions.open}
+          nav={nav}
+          pathname={pathname}
         />
         <AppShell.Main
           py={{
