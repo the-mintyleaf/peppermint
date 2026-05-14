@@ -7,7 +7,12 @@ export function LayoutApp({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" {...mantineHtmlProps}>
       <head>
-        <script data-mantine-script dangerouslySetInnerHTML={{ __html: colorSchemeScript }} />
+        {/* Next.js 16 / React 19: <script> inside components is never executed client-side.
+            <template> with dangerouslySetInnerHTML is the correct way to inject inline scripts. */}
+        <template
+          data-mantine-script
+          dangerouslySetInnerHTML={{ __html: colorSchemeScript }}
+        />
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" />
@@ -18,10 +23,12 @@ export function LayoutApp({ children }: { children: React.ReactNode }) {
       </head>
       <body
         style={{
-          background: "#F6F6F6",
+          background: "#F8F8F8",
         }}
       >
-        <AppWrapper theme={configThemeMantine}>{children}</AppWrapper>
+        <AppWrapper theme={configThemeMantine} withQuery>
+          {children}
+        </AppWrapper>
       </body>
     </html>
   );
