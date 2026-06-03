@@ -1,0 +1,5 @@
+.headerContainer {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--mantine-color-gray-2);
+  background: white;
+}
