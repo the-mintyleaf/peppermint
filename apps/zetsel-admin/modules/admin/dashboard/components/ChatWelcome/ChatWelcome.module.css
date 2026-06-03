@@ -1,0 +1,42 @@
+.welcomeContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 60vh;
+  padding: 2rem;
+}
+
+.content {
+  text-align: center;
+  width: 100%;
+}
+
+.greeting {
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.5px;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.subtext {
+  color: var(--mantine-color-gray-6);
+  margin-bottom: 2rem;
+}
+
+.suggestionCard {
+  padding: 1rem 1.5rem;
+  border: 1px solid var(--mantine-color-gray-2);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--mantine-color-gray-0);
+}
+
+.suggestionCard:hover {
+  border-color: var(--mantine-color-blue-4);
+  background: var(--mantine-color-blue-0);
+  transform: translateY(-2px);
+}

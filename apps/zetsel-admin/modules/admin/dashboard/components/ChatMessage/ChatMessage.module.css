@@ -1,0 +1,38 @@
+.messageGroup {
+  margin-bottom: 1rem;
+}
+
+.avatar {
+  flex-shrink: 0;
+}
+
+.messageBubble {
+  max-width: 70%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.userMessage {
+  background: var(--mantine-color-blue-6);
+  color: white;
+  margin-left: auto;
+}
+
+.assistantMessage {
+  background: var(--mantine-color-gray-1);
+  color: var(--mantine-color-gray-9);
+  border: 1px solid var(--mantine-color-gray-3);
+}
+
+.messageText {
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.timestamp {
+  margin-top: 0.25rem;
+  opacity: 0.7;
+  display: block;
+}

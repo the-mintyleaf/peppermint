@@ -1,14 +1,5 @@
-import { Center, Text, Title } from "@zetsel/ui";
+import { ModuleDashboard } from '@/modules/admin/dashboard';
 
 export default function () {
-  return (
-    <>
-      <Center h="100vh">
-        <Title fw={300} size="sm" ta="center">
-          just a simple
-          <br /> zetsel dashboard
-        </Title>
-      </Center>
-    </>
-  );
+  return <ModuleDashboard />;
 }
