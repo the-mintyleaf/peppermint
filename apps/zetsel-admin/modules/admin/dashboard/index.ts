@@ -1,1 +1,0 @@
-export { ModuleDashboard } from './Dashboard';

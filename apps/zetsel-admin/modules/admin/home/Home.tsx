@@ -8,7 +8,9 @@ import {
   useHomeChats,
   useActiveChatTitle,
   useActiveChatId,
+  useSessionId,
 } from "./home.store";
+import { sendDeepseekMessage } from "./home.api";
 import { ChatInput } from "./components/ChatInput";
 import { ChatMessage } from "./components/ChatMessage";
 import { ChatWelcome } from "./components/ChatWelcome";
@@ -20,11 +22,13 @@ export function ModuleHome() {
   const chats = useHomeChats();
   const currentChatTitle = useActiveChatTitle();
   const activeChatId = useActiveChatId();
+  const sessionId = useSessionId();
 
   const {
     isLoading,
     responseMode,
     addMessage,
+    updateMessage,
     setLoading,
     setResponseMode,
     createNewChat,
@@ -40,19 +44,45 @@ export function ModuleHome() {
       timestamp: new Date(),
     };
 
+    console.log("[Chat] Sending message:", content);
     addMessage(userMessage);
     setLoading(true);
 
-    setTimeout(() => {
-      const assistantMessage = {
-        id: uuidv4(),
+    // Create placeholder for assistant message that will be updated with streaming
+    const assistantMessageId = uuidv4();
+    let accumulatedText = "";
+
+    try {
+      console.log("[Chat] Calling API with sessionId:", sessionId);
+
+      // Add empty placeholder message
+      addMessage({
+        id: assistantMessageId,
         role: "assistant" as const,
-        content: `This is a demo response. You said: "${content}". In a real implementation, this would call your AI API.`,
+        content: "",
         timestamp: new Date(),
-      };
-      addMessage(assistantMessage);
+      });
+
+      // Stream the response with typing effect
+      const response = await sendDeepseekMessage(sessionId, content, (chunk: string) => {
+        accumulatedText += chunk;
+        console.log("[Chat] Received chunk, total length:", accumulatedText.length);
+
+        // Update message in real-time with streaming effect
+        updateMessage(assistantMessageId, accumulatedText);
+      });
+
+      console.log("[Chat] API response complete:", response);
+
+      // Ensure final complete message is set
+      updateMessage(assistantMessageId, response.reply);
+    } catch (error) {
+      console.error("[Chat] Error:", error);
+      const errorMessage = `Sorry, something went wrong. Please try again. (${(error as Error).message})`;
+      updateMessage(assistantMessageId, errorMessage);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const isEmpty = messages.length === 0;
@@ -100,7 +130,7 @@ export function ModuleHome() {
                 }}
                 type="auto"
               >
-                <Stack gap="md" p={0} className={styles.messagesList}>
+                <Stack gap="xl" p={0} className={styles.messagesList}>
                   {messages.map((msg) => (
                     <ChatMessage key={msg.id} message={msg} />
                   ))}
