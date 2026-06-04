@@ -22,7 +22,7 @@ export function DataTableShellHeader({
     <Stack gap={2} visibleFrom="lg">
       <Group justify="space-between" h={80} align="center">
         <div>
-          <Text size="2rem" fw={900}>
+          <Text size="2rem" fw={400}>
             Manage {displayLabel}
           </Text>
         </div>

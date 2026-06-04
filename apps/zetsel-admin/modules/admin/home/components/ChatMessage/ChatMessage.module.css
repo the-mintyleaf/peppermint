@@ -1,0 +1,36 @@
+.userMessageWrapper {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  min-width: 0;
+}
+
+.userBubble {
+  padding: 0.625rem 1rem;
+  border-radius: 1rem;
+  background: var(--mantine-color-gray-6);
+  color: white;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  box-shadow: none;
+  border: none;
+  max-width: 70%;
+  min-width: 0;
+}
+
+.assistantMessageWrapper {
+  width: 100%;
+  min-width: 0;
+}
+
+.messageText {
+  line-height: 1.6;
+  word-break: break-word;
+  margin: 0;
+}
+
+.assistantText {
+  line-height: 1.6;
+  word-break: break-word;
+  color: var(--mantine-color-gray-8);
+}

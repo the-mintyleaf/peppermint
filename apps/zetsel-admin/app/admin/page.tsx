@@ -1,5 +1,5 @@
-import { ModuleDashboard } from '@/modules/admin/dashboard';
+import { ModuleHome } from '@/modules/admin/home';
 
 export default function () {
-  return <ModuleDashboard />;
+  return <ModuleHome />;
 }

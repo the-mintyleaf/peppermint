@@ -13,3 +13,17 @@ export interface AdminShellNavGroup {
 }
 
 export type AdminShellNav = AdminShellNavGroup[];
+
+export interface AdminShellActionButton {
+  label: string;
+  onClick: () => void;
+  icon?: Icon;
+  color?: string;
+  badgeCount?: number;
+}
+
+export interface AdminShellHeaderConfig {
+  greeting: string;
+  adminName: string;
+  actionButtons?: AdminShellActionButton[];
+}

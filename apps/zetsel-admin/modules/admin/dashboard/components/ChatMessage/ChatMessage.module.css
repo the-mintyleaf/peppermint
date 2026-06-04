@@ -1,38 +1,37 @@
-.messageGroup {
-  margin-bottom: 1rem;
+.userMessageContainer {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+  padding: 0 0.5rem;
 }
 
-.avatar {
-  flex-shrink: 0;
-}
-
-.messageBubble {
-  max-width: 70%;
+.userBubble {
+  max-width: 60%;
   padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
+  border-radius: 1rem;
+  background: var(--mantine-color-gray-7);
+  color: white;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  box-shadow: none;
+  border: none;
 }
 
-.userMessage {
-  background: var(--mantine-color-blue-6);
-  color: white;
-  margin-left: auto;
-}
-
-.assistantMessage {
-  background: var(--mantine-color-gray-1);
-  color: var(--mantine-color-gray-9);
-  border: 1px solid var(--mantine-color-gray-3);
+.assistantMessageContainer {
+  margin-bottom: 1.5rem;
+  padding: 0 0.5rem;
+  width: 100%;
 }
 
 .messageText {
-  line-height: 1.5;
+  line-height: 1.6;
   word-break: break-word;
+  margin: 0;
 }
 
-.timestamp {
-  margin-top: 0.25rem;
-  opacity: 0.7;
+.assistantText {
+  line-height: 1.6;
+  word-break: break-word;
+  color: var(--mantine-color-gray-8);
   display: block;
 }

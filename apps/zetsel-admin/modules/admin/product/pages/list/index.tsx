@@ -50,7 +50,7 @@ export function ProductsList() {
         label: "Products",
         description: "Manage your product catalogue",
       }}
-      basePath="/admin/products"
+      basePath="/admin/product-management/products"
       tabs={STATUS_TABS}
       pageSizes={[10, 20, 30, 50]}
       defaultPageSize={20}

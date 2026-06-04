@@ -16,7 +16,7 @@ export const adminNav: AdminShellNav = [
   {
     label: "Overview",
     items: [
-      { label: "Dashboard", href: "/admin", icon: ChartBarIcon },
+      { label: "Home", href: "/admin", icon: ChartBarIcon },
       { label: "Storefront", href: "/admin/storefront", icon: StorefrontIcon },
     ],
   },
@@ -28,7 +28,7 @@ export const adminNav: AdminShellNav = [
         href: "/admin/product-management/products",
         icon: PackageIcon,
       },
-      { label: "Categories", href: "/admin/catalog/categories", icon: TagIcon },
+      { label: "Categories", href: "/admin/product-management/categories", icon: TagIcon },
       {
         label: "Inventory",
         href: "/admin/catalog/inventory",

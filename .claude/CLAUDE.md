@@ -1,4 +1,4 @@
-# Zetsel Frontend
+# Zetsel Frontend Architecture
 
 Turborepo monorepo. UI lives in `@zetsel/ui` (Mantine wrapper) and is consumed by apps. Apps will be Next.js using the App Router.
 
@@ -12,7 +12,7 @@ Turborepo monorepo. UI lives in `@zetsel/ui` (Mantine wrapper) and is consumed b
 - `@zetsel/config` — shared config values
 - `@zetsel/utils` — shared utility functions
 
-No `apps/` directory exists yet. When creating an app, use Next.js with the App Router.
+Apps live in `apps/` — see [App Structure](#app-structure) below. When creating an app, use Next.js with the App Router.
 
 ## Stack Rules
 
@@ -20,11 +20,11 @@ No `apps/` directory exists yet. When creating an app, use Next.js with the App 
 
 **Forms** — always use `@mantine/form` via `@zetsel/ui`. Never use React Hook Form or other form libraries.
 
-**React Query + Axios** — all server state goes through React Query. No fetching in `useEffect`. Axios instance is in `src/lib/api.ts` — never instantiate it inline. Query keys live next to their query function.
+**React Query + Axios** — all server state goes through React Query. No fetching in `useEffect`. All mutations use `useMutation` — never call Axios directly in event handlers. Axios instance is in `src/lib/api.ts` — never instantiate it inline. Query keys live next to their query function.
 
 **State ownership:**
-- Server/async data → React Query
-- Global client state → Zustand (`src/stores/`)
+- Server/async data → React Query (`useQuery` / `useMutation`)
+- Global client state → Zustand — colocate in `<Component>.store.ts`, or `stores/` at the app root for state shared across multiple components
 - Scoped subtree state → React Context
 - Local component state → `useState`
 
@@ -37,7 +37,9 @@ No `apps/` directory exists yet. When creating an app, use Next.js with the App 
 
 **Phosphor Icons** — only icon library. Default weight `regular`. Always include `aria-label` on meaningful icons.
 
-**Framer Motion** — for intentional animations only. Check `useReducedMotion()` for non-trivial motion.
+**Framer Motion** — for intentional animations only. Any animation with duration > 300ms or that shifts layout must check `useReducedMotion()` and skip or reduce motion when true.
+
+**Accessibility** — semantic HTML first: use the right element before reaching for ARIA. No div-soup. Target WCAG 2.1 AA — covers contrast, keyboard navigation, and screen reader support.
 
 ## Naming Conventions
 
@@ -53,54 +55,32 @@ No `apps/` directory exists yet. When creating an app, use Next.js with the App 
 
 ## Component Structure
 
-When building components, create a folder with the component name in `kebab-case`. Use this structure:
+This is the base structure for **any component anywhere** in the monorepo — packages, layouts, modules, or apps.
 
-**Always include:**
-- `<ComponentName>.tsx` — Main component file
-- `<ComponentName>.types.ts` — Props interfaces and component-specific types
-- `index.ts` — Barrel export for the component and types
-
-**Include as needed:**
-- `<ComponentName>.module.css` — Styles (if not using Mantine defaults)
-- `<ComponentName>.store.ts` — Zustand store (only if component manages complex state)
-- `<ComponentName>.hooks.ts` — Custom hooks used by this component
-- `<ComponentName>.utils.ts` — Component-specific helper functions
-- `<ComponentName>.stories.tsx` — Storybook stories (when added)
-- `<ComponentName>.test.tsx` — Tests (when added)
-
-**Minimal example:**
 ```
-UserCard/
-├── UserCard.tsx
-├── UserCard.types.ts
-└── index.ts
-```
-
-**Full-featured example:**
-```
-DataTable/
-├── DataTable.tsx
-├── DataTable.types.ts
-├── DataTable.module.css
-├── DataTable.store.ts
-├── DataTable.hooks.ts
-├── DataTable.utils.ts
-├── DataTable.test.tsx
-├── DataTable.stories.tsx
+<ComponentName>/              # folder in kebab-case
+├── <ComponentName>.tsx       # required — main component
+├── <ComponentName>.types.ts  # required — props and component-specific types
+├── <ComponentName>.module.css    # if not using Mantine defaults
+├── <ComponentName>.context.ts    # if component owns a React context
+├── <ComponentName>.store.ts      # if component needs complex Zustand state
+├── <ComponentName>.hooks.ts      # reusable hooks extracted from the component
+├── <ComponentName>.utils.ts      # one-off helpers
+├── <ComponentName>.stories.tsx   # when Storybook is relevant
+├── <ComponentName>.test.tsx      # when tests are added
 ├── docs/
-│   └── README.md
-└── index.ts
+│   └── README.md                 # always include for new modules/packages
+└── index.ts                      # required — barrel export
 ```
 
-**Guidelines:**
 - Props and types go in `.types.ts`, not in the main component file
-- Complex state → `.store.ts` (Zustand). Simple UI state → `useState`
+- Complex state → `.store.ts`. Simple UI state → `useState`
 - Reusable logic → `.hooks.ts`. One-off helpers → `.utils.ts`
-- Always include `docs/README.md` when building new modules, components, or packages
-- Export everything relevant in `index.ts` for clean imports: `import { UserCard, type UserCardProps } from '@zetsel/ui'`
+- Export everything relevant in `index.ts`: `import { UserCard, type UserCardProps } from '@zetsel/ui'`
 
 ## Development Workflow
 
+- For major tasks, always create and maintain a /todo folder with task files named after the related feature or functionality. Track progress continuously and mark tasks as completed as work is finished.
 - Do not work on the main branch. Always create a new branch: `/dev/<work-name>`
 - Use pnpm, not npm
 - No testing infrastructure yet — do not generate test files unless explicitly asked
@@ -111,6 +91,54 @@ DataTable/
 - Split long files and components when they're doing too much, not just when they're long
 - No new dependencies that overlap the existing stack without flagging it first
 - Be concise in responses. Don't explain what you're about to do — just do it
+- When adding anything to a package, include a doc in `packages/<pkg>/docs/<Name>.md` and a usage doc in `usage-doc/<pkg>/<Name>.md`
+
+## App Structure
+
+Apps live in `/apps/<app-name>/`. The `app/` directory is thin — it only imports from `layouts/` and `modules/`. All components follow the [Component Structure](#component-structure) above.
+
+```
+apps/<app-name>/
+├── app/                    # Next.js App Router — only imports from layouts/ and modules/
+├── layouts/
+│   └── <layout-name>/      # Component Structure applies here
+│       ├── index.ts
+│       ├── <layout-name>.tsx
+│       ├── <layout-name>.module.css
+│       ├── <layout-name>.store.ts    # optional
+│       ├── <layout-name>.context.tsx # optional
+│       ├── <layout-name>.hooks.ts    # optional
+│       └── components/
+│           └── <component-name>/     # Component Structure applies here
+├── modules/
+│   └── <module-group>/
+│       └── <module-name>/            # Component Structure applies here
+├── components/             # App-level shared components (Component Structure applies)
+├── config/                 # App, framework, and env configs
+│   └── <config-name>.ts
+├── context/                # Global React context for this app (if needed)
+│   └── <context-name>.tsx
+└── assets/
+    ├── img/
+    ├── svg/
+    ├── fonts/
+    ├── vid/
+    └── ...
+```
+
+**Naming rule:** layout folders use `kebab-case` and export a `PascalCase` named export matching the folder name (e.g. `root-layout` → `LayoutRoot`). Module folders follow the same pattern (e.g. `dashboard` → `ModuleDashboard`, prefixed with `Module`). Pages and layouts in `app/` only re-export from `layouts/` or `modules/` — no logic lives there.
+
+`app/layout.tsx`
+```tsx
+import { LayoutRoot } from '../layouts/root-layout';
+export default LayoutRoot;
+```
+
+`app/page.tsx`
+```tsx
+import { ModuleDashboard } from '../modules/dashboard';
+export default ModuleDashboard;
+```
 
 ## Git Commit Format
 
@@ -119,6 +147,8 @@ DataTable/
 ```
 
 Note: Square brackets are a part of the commit message.
+
+**Update types:** `add` · `fix` · `update` · `remove` · `docs`
 
 Examples:
 - `[@zetsel/ui/UserCard] add: new UserCard component`
