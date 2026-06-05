@@ -5,6 +5,7 @@ Turborepo monorepo. UI lives in `@zetsel/ui` (Mantine wrapper) and is consumed b
 ## Monorepo Structure
 
 **Packages:**
+
 - `@zetsel/ui` — Mantine component wrapper (shared UI)
 - `@zetsel/api-client` — Axios-based API client
 - `@zetsel/admin` — admin UI components
@@ -23,6 +24,7 @@ Apps live in `apps/` — see [App Structure](#app-structure) below. When creatin
 **React Query + Axios** — all server state goes through React Query. No fetching in `useEffect`. All mutations use `useMutation` — never call Axios directly in event handlers. Axios instance is in `src/lib/api.ts` — never instantiate it inline. Query keys live next to their query function.
 
 **State ownership:**
+
 - Server/async data → React Query (`useQuery` / `useMutation`)
 - Global client state → Zustand — colocate in `<Component>.store.ts`, or `stores/` at the app root for state shared across multiple components
 - Scoped subtree state → React Context
@@ -31,6 +33,7 @@ Apps live in `apps/` — see [App Structure](#app-structure) below. When creatin
 **Routing** — Next.js App Router. Use `app/` directory conventions: layouts, pages, loading, error files. No client-side router libraries.
 
 **Error handling:**
+
 - API errors and user-facing messages → Mantine notifications (via `@zetsel/ui`)
 - Unexpected runtime errors → React error boundaries
 - Never swallow errors silently
@@ -80,7 +83,7 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 
 ## Development Workflow
 
-- For major tasks, always create and maintain a /todo folder with task files named after the related feature or functionality. Track progress continuously and mark tasks as completed as work is finished.
+- For major tasks, always create and maintain a ./todo folder with task files named after the related feature or functionality. Track progress continuously and mark tasks as completed as work is finished.
 - Do not work on the main branch. Always create a new branch: `/dev/<work-name>`
 - Use pnpm, not npm
 - No testing infrastructure yet — do not generate test files unless explicitly asked
@@ -92,6 +95,7 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 - No new dependencies that overlap the existing stack without flagging it first
 - Be concise in responses. Don't explain what you're about to do — just do it
 - When adding anything to a package, include a doc in `packages/<pkg>/docs/<Name>.md` and a usage doc in `usage-doc/<pkg>/<Name>.md`
+- When working on anything do not make extra documents for completion.
 
 ## App Structure
 
@@ -129,14 +133,16 @@ apps/<app-name>/
 **Naming rule:** layout folders use `kebab-case` and export a `PascalCase` named export matching the folder name (e.g. `root-layout` → `LayoutRoot`). Module folders follow the same pattern (e.g. `dashboard` → `ModuleDashboard`, prefixed with `Module`). Pages and layouts in `app/` only re-export from `layouts/` or `modules/` — no logic lives there.
 
 `app/layout.tsx`
+
 ```tsx
-import { LayoutRoot } from '../layouts/root-layout';
+import { LayoutRoot } from "../layouts/root-layout";
 export default LayoutRoot;
 ```
 
 `app/page.tsx`
+
 ```tsx
-import { ModuleDashboard } from '../modules/dashboard';
+import { ModuleDashboard } from "../modules/dashboard";
 export default ModuleDashboard;
 ```
 
@@ -151,6 +157,7 @@ Note: Square brackets are a part of the commit message.
 **Update types:** `add` · `fix` · `update` · `remove` · `docs`
 
 Examples:
+
 - `[@zetsel/ui/UserCard] add: new UserCard component`
 - `[@zetsel/auth] fix: handle logout errors gracefully`
 - `[admin-app/dashboard] update: improve layout responsiveness`

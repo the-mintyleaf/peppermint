@@ -1,7 +1,8 @@
 import type { Student, StudentsFetchResponse } from "./students.types";
 import type { QueryParams } from "@zetsel/admin";
+import { v4 as uuidv4 } from "uuid";
 
-const mockStudents: Student[] = [
+let mockStudents: Student[] = [
   {
     id: "1",
     fullName: "Alice Johnson",
@@ -116,4 +117,32 @@ export async function fetchStudents(params?: QueryParams): Promise<StudentsFetch
       pageSize,
     },
   };
+}
+
+export async function createStudent(values: Partial<Student>): Promise<Student> {
+  const newStudent: Student = {
+    id: uuidv4(),
+    fullName: values.fullName || "",
+    email: values.email || "",
+    phone: values.phone || "",
+    status: values.status || "active",
+    enrolledAt: values.enrolledAt || new Date().toISOString().split("T")[0],
+    program: values.program || "",
+    nationality: values.nationality || "",
+  };
+  mockStudents = [newStudent, ...mockStudents];
+  return newStudent;
+}
+
+export async function updateStudent(id: string, values: Partial<Student>): Promise<Student> {
+  const index = mockStudents.findIndex((s) => s.id === id);
+  if (index === -1) throw new Error("Student not found");
+
+  const updated = { ...mockStudents[index], ...values, id };
+  mockStudents[index] = updated;
+  return updated;
+}
+
+export async function deleteStudent(id: string): Promise<void> {
+  mockStudents = mockStudents.filter((s) => s.id !== id);
 }

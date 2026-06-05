@@ -1,10 +1,16 @@
 "use client";
 
-import { DataTableShell } from "@zetsel/admin";
+import { ModalTableShell } from "@zetsel/admin";
 import type { DataTableShellTab } from "@zetsel/admin";
-import { fetchStudents } from "../../students.api";
+import {
+  fetchStudents,
+  createStudent,
+  updateStudent,
+  deleteStudent,
+} from "../../students.api";
 import { studentsColumns } from "./students.columns";
 import { studentQueryKeys } from "../../students.queryKeys";
+import { StudentForm } from "../../form/StudentForm";
 import type { Student } from "../../students.types";
 
 const tabs: DataTableShellTab[] = [
@@ -17,15 +23,25 @@ const tabs: DataTableShellTab[] = [
 
 export function StudentsList() {
   return (
-    <DataTableShell<Student>
+    <ModalTableShell<Student>
       queryKey={studentQueryKeys.list()}
       queryGetFn={fetchStudents}
       dataKey="data"
       paginationKey="meta"
-      enableServerQuery={false}
       columns={studentsColumns}
-      moduleInfo={{ name: "students", label: "Students" }}
-      basePath="/admin/students"
+      moduleInfo={{
+        name: "students",
+        label: "Students",
+        description: "Manage student enrollments and profiles",
+      }}
+      idAccessor="id"
+      createFormComponent={StudentForm}
+      editFormComponent={StudentForm}
+      onCreateApi={(values: any) => createStudent(values)}
+      onEditApi={(values: any) => updateStudent(values.id, values)}
+      onDeleteApi={(id) => deleteStudent(String(id))}
+      pageSizes={[10, 20, 30, 50]}
+      defaultPageSize={20}
       tabs={tabs}
     />
   );
