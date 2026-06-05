@@ -4,6 +4,13 @@ import type { Chat, Message, ResponseMode } from './home.types';
 
 const CHAT_TITLE_MAX = 48;
 
+function generateSessionId(): string {
+  if (typeof window === 'undefined') return '';
+  // Generate a fresh session ID on every page load
+  const sessionId = uuidv4();
+  return sessionId;
+}
+
 function titleFromMessage(content: string): string {
   const trimmed = content.trim();
   if (!trimmed) return 'New chat';
@@ -18,7 +25,9 @@ interface HomeStore {
   isLoading: boolean;
   error: string | null;
   responseMode: ResponseMode;
+  sessionId: string;
   addMessage: (message: Message) => void;
+  updateMessage: (messageId: string, content: string) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setResponseMode: (mode: ResponseMode) => void;
@@ -33,6 +42,7 @@ export const useHomeStore = create<HomeStore>((set) => ({
   isLoading: false,
   error: null,
   responseMode: 'FastResponse',
+  sessionId: generateSessionId(),
   addMessage: (message) =>
     set((state) => {
       const now = new Date();
@@ -63,6 +73,25 @@ export const useHomeStore = create<HomeStore>((set) => ({
 
       return { chats: updatedChats, activeChatId };
     }),
+  updateMessage: (messageId, content) =>
+    set((state) => {
+      const now = new Date();
+      const { chats, activeChatId } = state;
+
+      if (!activeChatId) return state;
+
+      const updatedChats = chats.map((chat) => {
+        if (chat.id !== activeChatId) return chat;
+
+        const messages = chat.messages.map((msg) =>
+          msg.id === messageId ? { ...msg, content } : msg
+        );
+
+        return { ...chat, messages, updatedAt: now };
+      });
+
+      return { chats: updatedChats };
+    }),
   setLoading: (loading) => set({ isLoading: loading }),
   setError: (error) => set({ error }),
   setResponseMode: (mode) => set({ responseMode: mode }),
@@ -92,4 +121,8 @@ export function useActiveChatTitle(): string {
 
 export function useActiveChatId(): string | null {
   return useHomeStore((state) => state.activeChatId);
+}
+
+export function useSessionId(): string {
+  return useHomeStore((state) => state.sessionId);
 }

@@ -94,7 +94,6 @@
 .inputWrapper {
   padding: 1rem 1.5rem;
   background: #ffffff;
-  border-top: 1px solid var(--mantine-color-gray-2);
   flex-shrink: 0;
   width: 100%;
   box-sizing: border-box;

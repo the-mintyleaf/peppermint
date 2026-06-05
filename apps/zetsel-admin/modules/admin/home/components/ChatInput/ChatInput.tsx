@@ -163,21 +163,7 @@ export function ChatInput({
   }
 
   return (
-    <Paper className={styles.inlineContainer} p="sm" radius="lg">
-      <div className={styles.inlineTopBar}>
-        <Text size="xs" c="dimmed">
-          Ask Mint AI anything or tell it to do something for you
-        </Text>
-        <Group gap={4} wrap="nowrap">
-          <span className={styles.sparkle}>
-            <SparkleIcon size={12} weight="fill" />
-          </span>
-          <Text size="xs" c="dimmed">
-            Powered by Mint.Brain 1.0
-          </Text>
-        </Group>
-      </div>
-
+    <Paper className={styles.inlineContainer} p={4} radius="lg">
       <div className={styles.inlineInnerBox}>
         <Textarea
           placeholder="Type your prompt here..."
