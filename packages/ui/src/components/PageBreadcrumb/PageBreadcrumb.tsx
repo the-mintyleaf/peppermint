@@ -7,6 +7,8 @@ interface PageBreadcrumbProps {
 }
 
 export function PageBreadcrumb({ items }: PageBreadcrumbProps) {
+  if (items.length === 0) return null;
+
   return (
     <Breadcrumbs separatorMargin={4} opacity={0.5}>
       {items.map((item, index) => (

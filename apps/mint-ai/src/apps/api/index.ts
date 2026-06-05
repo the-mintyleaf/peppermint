@@ -52,13 +52,21 @@ async function main() {
   });
 
   app.addHook("onSend", (req, reply, payload, next) => {
-    const origin = (reply as any).corsOrigin;
-    if (origin) {
-      reply.header("Access-Control-Allow-Origin", origin);
-      reply.header("Vary", "Origin");
-      reply.header("Access-Control-Allow-Credentials", "false");
+    const corsOrigins = process.env.VAGENT_CORS_ORIGINS || "http://localhost:3000";
+
+    if (corsOrigins === "*") {
+      reply.header("Access-Control-Allow-Origin", "*");
       reply.header("Access-Control-Allow-Headers", "content-type");
       reply.header("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
+    } else {
+      const origin = (reply as any).corsOrigin;
+      if (origin) {
+        reply.header("Access-Control-Allow-Origin", origin);
+        reply.header("Vary", "Origin");
+        reply.header("Access-Control-Allow-Credentials", "false");
+        reply.header("Access-Control-Allow-Headers", "content-type");
+        reply.header("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
+      }
     }
     next();
   });

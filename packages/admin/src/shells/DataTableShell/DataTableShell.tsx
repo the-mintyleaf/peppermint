@@ -100,10 +100,19 @@ function DataTableShellInner<T extends Record<string, unknown>>({
     [activeTab, onTabChange, selectedRecords],
   );
 
+  const breadcrumbItems = useMemo(() => {
+    if (!basePath) return [];
+    const parts = basePath.split('/').filter(Boolean);
+    return parts.map((part, index) => ({
+      label: part.charAt(0).toUpperCase() + part.slice(1),
+      href: '/' + parts.slice(0, index + 1).join('/'),
+    }));
+  }, [basePath]);
+
   return (
     <DataTableShellContext.Provider value={contextValue}>
       <Group pl="md" h={38} justify="space-between">
-        <PageBreadcrumb />
+        <PageBreadcrumb items={breadcrumbItems} />
       </Group>
 
       <Divider />

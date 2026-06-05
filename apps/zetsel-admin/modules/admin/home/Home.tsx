@@ -1,6 +1,7 @@
 "use client";
 
 import { Box, ScrollArea, Stack, Container, Divider } from "@zetsel/ui";
+import { useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import {
   useHomeStore,
@@ -23,6 +24,7 @@ export function ModuleHome() {
   const currentChatTitle = useActiveChatTitle();
   const activeChatId = useActiveChatId();
   const sessionId = useSessionId();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const {
     isLoading,
@@ -35,6 +37,18 @@ export function ModuleHome() {
     selectChat,
     clearAllChats,
   } = useHomeStore();
+
+  // Auto-scroll to bottom when messages update
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const scrollElement = scrollAreaRef.current.querySelector(
+        "[data-radix-scroll-area-viewport]"
+      );
+      if (scrollElement) {
+        scrollElement.scrollTop = scrollElement.scrollHeight;
+      }
+    }
+  }, [messages]);
 
   const handleSendMessage = async (content: string) => {
     const userMessage = {
@@ -64,13 +78,20 @@ export function ModuleHome() {
       });
 
       // Stream the response with typing effect
-      const response = await sendDeepseekMessage(sessionId, content, (chunk: string) => {
-        accumulatedText += chunk;
-        console.log("[Chat] Received chunk, total length:", accumulatedText.length);
+      const response = await sendDeepseekMessage(
+        sessionId,
+        content,
+        (chunk: string) => {
+          accumulatedText += chunk;
+          console.log(
+            "[Chat] Received chunk, total length:",
+            accumulatedText.length,
+          );
 
-        // Update message in real-time with streaming effect
-        updateMessage(assistantMessageId, accumulatedText);
-      });
+          // Update message in real-time with streaming effect
+          updateMessage(assistantMessageId, accumulatedText);
+        },
+      );
 
       console.log("[Chat] API response complete:", response);
 
@@ -100,7 +121,7 @@ export function ModuleHome() {
 
       <Divider />
 
-      <Container size="md" className={styles.containerWrapper}>
+      <Container size="sm" className={styles.containerWrapper}>
         {isEmpty ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyStateGlow} aria-hidden />
@@ -123,6 +144,7 @@ export function ModuleHome() {
           <>
             <div className={styles.contentWrapper}>
               <ScrollArea
+                ref={scrollAreaRef}
                 className={styles.messagesArea}
                 classNames={{
                   viewport: styles.messagesViewport,
@@ -130,7 +152,7 @@ export function ModuleHome() {
                 }}
                 type="auto"
               >
-                <Stack gap="xl" p={0} className={styles.messagesList}>
+                <Stack gap="xs" p={0} className={styles.messagesList}>
                   {messages.map((msg) => (
                     <ChatMessage key={msg.id} message={msg} />
                   ))}
