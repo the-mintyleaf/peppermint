@@ -44,8 +44,9 @@ export function ModalTableShell<T extends Record<string, unknown>>({
   const queryClient = useQueryClient();
 
   const invalidate = useCallback(() => {
+    const normalizedKey = Array.isArray(queryKey) ? queryKey : queryKey.split('.');
     void queryClient.invalidateQueries({
-      queryKey: queryKey.split('.'),
+      queryKey: normalizedKey,
     });
   }, [queryClient, queryKey]);
 

@@ -11,6 +11,7 @@ export * from "@mantine/charts";
 export * from "@mantine/code-highlight";
 export * from "@mantine/dropzone";
 export * from "@mantine/form";
+export * from "@tanstack/react-query";
 
 export * from "./wrappers/AppWrapper";
 export * from "./wrappers/QueryClientWrapper";

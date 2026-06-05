@@ -48,8 +48,13 @@ export function DataTableWrapper<T = unknown>({
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
 
-  // Parsed query key — stable as long as the queryKey string doesn't change
-  const parsedKey = useMemo(() => queryKey.split('.'), [queryKey]);
+  // Parsed query key — normalize from string or array, stable as long as the queryKey doesn't change
+  const parsedKey = useMemo(() => {
+    if (Array.isArray(queryKey)) {
+      return queryKey as readonly string[];
+    }
+    return queryKey.split('.');
+  }, [queryKey]);
 
   // Subscribe to query-relevant store slices.
   // useStore from zustand/react wires the React subscription so the component

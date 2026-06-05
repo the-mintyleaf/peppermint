@@ -79,8 +79,8 @@ export interface TablePersistenceOptions {
 }
 
 export interface DataTableWrapperProps<T = unknown> {
-  /** Dot-notation key, e.g. 'users.list' — split into array for React Query */
-  queryKey: string;
+  /** Query key: either dot-notation string (e.g. 'users.list') or array (e.g. ['users', 'list']) */
+  queryKey: string | readonly string[];
   queryGetFn: (params?: QueryParams) => Promise<unknown>;
   /** Dot-notation path into the response to reach the rows array, e.g. 'data.items' */
   dataKey?: string;
