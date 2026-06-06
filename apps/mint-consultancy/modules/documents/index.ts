@@ -1,8 +1,10 @@
 import { DocumentEditor } from "./pages/editor/DocumentEditor";
 import { DocumentsList } from "./pages/list/DocumentsList";
+import { DocumentsNew } from "./pages/new/DocumentsNew";
 
 export const ModuleDocuments = {
   list: DocumentsList,
+  new: DocumentsNew,
   editor: DocumentEditor,
 };
 

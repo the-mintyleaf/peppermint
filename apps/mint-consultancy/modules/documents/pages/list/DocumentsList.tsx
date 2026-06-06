@@ -46,6 +46,7 @@ export function DocumentsList() {
         label: "Documents",
         description: "Manage student document workspaces",
       }}
+      basePath="/admin/documents"
       idAccessor="studentId"
       disableActions
       pageSizes={[10, 20, 50]}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
+import { Divider, Group, PageBreadcrumb } from "@zetsel/ui";
 import { DocumentEditorProvider } from "../../context";
 import { DocHeader } from "../../components/DocHeader";
 import { DocToolbar } from "../../components/DocToolbar";
@@ -12,12 +13,27 @@ import { CreateDocumentModal } from "../../components/CreateDocumentModal";
 import { EditFieldsModal } from "../../components/EditFieldsModal";
 import styles from "./DocumentEditor.module.css";
 
-function DocumentEditorInner() {
+interface DocumentEditorInnerProps {
+  studentId: string;
+}
+
+function DocumentEditorInner({ studentId }: DocumentEditorInnerProps) {
   const [pagesOpen, setPagesOpen] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(true);
 
+  const breadcrumbItems = [
+    { label: "Admin", href: "/admin" },
+    { label: "Documents", href: "/admin/documents" },
+    { label: "Editor", href: `/documents/${studentId}` },
+  ];
+
   return (
-    <div className={styles.root}>
+    <>
+      <Group pl="md" h={38} justify="space-between">
+        <PageBreadcrumb items={breadcrumbItems} />
+      </Group>
+      <Divider />
+      <div className={styles.root}>
       <div className="no-print">
         <DocHeader />
         <DocToolbar
@@ -38,7 +54,8 @@ function DocumentEditorInner() {
 
       <CreateDocumentModal />
       <EditFieldsModal />
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -52,7 +69,7 @@ export function DocumentEditor() {
 
   return (
     <DocumentEditorProvider studentId={studentId}>
-      <DocumentEditorInner />
+      <DocumentEditorInner studentId={studentId} />
     </DocumentEditorProvider>
   );
 }

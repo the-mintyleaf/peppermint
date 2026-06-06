@@ -43,6 +43,7 @@ export function StudentsList() {
       pageSizes={[10, 20, 30, 50]}
       defaultPageSize={20}
       tabs={tabs}
+      basePath="/admin/students"
     />
   );
 }
