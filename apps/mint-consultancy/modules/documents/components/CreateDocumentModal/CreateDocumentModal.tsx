@@ -1,63 +1,60 @@
 "use client";
 
-import { Modal, notifications, useMutation, useQueryClient } from "@zetsel/ui";
+import { Modal, notifications } from "@zetsel/ui";
+import { useCallback, useEffect } from "react";
 import { useDocumentEditor } from "../../context";
-import { documentsApi } from "../../documents.api";
-import { documentQueryKeys } from "../../documents.queryKeys";
 import { getDefaultLabel, getDocumentTypeConfig } from "../../documentTypeConfig";
 import type { DocumentContent } from "../../documents.types";
 
 export function CreateDocumentModal() {
-  const queryClient = useQueryClient();
   const {
     studentId,
-    studentFullData,
     createModalOpen,
     createModalType,
     closeCreateModal,
-    addDocumentToList,
+    createDocumentWithContent,
+    isCreatingDocument,
+    studentFullData,
   } = useDocumentEditor();
 
-  const createMutation = useMutation({
-    mutationFn: documentsApi.create,
-    onSuccess: (doc) => {
-      queryClient.invalidateQueries({ queryKey: documentQueryKeys.list(studentId) });
-      addDocumentToList(doc);
+  const config = createModalType ? getDocumentTypeConfig(createModalType) : null;
+  const Form = config?.Form;
+
+  useEffect(() => {
+    if (createModalOpen && createModalType && !config) {
+      notifications.show({
+        title: "Invalid document type",
+        message: `Document type "${createModalType}" not found`,
+        color: "red",
+      });
       closeCreateModal();
-      notifications.show({ title: "Document created", color: "green" });
+    }
+  }, [createModalOpen, createModalType, config, closeCreateModal]);
+
+  const handleSubmit = useCallback(
+    (content: DocumentContent) => {
+      if (!createModalType) return;
+      createDocumentWithContent(createModalType, content);
+      closeCreateModal();
     },
-    onError: () => {
-      notifications.show({ title: "Failed to create document", color: "red" });
-    },
-  });
-
-  if (!createModalType) return null;
-
-  const config = getDocumentTypeConfig(createModalType);
-  const Form = config.Form;
-
-  const handleSubmit = (content: DocumentContent) => {
-    createMutation.mutate({
-      studentId,
-      type: createModalType,
-      label: getDefaultLabel(createModalType),
-      content,
-    });
-  };
+    [createModalType, createDocumentWithContent, closeCreateModal]
+  );
 
   return (
     <Modal
-      opened={createModalOpen}
+      opened={createModalOpen && !!createModalType}
       onClose={closeCreateModal}
-      title={`Create ${config.label}`}
+      title={config ? `Create ${config.label}` : "Create page"}
       size="md"
     >
-      <Form
-        studentId={studentId}
-        studentFullData={studentFullData}
-        onSubmit={handleSubmit}
-        isLoading={createMutation.isPending}
-      />
+      {Form && createModalType && (
+        <Form
+          studentId={studentId}
+          studentFullData={studentFullData}
+          onSubmit={handleSubmit}
+          isLoading={isCreatingDocument}
+        />
+      )}
     </Modal>
   );
 }

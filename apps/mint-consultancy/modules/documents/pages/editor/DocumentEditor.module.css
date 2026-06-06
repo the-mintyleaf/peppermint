@@ -170,7 +170,7 @@
 }
 
 .pageThumb {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 210 / 297;
   min-height: 120px;
   max-height: 120px;
   background: var(--mantine-color-brand-0);

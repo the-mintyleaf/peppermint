@@ -6,9 +6,17 @@ export const ModuleDocuments = {
   editor: DocumentEditor,
 };
 
+export { DocumentEditorProvider, useDocumentEditor } from "./context";
+export { useDocumentActions } from "./hooks/useDocumentActions";
+export { usePrintLogs } from "./hooks/usePrintLogs";
+export { useSignatures } from "./hooks/useSignatures";
+
 export type {
   Document,
   DocumentType,
   DocumentContent,
   PrintLog,
+  DocumentFormProps,
+  DocumentTemplateProps,
+  DocumentConfigBarProps,
 } from "./documents.types";

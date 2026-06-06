@@ -23,8 +23,13 @@ export interface DocumentEditorContextValue {
   createModalType: DocumentType | null;
   openCreateModal: (type: DocumentType) => void;
   closeCreateModal: () => void;
+  editFieldsModalOpen: boolean;
+  setEditFieldsModalOpen: (open: boolean) => void;
   updateDocumentContent: (documentId: string, content: DocumentContent) => void;
   removeDocumentFromList: (documentId: string) => void;
   addDocumentToList: (doc: Document) => void;
+  quickCreateDocument: (type: DocumentType) => void;
+  createDocumentWithContent: (type: DocumentType, content: DocumentContent, label?: string) => void;
+  isCreatingDocument: boolean;
   printableContentRef: RefObject<HTMLDivElement | null>;
 }

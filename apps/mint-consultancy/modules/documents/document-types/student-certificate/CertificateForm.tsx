@@ -9,9 +9,10 @@ export function CertificateForm({
   onSubmit,
   isLoading,
 }: DocumentFormProps) {
+  const today = new Date().toISOString().split("T")[0];
   const form = useForm<CertificateContent>({
     initialValues: {
-      issueDate: new Date().toISOString().split("T")[0],
+      issue: today,
       studyType: 0,
       instructorId: null,
       directorId: null,
@@ -52,7 +53,7 @@ export function CertificateForm({
         <TextInput
           label="Issue Date"
           type="date"
-          {...form.getInputProps("issueDate")}
+          {...form.getInputProps("issue")}
           disabled={isLoading}
         />
         <Select

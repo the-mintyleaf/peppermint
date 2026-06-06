@@ -6,7 +6,7 @@ import { documentQueryKeys } from "../documents.queryKeys";
 
 export function usePrintLogs(documentId: string | null) {
   return useQuery({
-    queryKey: documentQueryKeys.printLogs(documentId ?? ""),
+    queryKey: documentQueryKeys.printLogs(documentId),
     queryFn: () => documentsApi.getPrintLogs(documentId!),
     enabled: !!documentId,
   });

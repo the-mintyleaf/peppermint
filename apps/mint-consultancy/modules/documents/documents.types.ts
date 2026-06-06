@@ -1,10 +1,7 @@
 import type { ComponentType } from "react";
+import type { DocumentType } from "./documentTypeDefinitions";
 
-export type DocumentType =
-  | "student-certificate"
-  | "student-cv"
-  | "bank-statement"
-  | "woda-documents";
+export type { DocumentType } from "./documentTypeDefinitions";
 
 export type DocumentStatus = "draft" | "submitted" | "archived";
 
@@ -15,50 +12,129 @@ export interface Signature {
   is_active: boolean;
 }
 
+export interface CertificateMarkEntry {
+  month: string | number;
+  total_days?: number;
+  class_hr?: number;
+  present?: number;
+  absent?: number;
+  attendance_percentage?: number | string;
+}
+
 export interface CertificateContent {
-  issueDate: string;
+  issueDate?: string;
+  issue?: string;
   studyType: 0 | 1;
   instructorId: string | null;
   directorId: string | null;
-  studentName: string;
-  program: string;
-  nationality: string;
+  studentName?: string;
+  program?: string;
+  nationality?: string;
+  firstname?: string;
+  middlename?: string;
+  lastname?: string;
+  date_of_birth?: string;
+  gender?: string;
+  address?: string;
+  date_of_admission?: string;
+  date_of_completion?: string;
+  coursehour?: number;
+  grammar?: string;
+  listening?: string;
+  conversation?: string;
+  reading?: string;
+  composition?: string;
+  image?: string;
+  customBranch?: string;
+  customBranchNo?: string;
+  batch?: {
+    course?: {
+      name?: string;
+      level?: string;
+      total_days?: number;
+      books?: Array<{ name: string }>;
+    };
+    instructor?: unknown[];
+  };
+  marking?: CertificateMarkEntry[];
+  details?: Record<string, unknown>;
+  headerProps?: Record<string, unknown>;
 }
 
 export interface CvContent {
-  summary: string;
-  skills: string;
-  experience: string;
-}
-
-export interface BankStatementContent {
-  bankKey: string;
-  accountHolder: string;
-  accountNumber: string;
-  periodStart: string;
-  periodEnd: string;
-  openingBalance: number;
-  closingBalance: number;
-  transactions: Array<{
-    date: string;
-    description: string;
-    amount: number;
+  summary?: string;
+  skills?: string;
+  experience?: string;
+  first_name?: string;
+  last_name?: string;
+  full_name?: string;
+  date_of_birth?: string;
+  gender?: string;
+  current_address?: string;
+  email?: string;
+  contact?: string;
+  image?: string;
+  student_code?: string;
+  contact_detail?: {
+    emergency_contact_name?: string;
+    emergency_contact_relation?: string;
+    emergency_contact_phone?: string;
+  };
+  experiences?: Array<{
+    company: string;
+    role: string;
+    start_period: string;
+    end_period: string;
   }>;
+  educations?: Array<{
+    institution: string;
+    degree: string;
+    field_of_study: string;
+    start_period: string;
+    end_period: string;
+  }>;
+  family_members?: Array<{
+    name: string;
+    relationship: string;
+    age: number;
+    occupation?: string;
+    contact?: string;
+  }>;
+  gradings?: Array<{
+    grammar: string;
+    conversation: string;
+    composition: string;
+    listening: string;
+    reading: string;
+  }>;
+  batch_detail?: { course?: string; name?: string };
 }
 
-export interface WodaContent {
-  title: string;
-  documentNumber: string;
-  issueDate: string;
-  recipient: string;
-  body: string;
-}
+export type WodaContent = Record<string, unknown> & {
+  wodadoc_refno?: string;
+  wodadoc_date?: string;
+  applicant_name?: string;
+  details?: Record<string, unknown>;
+  headerProps?: Record<string, unknown>;
+};
 
-export type DocumentContent =
-  | CertificateContent
-  | CvContent
-  | BankStatementContent
-  | WodaContent;
+export type BankContent = Record<string, unknown> & {
+  statement_account_holder?: string;
+  statement_account_no?: string;
+  statement_account_address?: string;
+  statement_start_date?: string;
+  statement_end_date?: string;
+  statement_interest?: string;
+  statement_opening_balance?: number;
+  statement_closing_balance?: number;
+  transactions?: Array<Record<string, unknown>>;
+  bank?: string;
+  bank_template?: string;
+  details?: Record<string, unknown>;
+  headerProps?: Record<string, unknown>;
+};
+
+export type DocumentContent = CertificateContent | CvContent | WodaContent | BankContent;
 
 export interface Document {
   id: string;

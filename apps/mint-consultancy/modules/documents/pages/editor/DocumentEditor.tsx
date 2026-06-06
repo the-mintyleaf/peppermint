@@ -9,6 +9,7 @@ import { PagesSidebar } from "../../components/PagesSidebar";
 import { HistorySidebar } from "../../components/HistorySidebar";
 import { DocumentContent } from "../../components/DocumentContent";
 import { CreateDocumentModal } from "../../components/CreateDocumentModal";
+import { EditFieldsModal } from "../../components/EditFieldsModal";
 import styles from "./DocumentEditor.module.css";
 
 function DocumentEditorInner() {
@@ -36,6 +37,7 @@ function DocumentEditorInner() {
       </div>
 
       <CreateDocumentModal />
+      <EditFieldsModal />
     </div>
   );
 }

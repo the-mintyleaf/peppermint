@@ -12,6 +12,7 @@ export * from "@mantine/code-highlight";
 export * from "@mantine/dropzone";
 export * from "@mantine/form";
 export * from "@tanstack/react-query";
+export { default as dayjs } from "dayjs";
 
 export * from "./wrappers/AppWrapper";
 export * from "./wrappers/QueryClientWrapper";

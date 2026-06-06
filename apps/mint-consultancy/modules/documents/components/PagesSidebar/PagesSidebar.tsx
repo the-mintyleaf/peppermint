@@ -5,7 +5,6 @@ import {
   Text,
   ScrollArea,
   ActionIcon,
-  Menu,
   Box,
   Group,
   UnstyledButton,
@@ -15,9 +14,10 @@ import { X as XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { FileText as FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
 import { modals } from "@zetsel/ui";
 import { useDocumentEditor } from "../../context";
-import { documentTypeList, getDocumentTypeConfig } from "../../documentTypeConfig";
+import { getDocumentTypeConfig } from "../../documentTypeConfig";
 import { useDocumentActions } from "../../hooks/useDocumentActions";
-import type { DocumentType } from "../../documents.types";
+import { AddPageMenu } from "../AddPageMenu";
+import { getAvailableDocumentTypes } from "../../utils/documentTypeMenu";
 import styles from "../../pages/editor/DocumentEditor.module.css";
 
 interface PagesSidebarProps {
@@ -30,9 +30,9 @@ export function PagesSidebar({ onClose }: PagesSidebarProps) {
     documents,
     activeDocumentId,
     setActiveDocumentId,
-    openCreateModal,
     printableContentRef,
     removeDocumentFromList,
+    isCreatingDocument,
   } = useDocumentEditor();
 
   const { handleRemoveDocument } = useDocumentActions({
@@ -43,13 +43,7 @@ export function PagesSidebar({ onClose }: PagesSidebarProps) {
     onDocumentRemoved: removeDocumentFromList,
   });
 
-  const availableTypes = documentTypeList.filter((config) => {
-    if (config.requiresStudent && !studentId) return false;
-    if (config.uniquePerStudent && documents.some((d) => d.type === config.type)) {
-      return false;
-    }
-    return true;
-  });
+  const availableTypes = getAvailableDocumentTypes(studentId, documents);
 
   const confirmRemove = (documentId: string, label: string) => {
     modals.openConfirmModal({
@@ -68,31 +62,18 @@ export function PagesSidebar({ onClose }: PagesSidebarProps) {
           Pages
         </Text>
         <Group gap={2}>
-          <Menu shadow="md" position="bottom-start" width={160}>
-            <Menu.Target>
-              <ActionIcon
-                className={styles.iconBtn}
-                variant="subtle"
-                size="xs"
-                aria-label="Add new page"
-                disabled={availableTypes.length === 0}
-              >
-                <PlusIcon size={12} />
-              </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Label>New page</Menu.Label>
-              {availableTypes.map((config) => (
-                <Menu.Item
-                  key={config.type}
-                  fz="xs"
-                  onClick={() => openCreateModal(config.type as DocumentType)}
-                >
-                  {config.label}
-                </Menu.Item>
-              ))}
-            </Menu.Dropdown>
-          </Menu>
+          <AddPageMenu>
+            <ActionIcon
+              className={styles.iconBtn}
+              variant="subtle"
+              size="xs"
+              aria-label="Add new page"
+              disabled={availableTypes.length === 0 || isCreatingDocument}
+              loading={isCreatingDocument}
+            >
+              <PlusIcon size={12} />
+            </ActionIcon>
+          </AddPageMenu>
           <ActionIcon
             className={styles.iconBtn}
             variant="subtle"
@@ -156,24 +137,16 @@ export function PagesSidebar({ onClose }: PagesSidebarProps) {
                 No pages
               </Text>
               {availableTypes.length > 0 && (
-                <Menu shadow="md" position="bottom">
-                  <Menu.Target>
-                    <ActionIcon variant="light" size="sm" aria-label="Add first page">
-                      <PlusIcon size={14} />
-                    </ActionIcon>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    {availableTypes.map((config) => (
-                      <Menu.Item
-                        key={config.type}
-                        fz="xs"
-                        onClick={() => openCreateModal(config.type as DocumentType)}
-                      >
-                        {config.label}
-                      </Menu.Item>
-                    ))}
-                  </Menu.Dropdown>
-                </Menu>
+                <AddPageMenu>
+                  <ActionIcon
+                    variant="light"
+                    size="sm"
+                    aria-label="Add first page"
+                    loading={isCreatingDocument}
+                  >
+                    <PlusIcon size={14} />
+                  </ActionIcon>
+                </AddPageMenu>
               )}
             </Stack>
           )}

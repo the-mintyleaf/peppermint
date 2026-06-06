@@ -1,11 +1,13 @@
 "use client";
 
-import { Center, Stack, Text, Button, SimpleGrid, Loader } from "@zetsel/ui";
+import { Center, Stack, Text, Button, Loader } from "@zetsel/ui";
+import { Plus as PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { useDocumentEditor } from "../../context";
-import { documentTypeList } from "../../documentTypeConfig";
+import { AddPageMenu } from "../AddPageMenu";
+import { getAvailableDocumentTypes } from "../../utils/documentTypeMenu";
 
 export function EmptyState() {
-  const { studentId, isLoadingDocuments, openCreateModal } = useDocumentEditor();
+  const { studentId, documents, isLoadingDocuments, isCreatingDocument } = useDocumentEditor();
 
   if (isLoadingDocuments) {
     return (
@@ -15,10 +17,7 @@ export function EmptyState() {
     );
   }
 
-  const availableTypes = documentTypeList.filter((config) => {
-    if (config.requiresStudent && !studentId) return false;
-    return true;
-  });
+  const availableTypes = getAvailableDocumentTypes(studentId, documents);
 
   return (
     <Center py="xl">
@@ -28,18 +27,18 @@ export function EmptyState() {
             ? "No pages yet. Create your first document."
             : "Select or create a document to begin."}
         </Text>
-        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing={6} w="100%">
-          {availableTypes.map((config) => (
+        {availableTypes.length > 0 && (
+          <AddPageMenu width={240}>
             <Button
-              key={config.type}
               variant="light"
               size="xs"
-              onClick={() => openCreateModal(config.type)}
+              leftSection={<PlusIcon size={14} />}
+              loading={isCreatingDocument}
             >
-              Create {config.label}
+              Add page
             </Button>
-          ))}
-        </SimpleGrid>
+          </AddPageMenu>
+        )}
       </Stack>
     </Center>
   );
