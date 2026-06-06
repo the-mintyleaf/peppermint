@@ -2,60 +2,77 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { Divider, Group, PageBreadcrumb } from "@zetsel/ui";
 import { DocumentEditorProvider } from "../../context";
 import { DocHeader } from "../../components/DocHeader";
 import { DocToolbar } from "../../components/DocToolbar";
 import { PagesSidebar } from "../../components/PagesSidebar";
 import { HistorySidebar } from "../../components/HistorySidebar";
+import { ResizablePanel } from "../../components/ResizablePanel";
 import { DocumentContent } from "../../components/DocumentContent";
 import { CreateDocumentModal } from "../../components/CreateDocumentModal";
 import { EditFieldsModal } from "../../components/EditFieldsModal";
+import { EditCurrentDocumentButton } from "../../components/EditCurrentDocumentButton";
+import { useResizableWidth } from "../../hooks/useResizableWidth";
 import styles from "./DocumentEditor.module.css";
 
-interface DocumentEditorInnerProps {
-  studentId: string;
-}
+const SIDEBAR_INITIAL_WIDTH = 200;
+const EDIT_BUTTON_OFFSET = 16;
 
-function DocumentEditorInner({ studentId }: DocumentEditorInnerProps) {
+function DocumentEditorInner() {
   const [pagesOpen, setPagesOpen] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(true);
-
-  const breadcrumbItems = [
-    { label: "Admin", href: "/admin" },
-    { label: "Documents", href: "/admin/documents" },
-    { label: "Editor", href: `/documents/${studentId}` },
-  ];
+  const pagesResize = useResizableWidth({ initialWidth: SIDEBAR_INITIAL_WIDTH });
+  const historyResize = useResizableWidth({ initialWidth: SIDEBAR_INITIAL_WIDTH });
 
   return (
-    <>
-      <Group pl="md" h={38} justify="space-between">
-        <PageBreadcrumb items={breadcrumbItems} />
-      </Group>
-      <Divider />
-      <div className={styles.root}>
-      <div className="no-print">
+    <div className={styles.root}>
+      <header className={`${styles.mainHeader} no-print`}>
         <DocHeader />
-        <DocToolbar
-          pagesOpen={pagesOpen}
-          historyOpen={historyOpen}
-          onTogglePages={() => setPagesOpen((v) => !v)}
-          onToggleHistory={() => setHistoryOpen((v) => !v)}
-        />
-      </div>
+      </header>
 
       <div className={styles.workspace}>
-        {pagesOpen && <PagesSidebar onClose={() => setPagesOpen(false)} />}
+        {pagesOpen && (
+          <ResizablePanel
+            width={pagesResize.width}
+            side="left"
+            onResizeStart={(event) => pagesResize.startResize(event, "left")}
+          >
+            <PagesSidebar onClose={() => setPagesOpen(false)} />
+          </ResizablePanel>
+        )}
+
         <div className={styles.centerPanel}>
+          <div className={`${styles.subHeader} no-print`}>
+            <DocToolbar
+              pagesOpen={pagesOpen}
+              historyOpen={historyOpen}
+              onTogglePages={() => setPagesOpen((v) => !v)}
+              onToggleHistory={() => setHistoryOpen((v) => !v)}
+            />
+          </div>
           <DocumentContent />
         </div>
-        {historyOpen && <HistorySidebar onClose={() => setHistoryOpen(false)} />}
+
+        {historyOpen && (
+          <ResizablePanel
+            width={historyResize.width}
+            side="right"
+            onResizeStart={(event) => historyResize.startResize(event, "right")}
+          >
+            <HistorySidebar onClose={() => setHistoryOpen(false)} />
+          </ResizablePanel>
+        )}
       </div>
+
+      <EditCurrentDocumentButton
+        rightOffset={
+          historyOpen ? historyResize.width + EDIT_BUTTON_OFFSET : EDIT_BUTTON_OFFSET
+        }
+      />
 
       <CreateDocumentModal />
       <EditFieldsModal />
-      </div>
-    </>
+    </div>
   );
 }
 
@@ -69,7 +86,7 @@ export function DocumentEditor() {
 
   return (
     <DocumentEditorProvider studentId={studentId}>
-      <DocumentEditorInner studentId={studentId} />
+      <DocumentEditorInner />
     </DocumentEditorProvider>
   );
 }

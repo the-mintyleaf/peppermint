@@ -1,9 +1,7 @@
 "use client";
 
 import { useCallback, useRef } from "react";
-import { SimpleGrid, Select, TextInput, useDebouncedCallback, Group, Button } from "@zetsel/ui";
-import { PencilSimple as EditIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
-import { useDocumentEditor } from "../../context";
+import { SimpleGrid, Select, TextInput, useDebouncedCallback } from "@zetsel/ui";
 import type { DocumentConfigBarProps, CertificateContent } from "../../documents.types";
 
 const inputStyles = {
@@ -17,7 +15,6 @@ export function CertificateConfigBar({
   signatures = [],
   disabled,
 }: DocumentConfigBarProps) {
-  const { setEditFieldsModalOpen } = useDocumentEditor();
   const content = document.content as CertificateContent;
   const contentRef = useRef(content);
   contentRef.current = content;
@@ -40,16 +37,6 @@ export function CertificateConfigBar({
 
   return (
     <div>
-      <Group justify="flex-end" p="xs" pb={0}>
-        <Button
-          size="xs"
-          variant="light"
-          leftSection={<EditIcon size={14} aria-hidden />}
-          onClick={() => setEditFieldsModalOpen(true)}
-        >
-          Edit Fields
-        </Button>
-      </Group>
       <SimpleGrid cols={{ base: 2, lg: 4 }} spacing={6} p="xs" maw={900} mx="auto">
         <TextInput
           size="xs"

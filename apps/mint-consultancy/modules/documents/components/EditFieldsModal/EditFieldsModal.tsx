@@ -1,6 +1,6 @@
 "use client";
 
-import { Modal, Button, Group, Stack } from "@zetsel/ui";
+import { Modal } from "@zetsel/ui";
 import { useDocumentEditor } from "../../context";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
 import type { DocumentContent } from "../../documents.types";
@@ -31,13 +31,11 @@ export function EditFieldsModal() {
       size="md"
     >
       {Form && (
-        <Stack gap="md">
-          <Form
-            studentId={activeDocument.studentId}
-            onSubmit={handleSubmit}
-            isLoading={false}
-          />
-        </Stack>
+        <Form
+          studentId={activeDocument.studentId}
+          onSubmit={handleSubmit}
+          isLoading={false}
+        />
       )}
     </Modal>
   );

@@ -14,7 +14,7 @@ export function CvForm({ studentFullData, onSubmit, isLoading }: DocumentFormPro
   };
 
   return (
-    <Stack gap="md">
+    <Stack gap="md" p="md">
       <Text size="sm" c="dimmed">
         A CV will be generated from {studentFullData?.fullName ?? "the student"}&apos;s profile
         data. You can edit the content after creation.

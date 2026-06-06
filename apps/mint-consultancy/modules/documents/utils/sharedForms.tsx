@@ -25,7 +25,7 @@ export function createWodaForm(defaultValues: Record<string, unknown> = {}) {
 
     return (
       <form onSubmit={form.onSubmit}>
-        <Stack gap="md">
+        <Stack gap="md" p="md">
           <TextInput label="Ref. No." {...form.getInputProps("wodadoc_refno")} disabled={isLoading} />
           <TextInput label="Date" type="date" {...form.getInputProps("wodadoc_date")} disabled={isLoading} />
           <TextInput label="Applicant Name" {...form.getInputProps("applicant_name")} required disabled={isLoading} />
@@ -70,7 +70,7 @@ export function createBankForm(defaultValues: Record<string, unknown> = {}) {
 
     return (
       <form onSubmit={form.onSubmit}>
-        <Stack gap="md">
+        <Stack gap="md" p="md">
           <TextInput
             label="Account Holder"
             {...form.getInputProps("statement_account_holder")}

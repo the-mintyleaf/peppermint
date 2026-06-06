@@ -5,6 +5,7 @@ import { useDocumentEditor } from "../../context";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
 import { useDocumentActions } from "../../hooks/useDocumentActions";
 import { EmptyState } from "../EmptyState";
+import styles from "../../pages/editor/DocumentEditor.module.css";
 
 export function DocumentContent() {
   const {
@@ -29,7 +30,7 @@ export function DocumentContent() {
 
   if (documents.length === 0) {
     return (
-      <Box style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <Box className={styles.centerContent} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
         <EmptyState />
       </Box>
     );
@@ -37,7 +38,7 @@ export function DocumentContent() {
 
   if (!activeDocument) {
     return (
-      <Center style={{ flex: 1 }}>
+      <Center className={styles.centerContent}>
         <EmptyState />
       </Center>
     );
@@ -49,7 +50,7 @@ export function DocumentContent() {
   const isHistorical = !!activeHistoricalLog;
 
   return (
-    <ScrollArea style={{ flex: 1 }} type="auto">
+    <ScrollArea className={styles.centerContent} type="auto">
       <Box style={{ position: "relative", minHeight: "100%", padding: "12px 8px" }}>
         <LoadingOverlay visible={isDeleting} zIndex={100} />
 

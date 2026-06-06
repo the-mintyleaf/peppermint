@@ -1,12 +1,15 @@
-'use client';
+"use client";
 
-import { useCallback, useMemo } from 'react';
-import { DataTable } from 'mantine-datatable';
-import type { DataTableSortStatus } from 'mantine-datatable';
-import { useTableData, useTableStore } from '../../../../wrappers/DataTableWrapper';
-import { useDataTableShellContext } from '../../DataTableShell.context';
-import { DataTableShellEmptyState } from '../DataTableShellEmptyState';
-import type { DataTableShellTableProps } from '../../DataTableShell.types';
+import { useCallback, useMemo } from "react";
+import { DataTable } from "mantine-datatable";
+import type { DataTableSortStatus } from "mantine-datatable";
+import {
+  useTableData,
+  useTableStore,
+} from "../../../../wrappers/DataTableWrapper";
+import { useDataTableShellContext } from "../../DataTableShell.context";
+import { DataTableShellEmptyState } from "../DataTableShellEmptyState";
+import type { DataTableShellTableProps } from "../../DataTableShell.types";
 
 export function DataTableShellTable<T extends Record<string, unknown>>({
   columns,
@@ -49,10 +52,10 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
 
     return [
       {
-        accessor: '#' as keyof T & string,
-        title: '#',
+        accessor: "#" as keyof T & string,
+        title: "#",
         width: 44,
-        textAlign: 'center' as const,
+        textAlign: "center" as const,
         render: (_row: T, index: number) => (page - 1) * pageSize + index + 1,
       },
       ...visible,
@@ -61,17 +64,23 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
 
   // mantine-datatable requires sortStatus to be defined when onSortStatusChange is set.
   // Default to the first column accessor so the prop is always a valid value.
-  const defaultSortAccessor = (columns[0]?.accessor ?? 'id') as keyof T & string;
+  const defaultSortAccessor = (columns[0]?.accessor ?? "id") as keyof T &
+    string;
 
   const sortStatus: DataTableSortStatus<T> = sort[0]
-    ? { columnAccessor: sort[0].field as keyof T & string, direction: sort[0].direction }
-    : { columnAccessor: defaultSortAccessor, direction: 'asc' };
+    ? {
+        columnAccessor: sort[0].field as keyof T & string,
+        direction: sort[0].direction,
+      }
+    : { columnAccessor: defaultSortAccessor, direction: "asc" };
 
   const handleSortStatusChange = useCallback(
     (status: DataTableSortStatus<T>) => {
-      setSort([{ field: String(status.columnAccessor), direction: status.direction }]);
+      setSort([
+        { field: String(status.columnAccessor), direction: status.direction },
+      ]);
     },
-    [setSort]
+    [setSort],
   );
 
   const handlePageChange = useCallback((p: number) => setPage(p), [setPage]);
@@ -81,18 +90,16 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
       setPageSize(size);
       setPage(1);
     },
-    [setPageSize, setPage]
+    [setPageSize, setPage],
   );
 
   // Bridge mantine-datatable's record array selection to the store's Set<id>
   const handleSelectionChange = useCallback(
     (records: T[]) => {
-      const ids = records.map(
-        (r) => r[idAccessor] as string | number
-      );
+      const ids = records.map((r) => r[idAccessor] as string | number);
       setSelection(new Set(ids));
     },
-    [setSelection, idAccessor]
+    [setSelection, idAccessor],
   );
 
   return (
@@ -103,8 +110,8 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
       highlightOnHover
       fz="xs"
       fw={500}
-      horizontalSpacing="xs"
-      verticalSpacing="xs"
+      horizontalSpacing={8}
+      verticalSpacing={6}
       idAccessor={idAccessor as keyof T & string}
       columns={effectiveColumns}
       records={filteredRows}
@@ -121,10 +128,12 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
       onRecordsPerPageChange={handlePageSizeChange}
       paginationSize="xs"
       selectedRecords={disableActions ? undefined : selectedRecords}
-      onSelectedRecordsChange={disableActions ? undefined : handleSelectionChange}
+      onSelectedRecordsChange={
+        disableActions ? undefined : handleSelectionChange
+      }
       selectionTrigger="cell"
       selectionColumnStyle={{ maxWidth: 32 }}
-      selectionCheckboxProps={{ size: 'xs' }}
+      selectionCheckboxProps={{ size: "xs" }}
       rowExpansion={rowExpansion}
     />
   );

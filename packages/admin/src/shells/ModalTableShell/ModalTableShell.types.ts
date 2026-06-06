@@ -20,7 +20,7 @@ export interface ModalTableShellContextValue<T extends Record<string, unknown>> 
 }
 
 export interface ModalHandlerProps<T extends Record<string, unknown>> {
-  queryKey: string;
+  queryKey: string | readonly string[];
   moduleInfo: DataTableShellModuleInfo;
   modalWidth?: number | string;
   createModalTitle?: string;
@@ -38,7 +38,6 @@ export interface ModalHandlerProps<T extends Record<string, unknown>> {
 export type ModalTableShellProps<T extends Record<string, unknown>> = Omit<
   DataTableShellProps<T>,
   | 'sustained'
-  | 'basePath'
   | 'onNewClick'
   | 'onEditClick'
   | 'onDeleteClick'

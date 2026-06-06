@@ -29,7 +29,7 @@ export function CertificateForm({
 
   return (
     <form onSubmit={form.onSubmit}>
-      <Stack gap="md">
+      <Stack gap="md" p="md">
         <TextInput
           label="Student Name"
           placeholder="Full name as shown on certificate"

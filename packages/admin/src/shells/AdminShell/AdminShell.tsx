@@ -14,7 +14,12 @@ interface AdminShellProps {
   headerConfig?: AdminShellHeaderConfig;
 }
 
-export function AdminShell({ children, nav = [], pathname, headerConfig }: AdminShellProps) {
+export function AdminShell({
+  children,
+  nav = [],
+  pathname,
+  headerConfig,
+}: AdminShellProps) {
   const [opened, { toggle }] = useDisclosure();
   const [collapsedNav, navActions] = useDisclosure();
 
@@ -50,7 +55,7 @@ export function AdminShell({ children, nav = [], pathname, headerConfig }: Admin
               background: "var(--mantine-color-white)",
               border: "1px solid var(--mantine-color-gray-4)",
               borderRadius: "var(--mantine-radius-md)",
-              overflowY: "scroll",
+              overflowY: "auto",
             }}
           >
             {children}

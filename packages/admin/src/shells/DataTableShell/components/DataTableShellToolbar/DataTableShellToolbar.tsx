@@ -253,9 +253,18 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
               </UnstyledButton>
             ))
           ) : (
-            <Button variant="light" size="xs" color="dark">
-              All {displayLabel}
-            </Button>
+            <UnstyledButton
+              size="xs"
+              variant="filled"
+              style={{
+                borderBottom: "2px solid var(--mantine-color-brand-6)",
+              }}
+              h={40}
+            >
+              <Text fw={700} size="xs">
+                All {displayLabel}
+              </Text>
+            </UnstyledButton>
           )}
         </Group>
 

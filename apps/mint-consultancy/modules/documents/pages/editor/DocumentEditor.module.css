@@ -1,11 +1,19 @@
 .root {
-  min-height: 100vh;
+  position: fixed;
+  inset: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: var(--mantine-color-gray-3);
   font-size: var(--mantine-font-size-xs);
   line-height: var(--mantine-line-height-xs);
+}
+
+.mainHeader {
+  flex-shrink: 0;
+  height: 40px;
+  min-height: 40px;
+  z-index: 20;
 }
 
 .bar {
@@ -111,20 +119,59 @@
   min-height: 0;
 }
 
+.resizablePanel {
+  position: relative;
+  flex-shrink: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  z-index: 2;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.resizeHandleRight {
+  right: -3px;
+}
+
+.resizeHandleLeft {
+  left: -3px;
+}
+
+.resizeHandle:hover,
+.resizeHandle:focus-visible {
+  background: var(--mantine-color-brand-2);
+}
+
 .sidebar {
   background: #fff;
   border-right: 1px solid var(--mantine-color-gray-3);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  width: 140px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
   font-size: var(--mantine-font-size-xs);
+}
+
+.sidebarBody {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .sidebarRight {
   border-right: none;
   border-left: 1px solid var(--mantine-color-gray-3);
-  width: 280px;
 }
 
 .sidebarHeader {
@@ -133,19 +180,31 @@
   justify-content: space-between;
   padding: 0 8px;
   border-bottom: 1px solid var(--mantine-color-gray-3);
-  height: 32px;
-  min-height: 32px;
+  height: 40px;
+  min-height: 40px;
   flex-shrink: 0;
 }
 
 .centerPanel {
   flex: 1;
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: var(--mantine-color-gray-3);
   font-size: var(--mantine-font-size-xs);
+}
+
+.subHeader {
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.centerContent {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .pageItem {
@@ -204,4 +263,12 @@
 .iconBtn {
   width: 28px;
   height: 28px;
+}
+
+.editDocumentBtn {
+  position: absolute;
+  bottom: 16px;
+  z-index: 15;
+  box-shadow: var(--mantine-shadow-md);
+  transition: right 0.15s ease;
 }

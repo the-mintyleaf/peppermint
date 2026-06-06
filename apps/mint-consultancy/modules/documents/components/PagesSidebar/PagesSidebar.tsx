@@ -86,7 +86,7 @@ export function PagesSidebar({ onClose }: PagesSidebarProps) {
         </Group>
       </div>
 
-      <ScrollArea style={{ flex: 1 }} p={6} type="auto">
+      <ScrollArea className={styles.sidebarBody} p={6} type="auto">
         <Stack gap={12}>
           {documents.map((doc, index) => {
             const typeConfig = getDocumentTypeConfig(doc.type);

@@ -40,8 +40,9 @@ export function ModalHandler<T extends Record<string, unknown>>({
   } = useModalTableShellContext<T>();
 
   const invalidate = useCallback(() => {
+    const normalizedKey = typeof queryKey === 'string' ? queryKey.split('.') : queryKey;
     void queryClient.invalidateQueries({
-      queryKey: queryKey.split('.'),
+      queryKey: normalizedKey,
     });
   }, [queryClient, queryKey]);
 

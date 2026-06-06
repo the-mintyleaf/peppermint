@@ -25,7 +25,7 @@ export function DocumentsList() {
           onClick={() => router.push(`/documents/${record.studentId}`)}
           aria-label={`Open documents for ${record.studentName}`}
         >
-          Open Editor
+          Open in Editor
         </Button>
       ),
     },
@@ -36,7 +36,10 @@ export function DocumentsList() {
       queryKey={documentQueryKeys.workspaces()}
       queryGetFn={async () => {
         const data = await documentsApi.listWorkspaces();
-        return { data, meta: { total: data.length, page: 1, pageSize: data.length } };
+        return {
+          data,
+          meta: { total: data.length, page: 1, pageSize: data.length },
+        };
       }}
       dataKey="data"
       paginationKey="meta"
