@@ -3,6 +3,8 @@ import type { FilterState, DataTableWrapperProps } from '../../wrappers/DataTabl
 
 export interface DataTableShellTab {
   label: string;
+  /** Optional icon component (Phosphor icon) */
+  icon?: React.ReactNode | React.ComponentType<any>;
   /** Merged into store.setFilters on tab switch — sent to server in server mode. */
   filter?: FilterState;
   /** Applied client-side after the wrapper resolves rows. */

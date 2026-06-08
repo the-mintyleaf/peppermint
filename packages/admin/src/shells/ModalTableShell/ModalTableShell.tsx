@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useMemo } from 'react';
-import { useDisclosure } from '@zetsel/ui';
-import { modals, notifications } from '@zetsel/ui';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Group, Text } from '@zetsel/ui';
-import { WarningCircleIcon } from '@phosphor-icons/react/dist/csr/WarningCircle';
-import { DataTableShell } from '../DataTableShell';
-import { ModalTableShellContext } from './ModalTableShell.context';
-import { ModalHandler } from './components/ModalHandler';
+import { useState, useCallback, useMemo } from "react";
+import { useDisclosure } from "@zetsel/ui";
+import { modals, notifications } from "@zetsel/ui";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Group, Text } from "@zetsel/ui";
+import { WarningCircleIcon } from "@phosphor-icons/react/dist/csr/WarningCircle";
+import { DataTableShell } from "../DataTableShell";
+import { ModalTableShellContext } from "./ModalTableShell.context";
+import { ModalHandler } from "./components/ModalHandler";
 import type {
   ModalTableShellProps,
   ModalTableShellContextValue,
-} from './ModalTableShell.types';
+} from "./ModalTableShell.types";
 
 export function ModalTableShell<T extends Record<string, unknown>>({
   queryKey,
@@ -44,7 +44,8 @@ export function ModalTableShell<T extends Record<string, unknown>>({
   const queryClient = useQueryClient();
 
   const invalidate = useCallback(() => {
-    const normalizedKey = typeof queryKey === 'string' ? queryKey.split('.') : queryKey;
+    const normalizedKey =
+      typeof queryKey === "string" ? queryKey.split(".") : queryKey;
     void queryClient.invalidateQueries({
       queryKey: normalizedKey,
     });
@@ -63,10 +64,10 @@ export function ModalTableShell<T extends Record<string, unknown>>({
           const enriched = await onEditTrigger(record);
           setActiveEditRecord(enriched);
         } catch (error) {
-          console.error('Error in onEditTrigger:', error);
+          console.error("Error in onEditTrigger:", error);
           notifications.show({
-            color: 'red',
-            title: 'Error',
+            color: "red",
+            title: "Error",
             message: `Failed to load ${moduleInfo.label ?? moduleInfo.name} details.`,
           });
           handlersEditModal.close();
@@ -78,7 +79,7 @@ export function ModalTableShell<T extends Record<string, unknown>>({
         handlersEditModal.open();
       }
     },
-    [onEditTrigger, handlersEditModal, moduleInfo]
+    [onEditTrigger, handlersEditModal, moduleInfo],
   );
 
   const deleteMutation = useMutation({
@@ -88,19 +89,19 @@ export function ModalTableShell<T extends Record<string, unknown>>({
         ids.map((id) => {
           const idToSubmit = transformOnDelete ? transformOnDelete(id) : id;
           return onDeleteApi(idToSubmit as string | number);
-        })
+        }),
       );
-      const failures = results.filter((r) => r.status === 'rejected');
+      const failures = results.filter((r) => r.status === "rejected");
       if (failures.length > 0) {
         throw new Error(
-          `${failures.length} deletion${failures.length === 1 ? '' : 's'} failed`
+          `${failures.length} deletion${failures.length === 1 ? "" : "s"} failed`,
         );
       }
     },
     onSuccess: () => {
       notifications.show({
-        color: 'green',
-        title: 'Deleted',
+        color: "green",
+        title: "Deleted",
         message: `${moduleInfo.label ?? moduleInfo.name} deleted successfully.`,
       });
       invalidate();
@@ -108,8 +109,8 @@ export function ModalTableShell<T extends Record<string, unknown>>({
     },
     onError: (err) => {
       notifications.show({
-        color: 'red',
-        title: 'Error',
+        color: "red",
+        title: "Error",
         message:
           err instanceof Error
             ? err.message
@@ -141,15 +142,15 @@ export function ModalTableShell<T extends Record<string, unknown>>({
               : `Are you sure you want to delete ${ids.length} ${moduleInfo.name}? This action cannot be undone.`}
           </Text>
         ),
-        confirmProps: { color: 'red', size: 'xs' },
-        cancelProps: { size: 'xs' },
-        labels: { confirm: 'Delete', cancel: 'Cancel' },
+        confirmProps: { color: "red", size: "xs" },
+        cancelProps: { size: "xs" },
+        labels: { confirm: "Delete", cancel: "Cancel" },
         onConfirm: () => {
           deleteMutation.mutate(ids);
         },
       });
     },
-    [deleteMutation, moduleInfo]
+    [deleteMutation, moduleInfo],
   );
 
   const disableCreateButton = !createFormComponent;
@@ -177,7 +178,7 @@ export function ModalTableShell<T extends Record<string, unknown>>({
       handlersCreateModal,
       handlersEditModal,
       handleEditClick,
-    ]
+    ],
   );
 
   return (

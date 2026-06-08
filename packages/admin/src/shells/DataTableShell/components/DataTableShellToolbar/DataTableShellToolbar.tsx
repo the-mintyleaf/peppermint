@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   ActionIcon,
   Button,
+  Center,
   Checkbox,
   Divider,
   Drawer,
@@ -11,10 +12,10 @@ import {
   Menu,
   Paper,
   Popover,
+  SegmentedControl,
   Stack,
   Text,
   TextInput,
-  UnstyledButton,
 } from "@zetsel/ui";
 import { ArrowLeftIcon } from "@phosphor-icons/react/dist/csr/ArrowLeft";
 import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
@@ -158,22 +159,26 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
                 </Button>
               </Menu.Target>
               <Menu.Dropdown>
-                {tabs.map((tab, index) => (
-                  <Menu.Item
-                    key={index}
-                    onClick={() => {
-                      setActiveTab(index);
-                      closeDrawer();
-                    }}
-                    bg={
-                      activeTab === index
-                        ? "var(--mantine-color-blue-light)"
-                        : undefined
-                    }
-                  >
-                    {tab.label}
-                  </Menu.Item>
-                ))}
+                {tabs.map((tab, index) => {
+                  const IconComponent = tab.icon as React.ComponentType<any>;
+                  return (
+                    <Menu.Item
+                      key={index}
+                      onClick={() => {
+                        setActiveTab(index);
+                        closeDrawer();
+                      }}
+                      bg={
+                        activeTab === index
+                          ? "var(--mantine-color-blue-light)"
+                          : undefined
+                      }
+                      leftSection={IconComponent && <IconComponent size={16} />}
+                    >
+                      {tab.label}
+                    </Menu.Item>
+                  );
+                })}
               </Menu.Dropdown>
             </Menu>
           )}
@@ -229,44 +234,32 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
 
       {/* ── Desktop: toolbar row ──────────────────────────────────────────── */}
       <Group gap="xs" justify="space-between" visibleFrom="lg">
-        <Group gap={"md"}>
-          {tabs.length > 0 ? (
-            tabs.map((tab, index) => (
-              <UnstyledButton
-                key={index}
-                size="xs"
-                variant={activeTab === index ? "filled" : "subtle"}
-                onClick={() => setActiveTab(index)}
-                opacity={activeTab == index ? 1 : 0.5}
-                style={{
-                  borderBottom: "2px solid",
-                  borderColor:
-                    activeTab == index
-                      ? "var(--mantine-color-brand-6)"
-                      : "rgba(0,0,0,0)",
-                }}
-                h={40}
-              >
-                <Text fw={700} size="xs">
-                  {tab.label}
-                </Text>
-              </UnstyledButton>
-            ))
-          ) : (
-            <UnstyledButton
-              size="xs"
-              variant="filled"
-              style={{
-                borderBottom: "2px solid var(--mantine-color-brand-6)",
-              }}
-              h={40}
-            >
-              <Text fw={700} size="xs">
-                All {displayLabel}
-              </Text>
-            </UnstyledButton>
-          )}
-        </Group>
+        {tabs.length > 0 ? (
+          <SegmentedControl
+            value={String(activeTab)}
+            onChange={(value) => setActiveTab(Number(value))}
+            data={tabs.map((tab, index) => {
+              const IconComponent = tab.icon as React.ComponentType<any>;
+              return {
+                label: (
+                  <Center style={{ gap: 8 }}>
+                    {IconComponent && <IconComponent size={14} />}
+                    <span>{tab.label}</span>
+                  </Center>
+                ),
+                value: String(index),
+              };
+            })}
+            size="xs"
+            color="var(--mantine-color-brand-6)"
+            autoContrast
+            styles={{ label: { paddingInline: 10 } }}
+          />
+        ) : (
+          <Text fw={700} size="xs">
+            All {displayLabel}
+          </Text>
+        )}
 
         <Group gap={4}>
           <div suppressHydrationWarning>

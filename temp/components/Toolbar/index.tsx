@@ -12,11 +12,12 @@ import {
   Menu,
   Paper,
   Popover,
+  SegmentedControl,
   Stack,
   Text,
   TextInput,
   UnstyledButton,
-} from "@mantine/core";
+} from "@zetsel/ui";
 import {
   ArrowLeftIcon,
   CaretDownIcon,
@@ -29,7 +30,6 @@ import {
 import { usePathname } from "next/navigation";
 
 import { useDebouncedValue, useDisclosure } from "@mantine/hooks";
-import { Tabs } from "@settle/admin";
 import { DataTableWrapper } from "@settle/core";
 import { PropDataTableToolbar } from "../../DataTableShell.type";
 import { DataTableShellFilter } from "../TableFilters";
@@ -221,7 +221,15 @@ export function DataTableShellToolbar({
       <Group gap="xs" justify="space-between" h={40} visibleFrom="lg">
         <Group gap="xs">
           {tabs.length > 0 ? (
-            <Tabs tabs={tabs} active={activeTab} onTabChange={onTabChange} />
+            <SegmentedControl
+              value={String(activeTab)}
+              onChange={(value) => onTabChange(Number(value))}
+              data={tabs.map((tab, index) => ({
+                label: tab.label,
+                value: String(index),
+              }))}
+              size="xs"
+            />
           ) : (
             <Button variant="light" size="xs">
               All {moduleInfo.name}

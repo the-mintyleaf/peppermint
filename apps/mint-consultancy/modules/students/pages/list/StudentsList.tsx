@@ -12,13 +12,18 @@ import { studentsColumns } from "./students.columns";
 import { studentQueryKeys } from "../../students.queryKeys";
 import { StudentForm } from "../../form/StudentForm";
 import type { Student } from "../../students.types";
+import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
+import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
+import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
+import { GraduationCapIcon } from "@phosphor-icons/react/dist/csr/GraduationCap";
+import { XCircleIcon } from "@phosphor-icons/react/dist/csr/XCircle";
 
 const tabs: DataTableShellTab[] = [
-  { label: "All" },
-  { label: "Active", filter: { status: "active" } },
-  { label: "On Leave", filter: { status: "on-leave" } },
-  { label: "Graduated", filter: { status: "graduated" } },
-  { label: "Dropped", filter: { status: "dropped" } },
+  { label: "All Students", icon: UsersIcon },
+  { label: "Active", icon: CheckCircleIcon, filter: { status: "active" } },
+  { label: "On Leave", icon: ClockIcon, filter: { status: "on-leave" } },
+  { label: "Graduated", icon: GraduationCapIcon, filter: { status: "graduated" } },
+  { label: "Dropped", icon: XCircleIcon, filter: { status: "dropped" } },
 ];
 
 export function StudentsList() {

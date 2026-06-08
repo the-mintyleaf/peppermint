@@ -102,10 +102,10 @@ function DataTableShellInner<T extends Record<string, unknown>>({
 
   const breadcrumbItems = useMemo(() => {
     if (!basePath) return [];
-    const parts = basePath.split('/').filter(Boolean);
+    const parts = basePath.split("/").filter(Boolean);
     return parts.map((part, index) => ({
       label: part.charAt(0).toUpperCase() + part.slice(1),
-      href: '/' + parts.slice(0, index + 1).join('/'),
+      href: "/" + parts.slice(0, index + 1).join("/"),
     }));
   }, [basePath]);
 
@@ -145,8 +145,6 @@ function DataTableShellInner<T extends Record<string, unknown>>({
           />
         </Box>
       )}
-
-      <Divider />
 
       {/* Table paper — active filters bar + data table */}
       <Box px="md" size="xl" mt="md" pos="relative">
