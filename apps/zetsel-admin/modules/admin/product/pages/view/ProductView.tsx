@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
-  Box,
   Button,
   Container,
   Divider,
@@ -26,29 +25,17 @@ interface ProductViewProps {
 
 export function ProductView({ productId }: ProductViewProps) {
   const router = useRouter();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const res = await fetch(
-          `https://dummyjson.com/products/${productId}`
-        );
-        if (!res.ok) throw new Error("Failed to fetch product");
-        const data = await res.json();
-        setProduct(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data: product, isLoading } = useQuery<Product>({
+    queryKey: ["products", "detail", productId],
+    queryFn: async () => {
+      const res = await fetch(`https://dummyjson.com/products/${productId}`);
+      if (!res.ok) throw new Error("Failed to fetch product");
+      return res.json() as Promise<Product>;
+    },
+  });
 
-    fetchProduct();
-  }, [productId]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <Container size="lg" py="xl">
         <Text>Loading...</Text>
