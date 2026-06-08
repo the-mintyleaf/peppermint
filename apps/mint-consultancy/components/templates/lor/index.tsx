@@ -607,6 +607,31 @@ export function TemplateModelTechnical() {
   );
 }
 
+// ─── Router ───────────────────────────────────────────────────────────────────
+
+export function TemplateLor() {
+  const form = FormHandler.useForm();
+  const institution = String(form.values?.institution_name ?? "");
+  const lorTitle = String(form.values?.lor_title ?? "");
+
+  if (institution.includes("Bageshwari")) {
+    return lorTitle === "Letter of Recommendation"
+      ? <TemplateBageshwariChief />
+      : <TemplateBageshwariHod />;
+  }
+  if (institution.includes("Janajagriti")) return <TemplateJanajagriti />;
+  if (institution.includes("Shiva")) return <TemplateShiva />;
+  if (institution.includes("Kantipur")) return <TemplateKcmit />;
+  if (institution.includes("Tri-Chandra")) return <TemplateTriChandra />;
+  if (institution.includes("Monastic")) return <TemplateMonastic />;
+  if (institution.includes("Om Health")) return <TemplateOmHealth />;
+  if (institution.includes("Atlantic")) return <TemplateAtlantic />;
+  if (institution.includes("Model College")) return <TemplateModelTechnical />;
+  if (institution.includes("Nepalgunj")) return <TemplateNepalgunj />;
+
+  return <TemplateJanajagriti />;
+}
+
 // ─── 11. Nepalgunj Technical College ──────────────────────────────────────────
 
 export function TemplateNepalgunj() {
