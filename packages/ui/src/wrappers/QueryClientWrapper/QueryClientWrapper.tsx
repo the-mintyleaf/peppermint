@@ -7,7 +7,7 @@ import type { QueryClientWrapperProps } from './QueryClientWrapper.types';
 const DEFAULT_CONFIG = {
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5,
+      staleTime: 0,
       gcTime: 1000 * 60 * 10,
       retry: 1,
       refetchOnWindowFocus: false,

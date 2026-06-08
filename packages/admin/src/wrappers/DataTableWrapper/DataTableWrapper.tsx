@@ -21,7 +21,7 @@ export function DataTableWrapper<T = unknown>({
   paginationKey,
   enableServerQuery = false,
   defaultPageSize = 20,
-  staleTime = 1000 * 60 * 5,
+  staleTime,
   debounceMs = 300,
   forceFilters,
   persistence,
