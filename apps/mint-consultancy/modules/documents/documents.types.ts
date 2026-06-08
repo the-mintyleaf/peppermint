@@ -134,7 +134,31 @@ export type BankContent = Record<string, unknown> & {
   headerProps?: Record<string, unknown>;
 };
 
-export type DocumentContent = CertificateContent | CvContent | WodaContent | BankContent;
+export type LorContent = Record<string, unknown> & {
+  lor_ref_no?: string;
+  lor_letter_no?: string;
+  lor_date?: string;
+  institution_name?: string;
+  institution_subname?: string;
+  institution_address?: string;
+  lor_title?: string;
+  lor_salutation?: string;
+  student_honorific?: string;
+  student_name?: string;
+  para_1?: string;
+  para_2?: string;
+  para_3?: string;
+  para_4?: string;
+  recommender_honorific?: string;
+  recommender_name?: string;
+  recommender_title?: string;
+  recommender_dept?: string;
+  recommender_contact?: string;
+  recommender_email?: string;
+  headerProps?: Record<string, unknown>;
+};
+
+export type DocumentContent = CertificateContent | CvContent | WodaContent | BankContent | LorContent;
 
 export interface Document {
   id: string;

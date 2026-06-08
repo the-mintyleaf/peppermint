@@ -17,6 +17,7 @@ export type {
   Document,
   DocumentType,
   DocumentContent,
+  LorContent,
   PrintLog,
   DocumentFormProps,
   DocumentTemplateProps,

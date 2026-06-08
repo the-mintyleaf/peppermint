@@ -1,5 +1,5 @@
 import type { DocumentType, DocumentTypeConfig } from "./documents.types";
-import { WODA_VARIANTS, BANK_INSTITUTIONS } from "./documentTypeDefinitions";
+import { WODA_VARIANTS, BANK_INSTITUTIONS, LOR_INSTITUTIONS } from "./documentTypeDefinitions";
 import {
   CertificateForm,
   CertificateTemplate,
@@ -15,6 +15,21 @@ import { WodaOccupationForm, WodaOccupationTemplate } from "./document-types/wod
 import { WodaRelationshipForm, WodaRelationshipTemplate } from "./document-types/woda-relationship";
 import { WodaSurnameForm, WodaSurnameTemplate } from "./document-types/woda-surname";
 import { WodaTaxClearanceForm, WodaTaxClearanceTemplate } from "./document-types/woda-tax-clearance";
+import { WodaAgricultureIncomeForm, WodaAgricultureIncomeTemplate } from "./document-types/woda-agriculture-income";
+import {
+  LorJanajagriti,
+  LorBageshwariChief,
+  LorBageshwariHod,
+  LorShiva,
+  LorKcmit,
+  LorTriChandra,
+  LorMonastic,
+  LorOmHealth,
+  LorAtlantic,
+  LorModelTechnical,
+  LorNepalgunj,
+  LorTemplate,
+} from "./document-types/lor";
 import {
   BigyalaxmiCertificateForm,
   BigyalaxmiCertificateTemplate,
@@ -111,6 +126,7 @@ const wodaComponents = {
   "woda-relationship": { Form: WodaRelationshipForm, Template: WodaRelationshipTemplate },
   "woda-surname": { Form: WodaSurnameForm, Template: WodaSurnameTemplate },
   "woda-tax-clearance": { Form: WodaTaxClearanceForm, Template: WodaTaxClearanceTemplate },
+  "woda-agriculture-income": { Form: WodaAgricultureIncomeForm, Template: WodaAgricultureIncomeTemplate },
 } as const;
 
 const bankCertificateComponents = {
@@ -143,6 +159,34 @@ const bankStatementComponents = {
   tribeni: { Form: TribeniStatementForm, Template: TribeniStatementTemplate },
   vyas: { Form: VyasStatementForm, Template: VyasStatementTemplate },
 } as const;
+
+const lorFormMap = {
+  "lor-janajagriti": LorJanajagriti,
+  "lor-bageshwari-chief": LorBageshwariChief,
+  "lor-bageshwari-hod": LorBageshwariHod,
+  "lor-shiva": LorShiva,
+  "lor-kcmit": LorKcmit,
+  "lor-tri-chandra": LorTriChandra,
+  "lor-monastic": LorMonastic,
+  "lor-om-health": LorOmHealth,
+  "lor-atlantic": LorAtlantic,
+  "lor-model-technical": LorModelTechnical,
+  "lor-nepalgunj": LorNepalgunj,
+};
+
+const lorRegistry = Object.fromEntries(
+  LOR_INSTITUTIONS.map((inst) => [
+    inst.slug,
+    {
+      type: inst.slug,
+      label: inst.label,
+      uniquePerStudent: false,
+      requiresStudent: false,
+      Form: lorFormMap[inst.slug],
+      Template: LorTemplate,
+    },
+  ])
+) as Record<(typeof LOR_INSTITUTIONS)[number]["slug"], DocumentTypeConfig>;
 
 const wodaRegistry = Object.fromEntries(
   WODA_VARIANTS.map((variant) => [
@@ -224,6 +268,7 @@ export const documentTypeRegistry: Record<DocumentType, DocumentTypeConfig> = {
     Template: CvTemplate,
   },
   ...wodaRegistry,
+  ...lorRegistry,
   ...bankRegistry,
 };
 

@@ -8,6 +8,8 @@ import type { DocumentType } from "../../documents.types";
 import {
   getBankMenuInstitutions,
   getBankVariantLabel,
+  getLorMenuLabel,
+  getLorMenuTypes,
   getStudentMenuTypes,
   getWodaMenuLabel,
   getWodaMenuTypes,
@@ -24,6 +26,7 @@ export function AddPageMenu({ children, width = 220 }: AddPageMenuProps) {
 
   const studentTypes = getStudentMenuTypes(studentId, documents);
   const wodaTypes = getWodaMenuTypes(studentId, documents);
+  const lorTypes = getLorMenuTypes(studentId, documents);
   const bankInstitutions = getBankMenuInstitutions(studentId, documents);
 
   const handleSelect = (type: DocumentType) => {
@@ -34,7 +37,7 @@ export function AddPageMenu({ children, width = 220 }: AddPageMenuProps) {
     quickCreateDocument(type);
   };
 
-  const hasOptions = studentTypes.length > 0 || wodaTypes.length > 0 || bankInstitutions.length > 0;
+  const hasOptions = studentTypes.length > 0 || wodaTypes.length > 0 || lorTypes.length > 0 || bankInstitutions.length > 0;
 
   if (!hasOptions) {
     return <>{children}</>;
@@ -74,6 +77,25 @@ export function AddPageMenu({ children, width = 220 }: AddPageMenuProps) {
                   onClick={() => handleSelect(variant.slug)}
                 >
                   {getWodaMenuLabel(variant.label)}
+                </Menu.Item>
+              ))}
+            </Menu.Sub.Dropdown>
+          </Menu.Sub>
+        )}
+
+        {lorTypes.length > 0 && (
+          <Menu.Sub openDelay={80} closeDelay={120}>
+            <Menu.Sub.Target>
+              <Menu.Sub.Item fz="xs">LOR</Menu.Sub.Item>
+            </Menu.Sub.Target>
+            <Menu.Sub.Dropdown>
+              {lorTypes.map((inst) => (
+                <Menu.Item
+                  key={inst.slug}
+                  fz="xs"
+                  onClick={() => handleSelect(inst.slug)}
+                >
+                  {getLorMenuLabel(inst.label)}
                 </Menu.Item>
               ))}
             </Menu.Sub.Dropdown>

@@ -11,6 +11,7 @@ import { TemplateOccupationVerification } from "./occupation";
 import { TemplateRelationshipVerification } from "./relationship";
 import { TemplateSurname } from "./surname";
 import { TemplateTaxClearance } from "./taxClearance";
+import { TemplateAgricultureIncome } from "./agriculture-income";
 
 import { Stack, Container } from "@zetsel/ui";
 import { WodaDocData } from "@/context/DocumentContext";
@@ -73,6 +74,7 @@ export const WodaTemplates = {
   migration: TemplateMigration,
   surname: TemplateSurname,
   address: TemplatePermanentAddress,
+  agriculture_income: TemplateAgricultureIncome,
 } as const;
 
 export type WodaTemplateKey = keyof typeof WodaTemplates;

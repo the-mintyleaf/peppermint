@@ -8,6 +8,7 @@ export const WODA_VARIANTS = [
   { slug: "woda-relationship", folder: "relationship", exportName: "TemplateRelationshipVerification", label: "WODA — Relationship" },
   { slug: "woda-surname", folder: "surname", exportName: "TemplateSurname", label: "WODA — Surname" },
   { slug: "woda-tax-clearance", folder: "taxClearance", exportName: "TemplateTaxClearance", label: "WODA — Tax Clearance" },
+  { slug: "woda-agriculture-income", folder: "agriculture-income", exportName: "TemplateAgricultureIncome", label: "WODA — Agriculture Income" },
 ] as const;
 
 export const BANK_INSTITUTIONS = [
@@ -60,9 +61,26 @@ export type BankStatementSlug = `bank-${BankInstitutionSlugKey}-statement`;
 
 export const STUDENT_DOCUMENT_TYPES = ["student-certificate", "student-cv"] as const;
 
+export const LOR_INSTITUTIONS = [
+  { slug: "lor-janajagriti", label: "LOR — Shree Janajagriti Secondary School" },
+  { slug: "lor-bageshwari-chief", label: "LOR — Bageshwari Multiple Campus (Campus Chief)" },
+  { slug: "lor-bageshwari-hod", label: "LOR — Bageshwari Multiple Campus (Head of Dept.)" },
+  { slug: "lor-shiva", label: "LOR — Shree Shiva Secondary School" },
+  { slug: "lor-kcmit", label: "LOR — Kantipur College (KCMIT)" },
+  { slug: "lor-tri-chandra", label: "LOR — Tri-Chandra Multiple Campus" },
+  { slug: "lor-monastic", label: "LOR — Monastic Secondary English School" },
+  { slug: "lor-om-health", label: "LOR — Om Health Campus" },
+  { slug: "lor-atlantic", label: "LOR — Atlantic International College" },
+  { slug: "lor-model-technical", label: "LOR — Model College of Technical Education" },
+  { slug: "lor-nepalgunj", label: "LOR — Nepalgunj Technical College" },
+] as const;
+
+export type LorSlug = (typeof LOR_INSTITUTIONS)[number]["slug"];
+
 export const ALL_DOCUMENT_TYPE_SLUGS = [
   ...STUDENT_DOCUMENT_TYPES,
   ...WODA_VARIANTS.map((v) => v.slug),
+  ...LOR_INSTITUTIONS.map((l) => l.slug),
   ...BANK_INSTITUTIONS.flatMap((b) => [
     `bank-${b.slugKey}-certificate` as BankCertificateSlug,
     `bank-${b.slugKey}-statement` as BankStatementSlug,

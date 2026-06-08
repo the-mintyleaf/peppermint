@@ -49,6 +49,68 @@ export function createWodaForm(defaultValues: Record<string, unknown> = {}) {
   };
 }
 
+export function createLorForm(extraDefaults: Record<string, unknown> = {}) {
+  return function LorVariantForm({ onSubmit, isLoading }: DocumentFormProps) {
+    const form = useForm({
+      initialValues: {
+        lor_ref_no: "",
+        lor_letter_no: "",
+        lor_date: new Date().toISOString().split("T")[0],
+        student_honorific: "Mr.",
+        student_name: "",
+        student_first_name: "",
+        student_last_name: "",
+        student_pronoun: "him",
+        recommender_honorific: "",
+        recommender_name: "",
+        recommender_title: "",
+        recommender_dept: "",
+        recommender_contact: "",
+        recommender_email: "",
+        ...extraDefaults,
+      },
+      onSubmit: (values) => onSubmit(values as never),
+    });
+
+    const extraFields = Object.keys(extraDefaults);
+
+    return (
+      <form onSubmit={form.onSubmit}>
+        <Stack gap="md" p="md">
+          <Text fw={600} size="sm">Letter</Text>
+          <TextInput label="Ref. No." {...form.getInputProps("lor_ref_no")} disabled={isLoading} />
+          <TextInput label="Letter No. (optional)" {...form.getInputProps("lor_letter_no")} disabled={isLoading} />
+          <TextInput label="Date" type="date" {...form.getInputProps("lor_date")} disabled={isLoading} />
+          <Text fw={600} size="sm">Student</Text>
+          <TextInput label="Honorific (Mr. / Ms. / Mrs.)" {...form.getInputProps("student_honorific")} disabled={isLoading} />
+          <TextInput label="Full Name" {...form.getInputProps("student_name")} required disabled={isLoading} />
+          <TextInput label="First Name (for informal references)" {...form.getInputProps("student_first_name")} disabled={isLoading} />
+          <TextInput label="Last Name (for Mr. Last style)" {...form.getInputProps("student_last_name")} disabled={isLoading} />
+          <TextInput label="Pronoun (him / her)" {...form.getInputProps("student_pronoun")} disabled={isLoading} />
+          {extraFields.map((key) => (
+            <TextInput
+              key={key}
+              label={key.replace(/_/g, " ")}
+              {...form.getInputProps(key)}
+              disabled={isLoading}
+            />
+          ))}
+          <Text fw={600} size="sm">Recommender</Text>
+          <TextInput label="Honorific (Dr. / Er. / Asst. Prof.)" {...form.getInputProps("recommender_honorific")} disabled={isLoading} />
+          <TextInput label="Name" {...form.getInputProps("recommender_name")} required disabled={isLoading} />
+          <TextInput label="Title / Position" {...form.getInputProps("recommender_title")} disabled={isLoading} />
+          <TextInput label="Department (optional)" {...form.getInputProps("recommender_dept")} disabled={isLoading} />
+          <TextInput label="Contact No. (optional)" {...form.getInputProps("recommender_contact")} disabled={isLoading} />
+          <TextInput label="Email (optional)" {...form.getInputProps("recommender_email")} disabled={isLoading} />
+          <Button type="submit" loading={isLoading} fullWidth>
+            Create Document
+          </Button>
+        </Stack>
+      </form>
+    );
+  };
+}
+
 export function createBankForm(defaultValues: Record<string, unknown> = {}) {
   return function BankVariantForm({ onSubmit, isLoading }: DocumentFormProps) {
     const form = useForm({

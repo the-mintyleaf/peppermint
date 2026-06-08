@@ -1,5 +1,5 @@
 import { documentTypeList, getDocumentTypeConfig } from "../documentTypeConfig";
-import { BANK_INSTITUTIONS, WODA_VARIANTS } from "../documentTypeDefinitions";
+import { BANK_INSTITUTIONS, LOR_INSTITUTIONS, WODA_VARIANTS } from "../documentTypeDefinitions";
 import type { Document, DocumentType } from "../documents.types";
 
 export function getAvailableDocumentTypes(studentId: string | null, documents: Document[]) {
@@ -39,6 +39,15 @@ export function getBankMenuInstitutions(studentId: string | null, documents: Doc
     certificateAvailable: available.has(`bank-${bank.slugKey}-certificate`),
     statementAvailable: available.has(`bank-${bank.slugKey}-statement`),
   })).filter((b) => b.certificateAvailable || b.statementAvailable);
+}
+
+export function getLorMenuTypes(studentId: string | null, documents: Document[]) {
+  const available = new Set(getAvailableDocumentTypes(studentId, documents).map((c) => c.type));
+  return LOR_INSTITUTIONS.filter((l) => available.has(l.slug));
+}
+
+export function getLorMenuLabel(label: string) {
+  return label.replace(/^LOR — /, "");
 }
 
 export function getWodaMenuLabel(label: string) {
