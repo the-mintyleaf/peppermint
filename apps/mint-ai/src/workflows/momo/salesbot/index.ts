@@ -21,71 +21,63 @@ export const workflowMomoSalesbot = schemaWorkflow.parse({
         systemPrompt: systemPrompt,
         dependencies: ["category"],
         temperature: 0.7,
-        memoryLimit: 1000, // fetch last 5 messages from session memory
-        // tools: [
-        //   {
-        //     name: "getProductCategory",
-        //     type: "apicall",
-        //     description: `
-        //       `,
-        //     config: {
-        //       method: "GET",
-        //       url: "https://dummyjson.com/products/category-list",
-        //       headers: {},
-
-        //       withAuthentication: false,
-        //       authenticationConfig: {},
-
-        //       query: {},
-        //       body: {},
-        //     },
-        //   },
-        //   {
-        //     name: "getProductsByCategory",
-        //     type: "apicall",
-        //     description: `
-        //       Fetches products by category.
-        //       `,
-        //     config: {
-        //       method: "GET",
-        //       url: "https://dummyjson.com/products/category/${{fromAI(category)}}",
-        //       headers: {},
-        //       schema: {
-        //         type: "object",
-        //         properties: {
-        //           category: {
-        //             type: "string",
-        //             description: "The category of products, e.g. 'laptops'",
-        //           },
-        //         },
-        //         required: ["category"],
-        //       },
-        //       withAuthentication: false,
-        //       authenticationConfig: {},
-        //       dataKey: "products",
-        //       query: {},
-        //       body: {},
-        //     },
-        //   },
-        //   {
-        //     name: "getProductData",
-        //     type: "apicall",
-        //     description: "Fetches all product data and information",
-        //     config: {
-        //       method: "GET",
-        //       url: "https://dummyjson.com/products",
-        //       headers: {},
-
-        //       withAuthentication: false,
-        //       authenticationConfig: {},
-
-        //       dataKey: "products",
-
-        //       query: {},
-        //       body: {},
-        //     },
-        //   },
-        // ],
+        memoryLimit: 1000,
+        tools: [
+          {
+            name: "getProductCategory",
+            type: "apicall",
+            description: "Fetches the list of all available product categories.",
+            config: {
+              method: "GET",
+              url: "https://dummyjson.com/products/category-list",
+              headers: {},
+              withAuthentication: false,
+              authenticationConfig: {},
+              query: {},
+              body: {},
+            },
+          },
+          {
+            name: "getProductsByCategory",
+            type: "apicall",
+            description: "Fetches products by category. Use when the user specifies a product category.",
+            config: {
+              method: "GET",
+              url: "https://dummyjson.com/products/category/${{fromAI(category)}}",
+              headers: {},
+              schema: {
+                type: "object",
+                properties: {
+                  category: {
+                    type: "string",
+                    description: "The category of products, e.g. 'laptops'",
+                  },
+                },
+                required: ["category"],
+              },
+              withAuthentication: false,
+              authenticationConfig: {},
+              dataKey: "products",
+              query: {},
+              body: {},
+            },
+          },
+          {
+            name: "getProductData",
+            type: "apicall",
+            description: "Fetches all product data and information.",
+            config: {
+              method: "GET",
+              url: "https://dummyjson.com/products",
+              headers: {},
+              withAuthentication: false,
+              authenticationConfig: {},
+              dataKey: "products",
+              query: {},
+              body: {},
+            },
+          },
+        ],
       },
     },
   ],

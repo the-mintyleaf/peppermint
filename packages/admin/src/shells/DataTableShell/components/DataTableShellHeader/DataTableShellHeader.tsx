@@ -1,7 +1,6 @@
 "use client";
 
 import { Button, ButtonGroup, Group, Stack, Text } from "@zetsel/ui";
-import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { useTableData } from "../../../../wrappers/DataTableWrapper";
 import type { DataTableShellHeaderProps } from "../../DataTableShell.types";
@@ -28,16 +27,6 @@ export function DataTableShellHeader({
         </div>
 
         <Group gap={4}>
-          {/* <Button
-            leftSection={<ArrowsClockwiseIcon size={14} />}
-            size="xs"
-            variant="light"
-            color="dark"
-            onClick={() => refetch()}
-          >
-            Reload Data
-          </Button> */}
-
           <ButtonGroup>
             {sustained && onNewClick ? (
               <Button

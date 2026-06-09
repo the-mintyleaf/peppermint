@@ -1,6 +1,6 @@
 "use client";
 
-import { Warning } from "@phosphor-icons/react";
+import { Warning, XIcon, TrashIcon } from "@phosphor-icons/react";
 import {
   Alert,
   Box,
@@ -15,13 +15,9 @@ import {
   Text,
 } from "@zetsel/ui";
 import { useFormControls } from "../../wrappers/FormWrapper/FormWrapper.hooks";
-
 import { FormShellFooter } from "./components/FormShellFooter";
 import { FormShellStepper } from "./components/FormShellStepper";
 import type { FormShellProps } from "./FormShell.types";
-import { ArrowLeftIcon } from "@phosphor-icons/react";
-import { XIcon } from "@phosphor-icons/react";
-import { TrashIcon } from "@phosphor-icons/react";
 
 export function FormShell({
   title,

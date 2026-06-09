@@ -11,7 +11,7 @@ type AdvanceInput = {
   sessionId: string;
   nodeId: string;
   output?: unknown;
-  input?: any;
+  input?: Record<string, unknown>;
 };
 
 // ? Advance workflow after a node finishes
@@ -37,8 +37,16 @@ export async function advanceWorkflow({
     throw new Error(`Unknown workflow: ${workflowId}`);
   }
 
-  // find successors of this node
-  const successors = wf.edges.filter((e) => e.from === nodeId).map((e) => e.to);
+  // Router nodes declare a target node in their output — only follow that edge
+  const routerTarget =
+    output && typeof output === "object" && "target" in output
+      ? (output as { target: string }).target
+      : null;
+
+  const successors = wf.edges
+    .filter((e) => e.from === nodeId)
+    .map((e) => e.to)
+    .filter((to) => !routerTarget || to === routerTarget);
 
   if (successors.length === 0) {
     logger.info(

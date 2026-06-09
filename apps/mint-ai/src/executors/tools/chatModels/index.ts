@@ -1,19 +1,18 @@
 import { toolDeepseekChat } from "./deepseek/chat";
+import { toolClaudeHaiku, toolClaudeOpus, toolClaudeSonnet } from "./claude/chat";
+import { toolOpenAIGpt4o, toolOpenAIGpt4oMini } from "./openai/chat";
 
-async function notImplemented(prompt: string): Promise<string> {
-  throw new Error("Model not implemented yet");
-}
-
-export const chatModels: Record<any, any> = {
-  // * DEEPSEEK
+export const chatModels: Record<string, any> = {
+  // DEEPSEEK
   "deepseek.chat": toolDeepseekChat,
   "deepseek.reasoner": toolDeepseekChat,
 
-  // * OPENAI
-  openai: notImplemented,
+  // CLAUDE
+  "claude.sonnet": toolClaudeSonnet,
+  "claude.opus": toolClaudeOpus,
+  "claude.haiku": toolClaudeHaiku,
 
-  // * CLAUDE
-  claude: notImplemented,
-
-  // * GEMINI
+  // OPENAI
+  "openai.gpt4o": toolOpenAIGpt4o,
+  "openai.gpt4o-mini": toolOpenAIGpt4oMini,
 };

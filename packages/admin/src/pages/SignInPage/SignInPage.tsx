@@ -113,8 +113,6 @@ export function SignInPage({
         window.location.href = successRedirectUrl;
       }, 1000);
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "An unexpected error occurred";
       onError?.(error);
     } finally {
       setIsLoading(false);

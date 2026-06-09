@@ -29,6 +29,55 @@ import { useTableStore } from "../../../../wrappers/DataTableWrapper";
 import { useDataTableShellContext } from "../../DataTableShell.context";
 import type { DataTableShellToolbarProps } from "../../DataTableShell.types";
 
+interface ColumnToggleListProps {
+  columnToggles: { key: string; label: string; visible: boolean }[];
+  toggleColumn: (key: string, visible: boolean) => void;
+  handleResetColumns: () => void;
+}
+
+function ColumnToggleList({ columnToggles, toggleColumn, handleResetColumns }: ColumnToggleListProps) {
+  return (
+    <Stack gap={0}>
+      <Text px="sm" py="xs" size="xs" c="dimmed">
+        Visible columns
+      </Text>
+      <Divider />
+      {columnToggles.map(({ key, label, visible }) => (
+        <Button
+          key={key}
+          justify="left"
+          radius={0}
+          variant="subtle"
+          size="xs"
+          leftSection={
+            <Checkbox
+              checked={visible}
+              readOnly
+              size="xs"
+              tabIndex={-1}
+            />
+          }
+          onClick={() => toggleColumn(key, !visible)}
+          style={{ color: "var(--mantine-color-text)" }}
+        >
+          {label}
+        </Button>
+      ))}
+      <Divider />
+      <Button
+        size="xs"
+        variant="subtle"
+        justify="left"
+        leftSection={<XIcon size={12} weight="bold" />}
+        styles={{ label: { paddingLeft: 4 } }}
+        onClick={handleResetColumns}
+      >
+        Reset to default
+      </Button>
+    </Stack>
+  );
+}
+
 export function DataTableShellToolbar<T extends Record<string, unknown>>({
   moduleInfo,
   columns,
@@ -191,44 +240,7 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
             onChange={(e) => setSearchInput(e.currentTarget.value)}
           />
 
-          <Stack gap={0}>
-            <Text px="sm" py="xs" size="xs" c="dimmed">
-              Visible columns
-            </Text>
-            <Divider />
-            {columnToggles.map(({ key, label, visible }) => (
-              <Button
-                key={key}
-                justify="left"
-                radius={0}
-                variant="subtle"
-                size="xs"
-                leftSection={
-                  <Checkbox
-                    checked={visible}
-                    readOnly
-                    size="xs"
-                    tabIndex={-1}
-                  />
-                }
-                onClick={() => toggleColumn(key, !visible)}
-                style={{ color: "var(--mantine-color-text)" }}
-              >
-                {label}
-              </Button>
-            ))}
-            <Divider />
-            <Button
-              size="xs"
-              variant="subtle"
-              justify="left"
-              leftSection={<XIcon size={12} weight="bold" />}
-              styles={{ label: { paddingLeft: 4 } }}
-              onClick={handleResetColumns}
-            >
-              Reset to default
-            </Button>
-          </Stack>
+          <ColumnToggleList columnToggles={columnToggles} toggleColumn={toggleColumn} handleResetColumns={handleResetColumns} />
         </Stack>
       </Drawer>
 
@@ -286,44 +298,7 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
               </Button>
             </Popover.Target>
             <Popover.Dropdown p={0} w={200}>
-              <Stack gap={0}>
-                <Text px="sm" py="xs" size="xs" c="dimmed">
-                  Visible columns
-                </Text>
-                <Divider />
-                {columnToggles.map(({ key, label, visible }) => (
-                  <Button
-                    key={key}
-                    justify="left"
-                    radius={0}
-                    variant="subtle"
-                    size="xs"
-                    leftSection={
-                      <Checkbox
-                        checked={visible}
-                        readOnly
-                        size="xs"
-                        tabIndex={-1}
-                      />
-                    }
-                    onClick={() => toggleColumn(key, !visible)}
-                    style={{ color: "var(--mantine-color-text)" }}
-                  >
-                    {label}
-                  </Button>
-                ))}
-                <Divider />
-                <Button
-                  size="xs"
-                  variant="subtle"
-                  justify="left"
-                  leftSection={<XIcon size={12} weight="bold" />}
-                  styles={{ label: { paddingLeft: 4 } }}
-                  onClick={handleResetColumns}
-                >
-                  Reset to default
-                </Button>
-              </Stack>
+              <ColumnToggleList columnToggles={columnToggles} toggleColumn={toggleColumn} handleResetColumns={handleResetColumns} />
             </Popover.Dropdown>
           </Popover>
         </Group>

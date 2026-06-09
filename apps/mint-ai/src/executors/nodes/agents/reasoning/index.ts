@@ -281,11 +281,29 @@ export const nodeAIReasoning = async (
             })
       ) ?? [];
 
-    // 8. LLM reasoning loop with tool-calling
-    let result = await model.invoke(messages, {
-      temperature: config?.temperature ?? 0.7,
-      tools: hydratedTools,
-    });
+    // 8. LLM reasoning — stream tokens when no tools, invoke when tools present
+    let result: any;
+    const hasTools = hydratedTools.length > 0;
+
+    if (!hasTools && ctx.emitEvent) {
+      let fullContent = "";
+      const stream = await model.stream(messages, {
+        temperature: config?.temperature ?? 0.7,
+      });
+      for await (const chunk of stream) {
+        const token = (chunk as any)?.content ?? "";
+        if (token) {
+          fullContent += token;
+          ctx.emitEvent("token", { content: token });
+        }
+      }
+      result = { content: fullContent };
+    } else {
+      result = await model.invoke(messages, {
+        temperature: config?.temperature ?? 0.7,
+        tools: hydratedTools,
+      });
+    }
 
     let maxToolLoops = config?.tools?.length
       ? (ctx.config.maxToolLoops ?? 3)
