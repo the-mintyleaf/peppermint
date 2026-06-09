@@ -1,8 +1,13 @@
 export { AdminShell } from './AdminShell';
 export type {
-  AdminShellNav,
+  AdminShellConfig,
+  AdminShellBrand,
+  AdminShellMainNavItem,
+  AdminShellMainNavPage,
+  AdminShellMainNavModule,
+  AdminShellMainNavAdditional,
+  AdminShellAiButton,
+  AdminShellSubNav,
   AdminShellNavGroup,
   AdminShellNavItem,
-  AdminShellActionButton,
-  AdminShellHeaderConfig,
 } from './AdminShell.types';

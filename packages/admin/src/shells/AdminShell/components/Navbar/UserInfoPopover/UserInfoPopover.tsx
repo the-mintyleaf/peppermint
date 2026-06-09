@@ -6,6 +6,7 @@ import {
   Indicator,
   Menu,
   Text,
+  Tooltip,
   UnstyledButton,
   useMantineColorScheme,
 } from "@zetsel/ui";
@@ -22,6 +23,7 @@ import { useRouter } from "next/navigation";
 import type { UserInfoPopoverProps } from "./UserInfoPopover.types";
 
 export function UserInfoPopover({
+  variant = "default",
   disableSetAway = false,
   disablePauseNotifications = false,
   disableHelp = false,
@@ -35,7 +37,6 @@ export function UserInfoPopover({
   const user = null;
   const logout = null;
 
-  // Get user display name
   const displayName = user
     ? `${user.first_name} ${user.last_name}`.trim() || user.username
     : "User";
@@ -46,50 +47,77 @@ export function UserInfoPopover({
     router.push("/");
   };
 
+  const menuPosition = variant === "icon" ? "right-end" : "right-end";
+
   return (
-    <Menu shadow="md" position="right-end" withArrow offset={8}>
+    <Menu shadow="md" position={menuPosition} withArrow offset={8}>
       <Menu.Target>
-        <UnstyledButton
-          bg="gray.9"
-          style={{
-            padding: "12px 8px",
-            borderRadius: "var(--mantine-radius-sm)",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            width: "100%",
-          }}
-        >
-          <Indicator position="bottom-end" withBorder size={8} offset={2}>
-            <Avatar
-              radius="md"
-              variant="filled"
-              name={displayName}
-              color="orange"
-              size="sm"
+        {variant === "icon" ? (
+          <Tooltip label={displayName} position="right" withArrow>
+            <UnstyledButton
+              aria-label="User menu"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 40,
+                height: 40,
+                borderRadius: "var(--mantine-radius-md)",
+              }}
+            >
+              <Indicator position="bottom-end" withBorder size={8} offset={2}>
+                <Avatar
+                  radius="md"
+                  variant="filled"
+                  name={displayName}
+                  color="orange"
+                  size="sm"
+                />
+              </Indicator>
+            </UnstyledButton>
+          </Tooltip>
+        ) : (
+          <UnstyledButton
+            bg="gray.9"
+            style={{
+              padding: "12px 8px",
+              borderRadius: "var(--mantine-radius-sm)",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              width: "100%",
+            }}
+          >
+            <Indicator position="bottom-end" withBorder size={8} offset={2}>
+              <Avatar
+                radius="md"
+                variant="filled"
+                name={displayName}
+                color="orange"
+                size="sm"
+              />
+            </Indicator>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Text fw={600} size="xs" truncate c="white">
+                {displayName}
+              </Text>
+              <Text size="10px" c="dimmed" truncate>
+                {user?.roles?.[0] === "admin"
+                  ? "Administrator"
+                  : "Data Entry Staff"}
+              </Text>
+            </div>
+            <DotsThreeVerticalIcon
+              size={16}
+              weight="bold"
+              color="white"
+              style={{ flexShrink: 0 }}
             />
-          </Indicator>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <Text fw={600} size="xs" truncate c="white">
-              {displayName}
-            </Text>
-            <Text size="10px" c="dimmed" truncate>
-              {user?.roles?.[0] === "admin"
-                ? "Administrator"
-                : "Data Entry Staff"}
-            </Text>
-          </div>
-          <DotsThreeVerticalIcon
-            size={16}
-            weight="bold"
-            color="white"
-            style={{ flexShrink: 0 }}
-          />
-        </UnstyledButton>
+          </UnstyledButton>
+        )}
       </Menu.Target>
 
       <Menu.Dropdown miw={220}>
-        {/* User Info Header */}
         <Menu.Item closeMenuOnClick={false} style={{ cursor: "default" }}>
           <Group gap="sm" wrap="nowrap">
             <Avatar
@@ -119,7 +147,6 @@ export function UserInfoPopover({
 
         <Menu.Divider />
 
-        {/* Status Section */}
         {!disableSetAway && (
           <Menu.Item
             leftSection={
@@ -134,7 +161,6 @@ export function UserInfoPopover({
           </Menu.Item>
         )}
 
-        {/* Notifications Section */}
         {!disablePauseNotifications && (
           <Menu.Item leftSection={<BellSlashIcon size={16} />}>
             <Text size="xs">Pause Notifications</Text>
@@ -143,14 +169,12 @@ export function UserInfoPopover({
 
         {(!disableSetAway || !disablePauseNotifications) && <Menu.Divider />}
 
-        {/* Help Section */}
         {!disableHelp && (
           <Menu.Item leftSection={<QuestionIcon size={16} />}>
             <Text size="xs">Help</Text>
           </Menu.Item>
         )}
 
-        {/* Settings Section */}
         {!disableSettings && (
           <Menu.Item leftSection={<GearIcon size={16} />}>
             <Text size="xs">Settings</Text>
@@ -159,7 +183,6 @@ export function UserInfoPopover({
 
         <Menu.Divider />
 
-        {/* Theme Selection */}
         {!disableTheme && (
           <>
             <Menu.Label>
@@ -200,7 +223,6 @@ export function UserInfoPopover({
 
         <Menu.Divider />
 
-        {/* Sign Out Section */}
         <Menu.Item
           leftSection={<SignOutIcon size={16} />}
           onClick={handleLogout}

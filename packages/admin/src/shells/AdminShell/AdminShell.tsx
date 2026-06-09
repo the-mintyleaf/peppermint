@@ -1,67 +1,73 @@
 "use client";
 
-import { AppShell, useDisclosure } from "@zetsel/ui";
+import { AppShell, Box, useDisclosure } from "@zetsel/ui";
+import { useMemo } from "react";
 import { AdminShellNavbar } from "./components/Navbar/AdminShell.Navbar";
-import type { AdminShellNav, AdminShellHeaderConfig } from "./AdminShell.types";
+import { resolveActiveMainNavItem } from "./nav.utils";
+import { SHELL_INSET, getNavbarWidth } from "./shell.constants";
+import type { AdminShellConfig } from "./AdminShell.types";
 
 //@ts-ignore
 import "mantine-datatable/styles.css";
 
 interface AdminShellProps {
   children: React.ReactNode;
-  nav?: AdminShellNav;
+  config: AdminShellConfig;
   pathname?: string;
-  headerConfig?: AdminShellHeaderConfig;
 }
 
 export function AdminShell({
   children,
-  nav = [],
+  config,
   pathname,
-  headerConfig,
 }: AdminShellProps) {
-  const [opened, { toggle }] = useDisclosure();
-  const [collapsedNav, navActions] = useDisclosure();
+  const [opened] = useDisclosure();
+  const [subNavCollapsed, subNavActions] = useDisclosure();
+
+  const activeItem = useMemo(
+    () => resolveActiveMainNavItem(config.mainNav, pathname ?? ""),
+    [config.mainNav, pathname]
+  );
+
+  const showSubNav =
+    activeItem?.kind === "module" && !subNavCollapsed;
+
+  const navbarWidth = getNavbarWidth(showSubNav);
 
   return (
-    <>
-      <AppShell
-        p={0}
-        navbar={{
-          width: collapsedNav ? 50 : 300,
-          breakpoint: "sm",
-          collapsed: { mobile: !opened },
-        }}
+    <AppShell
+      mode="static"
+      h="100dvh"
+      p={0}
+      padding={0}
+      withBorder={false}
+      bg="black"
+      navbar={{
+        width: navbarWidth,
+        breakpoint: "sm",
+        collapsed: { mobile: !opened },
+      }}
+    >
+      <AdminShellNavbar
+        config={config}
+        pathname={pathname}
+        subNavCollapsed={subNavCollapsed}
+        onSubNavCollapse={subNavActions.open}
+        onSubNavExpand={subNavActions.close}
+      />
+      <AppShell.Main
+        bg="transparent"
+        style={{ minHeight: 0, overflow: "hidden", display: "flex" }}
       >
-        <AdminShellNavbar
-          collapsed={collapsedNav}
-          onToggle={navActions.toggle}
-          onOpen={navActions.close}
-          onClose={navActions.open}
-          nav={nav}
-          pathname={pathname}
-          headerConfig={headerConfig}
-        />
-        <AppShell.Main
-          py={{
-            lg: "8px",
-          }}
-          pr={{ lg: "8px" }}
+        <Box
+          flex={1}
+          p={SHELL_INSET}
+          bg="black"
+          style={{ minHeight: 0, minWidth: 0, overflow: "auto" }}
         >
-          <section
-            style={{
-              width: "calc(100%)",
-              height: "calc(100vh - 16px)",
-              background: "var(--mantine-color-white)",
-              border: "1px solid var(--mantine-color-gray-4)",
-              borderRadius: "var(--mantine-radius-md)",
-              overflowY: "auto",
-            }}
-          >
-            {children}
-          </section>
-        </AppShell.Main>
-      </AppShell>
-    </>
+          {children}
+        </Box>
+      </AppShell.Main>
+    </AppShell>
   );
 }
