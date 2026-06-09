@@ -1,1 +1,1 @@
-export { ModuleHome } from "./Home";
+export { ModuleHome } from "./Home/Home";

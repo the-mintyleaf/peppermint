@@ -3,17 +3,12 @@
 import { AdminShell } from "@zetsel/admin";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
-import { adminNav } from "@/config/nav/admin-nav";
-import { adminHeaderConfig } from "@/config/header/admin-header";
+import { adminShellConfig } from "@/config/nav/admin-nav";
 
 export function LayoutAdmin({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   return (
-    <AdminShell
-      nav={adminNav}
-      pathname={pathname}
-      headerConfig={adminHeaderConfig}
-    >
+    <AdminShell config={adminShellConfig} pathname={pathname}>
       {children}
     </AdminShell>
   );
