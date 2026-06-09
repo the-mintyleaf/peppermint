@@ -32,4 +32,7 @@ export interface DocumentEditorContextValue {
   createDocumentWithContent: (type: DocumentType, content: DocumentContent, label?: string) => void;
   isCreatingDocument: boolean;
   printableContentRef: RefObject<HTMLDivElement | null>;
+  hasUnsavedChanges: boolean;
+  markUnsavedChanges: () => void;
+  confirmLeave: (onConfirm: () => void) => void;
 }

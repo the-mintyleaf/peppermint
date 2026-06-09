@@ -15,6 +15,7 @@ import {
 import { configPageProps } from "../../../templateprops";
 //context
 import { ContextEditor } from "@/components/layout/editor/editor.context";
+import { BankPaddingSpace } from "@/components/templates/bank/BankPaddingSpace";
 //style
 import classesTemplate from "../template.module.css";
 import classes from "./certificate.module.css";
@@ -120,7 +121,7 @@ export function TemplateHimchuliCertificate() {
   return (
     <>
       <Paper p="1in" className={classesTemplate.root} {...configPageProps}>
-        <Space h={state?.headerProps?.height + "in" || "1in"} />
+        <BankPaddingSpace position="top" />
 
         <Group justify="space-between">
           <i>
@@ -212,6 +213,7 @@ export function TemplateHimchuliCertificate() {
             {form.values?.statement_spokesperson_post}
           </Text>
         </Stack>
+      <BankPaddingSpace position="bottom" />
       </Paper>
     </>
   );

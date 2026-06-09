@@ -17,6 +17,7 @@ import {
 import { configPageProps } from "@/components/templates/templateprops";
 //context
 import { ContextEditor } from "@/components/layout/editor/editor.context";
+import { BankPaddingSpace } from "@/components/templates/bank/BankPaddingSpace";
 //style
 import classesTemplate from "../template.module.css";
 import classes from "./statement.module.css";
@@ -422,7 +423,7 @@ export function TemplateBigyalaxmiStatement() {
   };
 
   const chunkedStatements = chunkArray(
-    form.values?.workedStatements,
+    (form.values?.workedStatements as any[]) ?? [],
     36 - (state?.headerProps?.height - 1) / 0.2
   );
 
@@ -460,7 +461,7 @@ export function TemplateBigyalaxmiStatement() {
             px=".4in"
             {...configPageProps}
           >
-            <Space h={state?.headerProps?.height + "in" || "1in"} />
+            <BankPaddingSpace position="top" />
 
             <DocumentHeader />
 
@@ -480,6 +481,7 @@ export function TemplateBigyalaxmiStatement() {
             </table>
 
             <PageNumber page={index + 1} />
+          <BankPaddingSpace position="bottom" />
           </Paper>
         ))}
 
@@ -491,7 +493,7 @@ export function TemplateBigyalaxmiStatement() {
             px=".4in"
             {...configPageProps}
           >
-            <Space h={state?.headerProps?.height + "in" || "1in"} />
+            <BankPaddingSpace position="top" />
 
             <DocumentHeader />
 
@@ -502,6 +504,7 @@ export function TemplateBigyalaxmiStatement() {
             </table>
 
             <PageNumber page={chunkedStatements.length + 1} />
+          <BankPaddingSpace position="bottom" />
           </Paper>
         )}
       </Stack>

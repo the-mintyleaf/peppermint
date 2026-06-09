@@ -75,6 +75,36 @@ export interface CvContent {
   contact?: string;
   image?: string;
   student_code?: string;
+  // Extended personal info
+  nationality?: string;
+  languages_known?: string;
+  religion?: string;
+  alternate_email?: string;
+  // Passport
+  passport_number?: string;
+  passport_issue_date?: string;
+  passport_expiry_date?: string;
+  // IELTS achievement
+  ielts_overall?: string;
+  ielts_date?: string;
+  ielts_listening?: string;
+  ielts_reading?: string;
+  ielts_writing?: string;
+  ielts_speaking?: string;
+  // Extended sections
+  courses_training?: string;
+  ref1_name?: string;
+  ref1_title?: string;
+  ref1_institution?: string;
+  ref1_address?: string;
+  ref1_email?: string;
+  ref1_contact?: string;
+  ref2_name?: string;
+  ref2_title?: string;
+  ref2_institution?: string;
+  ref2_address?: string;
+  ref2_email?: string;
+  ref2_contact?: string;
   contact_detail?: {
     emergency_contact_name?: string;
     emergency_contact_relation?: string;
@@ -85,6 +115,7 @@ export interface CvContent {
     role: string;
     start_period: string;
     end_period: string;
+    description?: string;
   }>;
   educations?: Array<{
     institution: string;
@@ -92,6 +123,7 @@ export interface CvContent {
     field_of_study: string;
     start_period: string;
     end_period: string;
+    gpa?: string;
   }>;
   family_members?: Array<{
     name: string;
@@ -158,7 +190,23 @@ export type LorContent = Record<string, unknown> & {
   headerProps?: Record<string, unknown>;
 };
 
-export type DocumentContent = CertificateContent | CvContent | WodaContent | BankContent | LorContent;
+export type MoiContent = Record<string, unknown> & {
+  moi_ref_no?: string;
+  moi_letter_no?: string;
+  moi_date?: string;
+  institution_name?: string;
+  institution_address?: string;
+  student_honorific?: string;
+  student_name?: string;
+  student_last_name?: string;
+  student_pronoun?: string;
+  signatory_name?: string;
+  signatory_contact?: string;
+  signatory_email?: string;
+  headerProps?: Record<string, unknown>;
+};
+
+export type DocumentContent = CertificateContent | CvContent | WodaContent | BankContent | LorContent | MoiContent;
 
 export interface Document {
   id: string;
@@ -213,6 +261,8 @@ export interface StudentFullData {
 export interface DocumentFormProps {
   studentId: string | null;
   studentFullData?: StudentFullData | null;
+  initialContent?: DocumentContent;
+  signatures?: Signature[];
   onSubmit: (values: DocumentContent) => void;
   isLoading?: boolean;
 }

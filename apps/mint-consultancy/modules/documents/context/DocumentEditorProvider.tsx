@@ -16,6 +16,7 @@ import { documentQueryKeys } from "../documents.queryKeys";
 import { useSignatures } from "../hooks/useSignatures";
 import { getDefaultDocumentContent } from "../utils/defaultDocumentContent";
 import { getDefaultLabel } from "../documentTypeConfig";
+import { confirmLeaveWithUnsavedChanges } from "../hooks/useUnsavedChangesGuard";
 import type { DocumentEditorContextValue } from "./DocumentEditorProvider.types";
 import type { Document, DocumentContent, DocumentType } from "../documents.types";
 
@@ -43,6 +44,7 @@ export function DocumentEditorProvider({ studentId, children }: DocumentEditorPr
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [createModalType, setCreateModalType] = useState<DocumentType | null>(null);
   const [editFieldsModalOpen, setEditFieldsModalOpen] = useState(false);
+  const [hasPendingEdits, setHasPendingEdits] = useState(false);
 
   const { data: documents = [], isLoading: isLoadingDocuments } = useQuery({
     queryKey: documentQueryKeys.list(studentId),
@@ -69,6 +71,7 @@ export function DocumentEditorProvider({ studentId, children }: DocumentEditorPr
         old?.map((d) => (d.id === updated.id ? updated : d))
       );
       queryClient.invalidateQueries({ queryKey: documentQueryKeys.detail(updated.id) });
+      setHasPendingEdits(false);
     },
   });
 
@@ -93,11 +96,29 @@ export function DocumentEditorProvider({ studentId, children }: DocumentEditorPr
     setCreateModalType(null);
   }, []);
 
+  const markUnsavedChanges = useCallback(() => {
+    setHasPendingEdits(true);
+  }, []);
+
   const updateDocumentContent = useCallback(
     (documentId: string, content: DocumentContent) => {
+      setHasPendingEdits(true);
       updateMutation.mutate({ id: documentId, content });
     },
     [updateMutation]
+  );
+
+  const hasUnsavedChanges = hasPendingEdits || updateMutation.isPending;
+
+  const confirmLeave = useCallback(
+    (onConfirm: () => void) => {
+      if (!hasUnsavedChanges) {
+        onConfirm();
+        return;
+      }
+      confirmLeaveWithUnsavedChanges(onConfirm);
+    },
+    [hasUnsavedChanges]
   );
 
   const documentsRef = useRef(documents);
@@ -191,6 +212,9 @@ export function DocumentEditorProvider({ studentId, children }: DocumentEditorPr
     createDocumentWithContent,
     isCreatingDocument: createMutation.isPending,
     printableContentRef,
+    hasUnsavedChanges,
+    markUnsavedChanges,
+    confirmLeave,
   };
 
   return (

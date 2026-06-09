@@ -15,6 +15,7 @@ export function CreateDocumentModal() {
     createDocumentWithContent,
     isCreatingDocument,
     studentFullData,
+    signatures,
   } = useDocumentEditor();
 
   const config = createModalType ? getDocumentTypeConfig(createModalType) : null;
@@ -51,6 +52,7 @@ export function CreateDocumentModal() {
         <Form
           studentId={studentId}
           studentFullData={studentFullData}
+          signatures={signatures}
           onSubmit={handleSubmit}
           isLoading={isCreatingDocument}
         />

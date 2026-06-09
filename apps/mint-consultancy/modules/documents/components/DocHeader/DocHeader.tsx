@@ -1,7 +1,7 @@
 "use client";
 
 import { Group, Text, ActionIcon } from "@zetsel/ui";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { X as XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { FileText as DocumentIcon } from "@phosphor-icons/react/dist/csr/FileText";
 import { useDocumentEditor } from "../../context";
@@ -17,8 +17,13 @@ function formatHeaderDate(date: Date) {
 }
 
 export function DocHeader() {
-  const { activeDocument, studentFullData, studentId } = useDocumentEditor();
+  const router = useRouter();
+  const { activeDocument, studentFullData, studentId, confirmLeave } = useDocumentEditor();
   const currentDate = formatHeaderDate(new Date());
+
+  const handleClose = () => {
+    confirmLeave(() => router.push("/admin/documents"));
+  };
 
   const fileName =
     activeDocument?.label ??
@@ -59,10 +64,9 @@ export function DocHeader() {
         </Text>
         <ActionIcon
           className={styles.barCloseBtn}
-          component={Link}
-          href="/admin/documents"
           variant="subtle"
           size="sm"
+          onClick={handleClose}
           aria-label="Close document editor"
         >
           <XIcon size={14} color="#fff" aria-hidden />

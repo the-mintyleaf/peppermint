@@ -1,6 +1,6 @@
 "use client";
 
-import { Center, ScrollArea, Divider, LoadingOverlay, Box } from "@zetsel/ui";
+import { Center, ScrollArea, LoadingOverlay, Box } from "@zetsel/ui";
 import { useDocumentEditor } from "../../context";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
 import { useDocumentActions } from "../../hooks/useDocumentActions";
@@ -16,7 +16,6 @@ export function DocumentContent() {
     studentFullData,
     signatures,
     printableContentRef,
-    updateDocumentContent,
     removeDocumentFromList,
   } = useDocumentEditor();
 
@@ -46,24 +45,12 @@ export function DocumentContent() {
 
   const config = getDocumentTypeConfig(activeDocument.type);
   const Template = config.Template;
-  const ConfigBar = config.ConfigBar;
   const isHistorical = !!activeHistoricalLog;
 
   return (
     <ScrollArea className={styles.centerContent} type="auto">
       <Box style={{ position: "relative", minHeight: "100%", padding: "12px 8px" }}>
         <LoadingOverlay visible={isDeleting} zIndex={100} />
-
-        {ConfigBar && !isHistorical && (
-          <div className="no-print">
-            <ConfigBar
-              document={activeDocument}
-              onUpdate={(content) => updateDocumentContent(activeDocument.id, content)}
-              signatures={signatures}
-            />
-            <Divider opacity={0.5} my="md" />
-          </div>
-        )}
 
         <Center>
           <div ref={printableContentRef} data-mantine-color-scheme="light">

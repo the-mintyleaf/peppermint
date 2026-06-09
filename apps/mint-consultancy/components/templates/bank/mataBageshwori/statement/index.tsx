@@ -17,6 +17,7 @@ import {
 import { configPageProps } from "../../../templateprops";
 //context
 import { ContextEditor } from "@/components/layout/editor/editor.context";
+import { BankPaddingSpace } from "@/components/templates/bank/BankPaddingSpace";
 //style
 import classesTemplate from "../template.module.css";
 import classes from "./statement.module.css";
@@ -179,7 +180,7 @@ export function TemplateMataBageshworiStatement() {
   };
 
   const chunkedStatements = chunkArray(
-    form.values?.workedStatements,
+    (form.values?.workedStatements as any[]) ?? [],
     36 - (state?.headerProps?.height - 1) / 0.2
   );
 
@@ -195,7 +196,7 @@ export function TemplateMataBageshworiStatement() {
             {...configPageProps}
 
           >
-            <Space h={state?.headerProps?.height + "in" || "1in"} />
+            <BankPaddingSpace position="top" />
 
             <div className={classes.container}>
               <table className={classes.st_table}>
@@ -424,6 +425,7 @@ export function TemplateMataBageshworiStatement() {
                 Page {index + 1}
               </Text>
             </div>
+          <BankPaddingSpace position="bottom" />
           </Paper>
         ))}
 
@@ -438,7 +440,7 @@ export function TemplateMataBageshworiStatement() {
               fontFamily: `"Rubik", sans-serif`,
             }}
           >
-            <Space h={state?.headerProps?.height + "in" || "1in"} />
+            <BankPaddingSpace position="top" />
 
             <div className={classes.container}>
               <table className={classes.st_table}>
@@ -518,6 +520,7 @@ export function TemplateMataBageshworiStatement() {
                 Page {chunkedStatements.length + 1}
               </Text>
             </div>
+          <BankPaddingSpace position="bottom" />
           </Paper>
         )}
       </Stack>

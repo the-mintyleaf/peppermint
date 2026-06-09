@@ -13,16 +13,21 @@ import { CreateDocumentModal } from "../../components/CreateDocumentModal";
 import { EditFieldsModal } from "../../components/EditFieldsModal";
 import { EditCurrentDocumentButton } from "../../components/EditCurrentDocumentButton";
 import { useResizableWidth } from "../../hooks/useResizableWidth";
+import { useUnsavedChangesGuard } from "../../hooks/useUnsavedChangesGuard";
+import { useDocumentEditor } from "../../context";
 import styles from "./DocumentEditor.module.css";
 
 const SIDEBAR_INITIAL_WIDTH = 200;
 const EDIT_BUTTON_OFFSET = 16;
 
 function DocumentEditorInner() {
+  const { hasUnsavedChanges } = useDocumentEditor();
   const [pagesOpen, setPagesOpen] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(true);
   const pagesResize = useResizableWidth({ initialWidth: SIDEBAR_INITIAL_WIDTH });
   const historyResize = useResizableWidth({ initialWidth: SIDEBAR_INITIAL_WIDTH });
+
+  useUnsavedChangesGuard(hasUnsavedChanges);
 
   return (
     <div className={styles.root}>

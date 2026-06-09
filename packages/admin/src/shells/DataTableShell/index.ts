@@ -1,5 +1,7 @@
 export { DataTableShell } from './DataTableShell';
 export { useDataTableShellContext } from './DataTableShell.context';
+export { DataTableShellNestedTable } from './components/DataTableShellNestedTable';
+export type { DataTableShellNestedTableProps } from './components/DataTableShellNestedTable';
 export type {
   DataTableShellProps,
   DataTableShellTab,

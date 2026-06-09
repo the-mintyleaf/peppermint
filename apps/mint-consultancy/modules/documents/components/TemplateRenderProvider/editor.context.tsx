@@ -4,6 +4,7 @@ import { createContext, type ReactNode } from "react";
 
 export interface EditorHeaderProps {
   height?: number;
+  paddingBottom?: number;
   enable?: boolean;
   enableLine?: boolean;
 }
@@ -20,7 +21,7 @@ interface EditorContextValue {
 
 const defaultState: EditorState = {
   details: {},
-  headerProps: { height: 1, enable: false, enableLine: false },
+  headerProps: { height: 1, paddingBottom: 0.5, enable: false, enableLine: false },
 };
 
 export const Context = createContext<EditorContextValue>({

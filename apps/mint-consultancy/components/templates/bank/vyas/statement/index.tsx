@@ -8,6 +8,7 @@ import { Grid, Group, Paper, Space, Stack, Table, Text } from "@zetsel/ui";
 import { configPageProps } from "@/components/templates/templateprops";
 //context
 import { ContextEditor } from "@/components/layout/editor/editor.context";
+import { BankPaddingSpace } from "@/components/templates/bank/BankPaddingSpace";
 //style
 import classesTemplate from "../template.module.css";
 import classes from "./statement.module.css";
@@ -326,7 +327,7 @@ export function TemplateVyasStatement() {
   };
 
   const chunkedStatements = chunkArray(
-    form.values?.workedStatements,
+    (form.values?.workedStatements as any[]) ?? [],
     36 - (state?.headerProps?.height - 1) / 0.2
   );
 
@@ -345,7 +346,7 @@ export function TemplateVyasStatement() {
             px=".4in"
             {...configPageProps}
           >
-            <Space h={state?.headerProps?.height + "in" || "1in"} />
+            <BankPaddingSpace position="top" />
 
             <DocumentHeader />
 
@@ -360,6 +361,7 @@ export function TemplateVyasStatement() {
             </table>
 
             <PageNumber page={index + 1} />
+          <BankPaddingSpace position="bottom" />
           </Paper>
         ))}
       </Stack>

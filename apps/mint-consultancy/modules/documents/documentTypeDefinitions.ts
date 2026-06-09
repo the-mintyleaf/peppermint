@@ -9,6 +9,7 @@ export const WODA_VARIANTS = [
   { slug: "woda-surname", folder: "surname", exportName: "TemplateSurname", label: "WODA — Surname" },
   { slug: "woda-tax-clearance", folder: "taxClearance", exportName: "TemplateTaxClearance", label: "WODA — Tax Clearance" },
   { slug: "woda-agriculture-income", folder: "agriculture-income", exportName: "TemplateAgricultureIncome", label: "WODA — Agriculture Income" },
+  { slug: "woda-affidavit-financial", folder: "affidavitFinancial", exportName: "TemplateAffidavitFinancial", label: "WODA — Affidavit of Financial Support" },
 ] as const;
 
 export const BANK_INSTITUTIONS = [
@@ -59,7 +60,12 @@ export type BankInstitutionSlugKey = (typeof BANK_INSTITUTIONS)[number]["slugKey
 export type BankCertificateSlug = `bank-${BankInstitutionSlugKey}-certificate`;
 export type BankStatementSlug = `bank-${BankInstitutionSlugKey}-statement`;
 
-export const STUDENT_DOCUMENT_TYPES = ["student-certificate", "student-cv"] as const;
+export const STUDENT_DOCUMENT_TYPES = [
+  "student-certificate",
+  "student-cv",
+  "student-cv-standard",
+  "student-cv-extended",
+] as const;
 
 export const LOR_INSTITUTIONS = [
   { slug: "lor-janajagriti", label: "LOR — Shree Janajagriti Secondary School" },
@@ -77,10 +83,21 @@ export const LOR_INSTITUTIONS = [
 
 export type LorSlug = (typeof LOR_INSTITUTIONS)[number]["slug"];
 
+export const MOI_INSTITUTIONS = [
+  { slug: "moi-global-college", label: "MOI — Global College of Management" },
+  { slug: "moi-janajagriti", label: "MOI — Shree Janajagriti Secondary School" },
+  { slug: "moi-vinayak", label: "MOI — Vinayak Health Care System" },
+  { slug: "moi-reliance", label: "MOI — Reliance International Academy" },
+  { slug: "moi-bheri-nursing", label: "MOI — Bheri Nursing College" },
+] as const;
+
+export type MoiSlug = (typeof MOI_INSTITUTIONS)[number]["slug"];
+
 export const ALL_DOCUMENT_TYPE_SLUGS = [
   ...STUDENT_DOCUMENT_TYPES,
   ...WODA_VARIANTS.map((v) => v.slug),
   ...LOR_INSTITUTIONS.map((l) => l.slug),
+  ...MOI_INSTITUTIONS.map((m) => m.slug),
   ...BANK_INSTITUTIONS.flatMap((b) => [
     `bank-${b.slugKey}-certificate` as BankCertificateSlug,
     `bank-${b.slugKey}-statement` as BankStatementSlug,

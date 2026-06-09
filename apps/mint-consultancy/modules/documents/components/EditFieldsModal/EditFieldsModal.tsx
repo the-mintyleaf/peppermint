@@ -11,6 +11,7 @@ export function EditFieldsModal() {
     editFieldsModalOpen,
     setEditFieldsModalOpen,
     updateDocumentContent,
+    signatures,
   } = useDocumentEditor();
 
   if (!activeDocument) return null;
@@ -33,6 +34,8 @@ export function EditFieldsModal() {
       {Form && (
         <Form
           studentId={activeDocument.studentId}
+          initialContent={activeDocument.content}
+          signatures={signatures}
           onSubmit={handleSubmit}
           isLoading={false}
         />

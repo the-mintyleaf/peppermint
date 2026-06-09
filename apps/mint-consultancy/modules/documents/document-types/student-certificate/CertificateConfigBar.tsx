@@ -2,6 +2,7 @@
 
 import { useCallback, useRef } from "react";
 import { SimpleGrid, Select, TextInput, useDebouncedCallback } from "@zetsel/ui";
+import { useDocumentEditor } from "../../context";
 import type { DocumentConfigBarProps, CertificateContent } from "../../documents.types";
 
 const inputStyles = {
@@ -15,6 +16,7 @@ export function CertificateConfigBar({
   signatures = [],
   disabled,
 }: DocumentConfigBarProps) {
+  const { markUnsavedChanges } = useDocumentEditor();
   const content = document.content as CertificateContent;
   const contentRef = useRef(content);
   contentRef.current = content;
@@ -25,9 +27,10 @@ export function CertificateConfigBar({
 
   const handleChange = useCallback(
     (patch: Partial<CertificateContent>) => {
+      markUnsavedChanges();
       debouncedUpdate(patch);
     },
-    [debouncedUpdate]
+    [debouncedUpdate, markUnsavedChanges]
   );
 
   const signatureOptions = [

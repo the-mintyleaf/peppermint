@@ -111,6 +111,58 @@ export function createLorForm(extraDefaults: Record<string, unknown> = {}) {
   };
 }
 
+export function createMoiForm(extraDefaults: Record<string, unknown> = {}) {
+  return function MoiVariantForm({ onSubmit, isLoading }: DocumentFormProps) {
+    const form = useForm({
+      initialValues: {
+        moi_ref_no: "",
+        moi_date: new Date().toISOString().split("T")[0],
+        student_honorific: "Mr.",
+        student_name: "",
+        student_last_name: "",
+        student_pronoun: "him",
+        signatory_name: "",
+        signatory_contact: "",
+        signatory_email: "",
+        ...extraDefaults,
+      },
+      onSubmit: (values) => onSubmit(values as never),
+    });
+
+    const extraFields = Object.keys(extraDefaults);
+
+    return (
+      <form onSubmit={form.onSubmit}>
+        <Stack gap="md" p="md">
+          <Text fw={600} size="sm">Letter</Text>
+          <TextInput label="Ref. No." {...form.getInputProps("moi_ref_no")} disabled={isLoading} />
+          <TextInput label="Date" type="date" {...form.getInputProps("moi_date")} disabled={isLoading} />
+          <Text fw={600} size="sm">Student</Text>
+          <TextInput label="Honorific (Mr. / Ms. / Mrs.)" {...form.getInputProps("student_honorific")} disabled={isLoading} />
+          <TextInput label="Full Name" {...form.getInputProps("student_name")} required disabled={isLoading} />
+          <TextInput label="Last Name (for Mr. Last style)" {...form.getInputProps("student_last_name")} disabled={isLoading} />
+          <TextInput label="Pronoun (him / her)" {...form.getInputProps("student_pronoun")} disabled={isLoading} />
+          {extraFields.map((key) => (
+            <TextInput
+              key={key}
+              label={key.replace(/_/g, " ")}
+              {...form.getInputProps(key)}
+              disabled={isLoading}
+            />
+          ))}
+          <Text fw={600} size="sm">Signatory</Text>
+          <TextInput label="Name" {...form.getInputProps("signatory_name")} required disabled={isLoading} />
+          <TextInput label="Contact No. (optional)" {...form.getInputProps("signatory_contact")} disabled={isLoading} />
+          <TextInput label="Email (optional)" {...form.getInputProps("signatory_email")} disabled={isLoading} />
+          <Button type="submit" loading={isLoading} fullWidth>
+            Create Document
+          </Button>
+        </Stack>
+      </form>
+    );
+  };
+}
+
 export function createBankForm(defaultValues: Record<string, unknown> = {}) {
   return function BankVariantForm({ onSubmit, isLoading }: DocumentFormProps) {
     const form = useForm({

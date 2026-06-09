@@ -1,5 +1,5 @@
-import type { BankContent, CertificateContent, CvContent, DocumentContent, DocumentType, LorContent, WodaContent } from "../documents.types";
-import { BANK_INSTITUTIONS, LOR_INSTITUTIONS, WODA_VARIANTS } from "../documentTypeDefinitions";
+import type { BankContent, CertificateContent, CvContent, DocumentContent, DocumentType, LorContent, MoiContent, WodaContent } from "../documents.types";
+import { BANK_INSTITUTIONS, LOR_INSTITUTIONS, MOI_INSTITUTIONS, WODA_VARIANTS } from "../documentTypeDefinitions";
 
 const wodaBaseDefaults: WodaContent = {
   wodadoc_refno: "",
@@ -22,6 +22,40 @@ const wodaVariantDefaults: Partial<Record<DocumentType, Record<string, unknown>>
     crops: "",
     annual_income_nrs: 0,
     annual_income_words: "",
+  },
+  "woda-affidavit-financial": {
+    dispatch_no: "",
+    wodadoc_date_bs: "",
+    sponsor_honorific: "Mr.",
+    sponsor_name: "",
+    sponsor_relation: "Grandfather",
+    sponsor_citizenship_no: "",
+    father_honorific: "Mr.",
+    father_name: "",
+    mother_honorific: "Mrs.",
+    mother_name: "",
+    parent_citizenship_no: "",
+    permanent_address: "",
+    student_honorific: "Miss",
+    student_name: "",
+    student_pronoun: "her",
+    student_kinship: "daughter",
+    student_citizenship_no: "",
+    student_nid_no: "",
+    student_passport_no: "",
+    course_level: "Bachelor",
+    course_name: "",
+    institution_name: "",
+    institution_location: "",
+    support_providers: "",
+    signer1_name: "",
+    signer1_relation: "Grandmother",
+    signer2_name: "",
+    signer2_relation: "Father",
+    signer3_name: "",
+    signer3_relation: "Mother",
+    chairman_name: "",
+    chairman_date: "",
   },
   "woda-address": {
     applicant_father_name: "",
@@ -150,6 +184,46 @@ const lorInstitutionDefaults: Partial<Record<DocumentType, Partial<LorContent>>>
   },
 };
 
+const moiBaseDefaults: MoiContent = {
+  moi_ref_no: "",
+  moi_letter_no: "",
+  moi_date: new Date().toISOString().split("T")[0],
+  institution_name: "",
+  institution_address: "",
+  student_honorific: "Mr.",
+  student_name: "",
+  student_last_name: "",
+  student_pronoun: "him",
+  signatory_name: "",
+  signatory_contact: "",
+  signatory_email: "",
+};
+
+const moiInstitutionDefaults: Partial<Record<DocumentType, Partial<MoiContent>>> = {
+  "moi-global-college": {
+    institution_name: "Global College of Management",
+    institution_address: "Baneshwor, Kathmandu-31, Nepal",
+    signatory_email: "ambadatt.joshi@globalcollege.edu.np",
+  },
+  "moi-janajagriti": {
+    institution_name: "Shree Janajagriti Secondary School",
+    institution_address: "Tamakoshi R.M., Ward No. 5, Shahare, Dolakha",
+  },
+  "moi-vinayak": {
+    institution_name: "Vinayak Health Care System",
+    institution_address: "P.O. Box: 23, Bharatpur-10, Chitwan, Bagmati Province, Nepal",
+  },
+  "moi-reliance": {
+    institution_name: "Reliance International Academy",
+    institution_address: "Saraswati Nagar, Ghabahil, Kathmandu, Nepal",
+  },
+  "moi-bheri-nursing": {
+    institution_name: "Bheri Nursing College",
+    institution_address: "Belaspur-12, Nepalgunj, Banke",
+    signatory_contact: "081-415339",
+  },
+};
+
 const bankBaseDefaults = (slugKey: string): BankContent => ({
   statement_account_holder: "",
   statement_account_no: "",
@@ -184,11 +258,60 @@ export function getDefaultDocumentContent(type: DocumentType): DocumentContent {
     return { summary: "", skills: "", experience: "" } satisfies CvContent;
   }
 
+  if (type === "student-cv-standard") {
+    return {
+      nationality: "Nepali",
+      languages_known: "Nepali, English",
+      passport_number: "",
+      passport_issue_date: "",
+      passport_expiry_date: "",
+      ielts_overall: "",
+      ielts_date: "",
+      ielts_listening: "",
+      ielts_reading: "",
+      ielts_writing: "",
+      ielts_speaking: "",
+      skills: "",
+    } satisfies CvContent;
+  }
+
+  if (type === "student-cv-extended") {
+    return {
+      nationality: "Nepali",
+      languages_known: "Nepali, English",
+      religion: "",
+      alternate_email: "",
+      passport_number: "",
+      skills: "",
+      courses_training: "",
+      ref1_name: "",
+      ref1_title: "",
+      ref1_institution: "",
+      ref1_address: "",
+      ref1_email: "",
+      ref1_contact: "",
+      ref2_name: "",
+      ref2_title: "",
+      ref2_institution: "",
+      ref2_address: "",
+      ref2_email: "",
+      ref2_contact: "",
+    } satisfies CvContent;
+  }
+
   const lorVariant = LOR_INSTITUTIONS.find((l) => l.slug === type);
   if (lorVariant) {
     return {
       ...lorBaseDefaults,
       ...(lorInstitutionDefaults[type] ?? {}),
+    };
+  }
+
+  const moiVariant = MOI_INSTITUTIONS.find((m) => m.slug === type);
+  if (moiVariant) {
+    return {
+      ...moiBaseDefaults,
+      ...(moiInstitutionDefaults[type] ?? {}),
     };
   }
 
@@ -213,5 +336,10 @@ export function getDefaultDocumentContent(type: DocumentType): DocumentContent {
 }
 
 export function usesCreateModal(type: DocumentType): boolean {
-  return type === "student-certificate" || type === "student-cv";
+  return (
+    type === "student-certificate" ||
+    type === "student-cv" ||
+    type === "student-cv-standard" ||
+    type === "student-cv-extended"
+  );
 }

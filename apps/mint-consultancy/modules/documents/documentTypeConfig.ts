@@ -1,11 +1,12 @@
 import type { DocumentType, DocumentTypeConfig } from "./documents.types";
-import { WODA_VARIANTS, BANK_INSTITUTIONS, LOR_INSTITUTIONS } from "./documentTypeDefinitions";
+import { WODA_VARIANTS, BANK_INSTITUTIONS, LOR_INSTITUTIONS, MOI_INSTITUTIONS } from "./documentTypeDefinitions";
 import {
   CertificateForm,
   CertificateTemplate,
-  CertificateConfigBar,
 } from "./document-types/student-certificate";
 import { CvForm, CvTemplate } from "./document-types/student-cv";
+import { CvStandardForm, CvStandardTemplate } from "./document-types/student-cv-standard";
+import { CvExtendedForm, CvExtendedTemplate } from "./document-types/student-cv-extended";
 import { WodaAddressForm, WodaAddressTemplate } from "./document-types/woda-address";
 import { WodaDobForm, WodaDobTemplate } from "./document-types/woda-dob";
 import { WodaFiscalForm, WodaFiscalTemplate } from "./document-types/woda-fiscal";
@@ -16,6 +17,16 @@ import { WodaRelationshipForm, WodaRelationshipTemplate } from "./document-types
 import { WodaSurnameForm, WodaSurnameTemplate } from "./document-types/woda-surname";
 import { WodaTaxClearanceForm, WodaTaxClearanceTemplate } from "./document-types/woda-tax-clearance";
 import { WodaAgricultureIncomeForm, WodaAgricultureIncomeTemplate } from "./document-types/woda-agriculture-income";
+import { WodaAffidavitFinancialForm, WodaAffidavitFinancialTemplate } from "./document-types/woda-affidavit-financial";
+import { BankConfigBar } from "./document-types/bank-config-bar";
+import {
+  MoiGlobalCollege,
+  MoiJanajagriti,
+  MoiVinayak,
+  MoiReliance,
+  MoiBheriNursing,
+  MoiTemplate,
+} from "./document-types/moi";
 import {
   LorJanajagriti,
   LorBageshwariChief,
@@ -127,6 +138,7 @@ const wodaComponents = {
   "woda-surname": { Form: WodaSurnameForm, Template: WodaSurnameTemplate },
   "woda-tax-clearance": { Form: WodaTaxClearanceForm, Template: WodaTaxClearanceTemplate },
   "woda-agriculture-income": { Form: WodaAgricultureIncomeForm, Template: WodaAgricultureIncomeTemplate },
+  "woda-affidavit-financial": { Form: WodaAffidavitFinancialForm, Template: WodaAffidavitFinancialTemplate },
 } as const;
 
 const bankCertificateComponents = {
@@ -159,6 +171,28 @@ const bankStatementComponents = {
   tribeni: { Form: TribeniStatementForm, Template: TribeniStatementTemplate },
   vyas: { Form: VyasStatementForm, Template: VyasStatementTemplate },
 } as const;
+
+const moiFormMap = {
+  "moi-global-college": MoiGlobalCollege,
+  "moi-janajagriti": MoiJanajagriti,
+  "moi-vinayak": MoiVinayak,
+  "moi-reliance": MoiReliance,
+  "moi-bheri-nursing": MoiBheriNursing,
+};
+
+const moiRegistry = Object.fromEntries(
+  MOI_INSTITUTIONS.map((inst) => [
+    inst.slug,
+    {
+      type: inst.slug,
+      label: inst.label,
+      uniquePerStudent: false,
+      requiresStudent: false,
+      Form: moiFormMap[inst.slug],
+      Template: MoiTemplate,
+    },
+  ])
+) as Record<(typeof MOI_INSTITUTIONS)[number]["slug"], DocumentTypeConfig>;
 
 const lorFormMap = {
   "lor-janajagriti": LorJanajagriti,
@@ -228,6 +262,7 @@ const bankRegistry = Object.fromEntries(
           requiresStudent: false,
           Form: certComponents.Form,
           Template: certComponents.Template,
+          ConfigBar: BankConfigBar,
         },
       ],
       [
@@ -239,6 +274,7 @@ const bankRegistry = Object.fromEntries(
           requiresStudent: false,
           Form: stmtComponents.Form,
           Template: stmtComponents.Template,
+          ConfigBar: BankConfigBar,
         },
       ],
     ];
@@ -257,7 +293,6 @@ export const documentTypeRegistry: Record<DocumentType, DocumentTypeConfig> = {
     requiresStudent: true,
     Form: CertificateForm,
     Template: CertificateTemplate,
-    ConfigBar: CertificateConfigBar,
   },
   "student-cv": {
     type: "student-cv",
@@ -267,8 +302,25 @@ export const documentTypeRegistry: Record<DocumentType, DocumentTypeConfig> = {
     Form: CvForm,
     Template: CvTemplate,
   },
+  "student-cv-standard": {
+    type: "student-cv-standard",
+    label: "CV — Standard",
+    uniquePerStudent: false,
+    requiresStudent: true,
+    Form: CvStandardForm,
+    Template: CvStandardTemplate,
+  },
+  "student-cv-extended": {
+    type: "student-cv-extended",
+    label: "CV — Extended",
+    uniquePerStudent: false,
+    requiresStudent: true,
+    Form: CvExtendedForm,
+    Template: CvExtendedTemplate,
+  },
   ...wodaRegistry,
   ...lorRegistry,
+  ...moiRegistry,
   ...bankRegistry,
 };
 

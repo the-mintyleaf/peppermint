@@ -1,5 +1,5 @@
 import { documentTypeList, getDocumentTypeConfig } from "../documentTypeConfig";
-import { BANK_INSTITUTIONS, LOR_INSTITUTIONS, WODA_VARIANTS } from "../documentTypeDefinitions";
+import { BANK_INSTITUTIONS, LOR_INSTITUTIONS, MOI_INSTITUTIONS, WODA_VARIANTS } from "../documentTypeDefinitions";
 import type { Document, DocumentType } from "../documents.types";
 
 export function getAvailableDocumentTypes(studentId: string | null, documents: Document[]) {
@@ -22,7 +22,7 @@ export function isTypeAvailable(
 
 export function getStudentMenuTypes(studentId: string | null, documents: Document[]) {
   const available = new Set(getAvailableDocumentTypes(studentId, documents).map((c) => c.type));
-  return (["student-certificate", "student-cv"] as const).filter((type) => available.has(type));
+  return (["student-certificate", "student-cv", "student-cv-standard", "student-cv-extended"] as const).filter((type) => available.has(type));
 }
 
 export function getWodaMenuTypes(studentId: string | null, documents: Document[]) {
@@ -46,8 +46,17 @@ export function getLorMenuTypes(studentId: string | null, documents: Document[])
   return LOR_INSTITUTIONS.filter((l) => available.has(l.slug));
 }
 
+export function getMoiMenuTypes(studentId: string | null, documents: Document[]) {
+  const available = new Set(getAvailableDocumentTypes(studentId, documents).map((c) => c.type));
+  return MOI_INSTITUTIONS.filter((m) => available.has(m.slug));
+}
+
 export function getLorMenuLabel(label: string) {
   return label.replace(/^LOR — /, "");
+}
+
+export function getMoiMenuLabel(label: string) {
+  return label.replace(/^MOI — /, "");
 }
 
 export function getWodaMenuLabel(label: string) {

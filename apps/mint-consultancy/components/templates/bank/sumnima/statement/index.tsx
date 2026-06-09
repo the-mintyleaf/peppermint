@@ -15,6 +15,7 @@ import {
 import { configPageProps } from "../../../templateprops";
 //context
 import { ContextEditor } from "@/components/layout/editor/editor.context";
+import { BankPaddingSpace } from "@/components/templates/bank/BankPaddingSpace";
 //style
 import classesTemplate from "../template.module.css";
 import classes from "./statement.module.css";
@@ -205,7 +206,7 @@ export function TemplateSumnimaStatement() {
   };
 
   const chunkedStatements = chunkArray(
-    form.values?.workedStatements,
+    (form.values?.workedStatements as any[]) ?? [],
     36 - (state?.headerProps?.height - 1) / 0.2
   );
 
@@ -221,7 +222,7 @@ export function TemplateSumnimaStatement() {
             px=".4in"
             {...configPageProps}
           >
-            <Space h={state?.headerProps?.height + "in" || "1in"} />
+            <BankPaddingSpace position="top" />
 
             <DocHeader />
 
@@ -465,6 +466,7 @@ export function TemplateSumnimaStatement() {
             >
               Page {index + 1}
             </Text>
+          <BankPaddingSpace position="bottom" />
           </Paper>
         ))}
 
@@ -476,7 +478,7 @@ export function TemplateSumnimaStatement() {
             px=".4in"
             {...configPageProps}
           >
-            <Space h={state?.headerProps?.height + "in" || "1in"} />
+            <BankPaddingSpace position="top" />
 
             <DocHeader />
 
@@ -557,6 +559,7 @@ export function TemplateSumnimaStatement() {
                 </Text>
               </Grid.Col>
             </Grid>
+          <BankPaddingSpace position="bottom" />
           </Paper>
         )}
       </Stack>
