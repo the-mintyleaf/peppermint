@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { AppShell, Group } from "@zetsel/ui";
 import { MainNav } from "./MainNav/MainNav";
 import { SubNav } from "./SubNav/SubNav";
@@ -11,6 +12,7 @@ export { MAIN_NAV_WIDTH, SUB_NAV_WIDTH } from "../../shell.constants";
 
 interface AdminShellNavbarProps {
   config: AdminShellConfig;
+  mainNavHeader: ReactNode;
   pathname?: string;
   subNavCollapsed: boolean;
   onSubNavCollapse: () => void;
@@ -19,6 +21,7 @@ interface AdminShellNavbarProps {
 
 export function AdminShellNavbar({
   config,
+  mainNavHeader,
   pathname = "",
   subNavCollapsed,
   onSubNavCollapse,
@@ -46,6 +49,7 @@ export function AdminShellNavbar({
         style={{ overflow: "hidden" }}
       >
         <MainNav
+          header={mainNavHeader}
           brand={config.brand}
           mainNav={config.mainNav}
           additional={config.additional}

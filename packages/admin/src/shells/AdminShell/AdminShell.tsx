@@ -1,6 +1,7 @@
 "use client";
 
 import { AppShell, Box, useDisclosure } from "@zetsel/ui";
+import type { ReactNode } from "react";
 import { useMemo } from "react";
 import { AdminShellNavbar } from "./components/Navbar/AdminShell.Navbar";
 import { resolveActiveMainNavItem } from "./nav.utils";
@@ -11,14 +12,16 @@ import type { AdminShellConfig } from "./AdminShell.types";
 import "mantine-datatable/styles.css";
 
 interface AdminShellProps {
-  children: React.ReactNode;
+  children: ReactNode;
   config: AdminShellConfig;
+  mainNavHeader: ReactNode;
   pathname?: string;
 }
 
 export function AdminShell({
   children,
   config,
+  mainNavHeader,
   pathname,
 }: AdminShellProps) {
   const [opened] = useDisclosure();
@@ -50,6 +53,7 @@ export function AdminShell({
     >
       <AdminShellNavbar
         config={config}
+        mainNavHeader={mainNavHeader}
         pathname={pathname}
         subNavCollapsed={subNavCollapsed}
         onSubNavCollapse={subNavActions.open}

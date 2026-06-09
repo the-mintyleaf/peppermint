@@ -2,6 +2,11 @@
 
 import { Avatar } from "@zetsel/ui";
 import { DataTableShell } from "@zetsel/admin";
+import type { DataTableShellTab } from "@zetsel/admin";
+import { PackageIcon } from "@phosphor-icons/react/dist/csr/Package";
+import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
+import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
+import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
 import { fetchProducts } from "../../module.api";
 import { PRODUCT_COLUMNS } from "./list.columns";
 import type { Product } from "../../module.api";
@@ -17,23 +22,11 @@ const COLUMNS = PRODUCT_COLUMNS.map((col) =>
     : col,
 );
 
-const STATUS_TABS = [
-  { label: "All Products" },
-  {
-    label: "In Stock",
-    forceFilter: (rows: Product[]) =>
-      rows.filter((r) => r.availabilityStatus === "In Stock"),
-  },
-  {
-    label: "Low Stock",
-    forceFilter: (rows: Product[]) =>
-      rows.filter((r) => r.availabilityStatus === "Low Stock"),
-  },
-  {
-    label: "Out of Stock",
-    forceFilter: (rows: Product[]) =>
-      rows.filter((r) => r.availabilityStatus === "Out of Stock"),
-  },
+const STATUS_TABS: DataTableShellTab[] = [
+  { label: "All Products", icon: PackageIcon },
+  { label: "In Stock", icon: CheckCircleIcon, filter: { availabilityStatus: "In Stock" } },
+  { label: "Low Stock", icon: WarningIcon, filter: { availabilityStatus: "Low Stock" } },
+  { label: "Out of Stock", icon: ProhibitIcon, filter: { availabilityStatus: "Out of Stock" } },
 ];
 
 export function ProductsList() {
