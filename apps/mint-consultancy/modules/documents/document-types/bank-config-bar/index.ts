@@ -1,1 +1,0 @@
-export { BankConfigBar } from "./BankConfigBar";
