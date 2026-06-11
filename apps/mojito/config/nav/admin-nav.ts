@@ -1,7 +1,6 @@
 import type { AdminShellConfig } from "@zetsel/admin";
 import { ChartBarIcon } from "@phosphor-icons/react/dist/csr/ChartBar";
 import { PenNibIcon } from "@phosphor-icons/react/dist/csr/PenNib";
-import { ShareNetworkIcon } from "@phosphor-icons/react/dist/csr/ShareNetwork";
 import { RobotIcon } from "@phosphor-icons/react/dist/csr/Robot";
 import { ChartLineIcon } from "@phosphor-icons/react/dist/csr/ChartLine";
 import { SparkleIcon } from "@phosphor-icons/react/dist/csr/Sparkle";
@@ -9,6 +8,10 @@ import { CalendarIcon } from "@phosphor-icons/react/dist/csr/Calendar";
 import { LayoutIcon } from "@phosphor-icons/react/dist/csr/Layout";
 import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
 import { FlowArrowIcon } from "@phosphor-icons/react/dist/csr/FlowArrow";
+import { PaperPlaneTiltIcon } from "@phosphor-icons/react/dist/csr/PaperPlaneTilt";
+import { SmileyIcon } from "@phosphor-icons/react/dist/csr/Smiley";
+import { ShareNetworkIcon } from "@phosphor-icons/react/dist/csr/ShareNetwork";
+import { ArticleIcon } from "@phosphor-icons/react/dist/csr/Article";
 
 export const adminShellConfig: AdminShellConfig = {
   brand: {
@@ -25,18 +28,16 @@ export const adminShellConfig: AdminShellConfig = {
     },
     {
       kind: "module",
-      id: "content",
+      id: "create",
       icon: PenNibIcon,
-      label: "Content",
+      label: "Create",
       subNav: {
-        homeHref: "/admin/content/calendar",
+        homeHref: "/admin/create",
         groups: [
           {
-            label: "Content",
+            label: "Create",
             items: [
-              { label: "Content Calendar", href: "/admin/content/calendar", icon: CalendarIcon },
-              { label: "Templates", href: "/admin/content/templates", icon: LayoutIcon },
-              { label: "Content Library", href: "/admin/content/library", icon: ArchiveIcon },
+              { label: "New Post", href: "/admin/create", icon: PenNibIcon },
             ],
           },
         ],
@@ -44,33 +45,17 @@ export const adminShellConfig: AdminShellConfig = {
     },
     {
       kind: "module",
-      id: "channels",
-      icon: ShareNetworkIcon,
-      label: "Channels",
+      id: "publish",
+      icon: PaperPlaneTiltIcon,
+      label: "Publish",
       subNav: {
-        homeHref: "/admin/channels",
+        homeHref: "/admin/publish/calendar",
         groups: [
           {
-            label: "Channels",
+            label: "Publish",
             items: [
-              { label: "All Channels", href: "/admin/channels", icon: ShareNetworkIcon },
-            ],
-          },
-        ],
-      },
-    },
-    {
-      kind: "module",
-      id: "automation",
-      icon: RobotIcon,
-      label: "Automation",
-      subNav: {
-        homeHref: "/admin/automation/workflows",
-        groups: [
-          {
-            label: "Automation",
-            items: [
-              { label: "Workflows", href: "/admin/automation/workflows", icon: FlowArrowIcon },
+              { label: "Content Calendar", href: "/admin/publish/calendar", icon: CalendarIcon },
+              { label: "Post History", href: "/admin/publish/library", icon: ArchiveIcon },
             ],
           },
         ],
@@ -82,12 +67,44 @@ export const adminShellConfig: AdminShellConfig = {
       icon: ChartLineIcon,
       label: "Analytics",
       subNav: {
-        homeHref: "/admin/analytics/overview",
+        homeHref: "/admin/analytics/post-analysis",
         groups: [
           {
             label: "Analytics",
             items: [
-              { label: "Overview", href: "/admin/analytics/overview", icon: ChartLineIcon },
+              {
+                label: "Social Media Analysis",
+                href: "/admin/analytics/social-media",
+                icon: ShareNetworkIcon,
+              },
+              {
+                label: "Sentiment Analysis",
+                href: "/admin/analytics/sentiment",
+                icon: SmileyIcon,
+              },
+              {
+                label: "Post Analysis",
+                href: "/admin/analytics/post-analysis",
+                icon: ArticleIcon,
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      kind: "module",
+      id: "automation",
+      icon: RobotIcon,
+      label: "Automation",
+      subNav: {
+        homeHref: "/admin/automation/templates",
+        groups: [
+          {
+            label: "Automation",
+            items: [
+              { label: "Templates", href: "/admin/automation/templates", icon: LayoutIcon },
+              { label: "Workflows", href: "/admin/automation/workflows", icon: FlowArrowIcon },
             ],
           },
         ],

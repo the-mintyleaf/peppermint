@@ -94,13 +94,13 @@ export function TemplateCard({ template }: TemplateCardProps) {
               <Menu.Dropdown>
                 <Menu.Item
                   leftSection={<PencilIcon size={13} />}
-                  onClick={() => router.push(`/admin/content/templates/${template.id}/edit`)}
+                  onClick={() => router.push(`/admin/automation/templates/${template.id}/edit`)}
                 >
                   Edit
                 </Menu.Item>
                 <Menu.Item
                   leftSection={<EyeIcon size={13} />}
-                  onClick={() => router.push(`/admin/content/templates/${template.id}/preview`)}
+                  onClick={() => router.push(`/admin/automation/templates/${template.id}/preview`)}
                 >
                   Preview
                 </Menu.Item>

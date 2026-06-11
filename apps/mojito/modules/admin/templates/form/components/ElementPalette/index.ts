@@ -1,1 +1,0 @@
-export { ElementPalette } from "./ElementPalette";

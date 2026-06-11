@@ -39,7 +39,7 @@ export function ContentLibraryList() {
   useEffect(() => {
     const params = filterToParams(filter);
     const qs = params.toString();
-    router.replace(qs ? `?${qs}` : "/admin/content/library", { scroll: false });
+    router.replace(qs ? `?${qs}` : "/admin/publish/library", { scroll: false });
   }, [filter, router]);
 
   const { data, isLoading } = useQuery({

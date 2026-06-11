@@ -91,7 +91,7 @@ function AutomationFlowNode({ data }: { data: FlowNodeData }) {
             <Anchor
               size="xs"
               onClick={() =>
-                router.push(`/admin/content/templates/${String(data.meta!.template_id)}/preview`)
+                router.push(`/admin/automation/templates/${String(data.meta!.template_id)}/preview`)
               }
             >
               View Template →

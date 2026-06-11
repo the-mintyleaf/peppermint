@@ -5,11 +5,11 @@ import { CaretRightIcon, HouseSimpleIcon } from "@phosphor-icons/react";
 import type { MantineColor } from "@mantine/core";
 
 interface PageBreadcrumbProps {
-  items: { label: string; href: string }[];
+  items?: { label: string; href: string }[];
   color?: MantineColor;
 }
 
-export function PageBreadcrumb({ items, color = "gray" }: PageBreadcrumbProps) {
+export function PageBreadcrumb({ items = [], color = "gray" }: PageBreadcrumbProps) {
   if (items.length === 0) return null;
 
   return (

@@ -30,7 +30,7 @@ export function ContentCard({ item }: ContentCardProps) {
       radius="md"
       padding="sm"
       style={{ cursor: "pointer" }}
-      onClick={() => router.push(`/admin/content/library/${item.id}`)}
+      onClick={() => router.push(`/admin/publish/library/${item.id}`)}
     >
       <Card.Section>
         <Image
@@ -66,10 +66,10 @@ export function ContentCard({ item }: ContentCardProps) {
         <Anchor
           size="xs"
           c="dimmed"
-          href={`/admin/content/templates/${item.templateId}/preview`}
+          href={`/admin/automation/templates/${item.templateId}/preview`}
           onClick={(e) => {
             e.stopPropagation();
-            router.push(`/admin/content/templates/${item.templateId}/preview`);
+            router.push(`/admin/automation/templates/${item.templateId}/preview`);
           }}
         >
           {item.templateName}

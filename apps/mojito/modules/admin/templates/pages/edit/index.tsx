@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { TemplateBuilder } from "../../form";
 import { useBuilderStore } from "../../form/TemplateBuilder.store";
 import { fetchTemplate } from "../../module.api";
-import type { SlotElement } from "../../form/templateForm.types";
+import type { CanvasElement } from "../../form/templateForm.types";
 
 export function TemplatesEdit() {
   const { id } = useParams<{ id: string }>();
@@ -20,20 +20,25 @@ export function TemplatesEdit() {
 
   useEffect(() => {
     if (!template) return;
-    // Convert slots back to CanvasElement[] — simplified: create one slot element per slot
-    const elements: SlotElement[] = template.slots.map((slot, i) => ({
+
+    const elements: CanvasElement[] = template.slots.map((slot, i) => ({
       id: `slot_${i}`,
-      kind: "slot" as const,
+      purpose: slot.label,
+      type: "dynamicText" as const,
       x: 80,
       y: 200 + i * 100,
       width: 600,
       height: 80,
-      slotName: slot.name,
-      slotType: slot.type,
-      label: slot.label,
-      required: slot.required,
-      placeholder: slot.placeholder,
-      maxChars: slot.maxChars,
+      rotation: 0,
+      zIndex: i,
+      visible: true,
+      locked: false,
+      props: {
+        text: slot.placeholder,
+        fontSize: 32,
+        fill: "#333333",
+        dataKey: slot.name,
+      },
     }));
 
     initStore(

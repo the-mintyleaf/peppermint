@@ -9,8 +9,6 @@ import {
   Text,
   ActionIcon,
   Tooltip,
-  Stack,
-  Paper,
 } from "@zetsel/ui";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
 import { ArrowClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowClockwise";
@@ -22,7 +20,7 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useBuilderStore } from "./TemplateBuilder.store";
 import { Canvas } from "./components/Canvas";
-import { ElementPalette } from "./components/ElementPalette";
+import { LayersPanel } from "./components/LayersPanel";
 import { Inspector } from "./components/Inspector";
 import { serializeCanvas, extractSlots } from "./canvas.utils";
 import { createTemplate, updateTemplate, PLATFORM_LABELS } from "../module.api";
@@ -52,12 +50,16 @@ export function TemplateBuilder({ templateId }: TemplateBuilderProps) {
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
 
-  // Keyboard shortcuts
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const mod = e.metaKey || e.ctrlKey;
-      if (mod && e.shiftKey && e.key === "z") { e.preventDefault(); redo(); }
-      else if (mod && e.key === "z") { e.preventDefault(); undo(); }
+      if (mod && e.shiftKey && e.key === "z") {
+        e.preventDefault();
+        redo();
+      } else if (mod && e.key === "z") {
+        e.preventDefault();
+        undo();
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -83,29 +85,36 @@ export function TemplateBuilder({ templateId }: TemplateBuilderProps) {
       clearDirty();
       queryClient.invalidateQueries({ queryKey: ["templates"] });
       if (!templateId) {
-        router.replace(`/admin/content/templates/${savedTemplate.id}/edit`);
+        router.replace(`/admin/automation/templates/${savedTemplate.id}/edit`);
       }
     },
   });
 
-  function handleDiscard() {
+  const handleDiscard = useCallback(() => {
     if (isDirty) {
       if (!confirm("Discard unsaved changes?")) return;
-    }
-    router.push("/admin/content/templates");
-  }
+      }
+    router.push("/admin/automation/templates");
+  }, [isDirty, router]);
 
   return (
     <Box style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-      {/* Top bar */}
       <Group
         gap="sm"
         justify="space-between"
-        p="xs"
-        style={{ borderBottom: "1px solid var(--mantine-color-default-border)", flexShrink: 0 }}
+        px="sm"
+        wrap="nowrap"
+        align="center"
+        style={{
+          height: 40,
+          minHeight: 40,
+          maxHeight: 40,
+          borderBottom: "1px solid var(--mantine-color-default-border)",
+          flexShrink: 0,
+        }}
       >
-        <Group gap="sm">
-          <Text size="sm" fw={600} maw={200} truncate>
+        <Group gap="sm" wrap="nowrap" align="center" style={{ minWidth: 0 }}>
+          <Text size="xs" fw={600} maw={160} truncate>
             {templateMeta.name}
           </Text>
           <Select
@@ -113,11 +122,12 @@ export function TemplateBuilder({ templateId }: TemplateBuilderProps) {
             onChange={(v) => v && setPlatform(v as PlatformFormat)}
             data={Object.entries(PLATFORM_LABELS).map(([value, label]) => ({ value, label }))}
             size="xs"
-            w={160}
+            w={140}
+            styles={{ input: { minHeight: 28, height: 28 } }}
           />
         </Group>
 
-        <Group gap="xs">
+        <Group gap={4} wrap="nowrap" align="center">
           <Tooltip label="Undo (⌘Z)" withArrow>
             <ActionIcon size="sm" variant="subtle" onClick={undo} disabled={!canUndo} aria-label="Undo">
               <ArrowCounterClockwiseIcon size={14} />
@@ -130,17 +140,17 @@ export function TemplateBuilder({ templateId }: TemplateBuilderProps) {
           </Tooltip>
 
           <Button
-            size="xs"
+            size="compact-xs"
             variant="subtle"
-            leftSection={previewMode ? <EyeSlashIcon size={13} /> : <EyeIcon size={13} />}
+            leftSection={previewMode ? <EyeSlashIcon size={12} /> : <EyeIcon size={12} />}
             onClick={() => setPreviewMode(!previewMode)}
           >
             {previewMode ? "Edit" : "Preview"}
           </Button>
 
           <Button
-            size="xs"
-            leftSection={<FloppyDiskIcon size={13} />}
+            size="compact-xs"
+            leftSection={<FloppyDiskIcon size={12} />}
             onClick={() => save()}
             loading={isSaving}
             disabled={!isDirty}
@@ -149,10 +159,10 @@ export function TemplateBuilder({ templateId }: TemplateBuilderProps) {
           </Button>
 
           <Button
-            size="xs"
+            size="compact-xs"
             variant="subtle"
             color="gray"
-            leftSection={<XIcon size={13} />}
+            leftSection={<XIcon size={12} />}
             onClick={handleDiscard}
           >
             Discard
@@ -160,11 +170,28 @@ export function TemplateBuilder({ templateId }: TemplateBuilderProps) {
         </Group>
       </Group>
 
-      {/* Three-panel body */}
       <Box style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-        <ElementPalette />
+        <Box
+          style={{
+            width: 240,
+            borderRight: "1px solid var(--mantine-color-default-border)",
+            flexShrink: 0,
+            overflow: "hidden",
+          }}
+        >
+          <LayersPanel />
+        </Box>
         <Canvas />
-        <Inspector />
+        <Box
+          style={{
+            width: 260,
+            borderLeft: "1px solid var(--mantine-color-default-border)",
+            flexShrink: 0,
+            overflow: "hidden",
+          }}
+        >
+          <Inspector />
+        </Box>
       </Box>
     </Box>
   );

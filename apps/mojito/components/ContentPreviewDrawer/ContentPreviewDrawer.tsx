@@ -128,7 +128,7 @@ export function ContentPreviewDrawer({ contentId, onClose }: ContentPreviewDrawe
           <Group gap="xs">
             <Button
               component="a"
-              href={`/admin/content/library/${item.id}`}
+              href={`/admin/publish/library/${item.id}`}
               variant="subtle"
               size="xs"
             >

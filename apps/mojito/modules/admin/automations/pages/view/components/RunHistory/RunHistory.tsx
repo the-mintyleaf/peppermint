@@ -121,7 +121,7 @@ export function RunHistory({ automationId }: RunHistoryProps) {
       <Anchor
         size="xs"
         onClick={() =>
-          router.push(`/admin/content/library?automation_id=${automationId}`)
+          router.push(`/admin/publish/library?automation_id=${automationId}`)
         }
       >
         View generated content →

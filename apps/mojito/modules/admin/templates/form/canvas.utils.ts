@@ -1,31 +1,63 @@
 import type { CanvasElement, TemplateMeta } from "./templateForm.types";
 
-function elementToHtml(el: CanvasElement, preview: boolean): string {
-  const base = `position:absolute;left:${el.x}px;top:${el.y}px;width:${el.width}px;height:${el.height}px;`;
+function slugify(str: string): string {
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "");
+}
 
-  switch (el.kind) {
-    case "slot": {
-      const textStyle = `${base}font-size:${el.fontSize ?? 32}px;font-weight:${el.fontWeight ?? 400};color:${el.color ?? "#000000"};text-align:${el.textAlign ?? "left"};`;
-      const content = preview ? (el.placeholder ?? `{{${el.slotName}}}`) : `{{${el.slotName}}}`;
-      if (el.slotType === "image_url") {
-        return `<img data-slot="${el.slotName}" src="${content}" style="${base}object-fit:cover;" alt="${el.label}" />`;
-      }
-      return `<div data-slot="${el.slotName}" style="${textStyle}">${content}</div>`;
+function appearanceStyle(el: CanvasElement): string {
+  const opacity = (el.props.opacity ?? 100) / 100;
+  return opacity < 1 ? `opacity:${opacity};` : "";
+}
+
+function baseStyle(el: CanvasElement): string {
+  return `position:absolute;left:${el.x}px;top:${el.y}px;width:${el.width}px;height:${el.height}px;z-index:${el.zIndex};${appearanceStyle(el)}`;
+}
+
+function strokeCss(el: CanvasElement): string {
+  const width = el.props.strokeWidth ?? 0;
+  if (!el.props.stroke || width <= 0) return "border:none;";
+  return `border:${width}px solid ${el.props.stroke};`;
+}
+
+function textStyle(el: CanvasElement): string {
+  return `${baseStyle(el)}font-size:${el.props.fontSize ?? 32}px;font-family:${el.props.fontFamily ?? "inherit"};color:${el.props.fill ?? "#000000"};`;
+}
+
+function elementToHtml(el: CanvasElement, preview: boolean): string {
+  switch (el.type) {
+    case "dynamicText": {
+      const dataKey = el.props.dataKey ?? slugify(el.purpose);
+      const content = preview
+        ? (el.props.text ?? `{{${dataKey}}}`)
+        : `{{${dataKey}}}`;
+      const radius = el.props.borderRadius ? `border-radius:${el.props.borderRadius}px;` : "";
+      return `<div data-slot="${dataKey}" style="${textStyle(el)}${radius}">${content}</div>`;
+    }
+    case "text":
+    case "staticText": {
+      return `<div style="${textStyle(el)}">${el.props.text ?? ""}</div>`;
+    }
+    case "image": {
+      const src = el.props.imageUrl || "";
+      const radius = el.props.borderRadius ? `border-radius:${el.props.borderRadius}px;` : "";
+      return `<img src="${src}" style="${baseStyle(el)}object-fit:cover;${strokeCss(el)}${radius}" alt="${el.purpose}" />`;
     }
     case "rectangle": {
-      const style = `${base}background:${el.fill};border-radius:${el.borderRadius}px;border:${el.borderWidth}px solid ${el.borderColor};`;
+      const radius = `border-radius:${el.props.borderRadius ?? 0}px;`;
+      const style = `${baseStyle(el)}background:${el.props.fill ?? "#f3f4f6"};${strokeCss(el)}${radius}`;
       return `<div style="${style}"></div>`;
     }
-    case "divider": {
-      const style = `${base}background:${el.color};height:${el.thickness}px;`;
+    case "circle": {
+      const style = `${baseStyle(el)}background:${el.props.fill ?? "#f3f4f6"};${strokeCss(el)}border-radius:50%;`;
       return `<div style="${style}"></div>`;
     }
-    case "brand_logo": {
-      return `<div style="${base}background:#000;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;">LOGO</div>`;
-    }
-    case "text_static": {
-      const style = `${base}font-size:${el.fontSize}px;font-weight:${el.fontWeight};color:${el.color};text-align:${el.textAlign};`;
-      return `<div style="${style}">${el.content}</div>`;
+    case "line": {
+      const style = `${baseStyle(el)}background:${el.props.fill ?? el.props.stroke ?? "#e5e7eb"};`;
+      return `<div style="${style}"></div>`;
     }
     default:
       return "";
@@ -33,24 +65,25 @@ function elementToHtml(el: CanvasElement, preview: boolean): string {
 }
 
 export function serializeCanvas(meta: TemplateMeta, elements: CanvasElement[]): string {
-  const children = elements.map((el) => elementToHtml(el, false)).join("\n  ");
+  const sorted = [...elements].sort((a, b) => a.zIndex - b.zIndex);
+  const children = sorted.map((el) => elementToHtml(el, false)).join("\n  ");
   return `<div style="position:relative;width:${meta.width}px;height:${meta.height}px;">\n  ${children}\n</div>`;
 }
 
 export function serializeCanvasPreview(meta: TemplateMeta, elements: CanvasElement[]): string {
-  const children = elements.map((el) => elementToHtml(el, true)).join("\n  ");
+  const sorted = [...elements].sort((a, b) => a.zIndex - b.zIndex);
+  const children = sorted.map((el) => elementToHtml(el, true)).join("\n  ");
   return `<!DOCTYPE html><html><body style="margin:0;padding:0;"><div style="position:relative;width:${meta.width}px;height:${meta.height}px;">\n  ${children}\n</div></body></html>`;
 }
 
 export function extractSlots(elements: CanvasElement[]) {
   return elements
-    .filter((el): el is Extract<CanvasElement, { kind: "slot" }> => el.kind === "slot")
+    .filter((el) => el.type === "dynamicText")
     .map((el) => ({
-      name: el.slotName,
-      type: el.slotType,
-      label: el.label,
-      required: el.required,
-      placeholder: el.placeholder,
-      maxChars: el.maxChars,
+      name: el.props.dataKey ?? slugify(el.purpose),
+      type: "text" as const,
+      label: el.purpose,
+      required: false,
+      placeholder: el.props.text,
     }));
 }

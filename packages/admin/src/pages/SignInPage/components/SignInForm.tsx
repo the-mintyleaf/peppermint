@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Button,
   Group,
@@ -8,7 +7,8 @@ import {
   TextInput,
   Anchor,
 } from "@zetsel/ui";
-import { EnvelopeIcon, KeyIcon } from "@phosphor-icons/react";
+import { EnvelopeIcon } from "@phosphor-icons/react/dist/csr/Envelope";
+import { KeyIcon } from "@phosphor-icons/react/dist/csr/Key";
 import { useForm } from "@mantine/form";
 
 interface SignInFormProps {
@@ -68,8 +68,8 @@ export function SignInForm({
           required
           {...form.getInputProps("username")}
           disabled={isLoading}
-          rightSection={
-            <EnvelopeIcon size={16} weight="duotone" style={{ opacity: 0.5 }} />
+          leftSection={
+            <EnvelopeIcon size={16} weight="fill" style={{ opacity: 0.5 }} />
           }
         />
 
@@ -81,8 +81,9 @@ export function SignInForm({
           {...form.getInputProps("password")}
           disabled={isLoading}
           leftSection={
-            <KeyIcon size={16} weight="duotone" style={{ opacity: 0.5 }} />
+            <KeyIcon size={16} weight="fill" style={{ opacity: 0.5 }} />
           }
+
         />
 
         <Group justify="space-between" my="xs">
@@ -113,7 +114,7 @@ export function SignInForm({
           fullWidth
           size="md"
           radius="md"
-          color="black"
+          color="brand"
           h={50}
         >
           Continue

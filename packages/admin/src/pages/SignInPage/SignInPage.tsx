@@ -24,6 +24,9 @@ import { GoogleIcon } from "./components/GoogleIcon";
 import { decodeJWT } from "./utils/decodeJWT";
 import { AUTH_TOKEN_KEYS } from "./utils/authTokenKeys";
 import type { SignInPageProps } from "./SignInPage.types";
+import { PintGlassIcon } from "@phosphor-icons/react";
+import { CactusIcon } from "@phosphor-icons/react";
+import { Coffee } from "@phosphor-icons/react";
 
 export function SignInPage({
   heading = ["Welcome Back!", "to your portal."],
@@ -139,14 +142,20 @@ export function SignInPage({
     }
   };
 
-  const hasAnySocial =
-    hasGoogleLogin || hasAppleLogin || hasDiscordLogin || hasMagicLinkLogin;
+  const socialProviders = [
+    hasGoogleLogin,
+    hasAppleLogin,
+    hasDiscordLogin,
+    hasMagicLinkLogin,
+  ].filter(Boolean).length;
+
+  const hasAnySocial = socialProviders > 0;
 
   return (
     <Center h="100vh">
-      <Paper w={{ base: "100%", sm: 440 }} p={{ base: "xl", lg: "4rem" }} radius="lg" shadow="md">
+      <Paper w={{ base: "100%", sm: 440 }} p={{ base: "md", lg: "3rem" }} radius="lg" shadow="md">
         <Stack gap="md" w="100%">
-          <Center>{icon || <BowlSteamIcon weight="fill" size={32} />}</Center>
+          <Center pb="xs">{icon || <Coffee weight="duotone" color="var(--mantine-color-brand-6)" size={32} />}</Center>
 
           <Stack gap="xs" align="center">
             <Title order={2} ta="center" fw={700} lh="100%">
@@ -161,84 +170,9 @@ export function SignInPage({
             </Text>
           </Stack>
 
-          <Stack gap="lg" py="xl">
+          <Stack gap="xs" py="md">
             {!showMagicLink ? (
               <>
-                {hasAnySocial && (
-                  <SimpleGrid cols={3} spacing="xs">
-                    {hasGoogleLogin && (
-                      <Button
-                        variant="default"
-                        size="md"
-                        radius="md"
-                        leftSection={<GoogleIcon />}
-                        onClick={() =>
-                          handleSocialLogin("google", onGoogleLogin)
-                        }
-                        fullWidth
-                        styles={{
-                          inner: { justifyContent: "center" },
-                          label: { fontWeight: 600 },
-                        }}
-                      >
-                        Google
-                      </Button>
-                    )}
-                    {hasAppleLogin && (
-                      <Button
-                        variant="default"
-                        size="md"
-                        radius="md"
-                        leftSection={
-                          <AppleLogoIcon weight="fill" size={20} />
-                        }
-                        onClick={() =>
-                          handleSocialLogin("apple", onAppleLogin)
-                        }
-                        fullWidth
-                      >
-                        Apple
-                      </Button>
-                    )}
-                    {hasDiscordLogin && (
-                      <Button
-                        variant="default"
-                        size="md"
-                        radius="md"
-                        leftSection={
-                          <DiscordLogoIcon
-                            color="var(--mantine-color-indigo-6)"
-                            weight="fill"
-                            size={20}
-                          />
-                        }
-                        onClick={() =>
-                          handleSocialLogin("discord", onDiscordLogin)
-                        }
-                        fullWidth
-                      >
-                        Discord
-                      </Button>
-                    )}
-                    {hasMagicLinkLogin && (
-                      <Button
-                        variant="light"
-                        size="md"
-                        radius="md"
-                        h={50}
-                        onClick={() => setShowMagicLink(true)}
-                        fullWidth
-                      >
-                        Magic Link
-                      </Button>
-                    )}
-                  </SimpleGrid>
-                )}
-
-                {hasAnySocial && (
-                  <Divider label="or" labelPosition="center" my="xs" />
-                )}
-
                 <SignInForm
                   onSubmit={handleSignIn}
                   isLoading={isLoading}
@@ -247,6 +181,88 @@ export function SignInPage({
                   disableSignUp={disableSignUp}
                   disableForgotPassword={disableForgotPassword}
                 />
+
+                {hasAnySocial && (
+                  <>
+                    <Divider
+                      label="or sign in with"
+                      labelPosition="center"
+                      my="xs"
+                    />
+
+                    <SimpleGrid
+                      cols={Math.min(socialProviders, 3)}
+                      spacing="xs"
+                    >
+                      {hasGoogleLogin && (
+                        <Button
+                          variant="default"
+                          size="md"
+                          radius="md"
+                          leftSection={<GoogleIcon />}
+                          onClick={() =>
+                            handleSocialLogin("google", onGoogleLogin)
+                          }
+                          fullWidth
+                          styles={{
+                            inner: { justifyContent: "center" },
+                            label: { fontWeight: 600 },
+                          }}
+                        >
+                          Google
+                        </Button>
+                      )}
+                      {hasAppleLogin && (
+                        <Button
+                          variant="default"
+                          size="md"
+                          radius="md"
+                          leftSection={
+                            <AppleLogoIcon weight="fill" size={20} />
+                          }
+                          onClick={() =>
+                            handleSocialLogin("apple", onAppleLogin)
+                          }
+                          fullWidth
+                        >
+                          Apple
+                        </Button>
+                      )}
+                      {hasDiscordLogin && (
+                        <Button
+                          variant="default"
+                          size="md"
+                          radius="md"
+                          leftSection={
+                            <DiscordLogoIcon
+                              color="var(--mantine-color-indigo-6)"
+                              weight="fill"
+                              size={20}
+                            />
+                          }
+                          onClick={() =>
+                            handleSocialLogin("discord", onDiscordLogin)
+                          }
+                          fullWidth
+                        >
+                          Discord
+                        </Button>
+                      )}
+                      {hasMagicLinkLogin && (
+                        <Button
+                          variant="light"
+                          size="md"
+                          radius="md"
+                          h={50}
+                          onClick={() => setShowMagicLink(true)}
+                          fullWidth
+                        >
+                          Magic Link
+                        </Button>
+                      )}
+                    </SimpleGrid>
+                  </>
+                )}
               </>
             ) : (
               <Stack gap="md">

@@ -8,7 +8,7 @@ import {
   Container,
   Divider,
   Group,
-  PageBreadcrumb,
+  ModuleHeader,
   Paper,
   Progress,
   Stack,
@@ -42,38 +42,36 @@ export function FormShell({
 
   return (
     <>
-      <Group pl="md" h={38} justify="space-between">
-        <PageBreadcrumb />
+      <ModuleHeader
+        right={
+          <Group gap={0}>
+            <Button
+              color="orange"
+              px="md"
+              h={38}
+              radius={0}
+              size="xs"
+              variant="subtle"
+              leftSection={<TrashIcon weight="fill" size={14} />}
+              onClick={onBack}
+            >
+              Refill fields
+            </Button>
 
-        <Group gap={0}>
-          <Button
-            color="orange"
-            px="md"
-            h={38}
-            radius={0}
-            size="xs"
-            variant="subtle"
-            leftSection={<TrashIcon weight="fill" size={14} />}
-            onClick={onBack}
-          >
-            Refill fields
-          </Button>
-
-          <Button
-            px="md"
-            h={38}
-            radius={0}
-            size="xs"
-            variant="light"
-            leftSection={<XIcon size={14} />}
-            onClick={onBack}
-          >
-            Cancel
-          </Button>
-        </Group>
-      </Group>
-
-      <Divider />
+            <Button
+              px="md"
+              h={38}
+              radius={0}
+              size="xs"
+              variant="light"
+              leftSection={<XIcon size={14} />}
+              onClick={onBack}
+            >
+              Cancel
+            </Button>
+          </Group>
+        }
+      />
 
       <Box style={{ flexShrink: 0 }} bg="gray.0">
         {hasSteps && (

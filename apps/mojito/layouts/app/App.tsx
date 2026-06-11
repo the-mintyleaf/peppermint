@@ -23,7 +23,7 @@ export function LayoutApp({ children }: { children: React.ReactNode }) {
       </head>
       <body
         style={{
-          background: "var(--mantine-color-dark-9)",
+          background: "#08120E",
         }}
       >
         <AppWrapper theme={configThemeMantine} withQuery>

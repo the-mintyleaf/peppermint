@@ -1,8 +1,21 @@
 "use client";
 
-import { Box, Stack, Text, TextInput, Select, Switch, NumberInput, Textarea, ColorInput, Divider } from "@zetsel/ui";
+import {
+  Box,
+  Stack,
+  Text,
+  TextInput,
+  Select,
+  NumberInput,
+  Textarea,
+  ColorInput,
+  Divider,
+  Group,
+  Popover,
+} from "@zetsel/ui";
 import { useBuilderStore } from "../../TemplateBuilder.store";
-import type { SlotElement, RectangleElement, TextStaticElement, DividerElement } from "../../templateForm.types";
+import type { CanvasElement } from "../../templateForm.types";
+import { getElementTypeLabel } from "../../elementDefaults";
 import { PLATFORM_LABELS } from "../../../module.api";
 import type { PlatformFormat } from "../../../module.api";
 
@@ -14,95 +27,261 @@ function slugify(str: string): string {
     .replace(/^_|_$/g, "");
 }
 
-function SlotInspector({ el }: { el: SlotElement }) {
-  const { updateElement, elements } = useBuilderStore();
-  const existingNames = elements.filter((e) => e.id !== el.id && e.kind === "slot").map((e) => (e as SlotElement).slotName);
-  const nameError = existingNames.includes(el.slotName) ? "Slot name must be unique" : undefined;
-
+function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <Stack gap="sm">
-      <TextInput
-        label="Slot name"
-        value={el.slotName}
-        error={nameError}
-        onChange={(e) => updateElement(el.id, { slotName: slugify(e.target.value) } as Partial<SlotElement>)}
-        size="xs"
-        ff="monospace"
-      />
-      <Select
-        label="Slot type"
-        value={el.slotType}
-        onChange={(v) => updateElement(el.id, { slotType: v } as Partial<SlotElement>)}
-        data={["text", "image_url", "color", "number"]}
-        size="xs"
-      />
-      <TextInput
-        label="Label"
-        value={el.label}
-        onChange={(e) => updateElement(el.id, { label: e.target.value } as Partial<SlotElement>)}
-        size="xs"
-      />
-      <Switch
-        label="Required"
-        checked={el.required}
-        onChange={(e) => updateElement(el.id, { required: e.target.checked } as Partial<SlotElement>)}
-        size="xs"
-      />
-      {el.slotType === "text" && (
-        <NumberInput
-          label="Max characters"
-          value={el.maxChars ?? ""}
-          onChange={(v) => updateElement(el.id, { maxChars: v ? Number(v) : undefined } as Partial<SlotElement>)}
-          size="xs"
-          min={1}
-        />
-      )}
-      <TextInput
-        label="Placeholder"
-        value={el.placeholder ?? ""}
-        onChange={(e) => updateElement(el.id, { placeholder: e.target.value } as Partial<SlotElement>)}
-        size="xs"
-      />
-    </Stack>
+    <Text size="xs" fw={600} c="dimmed" mt={4}>
+      {children}
+    </Text>
   );
 }
 
-function StaticInspector({ el }: { el: RectangleElement | TextStaticElement | DividerElement }) {
-  const { updateElement } = useBuilderStore();
+function DimInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <NumberInput
+      size="xs"
+      hideControls
+      value={value}
+      onChange={(v) => onChange(Number(v))}
+      styles={{
+        input: { paddingLeft: 28, textAlign: "right" },
+      }}
+      leftSection={
+        <Text size="xs" c="dimmed" pl={4}>
+          {label}
+        </Text>
+      }
+      leftSectionWidth={24}
+    />
+  );
+}
+
+function ColorIndicator({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const hex = value.replace("#", "").toUpperCase();
 
   return (
-    <Stack gap="sm">
-      <NumberInput label="X" value={el.x} onChange={(v) => updateElement(el.id, { x: Number(v) })} size="xs" />
-      <NumberInput label="Y" value={el.y} onChange={(v) => updateElement(el.id, { y: Number(v) })} size="xs" />
-      <NumberInput label="Width" value={el.width} onChange={(v) => updateElement(el.id, { width: Number(v) })} size="xs" />
-      <NumberInput label="Height" value={el.height} onChange={(v) => updateElement(el.id, { height: Number(v) })} size="xs" />
+    <Group gap={8} wrap="nowrap">
+      <Popover position="bottom-start" withArrow shadow="md">
+        <Popover.Target>
+          <Box
+            aria-label={`Color ${hex}`}
+            style={{
+              width: 18,
+              height: 18,
+              borderRadius: 4,
+              background: value,
+              border: "1px solid var(--mantine-color-default-border)",
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+          />
+        </Popover.Target>
+        <Popover.Dropdown p="xs">
+          <ColorInput
+            size="xs"
+            value={value}
+            onChange={onChange}
+            format="hex"
+            swatches={["#000000", "#ffffff", "#f3f4f6", "#3b82f6", "#ef4444", "#22c55e"]}
+          />
+        </Popover.Dropdown>
+      </Popover>
+      <Text size="xs" c="dimmed" ff="monospace" tt="uppercase">
+        {hex}
+      </Text>
+    </Group>
+  );
+}
 
-      {el.kind === "rectangle" && (
+function isTextType(type: CanvasElement["type"]): boolean {
+  return type === "text" || type === "staticText" || type === "dynamicText";
+}
+
+function supportsFill(type: CanvasElement["type"]): boolean {
+  return type === "rectangle" || type === "circle" || type === "line" || type === "image" || isTextType(type);
+}
+
+function supportsStroke(type: CanvasElement["type"]): boolean {
+  return type === "rectangle" || type === "circle" || type === "image";
+}
+
+function supportsRadius(type: CanvasElement["type"]): boolean {
+  return type === "rectangle" || type === "image" || type === "dynamicText";
+}
+
+function ElementPropertiesPanel({ el }: { el: CanvasElement }) {
+  const { updateElement, elements } = useBuilderStore();
+
+  const existingDataKeys = elements
+    .filter((e) => e.id !== el.id && e.type === "dynamicText")
+    .map((e) => e.props.dataKey)
+    .filter(Boolean);
+
+  const dataKeyError =
+    el.type === "dynamicText" && el.props.dataKey && existingDataKeys.includes(el.props.dataKey)
+      ? "Data key must be unique"
+      : undefined;
+
+  function updateProps(patch: Partial<CanvasElement["props"]>) {
+    updateElement(el.id, { props: { ...el.props, ...patch } });
+  }
+
+  return (
+    <Stack gap="xs">
+      <Text size="sm" fw={600}>
+        {getElementTypeLabel(el.type)}
+      </Text>
+
+      <TextInput
+        size="xs"
+        placeholder="Purpose"
+        value={el.purpose}
+        onChange={(e) => updateElement(el.id, { purpose: e.target.value })}
+        styles={{ input: { background: "var(--mantine-color-gray-0)" } }}
+      />
+
+      <SectionLabel>Layout</SectionLabel>
+      <Group gap={6} grow>
+        <DimInput label="W" value={el.width} onChange={(width) => updateElement(el.id, { width })} />
+        <DimInput label="H" value={el.height} onChange={(height) => updateElement(el.id, { height })} />
+      </Group>
+
+      <SectionLabel>Appearance</SectionLabel>
+      <Group gap={6} grow>
+        <NumberInput
+          size="xs"
+          hideControls
+          value={el.props.opacity ?? 100}
+          onChange={(v) => updateProps({ opacity: Number(v) })}
+          min={0}
+          max={100}
+          suffix="%"
+          styles={{ input: { textAlign: "right" } }}
+          leftSection={
+            <Text size="xs" c="dimmed" pl={4}>
+              ◐
+            </Text>
+          }
+          leftSectionWidth={24}
+        />
+        {supportsRadius(el.type) && (
+          <NumberInput
+            size="xs"
+            hideControls
+            value={el.props.borderRadius ?? 0}
+            onChange={(v) => updateProps({ borderRadius: Number(v) })}
+            min={0}
+            styles={{ input: { paddingLeft: 28, textAlign: "right" } }}
+            leftSection={
+              <Text size="xs" c="dimmed" pl={4}>
+                ◻
+              </Text>
+            }
+            leftSectionWidth={24}
+          />
+        )}
+      </Group>
+
+      {supportsFill(el.type) && (
         <>
-          <Divider />
-          <ColorInput label="Fill" value={el.fill} onChange={(v) => updateElement(el.id, { fill: v } as Partial<RectangleElement>)} size="xs" />
-          <NumberInput label="Border radius" value={el.borderRadius} onChange={(v) => updateElement(el.id, { borderRadius: Number(v) } as Partial<RectangleElement>)} size="xs" min={0} />
-          <NumberInput label="Border width" value={el.borderWidth} onChange={(v) => updateElement(el.id, { borderWidth: Number(v) } as Partial<RectangleElement>)} size="xs" min={0} />
-          <ColorInput label="Border color" value={el.borderColor} onChange={(v) => updateElement(el.id, { borderColor: v } as Partial<RectangleElement>)} size="xs" />
+          <SectionLabel>Fill</SectionLabel>
+          <ColorIndicator
+            value={el.props.fill ?? (isTextType(el.type) ? "#000000" : "#f3f4f6")}
+            onChange={(fill) => updateProps({ fill })}
+          />
         </>
       )}
 
-      {el.kind === "text_static" && (
+      {supportsStroke(el.type) && (
         <>
-          <Divider />
-          <Textarea label="Content" value={el.content} onChange={(e) => updateElement(el.id, { content: e.target.value } as Partial<TextStaticElement>)} size="xs" autosize minRows={2} />
-          <NumberInput label="Font size" value={el.fontSize} onChange={(v) => updateElement(el.id, { fontSize: Number(v) } as Partial<TextStaticElement>)} size="xs" min={8} />
-          <Select label="Font weight" value={String(el.fontWeight)} onChange={(v) => updateElement(el.id, { fontWeight: Number(v) } as Partial<TextStaticElement>)} data={["300", "400", "500", "600", "700", "800"]} size="xs" />
-          <ColorInput label="Color" value={el.color} onChange={(v) => updateElement(el.id, { color: v } as Partial<TextStaticElement>)} size="xs" />
-          <Select label="Align" value={el.textAlign} onChange={(v) => updateElement(el.id, { textAlign: v as "left" | "center" | "right" } as Partial<TextStaticElement>)} data={["left", "center", "right"]} size="xs" />
+          <SectionLabel>Stroke</SectionLabel>
+          <ColorIndicator value={el.props.stroke ?? "#000000"} onChange={(stroke) => updateProps({ stroke })} />
+          <Group gap={6} grow>
+            <NumberInput
+              size="xs"
+              hideControls
+              value={el.props.strokeWidth ?? 0}
+              onChange={(v) => updateProps({ strokeWidth: Number(v) })}
+              min={0}
+              styles={{ input: { paddingLeft: 28, textAlign: "right" } }}
+              leftSection={
+                <Text size="xs" c="dimmed" pl={4}>
+                  W
+                </Text>
+              }
+              leftSectionWidth={24}
+            />
+          </Group>
         </>
       )}
 
-      {el.kind === "divider" && (
+      {isTextType(el.type) && (
         <>
-          <Divider />
-          <ColorInput label="Color" value={el.color} onChange={(v) => updateElement(el.id, { color: v } as Partial<DividerElement>)} size="xs" />
-          <NumberInput label="Thickness" value={el.thickness} onChange={(v) => updateElement(el.id, { thickness: Number(v) } as Partial<DividerElement>)} size="xs" min={1} />
+          <SectionLabel>Content</SectionLabel>
+          <Textarea
+            size="xs"
+            value={el.props.text ?? ""}
+            onChange={(e) => updateProps({ text: e.target.value })}
+            autosize
+            minRows={2}
+            styles={{ input: { background: "var(--mantine-color-gray-0)" } }}
+          />
+          <Group gap={6} grow>
+            <NumberInput
+              size="xs"
+              hideControls
+              value={el.props.fontSize ?? 32}
+              onChange={(v) => updateProps({ fontSize: Number(v) })}
+              min={8}
+              styles={{ input: { paddingLeft: 28, textAlign: "right" } }}
+              leftSection={
+                <Text size="xs" c="dimmed" pl={4}>
+                  Aa
+                </Text>
+              }
+              leftSectionWidth={28}
+            />
+          </Group>
+        </>
+      )}
+
+      {el.type === "dynamicText" && (
+        <>
+          <SectionLabel>Data key</SectionLabel>
+          <TextInput
+            size="xs"
+            value={el.props.dataKey ?? ""}
+            error={dataKeyError}
+            onChange={(e) => updateProps({ dataKey: slugify(e.target.value) })}
+            ff="monospace"
+            styles={{ input: { background: "var(--mantine-color-gray-0)" } }}
+          />
+        </>
+      )}
+
+      {el.type === "image" && (
+        <>
+          <SectionLabel>Image</SectionLabel>
+          <TextInput
+            size="xs"
+            placeholder="Image URL"
+            value={el.props.imageUrl ?? ""}
+            onChange={(e) => updateProps({ imageUrl: e.target.value })}
+            styles={{ input: { background: "var(--mantine-color-gray-0)" } }}
+          />
         </>
       )}
     </Stack>
@@ -135,18 +314,20 @@ function TemplateSettingsPanel() {
         data={Object.entries(PLATFORM_LABELS).map(([value, label]) => ({ value, label }))}
         size="xs"
       />
-      <NumberInput
-        label="Width (px)"
-        value={templateMeta.width}
-        onChange={(v) => setTemplateMeta({ width: Number(v) })}
-        size="xs"
-      />
-      <NumberInput
-        label="Height (px)"
-        value={templateMeta.height}
-        onChange={(v) => setTemplateMeta({ height: Number(v) })}
-        size="xs"
-      />
+      <Group gap={6} grow>
+        <NumberInput
+          label="Width"
+          value={templateMeta.width}
+          onChange={(v) => setTemplateMeta({ width: Number(v) })}
+          size="xs"
+        />
+        <NumberInput
+          label="Height"
+          value={templateMeta.height}
+          onChange={(v) => setTemplateMeta({ height: Number(v) })}
+          size="xs"
+        />
+      </Group>
     </Stack>
   );
 }
@@ -158,10 +339,8 @@ export function Inspector() {
   return (
     <Box
       style={{
-        width: 260,
-        borderLeft: "1px solid var(--mantine-color-default-border)",
+        height: "100%",
         overflowY: "auto",
-        flexShrink: 0,
       }}
       p="sm"
     >
@@ -175,27 +354,10 @@ export function Inspector() {
           </>
         )}
 
-        {selected && selected.kind === "slot" && (
-          <>
-            <Text size="xs" fw={600} tt="uppercase" c="dimmed" lts={0.5}>
-              Slot Properties
-            </Text>
-            <SlotInspector el={selected as SlotElement} />
-          </>
-        )}
-
-        {selected && selected.kind !== "slot" && (
-          <>
-            <Text size="xs" fw={600} tt="uppercase" c="dimmed" lts={0.5}>
-              Element Properties
-            </Text>
-            <StaticInspector el={selected as RectangleElement | TextStaticElement | DividerElement} />
-          </>
-        )}
-
         {selected && (
           <>
-            <Divider />
+            <ElementPropertiesPanel el={selected} />
+            <Divider my="xs" />
             <Text
               size="xs"
               c="red"

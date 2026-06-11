@@ -1,70 +1,45 @@
-import type { SlotType, PlatformFormat } from "../module.api";
+import type { PlatformFormat } from "../module.api";
 
-export type ElementKind = "slot" | "rectangle" | "divider" | "brand_logo" | "text_static";
+export type ElementType =
+  | "text"
+  | "image"
+  | "rectangle"
+  | "circle"
+  | "line"
+  | "dynamicText"
+  | "staticText";
 
-export interface BaseElement {
+export type BuilderTool = "select" | ElementType;
+
+export interface CanvasElementProps {
+  text?: string;
+  imageUrl?: string;
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
+  fontSize?: number;
+  fontFamily?: string;
+  dataKey?: string;
+  borderRadius?: number;
+  opacity?: number;
+}
+
+export interface CanvasElement {
   id: string;
-  kind: ElementKind;
+  purpose: string;
+  type: ElementType;
   x: number;
   y: number;
   width: number;
   height: number;
+  rotation: number;
+  zIndex: number;
+  visible: boolean;
+  locked: boolean;
+  props: CanvasElementProps;
 }
 
-export interface SlotElement extends BaseElement {
-  kind: "slot";
-  slotName: string;
-  slotType: SlotType;
-  label: string;
-  required: boolean;
-  placeholder?: string;
-  maxChars?: number;
-  fontSize?: number;
-  fontWeight?: number;
-  color?: string;
-  textAlign?: "left" | "center" | "right";
-}
-
-export interface RectangleElement extends BaseElement {
-  kind: "rectangle";
-  fill: string;
-  borderRadius: number;
-  borderWidth: number;
-  borderColor: string;
-}
-
-export interface DividerElement extends BaseElement {
-  kind: "divider";
-  color: string;
-  thickness: number;
-}
-
-export interface BrandLogoElement extends BaseElement {
-  kind: "brand_logo";
-}
-
-export interface TextStaticElement extends BaseElement {
-  kind: "text_static";
-  content: string;
-  fontSize: number;
-  fontWeight: number;
-  color: string;
-  textAlign: "left" | "center" | "right";
-}
-
-export type CanvasElement =
-  | SlotElement
-  | RectangleElement
-  | DividerElement
-  | BrandLogoElement
-  | TextStaticElement;
-
-// Distributive omit — correctly removes "id" from each union member
-export type CanvasElementInput = CanvasElement extends infer T
-  ? T extends { id: string }
-    ? Omit<T, "id">
-    : never
-  : never;
+export type CanvasElementInput = Omit<CanvasElement, "id">;
 
 export interface TemplateMeta {
   name: string;

@@ -63,7 +63,7 @@ export function TemplatesList() {
           <Button
             size="sm"
             leftSection={<PlusIcon size={14} />}
-            onClick={() => router.push("/admin/content/templates/new")}
+            onClick={() => router.push("/admin/automation/templates/new")}
           >
             New Template
           </Button>
@@ -114,7 +114,7 @@ export function TemplatesList() {
                   size="sm"
                   mt="xs"
                   leftSection={<PlusIcon size={14} />}
-                  onClick={() => router.push("/admin/content/templates/new")}
+                  onClick={() => router.push("/admin/automation/templates/new")}
                 >
                   Create your first template
                 </Button>

@@ -1,14 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
-import {
-  Box,
-  Container,
-  Divider,
-  Group,
-  PageBreadcrumb,
-  Paper,
-} from "@zetsel/ui";
+import { Box, Container, Divider, ModuleHeader, Paper } from "@zetsel/ui";
 import {
   DataTableWrapper,
   useTableData,
@@ -111,11 +104,7 @@ function DataTableShellInner<T extends Record<string, unknown>>({
 
   return (
     <DataTableShellContext.Provider value={contextValue}>
-      <Group pl="md" h={38} justify="space-between">
-        <PageBreadcrumb items={breadcrumbItems} />
-      </Group>
-
-      <Divider />
+      <ModuleHeader breadcrumbItems={breadcrumbItems} />
 
       {/* Header — title, description, New + Reload buttons (desktop only) */}
 
