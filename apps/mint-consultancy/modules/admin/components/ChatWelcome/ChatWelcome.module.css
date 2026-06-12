@@ -1,0 +1,11 @@
+.greeting {
+  text-align: center;
+}
+
+.greetingLine {
+  letter-spacing: -0.02em;
+}
+
+.name {
+  font-weight: 600;
+}

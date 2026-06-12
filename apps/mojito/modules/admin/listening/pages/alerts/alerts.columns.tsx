@@ -57,9 +57,7 @@ export const alertsColumns: DataTableShellColumn<AlertRow>[] = [
   {
     accessor: "triggeredAt",
     title: "Triggered",
-    render: (record) => (
-      <Text size="xs" c="dimmed">{record.triggeredAt.toLocaleString()}</Text>
-    ),
+    render: (record) => record.triggeredAt.toLocaleString(),
     width: 160,
   },
   {
