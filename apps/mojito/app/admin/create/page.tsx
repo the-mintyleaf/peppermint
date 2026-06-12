@@ -1,2 +1,2 @@
-import { ModuleCreate } from "@/modules/admin/create";
-export default ModuleCreate;
+import { ModuleCompose } from "@/modules/admin/compose";
+export default ModuleCompose;

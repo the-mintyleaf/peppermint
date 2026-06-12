@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Paper, Stack, Group, Text, Button, SegmentedControl, ScrollArea } from "@zetsel/ui";
+import { Paper, Stack, Group, Text, Button, SegmentedControl, ScrollArea, Select, Badge } from "@zetsel/ui";
 import { CaretLeftIcon } from "@phosphor-icons/react/dist/csr/CaretLeft";
 import { CaretRightIcon } from "@phosphor-icons/react/dist/csr/CaretRight";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { WeekView } from "./components/WeekView";
 import { MonthView } from "./components/MonthView";
 import { ContentPreviewDrawer } from "@/components/ContentPreviewDrawer";
-import { fetchCalendarEntries } from "./calendar.api";
+import { fetchCalendarEntries, STATUS_COLORS } from "./calendar.api";
 import { calendarQueryKeys } from "./calendar.queryKeys";
 import type { CalendarEntry, CalendarViewMode } from "./Calendar.types";
+import type { ContentStatus, Platform } from "@/modules/admin/shared/domain.types";
 
 function getWeekStart(date: Date): Date {
   const d = new Date(date);
@@ -37,6 +39,9 @@ export function Calendar() {
   const [view, setView] = useState<CalendarViewMode>("week");
   const [anchor, setAnchor] = useState(() => new Date());
   const [previewContentId, setPreviewContentId] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<ContentStatus | null>(null);
+  const [filterPlatform, setFilterPlatform] = useState<Platform | null>(null);
+  const router = useRouter();
 
   const periodStart =
     view === "week" ? getWeekStart(anchor) : getMonthStart(anchor);
@@ -55,8 +60,11 @@ export function Calendar() {
   const to = periodEnd.toISOString().split("T")[0];
 
   const { data: entries = [] } = useQuery({
-    queryKey: calendarQueryKeys.entries(from, to),
-    queryFn: () => fetchCalendarEntries(from, to),
+    queryKey: calendarQueryKeys.entries(from, to, { status: filterStatus, platform: filterPlatform }),
+    queryFn: () => fetchCalendarEntries(from, to, {
+      status: filterStatus ?? undefined,
+      platform: filterPlatform ?? undefined,
+    }),
   });
 
   function navigate(dir: 1 | -1) {
@@ -67,8 +75,11 @@ export function Calendar() {
   }
 
   function handleEntryClick(entry: CalendarEntry) {
-    if (entry.type === "scheduled") return; // handled by ScheduledPopover
     if (entry.contentId) setPreviewContentId(entry.contentId);
+  }
+
+  function handleEmptySlotClick(date: Date) {
+    router.push(`/admin/create?date=${date.toISOString()}`);
   }
 
   const periodLabel =
@@ -120,6 +131,49 @@ export function Calendar() {
               ]}
               size="xs"
             />
+          </Group>
+
+          {/* Filter bar */}
+          <Group gap="sm">
+            <Select
+              size="xs"
+              placeholder="All statuses"
+              clearable
+              value={filterStatus}
+              onChange={(v) => setFilterStatus(v as ContentStatus | null)}
+              data={[
+                { value: "draft", label: "Draft" },
+                { value: "pending_review", label: "Pending Review" },
+                { value: "approved", label: "Approved" },
+                { value: "scheduled", label: "Scheduled" },
+                { value: "published", label: "Published" },
+                { value: "failed", label: "Failed" },
+              ]}
+              style={{ width: 160 }}
+            />
+            <Select
+              size="xs"
+              placeholder="All platforms"
+              clearable
+              value={filterPlatform}
+              onChange={(v) => setFilterPlatform(v as Platform | null)}
+              data={[
+                { value: "instagram", label: "Instagram" },
+                { value: "facebook", label: "Facebook" },
+                { value: "x", label: "X (Twitter)" },
+                { value: "linkedin", label: "LinkedIn" },
+                { value: "tiktok", label: "TikTok" },
+                { value: "youtube", label: "YouTube" },
+                { value: "threads", label: "Threads" },
+                { value: "pinterest", label: "Pinterest" },
+              ]}
+              style={{ width: 160 }}
+            />
+            {(filterStatus || filterPlatform) && (
+              <Button size="xs" variant="subtle" onClick={() => { setFilterStatus(null); setFilterPlatform(null); }}>
+                Clear
+              </Button>
+            )}
           </Group>
 
           {entries.length === 0 && (

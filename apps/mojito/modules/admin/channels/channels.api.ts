@@ -124,3 +124,41 @@ export async function updateChannel(id: string, values: Partial<Channel>): Promi
 export async function deleteChannel(id: string): Promise<void> {
   mockChannels = mockChannels.filter((c) => c.id !== id);
 }
+
+export async function connectChannel(platform: Channel["platform"]): Promise<Channel> {
+  await new Promise((r) => setTimeout(r, 1500)); // simulate OAuth delay
+  const newChannel: Channel = {
+    id: uuidv4(),
+    platform,
+    handle: `@mojito_${platform}`,
+    displayName: `Mojito ${platform.charAt(0).toUpperCase() + platform.slice(1)}`,
+    url: `https://${platform}.com/mojito`,
+    status: "connected",
+    connectedAt: new Date().toISOString().split("T")[0],
+    followersCount: 0,
+  };
+  mockChannels = [newChannel, ...mockChannels];
+  return newChannel;
+}
+
+export async function disconnectChannel(id: string): Promise<Channel> {
+  return updateChannel(id, { status: "disconnected" });
+}
+
+export async function reconnectChannel(id: string): Promise<Channel> {
+  await new Promise((r) => setTimeout(r, 1500));
+  return updateChannel(id, { status: "connected" });
+}
+
+export async function updateChannelSettings(
+  id: string,
+  settings: {
+    timezone?: string;
+    signature?: string;
+    defaultFirstComment?: string;
+  }
+): Promise<Channel> {
+  return updateChannel(id, settings as Partial<Channel>);
+}
+
+// TODO(backend): replace mock OAuth with real OAuth flow

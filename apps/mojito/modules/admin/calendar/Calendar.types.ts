@@ -1,4 +1,6 @@
-export type CalendarEntryType = "scheduled" | "generated" | "published" | "failed";
+import type { ContentStatus } from "@/modules/admin/shared/domain.types";
+
+export type CalendarEntryType = ContentStatus;
 
 export interface CalendarEntry {
   id: string;
@@ -8,6 +10,8 @@ export interface CalendarEntry {
   contentId?: string;
   platform: string;
   scheduledAt: string;
+  title?: string;
+  status?: ContentStatus;
 }
 
 export type CalendarViewMode = "week" | "month";
