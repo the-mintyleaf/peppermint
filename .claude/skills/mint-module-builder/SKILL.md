@@ -143,7 +143,7 @@ export async function deleteStudent(id: string): Promise<void> { /* ... */ }
 
 ### Step 4 — `pages/list/<name>.columns.tsx`
 
-Use `DataTableShellColumn<T>`. Only add `render` when default cell output is insufficient (badge, icon, stacked line). When you do use `render`, all text inside defaults to `size="xs"`.
+Use `DataTableShellColumn<T>`. The default rule is **no `render`** — the shell renders plain values correctly on its own. Only add a `render` function when the output genuinely cannot be expressed as plain text: a colored badge, an icon, a stacked multi-line cell. Never wrap plain text in `<Text>` just to have a `render`. When you do use `render`, every piece of text inside it must be `size="xs"` unless there is a specific, documented reason to go larger.
 
 ```tsx
 import type { DataTableShellColumn } from "@zetsel/admin";
@@ -480,7 +480,7 @@ export function ProductForm({ onBack, onSuccess }: ProductFormProps) {
 
 ### Step 7 — `pages/list/list.columns.ts`
 
-Same rules as ContainedModule: no `render` for plain text; `size="xs"` on all text inside `render`.
+Same strict rule as ContainedModule: **no `render` by default**. Only add one when the cell genuinely needs a badge, icon, or multi-line layout that plain text cannot express. Every text element inside any `render` must be `size="xs"` unless there is a specific, documented reason to go larger.
 
 ```ts
 import type { DataTableShellColumn } from "@zetsel/admin";
@@ -716,19 +716,29 @@ import { ModuleStudents } from "@/modules/students";
 export default ModuleStudents;
 ```
 
-### `render` for plain text in columns
+### Unnecessary or oversized renders in columns
+
+The default is **no `render`**. The shell handles plain values. Only add `render` when the cell genuinely requires a badge, icon, or multi-line layout. Every text element inside `render` must be `size="xs"` unless there is a specific reason to go larger.
+
 ```tsx
-// ❌ render used for plain text — unnecessary
+// ❌ render used for plain text — never do this
 { accessor: "email", render: (r) => <Text>{r.email}</Text> }
 
-// ✅ no render needed for plain text
+// ✅ plain text needs no render
 { accessor: "email", title: "Email", sortable: true }
 
-// ❌ render used correctly but text size missing
+// ❌ render justified but text size not set — always set it
 { accessor: "status", render: (r) => <Badge>{r.status}</Badge> }
 
-// ✅ all text inside render is size="xs"
+// ✅ render justified, text size explicitly xs
 { accessor: "status", render: (r) => <Badge size="xs">{r.status}</Badge> }
+{ accessor: "price",  render: (r) => <Text size="xs">${r.price.toFixed(2)}</Text> }
+
+// ❌ text size bumped up with no reason
+{ accessor: "name", render: (r) => <Text size="sm">{r.name}</Text> }
+
+// ✅ if text must be rendered, xs unless there is a documented reason otherwise
+{ accessor: "name", render: (r) => <Text size="xs">{r.name}</Text> }
 ```
 
 ### Untyped tabs array
