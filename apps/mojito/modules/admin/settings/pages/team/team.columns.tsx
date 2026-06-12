@@ -54,9 +54,7 @@ export const teamColumns: DataTableShellColumn<TeamMemberRow>[] = [
   {
     accessor: "joinedAt",
     title: "Joined",
-    render: (record) => (
-      <Text size="xs" c="dimmed">{record.joinedAt.toLocaleDateString()}</Text>
-    ),
+    render: (record) => record.joinedAt.toLocaleDateString(),
     width: 110,
   },
 ];

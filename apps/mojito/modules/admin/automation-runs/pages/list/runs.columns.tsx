@@ -31,7 +31,7 @@ export function getRunsColumns(
     {
       accessor: "workflowName",
       title: "Workflow",
-      render: (r) => <Text size="sm" fw={500}>{r.workflowName}</Text>,
+      render: (r) => <Text size="xs" fw={500}>{r.workflowName}</Text>,
     },
     {
       accessor: "status",
@@ -44,15 +44,13 @@ export function getRunsColumns(
     {
       accessor: "startedAt",
       title: "Started",
-      render: (r) => (
-        <Text size="xs" c="dimmed">{new Date(r.startedAt).toLocaleString()}</Text>
-      ),
+      render: (r) => new Date(r.startedAt).toLocaleString(),
       width: 160,
     },
     {
       accessor: "duration",
       title: "Duration",
-      render: (r) => <Text size="xs" c="dimmed">{duration(r)}</Text>,
+      render: (r) => duration(r),
       width: 120,
     },
     {

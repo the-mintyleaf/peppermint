@@ -94,9 +94,7 @@ export const draftsColumns: DataTableShellColumn<DraftRow>[] = [
   {
     accessor: "updatedAt",
     title: "Last Updated",
-    render: (item) => (
-      <Text size="xs" c="dimmed">{new Date(item.updatedAt).toLocaleDateString()}</Text>
-    ),
+    render: (item) => new Date(item.updatedAt).toLocaleDateString(),
     width: 120,
   },
   {

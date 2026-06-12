@@ -26,7 +26,7 @@ export const channelsColumns: DataTableShellColumn<Channel>[] = [
     sortable: true,
     render: (record) => (
       <div>
-        <Text fw={500} size="sm">{record.displayName}</Text>
+        <Text fw={500} size="xs">{record.displayName}</Text>
         <Text size="xs" c="dimmed">{record.handle}</Text>
       </div>
     ),
@@ -35,7 +35,7 @@ export const channelsColumns: DataTableShellColumn<Channel>[] = [
     accessor: "platform",
     title: "Platform",
     sortable: true,
-    render: (record) => <Text size="sm">{platformLabel[record.platform]}</Text>,
+    render: (record) => platformLabel[record.platform],
   },
   {
     accessor: "status",
@@ -51,16 +51,14 @@ export const channelsColumns: DataTableShellColumn<Channel>[] = [
     title: "Followers",
     sortable: true,
     render: (record) =>
-      record.followersCount != null ? (
-        <Text size="sm">{record.followersCount.toLocaleString()}</Text>
-      ) : (
-        <Text size="sm" c="dimmed">—</Text>
-      ),
+      record.followersCount != null
+        ? record.followersCount.toLocaleString()
+        : "—",
   },
   {
     accessor: "connectedAt",
     title: "Connected",
     sortable: true,
-    render: (record) => <Text size="sm">{record.connectedAt}</Text>,
+    render: (record) => record.connectedAt,
   },
 ];

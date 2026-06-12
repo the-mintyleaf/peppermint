@@ -23,9 +23,7 @@ export const competitorsColumns: DataTableShellColumn<CompetitorRow>[] = [
     accessor: "volumeSeries",
     title: "Today",
     render: (record) => (
-      <Text size="xs" c="dimmed">
-        {record.volumeSeries[record.volumeSeries.length - 1]?.value ?? 0}
-      </Text>
+      record.volumeSeries[record.volumeSeries.length - 1]?.value ?? 0
     ),
     width: 80,
   },
