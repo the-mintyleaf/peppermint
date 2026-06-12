@@ -2,8 +2,6 @@
 
 import {
   Stack,
-  Group,
-  Title,
   Text,
   Paper,
   Select,
@@ -13,6 +11,7 @@ import {
   ScrollArea,
   Badge,
   Divider,
+  Group,
 } from "@zetsel/ui";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -20,6 +19,10 @@ import { notifications } from "@mantine/notifications";
 import { fetchChannels, updateChannelSettings } from "../../channels.api";
 import { channelQueryKeys } from "../../channels.queryKeys";
 import type { Channel } from "../../channels.types";
+import { ModulePageShell } from "@/modules/admin/shared/ModulePageShell";
+
+const BASE_PATH = "/admin/channels/settings";
+const MODULE_INFO = { name: "channel-settings", label: "Channel Settings" };
 
 const TIMEZONES = [
   "UTC", "America/New_York", "America/Los_Angeles", "America/Chicago",
@@ -28,12 +31,19 @@ const TIMEZONES = [
 
 function ChannelSettingsPanel({ channel }: { channel: Channel }) {
   const qc = useQueryClient();
-  const [timezone, setTimezone] = useState<string>((channel as any).timezone ?? "UTC");
-  const [signature, setSignature] = useState<string>((channel as any).signature ?? "");
-  const [firstComment, setFirstComment] = useState<string>((channel as any).defaultFirstComment ?? "");
+  const [timezone, setTimezone] = useState<string>((channel as Channel & { timezone?: string }).timezone ?? "UTC");
+  const [signature, setSignature] = useState<string>((channel as Channel & { signature?: string }).signature ?? "");
+  const [firstComment, setFirstComment] = useState<string>(
+    (channel as Channel & { defaultFirstComment?: string }).defaultFirstComment ?? "",
+  );
 
   const mutation = useMutation({
-    mutationFn: () => updateChannelSettings(channel.id, { timezone, signature, defaultFirstComment: firstComment }),
+    mutationFn: () =>
+      updateChannelSettings(channel.id, {
+        timezone,
+        signature,
+        defaultFirstComment: firstComment,
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: channelQueryKeys.list() });
       notifications.show({ message: "Settings saved", color: "green" });
@@ -93,21 +103,10 @@ export function ChannelSettings() {
   const selected = channels.find((c) => c.id === selectedId) ?? channels[0] ?? null;
 
   return (
-    <Stack gap="md">
-      <Paper p="lg" radius="md" withBorder>
-        <Group justify="space-between">
-          <Stack gap={4}>
-            <Title order={3}>Channel Settings</Title>
-            <Text c="dimmed" size="sm">
-              Configure per-channel timezone, signature, and default first comment
-            </Text>
-          </Stack>
-        </Group>
-      </Paper>
-
-      <Group align="flex-start" gap="md">
+    <ModulePageShell basePath={BASE_PATH} moduleInfo={MODULE_INFO} disableCreateButton>
+      <Group align="flex-start" gap="md" style={{ height: "calc(100vh - 160px)" }}>
         <Paper withBorder radius="md" p={0} style={{ width: 240, flexShrink: 0, overflow: "hidden" }}>
-          <ScrollArea>
+          <ScrollArea h="100%">
             <Stack gap={0}>
               {isLoading
                 ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} h={56} radius={0} />)
@@ -136,7 +135,7 @@ export function ChannelSettings() {
           </ScrollArea>
         </Paper>
 
-        <Paper withBorder radius="md" p="lg" style={{ flex: 1 }}>
+        <Paper withBorder radius="md" p="lg" style={{ flex: 1, overflow: "auto" }}>
           {!selected && (
             <Text c="dimmed" size="sm">Select a channel to configure its settings.</Text>
           )}
@@ -152,6 +151,6 @@ export function ChannelSettings() {
           )}
         </Paper>
       </Group>
-    </Stack>
+    </ModulePageShell>
   );
 }

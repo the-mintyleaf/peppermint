@@ -2,11 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Paper, SimpleGrid, Stack, Group, Text, Pagination, Center, Loader } from "@zetsel/ui";
+import { SimpleGrid, Stack, Group, Text, Pagination, Center, Loader } from "@zetsel/ui";
 import { useQuery } from "@tanstack/react-query";
 import { ContentCard } from "./components/ContentCard";
 import { ContentFilters } from "./components/ContentFilters";
 import { fetchContentList, type ContentFilter } from "../../module.api";
+import { ModulePageShell } from "@/modules/admin/shared/ModulePageShell";
+
+const BASE_PATH = "/admin/publish/library";
+const MODULE_INFO = { name: "library", label: "Content Library" };
 
 const PAGE_SIZE = 24;
 
@@ -53,28 +57,17 @@ export function ContentLibraryList() {
   const isFiltered = !!(filter.platform || filter.status || filter.automationId);
 
   return (
-    <Paper p={0} withBorder radius="lg" h="calc(100vh - 16px)" style={{ overflow: "hidden" }}>
-      <Stack gap={0} h="100%">
-        <Stack gap="sm" p="lg" pb="md" style={{ borderBottom: "1px solid var(--mantine-color-default-border)" }}>
-          <Group justify="space-between">
-            <Stack gap={2}>
-              <Text size="lg" fw={600}>
-                Content Library
-              </Text>
-              <Text size="sm" c="dimmed">
-                Everything the AI agent has generated
-              </Text>
-            </Stack>
-            {data && (
-              <Text size="sm" c="dimmed">
-                {data.meta.total} items
-              </Text>
-            )}
-          </Group>
-          <ContentFilters filter={filter} onChange={setFilter} />
-        </Stack>
-
-        <Stack gap="lg" p="lg" style={{ flex: 1, overflowY: "auto" }}>
+    <ModulePageShell
+      basePath={BASE_PATH}
+      moduleInfo={MODULE_INFO}
+      disableCreateButton
+      actions={
+        data ? <Text size="sm" c="dimmed">{data.meta.total} items</Text> : undefined
+      }
+    >
+      <Stack gap="md" style={{ height: "calc(100vh - 160px)", overflow: "auto" }}>
+        <ContentFilters filter={filter} onChange={setFilter} />
+        <Stack gap="lg">
           {isLoading && (
             <Center py="xl">
               <Loader size="sm" />
@@ -127,6 +120,6 @@ export function ContentLibraryList() {
           )}
         </Stack>
       </Stack>
-    </Paper>
+    </ModulePageShell>
   );
 }

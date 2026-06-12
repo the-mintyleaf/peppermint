@@ -4,7 +4,6 @@ import {
   Paper,
   Stack,
   Group,
-  Title,
   Text,
   Button,
   Badge,
@@ -22,6 +21,10 @@ import { useState } from "react";
 import { useApprovals, useApproveItem, useRejectItem } from "../../approvals.hooks";
 import { RejectModal } from "../../components/RejectModal/RejectModal";
 import type { ContentItem } from "@/modules/admin/shared/domain.types";
+import { ModulePageShell } from "@/modules/admin/shared/ModulePageShell";
+
+const BASE_PATH = "/admin/publish/approvals";
+const MODULE_INFO = { name: "approvals", label: "Approvals" };
 
 function ApprovalRow({ item }: { item: ContentItem }) {
   const [expanded, setExpanded] = useState(false);
@@ -113,51 +116,44 @@ export function ApprovalsList() {
   const totalPages = Math.ceil(total / 20);
 
   return (
-    <Stack gap="md">
-      <Paper p="lg" radius="md" withBorder>
-        <Group justify="space-between">
-          <Stack gap={4}>
-            <Title order={3}>Approvals</Title>
-            <Text c="dimmed" size="sm">
-              Review content pending approval before publishing
-            </Text>
+    <ModulePageShell
+      basePath={BASE_PATH}
+      moduleInfo={MODULE_INFO}
+      disableCreateButton
+      actions={total > 0 ? <Badge size="lg" color="yellow">{total} pending</Badge> : undefined}
+    >
+      <Stack gap="md" style={{ height: "calc(100vh - 160px)", overflow: "auto" }}>
+        {isLoading && (
+          <Stack gap="xs">
+            {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} h={72} radius="sm" />)}
           </Stack>
-          {total > 0 && (
-            <Badge size="lg" color="yellow">{total} pending</Badge>
-          )}
-        </Group>
-      </Paper>
+        )}
 
-      {isLoading && (
-        <Stack gap="xs">
-          {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} h={72} radius="sm" />)}
-        </Stack>
-      )}
+        {isError && (
+          <Center py="xl">
+            <Text c="red" size="sm">Failed to load approvals</Text>
+          </Center>
+        )}
 
-      {isError && (
-        <Center py="xl">
-          <Text c="red" size="sm">Failed to load approvals</Text>
-        </Center>
-      )}
+        {!isLoading && !isError && items.length === 0 && (
+          <Center py="xl">
+            <Stack align="center" gap="xs">
+              <CheckIcon size={32} />
+              <Text size="sm" c="dimmed">All caught up — no pending approvals</Text>
+            </Stack>
+          </Center>
+        )}
 
-      {!isLoading && !isError && items.length === 0 && (
-        <Center py="xl">
-          <Stack align="center" gap="xs">
-            <CheckIcon size={32} />
-            <Text size="sm" c="dimmed">All caught up — no pending approvals</Text>
-          </Stack>
-        </Center>
-      )}
+        {!isLoading && items.map((item: ContentItem) => (
+          <ApprovalRow key={item.id} item={item} />
+        ))}
 
-      {!isLoading && items.map((item: ContentItem) => (
-        <ApprovalRow key={item.id} item={item} />
-      ))}
-
-      {totalPages > 1 && (
-        <Group justify="center">
-          <Pagination total={totalPages} value={page} onChange={setPage} size="sm" />
-        </Group>
-      )}
-    </Stack>
+        {totalPages > 1 && (
+          <Group justify="center">
+            <Pagination total={totalPages} value={page} onChange={setPage} size="sm" />
+          </Group>
+        )}
+      </Stack>
+    </ModulePageShell>
   );
 }

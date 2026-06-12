@@ -1,0 +1,32 @@
+import type { DataTableShellColumn } from "@zetsel/admin";
+import { Badge, Text } from "@zetsel/ui";
+import type { CompetitorRow } from "../../competitors.types";
+
+export const competitorsColumns: DataTableShellColumn<CompetitorRow>[] = [
+  {
+    accessor: "handle",
+    title: "Handle",
+    sortable: true,
+    render: (record) => (
+      <Text size="xs" fw={500}>{record.handle}</Text>
+    ),
+  },
+  {
+    accessor: "platform",
+    title: "Platform",
+    render: (record) => (
+      <Badge size="xs" variant="light">{record.platform}</Badge>
+    ),
+    width: 110,
+  },
+  {
+    accessor: "volumeSeries",
+    title: "Today",
+    render: (record) => (
+      <Text size="xs" c="dimmed">
+        {record.volumeSeries[record.volumeSeries.length - 1]?.value ?? 0}
+      </Text>
+    ),
+    width: 80,
+  },
+];

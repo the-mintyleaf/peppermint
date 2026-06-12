@@ -1,6 +1,6 @@
 "use client";
 
-import { Stack, Group, Title, Text, Paper, Skeleton, Badge, SimpleGrid } from "@zetsel/ui";
+import { Stack, Text, Paper, Skeleton, Badge, SimpleGrid, Group } from "@zetsel/ui";
 import { AreaChart } from "@zetsel/ui";
 import { useSentimentStream } from "../../listening.hooks";
 
@@ -18,8 +18,8 @@ export function SentimentStream() {
       <Paper p="lg" radius="md" withBorder>
         <Group justify="space-between">
           <Stack gap={4}>
-            <Title order={3}>Sentiment Analysis</Title>
-            <Text c="dimmed" size="sm">Real-time sentiment breakdown of brand mentions</Text>
+            <Text size="lg" fw={600}>Sentiment Stream</Text>
+            <Text c="dimmed" size="sm">Real-time sentiment trends across monitored channels</Text>
           </Stack>
           {!isLoading && (
             <Badge
@@ -34,36 +34,28 @@ export function SentimentStream() {
       </Paper>
 
       {isLoading ? (
-        <>
+        <Stack gap="md">
           <SimpleGrid cols={3} spacing="md">
             {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} h={80} radius="md" />)}
           </SimpleGrid>
           <Skeleton h={280} radius="md" />
-        </>
+        </Stack>
       ) : data ? (
         <>
           <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
-            <Paper withBorder radius="md" p="md">
-              <Stack gap={4}>
-                <Text size="xs" c="dimmed" tt="uppercase" fw={600}>Positive</Text>
-                <Text size="xl" fw={700} c="green">{latestPositive}</Text>
-                <Text size="xs" c="dimmed">mentions today</Text>
-              </Stack>
-            </Paper>
-            <Paper withBorder radius="md" p="md">
-              <Stack gap={4}>
-                <Text size="xs" c="dimmed" tt="uppercase" fw={600}>Neutral</Text>
-                <Text size="xl" fw={700} c="gray">{latestNeutral}</Text>
-                <Text size="xs" c="dimmed">mentions today</Text>
-              </Stack>
-            </Paper>
-            <Paper withBorder radius="md" p="md">
-              <Stack gap={4}>
-                <Text size="xs" c="dimmed" tt="uppercase" fw={600}>Negative</Text>
-                <Text size="xl" fw={700} c="red">{latestNegative}</Text>
-                <Text size="xs" c="dimmed">mentions today</Text>
-              </Stack>
-            </Paper>
+            {[
+              { label: "Positive", value: latestPositive, color: "green" },
+              { label: "Neutral", value: latestNeutral, color: "gray" },
+              { label: "Negative", value: latestNegative, color: "red" },
+            ].map(({ label, value, color }) => (
+              <Paper key={label} withBorder radius="md" p="md">
+                <Stack gap={4}>
+                  <Text size="xs" c="dimmed" tt="uppercase" fw={600}>{label}</Text>
+                  <Text size="xl" fw={700} c={color}>{value}</Text>
+                  <Text size="xs" c="dimmed">mentions today</Text>
+                </Stack>
+              </Paper>
+            ))}
           </SimpleGrid>
 
           <Paper withBorder radius="md" p="md">

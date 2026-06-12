@@ -32,6 +32,7 @@ import { TemplateCard } from "./components/TemplateCard";
 import { templatesColumns } from "./templates.columns";
 import { fetchTemplates, PLATFORM_LABELS, type Template } from "../../module.api";
 import type { PlatformFormat } from "../../module.api";
+import { buildBreadcrumbItems } from "@/modules/admin/shared/pageShell.utils";
 
 const BASE_PATH = "/admin/automation/templates";
 
@@ -51,14 +52,6 @@ const TABS: DataTableShellTab[] = [
     forceFilter: (rows: Template[]) => rows.filter((t) => t.platform === value),
   })),
 ];
-
-function buildBreadcrumbItems(basePath: string) {
-  const parts = basePath.split("/").filter(Boolean);
-  return parts.map((part, index) => ({
-    label: part.charAt(0).toUpperCase() + part.slice(1),
-    href: "/" + parts.slice(0, index + 1).join("/"),
-  }));
-}
 
 function TemplatesListTabSync({
   activeTab,

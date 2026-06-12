@@ -3,7 +3,6 @@
 import {
   Stack,
   Group,
-  Title,
   Text,
   Paper,
   Tabs,
@@ -21,6 +20,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRuns, useRetryRun, useCancelRun } from "../../runs.hooks";
 import type { AutomationRun } from "@/modules/admin/shared/entities.types";
+import { ModulePageShell } from "@/modules/admin/shared/ModulePageShell";
+
+const BASE_PATH = "/admin/automation/runs";
+const MODULE_INFO = { name: "runs", label: "Runs & Monitoring" };
 
 const STATUS_COLORS: Record<AutomationRun["status"], string> = {
   running: "blue",
@@ -54,17 +57,8 @@ export function RunsList() {
   }
 
   return (
-    <Stack gap="md">
-      <Paper p="lg" radius="md" withBorder>
-        <Group justify="space-between">
-          <Stack gap={4}>
-            <Title order={3}>Runs & Monitoring</Title>
-            <Text c="dimmed" size="sm">Monitor automation workflow execution history</Text>
-          </Stack>
-        </Group>
-      </Paper>
-
-      <Paper radius="md" withBorder style={{ overflow: "hidden" }}>
+    <ModulePageShell basePath={BASE_PATH} moduleInfo={MODULE_INFO} disableCreateButton>
+      <Paper radius="md" withBorder style={{ overflow: "hidden", height: "calc(100vh - 160px)" }}>
         <Tabs value={activeTab} onChange={handleTabChange}>
           <Tabs.List>
             {(["all", "running", "waiting_review", "succeeded", "failed"] as TabStatus[]).map((s) => (
@@ -74,7 +68,7 @@ export function RunsList() {
             ))}
           </Tabs.List>
 
-          <Tabs.Panel value={activeTab}>
+          <Tabs.Panel value={activeTab} style={{ overflow: "auto", maxHeight: "calc(100vh - 220px)" }}>
             {isLoading && (
               <Stack gap="xs" p="md">
                 {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} h={48} radius="sm" />)}
@@ -100,9 +94,12 @@ export function RunsList() {
                 <Table.Tbody>
                   {items.map((run) => {
                     const durationSecs = run.finishedAt
-                      ? Math.floor((new Date(run.finishedAt).getTime() - new Date(run.startedAt).getTime()) / 1000)
+                      ? Math.floor(
+                          (new Date(run.finishedAt).getTime() - new Date(run.startedAt).getTime()) / 1000,
+                        )
                       : Math.floor((Date.now() - new Date(run.startedAt).getTime()) / 1000);
-                    const durationStr = durationSecs < 60 ? `${durationSecs}s` : `${Math.floor(durationSecs / 60)}m`;
+                    const durationStr =
+                      durationSecs < 60 ? `${durationSecs}s` : `${Math.floor(durationSecs / 60)}m`;
                     return (
                       <Table.Tr key={run.id}>
                         <Table.Td><Text size="sm" fw={500}>{run.workflowName}</Text></Table.Td>
@@ -119,16 +116,34 @@ export function RunsList() {
                         </Table.Td>
                         <Table.Td>
                           <Group gap="xs" justify="flex-end">
-                            <ActionIcon size="sm" variant="subtle" component={Link} href={`/admin/automation/runs/${run.id}`} aria-label="View">
+                            <ActionIcon
+                              size="sm"
+                              variant="subtle"
+                              component={Link}
+                              href={`/admin/automation/runs/${run.id}`}
+                              aria-label="View"
+                            >
                               <EyeIcon size={14} />
                             </ActionIcon>
                             {run.status === "failed" && (
-                              <ActionIcon size="sm" variant="subtle" color="blue" onClick={() => retry.mutate(run.id)} aria-label="Retry">
+                              <ActionIcon
+                                size="sm"
+                                variant="subtle"
+                                color="blue"
+                                onClick={() => retry.mutate(run.id)}
+                                aria-label="Retry"
+                              >
                                 <ArrowClockwiseIcon size={14} />
                               </ActionIcon>
                             )}
                             {run.status === "running" && (
-                              <ActionIcon size="sm" variant="subtle" color="red" onClick={() => cancel.mutate(run.id)} aria-label="Cancel">
+                              <ActionIcon
+                                size="sm"
+                                variant="subtle"
+                                color="red"
+                                onClick={() => cancel.mutate(run.id)}
+                                aria-label="Cancel"
+                              >
                                 <XIcon size={14} />
                               </ActionIcon>
                             )}
@@ -148,6 +163,6 @@ export function RunsList() {
           </Tabs.Panel>
         </Tabs>
       </Paper>
-    </Stack>
+    </ModulePageShell>
   );
 }

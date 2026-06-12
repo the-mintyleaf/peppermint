@@ -25,28 +25,28 @@ const tabs: DataTableShellTab[] = [
 export function ChannelsList() {
   return (
     <Paper p={0} withBorder radius="lg" h="calc(100vh - 16px)">
-    <ModalTableShell<Channel>
-      queryKey={channelQueryKeys.list()}
-      queryGetFn={fetchChannels}
-      dataKey="data"
-      paginationKey="meta"
-      columns={channelsColumns}
-      moduleInfo={{
-        name: "channels",
-        label: "Channels",
-        description: "Manage your connected social media accounts",
-      }}
-      idAccessor="id"
-      createFormComponent={ChannelForm}
-      editFormComponent={ChannelForm}
-      onCreateApi={(values) => createChannel(values)}
-      onEditApi={(values) => updateChannel(values.id, values)}
-      onDeleteApi={(id) => deleteChannel(String(id))}
-      pageSizes={[10, 20, 50]}
-      defaultPageSize={20}
-      tabs={tabs}
-      basePath="/admin/channels"
-    />
+      <ModalTableShell<Channel>
+        queryKey={channelQueryKeys.list()}
+        queryGetFn={fetchChannels}
+        dataKey="data"
+        paginationKey="meta"
+        columns={channelsColumns}
+        moduleInfo={{
+          name: "channels",
+          label: "Channels",
+          description: "Manage your connected social media accounts",
+        }}
+        idAccessor="id"
+        createFormComponent={ChannelForm}
+        editFormComponent={ChannelForm}
+        onCreateApi={(values) => createChannel(values)}
+        onEditApi={(values) => updateChannel(values.id, values)}
+        onDeleteApi={(id) => deleteChannel(String(id))}
+        pageSizes={[10, 20, 50]}
+        defaultPageSize={20}
+        tabs={tabs}
+        basePath="/admin/channels"
+      />
     </Paper>
   );
 }

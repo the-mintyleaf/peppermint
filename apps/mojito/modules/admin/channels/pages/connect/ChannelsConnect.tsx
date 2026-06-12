@@ -2,21 +2,24 @@
 
 import {
   Stack,
-  Group,
-  Title,
   Text,
   Paper,
   SimpleGrid,
   Button,
   Badge,
   Skeleton,
+  Group,
 } from "@zetsel/ui";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { notifications } from "@mantine/notifications";
-import { fetchChannels, connectChannel, disconnectChannel, reconnectChannel } from "../../channels.api";
+import { fetchChannels, connectChannel, disconnectChannel } from "../../channels.api";
 import { channelQueryKeys } from "../../channels.queryKeys";
 import type { Channel } from "../../channels.types";
+import { ModulePageShell } from "@/modules/admin/shared/ModulePageShell";
+
+const BASE_PATH = "/admin/channels/connect";
+const MODULE_INFO = { name: "connect", label: "Connect" };
 
 const PLATFORM_INFO: Record<string, { label: string; color: string }> = {
   instagram: { label: "Instagram", color: "grape" },
@@ -84,7 +87,12 @@ function PlatformCard({
         </Group>
 
         {connected.map((ch) => (
-          <Group key={ch.id} justify="space-between" p="xs" style={{ background: "var(--mantine-color-green-0)", borderRadius: 6 }}>
+          <Group
+            key={ch.id}
+            justify="space-between"
+            p="xs"
+            style={{ background: "var(--mantine-color-green-0)", borderRadius: 6 }}
+          >
             <Text size="xs">{ch.handle}</Text>
             <Button
               size="xs"
@@ -122,33 +130,22 @@ export function ChannelsConnect() {
   const channels = data?.data ?? [];
 
   return (
-    <Stack gap="md">
-      <Paper p="lg" radius="md" withBorder>
-        <Group justify="space-between">
-          <Stack gap={4}>
-            <Title order={3}>Connect Channels</Title>
-            <Text c="dimmed" size="sm">
-              Connect your social media accounts to start publishing
-            </Text>
-          </Stack>
-        </Group>
-      </Paper>
-
+    <ModulePageShell basePath={BASE_PATH} moduleInfo={MODULE_INFO} disableCreateButton>
       {isLoading ? (
         <SimpleGrid cols={{ base: 2, md: 3, lg: 4 }} spacing="md">
           {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} h={140} radius="md" />)}
         </SimpleGrid>
       ) : (
-        <SimpleGrid cols={{ base: 2, md: 3, lg: 4 }} spacing="md">
+        <SimpleGrid
+          cols={{ base: 2, md: 3, lg: 4 }}
+          spacing="md"
+          style={{ overflow: "auto", maxHeight: "calc(100vh - 160px)" }}
+        >
           {ALL_PLATFORMS.map((platform) => (
-            <PlatformCard
-              key={platform}
-              platform={platform}
-              channels={channels}
-            />
+            <PlatformCard key={platform} platform={platform} channels={channels} />
           ))}
         </SimpleGrid>
       )}
-    </Stack>
+    </ModulePageShell>
   );
 }

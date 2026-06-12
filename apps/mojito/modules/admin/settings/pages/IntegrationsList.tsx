@@ -3,7 +3,6 @@
 import {
   Stack,
   Group,
-  Title,
   Text,
   Paper,
   Badge,
@@ -17,6 +16,10 @@ import { useState } from "react";
 import { notifications } from "@mantine/notifications";
 import { useIntegrations, useConnectIntegration, useDisconnectIntegration } from "../settings.hooks";
 import type { Integration } from "../settings.api";
+import { ModulePageShell } from "@/modules/admin/shared/ModulePageShell";
+
+const BASE_PATH = "/admin/settings/integrations";
+const MODULE_INFO = { name: "integrations", label: "Integrations" };
 
 const CATEGORY_LABELS: Record<Integration["category"], string> = {
   analytics: "Analytics",
@@ -39,16 +42,13 @@ export function IntegrationsList() {
   const connectedCount = integrations.filter((i) => i.connected).length;
 
   return (
-    <Stack gap="md">
-      <Paper p="lg" radius="md" withBorder>
-        <Group justify="space-between">
-          <Stack gap={4}>
-            <Group gap="sm">
-              <Title order={3}>Integrations</Title>
-              {connectedCount > 0 && <Badge size="sm" color="green">{connectedCount} connected</Badge>}
-            </Group>
-            <Text c="dimmed" size="sm">Connect your favorite tools and services</Text>
-          </Stack>
+    <ModulePageShell
+      basePath={BASE_PATH}
+      moduleInfo={MODULE_INFO}
+      disableCreateButton
+      actions={
+        <Group gap="sm">
+          {connectedCount > 0 && <Badge size="sm" color="green">{connectedCount} connected</Badge>}
           <Select
             size="xs"
             w={140}
@@ -59,14 +59,18 @@ export function IntegrationsList() {
             onChange={setCategory}
           />
         </Group>
-      </Paper>
-
+      }
+    >
       {isLoading ? (
         <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
           {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} h={100} radius="md" />)}
         </SimpleGrid>
       ) : (
-        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+        <SimpleGrid
+          cols={{ base: 1, md: 2 }}
+          spacing="md"
+          style={{ overflow: "auto", maxHeight: "calc(100vh - 160px)" }}
+        >
           {filtered.map((integration) => (
             <Paper key={integration.id} withBorder radius="md" p="md">
               <Group justify="space-between">
@@ -121,6 +125,6 @@ export function IntegrationsList() {
           ))}
         </SimpleGrid>
       )}
-    </Stack>
+    </ModulePageShell>
   );
 }

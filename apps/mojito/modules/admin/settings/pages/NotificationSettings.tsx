@@ -3,18 +3,20 @@
 import {
   Stack,
   Group,
-  Title,
   Text,
   Paper,
   Switch,
   Button,
   Skeleton,
-  Divider,
 } from "@zetsel/ui";
 import { useState, useEffect } from "react";
 import { notifications } from "@mantine/notifications";
 import { useNotificationPrefs, useUpdateNotificationPrefs } from "../settings.hooks";
 import type { NotificationPrefs } from "../settings.api";
+import { ModulePageShell } from "@/modules/admin/shared/ModulePageShell";
+
+const BASE_PATH = "/admin/settings/notifications";
+const MODULE_INFO = { name: "notifications", label: "Notifications" };
 
 function PrefSection({
   title,
@@ -54,14 +56,16 @@ export function NotificationSettings() {
   const update = useUpdateNotificationPrefs();
   const [draft, setDraft] = useState<NotificationPrefs | null>(null);
 
-  useEffect(() => { if (data) setDraft(data); }, [data]);
+  useEffect(() => {
+    if (data) setDraft(data);
+  }, [data]);
 
   function updateEmail(key: string, val: boolean) {
-    setDraft((d) => d ? { ...d, email: { ...d.email, [key]: val } } : d);
+    setDraft((d) => (d ? { ...d, email: { ...d.email, [key]: val } } : d));
   }
 
   function updateInApp(key: string, val: boolean) {
-    setDraft((d) => d ? { ...d, inApp: { ...d.inApp, [key]: val } } : d);
+    setDraft((d) => (d ? { ...d, inApp: { ...d.inApp, [key]: val } } : d));
   }
 
   async function handleSave() {
@@ -71,45 +75,50 @@ export function NotificationSettings() {
   }
 
   if (isLoading || !draft) {
-    return <Stack gap="md">{Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} h={160} radius="md" />)}</Stack>;
+    return (
+      <ModulePageShell basePath={BASE_PATH} moduleInfo={MODULE_INFO} disableCreateButton>
+        <Stack gap="md">
+          {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} h={160} radius="md" />)}
+        </Stack>
+      </ModulePageShell>
+    );
   }
 
   return (
-    <Stack gap="md">
-      <Paper p="lg" radius="md" withBorder>
-        <Group justify="space-between">
-          <Stack gap={4}>
-            <Title order={3}>Notifications</Title>
-            <Text c="dimmed" size="sm">Control which notifications you receive and how</Text>
-          </Stack>
-          <Button size="sm" loading={update.isPending} onClick={handleSave}>Save</Button>
-        </Group>
-      </Paper>
+    <ModulePageShell
+      basePath={BASE_PATH}
+      moduleInfo={MODULE_INFO}
+      disableCreateButton
+      actions={
+        <Button size="xs" loading={update.isPending} onClick={handleSave}>Save</Button>
+      }
+    >
+      <Stack gap="md" style={{ overflow: "auto", height: "calc(100vh - 160px)" }}>
+        <PrefSection
+          title="Email Notifications"
+          items={[
+            { key: "approvals", label: "Content approvals", description: "When content is approved or rejected" },
+            { key: "mentions", label: "Brand mentions", description: "When your brand is mentioned" },
+            { key: "weeklyReport", label: "Weekly report", description: "Summary of your week's performance" },
+            { key: "teamActivity", label: "Team activity", description: "When team members take actions" },
+            { key: "billing", label: "Billing & invoices", description: "Payment receipts and renewal reminders" },
+          ]}
+          values={draft.email as unknown as Record<string, boolean>}
+          onChange={updateEmail}
+        />
 
-      <PrefSection
-        title="Email Notifications"
-        items={[
-          { key: "approvals", label: "Content approvals", description: "When content is approved or rejected" },
-          { key: "mentions", label: "Brand mentions", description: "When your brand is mentioned" },
-          { key: "weeklyReport", label: "Weekly report", description: "Summary of your week's performance" },
-          { key: "teamActivity", label: "Team activity", description: "When team members take actions" },
-          { key: "billing", label: "Billing & invoices", description: "Payment receipts and renewal reminders" },
-        ]}
-        values={draft.email as unknown as Record<string, boolean>}
-        onChange={updateEmail}
-      />
-
-      <PrefSection
-        title="In-App Notifications"
-        items={[
-          { key: "approvals", label: "Approvals & reviews" },
-          { key: "mentions", label: "Mentions & replies" },
-          { key: "automationAlerts", label: "Automation alerts" },
-          { key: "publishingFailures", label: "Publishing failures" },
-        ]}
-        values={draft.inApp as unknown as Record<string, boolean>}
-        onChange={updateInApp}
-      />
-    </Stack>
+        <PrefSection
+          title="In-App Notifications"
+          items={[
+            { key: "approvals", label: "Approvals & reviews" },
+            { key: "mentions", label: "Mentions & replies" },
+            { key: "automationAlerts", label: "Automation alerts" },
+            { key: "publishingFailures", label: "Publishing failures" },
+          ]}
+          values={draft.inApp as unknown as Record<string, boolean>}
+          onChange={updateInApp}
+        />
+      </Stack>
+    </ModulePageShell>
   );
 }

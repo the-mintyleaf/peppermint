@@ -3,13 +3,11 @@
 import {
   Stack,
   Group,
-  Title,
   Text,
   Paper,
   ScrollArea,
   Button,
   Select,
-  Badge,
   Skeleton,
   ActionIcon,
   Divider,
@@ -21,9 +19,12 @@ import { useState } from "react";
 import { useQueueSlots, useQueuedContent, useDeleteQueueSlot, useAddQueueSlot } from "../queue.hooks";
 import { CHANNEL_LABELS } from "../queue.api";
 import type { QueueSlot } from "../../shared/entities.types";
+import { ModulePageShell } from "@/modules/admin/shared/ModulePageShell";
+
+const BASE_PATH = "/admin/publish/queue";
+const MODULE_INFO = { name: "queue", label: "Queue" };
 
 const CHANNEL_IDS = ["channel_1", "channel_2", "channel_3"];
-
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function QueueColumn({ channelId }: { channelId: string }) {
@@ -54,7 +55,7 @@ function QueueColumn({ channelId }: { channelId: string }) {
         <Text fw={600} size="sm" lineClamp={1}>{CHANNEL_LABELS[channelId] ?? channelId}</Text>
         <Divider />
         {sortedSlots.map((slot) => {
-          const queuedItem = content[0]; // simplified: just show first match
+          const queuedItem = content[0];
           return (
             <Paper key={slot.id} withBorder radius="sm" p="xs">
               <Group justify="space-between" wrap="nowrap">
@@ -124,38 +125,32 @@ function QueueColumn({ channelId }: { channelId: string }) {
 
 export function QueuePage() {
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
-
   const displayChannels = selectedChannel ? [selectedChannel] : CHANNEL_IDS;
 
   return (
-    <Stack gap="md">
-      <Paper p="lg" radius="md" withBorder>
-        <Group justify="space-between">
-          <Stack gap={4}>
-            <Title order={3}>Queue</Title>
-            <Text c="dimmed" size="sm">
-              Manage your posting schedule time slots per channel
-            </Text>
-          </Stack>
-          <Select
-            placeholder="All channels"
-            clearable
-            value={selectedChannel}
-            onChange={setSelectedChannel}
-            data={CHANNEL_IDS.map((id) => ({ value: id, label: CHANNEL_LABELS[id] ?? id }))}
-            size="sm"
-            style={{ width: 220 }}
-          />
-        </Group>
-      </Paper>
-
-      <ScrollArea>
+    <ModulePageShell
+      basePath={BASE_PATH}
+      moduleInfo={MODULE_INFO}
+      disableCreateButton
+      actions={
+        <Select
+          placeholder="All channels"
+          clearable
+          value={selectedChannel}
+          onChange={setSelectedChannel}
+          data={CHANNEL_IDS.map((id) => ({ value: id, label: CHANNEL_LABELS[id] ?? id }))}
+          size="xs"
+          style={{ width: 220 }}
+        />
+      }
+    >
+      <ScrollArea style={{ height: "calc(100vh - 160px)" }}>
         <Group gap="md" align="flex-start" wrap="nowrap" pb="md">
           {displayChannels.map((channelId) => (
             <QueueColumn key={channelId} channelId={channelId} />
           ))}
         </Group>
       </ScrollArea>
-    </Stack>
+    </ModulePageShell>
   );
 }

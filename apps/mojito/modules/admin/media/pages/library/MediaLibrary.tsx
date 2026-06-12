@@ -2,13 +2,10 @@
 
 import {
   Stack,
-  Group,
-  Title,
   Text,
   Paper,
   SimpleGrid,
   Image,
-  Badge,
   ActionIcon,
   Button,
   FileButton,
@@ -17,9 +14,9 @@ import {
   Skeleton,
   Center,
   Checkbox,
-  Tooltip,
   Pagination,
   NavLink,
+  Group,
 } from "@zetsel/ui";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
@@ -31,6 +28,10 @@ import { notifications } from "@mantine/notifications";
 import { useMedia, useFolders, useUploadMedia, useDeleteMedia, useBulkDeleteMedia } from "../../media.hooks";
 import type { MediaFilters } from "../../media.api";
 import type { MediaAsset } from "../../../shared/entities.types";
+import { ModulePageShell } from "@/modules/admin/shared/ModulePageShell";
+
+const BASE_PATH = "/admin/assets/media";
+const MODULE_INFO = { name: "media", label: "Media Library" };
 
 interface MediaCardProps {
   asset: MediaAsset;
@@ -51,18 +52,19 @@ function MediaCard({ asset, selected, onToggle, onDelete }: MediaCardProps) {
       }}
     >
       <div style={{ position: "relative" }}>
-        <Image
-          src={asset.thumbnailUrl ?? asset.url}
-          alt={asset.alt}
-          height={140}
-          fit="cover"
-          radius="md"
-        />
+        <Image src={asset.thumbnailUrl ?? asset.url} alt={asset.alt} height={140} fit="cover" radius="md" />
         {asset.kind === "video" && (
-          <div style={{
-            position: "absolute", inset: 0, display: "flex", alignItems: "center",
-            justifyContent: "center", background: "rgba(0,0,0,0.3)", borderRadius: 8,
-          }}>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(0,0,0,0.3)",
+              borderRadius: 8,
+            }}
+          >
             <PlayIcon size={24} color="white" />
           </div>
         )}
@@ -78,7 +80,10 @@ function MediaCard({ asset, selected, onToggle, onDelete }: MediaCardProps) {
           variant="filled"
           color="red"
           style={{ position: "absolute", top: 6, right: 6 }}
-          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
           aria-label="Delete asset"
         >
           <TrashIcon size={10} />
@@ -131,44 +136,48 @@ export function MediaLibrary() {
   }
 
   return (
-    <Stack gap="md">
-      <Paper p="lg" radius="md" withBorder>
-        <Group justify="space-between">
-          <Stack gap={4}>
-            <Title order={3}>Media Library</Title>
-            <Text c="dimmed" size="sm">Manage images, videos, and brand assets</Text>
-          </Stack>
-          <Group gap="sm">
-            {selected.size > 0 && (
+    <ModulePageShell
+      basePath={BASE_PATH}
+      moduleInfo={MODULE_INFO}
+      disableCreateButton
+      actions={
+        <Group gap="sm">
+          {selected.size > 0 && (
+            <Button
+              size="xs"
+              color="red"
+              variant="light"
+              leftSection={<TrashIcon size={12} />}
+              loading={bulkRemove.isPending}
+              onClick={handleBulkDelete}
+            >
+              Delete {selected.size}
+            </Button>
+          )}
+          <FileButton multiple onChange={handleUpload} accept="image/*,video/*">
+            {(props) => (
               <Button
                 size="xs"
-                color="red"
-                variant="light"
-                leftSection={<TrashIcon size={12} />}
-                loading={bulkRemove.isPending}
-                onClick={handleBulkDelete}
+                leftSection={<UploadSimpleIcon size={14} />}
+                loading={upload.isPending}
+                {...props}
               >
-                Delete {selected.size}
+                Upload
               </Button>
             )}
-            <FileButton multiple onChange={handleUpload} accept="image/*,video/*">
-              {(props) => (
-                <Button
-                  size="xs"
-                  leftSection={<UploadSimpleIcon size={14} />}
-                  loading={upload.isPending}
-                  {...props}
-                >
-                  Upload
-                </Button>
-              )}
-            </FileButton>
-          </Group>
+          </FileButton>
         </Group>
-      </Paper>
-
-      <Group gap="md" align="flex-start">
-        <Paper withBorder radius="md" p="xs" w={200} style={{ flexShrink: 0 }}>
+      }
+    >
+      <Group gap={0} align="flex-start" style={{ height: "calc(100vh - 160px)" }}>
+        <div
+          style={{
+            width: 200,
+            borderRight: "1px solid var(--mantine-color-default-border)",
+            flexShrink: 0,
+            alignSelf: "stretch",
+          }}
+        >
           <NavLink
             label="All Files"
             leftSection={<FolderIcon size={14} />}
@@ -184,9 +193,9 @@ export function MediaLibrary() {
               onClick={() => update({ folderId: f.id })}
             />
           ))}
-        </Paper>
+        </div>
 
-        <Stack style={{ flex: 1 }} gap="md">
+        <Stack style={{ flex: 1, overflow: "auto" }} gap="md">
           <Group gap="sm">
             <TextInput
               style={{ flex: 1 }}
@@ -236,15 +245,17 @@ export function MediaLibrary() {
           )}
 
           {pageCount > 1 && (
-            <Pagination
-              size="sm"
-              total={pageCount}
-              value={filters.page ?? 1}
-              onChange={(p) => setFilters((prev) => ({ ...prev, page: p }))}
-            />
+            <Group justify="center">
+              <Pagination
+                size="sm"
+                total={pageCount}
+                value={filters.page ?? 1}
+                onChange={(p) => setFilters((prev) => ({ ...prev, page: p }))}
+              />
+            </Group>
           )}
         </Stack>
       </Group>
-    </Stack>
+    </ModulePageShell>
   );
 }

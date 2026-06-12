@@ -2,20 +2,22 @@
 
 import {
   Stack,
-  Group,
-  Title,
   Text,
-  Paper,
   TextInput,
   Select,
   Button,
   Avatar,
   Skeleton,
+  Group,
 } from "@zetsel/ui";
 import { useState, useEffect } from "react";
 import { notifications } from "@mantine/notifications";
 import { useUserProfile, useUpdateUserProfile } from "../settings.hooks";
 import type { UserProfile } from "../settings.api";
+import { ModulePageShell } from "@/modules/admin/shared/ModulePageShell";
+
+const BASE_PATH = "/admin/settings/profile";
+const MODULE_INFO = { name: "profile", label: "Profile" };
 
 const TIMEZONES = [
   "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
@@ -27,31 +29,30 @@ export function ProfileSettings() {
   const update = useUpdateUserProfile();
   const [draft, setDraft] = useState<Partial<UserProfile>>({});
 
-  useEffect(() => { if (data) setDraft(data); }, [data]);
+  useEffect(() => {
+    if (data) setDraft(data);
+  }, [data]);
 
   async function handleSave() {
     await update.mutateAsync(draft);
     notifications.show({ message: "Profile saved", color: "green" });
   }
 
-  if (isLoading) {
-    return <Stack gap="md">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} h={100} radius="md" />)}</Stack>;
-  }
-
   return (
-    <Stack gap="md">
-      <Paper p="lg" radius="md" withBorder>
-        <Group justify="space-between">
-          <Stack gap={4}>
-            <Title order={3}>Profile</Title>
-            <Text c="dimmed" size="sm">Manage your personal account settings</Text>
-          </Stack>
-          <Button size="sm" loading={update.isPending} onClick={handleSave}>Save</Button>
-        </Group>
-      </Paper>
-
-      <Paper withBorder radius="md" p="md">
+    <ModulePageShell
+      basePath={BASE_PATH}
+      moduleInfo={MODULE_INFO}
+      disableCreateButton
+      actions={
+        <Button size="xs" loading={update.isPending} onClick={handleSave}>Save</Button>
+      }
+    >
+      {isLoading ? (
         <Stack gap="md">
+          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} h={60} radius="md" />)}
+        </Stack>
+      ) : (
+        <Stack gap="md" maw={600} style={{ overflow: "auto", height: "calc(100vh - 160px)" }}>
           <Group gap="md">
             <Avatar src={draft.avatarUrl} size="xl" radius="xl" />
             <Stack gap="xs">
@@ -61,7 +62,9 @@ export function ProfileSettings() {
                 label="Avatar URL"
                 placeholder="https://…"
                 value={draft.avatarUrl ?? ""}
-                onChange={(e) => setDraft((d) => ({ ...d, avatarUrl: e.currentTarget.value || undefined }))}
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, avatarUrl: e.currentTarget.value || undefined }))
+                }
                 w={300}
               />
             </Stack>
@@ -88,7 +91,7 @@ export function ProfileSettings() {
             onChange={(v) => setDraft((d) => ({ ...d, timezone: v ?? d.timezone }))}
           />
         </Stack>
-      </Paper>
-    </Stack>
+      )}
+    </ModulePageShell>
   );
 }

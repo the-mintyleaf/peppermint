@@ -113,6 +113,8 @@ export async function updateMemberRole(id: string, role: TeamMember["role"]): Pr
 
 export async function removeMember(id: string): Promise<void> {
   await delay();
+  const member = teamMembers.find((m) => m.id === id);
+  if (member?.role === "owner") throw new Error("Cannot remove workspace owner");
   teamMembers = teamMembers.filter((m) => m.id !== id);
 } // TODO(backend): DELETE /team/:id
 

@@ -1,1 +1,1 @@
-export { DraftsList as ModuleDrafts } from "./pages/list/DraftsList";
+export { DraftsList as ModuleDrafts } from "./pages/list/index";
