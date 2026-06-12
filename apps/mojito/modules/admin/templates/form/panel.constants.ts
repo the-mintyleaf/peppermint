@@ -1,0 +1,2 @@
+export const LAYERS_PANEL_WIDTH = 240;
+export const INSPECTOR_PANEL_WIDTH = 260;

@@ -12,10 +12,14 @@ import {
   Divider,
   Group,
   Popover,
+  ActionIcon,
+  Tooltip,
 } from "@zetsel/ui";
+import { SidebarSimpleIcon } from "@phosphor-icons/react/dist/csr/SidebarSimple";
 import { useBuilderStore } from "../../TemplateBuilder.store";
 import type { CanvasElement } from "../../templateForm.types";
 import { getElementTypeLabel } from "../../elementDefaults";
+import { DEFAULT_SHAPE_FILL } from "../../canvas.constants";
 import { PLATFORM_LABELS } from "../../../module.api";
 import type { PlatformFormat } from "../../../module.api";
 
@@ -29,7 +33,7 @@ function slugify(str: string): string {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <Text size="xs" fw={600} c="dimmed" mt={4}>
+    <Text size="xs" fw={600} c="dimmed" mt={4} style={{ whiteSpace: "nowrap" }}>
       {children}
     </Text>
   );
@@ -54,11 +58,11 @@ function DimInput({
         input: { paddingLeft: 28, textAlign: "right" },
       }}
       leftSection={
-        <Text size="xs" c="dimmed" pl={4}>
+        <Text size="xs" c="dimmed" pl={4} style={{ whiteSpace: "nowrap" }}>
           {label}
         </Text>
       }
-      leftSectionWidth={24}
+      leftSectionWidth={28}
     />
   );
 }
@@ -95,7 +99,7 @@ function ColorIndicator({
             value={value}
             onChange={onChange}
             format="hex"
-            swatches={["#000000", "#ffffff", "#f3f4f6", "#3b82f6", "#ef4444", "#22c55e"]}
+            swatches={["#000000", "#ffffff", "#9ca3af", "#3b82f6", "#ef4444", "#22c55e"]}
           />
         </Popover.Dropdown>
       </Popover>
@@ -141,10 +145,6 @@ function ElementPropertiesPanel({ el }: { el: CanvasElement }) {
 
   return (
     <Stack gap="xs">
-      <Text size="sm" fw={600}>
-        {getElementTypeLabel(el.type)}
-      </Text>
-
       <TextInput
         size="xs"
         placeholder="Purpose"
@@ -154,44 +154,52 @@ function ElementPropertiesPanel({ el }: { el: CanvasElement }) {
       />
 
       <SectionLabel>Layout</SectionLabel>
-      <Group gap={6} grow>
-        <DimInput label="W" value={el.width} onChange={(width) => updateElement(el.id, { width })} />
-        <DimInput label="H" value={el.height} onChange={(height) => updateElement(el.id, { height })} />
+      <Group gap={6} grow wrap="nowrap">
+        <Box style={{ flex: 1, minWidth: 0 }}>
+          <DimInput label="W" value={el.width} onChange={(width) => updateElement(el.id, { width })} />
+        </Box>
+        <Box style={{ flex: 1, minWidth: 0 }}>
+          <DimInput label="H" value={el.height} onChange={(height) => updateElement(el.id, { height })} />
+        </Box>
       </Group>
 
       <SectionLabel>Appearance</SectionLabel>
-      <Group gap={6} grow>
-        <NumberInput
-          size="xs"
-          hideControls
-          value={el.props.opacity ?? 100}
-          onChange={(v) => updateProps({ opacity: Number(v) })}
-          min={0}
-          max={100}
-          suffix="%"
-          styles={{ input: { textAlign: "right" } }}
-          leftSection={
-            <Text size="xs" c="dimmed" pl={4}>
-              ◐
-            </Text>
-          }
-          leftSectionWidth={24}
-        />
-        {supportsRadius(el.type) && (
+      <Group gap={6} grow wrap="nowrap">
+        <Box style={{ flex: 1, minWidth: 0 }}>
           <NumberInput
             size="xs"
             hideControls
-            value={el.props.borderRadius ?? 0}
-            onChange={(v) => updateProps({ borderRadius: Number(v) })}
+            value={el.props.opacity ?? 100}
+            onChange={(v) => updateProps({ opacity: Number(v) })}
             min={0}
-            styles={{ input: { paddingLeft: 28, textAlign: "right" } }}
+            max={100}
+            suffix="%"
+            styles={{ input: { textAlign: "right" } }}
             leftSection={
-              <Text size="xs" c="dimmed" pl={4}>
-                ◻
+              <Text size="xs" c="dimmed" pl={4} style={{ whiteSpace: "nowrap" }}>
+                ◐
               </Text>
             }
             leftSectionWidth={24}
           />
+        </Box>
+        {supportsRadius(el.type) && (
+          <Box style={{ flex: 1, minWidth: 0 }}>
+            <NumberInput
+              size="xs"
+              hideControls
+              value={el.props.borderRadius ?? 0}
+              onChange={(v) => updateProps({ borderRadius: Number(v) })}
+              min={0}
+              styles={{ input: { paddingLeft: 28, textAlign: "right" } }}
+              leftSection={
+                <Text size="xs" c="dimmed" pl={4} style={{ whiteSpace: "nowrap" }}>
+                  ◻
+                </Text>
+              }
+              leftSectionWidth={24}
+            />
+          </Box>
         )}
       </Group>
 
@@ -199,7 +207,7 @@ function ElementPropertiesPanel({ el }: { el: CanvasElement }) {
         <>
           <SectionLabel>Fill</SectionLabel>
           <ColorIndicator
-            value={el.props.fill ?? (isTextType(el.type) ? "#000000" : "#f3f4f6")}
+            value={el.props.fill ?? (isTextType(el.type) ? "#000000" : DEFAULT_SHAPE_FILL)}
             onChange={(fill) => updateProps({ fill })}
           />
         </>
@@ -292,83 +300,117 @@ function TemplateSettingsPanel() {
   const { templateMeta, setTemplateMeta, setPlatform } = useBuilderStore();
 
   return (
-    <Stack gap="sm">
+    <Stack gap="xs">
+      <SectionLabel>Template name</SectionLabel>
       <TextInput
-        label="Template name"
         value={templateMeta.name}
         onChange={(e) => setTemplateMeta({ name: e.target.value })}
         size="xs"
+        styles={{ input: { background: "var(--mantine-color-gray-0)" } }}
       />
+
+      <SectionLabel>Description</SectionLabel>
       <Textarea
-        label="Description"
         value={templateMeta.description}
         onChange={(e) => setTemplateMeta({ description: e.target.value })}
         size="xs"
         autosize
         minRows={2}
+        styles={{ input: { background: "var(--mantine-color-gray-0)" } }}
       />
+
+      <SectionLabel>Platform</SectionLabel>
       <Select
-        label="Platform"
         value={templateMeta.platform}
         onChange={(v) => setPlatform(v as PlatformFormat)}
         data={Object.entries(PLATFORM_LABELS).map(([value, label]) => ({ value, label }))}
         size="xs"
       />
-      <Group gap={6} grow>
-        <NumberInput
-          label="Width"
-          value={templateMeta.width}
-          onChange={(v) => setTemplateMeta({ width: Number(v) })}
-          size="xs"
-        />
-        <NumberInput
-          label="Height"
-          value={templateMeta.height}
-          onChange={(v) => setTemplateMeta({ height: Number(v) })}
-          size="xs"
-        />
+
+      <SectionLabel>Dimensions</SectionLabel>
+      <Group gap={6} grow wrap="nowrap">
+        <Box style={{ flex: 1, minWidth: 0 }}>
+          <DimInput
+            label="W"
+            value={templateMeta.width}
+            onChange={(width) => setTemplateMeta({ width })}
+          />
+        </Box>
+        <Box style={{ flex: 1, minWidth: 0 }}>
+          <DimInput
+            label="H"
+            value={templateMeta.height}
+            onChange={(height) => setTemplateMeta({ height })}
+          />
+        </Box>
       </Group>
     </Stack>
   );
 }
 
-export function Inspector() {
+interface InspectorProps {
+  onCollapse?: () => void;
+}
+
+export function Inspector({ onCollapse }: InspectorProps) {
   const { elements, selectedElementId, removeElement } = useBuilderStore();
   const selected = elements.find((el) => el.id === selectedElementId);
+  const headerTitle = selected ? getElementTypeLabel(selected.type) : "Template Settings";
 
   return (
     <Box
       style={{
         height: "100%",
         overflowY: "auto",
+        display: "flex",
+        flexDirection: "column",
       }}
-      p="sm"
     >
-      <Stack gap="xs">
-        {!selected && (
-          <>
-            <Text size="xs" fw={600} tt="uppercase" c="dimmed" lts={0.5}>
-              Template Settings
-            </Text>
-            <TemplateSettingsPanel />
-          </>
-        )}
-
-        {selected && (
-          <>
-            <ElementPropertiesPanel el={selected} />
-            <Divider my="xs" />
-            <Text
+      <Group justify="space-between" wrap="nowrap" align="center" px="sm" pt="sm" pb="xs">
+        <Text
+          size="xs"
+          fw={600}
+          tt="uppercase"
+          c="dimmed"
+          lts={0.5}
+          style={{ whiteSpace: "nowrap" }}
+        >
+          {headerTitle}
+        </Text>
+        {onCollapse && (
+          <Tooltip label="Hide properties" withArrow>
+            <ActionIcon
               size="xs"
-              c="red"
-              style={{ cursor: "pointer" }}
-              onClick={() => removeElement(selected.id)}
+              variant="subtle"
+              onClick={onCollapse}
+              aria-label="Hide properties panel"
             >
-              Remove element
-            </Text>
-          </>
+              <SidebarSimpleIcon size={14} style={{ transform: "scaleX(-1)" }} />
+            </ActionIcon>
+          </Tooltip>
         )}
-      </Stack>
+      </Group>
+
+      <Box px="sm" pb="sm" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", minWidth: 0 }}>
+        <Stack gap="xs" style={{ minWidth: 0 }}>
+          {!selected && <TemplateSettingsPanel />}
+
+          {selected && (
+            <>
+              <ElementPropertiesPanel el={selected} />
+              <Divider my="xs" />
+              <Text
+                size="xs"
+                c="red"
+                style={{ cursor: "pointer", whiteSpace: "nowrap" }}
+                onClick={() => removeElement(selected.id)}
+              >
+                Remove element
+              </Text>
+            </>
+          )}
+        </Stack>
+      </Box>
     </Box>
   );
 }

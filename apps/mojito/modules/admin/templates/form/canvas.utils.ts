@@ -1,4 +1,9 @@
 import type { CanvasElement, TemplateMeta } from "./templateForm.types";
+import {
+  DEFAULT_IMAGE_PLACEHOLDER_FILL,
+  DEFAULT_LINE_FILL,
+  DEFAULT_SHAPE_FILL,
+} from "./canvas.constants";
 
 function slugify(str: string): string {
   return str
@@ -48,15 +53,15 @@ function elementToHtml(el: CanvasElement, preview: boolean): string {
     }
     case "rectangle": {
       const radius = `border-radius:${el.props.borderRadius ?? 0}px;`;
-      const style = `${baseStyle(el)}background:${el.props.fill ?? "#f3f4f6"};${strokeCss(el)}${radius}`;
+      const style = `${baseStyle(el)}background:${el.props.fill ?? DEFAULT_SHAPE_FILL};${strokeCss(el)}${radius}`;
       return `<div style="${style}"></div>`;
     }
     case "circle": {
-      const style = `${baseStyle(el)}background:${el.props.fill ?? "#f3f4f6"};${strokeCss(el)}border-radius:50%;`;
+      const style = `${baseStyle(el)}background:${el.props.fill ?? DEFAULT_SHAPE_FILL};${strokeCss(el)}border-radius:50%;`;
       return `<div style="${style}"></div>`;
     }
     case "line": {
-      const style = `${baseStyle(el)}background:${el.props.fill ?? el.props.stroke ?? "#e5e7eb"};`;
+      const style = `${baseStyle(el)}background:${el.props.fill ?? el.props.stroke ?? DEFAULT_LINE_FILL};`;
       return `<div style="${style}"></div>`;
     }
     default:

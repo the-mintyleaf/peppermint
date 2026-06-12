@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { BuilderTool, CanvasElement, CanvasElementInput, ElementType, TemplateMeta } from "./templateForm.types";
 import type { PlatformFormat } from "../module.api";
 import { PLATFORM_DIMENSIONS } from "../module.api";
-import { createElementDefaults, createElementAtRect } from "./elementDefaults";
+import { createElementDefaults, createElementAtRect, generateElementPurpose } from "./elementDefaults";
 import { DEFAULT_CANVAS_ZOOM, clampCanvasZoom, nextZoomIn, nextZoomOut } from "./canvas.constants";
 
 const MAX_HISTORY = 50;
@@ -114,8 +114,10 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
   },
 
   addElementAtRect(type, x, y, width, height) {
-    const zIndex = getNextZIndex(get().elements);
+    const elements = get().elements;
+    const zIndex = getNextZIndex(elements);
     const element = createElementAtRect(type, x, y, width, height, zIndex);
+    element.purpose = generateElementPurpose(type, elements);
     get().addElement(element);
     set({ activeTool: "select" });
   },
@@ -124,6 +126,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     const { templateMeta, elements } = get();
     const zIndex = getNextZIndex(elements);
     const defaults = createElementDefaults(type, templateMeta.width, templateMeta.height, zIndex);
+    defaults.purpose = generateElementPurpose(type, elements);
     get().addElement(defaults);
     set({ activeTool: "select" });
   },

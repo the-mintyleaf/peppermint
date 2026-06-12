@@ -1,13 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { Card, Image, Stack, Group, Text, Badge, Menu, ActionIcon, Modal, Button, Alert } from "@zetsel/ui";
+import {
+  Card,
+  Image,
+  Stack,
+  Group,
+  Text,
+  Menu,
+  ActionIcon,
+  Modal,
+  Button,
+  Alert,
+  Box,
+} from "@zetsel/ui";
 import { DotsThreeIcon } from "@phosphor-icons/react/dist/csr/DotsThree";
 import { PencilIcon } from "@phosphor-icons/react/dist/csr/Pencil";
 import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
 import { CopyIcon } from "@phosphor-icons/react/dist/csr/Copy";
 import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
+import { LayoutIcon } from "@phosphor-icons/react/dist/csr/Layout";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import {
@@ -16,11 +29,21 @@ import {
   fetchAutomationsForTemplate,
   PLATFORM_LABELS,
   type Template,
+  type PlatformFormat,
 } from "../../../../module.api";
+import { formatEditedAgo } from "../../list.utils";
 
 interface TemplateCardProps {
   template: Template;
 }
+
+const PLATFORM_COLORS: Record<PlatformFormat, string> = {
+  instagram_square: "#E1306C",
+  instagram_story: "#C13584",
+  linkedin: "#0A66C2",
+  twitter: "#14171A",
+  generic: "#6B7280",
+};
 
 export function TemplateCard({ template }: TemplateCardProps) {
   const router = useRouter();
@@ -33,10 +56,8 @@ export function TemplateCard({ template }: TemplateCardProps) {
     enabled: showDeleteModal,
   });
 
-  const activeAutomations = referencingAutomations?.filter(
-    (a) => a.status === "running" || a.status === "scheduled"
-  ) ?? [];
-  const canDelete = !showDeleteModal || activeAutomations.length === 0;
+  const activeAutomations =
+    referencingAutomations?.filter((a) => a.status === "running" || a.status === "scheduled") ?? [];
 
   const { mutate: doDelete, isPending: isDeleting } = useMutation({
     mutationFn: () => deleteTemplate(template.id),
@@ -51,82 +72,98 @@ export function TemplateCard({ template }: TemplateCardProps) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["templates"] }),
   });
 
-  const updatedAt = new Date(template.updatedAt).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-
   return (
     <>
-      <Card withBorder radius="md" padding="sm">
+      <Card
+        padding={0}
+        withBorder
+        radius="lg"
+        style={{ overflow: "hidden", cursor: "pointer" }}
+        onClick={() => router.push(`/admin/automation/templates/${template.id}/edit`)}
+      >
         <Card.Section>
           <Image
             src={template.thumbnailUrl}
             alt={template.name}
-            height={140}
+            height={168}
             fallbackSrc="https://placehold.co/400x300?text=Template"
           />
         </Card.Section>
 
-        <Stack gap={6} mt="sm">
-          <Group justify="space-between" align="flex-start" gap="xs">
-            <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
-              <Text size="sm" fw={600} truncate>
-                {template.name}
-              </Text>
-              <Group gap="xs">
-                <Badge size="xs" variant="outline">
-                  {PLATFORM_LABELS[template.platform]}
-                </Badge>
-                <Text size="xs" c="dimmed">
-                  {template.slots.length} slot{template.slots.length !== 1 ? "s" : ""}
-                </Text>
-              </Group>
-            </Stack>
+        <Group
+          gap="sm"
+          wrap="nowrap"
+          align="center"
+          px="sm"
+          py="sm"
+          style={{ borderTop: "1px solid var(--mantine-color-default-border)" }}
+        >
+          <Box
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 6,
+              background: PLATFORM_COLORS[template.platform],
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <LayoutIcon size={14} weight="fill" color="#fff" />
+          </Box>
 
-            <Menu withArrow position="bottom-end" width={160}>
-              <Menu.Target>
-                <ActionIcon size="sm" variant="subtle" aria-label="Template actions">
-                  <DotsThreeIcon size={16} />
-                </ActionIcon>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item
-                  leftSection={<PencilIcon size={13} />}
-                  onClick={() => router.push(`/admin/automation/templates/${template.id}/edit`)}
-                >
-                  Edit
-                </Menu.Item>
-                <Menu.Item
-                  leftSection={<EyeIcon size={13} />}
-                  onClick={() => router.push(`/admin/automation/templates/${template.id}/preview`)}
-                >
-                  Preview
-                </Menu.Item>
-                <Menu.Item
-                  leftSection={<CopyIcon size={13} />}
-                  onClick={() => doDuplicate()}
-                  disabled={isDuplicating}
-                >
-                  Duplicate
-                </Menu.Item>
-                <Menu.Divider />
-                <Menu.Item
-                  leftSection={<TrashIcon size={13} />}
-                  color="red"
-                  onClick={() => setShowDeleteModal(true)}
-                >
-                  Delete
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </Group>
+          <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
+            <Text size="xs" fw={600} truncate>
+              {template.name}
+            </Text>
+            <Text size="10px" c="dimmed" truncate>
+              {formatEditedAgo(template.updatedAt)} · {PLATFORM_LABELS[template.platform]}
+            </Text>
+          </Stack>
 
-          <Text size="xs" c="dimmed">
-            Updated {updatedAt}
-          </Text>
-        </Stack>
+          <Menu withArrow position="bottom-end" width={160}>
+            <Menu.Target>
+              <ActionIcon
+                size="sm"
+                variant="subtle"
+                aria-label="Template actions"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <DotsThreeIcon size={16} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item
+                leftSection={<PencilIcon size={13} />}
+                onClick={() => router.push(`/admin/automation/templates/${template.id}/edit`)}
+              >
+                Edit
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<EyeIcon size={13} />}
+                onClick={() => router.push(`/admin/automation/templates/${template.id}/preview`)}
+              >
+                Preview
+              </Menu.Item>
+              <Menu.Item
+                leftSection={<CopyIcon size={13} />}
+                onClick={() => doDuplicate()}
+                disabled={isDuplicating}
+              >
+                Duplicate
+              </Menu.Item>
+              <Menu.Divider />
+              <Menu.Item
+                leftSection={<TrashIcon size={13} />}
+                color="red"
+                onClick={() => setShowDeleteModal(true)}
+              >
+                Delete
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        </Group>
       </Card>
 
       <Modal
@@ -148,9 +185,12 @@ export function TemplateCard({ template }: TemplateCardProps) {
               <Text size="sm">
                 Delete <strong>{template.name}</strong>?
                 {referencingAutomations && referencingAutomations.length > 0 && (
-                  <> This template is referenced by{" "}
+                  <>
+                    {" "}
+                    This template is referenced by{" "}
                     {referencingAutomations.map((a) => a.name).join(", ")} but those automations are
-                    not currently active.</>
+                    not currently active.
+                  </>
                 )}
               </Text>
               <Group gap="xs" justify="flex-end">

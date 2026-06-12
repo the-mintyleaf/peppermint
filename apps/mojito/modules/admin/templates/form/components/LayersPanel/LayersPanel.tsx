@@ -1,18 +1,52 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Group, Text, ActionIcon, Stack } from "@zetsel/ui";
+import { Box, Group, Text, ActionIcon, Stack, Tooltip } from "@zetsel/ui";
+import { SidebarSimpleIcon } from "@phosphor-icons/react/dist/csr/SidebarSimple";
 import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
 import { EyeSlashIcon } from "@phosphor-icons/react/dist/csr/EyeSlash";
 import { LockIcon } from "@phosphor-icons/react/dist/csr/Lock";
 import { LockOpenIcon } from "@phosphor-icons/react/dist/csr/LockOpen";
+import { TextTIcon } from "@phosphor-icons/react/dist/csr/TextT";
+import { ImageIcon } from "@phosphor-icons/react/dist/csr/Image";
+import { SquareIcon } from "@phosphor-icons/react/dist/csr/Square";
+import { CircleIcon } from "@phosphor-icons/react/dist/csr/Circle";
+import { MinusIcon } from "@phosphor-icons/react/dist/csr/Minus";
+import { BracketsCurlyIcon } from "@phosphor-icons/react/dist/csr/BracketsCurly";
+import { TextAaIcon } from "@phosphor-icons/react/dist/csr/TextAa";
 import { useBuilderStore } from "../../TemplateBuilder.store";
-import { getElementTypeLabel } from "../../elementDefaults";
+import type { ElementType } from "../../templateForm.types";
 
-export function LayersPanel() {
+function ElementTypeIcon({ type }: { type: ElementType }) {
+  const iconProps = { size: 14, weight: "fill" as const, color: "var(--mantine-color-dimmed)" };
+
+  switch (type) {
+    case "text":
+      return <TextTIcon {...iconProps} />;
+    case "image":
+      return <ImageIcon {...iconProps} />;
+    case "rectangle":
+      return <SquareIcon {...iconProps} />;
+    case "circle":
+      return <CircleIcon {...iconProps} />;
+    case "line":
+      return <MinusIcon {...iconProps} />;
+    case "dynamicText":
+      return <BracketsCurlyIcon {...iconProps} />;
+    case "staticText":
+      return <TextAaIcon {...iconProps} />;
+  }
+}
+
+interface LayersPanelProps {
+  onCollapse?: () => void;
+}
+
+export function LayersPanel({ onCollapse }: LayersPanelProps) {
   const { elements, selectedElementId, selectElement, reorderLayers, toggleVisible, toggleLocked } =
     useBuilderStore();
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const sortedLayers = [...elements].sort((a, b) => b.zIndex - a.zIndex);
 
@@ -35,20 +69,35 @@ export function LayersPanel() {
         height: "100%",
         overflowY: "auto",
       }}
-      p="sm"
     >
-      <Text size="xs" fw={600} tt="uppercase" c="dimmed" lts={0.5} mb="xs">
-        Layers
-      </Text>
+      <Group justify="space-between" wrap="nowrap" align="center" px="sm" pt="sm" pb="xs">
+        <Text size="xs" fw={600} tt="uppercase" c="dimmed" lts={0.5}>
+          Layers
+        </Text>
+        {onCollapse && (
+          <Tooltip label="Hide layers" withArrow>
+            <ActionIcon
+              size="xs"
+              variant="subtle"
+              onClick={onCollapse}
+              aria-label="Hide layers panel"
+            >
+              <SidebarSimpleIcon size={14} />
+            </ActionIcon>
+          </Tooltip>
+        )}
+      </Group>
 
       {sortedLayers.length === 0 ? (
-        <Text size="xs" c="dimmed">
+        <Text size="xs" c="dimmed" px="sm">
           No elements yet
         </Text>
       ) : (
-        <Stack gap={4}>
+        <Stack gap={0}>
           {sortedLayers.map((el, index) => {
             const isSelected = selectedElementId === el.id;
+            const showActions =
+              isSelected || hoveredId === el.id || !el.visible || el.locked;
             return (
               <Box
                 key={el.id}
@@ -57,29 +106,35 @@ export function LayersPanel() {
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => handleDrop(index)}
                 onClick={() => selectElement(el.id)}
-                px="xs"
+                onMouseEnter={() => setHoveredId(el.id)}
+                onMouseLeave={() => setHoveredId(null)}
                 py={4}
                 style={{
-                  borderRadius: 6,
+                  width: "100%",
                   cursor: "pointer",
-                  border: isSelected
-                    ? "1px solid var(--mantine-color-blue-6)"
-                    : "1px solid var(--mantine-color-default-border)",
-                  background: isSelected ? "rgba(13,153,255,0.08)" : "var(--mantine-color-body)",
+                  background: isSelected ? "rgba(13,153,255,0.08)" : undefined,
                   opacity: el.visible ? 1 : 0.5,
                 }}
               >
-                <Group gap={6} justify="space-between" wrap="nowrap" align="center">
-                  <Text size="xs" truncate style={{ flex: 1, minWidth: 0 }}>
-                    <Text span fw={500}>
+                <Group gap={6} justify="space-between" wrap="nowrap" align="center" px="sm">
+                  <Group gap={6} wrap="nowrap" align="center" style={{ flex: 1, minWidth: 0 }}>
+                    <Box style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
+                      <ElementTypeIcon type={el.type} />
+                    </Box>
+                    <Text size="xs" truncate fw={500} style={{ flex: 1, minWidth: 0 }}>
                       {el.purpose}
                     </Text>
-                    <Text span c="dimmed">
-                      {" · "}
-                      {getElementTypeLabel(el.type)}
-                    </Text>
-                  </Text>
-                  <Group gap={2} wrap="nowrap" onClick={(e) => e.stopPropagation()}>
+                  </Group>
+                  <Group
+                    gap={2}
+                    wrap="nowrap"
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      opacity: showActions ? 1 : 0,
+                      pointerEvents: showActions ? "auto" : "none",
+                      transition: "opacity 120ms ease",
+                    }}
+                  >
                     <ActionIcon
                       size="xs"
                       variant="subtle"

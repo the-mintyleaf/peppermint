@@ -1,4 +1,9 @@
-import type { CanvasElementInput, ElementType } from "./templateForm.types";
+import type { CanvasElement, CanvasElementInput, ElementType } from "./templateForm.types";
+import {
+  DEFAULT_IMAGE_PLACEHOLDER_FILL,
+  DEFAULT_LINE_FILL,
+  DEFAULT_SHAPE_FILL,
+} from "./canvas.constants";
 
 const TYPE_LABELS: Record<ElementType, string> = {
   text: "Text",
@@ -25,13 +30,13 @@ function defaultProps(type: ElementType): CanvasElementInput["props"] {
         opacity: 100,
       };
     case "image":
-      return { imageUrl: "", fill: "#e5e7eb", borderRadius: 0, opacity: 100 };
+      return { imageUrl: "", fill: DEFAULT_IMAGE_PLACEHOLDER_FILL, borderRadius: 0, opacity: 100 };
     case "rectangle":
-      return { fill: "#f3f4f6", stroke: "#000000", strokeWidth: 0, borderRadius: 8, opacity: 100 };
+      return { fill: DEFAULT_SHAPE_FILL, stroke: "#000000", strokeWidth: 0, borderRadius: 8, opacity: 100 };
     case "circle":
-      return { fill: "#f3f4f6", stroke: "#000000", strokeWidth: 0, opacity: 100 };
+      return { fill: DEFAULT_SHAPE_FILL, stroke: "#000000", strokeWidth: 0, opacity: 100 };
     case "line":
-      return { fill: "#e5e7eb", stroke: "#e5e7eb", strokeWidth: 1, opacity: 100 };
+      return { fill: DEFAULT_LINE_FILL, stroke: DEFAULT_LINE_FILL, strokeWidth: 1, opacity: 100 };
   }
 }
 
@@ -179,4 +184,12 @@ export function createElementDefaults(
 
 export function getElementTypeLabel(type: ElementType): string {
   return TYPE_LABELS[type];
+}
+
+export function generateElementPurpose(
+  type: ElementType,
+  existingElements: Pick<CanvasElement, "type">[]
+): string {
+  const count = existingElements.filter((el) => el.type === type).length;
+  return `${TYPE_LABELS[type]} ${count + 1}`;
 }

@@ -1,13 +1,29 @@
 "use client";
 
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useState, useMemo } from "react";
+import { ImageIcon } from "@phosphor-icons/react/dist/csr/Image";
 import { Box, Text } from "@zetsel/ui";
 import { useBuilderStore } from "../../TemplateBuilder.store";
 import type { CanvasElement, ElementType } from "../../templateForm.types";
 import { resolveElementRect } from "../../elementDefaults";
-import { CANVAS_BASE_SCALE } from "../../canvas.constants";
+import {
+  getMinElementSize,
+  resizeRectFromHandle,
+  type ResizeHandle,
+} from "../../canvas.resize.utils";
+import {
+  BUILDER_ELEMENT_OUTLINE,
+  BUILDER_PLACEHOLDER_LABEL_STYLE,
+  CANVAS_ARTBOARD_BG,
+  CANVAS_BASE_SCALE,
+  CANVAS_WORKSPACE_BG,
+  DEFAULT_IMAGE_PLACEHOLDER_FILL,
+  DEFAULT_LINE_FILL,
+  DEFAULT_SHAPE_FILL,
+} from "../../canvas.constants";
 import { CanvasToolbar } from "./CanvasToolbar";
 import { CanvasZoomControls } from "./CanvasZoomControls";
+import { ResizeHandles } from "./ResizeHandles";
 
 export { CANVAS_BASE_SCALE as CANVAS_SCALE } from "../../canvas.constants";
 
@@ -35,7 +51,27 @@ function strokeStyle(el: CanvasElement): string | undefined {
   return `${width}px solid ${el.props.stroke}`;
 }
 
-function getElementStyle(el: CanvasElement, selected: boolean): React.CSSProperties {
+function hasVisibleStroke(el: CanvasElement): boolean {
+  const width = el.props.strokeWidth ?? 0;
+  return Boolean(el.props.stroke && width > 0);
+}
+
+function builderOutline(
+  el: CanvasElement,
+  selected: boolean,
+  editMode: boolean
+): string | undefined {
+  if (!editMode || selected) return undefined;
+  if (el.type === "text" || el.type === "staticText" || el.type === "dynamicText") return undefined;
+  if (hasVisibleStroke(el)) return undefined;
+  return BUILDER_ELEMENT_OUTLINE;
+}
+
+function getElementStyle(
+  el: CanvasElement,
+  options: { selected: boolean; editMode: boolean }
+): React.CSSProperties {
+  const { selected, editMode } = options;
   const scale = CANVAS_BASE_SCALE;
   const base: React.CSSProperties = {
     position: "absolute",
@@ -44,8 +80,10 @@ function getElementStyle(el: CanvasElement, selected: boolean): React.CSSPropert
     width: el.width * scale,
     height: el.height * scale,
     boxSizing: "border-box",
-    outline: selected ? "2px solid var(--mantine-color-blue-6)" : undefined,
-    outlineOffset: 2,
+    outline: selected
+      ? "2px solid var(--mantine-color-blue-6)"
+      : builderOutline(el, selected, editMode),
+    outlineOffset: selected ? 2 : 0,
     cursor: el.locked ? "not-allowed" : "pointer",
     userSelect: "none",
     zIndex: el.zIndex,
@@ -58,26 +96,26 @@ function getElementStyle(el: CanvasElement, selected: boolean): React.CSSPropert
     case "rectangle":
       return {
         ...base,
-        background: el.props.fill ?? "#f3f4f6",
+        background: el.props.fill ?? DEFAULT_SHAPE_FILL,
         border: strokeStyle(el),
         borderRadius: (el.props.borderRadius ?? 0) * scale,
       };
     case "circle":
       return {
         ...base,
-        background: el.props.fill ?? "#f3f4f6",
+        background: el.props.fill ?? DEFAULT_SHAPE_FILL,
         border: strokeStyle(el),
         borderRadius: "50%",
       };
     case "line":
       return {
         ...base,
-        background: el.props.fill ?? el.props.stroke ?? "#e5e7eb",
+        background: el.props.fill ?? el.props.stroke ?? DEFAULT_LINE_FILL,
       };
     case "image":
       return {
         ...base,
-        background: el.props.fill ?? "#e5e7eb",
+        background: el.props.fill ?? DEFAULT_IMAGE_PLACEHOLDER_FILL,
         border: strokeStyle(el),
         borderRadius: (el.props.borderRadius ?? 0) * scale,
         overflow: "hidden",
@@ -143,6 +181,26 @@ function getDrawPreviewStyle(
   return base;
 }
 
+function BuilderPlaceholderLabel({
+  label,
+  uppercase = true,
+}: {
+  label: string;
+  uppercase?: boolean;
+}) {
+  return (
+    <span
+      style={{
+        ...BUILDER_PLACEHOLDER_LABEL_STYLE,
+        textTransform: uppercase ? "uppercase" : "none",
+        fontWeight: uppercase ? 600 : 500,
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
 function ElementContent({ el, preview }: { el: CanvasElement; preview: boolean }) {
   if (el.type === "image") {
     if (el.props.imageUrl) {
@@ -156,7 +214,14 @@ function ElementContent({ el, preview }: { el: CanvasElement; preview: boolean }
         />
       );
     }
-    return <span style={{ fontSize: 10, color: "#9ca3af" }}>Image</span>;
+    if (!preview) {
+      const iconSize = Math.min(
+        48,
+        Math.max(20, Math.min(el.width, el.height) * CANVAS_BASE_SCALE * 0.4)
+      );
+      return <ImageIcon size={iconSize} weight="duotone" color="rgba(255,255,255,0.9)" />;
+    }
+    return null;
   }
 
   if (el.type === "dynamicText") {
@@ -164,9 +229,10 @@ function ElementContent({ el, preview }: { el: CanvasElement; preview: boolean }
       return <span>{el.props.text ?? `{{${el.props.dataKey ?? "slot"}}}`}</span>;
     }
     return (
-      <span style={{ opacity: 0.7, fontSize: "0.9em" }}>
-        [{el.props.dataKey ?? "slot"}] {el.purpose}
-      </span>
+      <BuilderPlaceholderLabel
+        label={`{{${el.props.dataKey ?? "slot"}}}`}
+        uppercase={false}
+      />
     );
   }
 
@@ -209,6 +275,12 @@ export function Canvas() {
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ id: string; offsetX: number; offsetY: number } | null>(null);
+  const resizeRef = useRef<{
+    id: string;
+    handle: ResizeHandle;
+    type: ElementType;
+    startRect: { x: number; y: number; width: number; height: number };
+  } | null>(null);
   const drawRef = useRef<{
     type: ElementType;
     anchorX: number;
@@ -230,6 +302,11 @@ export function Canvas() {
   const sortedElements = [...elements]
     .filter((el) => el.visible)
     .sort((a, b) => a.zIndex - b.zIndex);
+
+  const selectedElement = useMemo(
+    () => elements.find((el) => el.id === selectedElementId) ?? null,
+    [elements, selectedElementId]
+  );
 
   const getCoords = useCallback(
     (canvas: HTMLDivElement, clientX: number, clientY: number) =>
@@ -270,6 +347,56 @@ export function Canvas() {
       window.removeEventListener("pointerup", handleMovePointerUp);
     },
     [commitElementUpdate, handleMovePointerMove, getCoords]
+  );
+
+  const handleResizePointerMove = useCallback(
+    (e: PointerEvent) => {
+      const resize = resizeRef.current;
+      const canvas = canvasRef.current;
+      if (!resize || !canvas) return;
+
+      const { x, y } = getCoords(canvas, e.clientX, e.clientY);
+      const constrainSquare =
+        e.shiftKey && (resize.type === "circle" || resize.type === "image");
+      const rect = resizeRectFromHandle(
+        resize.handle,
+        resize.startRect,
+        x,
+        y,
+        getMinElementSize(resize.type),
+        constrainSquare
+      );
+
+      updateElement(resize.id, rect, { recordHistory: false });
+    },
+    [updateElement, getCoords]
+  );
+
+  const handleResizePointerUp = useCallback(
+    (e: PointerEvent) => {
+      const resize = resizeRef.current;
+      const canvas = canvasRef.current;
+      if (!resize || !canvas) return;
+
+      const { x, y } = getCoords(canvas, e.clientX, e.clientY);
+      const constrainSquare =
+        e.shiftKey && (resize.type === "circle" || resize.type === "image");
+      const rect = resizeRectFromHandle(
+        resize.handle,
+        resize.startRect,
+        x,
+        y,
+        getMinElementSize(resize.type),
+        constrainSquare
+      );
+
+      commitElementUpdate(resize.id, rect);
+      resizeRef.current = null;
+
+      window.removeEventListener("pointermove", handleResizePointerMove);
+      window.removeEventListener("pointerup", handleResizePointerUp);
+    },
+    [commitElementUpdate, handleResizePointerMove, getCoords]
   );
 
   const handleDrawPointerMove = useCallback(
@@ -342,6 +469,24 @@ export function Canvas() {
     window.addEventListener("pointerup", handleDrawPointerUp);
   }
 
+  function handleResizeStart(el: CanvasElement, handle: ResizeHandle, e: React.PointerEvent) {
+    if (el.locked || activeTool !== "select" || previewMode) return;
+
+    e.stopPropagation();
+    e.preventDefault();
+    selectElement(el.id);
+
+    resizeRef.current = {
+      id: el.id,
+      handle,
+      type: el.type,
+      startRect: { x: el.x, y: el.y, width: el.width, height: el.height },
+    };
+
+    window.addEventListener("pointermove", handleResizePointerMove);
+    window.addEventListener("pointerup", handleResizePointerUp);
+  }
+
   function handleElementPointerDown(el: CanvasElement, e: React.PointerEvent) {
     if (el.locked || activeTool !== "select") return;
 
@@ -368,7 +513,7 @@ export function Canvas() {
     <Box
       style={{
         flex: 1,
-        background: "#e5e7eb",
+        background: CANVAS_WORKSPACE_BG,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -393,7 +538,7 @@ export function Canvas() {
           style={{
             width: canvasW,
             height: canvasH,
-            background: "#fff",
+            background: CANVAS_ARTBOARD_BG,
             position: "relative",
             boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
             cursor: isDrawingTool ? "crosshair" : "default",
@@ -409,7 +554,10 @@ export function Canvas() {
             <div
               key={el.id}
               style={{
-                ...getElementStyle(el, selectedElementId === el.id),
+                ...getElementStyle(el, {
+                  selected: selectedElementId === el.id,
+                  editMode: !previewMode,
+                }),
                 pointerEvents: activeTool === "select" ? "auto" : "none",
               }}
               onClick={(e) => {
@@ -422,6 +570,17 @@ export function Canvas() {
               <ElementContent el={el} preview={previewMode} />
             </div>
           ))}
+
+          {selectedElement &&
+            !previewMode &&
+            activeTool === "select" &&
+            !selectedElement.locked &&
+            selectedElement.visible && (
+              <ResizeHandles
+                el={selectedElement}
+                onResizeStart={(handle, e) => handleResizeStart(selectedElement, handle, e)}
+              />
+            )}
 
           {drawPreview && (
             <div style={getDrawPreviewStyle(drawPreview.type, drawPreview)} aria-hidden />
