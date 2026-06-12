@@ -6,6 +6,7 @@ export {
 export type { DataTableShellContextValue } from './DataTableShell.context';
 export { DataTableShellHeader } from './components/DataTableShellHeader';
 export { DataTableShellToolbar } from './components/DataTableShellToolbar';
+export { DataTableShellTable } from './components/DataTableShellTable';
 export { DataTableShellNestedTable } from './components/DataTableShellNestedTable';
 export type { DataTableShellNestedTableProps } from './components/DataTableShellNestedTable';
 export type {
