@@ -1,5 +1,5 @@
 ---
-name: mojito-ai-usage-guide
+name: mint-module-builder
 description: >
   Know-how and build guide for the Mojito app (Zetsel monorepo). Read this before
   building any module or page. Covers stack rules, the Contained/Not-Contained
