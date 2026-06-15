@@ -65,7 +65,7 @@ export function MainNav({
         <Divider color="dark.7" w="60%" />
 
         <Stack gap={4} align="center" py="sm" w="100%">
-          {mainNav.map((item) => {
+          {mainNav.map((item:any) => {
             const href =
               item.kind === "page" ? item.href : item.subNav.homeHref;
             const isActive = activeItemId === item.id;

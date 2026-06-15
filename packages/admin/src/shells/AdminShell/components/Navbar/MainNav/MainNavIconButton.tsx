@@ -29,8 +29,8 @@ export function MainNavIconButton({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        width: 40,
-        height: 40,
+        width: 32,
+        height: 32,
         borderRadius: "var(--mantine-radius-md)",
         backgroundColor: active
           ? "var(--mantine-color-gray-8)"
@@ -41,7 +41,7 @@ export function MainNavIconButton({
         transition: "background-color 150ms ease, color 150ms ease",
       }}
     >
-      <IconComponent size={20} weight={active ? "fill" : "regular"} />
+      <IconComponent size={16} weight={active ? "fill" : "regular"} />
     </UnstyledButton>
   );
 
