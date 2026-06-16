@@ -84,11 +84,11 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 ## Development Workflow
 
 - For major tasks, always create and maintain a ./todo folder with task files named after the related feature or functionality. Track progress continuously and mark tasks as completed as work is finished.
-- Do not work on the main branch. Always create a new branch: `/dev/<work-name>`
+- Do not work on the main branch. When implementing a task Always create a new branch: `/dev/<work-name>` and push it in the end.
 - Use pnpm, not npm
 - No testing infrastructure yet — do not generate test files unless explicitly asked
 - Do not go randomly reading all the folder structure all the time, unless required or requested
-- Check `@zetsel/ui` exports before building a new component
+- Check `@mint/ui` exports before building a new component
 - Plan before coding if the task spans more than two files
 - Refactor when it genuinely improves clarity or reduces duplication — not as a side effect of unrelated tasks
 - Split long files and components when they're doing too much, not just when they're long
