@@ -28,8 +28,8 @@ export function AdminShellNavbar({
   onSubNavExpand,
 }: AdminShellNavbarProps) {
   const activeItem = resolveActiveMainNavItem(config.mainNav, pathname);
-  const showSubNav =
-    activeItem?.kind === "module" && !subNavCollapsed;
+  const isModule = activeItem?.kind === "module";
+  const showSubNav = isModule && !subNavCollapsed;
 
   return (
     <AppShell.Navbar
@@ -61,11 +61,12 @@ export function AdminShellNavbar({
           userMenu={config.userMenu}
         />
 
-        {showSubNav && activeItem.kind === "module" && (
+        {isModule && activeItem.kind === "module" && (
           <SubNav
             module={activeItem}
             pathname={pathname}
             onCollapse={onSubNavCollapse}
+            visible={showSubNav}
           />
         )}
       </Group>

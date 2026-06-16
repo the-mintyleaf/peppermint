@@ -248,6 +248,7 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
       <Group gap="xs" justify="space-between" visibleFrom="lg">
         {tabs.length > 0 ? (
           <SegmentedControl
+            withItemsBorders={false}
             value={String(activeTab)}
             onChange={(value) => setActiveTab(Number(value))}
             data={tabs.map((tab, index) => {
@@ -255,17 +256,17 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
               return {
                 label: (
                   <Center style={{ gap: 8 }}>
-                    {IconComponent && <IconComponent size={14} />}
+                    {IconComponent && <IconComponent weight="duotone" color="var(--mantine-color-brand-5)" size={14} />}
                     <span>{tab.label}</span>
                   </Center>
                 ),
                 value: String(index),
               };
             })}
-            size="xs"
-            color="var(--mantine-color-brand-6)"
+            size="sm"
+            color="white"
             autoContrast
-            styles={{ label: { paddingInline: 10 } }}
+            styles={{ label: { paddingInline: 10, fontSize: "var(--mantine-font-size-xs)" } }}
           />
         ) : (
           <Text fw={700} size="xs">

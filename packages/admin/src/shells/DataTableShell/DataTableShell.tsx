@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { Box, Container, Divider, ModuleHeader, Paper } from "@zetsel/ui";
+import { Box, Container, Divider, Group, ModuleHeader, Paper } from "@zetsel/ui";
 import {
   DataTableWrapper,
   useTableData,
@@ -11,6 +11,7 @@ import { DataTableShellContext } from "./DataTableShell.context";
 import {
   DataTableShellActiveFilters,
   DataTableShellHeader,
+  DataTableShellHeaderActions,
   DataTableShellTable,
   DataTableShellTableActions,
   DataTableShellToolbar,
@@ -77,6 +78,7 @@ function DataTableShellInner<T extends Record<string, unknown>>({
   activeTab,
   onTabChange,
   activeTabForceFilter,
+  headerRight,
 }: DataTableShellInnerProps<T>) {
   const { rows } = useTableData<T>();
   const useTable = useTableStore();
@@ -104,19 +106,20 @@ function DataTableShellInner<T extends Record<string, unknown>>({
 
   return (
     <DataTableShellContext.Provider value={contextValue}>
-      <ModuleHeader breadcrumbItems={breadcrumbItems} />
+      <ModuleHeader
+        breadcrumbItems={breadcrumbItems}
+        right={
+          <Group gap={4} pr="md" wrap="nowrap" align="center">
+            {headerRight}
+            <DataTableShellHeaderActions exportFilename={moduleInfo.name} />
+          </Group>
+        }
+      />
 
-      {/* Header — title, description, New + Reload buttons (desktop only) */}
+      {/* Header — title only (desktop) */}
 
       <Box px="md">
-        <DataTableShellHeader
-          moduleInfo={moduleInfo}
-          basePath={basePath}
-          newButtonHref={newButtonHref}
-          onNewClick={onNewClick}
-          disableCreateButton={disableCreateButton}
-          sustained={sustained}
-        />
+        <DataTableShellHeader moduleInfo={moduleInfo} />
       </Box>
 
       {/* Toolbar — tabs, search, column toggle (+ mobile drawer) */}
@@ -212,6 +215,7 @@ export function DataTableShell<
   hideToolbar = false,
   disableActions = false,
   sustained = false,
+  headerRight,
 }: DataTableShellProps<T>) {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -263,6 +267,7 @@ export function DataTableShell<
         activeTab={activeTab}
         onTabChange={handleTabChange}
         activeTabForceFilter={activeTabForceFilter}
+        headerRight={headerRight}
       />
     </DataTableWrapper>
   );

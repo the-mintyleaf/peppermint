@@ -1,4 +1,5 @@
 export { DataTableShellEmptyState } from './DataTableShellEmptyState';
+export { DataTableShellHeaderActions } from './DataTableShellHeaderActions';
 export { DataTableShellNestedTable } from './DataTableShellNestedTable';
 export type { DataTableShellNestedTableProps } from './DataTableShellNestedTable';
 export { DataTableShellActiveFilters } from './DataTableShellActiveFilters';

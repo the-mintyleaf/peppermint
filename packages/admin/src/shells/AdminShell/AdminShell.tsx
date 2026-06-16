@@ -11,6 +11,21 @@ import type { AdminShellConfig } from "./AdminShell.types";
 //@ts-ignore
 import "mantine-datatable/styles.css";
 
+// Static AppShell lays out Main via grid-template-columns (not padding). Register
+// the navbar width variable as animatable so the grid column can transition.
+const SUB_NAV_TRANSITION_MS = 220;
+
+const TRANSITION_STYLES = `
+  @property --app-shell-navbar-width {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 0px;
+  }
+  .admin-shell[data-mode='static'] {
+    transition: grid-template-columns ${SUB_NAV_TRANSITION_MS}ms ease !important;
+  }
+`;
+
 interface AdminShellProps {
   children: ReactNode;
   config: AdminShellConfig;
@@ -38,40 +53,45 @@ export function AdminShell({
   const navbarWidth = getNavbarWidth(showSubNav);
 
   return (
-    <AppShell
-      mode="static"
-      h="100dvh"
-      p={0}
-      padding={0}
-      withBorder={false}
-      bg="black"
-      navbar={{
-        width: navbarWidth,
-        breakpoint: "sm",
-        collapsed: { mobile: !opened },
-      }}
-    >
-      <AdminShellNavbar
-        config={config}
-        mainNavHeader={mainNavHeader}
-        pathname={pathname}
-        subNavCollapsed={subNavCollapsed}
-        onSubNavCollapse={subNavActions.open}
-        onSubNavExpand={subNavActions.close}
-      />
-      <AppShell.Main
-        bg="transparent"
-        style={{ minHeight: 0, overflow: "hidden", display: "flex" }}
+    <>
+      <style dangerouslySetInnerHTML={{ __html: TRANSITION_STYLES }} />
+      <AppShell
+        className="admin-shell"
+        mode="static"
+        h="100dvh"
+        p={0}
+        padding={0}
+        withBorder={false}
+        bg="black"
+        transitionDuration={SUB_NAV_TRANSITION_MS}
+        navbar={{
+          width: navbarWidth,
+          breakpoint: "sm",
+          collapsed: { mobile: !opened },
+        }}
       >
-        <Box
-          flex={1}
-          p={SHELL_INSET}
-          bg="black"
-          style={{ minHeight: 0, minWidth: 0, overflow: "auto" }}
+        <AdminShellNavbar
+          config={config}
+          mainNavHeader={mainNavHeader}
+          pathname={pathname}
+          subNavCollapsed={subNavCollapsed}
+          onSubNavCollapse={subNavActions.open}
+          onSubNavExpand={subNavActions.close}
+        />
+        <AppShell.Main
+          bg="transparent"
+          style={{ minHeight: 0, overflow: "hidden", display: "flex" }}
         >
-          {children}
-        </Box>
-      </AppShell.Main>
-    </AppShell>
+          <Box
+            flex={1}
+            p={SHELL_INSET}
+            bg="black"
+            style={{ minHeight: 0, minWidth: 0, overflow: "auto" }}
+          >
+            {children}
+          </Box>
+        </AppShell.Main>
+      </AppShell>
+    </>
   );
 }

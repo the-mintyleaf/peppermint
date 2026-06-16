@@ -41,7 +41,7 @@ export function MainNavIconButton({
         transition: "background-color 150ms ease, color 150ms ease",
       }}
     >
-      <IconComponent size={16} weight={active ? "fill" : "regular"} />
+      <IconComponent size={16} weight={active ? "fill" : "duotone"} />
     </UnstyledButton>
   );
 

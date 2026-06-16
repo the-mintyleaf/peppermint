@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { DataTableColumn, DataTableRowExpansionProps } from 'mantine-datatable';
 import type { FilterState, DataTableWrapperProps } from '../../wrappers/DataTableWrapper';
 
@@ -62,6 +63,8 @@ export interface DataTableShellProps<T extends Record<string, unknown> = Record<
   disableActions?: boolean;
   /** When true, New/Edit trigger callbacks instead of navigating. */
   sustained?: boolean;
+  /** Rendered in the right slot of ModuleHeader (e.g. New button, action menu). */
+  headerRight?: ReactNode;
 }
 
 // ── Internal props passed to DataTableShellInner ──────────────────────────────
@@ -91,17 +94,13 @@ export interface DataTableShellInnerProps<T extends Record<string, unknown>> {
   activeTab: number;
   onTabChange: (index: number) => void;
   activeTabForceFilter?: (rows: T[]) => T[];
+  headerRight?: ReactNode;
 }
 
 // ── Sub-component prop types ──────────────────────────────────────────────────
 
 export interface DataTableShellHeaderProps {
   moduleInfo: DataTableShellModuleInfo;
-  basePath?: string;
-  newButtonHref?: string;
-  onNewClick?: () => void;
-  disableCreateButton?: boolean;
-  sustained?: boolean;
 }
 
 export interface DataTableShellToolbarProps<T extends Record<string, unknown>> {

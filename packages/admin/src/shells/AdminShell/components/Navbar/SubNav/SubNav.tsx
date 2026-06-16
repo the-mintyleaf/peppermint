@@ -14,18 +14,24 @@ interface SubNavProps {
   module: AdminShellMainNavModule;
   pathname: string;
   onCollapse: () => void;
+  visible: boolean;
 }
 
-export function SubNav({ module, pathname, onCollapse }: SubNavProps) {
+export function SubNav({ module, pathname, onCollapse, visible }: SubNavProps) {
   return (
     <Stack
       gap={0}
       h="100%"
-      w={SUB_NAV_WIDTH}
       bg="rgba(255,255,255,.04)"
       style={{
         flexShrink: 0,
         color: "white",
+        width: visible ? SUB_NAV_WIDTH : 0,
+        opacity: visible ? 1 : 0,
+        overflow: "hidden",
+        transition: visible
+          ? "width 220ms ease 0ms, opacity 180ms ease 200ms"
+          : "opacity 150ms ease 0ms, width 220ms ease 130ms",
         ...shellCardStyle,
       }}
     >

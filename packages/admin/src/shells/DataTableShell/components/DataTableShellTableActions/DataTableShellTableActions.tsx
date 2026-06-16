@@ -96,7 +96,7 @@ export function DataTableShellTableActions<T extends Record<string, unknown>>({
               leftSection={<EyeIcon size={13} aria-hidden />}
               size="xs"
               variant="subtle"
-              color="gray"
+              c="gray.3"
               disabled={!isSingle || deleting}
               title={isSingle ? 'Review selected record' : 'Select only one record to review'}
               onClick={handleReview}
@@ -110,7 +110,7 @@ export function DataTableShellTableActions<T extends Record<string, unknown>>({
               leftSection={<PencilIcon size={13} aria-hidden />}
               size="xs"
               variant="subtle"
-              color="blue"
+              c="blue.3"
               disabled={deleting}
               title="Edit selected record"
               onClick={handleEdit}
@@ -124,7 +124,7 @@ export function DataTableShellTableActions<T extends Record<string, unknown>>({
               leftSection={<TrashIcon size={13} aria-hidden />}
               size="xs"
               variant="subtle"
-              color="red"
+              c="red.4"
               loading={deleting}
               onClick={handleDelete}
             >
@@ -136,7 +136,7 @@ export function DataTableShellTableActions<T extends Record<string, unknown>>({
             leftSection={<XIcon size={13} aria-hidden />}
             size="xs"
             variant="subtle"
-            color="gray"
+            c="gray.3"
             disabled={deleting}
             onClick={clearSelection}
           >
