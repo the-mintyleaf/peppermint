@@ -6,7 +6,7 @@ import {
   Text,
   TextInput,
   Anchor,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { EnvelopeIcon } from "@phosphor-icons/react/dist/csr/Envelope";
 import { KeyIcon } from "@phosphor-icons/react/dist/csr/Key";
 import { useForm } from "@mantine/form";

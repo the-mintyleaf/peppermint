@@ -14,7 +14,7 @@ import {
   Skeleton,
   Center,
   Anchor,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { XCircleIcon } from "@phosphor-icons/react/dist/csr/XCircle";
 import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";

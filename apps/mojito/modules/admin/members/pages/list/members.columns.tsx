@@ -1,5 +1,5 @@
-import { Badge } from "@zetsel/ui";
-import type { DataTableShellColumn } from "@zetsel/admin";
+import { Badge } from "@peppermint/ui";
+import type { DataTableShellColumn } from "@peppermint/admin";
 import type { Member, MemberStatus, MembershipType } from "../../members.types";
 
 const statusColor: Record<MemberStatus, string> = {

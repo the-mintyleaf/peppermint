@@ -8,7 +8,7 @@ Use this when:
 
 Shells used: `DataTableShell` (list) · `FormWrapper` + `FormShell` (new/edit) · custom component (view)
 
-Reference implementation: `apps/zetsel-admin/modules/admin/product/`
+Reference implementation: `apps/mintflow/modules/admin/product/`
 
 ---
 
@@ -50,7 +50,7 @@ modules/admin/
 Define the entity type and all API functions in one file. The entity must extend `Record<string, unknown>`.
 
 ```ts
-import type { QueryParams } from "@zetsel/admin";
+import type { QueryParams } from "@peppermint/admin";
 
 export interface Product extends Record<string, unknown> {
   id: number;
@@ -135,8 +135,8 @@ export const PRODUCT_STEP_FIELDS: string[][] = [
 Step components receive no props — they read form state via `useFormControls()`.
 
 ```tsx
-import { Stack, TextInput, Select } from "@zetsel/ui";
-import { useFormControls } from "@zetsel/admin";
+import { Stack, TextInput, Select } from "@peppermint/ui";
+import { useFormControls } from "@peppermint/admin";
 import type { ProductFormValues } from "../productForm.types";
 
 export function StepIdentity() {
@@ -158,7 +158,7 @@ export function StepIdentity() {
 ```tsx
 "use client";
 
-import { useFormControls, FormShell, FormWrapper } from "@zetsel/admin";
+import { useFormControls, FormShell, FormWrapper } from "@peppermint/admin";
 import { PRODUCT_FORM_INITIAL } from "./productForm.initial";
 import { identitySchema, pricingSchema, PRODUCT_STEP_FIELDS } from "./productForm.schemas";
 import { StepIdentity } from "./steps/StepIdentity";
@@ -224,7 +224,7 @@ export function ProductForm({ onBack, onSuccess }: ProductFormProps) {
 Only add a `render` function when the default cell output is insufficient (e.g. a badge, an icon, a stacked line). When you do use `render`, default all text to `size="xs"` unless there is a specific reason to go larger.
 
 ```ts
-import type { DataTableShellColumn } from "@zetsel/admin";
+import type { DataTableShellColumn } from "@peppermint/admin";
 import type { Product } from "../../module.api";
 
 export const PRODUCT_COLUMNS: DataTableShellColumn<Product>[] = [
@@ -247,9 +247,9 @@ Always wrap the shell in a `Paper` with `p={0}`, `withBorder`, `radius="lg"`, an
 ```tsx
 "use client";
 
-import { DataTableShell } from "@zetsel/admin";
-import { Paper } from "@zetsel/ui";
-import type { DataTableShellTab } from "@zetsel/admin";
+import { DataTableShell } from "@peppermint/admin";
+import { Paper } from "@peppermint/ui";
+import type { DataTableShellTab } from "@peppermint/admin";
 import { PackageIcon }    from "@phosphor-icons/react/dist/csr/Package";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { WarningIcon }    from "@phosphor-icons/react/dist/csr/Warning";
@@ -296,7 +296,7 @@ export function ProductsList() {
 
 ```tsx
 "use client";
-import { Paper } from "@zetsel/ui";
+import { Paper } from "@peppermint/ui";
 import { ProductForm } from "../../form";
 
 export function ProductsNew() {
@@ -310,7 +310,7 @@ export function ProductsNew() {
 
 ```tsx
 "use client";
-import { Paper } from "@zetsel/ui";
+import { Paper } from "@peppermint/ui";
 import { ProductForm } from "../../form";
 
 export function ProductsEdit() {
@@ -327,7 +327,7 @@ export function ProductsEdit() {
 ```tsx
 "use client";
 import { useParams } from "next/navigation";
-import { Paper } from "@zetsel/ui";
+import { Paper } from "@peppermint/ui";
 import { ProductView } from "./ProductView";
 
 export function ProductsView() {

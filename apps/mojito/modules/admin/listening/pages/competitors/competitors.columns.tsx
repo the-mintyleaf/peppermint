@@ -1,5 +1,5 @@
-import type { DataTableShellColumn } from "@zetsel/admin";
-import { Badge, Text } from "@zetsel/ui";
+import type { DataTableShellColumn } from "@peppermint/admin";
+import { Badge, Text } from "@peppermint/ui";
 import type { CompetitorRow } from "../../competitors.types";
 
 export const competitorsColumns: DataTableShellColumn<CompetitorRow>[] = [

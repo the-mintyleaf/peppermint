@@ -11,8 +11,8 @@ import {
   Skeleton,
   Badge,
   Table,
-} from "@zetsel/ui";
-import { AreaChart, DonutChart } from "@zetsel/ui";
+} from "@peppermint/ui";
+import { AreaChart, DonutChart } from "@peppermint/ui";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchOverview } from "../../analytics.api";

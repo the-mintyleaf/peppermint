@@ -70,10 +70,10 @@ export const studentQueryKeys = {
 
 ### 3. `<name>.api.ts`
 
-Import `QueryParams` from `@zetsel/admin` so the function signature matches what the table shell passes.
+Import `QueryParams` from `@peppermint/admin` so the function signature matches what the table shell passes.
 
 ```ts
-import type { QueryParams } from "@zetsel/admin";
+import type { QueryParams } from "@peppermint/admin";
 import type { Student, StudentsFetchResponse } from "./students.types";
 
 export async function fetchStudents(params?: QueryParams): Promise<StudentsFetchResponse> {
@@ -93,7 +93,7 @@ Use `DataTableShellColumn<T>` — it extends mantine-datatable's `DataTableColum
 Only add a `render` function when the default cell output is insufficient (e.g. a badge, an icon, a stacked line). When you do use `render`, default all text to `size="xs"` unless there is a specific reason to go larger.
 
 ```tsx
-import type { DataTableShellColumn } from "@zetsel/admin";
+import type { DataTableShellColumn } from "@peppermint/admin";
 import type { Student } from "../../students.types";
 
 export const studentsColumns: DataTableShellColumn<Student>[] = [
@@ -112,8 +112,8 @@ export const studentsColumns: DataTableShellColumn<Student>[] = [
 The form owns its submit button. `ModalTableShell` passes `initialValues`, `onSubmit`, and `isLoading` as props.
 
 ```tsx
-import { Stack, TextInput, Select, Button } from "@zetsel/ui";
-import { useForm } from "@zetsel/ui";
+import { Stack, TextInput, Select, Button } from "@peppermint/ui";
+import { useForm } from "@peppermint/ui";
 import type { StudentFormProps } from "./StudentForm.types";
 import type { Student } from "../students.types";
 
@@ -171,9 +171,9 @@ Always wrap the shell in a `Paper` with `p={0}`, `withBorder`, `radius="lg"`, an
 ```tsx
 "use client";
 
-import { ModalTableShell } from "@zetsel/admin";
-import { Paper } from "@zetsel/ui";
-import type { DataTableShellTab } from "@zetsel/admin";
+import { ModalTableShell } from "@peppermint/admin";
+import { Paper } from "@peppermint/ui";
+import type { DataTableShellTab } from "@peppermint/admin";
 import { UsersIcon }        from "@phosphor-icons/react/dist/csr/Users";
 import { CheckCircleIcon }  from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { ClockIcon }        from "@phosphor-icons/react/dist/csr/Clock";

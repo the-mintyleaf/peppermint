@@ -29,7 +29,7 @@ Root layout wrapper for Next.js App Router applications. Composes `MantineProvid
 ## Internals
 
 - `ColorSchemeScript` is rendered in `<head>` to prevent flash-of-wrong-theme on hydration. The `nonce` is hardcoded — replace it with a per-request CSP nonce if you add a strict CSP header.
-- `ModalsProvider` wraps children so any component can call `modals.open(...)` from `@zetsel/ui`.
+- `ModalsProvider` wraps children so any component can call `modals.open(...)` from `@peppermint/ui`.
 - `Notifications` is mounted once at the root; call `notifications.show(...)` from anywhere.
 
 ## Constraints

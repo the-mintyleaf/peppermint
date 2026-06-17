@@ -16,7 +16,7 @@ import {
   Select,
   Skeleton,
   Center,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { DownloadSimpleIcon } from "@phosphor-icons/react/dist/csr/DownloadSimple";
 import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";

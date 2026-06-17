@@ -1,6 +1,6 @@
 "use client";
 
-import { Alert, Stack, Text } from "@zetsel/ui";
+import { Alert, Stack, Text } from "@peppermint/ui";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { useComposeStore } from "../../compose.store";
 import { PLATFORM_LABELS } from "../../compose.types";

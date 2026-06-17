@@ -10,7 +10,7 @@ import {
   FileButton,
   Button,
   SimpleGrid,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { UploadSimpleIcon } from "@phosphor-icons/react/dist/csr/UploadSimple";
 import { useComposeStore } from "../../compose.store";

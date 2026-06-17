@@ -1,4 +1,4 @@
-import { Text } from "@zetsel/ui";
+import { Text } from "@peppermint/ui";
 
 interface DummyPageProps {
   title: string;

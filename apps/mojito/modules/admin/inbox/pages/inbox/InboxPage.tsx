@@ -8,7 +8,7 @@ import {
   Grid,
   Pagination,
   Badge,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { useState } from "react";
 import { useConversations } from "../../inbox.hooks";
 import { ConversationList } from "../../components/ConversationList/ConversationList";

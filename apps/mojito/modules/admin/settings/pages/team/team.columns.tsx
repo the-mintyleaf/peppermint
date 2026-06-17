@@ -1,5 +1,5 @@
-import type { DataTableShellColumn } from "@zetsel/admin";
-import { Avatar, Badge, Group, Stack, Text } from "@zetsel/ui";
+import type { DataTableShellColumn } from "@peppermint/admin";
+import { Avatar, Badge, Group, Stack, Text } from "@peppermint/ui";
 import type { TeamMemberRow } from "../../team.types";
 
 const ROLE_COLOR: Record<TeamMemberRow["role"], string> = {

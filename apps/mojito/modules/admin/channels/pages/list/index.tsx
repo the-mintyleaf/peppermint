@@ -1,8 +1,8 @@
 "use client";
 
-import { ModalTableShell } from "@zetsel/admin";
-import type { DataTableShellTab } from "@zetsel/admin";
-import { Paper } from "@zetsel/ui";
+import { ModalTableShell } from "@peppermint/admin";
+import type { DataTableShellTab } from "@peppermint/admin";
+import { Paper } from "@peppermint/ui";
 import { ShareNetworkIcon } from "@phosphor-icons/react/dist/csr/ShareNetwork";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { MinusCircleIcon } from "@phosphor-icons/react/dist/csr/MinusCircle";

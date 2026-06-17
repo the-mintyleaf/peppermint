@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Image, Stack, Group, Text, Badge, Anchor } from "@zetsel/ui";
+import { Card, Image, Stack, Group, Text, Badge, Anchor } from "@peppermint/ui";
 import { useRouter } from "next/navigation";
 import type { ContentItem } from "../../../../module.api";
 

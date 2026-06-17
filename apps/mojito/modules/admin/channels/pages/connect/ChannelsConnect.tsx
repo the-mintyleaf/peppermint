@@ -9,7 +9,7 @@ import {
   Badge,
   Skeleton,
   Group,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { notifications } from "@mantine/notifications";

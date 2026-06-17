@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { Paper, ScrollArea } from "@zetsel/ui";
+import { Paper, ScrollArea } from "@peppermint/ui";
 import { ContentItemView } from "./ContentItemView";
 
 export function ContentLibraryView() {

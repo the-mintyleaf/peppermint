@@ -1,7 +1,7 @@
 "use client";
 
-import { Stack, TextInput, Select, Textarea } from "@zetsel/ui";
-import { useFormControls } from "@zetsel/admin";
+import { Stack, TextInput, Select, Textarea } from "@peppermint/ui";
+import { useFormControls } from "@peppermint/admin";
 import type { LoanFormValues } from "../loanForm.types";
 
 export function StepDates() {

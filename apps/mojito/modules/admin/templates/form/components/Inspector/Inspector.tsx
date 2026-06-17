@@ -14,7 +14,7 @@ import {
   Popover,
   ActionIcon,
   Tooltip,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { SidebarSimpleIcon } from "@phosphor-icons/react/dist/csr/SidebarSimple";
 import { useBuilderStore } from "../../TemplateBuilder.store";
 import type { CanvasElement } from "../../templateForm.types";

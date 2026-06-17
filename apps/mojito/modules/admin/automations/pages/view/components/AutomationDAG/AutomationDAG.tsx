@@ -14,7 +14,7 @@ import {
   Handle,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Popover, Stack, Text, Anchor, Badge } from "@zetsel/ui";
+import { Popover, Stack, Text, Anchor, Badge } from "@peppermint/ui";
 import { useRouter } from "next/navigation";
 import type { AutomationNode, AutomationEdge, NodeType, NodeStatus } from "../../../../module.api";
 

@@ -9,7 +9,7 @@ import {
   Button,
   Image,
   Skeleton,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { useState, useEffect } from "react";
 import { notifications } from "@mantine/notifications";
 import { useWorkspace, useUpdateWorkspace } from "../settings.hooks";

@@ -7,7 +7,7 @@ import {
   Group,
   Text,
   Button,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { SparkleIcon } from "@phosphor-icons/react/dist/csr/Sparkle";
 import { ChannelSelector } from "../../components/ChannelSelector/ChannelSelector";
 import { CaptionEditor } from "../../components/CaptionEditor/CaptionEditor";

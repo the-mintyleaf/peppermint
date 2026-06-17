@@ -61,7 +61,7 @@ export const MODULE_ROOT = '/admin/users';
 ### 2. `module.api.ts`
 
 ```ts
-import { getRecords, getSingleRecord, createRecord, editRecord, deleteRecord } from '@zetsel/api-client';
+import { getRecords, getSingleRecord, createRecord, editRecord, deleteRecord } from '@peppermint/api-client';
 import { MODULE_API } from './module.config';
 import type { User, CreateUserInput, EditUserInput } from './index';
 
@@ -86,7 +86,7 @@ export const userApi = {
 ### 3. `list/list.columns.tsx`
 
 ```tsx
-import type { ColumnDef } from '@zetsel/admin';
+import type { ColumnDef } from '@peppermint/admin';
 import type { User } from '../../index';
 
 export const userColumns: ColumnDef<User>[] = [
@@ -101,8 +101,8 @@ export const userColumns: ColumnDef<User>[] = [
 Shared between the new and edit pages. Fields only — `FormShell` provides the submit button.
 
 ```tsx
-import { Stack, TextInput, Select, Textarea } from '@zetsel/ui';
-import { useFormInstance } from '@zetsel/admin';
+import { Stack, TextInput, Select, Textarea } from '@peppermint/ui';
+import { useFormInstance } from '@peppermint/admin';
 import type { CreateUserInput } from '../../index';
 
 export function UserForm() {
@@ -127,9 +127,9 @@ export function UserForm() {
 ```tsx
 'use client';
 import { useRouter } from 'next/navigation';
-import { DataTableShell } from '@zetsel/admin';
-import { triggerNotification } from '@zetsel/admin';
-import { deleteRecord } from '@zetsel/api-client';
+import { DataTableShell } from '@peppermint/admin';
+import { triggerNotification } from '@peppermint/admin';
+import { deleteRecord } from '@peppermint/api-client';
 import { MODULE_KEY, MODULE_TITLE, MODULE_API, MODULE_ROOT } from '../../module.config';
 import { userApi } from '../../module.api';
 import { userColumns } from './list.columns';
@@ -168,7 +168,7 @@ export function UserListPage() {
 ```tsx
 'use client';
 import { useRouter } from 'next/navigation';
-import { FormShell } from '@zetsel/admin';
+import { FormShell } from '@peppermint/admin';
 import { MODULE_TITLE, MODULE_ROOT } from '../../module.config';
 import { userApi } from '../../module.api';
 import { UserForm } from '../../form/UserForm';
@@ -202,7 +202,7 @@ Fetch the record server-side (or via `useQuery`) to seed `initial`:
 'use client';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { FormShell } from '@zetsel/admin';
+import { FormShell } from '@peppermint/admin';
 import { MODULE_KEY, MODULE_TITLE, MODULE_ROOT } from '../../module.config';
 import { userApi } from '../../module.api';
 import { UserForm } from '../../form/UserForm';
@@ -249,7 +249,7 @@ Read-only detail view — no shell, build with standard Mantine layout:
 'use client';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Group, Stack, Text, Title } from '@zetsel/ui';
+import { Button, Group, Stack, Text, Title } from '@peppermint/ui';
 import { MODULE_KEY, MODULE_ROOT } from '../../module.config';
 import { userApi } from '../../module.api';
 
@@ -320,7 +320,7 @@ IMPORTANT: When building any form, always design it with a clear structure, logi
 If the form is long, pass `steps` to `FormShell` and render conditionally by `current`:
 
 ```tsx
-import { useFormControls } from '@zetsel/admin';
+import { useFormControls } from '@peppermint/admin';
 
 function UserFormSteps() {
   const { current } = useFormControls();

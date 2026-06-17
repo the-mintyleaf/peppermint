@@ -1,7 +1,7 @@
 "use client";
 
-import type { DataTableShellColumn } from "@zetsel/admin";
-import { Badge, Button, Group, Text, ActionIcon } from "@zetsel/ui";
+import type { DataTableShellColumn } from "@peppermint/admin";
+import { Badge, Button, Group, Text, ActionIcon } from "@peppermint/ui";
 import { PenNibIcon } from "@phosphor-icons/react/dist/csr/PenNib";
 import { CopySimpleIcon } from "@phosphor-icons/react/dist/csr/CopySimple";
 import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";

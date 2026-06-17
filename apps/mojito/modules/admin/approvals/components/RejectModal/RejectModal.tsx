@@ -1,6 +1,6 @@
 "use client";
 
-import { Modal, Stack, Textarea, Button, Group, Text } from "@zetsel/ui";
+import { Modal, Stack, Textarea, Button, Group, Text } from "@peppermint/ui";
 import { useState } from "react";
 
 interface RejectModalProps {

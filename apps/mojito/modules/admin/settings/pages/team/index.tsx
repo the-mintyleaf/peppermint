@@ -1,7 +1,7 @@
 "use client";
 
-import { ModalTableShell } from "@zetsel/admin";
-import { Paper } from "@zetsel/ui";
+import { ModalTableShell } from "@peppermint/admin";
+import { Paper } from "@peppermint/ui";
 import {
   fetchTeamPaginated,
   createTeamMember,

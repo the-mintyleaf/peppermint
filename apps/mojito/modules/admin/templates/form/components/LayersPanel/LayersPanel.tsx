@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Group, Text, ActionIcon, Stack, Tooltip } from "@zetsel/ui";
+import { Box, Group, Text, ActionIcon, Stack, Tooltip } from "@peppermint/ui";
 import { SidebarSimpleIcon } from "@phosphor-icons/react/dist/csr/SidebarSimple";
 import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
 import { EyeSlashIcon } from "@phosphor-icons/react/dist/csr/EyeSlash";

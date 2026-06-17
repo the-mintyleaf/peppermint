@@ -1,6 +1,6 @@
 "use client";
 
-import { Stack, TextInput, Select, Button } from "@zetsel/ui";
+import { Stack, TextInput, Select, Button } from "@peppermint/ui";
 import { useForm } from "@mantine/form";
 import type { CompetitorFormProps } from "./competitorForm.types";
 import type { CompetitorRow } from "../competitors.types";

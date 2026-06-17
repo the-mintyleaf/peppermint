@@ -1,7 +1,7 @@
 "use client";
 
-import type { DataTableShellColumn } from "@zetsel/admin";
-import { Badge, Text, ActionIcon, Group } from "@zetsel/ui";
+import type { DataTableShellColumn } from "@peppermint/admin";
+import { Badge, Text, ActionIcon, Group } from "@peppermint/ui";
 import { CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { markAlertReadById } from "../../alerts.api";

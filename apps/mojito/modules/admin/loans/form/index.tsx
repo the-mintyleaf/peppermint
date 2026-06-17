@@ -1,6 +1,6 @@
 "use client";
 
-import { FormShell, FormWrapper, useFormControls } from "@zetsel/admin";
+import { FormShell, FormWrapper, useFormControls } from "@peppermint/admin";
 import { createLoan } from "../module.api";
 import { LOAN_FORM_INITIAL } from "./loanForm.initial";
 import { loanDetailsSchema, loanDatesSchema, LOAN_STEP_FIELDS } from "./loanForm.schemas";

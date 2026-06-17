@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, Text } from "@zetsel/ui";
+import { Badge, Text } from "@peppermint/ui";
 import type { CalendarEntryProps } from "./CalendarEntry.types";
 
 const TYPE_COLORS: Record<string, string> = {

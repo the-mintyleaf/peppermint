@@ -1,1 +1,0 @@
-export { EditCurrentDocumentButton } from "./EditCurrentDocumentButton";

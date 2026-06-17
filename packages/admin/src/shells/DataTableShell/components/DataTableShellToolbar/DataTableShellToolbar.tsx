@@ -16,7 +16,7 @@ import {
   Stack,
   Text,
   TextInput,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { ArrowLeftIcon } from "@phosphor-icons/react/dist/csr/ArrowLeft";
 import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
 import { FunnelIcon } from "@phosphor-icons/react/dist/csr/Funnel";
@@ -24,7 +24,7 @@ import { GearSixIcon } from "@phosphor-icons/react/dist/csr/GearSix";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
-import { useDebouncedValue, useDisclosure } from "@zetsel/ui";
+import { useDebouncedValue, useDisclosure } from "@peppermint/ui";
 import { useTableStore } from "../../../../wrappers/DataTableWrapper";
 import { useDataTableShellContext } from "../../DataTableShell.context";
 import type { DataTableShellToolbarProps } from "../../DataTableShell.types";

@@ -15,7 +15,7 @@ import {
   Center,
   Divider,
   Paper,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";

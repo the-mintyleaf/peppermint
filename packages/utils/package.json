@@ -1,7 +1,7 @@
 {
-  "name": "@zetsel/utils",
+  "name": "@peppermint/utils",
   "version": "1.0.0",
-  "description": "Pure hooks and utility functions for the Zetsel framework",
+  "description": "Pure hooks and utility functions for the Peppermint framework",
   "exports": {
     ".": "./src/index.ts"
   },

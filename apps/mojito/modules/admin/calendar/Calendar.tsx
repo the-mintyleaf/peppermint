@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Paper, Stack, Group, Text, Button, SegmentedControl, ScrollArea, Select, Badge } from "@zetsel/ui";
+import { Paper, Stack, Group, Text, Button, SegmentedControl, ScrollArea, Select, Badge } from "@peppermint/ui";
 import { CaretLeftIcon } from "@phosphor-icons/react/dist/csr/CaretLeft";
 import { CaretRightIcon } from "@phosphor-icons/react/dist/csr/CaretRight";
 import { useQuery } from "@tanstack/react-query";

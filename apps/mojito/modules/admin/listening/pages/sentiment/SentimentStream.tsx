@@ -1,7 +1,7 @@
 "use client";
 
-import { Stack, Text, Paper, Skeleton, Badge, SimpleGrid, Group } from "@zetsel/ui";
-import { AreaChart } from "@zetsel/ui";
+import { Stack, Text, Paper, Skeleton, Badge, SimpleGrid, Group } from "@peppermint/ui";
+import { AreaChart } from "@peppermint/ui";
 import { useSentimentStream } from "../../listening.hooks";
 
 export function SentimentStream() {

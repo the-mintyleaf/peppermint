@@ -1,7 +1,7 @@
 "use client";
 
-import { Stack, Group, Title, Text, Paper, SegmentedControl, Skeleton, Badge } from "@zetsel/ui";
-import { AreaChart, BarChart } from "@zetsel/ui";
+import { Stack, Group, Title, Text, Paper, SegmentedControl, Skeleton, Badge } from "@peppermint/ui";
+import { AreaChart, BarChart } from "@peppermint/ui";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchSentimentAnalytics } from "../../analytics.api";

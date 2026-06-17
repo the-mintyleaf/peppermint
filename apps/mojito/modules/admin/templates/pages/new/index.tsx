@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Paper } from "@zetsel/ui";
+import { Paper } from "@peppermint/ui";
 import { TemplateBuilder } from "../../form";
 import { useBuilderStore } from "../../form/TemplateBuilder.store";
 import { PLATFORM_DIMENSIONS } from "../../module.api";

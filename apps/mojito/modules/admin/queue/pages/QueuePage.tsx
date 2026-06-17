@@ -11,7 +11,7 @@ import {
   Skeleton,
   ActionIcon,
   Divider,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
 import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";

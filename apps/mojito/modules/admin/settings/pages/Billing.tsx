@@ -12,7 +12,7 @@ import {
   SimpleGrid,
   Skeleton,
   Anchor,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { DownloadSimpleIcon } from "@phosphor-icons/react/dist/csr/DownloadSimple";
 import { useBillingInfo } from "../settings.hooks";
 import { ModulePageShell } from "@/modules/admin/shared/ModulePageShell";

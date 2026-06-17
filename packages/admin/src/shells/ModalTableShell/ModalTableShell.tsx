@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { useDisclosure } from "@zetsel/ui";
-import { modals, notifications } from "@zetsel/ui";
+import { useDisclosure } from "@peppermint/ui";
+import { modals, notifications } from "@peppermint/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button, Group, Text } from "@zetsel/ui";
+import { Button, Group, Text } from "@peppermint/ui";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { WarningCircleIcon } from "@phosphor-icons/react/dist/csr/WarningCircle";
 import { DataTableShell } from "../DataTableShell";

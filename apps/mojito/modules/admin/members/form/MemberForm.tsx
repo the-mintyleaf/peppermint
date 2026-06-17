@@ -1,6 +1,6 @@
 "use client";
 
-import { Stack, TextInput, Select, Button, useForm } from "@zetsel/ui";
+import { Stack, TextInput, Select, Button, useForm } from "@peppermint/ui";
 import type { MemberFormProps } from "./MemberForm.types";
 import type { Member } from "../members.types";
 

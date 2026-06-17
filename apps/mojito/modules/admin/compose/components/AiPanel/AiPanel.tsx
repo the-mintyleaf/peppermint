@@ -11,7 +11,7 @@ import {
   Skeleton,
   Paper,
   ActionIcon,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { SparkleIcon } from "@phosphor-icons/react/dist/csr/Sparkle";
 import { useState } from "react";

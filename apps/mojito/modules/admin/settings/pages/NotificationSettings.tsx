@@ -8,7 +8,7 @@ import {
   Switch,
   Button,
   Skeleton,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { useState, useEffect } from "react";
 import { notifications } from "@mantine/notifications";
 import { useNotificationPrefs, useUpdateNotificationPrefs } from "../settings.hooks";

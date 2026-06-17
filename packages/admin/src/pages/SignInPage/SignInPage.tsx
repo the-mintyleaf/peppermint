@@ -13,7 +13,7 @@ import {
   Text,
   TextInput,
   Title,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import {
   AppleLogoIcon,
   DiscordLogoIcon,

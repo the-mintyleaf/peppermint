@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useCallback, useState } from "react";
-import { Box, Group, Button, ActionIcon, Tooltip, Text, Divider } from "@zetsel/ui";
+import { Box, Group, Button, ActionIcon, Tooltip, Text, Divider } from "@peppermint/ui";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
 import { ArrowClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowClockwise";
 import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";

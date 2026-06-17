@@ -1,6 +1,6 @@
 "use client";
 
-import { Stack, Group, Text, Box } from "@zetsel/ui";
+import { Stack, Group, Text, Box } from "@peppermint/ui";
 import { CalendarEntry } from "../CalendarEntry";
 import { ScheduledPopover } from "../ScheduledPopover";
 import type { CalendarEntry as CalendarEntryType } from "../../Calendar.types";

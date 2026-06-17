@@ -1,12 +1,13 @@
 "use client";
 
-import { AppShell, Box, useDisclosure } from "@zetsel/ui";
+import { AppShell, Box, useDisclosure } from "@peppermint/ui";
 import type { ReactNode } from "react";
 import { useMemo } from "react";
 import { AdminShellNavbar } from "./components/Navbar/AdminShell.Navbar";
 import { resolveActiveMainNavItem } from "./nav.utils";
 import { SHELL_INSET, getNavbarWidth } from "./shell.constants";
 import type { AdminShellConfig } from "./AdminShell.types";
+import styles from "./AdminShell.module.css";
 
 //@ts-ignore
 import "mantine-datatable/styles.css";
@@ -21,7 +22,7 @@ const TRANSITION_STYLES = `
     inherits: true;
     initial-value: 0px;
   }
-  .admin-shell[data-mode='static'] {
+  .${styles.adminShell}[data-mode='static'] {
     transition: grid-template-columns ${SUB_NAV_TRANSITION_MS}ms ease !important;
   }
 `;
@@ -56,13 +57,13 @@ export function AdminShell({
     <>
       <style dangerouslySetInnerHTML={{ __html: TRANSITION_STYLES }} />
       <AppShell
-        className="admin-shell"
+        className={styles.adminShell}
         mode="static"
         h="100dvh"
         p={0}
         padding={0}
         withBorder={false}
-        bg="black"
+        bg="var(--mantine-color-dark-9)"
         transitionDuration={SUB_NAV_TRANSITION_MS}
         navbar={{
           width: navbarWidth,
@@ -85,7 +86,7 @@ export function AdminShell({
           <Box
             flex={1}
             p={SHELL_INSET}
-            bg="black"
+            bg="transparent"
             style={{ minHeight: 0, minWidth: 0, overflow: "auto" }}
           >
             {children}

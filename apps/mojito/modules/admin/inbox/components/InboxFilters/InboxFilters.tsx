@@ -1,6 +1,6 @@
 "use client";
 
-import { Group, Select, TextInput } from "@zetsel/ui";
+import { Group, Select, TextInput } from "@peppermint/ui";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import type { InboxFilters as Filters } from "../../inbox.api";
 

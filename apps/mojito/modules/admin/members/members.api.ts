@@ -1,4 +1,4 @@
-import type { QueryParams } from "@zetsel/admin";
+import type { QueryParams } from "@peppermint/admin";
 import type { Member, MembersFetchResponse } from "./members.types";
 
 const MOCK_MEMBERS: Member[] = [

@@ -1,6 +1,6 @@
 "use client";
 
-import { Group, Select, MultiSelect, Button } from "@zetsel/ui";
+import { Group, Select, MultiSelect, Button } from "@peppermint/ui";
 import { FunnelIcon } from "@phosphor-icons/react/dist/csr/Funnel";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import type { ContentFilter } from "../../../../module.api";

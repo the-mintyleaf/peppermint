@@ -1,6 +1,6 @@
 "use client";
 
-import { Drawer, Stack, Group, Text, Badge, Tabs, Image, Table, Button, Loader, Center } from "@zetsel/ui";
+import { Drawer, Stack, Group, Text, Badge, Tabs, Image, Table, Button, Loader, Center } from "@peppermint/ui";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import type { ContentPreviewDrawerProps } from "./ContentPreviewDrawer.types";

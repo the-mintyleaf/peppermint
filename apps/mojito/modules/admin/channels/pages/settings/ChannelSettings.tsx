@@ -12,7 +12,7 @@ import {
   Badge,
   Divider,
   Group,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifications } from "@mantine/notifications";

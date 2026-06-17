@@ -1,7 +1,7 @@
 "use client";
 
-import { useQuery } from "@zetsel/ui";
-import { Stack, Group, Text, Badge, Paper, Divider, Timeline } from "@zetsel/ui";
+import { useQuery } from "@peppermint/ui";
+import { Stack, Group, Text, Badge, Paper, Divider, Timeline } from "@peppermint/ui";
 import { ClockIcon }        from "@phosphor-icons/react/dist/csr/Clock";
 import { CheckCircleIcon }  from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { WarningIcon }      from "@phosphor-icons/react/dist/csr/Warning";

@@ -7,7 +7,7 @@ import {
   Button,
   Box,
   ModuleHeader,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import {
   DataTableWrapper,
   DataTableShellToolbar,
@@ -15,7 +15,7 @@ import {
   DataTableShellContext,
   useTableStore,
   type DataTableShellTab,
-} from "@zetsel/admin";
+} from "@peppermint/admin";
 import { BellIcon } from "@phosphor-icons/react/dist/csr/Bell";
 import { CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

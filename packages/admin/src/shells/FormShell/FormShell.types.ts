@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { ModuleHeaderBreadcrumbItem } from '@peppermint/ui';
 
 export type Step = { label: string; description?: string };
 
@@ -8,6 +9,7 @@ export interface FormShellProps {
   title: string;
   description?: string;
   onBack: () => void;
+  breadcrumbItems?: ModuleHeaderBreadcrumbItem[];
   steps?: (string | Step)[];
   disabledSteps?: number[];
   showStepper?: boolean;

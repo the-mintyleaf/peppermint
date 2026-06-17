@@ -1,4 +1,4 @@
-import type { AdminShellConfig } from "@zetsel/admin";
+import type { AdminShellConfig } from "@peppermint/admin";
 import { ChartBarIcon } from "@phosphor-icons/react/dist/csr/ChartBar";
 import { PenNibIcon } from "@phosphor-icons/react/dist/csr/PenNib";
 import { RobotIcon } from "@phosphor-icons/react/dist/csr/Robot";

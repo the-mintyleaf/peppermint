@@ -1,15 +1,15 @@
 "use client";
 
-import { Paper, Badge, Group, Text, ActionIcon, Tooltip } from "@zetsel/ui";
-import { DataTableShell } from "@zetsel/admin";
+import { Paper, Badge, Group, Text, ActionIcon, Tooltip } from "@peppermint/ui";
+import { DataTableShell } from "@peppermint/admin";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlayIcon } from "@phosphor-icons/react/dist/csr/Play";
 import { PauseIcon } from "@phosphor-icons/react/dist/csr/Pause";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
-import type { DataTableShellTab, DataTableShellColumn } from "@zetsel/admin";
+import type { DataTableShellTab, DataTableShellColumn } from "@peppermint/admin";
 import { fetchAutomations, runAutomation, pauseAutomation, type Automation, type AutomationStatus } from "../../module.api";
-import type { QueryParams } from "@zetsel/admin";
+import type { QueryParams } from "@peppermint/admin";
 
 const STATUS_COLORS: Record<string, string> = {
   running: "blue",

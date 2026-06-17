@@ -1,7 +1,7 @@
 "use client";
 
-import { DataTableShell } from "@zetsel/admin";
-import { Paper } from "@zetsel/ui";
+import { DataTableShell } from "@peppermint/admin";
+import { Paper } from "@peppermint/ui";
 import { useRouter } from "next/navigation";
 import { fetchDrafts } from "../../drafts.api";
 import { draftsColumns } from "./drafts.columns";

@@ -38,8 +38,8 @@ A production-shaped frontend for creating, automating, scheduling, engaging, lis
 | Layer | Use |
 |---|---|
 | Framework | Next.js 16 (App Router), React 19 |
-| UI | `@zetsel/ui` (Mantine-based), Tailwind 4, Phosphor icons |
-| Admin shell | `@zetsel/admin` — `AdminShell`, `DataTableShell`, `ModalTableShell`, `SignInPage` |
+| UI | `@peppermint/ui` (Mantine-based), Tailwind 4, Phosphor icons |
+| Admin shell | `@peppermint/admin` — `AdminShell`, `DataTableShell`, `ModalTableShell`, `SignInPage` |
 | Server/data state | TanStack React Query v5 |
 | Client/local state | Zustand (already used for the template builder) |
 | Diagrams | `@xyflow/react` (automation DAGs) |
@@ -50,7 +50,7 @@ A production-shaped frontend for creating, automating, scheduling, engaging, lis
 - Feature code lives in `modules/admin/<feature>/` containing: `*.api.ts` (mock data + typed API), React Query hooks, components, and types.
 - Navigation is configured in `config/nav/admin-nav.ts`. Update it to match the final nav in §4.
 - Page shell pattern: most admin pages wrap content in `<Paper withBorder radius="lg" h="calc(100vh - 16px)">`.
-- List screens use `DataTableShell` or `ModalTableShell` from `@zetsel/admin`. The Templates list also uses a custom card grid; reuse that pattern where a card grid fits (Library, Media).
+- List screens use `DataTableShell` or `ModalTableShell` from `@peppermint/admin`. The Templates list also uses a custom card grid; reuse that pattern where a card grid fits (Library, Media).
 - Layout hierarchy: root `LayoutApp` (theme + React Query) → `LayoutAdmin` (`AdminShell` + sidebar).
 
 ### Global UX requirements (apply to every screen)

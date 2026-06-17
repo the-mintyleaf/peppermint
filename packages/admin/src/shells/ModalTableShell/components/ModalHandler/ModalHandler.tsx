@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { Modal, Loader, Center, notifications } from '@zetsel/ui';
+import { Modal, Loader, Center, notifications } from '@peppermint/ui';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useModalTableShellContext } from '../../ModalTableShell.context';
 import type { ModalHandlerProps } from '../../ModalTableShell.types';

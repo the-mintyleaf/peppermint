@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { Paper } from "@zetsel/ui";
+import { Paper } from "@peppermint/ui";
 import { LoanView } from "./LoanView";
 
 export function LoansView() {

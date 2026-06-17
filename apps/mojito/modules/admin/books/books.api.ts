@@ -1,4 +1,4 @@
-import type { QueryParams } from "@zetsel/admin";
+import type { QueryParams } from "@peppermint/admin";
 import type { Book, BooksFetchResponse } from "./books.types";
 
 const MOCK_BOOKS: Book[] = [

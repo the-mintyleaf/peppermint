@@ -1,8 +1,8 @@
 "use client";
 
-import { ModalTableShell } from "@zetsel/admin";
-import type { DataTableShellTab } from "@zetsel/admin";
-import { Paper, LineChart } from "@zetsel/ui";
+import { ModalTableShell } from "@peppermint/admin";
+import type { DataTableShellTab } from "@peppermint/admin";
+import { Paper, LineChart } from "@peppermint/ui";
 import { HashIcon } from "@phosphor-icons/react/dist/csr/Hash";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import {

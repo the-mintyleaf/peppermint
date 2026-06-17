@@ -1,4 +1,4 @@
-import type { DataTableShellColumn } from "@zetsel/admin";
+import type { DataTableShellColumn } from "@peppermint/admin";
 import type { Loan } from "../../module.api";
 
 export const LOAN_COLUMNS: DataTableShellColumn<Loan>[] = [

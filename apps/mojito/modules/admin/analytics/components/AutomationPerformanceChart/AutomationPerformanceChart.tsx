@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart } from "@zetsel/ui";
+import { BarChart } from "@peppermint/ui";
 import type { AutomationStatRow } from "../../Analytics.types";
 
 interface AutomationPerformanceChartProps {

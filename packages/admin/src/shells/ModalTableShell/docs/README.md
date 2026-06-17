@@ -5,7 +5,7 @@ A shell component that wraps `DataTableShell` and adds full CRUD modal managemen
 ## Usage
 
 ```tsx
-import { ModalTableShell, type ModalTableShellProps, type ModalFormComponentProps } from '@zetsel/admin';
+import { ModalTableShell, type ModalTableShellProps, type ModalFormComponentProps } from '@peppermint/admin';
 
 interface User {
   id: string;
@@ -139,8 +139,8 @@ interface ModalFormComponentProps<T extends Record<string, unknown>> {
 ### Example Form
 
 ```tsx
-import { Stack, TextInput, Button } from '@zetsel/ui';
-import { useForm } from '@zetsel/ui';
+import { Stack, TextInput, Button } from '@peppermint/ui';
+import { useForm } from '@peppermint/ui';
 
 interface UserFormProps extends ModalFormComponentProps<User> {}
 
@@ -198,7 +198,7 @@ The modal opens immediately with a spinner inside. Once the promise resolves, th
 If you need to access modal state from nested components, use `useModalTableShellContext`:
 
 ```tsx
-import { useModalTableShellContext } from '@zetsel/admin';
+import { useModalTableShellContext } from '@peppermint/admin';
 
 function MyNestedComponent() {
   const { isCreateModalOpen, openCreateModal, activeEditRecord } =

@@ -12,7 +12,7 @@ import {
   TextInput,
   ActionIcon,
   Divider,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { PlayIcon } from "@phosphor-icons/react/dist/csr/Play";
 import { PauseIcon } from "@phosphor-icons/react/dist/csr/Pause";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";

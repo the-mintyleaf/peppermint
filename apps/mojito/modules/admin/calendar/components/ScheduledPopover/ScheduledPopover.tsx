@@ -1,6 +1,6 @@
 "use client";
 
-import { Popover, Stack, Text, Button, Group } from "@zetsel/ui";
+import { Popover, Stack, Text, Button, Group } from "@peppermint/ui";
 import { useRouter } from "next/navigation";
 import type { CalendarEntry } from "../../Calendar.types";
 

@@ -13,7 +13,7 @@ import {
   ScrollArea,
   Box,
   ModuleHeader,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import {
   DataTableWrapper,
   DataTableShellHeader,
@@ -22,7 +22,7 @@ import {
   useTableData,
   useTableStore,
   type DataTableShellTab,
-} from "@zetsel/admin";
+} from "@peppermint/admin";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { LayoutIcon } from "@phosphor-icons/react/dist/csr/Layout";
 import { SquaresFourIcon } from "@phosphor-icons/react/dist/csr/SquaresFour";

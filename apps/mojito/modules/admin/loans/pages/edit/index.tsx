@@ -1,6 +1,6 @@
 "use client";
 
-import { Paper } from "@zetsel/ui";
+import { Paper } from "@peppermint/ui";
 import { LoanForm } from "../../form";
 
 export function LoansEdit() {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Container, Group, Indicator, Menu, Paper, Text } from "@zetsel/ui";
+import { Container, Group, Indicator, Menu, Paper, Text } from "@peppermint/ui";
 import { CaretDown } from "@phosphor-icons/react";
 import { useFormControls } from "../../../../wrappers/FormWrapper/FormWrapper.hooks";
 import type { FormShellStepperProps, Step } from "../../FormShell.types";

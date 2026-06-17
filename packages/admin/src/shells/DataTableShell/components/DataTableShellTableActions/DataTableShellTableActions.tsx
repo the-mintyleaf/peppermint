@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Button, Divider, Group, Paper, Text } from '@zetsel/ui';
+import { Button, Divider, Group, Paper, Text } from '@peppermint/ui';
 import { EyeIcon } from '@phosphor-icons/react/dist/csr/Eye';
 import { PencilIcon } from '@phosphor-icons/react/dist/csr/Pencil';
 import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';

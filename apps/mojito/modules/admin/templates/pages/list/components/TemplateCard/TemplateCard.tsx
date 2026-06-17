@@ -13,7 +13,7 @@ import {
   Button,
   Alert,
   Box,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { DotsThreeIcon } from "@phosphor-icons/react/dist/csr/DotsThree";
 import { PencilIcon } from "@phosphor-icons/react/dist/csr/Pencil";
 import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";

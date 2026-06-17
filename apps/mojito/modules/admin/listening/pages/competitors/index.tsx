@@ -1,7 +1,7 @@
 "use client";
 
-import { ModalTableShell } from "@zetsel/admin";
-import { Paper, LineChart } from "@zetsel/ui";
+import { ModalTableShell } from "@peppermint/admin";
+import { Paper, LineChart } from "@peppermint/ui";
 import {
   fetchCompetitorsPaginated,
   createCompetitor,

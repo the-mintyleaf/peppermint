@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, ButtonGroup, Group, Stack, Text } from "@zetsel/ui";
+import { Button, ButtonGroup, Group, Stack, Text } from "@peppermint/ui";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import type { ReactNode } from "react";
 

@@ -9,7 +9,7 @@ import {
   Badge,
   Switch,
   Tabs,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { useComposeStore } from "../../compose.store";
 import { PLATFORM_CHAR_LIMITS, PLATFORM_LABELS } from "../../compose.types";
 import type { Platform } from "@/modules/admin/shared/domain.types";

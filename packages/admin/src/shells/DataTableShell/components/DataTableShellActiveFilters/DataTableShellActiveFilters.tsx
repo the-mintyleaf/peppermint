@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Group, Text } from '@zetsel/ui';
+import { Button, Group, Text } from '@peppermint/ui';
 import { XIcon } from '@phosphor-icons/react/dist/csr/X';
 import { useTableStore } from '../../../../wrappers/DataTableWrapper';
 

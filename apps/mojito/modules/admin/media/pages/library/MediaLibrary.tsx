@@ -17,7 +17,7 @@ import {
   Pagination,
   NavLink,
   Group,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { UploadSimpleIcon } from "@phosphor-icons/react/dist/csr/UploadSimple";

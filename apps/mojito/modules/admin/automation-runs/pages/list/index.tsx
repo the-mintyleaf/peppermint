@@ -12,7 +12,7 @@ import {
   Pagination,
   Badge,
   ActionIcon,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
 import { ArrowClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowClockwise";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";

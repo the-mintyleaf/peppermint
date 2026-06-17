@@ -1,6 +1,6 @@
 "use client";
 
-import { Stack, Group, Text, Divider, Loader, Center, SimpleGrid } from "@zetsel/ui";
+import { Stack, Group, Text, Divider, Loader, Center, SimpleGrid } from "@peppermint/ui";
 import { useQuery } from "@tanstack/react-query";
 import { AutomationDAG } from "./components/AutomationDAG";
 import { AutomationControls } from "./components/AutomationControls";

@@ -15,7 +15,7 @@ import {
   Group,
   Divider,
   Box,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react/dist/csr/ArrowSquareOut";
 import { useState } from "react";

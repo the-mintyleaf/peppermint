@@ -1,6 +1,6 @@
 "use client";
 
-import { ActionIcon, Divider, Group, Stack, Text } from "@zetsel/ui";
+import { ActionIcon, Anchor, Divider, Group, Stack, Text } from "@peppermint/ui";
 import { ArrowLineLeftIcon } from "@phosphor-icons/react/dist/csr/ArrowLineLeft";
 import { SubNavLinks } from "./SubNavLinks";
 import type { AdminShellMainNavModule } from "../../../AdminShell.types";
@@ -22,10 +22,9 @@ export function SubNav({ module, pathname, onCollapse, visible }: SubNavProps) {
     <Stack
       gap={0}
       h="100%"
-      bg="rgba(255,255,255,.04)"
+      bg="dark.8"
       style={{
         flexShrink: 0,
-        color: "white",
         width: visible ? SUB_NAV_WIDTH : 0,
         opacity: visible ? 1 : 0,
         overflow: "hidden",
@@ -42,14 +41,16 @@ export function SubNav({ module, pathname, onCollapse, visible }: SubNavProps) {
         align="center"
         wrap="nowrap"
       >
-        <Text size="lg" fw={300} lh="120%" c="white">
-          {module.label}
-        </Text>
+        <Anchor href={module.subNav.homeHref} underline="never" c="gray.0">
+          <Text size="sm" fw={500} lh="120%">
+            {module.label}
+          </Text>
+        </Anchor>
 
         <ActionIcon
           size="sm"
           variant="subtle"
-          color="gray.0"
+          color="dark.2"
           onClick={onCollapse}
           aria-label="Collapse sub navigation"
         >
@@ -57,7 +58,7 @@ export function SubNav({ module, pathname, onCollapse, visible }: SubNavProps) {
         </ActionIcon>
       </Group>
 
-      <Divider color="dark.7" mb="sm" />
+      
 
       <Stack
         gap={0}

@@ -1,7 +1,7 @@
 {
-  "name": "@zetsel/api-client",
+  "name": "@peppermint/api-client",
   "version": "1.0.0",
-  "description": "HTTP client and CRUD helpers for the Zetsel framework",
+  "description": "HTTP client and CRUD helpers for the Peppermint framework",
   "exports": {
     ".": "./src/index.ts"
   },

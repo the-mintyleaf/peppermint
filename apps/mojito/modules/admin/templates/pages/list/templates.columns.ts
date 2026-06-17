@@ -1,4 +1,4 @@
-import type { DataTableShellColumn } from "@zetsel/admin";
+import type { DataTableShellColumn } from "@peppermint/admin";
 import { PLATFORM_LABELS, type Template } from "../../module.api";
 
 export const templatesColumns: DataTableShellColumn<Template>[] = [

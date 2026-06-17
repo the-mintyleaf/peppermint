@@ -1,6 +1,6 @@
 # Mojito — Implementation Plan
 
-**App:** `apps/mojito` | **Stack:** Next.js App Router · React Query · Zustand · `@zetsel/ui` · `@zetsel/admin`
+**App:** `apps/mojito` | **Stack:** Next.js App Router · React Query · Zustand · `@peppermint/ui` · `@peppermint/admin`
 
 Modules follow two declared patterns plus custom pages:
 - **ContainedModule** → `ModalTableShell` (single route, drawer CRUD)
@@ -281,7 +281,7 @@ Every page that owns a Paper shell must include a page header section (`Group ju
 - [x] Volume chart: last 14-day stacked BarChart by status (published/draft/failed)
 - [x] Mini calendar: highlights days with scheduled posts + today's date
 - [x] Quick actions bar: Create Content + View Approvals wired to routes
-- [x] Fixed `@mantine/charts` → `@zetsel/ui` import (was violating stack rules)
+- [x] Fixed `@mantine/charts` → `@peppermint/ui` import (was violating stack rules)
 
 ---
 

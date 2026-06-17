@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { Box, Container, Divider, Group, ModuleHeader, Paper } from "@zetsel/ui";
+import { Box, Button, Container, Divider, Group, ModuleHeader, Paper } from "@peppermint/ui";
+import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import {
   DataTableWrapper,
   useTableData,
@@ -111,6 +112,27 @@ function DataTableShellInner<T extends Record<string, unknown>>({
         right={
           <Group gap={4} pr="md" wrap="nowrap" align="center">
             {headerRight}
+            {!disableCreateButton && (
+              sustained && onNewClick ? (
+                <Button
+                  size="xs"
+                  leftSection={<PlusIcon size={13} />}
+                  onClick={onNewClick}
+                >
+                  New {moduleInfo.label ?? moduleInfo.name}
+                </Button>
+              ) : (basePath || newButtonHref) ? (
+                <Button
+                  component="a"
+                  size="xs"
+                  href={newButtonHref ?? `${basePath}/new`}
+                  leftSection={<PlusIcon size={13} />}
+                  suppressHydrationWarning
+                >
+                  New {moduleInfo.label ?? moduleInfo.name}
+                </Button>
+              ) : null
+            )}
             <DataTableShellHeaderActions exportFilename={moduleInfo.name} />
           </Group>
         }

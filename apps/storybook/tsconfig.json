@@ -16,11 +16,11 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@zetsel/ui": ["../../packages/ui/src"],
-      "@zetsel/admin": ["../../packages/admin/src"],
-      "@zetsel/api-client": ["../../packages/api-client/src"],
-      "@zetsel/utils": ["../../packages/utils/src"],
-      "@zetsel/types": ["../../packages/types/src"]
+      "@peppermint/ui": ["../../packages/ui/src"],
+      "@peppermint/admin": ["../../packages/admin/src"],
+      "@peppermint/api-client": ["../../packages/api-client/src"],
+      "@peppermint/utils": ["../../packages/utils/src"],
+      "@peppermint/types": ["../../packages/types/src"]
     }
   },
   "include": [".storybook", "../../packages"]

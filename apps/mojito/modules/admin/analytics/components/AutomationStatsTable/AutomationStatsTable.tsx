@@ -1,6 +1,6 @@
 "use client";
 
-import { Table, Text, Badge, Group } from "@zetsel/ui";
+import { Table, Text, Badge, Group } from "@peppermint/ui";
 import { useRouter } from "next/navigation";
 import type { AutomationStatRow } from "../../Analytics.types";
 

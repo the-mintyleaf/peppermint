@@ -21,7 +21,7 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
   rowExpansion,
   disableActions = false,
 }: DataTableShellTableProps<T>) {
-  const { rows, isLoading, isFetching, paginationMeta } = useTableData<T>();
+  const { rows, isLoading, isFetching, isDebouncing, paginationMeta } = useTableData<T>();
   const { selectedRecords } = useDataTableShellContext<T>();
 
   const useTable = useTableStore();
@@ -115,7 +115,7 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
       idAccessor={idAccessor as keyof T & string}
       columns={effectiveColumns}
       records={filteredRows}
-      fetching={isLoading || isFetching}
+      fetching={isLoading || isFetching || isDebouncing}
       emptyState={<DataTableShellEmptyState />}
       rowStyle={rowStyle}
       sortStatus={sortStatus}

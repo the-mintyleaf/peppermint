@@ -72,14 +72,17 @@ export function DataTableWrapper<T = unknown>({
   // is synchronous and cheap, so it runs against the live value.
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [debouncedFilters, setDebouncedFilters] = useState(filters);
+  const [isDebouncing, setIsDebouncing] = useState(false);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!enableServerQuery) return;
+    setIsDebouncing(true);
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
       setDebouncedSearch(search);
       setDebouncedFilters(filters);
+      setIsDebouncing(false);
     }, debounceMs);
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -229,11 +232,12 @@ export function DataTableWrapper<T = unknown>({
       total,
       isLoading,
       isFetching,
+      isDebouncing,
       isError,
       refetch: stableRefetch,
       paginationMeta,
     }),
-    [rows, total, isLoading, isFetching, isError, stableRefetch, paginationMeta]
+    [rows, total, isLoading, isFetching, isDebouncing, isError, stableRefetch, paginationMeta]
   );
 
   // storeValue is stable — only the store ref and static parsed key are passed.

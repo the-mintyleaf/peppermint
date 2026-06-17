@@ -1,6 +1,6 @@
 "use client";
 
-import { Group, ActionIcon, Tooltip, Divider } from "@zetsel/ui";
+import { Group, ActionIcon, Tooltip, Divider } from "@peppermint/ui";
 import { CursorIcon } from "@phosphor-icons/react/dist/csr/Cursor";
 import { TextTIcon } from "@phosphor-icons/react/dist/csr/TextT";
 import { ImageIcon } from "@phosphor-icons/react/dist/csr/Image";

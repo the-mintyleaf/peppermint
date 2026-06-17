@@ -1,4 +1,4 @@
-import type { QueryParams } from "@zetsel/admin";
+import type { QueryParams } from "@peppermint/admin";
 import { fetchContentItems } from "../content/content.api";
 import type { DraftsFetchResponse } from "./drafts.types";
 

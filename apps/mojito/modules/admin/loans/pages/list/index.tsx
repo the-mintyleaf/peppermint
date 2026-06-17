@@ -1,8 +1,8 @@
 "use client";
 
-import { DataTableShell } from "@zetsel/admin";
-import { Paper } from "@zetsel/ui";
-import type { DataTableShellTab } from "@zetsel/admin";
+import { DataTableShell } from "@peppermint/admin";
+import { Paper } from "@peppermint/ui";
+import type { DataTableShellTab } from "@peppermint/admin";
 import { ListIcon }        from "@phosphor-icons/react/dist/csr/List";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { WarningIcon }     from "@phosphor-icons/react/dist/csr/Warning";

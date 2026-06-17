@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Paper, Stack, Group, Text, SegmentedControl, Divider } from "@zetsel/ui";
+import { Paper, Stack, Group, Text, SegmentedControl, Divider } from "@peppermint/ui";
 import { useQuery } from "@tanstack/react-query";
 import { StatCards } from "./components/StatCards";
 import { ContentVolumeChart } from "./components/ContentVolumeChart";

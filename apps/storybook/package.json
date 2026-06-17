@@ -11,9 +11,9 @@
   "dependencies": {
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "@zetsel/ui": "workspace:*",
-    "@zetsel/admin": "workspace:*",
-    "@zetsel/kanban": "workspace:*"
+    "@peppermint/ui": "workspace:*",
+    "@peppermint/admin": "workspace:*",
+    "@peppermint/kanban": "workspace:*"
   },
   "devDependencies": {
     "@storybook/addon-a11y": "8.6.15",

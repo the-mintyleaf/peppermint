@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Button, Divider, Group } from "@zetsel/ui";
+import { Box, Button, Divider, Group } from "@peppermint/ui";
 import { ArrowLeft, ArrowRight, Check, X } from "@phosphor-icons/react";
 import { useFormControls } from "../../../../wrappers/FormWrapper/FormWrapper.hooks";
 import type { FormShellFooterProps, Step } from "../../FormShell.types";

@@ -1,6 +1,6 @@
 # FormShell
 
-Opinionated form layout shell for `@zetsel/admin`. Provides header, progress bar, dirty banner, stepper, scrollable content area, and sticky footer — all pre-wired to `FormWrapper` contexts via `useFormControls()`.
+Opinionated form layout shell for `@peppermint/admin`. Provides header, progress bar, dirty banner, stepper, scrollable content area, and sticky footer — all pre-wired to `FormWrapper` contexts via `useFormControls()`.
 
 **Must be rendered inside `<FormWrapper>`.**
 

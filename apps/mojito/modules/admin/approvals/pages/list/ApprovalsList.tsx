@@ -12,7 +12,7 @@ import {
   Pagination,
   Collapse,
   ActionIcon,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";

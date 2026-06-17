@@ -1,4 +1,4 @@
-# @zetsel/utils — API Reference
+# @peppermint/utils — API Reference
 
 Pure hooks and utility functions. No monorepo dependencies. React is a peer dependency.
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { SimpleGrid, Paper, Stack, Text, Group, Badge } from "@zetsel/ui";
+import { SimpleGrid, Paper, Stack, Text, Group, Badge } from "@peppermint/ui";
 import { TrendUpIcon } from "@phosphor-icons/react/dist/csr/TrendUp";
 import { TrendDownIcon } from "@phosphor-icons/react/dist/csr/TrendDown";
 import type { StatCardsProps } from "./StatCards.types";

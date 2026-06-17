@@ -1,37 +1,37 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import { Tooltip, UnstyledButton } from "@zetsel/ui";
-import type { Icon } from "@phosphor-icons/react";
+import { Tooltip, UnstyledButton, useComputedColorScheme } from "@peppermint/ui";
+import { OpenAIIcon } from "./OpenAIIcon";
 import type { AdminShellAiButton } from "../../../AdminShell.types";
+import { OpenAiLogoIcon as OpenAiLogo } from "@phosphor-icons/react/dist/csr/OpenAiLogo";
 
 export const DEFAULT_AI_BUTTON_HREF = "/admin/ai-chat";
 export const DEFAULT_AI_BUTTON_LABEL = "AI Assistant";
-export const DEFAULT_AI_BUTTON_COLOR = "pink";
 
 interface MainNavAiButtonProps {
-  brandIcon: Icon;
   aiButton?: AdminShellAiButton;
   pathname?: string;
 }
 
 export function MainNavAiButton({
-  brandIcon,
   aiButton,
   pathname = "",
 }: MainNavAiButtonProps) {
+  const colorScheme = useComputedColorScheme("dark");
+  const isDark = colorScheme === "dark";
+
   if (aiButton?.hidden) return null;
 
   const href = aiButton?.href ?? DEFAULT_AI_BUTTON_HREF;
   const label = aiButton?.label ?? DEFAULT_AI_BUTTON_LABEL;
-  const color = aiButton?.color ?? DEFAULT_AI_BUTTON_COLOR;
-  const IconComponent = aiButton?.icon ?? brandIcon;
-  const isActive =
-    pathname === href || pathname.startsWith(href + "/");
+  const isActive = pathname === href || pathname.startsWith(href + "/");
+
+  const activeBg = isDark ? "var(--mantine-color-dark-5)" : "var(--mantine-color-gray-2)";
 
   const button = (
     <UnstyledButton
-    mb="sm"
+      mb="sm"
       component={aiButton?.onClick ? "button" : "a"}
       href={aiButton?.onClick ? undefined : href}
       onClick={(event: MouseEvent) => {
@@ -46,13 +46,11 @@ export function MainNavAiButton({
         width: 32,
         height: 32,
         borderRadius: "var(--mantine-radius-md)",
-        backgroundColor: isActive
-          ? `var(--mantine-color-${color}-8)`
-          : `var(--mantine-color-${color}-9)`,
-        transition: "background-color 150ms ease, color 150ms ease",
+        backgroundColor: isActive ? activeBg : "transparent",
+        transition: "background-color 150ms ease",
       }}
     >
-      <IconComponent size={20} weight={isActive ? "fill" : "fill"} />
+      <OpenAiLogo size={20} weight="bold" color="var(--mantine-color-brand-3)" />
     </UnstyledButton>
   );
 

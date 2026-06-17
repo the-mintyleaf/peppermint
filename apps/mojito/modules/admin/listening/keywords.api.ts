@@ -1,4 +1,4 @@
-import type { QueryParams } from "@zetsel/admin";
+import type { QueryParams } from "@peppermint/admin";
 import { delay, paginate } from "../shared/mock.utils";
 import { addKeyword, deleteKeyword, fetchKeywords } from "./listening.api";
 import type { KeywordRow, KeywordsFetchResponse } from "./keywords.types";

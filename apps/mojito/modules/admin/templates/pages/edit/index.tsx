@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Paper, Center, Loader } from "@zetsel/ui";
+import { Paper, Center, Loader } from "@peppermint/ui";
 import { useQuery } from "@tanstack/react-query";
 import { TemplateBuilder } from "../../form";
 import { useBuilderStore } from "../../form/TemplateBuilder.store";

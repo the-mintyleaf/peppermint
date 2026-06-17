@@ -1,4 +1,4 @@
-import type { QueryParams } from "@zetsel/admin";
+import type { QueryParams } from "@peppermint/admin";
 import type { Channel, ChannelsFetchResponse } from "./channels.types";
 import { v4 as uuidv4 } from "uuid";
 

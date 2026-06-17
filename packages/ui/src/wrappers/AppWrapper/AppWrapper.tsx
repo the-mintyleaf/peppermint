@@ -13,6 +13,7 @@ import { NavigationProgress } from "@mantine/nprogress";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "@mantine/nprogress/styles.css";
+import "@mantine/spotlight/styles.css";
 
 export function AppWrapper({
   theme,
@@ -21,7 +22,7 @@ export function AppWrapper({
   children,
 }: AppWrapperProps) {
   const content = (
-    <MantineProvider theme={theme} defaultColorScheme={defaultColorScheme}>
+    <MantineProvider theme={theme} forceColorScheme={"light"}>
       <ModalsProvider>
         <NavigationProgress />
         <Notifications />

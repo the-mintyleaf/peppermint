@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { Paper, ScrollArea } from "@zetsel/ui";
+import { Paper, ScrollArea } from "@peppermint/ui";
 import { AutomationView } from "./AutomationView";
 
 export function AutomationPage() {

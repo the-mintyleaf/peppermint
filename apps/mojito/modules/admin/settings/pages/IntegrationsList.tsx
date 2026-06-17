@@ -11,7 +11,7 @@ import {
   Image,
   Skeleton,
   Select,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { useState } from "react";
 import { notifications } from "@mantine/notifications";
 import { useIntegrations, useConnectIntegration, useDisconnectIntegration } from "../settings.hooks";

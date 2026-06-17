@@ -1,6 +1,6 @@
 # Storybook App
 
-Component showcase and testing environment for Zetsel packages.
+Component showcase and testing environment for Peppermint packages.
 
 ## Development
 

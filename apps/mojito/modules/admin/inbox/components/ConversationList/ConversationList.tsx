@@ -9,7 +9,7 @@ import {
   Center,
   Avatar,
   Group,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import type { Conversation } from "../../../shared/entities.types";
 
 const TYPE_COLOR: Record<Conversation["type"], string> = {

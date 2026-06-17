@@ -17,7 +17,7 @@ import {
   Text,
   TextInput,
   UnstyledButton,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import {
   ArrowLeftIcon,
   CaretDownIcon,

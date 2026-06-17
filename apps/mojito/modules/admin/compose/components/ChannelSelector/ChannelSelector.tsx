@@ -9,7 +9,7 @@ import {
   Paper,
   ScrollArea,
   Skeleton,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { useQuery } from "@tanstack/react-query";
 import { fetchChannels } from "@/modules/admin/channels/channels.api";
 import { useComposeStore } from "../../compose.store";

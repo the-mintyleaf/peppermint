@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, Group, Stack, Text, UnstyledButton } from "@zetsel/ui";
+import { Badge, Group, Stack, Text, UnstyledButton } from "@peppermint/ui";
 import type { AdminShellNavGroup } from "../../../AdminShell.types";
 
 interface SubNavLinksProps {
@@ -18,9 +18,8 @@ export function SubNavLinks({ groups, pathname }: SubNavLinksProps) {
             size="10px"
             fw={300}
             tt="uppercase"
-            c="gray.4"
+            c="dark.3"
             px="md"
-            
             pb={4}
             style={{ letterSpacing: "0.08em" }}
           >
@@ -43,14 +42,14 @@ export function SubNavLinks({ groups, pathname }: SubNavLinksProps) {
                 style={{
                   borderRadius: "var(--mantine-radius-sm)",
                   backgroundColor: isActive
-                    ? "transparent"
+                    ? "var(--mantine-color-dark-6)"
                     : "transparent",
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
                   color: isActive
                     ? "var(--mantine-color-gray-0)"
-                    : "var(--mantine-color-gray-7)",
+                    : "var(--mantine-color-dark-2)",
                 }}
               >
                 {Icon && (
@@ -62,7 +61,7 @@ export function SubNavLinks({ groups, pathname }: SubNavLinksProps) {
                   />
                 )}
                 <Group justify="space-between" style={{ flex: 1 }}>
-                  <Text size="sm" fw={400} style={{ color: "inherit" }}>
+                  <Text size="sm" fw={500} style={{ color: "inherit" }}>
                     {item.label}
                   </Text>
                   {item.badge && (

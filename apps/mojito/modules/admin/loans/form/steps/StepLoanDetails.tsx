@@ -1,7 +1,7 @@
 "use client";
 
-import { Stack, TextInput } from "@zetsel/ui";
-import { useFormControls } from "@zetsel/admin";
+import { Stack, TextInput } from "@peppermint/ui";
+import { useFormControls } from "@peppermint/admin";
 import type { LoanFormValues } from "../loanForm.types";
 
 export function StepLoanDetails() {

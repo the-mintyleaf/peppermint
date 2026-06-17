@@ -1,6 +1,6 @@
 "use client";
 
-import { SignInPage } from "@zetsel/admin";
+import { SignInPage } from "@peppermint/admin";
 
 export function ModuleSignIn() {
   return (

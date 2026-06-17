@@ -2,7 +2,7 @@ import React from 'react';
 import { MantineProvider } from '@mantine/core';
 import { ModalsProvider } from '@mantine/modals';
 import { Notifications } from '@mantine/notifications';
-import { QueryClientWrapper } from '@zetsel/ui';
+import { QueryClientWrapper } from '@peppermint/ui';
 import type { Preview, Decorator } from '@storybook/react';
 
 const withMantine: Decorator = (Story) => (

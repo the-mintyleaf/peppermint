@@ -1,12 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Divider, Stack } from "@zetsel/ui";
+import { Box, Divider, Stack } from "@peppermint/ui";
 import { MainNavIconButton } from "./MainNavIconButton";
 import { MainNavFooter } from "./MainNavFooter";
 import type {
   AdminShellAiButton,
-  AdminShellBrand,
   AdminShellMainNavAdditional,
   AdminShellMainNavItem,
 } from "../../../AdminShell.types";
@@ -16,10 +15,12 @@ import {
   NAV_HEADER_HEIGHT,
   shellCardStyle,
 } from "../../../shell.constants";
+import { spotlight } from "@peppermint/ui";
+import { MagnifyingGlass } from "@phosphor-icons/react";
+import { MainNavSpotlight } from "./MainNavSpotlight";
 
 interface MainNavProps {
   header: ReactNode;
-  brand: AdminShellBrand;
   mainNav: AdminShellMainNavItem[];
   additional?: AdminShellMainNavAdditional[];
   aiButton?: AdminShellAiButton;
@@ -32,7 +33,6 @@ interface MainNavProps {
 
 export function MainNav({
   header,
-  brand,
   mainNav,
   additional,
   aiButton,
@@ -64,8 +64,18 @@ export function MainNav({
 
         <Divider color="dark.7" w="60%" />
 
+        <Box py={4}>
+          <MainNavIconButton
+            icon={MagnifyingGlass}
+            label="Search modules"
+            onClick={() => spotlight.open()}
+          />
+        </Box>
+
+        <Divider color="dark.7" w="60%" />
+
         <Stack gap={4} align="center" py="sm" w="100%">
-          {mainNav.map((item:any) => {
+          {mainNav.map((item) => {
             const href =
               item.kind === "page" ? item.href : item.subNav.homeHref;
             const isActive = activeItemId === item.id;
@@ -112,11 +122,12 @@ export function MainNav({
       </Stack>
 
       <MainNavFooter
-        brandIcon={brand.icon}
         aiButton={aiButton}
         pathname={pathname}
         userMenu={userMenu}
       />
+
+      <MainNavSpotlight mainNav={mainNav} additional={additional} />
     </Stack>
   );
 }

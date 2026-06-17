@@ -1,7 +1,7 @@
 "use client";
 
-import { Stack, Group, Title, Text, Paper, Skeleton, Table, Badge, Progress } from "@zetsel/ui";
-import { BarChart } from "@zetsel/ui";
+import { Stack, Group, Title, Text, Paper, Skeleton, Table, Badge, Progress } from "@peppermint/ui";
+import { BarChart } from "@peppermint/ui";
 import { useQuery } from "@tanstack/react-query";
 import { fetchROI } from "../../analytics.api";
 import { analyticsQueryKeys } from "../../analytics.queryKeys";

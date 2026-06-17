@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Stack, Group, Text, Badge, Anchor, Accordion, Table, Loader, Center } from "@zetsel/ui";
+import { Stack, Group, Text, Badge, Anchor, Accordion, Table, Loader, Center } from "@peppermint/ui";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { fetchRuns, type Run } from "../../../../module.api";

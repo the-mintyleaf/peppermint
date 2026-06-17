@@ -42,7 +42,7 @@ Sign up at [https://deepseek.com/](https://deepseek.com/) and get your API key.
 ### 1. Clone & Install
 
 ```bash
-cd ~/Projects/zutsel/apps/mint-ai
+cd ~/Projects/peppermint/apps/mint-ai
 npm install
 ```
 

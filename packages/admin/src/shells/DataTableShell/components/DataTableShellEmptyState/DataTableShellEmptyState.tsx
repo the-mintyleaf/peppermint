@@ -1,6 +1,6 @@
 'use client';
 
-import { Center, Stack, Text } from '@zetsel/ui';
+import { Center, Stack, Text } from '@peppermint/ui';
 import { SmileyNervousIcon } from '@phosphor-icons/react/dist/csr/SmileyNervous';
 
 export function DataTableShellEmptyState() {

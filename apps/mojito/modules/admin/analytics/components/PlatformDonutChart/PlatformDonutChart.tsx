@@ -1,7 +1,7 @@
 "use client";
 
-import { DonutChart } from "@zetsel/ui";
-import { Group, Stack, Text } from "@zetsel/ui";
+import { DonutChart } from "@peppermint/ui";
+import { Group, Stack, Text } from "@peppermint/ui";
 import type { PlatformShare } from "../../Analytics.types";
 
 interface PlatformDonutChartProps {

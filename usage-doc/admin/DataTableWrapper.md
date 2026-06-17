@@ -1,8 +1,8 @@
 # DataTableWrapper — Usage Guide
 
-Data fetching and state engine for `@zetsel/admin`. Handles React Query integration, server-side and client-side pagination, search, multi-column sort, row selection, column visibility, and user preference persistence — no prop drilling required.
+Data fetching and state engine for `@peppermint/admin`. Handles React Query integration, server-side and client-side pagination, search, multi-column sort, row selection, column visibility, and user preference persistence — no prop drilling required.
 
-Import from `@zetsel/admin`:
+Import from `@peppermint/admin`:
 
 ```ts
 import {
@@ -11,7 +11,7 @@ import {
   useTableStore,
   useInvalidateTable,
   useTableSelection,
-} from '@zetsel/admin';
+} from '@peppermint/admin';
 ```
 
 ---
@@ -49,7 +49,7 @@ Client-side mode fetches all data once and handles search, sort, and pagination 
 
 ```tsx
 'use client';
-import { DataTableWrapper, useTableData, useTableStore } from '@zetsel/admin';
+import { DataTableWrapper, useTableData, useTableStore } from '@peppermint/admin';
 import { DataTable } from 'mantine-datatable';
 
 type User = { id: number; name: string; email: string; role: string };
@@ -111,8 +111,8 @@ When `enableServerQuery` is true, the wrapper sends `page`, `pageSize`, `search`
 
 ```tsx
 'use client';
-import { DataTableWrapper, useTableData, useTableStore } from '@zetsel/admin';
-import type { QueryParams } from '@zetsel/admin';
+import { DataTableWrapper, useTableData, useTableStore } from '@peppermint/admin';
+import type { QueryParams } from '@peppermint/admin';
 
 type Product = { id: number; name: string; price: number; stock: number };
 

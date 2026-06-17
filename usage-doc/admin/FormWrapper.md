@@ -1,10 +1,10 @@
 # FormWrapper — Usage Guide
 
-Form state engine for `@zetsel/admin`. Handles multi-step navigation, per-step field validation, per-step API calls (create on first visit, patch on re-visit), entity ID storage across steps, and dirty tracking — no prop drilling required.
+Form state engine for `@peppermint/admin`. Handles multi-step navigation, per-step field validation, per-step API calls (create on first visit, patch on re-visit), entity ID storage across steps, and dirty tracking — no prop drilling required.
 
 ```ts
-import { FormWrapper, useFormInstance, useFormControls } from '@zetsel/admin';
-import type { StepApiConfig } from '@zetsel/admin';
+import { FormWrapper, useFormInstance, useFormControls } from '@peppermint/admin';
+import type { StepApiConfig } from '@peppermint/admin';
 ```
 
 ---
@@ -25,8 +25,8 @@ For simple forms that submit everything at once, pass only `finalSubmitFn`:
 
 ```tsx
 'use client';
-import { TextInput, Button } from '@zetsel/ui';
-import { FormWrapper, useFormInstance, useFormControls } from '@zetsel/admin';
+import { TextInput, Button } from '@peppermint/ui';
+import { FormWrapper, useFormInstance, useFormControls } from '@peppermint/admin';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -77,8 +77,8 @@ The key pattern: each step declares a `StepApiConfig` that fires either `on-next
 
 ```tsx
 'use client';
-import { FormWrapper, useFormInstance, useFormControls } from '@zetsel/admin';
-import type { StepApiConfig } from '@zetsel/admin';
+import { FormWrapper, useFormInstance, useFormControls } from '@peppermint/admin';
+import type { StepApiConfig } from '@peppermint/admin';
 import { z } from 'zod';
 
 // --- Types ---

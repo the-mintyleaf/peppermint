@@ -1,6 +1,6 @@
 "use client";
 
-import { ActionIcon, Menu } from "@zetsel/ui";
+import { ActionIcon, Menu } from "@peppermint/ui";
 import { ArrowClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowClockwise";
 import { DotsThreeIcon } from "@phosphor-icons/react/dist/csr/DotsThree";
 import { DownloadSimpleIcon } from "@phosphor-icons/react/dist/csr/DownloadSimple";

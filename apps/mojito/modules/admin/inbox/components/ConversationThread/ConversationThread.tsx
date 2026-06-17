@@ -14,7 +14,7 @@ import {
   SegmentedControl,
   Divider,
   ScrollArea,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
 import { UserIcon } from "@phosphor-icons/react/dist/csr/User";

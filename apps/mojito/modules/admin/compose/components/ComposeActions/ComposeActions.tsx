@@ -8,7 +8,7 @@ import {
   Popover,
   DateTimePicker,
   Text,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { CalendarIcon } from "@phosphor-icons/react/dist/csr/Calendar";
 import { PaperPlaneTiltIcon } from "@phosphor-icons/react/dist/csr/PaperPlaneTilt";
 import { FloppyDiskIcon } from "@phosphor-icons/react/dist/csr/FloppyDisk";

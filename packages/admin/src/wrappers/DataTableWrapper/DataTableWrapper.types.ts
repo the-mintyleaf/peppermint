@@ -61,6 +61,8 @@ export interface DataTableDataContextValue<T = unknown> {
   total: number;
   isLoading: boolean;
   isFetching: boolean;
+  /** True while search/filter changes are waiting for the debounce timer to fire (server mode only). */
+  isDebouncing: boolean;
   isError: boolean;
   refetch: () => void;
   paginationMeta: PaginationMeta;

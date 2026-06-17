@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Group, Text, ActionIcon, Tooltip } from "@zetsel/ui";
+import { Box, Group, Text, ActionIcon, Tooltip } from "@peppermint/ui";
 import { SidebarSimpleIcon } from "@phosphor-icons/react/dist/csr/SidebarSimple";
 
 interface CollapsedPanelBubbleProps {

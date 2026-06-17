@@ -14,7 +14,7 @@ import {
   Group,
   Divider,
   Box,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { useState, useEffect } from "react";

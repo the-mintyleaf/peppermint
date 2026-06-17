@@ -8,8 +8,9 @@ import {
   Text,
   Tooltip,
   UnstyledButton,
+  useComputedColorScheme,
   useMantineColorScheme,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { BellSlashIcon } from "@phosphor-icons/react/dist/csr/BellSlash";
 import { CircleIcon } from "@phosphor-icons/react/dist/csr/Circle";
 import { DotsThreeVerticalIcon } from "@phosphor-icons/react/dist/csr/DotsThreeVertical";
@@ -31,6 +32,8 @@ export function UserInfoPopover({
   disableTheme = false,
 }: UserInfoPopoverProps) {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const computedColorScheme = useComputedColorScheme("dark");
+  const isDark = computedColorScheme === "dark";
   const router = useRouter();
 
   // TODO: Replace with actual user context when available
@@ -78,7 +81,7 @@ export function UserInfoPopover({
           </Tooltip>
         ) : (
           <UnstyledButton
-            bg="gray.9"
+            bg={isDark ? "dark.7" : "gray.1"}
             style={{
               padding: "12px 8px",
               borderRadius: "var(--mantine-radius-sm)",
@@ -98,7 +101,7 @@ export function UserInfoPopover({
               />
             </Indicator>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <Text fw={600} size="xs" truncate c="white">
+              <Text fw={600} size="xs" truncate c={isDark ? "gray.0" : "dark.8"}>
                 {displayName}
               </Text>
               <Text size="10px" c="dimmed" truncate>
@@ -110,7 +113,7 @@ export function UserInfoPopover({
             <DotsThreeVerticalIcon
               size={16}
               weight="bold"
-              color="white"
+              color={isDark ? "var(--mantine-color-gray-0)" : "var(--mantine-color-dark-5)"}
               style={{ flexShrink: 0 }}
             />
           </UnstyledButton>

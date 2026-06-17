@@ -1,6 +1,6 @@
 "use client";
 
-import { Paper, Group, Stack, Title, Text } from "@zetsel/ui";
+import { Paper, Group, Stack, Title, Text } from "@peppermint/ui";
 
 interface DummyPageProps {
   title: string;

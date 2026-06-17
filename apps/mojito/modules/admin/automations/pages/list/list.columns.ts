@@ -1,4 +1,4 @@
-import type { DataTableShellColumn } from "@zetsel/admin";
+import type { DataTableShellColumn } from "@peppermint/admin";
 import type { Automation } from "../../module.api";
 
 // Columns are defined here; custom renders for status, run summary, and actions

@@ -1,4 +1,4 @@
-# Quick Start: Run zetsel-admin + mint-ai
+# Quick Start: Run mintflow + mint-ai
 
 ## 1️⃣ Install Redis (One-time setup)
 
@@ -18,7 +18,7 @@ Ready to accept connections
 ## 2️⃣ Terminal 1 — Start mint-ai API (port 3000)
 
 ```bash
-cd /home/decoffee/Projects/zutsel/apps/mint-ai
+cd /home/decoffee/Projects/peppermint/apps/mint-ai
 pnpm dev
 ```
 
@@ -27,10 +27,10 @@ Wait for:
 API running on port 3000
 ```
 
-## 3️⃣ Terminal 2 — Start zetsel-admin (port 3001)
+## 3️⃣ Terminal 2 — Start mintflow (port 3001)
 
 ```bash
-cd /home/decoffee/Projects/zutsel/apps/zetsel-admin
+cd /home/decoffee/Projects/peppermint/apps/mintflow
 pnpm dev
 ```
 
@@ -68,7 +68,7 @@ That's it! 🎉
 ## Architecture at a Glance
 
 ```
-zetsel-admin (port 3001)
+mintflow (port 3001)
     ↓ sends message
 mint-ai API (port 3000)
     ↓ queues job

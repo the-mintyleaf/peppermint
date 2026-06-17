@@ -1,6 +1,6 @@
 "use client";
 
-import { Stack, TextInput, Select, NumberInput, Button, useForm } from "@zetsel/ui";
+import { Stack, TextInput, Select, NumberInput, Button, useForm } from "@peppermint/ui";
 import type { BookFormProps } from "./BookForm.types";
 import type { Book } from "../books.types";
 

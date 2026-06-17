@@ -1,5 +1,5 @@
 import type { DataTableColumn } from "mantine-datatable";
-import { Badge, Group, Text, ActionIcon } from "@zetsel/ui";
+import { Badge, Group, Text, ActionIcon } from "@peppermint/ui";
 import { ArrowClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowClockwise";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";

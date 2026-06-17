@@ -18,7 +18,7 @@ import {
   DateInput,
   MonthPickerInput,
   YearPickerInput,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 
 type propDefaults = {
   fontSize: string;

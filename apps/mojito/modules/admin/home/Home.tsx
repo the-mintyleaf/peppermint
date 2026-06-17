@@ -10,8 +10,8 @@ import {
   Text,
   Skeleton,
   Badge,
-} from "@zetsel/ui";
-import { BarChart } from "@zetsel/ui";
+} from "@peppermint/ui";
+import { BarChart } from "@peppermint/ui";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/csr/ArrowUpRight";
 import { CaretLeftIcon } from "@phosphor-icons/react/dist/csr/CaretLeft";
 import { CaretRightIcon } from "@phosphor-icons/react/dist/csr/CaretRight";

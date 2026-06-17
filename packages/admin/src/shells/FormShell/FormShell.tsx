@@ -13,7 +13,7 @@ import {
   Progress,
   Stack,
   Text,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { useFormControls } from "../../wrappers/FormWrapper/FormWrapper.hooks";
 import { FormShellFooter } from "./components/FormShellFooter";
 import { FormShellStepper } from "./components/FormShellStepper";
@@ -23,6 +23,7 @@ export function FormShell({
   title,
   description,
   onBack,
+  breadcrumbItems = [],
   steps = [],
   disabledSteps = [],
   showStepper = true,
@@ -43,6 +44,7 @@ export function FormShell({
   return (
     <>
       <ModuleHeader
+        breadcrumbItems={breadcrumbItems}
         right={
           <Group gap={0}>
             <Button

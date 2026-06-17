@@ -1,6 +1,6 @@
 "use client";
 
-import { Stack, TextInput, Select, Button } from "@zetsel/ui";
+import { Stack, TextInput, Select, Button } from "@peppermint/ui";
 import { useForm } from "@mantine/form";
 import type { KeywordFormProps } from "./keywordForm.types";
 import type { KeywordRow } from "../keywords.types";

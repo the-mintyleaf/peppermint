@@ -1,7 +1,7 @@
 "use client";
 
-import { Stack, Group, Title, Text, Paper, SegmentedControl, Skeleton, Tabs } from "@zetsel/ui";
-import { LineChart, BarChart } from "@zetsel/ui";
+import { Stack, Group, Title, Text, Paper, SegmentedControl, Skeleton, Tabs } from "@peppermint/ui";
+import { LineChart, BarChart } from "@peppermint/ui";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchChannelPerformance } from "../../analytics.api";

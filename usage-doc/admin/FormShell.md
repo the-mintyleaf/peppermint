@@ -1,9 +1,9 @@
 # FormShell — Usage Guide
 
-Pre-composed form layout for `@zetsel/admin`. Renders a top bar with breadcrumb and cancel/refill actions, a progress bar, a dirty-state banner, a collapsible stepper, scrollable content, and a sticky footer with Previous / Next / Submit buttons — all wired to `FormWrapper` contexts automatically.
+Pre-composed form layout for `@peppermint/admin`. Renders a top bar with breadcrumb and cancel/refill actions, a progress bar, a dirty-state banner, a collapsible stepper, scrollable content, and a sticky footer with Previous / Next / Submit buttons — all wired to `FormWrapper` contexts automatically.
 
 ```ts
-import { FormWrapper, FormShell } from '@zetsel/admin';
+import { FormWrapper, FormShell } from '@peppermint/admin';
 ```
 
 `FormShell` must always be rendered inside a `<FormWrapper>`. It reads all state from context — no props for loading, step index, or handlers are required beyond the step definitions.
@@ -14,8 +14,8 @@ import { FormWrapper, FormShell } from '@zetsel/admin';
 
 ```tsx
 'use client';
-import { TextInput } from '@zetsel/ui';
-import { FormWrapper, FormShell, useFormInstance } from '@zetsel/admin';
+import { TextInput } from '@peppermint/ui';
+import { FormWrapper, FormShell, useFormInstance } from '@peppermint/admin';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -60,10 +60,10 @@ Without `steps`, `FormShell` renders no stepper or progress bar, and the footer 
 
 ```tsx
 'use client';
-import { TextInput } from '@zetsel/ui';
+import { TextInput } from '@peppermint/ui';
 import { z } from 'zod';
-import { FormWrapper, FormShell, useFormInstance, useFormControls } from '@zetsel/admin';
-import type { StepApiConfig } from '@zetsel/admin';
+import { FormWrapper, FormShell, useFormInstance, useFormControls } from '@peppermint/admin';
+import type { StepApiConfig } from '@peppermint/admin';
 
 interface OnboardingValues extends Record<string, unknown> {
   name: string;

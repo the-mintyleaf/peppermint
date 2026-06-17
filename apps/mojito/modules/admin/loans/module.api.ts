@@ -1,4 +1,4 @@
-import type { QueryParams } from "@zetsel/admin";
+import type { QueryParams } from "@peppermint/admin";
 
 export type LoanStatus = "active" | "overdue" | "returned";
 

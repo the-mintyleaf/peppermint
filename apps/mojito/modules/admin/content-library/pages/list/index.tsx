@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { SimpleGrid, Stack, Group, Text, Pagination, Center, Loader } from "@zetsel/ui";
+import { SimpleGrid, Stack, Group, Text, Pagination, Center, Loader } from "@peppermint/ui";
 import { useQuery } from "@tanstack/react-query";
 import { ContentCard } from "./components/ContentCard";
 import { ContentFilters } from "./components/ContentFilters";

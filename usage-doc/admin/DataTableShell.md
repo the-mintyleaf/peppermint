@@ -1,9 +1,9 @@
 # DataTableShell — Usage Guide
 
-Pre-composed admin table page for `@zetsel/admin`. Renders a page header with title and New button, a toolbar with tabs/search/column toggles, an active filters bar, a `mantine-datatable` table with pagination, and a floating bulk-action bar — all wired to `DataTableWrapper` state automatically.
+Pre-composed admin table page for `@peppermint/admin`. Renders a page header with title and New button, a toolbar with tabs/search/column toggles, an active filters bar, a `mantine-datatable` table with pagination, and a floating bulk-action bar — all wired to `DataTableWrapper` state automatically.
 
 ```ts
-import { DataTableShell } from '@zetsel/admin';
+import { DataTableShell } from '@peppermint/admin';
 ```
 
 `DataTableShell` is self-contained. It wraps `DataTableWrapper` internally — you do not need to add a separate wrapper. It accepts all `DataTableWrapper` props directly alongside its own.
@@ -14,8 +14,8 @@ import { DataTableShell } from '@zetsel/admin';
 
 ```tsx
 'use client';
-import { DataTableShell } from '@zetsel/admin';
-import type { DataTableShellColumn } from '@zetsel/admin';
+import { DataTableShell } from '@peppermint/admin';
+import type { DataTableShellColumn } from '@peppermint/admin';
 import { api } from '@/lib/api';
 
 type User = { id: number; name: string; email: string; role: string };
@@ -321,7 +321,7 @@ Because `DataTableShell` renders `DataTableWrapper` internally, these hooks only
 ## Invalidating after mutations
 
 ```tsx
-import { useInvalidateTable } from '@zetsel/admin';
+import { useInvalidateTable } from '@peppermint/admin';
 
 function DeleteButton({ ids }: { ids: number[] }) {
   const invalidate = useInvalidateTable();

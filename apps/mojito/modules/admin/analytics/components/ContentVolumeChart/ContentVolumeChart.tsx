@@ -1,6 +1,6 @@
 "use client";
 
-import { LineChart } from "@zetsel/ui";
+import { LineChart } from "@peppermint/ui";
 import type { ContentVolumeSeries } from "../../Analytics.types";
 
 interface ContentVolumeChartProps {

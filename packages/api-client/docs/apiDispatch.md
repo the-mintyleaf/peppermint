@@ -1,6 +1,6 @@
 # apiDispatch — API Reference
 
-HTTP client layer for `@zetsel/api-client`. Wraps Axios with auth injection, 401 refresh/retry, and an offline mutation queue.
+HTTP client layer for `@peppermint/api-client`. Wraps Axios with auth injection, 401 refresh/retry, and an offline mutation queue.
 
 No React. No JSX. Safe to import in Node.js.
 
@@ -11,7 +11,7 @@ No React. No JSX. Safe to import in Node.js.
 Call once at app boot (e.g. in `app/layout.tsx`) before any API calls are made.
 
 ```typescript
-import { configureApiClient } from '@zetsel/api-client';
+import { configureApiClient } from '@peppermint/api-client';
 
 configureApiClient({
   tokenKey: 'access_token',       // sessionStorage key for the access token

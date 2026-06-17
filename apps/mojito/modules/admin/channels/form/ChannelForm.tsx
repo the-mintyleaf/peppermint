@@ -1,6 +1,6 @@
 "use client";
 
-import { Stack, TextInput, Select, Textarea, NumberInput, Button } from "@zetsel/ui";
+import { Stack, TextInput, Select, Textarea, NumberInput, Button } from "@peppermint/ui";
 import { useForm } from "@mantine/form";
 import type { ChannelFormProps } from "./ChannelForm.types";
 import type { Channel } from "../channels.types";

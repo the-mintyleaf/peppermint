@@ -2,7 +2,7 @@
 
 import { useRef, useCallback, useState, useMemo } from "react";
 import { ImageIcon } from "@phosphor-icons/react/dist/csr/Image";
-import { Box, Text } from "@zetsel/ui";
+import { Box, Text } from "@peppermint/ui";
 import { useBuilderStore } from "../../TemplateBuilder.store";
 import type { CanvasElement, ElementType } from "../../templateForm.types";
 import { resolveElementRect } from "../../elementDefaults";

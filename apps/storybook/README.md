@@ -1,6 +1,6 @@
 # Storybook
 
-Component showcase and testing environment for Zetsel UI components.
+Component showcase and testing environment for Peppermint UI components.
 
 ## Getting Started
 

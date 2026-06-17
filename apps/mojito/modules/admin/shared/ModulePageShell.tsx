@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, ModuleHeader, Paper, Stack } from "@zetsel/ui";
+import { Box, ModuleHeader, Paper, Stack } from "@peppermint/ui";
 import type { ReactNode } from "react";
 import { buildBreadcrumbItems } from "./pageShell.utils";
 import { ModulePageHeader, type ModulePageHeaderProps } from "./ModulePageHeader";

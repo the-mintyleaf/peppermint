@@ -1,1 +1,0 @@
-export { PagesSidebar } from "./PagesSidebar";

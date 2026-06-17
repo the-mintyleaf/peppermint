@@ -1,6 +1,6 @@
 "use client";
 
-import { MainNavIconButton } from "@zetsel/admin";
+import { MainNavIconButton } from "@peppermint/admin";
 import { SparkleIcon } from "@phosphor-icons/react/dist/csr/Sparkle";
 
 export function AdminMainNavHeader() {
@@ -9,6 +9,8 @@ export function AdminMainNavHeader() {
       icon={SparkleIcon}
       label="Brand"
       href="/admin"
+      iconWeight="fill"
+      iconColor="var(--mantine-color-brand-5)"
     />
   );
 }

@@ -9,7 +9,7 @@ import {
   Avatar,
   Skeleton,
   Group,
-} from "@zetsel/ui";
+} from "@peppermint/ui";
 import { useState, useEffect } from "react";
 import { notifications } from "@mantine/notifications";
 import { useUserProfile, useUpdateUserProfile } from "../settings.hooks";
