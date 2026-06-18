@@ -1,5 +1,5 @@
 export { ModuleHome } from "./home/Home";
-export { ModuleTasksKanban } from "./tasks";
+export { ModuleTasksKanban, ModuleTaskAnalytics } from "./tasks";
 export { ModuleOrganization } from "./organization";
 
 export { ModuleOrganizationDepartments } from "./organization/departments";

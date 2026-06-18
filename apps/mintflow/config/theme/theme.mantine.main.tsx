@@ -25,11 +25,11 @@ export const configThemeMantineMain: any = {
   white: "#fefefe",
   black: "#111",
 
-  fontFamily: `"Google Sans", sans-serif`,
+  fontFamily: `"Stack Sans Headline", sans-serif`,
   fontSmoothing: true,
 
   headings: {
-    fontFamily: `"Google Sans", sans-serif`,
+    fontFamily: `"Stack Sans Headline", sans-serif`,
     sizes: {
       h1: { fontSize: "36" },
     },

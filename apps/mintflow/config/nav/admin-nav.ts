@@ -10,6 +10,7 @@ import { EnvelopeSimpleIcon } from "@phosphor-icons/react/dist/csr/EnvelopeSimpl
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
 import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
 import { CheckSquareIcon } from "@phosphor-icons/react/dist/csr/CheckSquare";
+import { ChartLineIcon } from "@phosphor-icons/react/dist/csr/ChartLine";
 
 export const adminShellConfig: AdminShellConfig = {
   brand: {
@@ -39,6 +40,11 @@ export const adminShellConfig: AdminShellConfig = {
                 label: "Kanban Board",
                 href: "/admin/tasks",
                 icon: KanbanIcon,
+              },
+              {
+                label: "Task Analytics",
+                href: "/admin/tasks/analytics",
+                icon: ChartLineIcon,
               },
             ],
           },

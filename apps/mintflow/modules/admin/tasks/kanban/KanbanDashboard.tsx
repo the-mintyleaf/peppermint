@@ -18,6 +18,7 @@ import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGl
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { KanbanBoard } from "./components/KanbanBoard";
 import { TaskDetailModal } from "./components/TaskDetailModal";
+import { CreateTaskModal } from "./components/CreateTaskModal";
 import { useTasks, useKanbanBoard } from "./KanbanDashboard.hooks";
 import type { Task, TaskBoardFilter } from "./module.api";
 
@@ -48,6 +49,19 @@ export function KanbanDashboard() {
   const handleCardClick = useCallback((task: Task) => setSelectedTask(task), []);
   const handleCloseModal = useCallback(() => setSelectedTask(null), []);
 
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editTask, setEditTask] = useState<Task | null>(null);
+
+  const handleEditTask = useCallback((task: Task) => {
+    setSelectedTask(null);
+    setEditTask(task);
+  }, []);
+
+  const handleCloseForm = useCallback(() => {
+    setCreateOpen(false);
+    setEditTask(null);
+  }, []);
+
   const { data: tasks, isLoading } = useTasks(activeTab);
   const { tasksByStatus, moveTask, reorderTask } = useKanbanBoard(tasks, activeTab);
 
@@ -68,7 +82,7 @@ export function KanbanDashboard() {
         <ModuleHeader
           breadcrumbItems={BREADCRUMB}
           right={
-            <Button size="xs" leftSection={<PlusIcon size={16} aria-label="Add" />} mr="sm">
+            <Button size="xs" leftSection={<PlusIcon size={16} aria-label="Add" />} mr="sm" onClick={() => setCreateOpen(true)}>
               New Task
             </Button>
           }
@@ -111,7 +125,12 @@ export function KanbanDashboard() {
         </Box>
       </Stack>
 
-      <TaskDetailModal task={selectedTask} onClose={handleCloseModal} />
+      <TaskDetailModal task={selectedTask} onClose={handleCloseModal} onEdit={handleEditTask} />
+      <CreateTaskModal
+        opened={createOpen || !!editTask}
+        editTask={editTask}
+        onClose={handleCloseForm}
+      />
     </Paper>
   );
 }
