@@ -7,7 +7,7 @@ import { useModalTableShellContext } from '../../ModalTableShell.context';
 import { ShellModalHeader } from '../ShellModalHeader';
 import type { ModalHandlerProps } from '../../ModalTableShell.types';
 
-const MODAL_BODY_PADDING = 20;
+const MODAL_BODY_PADDING = 0;
 
 export function ModalHandler<T extends Record<string, unknown>>({
   queryKey,

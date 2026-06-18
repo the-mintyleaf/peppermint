@@ -4,8 +4,7 @@ import { useState, useCallback, useMemo } from "react";
 import { useDisclosure } from "@peppermint/ui";
 import { modals, notifications } from "@peppermint/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button, Group, Text } from "@peppermint/ui";
-import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
+import { Group, Text } from "@peppermint/ui";
 import { WarningCircleIcon } from "@phosphor-icons/react/dist/csr/WarningCircle";
 import { DataTableShell } from "../DataTableShell";
 import { ModalTableShellContext } from "./ModalTableShell.context";
@@ -158,18 +157,6 @@ export function ModalTableShell<T extends Record<string, unknown>>({
   const disableEditButton = !editFormComponent;
   const disableDeleteButton = !onDeleteApi;
 
-  const displayLabel = moduleInfo.label ?? moduleInfo.name;
-  const headerRight = (
-    <Button
-      size="xs"
-      leftSection={<PlusIcon size={14} aria-hidden />}
-      disabled={disableCreateButton}
-      onClick={handleNewClick}
-    >
-      New {displayLabel}
-    </Button>
-  );
-
   const contextValue: ModalTableShellContextValue<T> = useMemo(
     () => ({
       isCreateModalOpen,
@@ -209,7 +196,6 @@ export function ModalTableShell<T extends Record<string, unknown>>({
         disableEditButton={disableEditButton}
         disableDeleteButton={disableDeleteButton}
         disableReviewButton={disableReviewButton}
-        headerRight={headerRight}
       />
       {(onCreateApi || onEditApi) && (
         <ModalHandler<T>

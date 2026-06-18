@@ -16,14 +16,7 @@ export function ShellModalHeader({ parentLabel, currentLabel, onClose }: ShellMo
         wrap="nowrap"
       >
         <Group gap={8} wrap="nowrap">
-          <ActionIcon
-            variant="default"
-            size="md"
-            aria-label="Expand"
-            style={shellModalHeaderActionStyle}
-          >
-            <ArrowsOutSimpleIcon size={14} />
-          </ActionIcon>
+
           <Text size="xs" c="dimmed">
             {parentLabel}
             <Text span c="dimmed" mx={6}>

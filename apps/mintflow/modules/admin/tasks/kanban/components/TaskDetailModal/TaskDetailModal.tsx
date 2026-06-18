@@ -7,6 +7,7 @@ import { SparkleIcon } from "@phosphor-icons/react/dist/csr/Sparkle";
 import { TagIcon } from "@phosphor-icons/react/dist/csr/Tag";
 import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
 import { STATUS_COLORS, STATUS_LABELS } from "../../module.api";
+import type { Task } from "../../module.api";
 import {
   TaskAssigneePills,
   TaskAttachmentsSection,

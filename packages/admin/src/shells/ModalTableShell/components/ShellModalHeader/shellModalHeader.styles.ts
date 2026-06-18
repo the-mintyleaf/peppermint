@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 
 export const SHELL_MODAL_HEADER = {
-  paddingX: 20,
+  paddingX: 16,
   paddingY: 8,
 } as const;
 

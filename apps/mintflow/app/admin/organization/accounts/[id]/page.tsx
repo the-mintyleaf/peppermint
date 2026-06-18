@@ -1,3 +1,3 @@
 import { ModuleOrganizationAccounts } from "@/modules/admin";
 
-export default ModuleOrganizationAccounts.main;
+export default ModuleOrganizationAccounts.view;
