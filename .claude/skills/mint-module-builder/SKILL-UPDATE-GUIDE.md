@@ -10,7 +10,7 @@ Update `SKILL.md` when any of the following change:
 
 | Trigger | What changes in SKILL.md |
 |---|---|
-| A new shell is added to `@zetsel/admin` | Section 3 (pattern picker), package import reference (Section 11) |
+| A new shell is added to `@peppermint/admin` | Section 3 (pattern picker), package import reference (Section 11) |
 | `ModalTableShell` or `DataTableShell` props change | Sections 4 and 5 (build guides) |
 | `FormWrapper` or `FormShell` API changes | Section 5 (MultiPageModule form steps) |
 | A new CRUD strategy or module shape is introduced | Section 3 decision table |
@@ -93,7 +93,7 @@ Check for any supplementary rules added since the last update.
 
 Before finalising an update, verify:
 
-- [ ] Every code example in SKILL.md compiles against the current `@zetsel/admin` and `@zetsel/ui` exports
+- [ ] Every code example in SKILL.md compiles against the current `@peppermint/admin` and `@peppermint/ui` exports
 - [ ] The decision table in Section 3 matches `usage-doc/module-patterns/README.md`
 - [ ] The ContainedModule build guide matches `usage-doc/module-patterns/ContainedModule.md`
 - [ ] The MultiPageModule build guide matches `usage-doc/module-patterns/MultiPageModule.md`

@@ -1,27 +1,40 @@
-# Zetsel Frontend Architecture
+# Peppermint Frontend Architecture
 
-Turborepo monorepo. UI lives in `@zetsel/ui` (Mantine wrapper) and is consumed by apps. Apps will be Next.js using the App Router.
+Turborepo monorepo. UI lives in `@peppermint/ui` (Mantine wrapper) and is consumed by apps. Apps will be Next.js using the App Router.
 
 ## Monorepo Structure
 
 **Packages:**
 
-- `@zetsel/ui` — Mantine component wrapper (shared UI)
-- `@zetsel/api-client` — Axios-based API client
-- `@zetsel/admin` — admin UI components
-- `@zetsel/kanban` — kanban UI components
-- `@zetsel/config` — shared config values
-- `@zetsel/utils` — shared utility functions
+- `@peppermint/ui` — Mantine component wrapper (shared UI)
+- `@peppermint/api-client` — Axios-based API client
+- `@peppermint/admin` — admin UI components
+- `@peppermint/kanban` — kanban UI components
+- `@peppermint/config` — shared config values
+- `@peppermint/utils` — shared utility functions
 
 Apps live in `apps/` — see [App Structure](#app-structure) below. When creating an app, use Next.js with the App Router.
 
+**Package dependency direction — do not violate this:**
+
+```
+apps/*  →  any @peppermint/* package
+@peppermint/admin   →  @peppermint/ui, @peppermint/utils
+@peppermint/kanban  →  @peppermint/ui, @peppermint/utils
+@peppermint/ui      →  (no internal package imports)
+@peppermint/utils   →  (no internal package imports)
+packages must never import from apps/
+```
+
 ## Stack Rules
 
-**`@zetsel/ui`** — always import Mantine components from here, never from `@mantine/*` directly.
+**`@peppermint/ui`** — always import Mantine components from here, never from `@mantine/*` directly.
 
-**Forms** — always use `@mantine/form` via `@zetsel/ui`. Never use React Hook Form or other form libraries.
+**Forms** — always use `@mantine/form` via `@peppermint/ui`. Never use React Hook Form or other form libraries.
 
-**React Query + Axios** — all server state goes through React Query. No fetching in `useEffect`. All mutations use `useMutation` — never call Axios directly in event handlers. Axios instance is in `src/lib/api.ts` — never instantiate it inline. Query keys live next to their query function.
+**`@peppermint/api-client`** — the shared Axios instance. Each app configures it in `src/lib/api.ts` (base URL, auth headers). Always import from the app's `src/lib/api.ts` — never import from `@peppermint/api-client` directly in components, and never instantiate Axios inline.
+
+**React Query + Axios** — all server state goes through React Query. No fetching in `useEffect`. Query functions live in the component's `.hooks.ts` file, or in a `queries/` folder at the module root when shared across multiple components. Query keys live next to their query function. All mutations use `useMutation` — never call Axios directly in event handlers. Mutation functions follow the same co-location rule as query functions.
 
 **State ownership:**
 
@@ -30,12 +43,23 @@ Apps live in `apps/` — see [App Structure](#app-structure) below. When creatin
 - Scoped subtree state → React Context
 - Local component state → `useState`
 
-**Routing** — Next.js App Router. Use `app/` directory conventions: layouts, pages, loading, error files. No client-side router libraries.
+**Server vs Client Components** — default to Server Components. Add `"use client"` only when the component uses browser APIs, React hooks, or event handlers. Never add `"use client"` to `app/` layout or page files (those are re-exports only). When a module needs interactivity, the `app/` file stays a Server Component and imports from a `"use client"` module. All components in `@peppermint/*` packages require `"use client"` — Mantine depends on hooks.
+
+**Routing** — Next.js App Router. `app/` pages and layouts are re-export files only — no logic lives there. Special files (`loading.tsx`, `error.tsx`, `not-found.tsx`) may contain minimal markup but must import their visual content from `layouts/` or `modules/`. No client-side router libraries.
+
+**Styling** — pick in this order:
+1. Mantine component props (`color`, `size`, `p`, `m`, etc.) — use these first.
+2. Mantine `style` prop — for one-off values not covered by props.
+3. CSS Modules (`.module.css`) — for complex selectors, pseudo-elements, or animations that can't be expressed inline.
+
+Never use the `sx` prop (deprecated). Never apply global CSS classes to Mantine components.
+
+**Images** — use Next.js `<Image>` (from `next/image`) for all images in `assets/img/`. Use a plain `<img>` only for externally-hosted images where the source domain can't be added to `next.config`.
 
 **Error handling:**
 
-- API errors and user-facing messages → Mantine notifications (via `@zetsel/ui`)
-- Unexpected runtime errors → React error boundaries
+- API errors and user-facing messages → Mantine notifications (via `@peppermint/ui`)
+- Unexpected runtime errors → React error boundaries, placed at the module level (not the app root)
 - Never swallow errors silently
 
 **Phosphor Icons** — only icon library. Default weight `regular`. Always include `aria-label` on meaningful icons.
@@ -48,13 +72,15 @@ Apps live in `apps/` — see [App Structure](#app-structure) below. When creatin
 
 **Folders:** `kebab-case`  
 **Component files:** `PascalCase` (e.g., `UserProfileCard.tsx`)  
-**Non-component files:** `camelCase` (e.g., `queryKeys.ts`)
+**Non-component files:** `camelCase` (e.g., `queryKeys.ts`)  
+**Layouts:** folder `kebab-case`, export `PascalCase` matching the folder (e.g., `root-layout` → `LayoutRoot`)  
+**Modules:** folder `kebab-case`, export prefixed with `Module` (e.g., `dashboard` → `ModuleDashboard`)
 
 ## TypeScript
 
 - Strict mode. No `any`, no `@ts-ignore` without a comment explaining why.
 - Functional components only. Props typed as `[Name]Props` above the component.
-- Shared props for components within `@zetsel/*` packages go in `@zetsel/types` under `/packages/types`.
+- Shared props for components within `@peppermint/*` packages go in `@peppermint/types` under `/packages/types`. **This package does not exist yet — use local `.types.ts` files until it is created.**
 
 ## Component Structure
 
@@ -71,31 +97,152 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 ├── <ComponentName>.utils.ts      # one-off helpers
 ├── <ComponentName>.stories.tsx   # when Storybook is relevant
 ├── <ComponentName>.test.tsx      # when tests are added
-├── docs/
-│   └── README.md                 # always include for new modules/packages
 └── index.ts                      # required — barrel export
 ```
 
 - Props and types go in `.types.ts`, not in the main component file
 - Complex state → `.store.ts`. Simple UI state → `useState`
 - Reusable logic → `.hooks.ts`. One-off helpers → `.utils.ts`
-- Export everything relevant in `index.ts`: `import { UserCard, type UserCardProps } from '@zetsel/ui'`
+- Export everything relevant in `index.ts`: `import { UserCard, type UserCardProps } from '@peppermint/ui'`
+
+**When to extract optional files — concrete thresholds:**
+
+| File | Extract when… |
+|---|---|
+| `.hooks.ts` | A hook is used in more than one place, or the hook body exceeds ~30 lines |
+| `.store.ts` | State has more than 2 fields, or needs actions beyond simple setters |
+| `.context.ts` | More than 2 child components need the same value without prop drilling |
+| `.utils.ts` | A helper is called from more than one place in the component |
+| `components/` subfolder | Parent component file exceeds ~200 lines, or a sub-component is reused elsewhere |
+
+## Lifecycle Rules
+
+### Packages vs Apps — key distinction
+
+| | Packages (`/packages/*`) | Apps (`/apps/*`) |
+|---|---|---|
+| Barrel chain | 3 levels: component → group → `src/index.ts` | 2 levels: component → module or layout group |
+| Public API | Yes — consumed by other packages and apps | No — internal to the app only |
+| Breaking changes | High stakes — grep all consumers first | Low stakes — only affects the one app |
+| Docs required | `packages/<pkg>/docs/<Name>.md` + `usage-doc/<pkg>/<Name>.md` | None required (optional inline README for complex modules) |
+| App Router wiring | N/A | `app/` page must re-export from `modules/` or `layouts/` |
+
+---
+
+### Packages
+
+#### Creating a new package
+
+1. Create the directory under `packages/<pkg-name>/`.
+2. Add `package.json` with `name: "@peppermint/<pkg-name>"`, `main`, `types`, and `exports` fields following the pattern of existing packages.
+3. Add the package to the root `pnpm-workspace.yaml` if it is not auto-discovered.
+4. Add `src/index.ts` as the public API barrel — nothing is public unless exported here.
+5. Update the dependency direction table in this file to include the new package.
+6. If the new package imports other internal packages, verify those imports respect the dependency direction rule.
+
+#### Creating a package component
+
+1. Create the component folder with required files (`.tsx`, `.types.ts`, `index.ts`).
+2. Export from the component's own `index.ts`.
+3. Add to the group barrel (e.g., `shells/index.ts`, `components/index.ts`).
+4. Add to the package root `src/index.ts` if it is part of the public API.
+5. Create `packages/<pkg>/docs/<Name>.md` — implementation reference (internals, key decisions).
+6. Create `usage-doc/<pkg>/<Name>.md` — consumer reference (props, usage examples).
+
+#### Editing a package component
+
+| What changed | Files that must also change |
+|---|---|
+| Prop added / removed / type changed | `.types.ts` · `packages/<pkg>/docs/<Name>.md` · `usage-doc/<pkg>/<Name>.md` |
+| Sub-component added | `components/index.ts` · parent `index.ts` if now publicly exported |
+| Sub-component removed | Remove from `components/index.ts` · check package root barrel |
+| Hook extracted to `.hooks.ts` | Add `.hooks.ts` · export from component `index.ts` |
+| Context extracted to `.context.ts` | Add `.context.ts` · export from component `index.ts` |
+| Component renamed | Rename folder + all files + update all 3 barrel levels + both doc files |
+| Internal refactor (no API change) | No doc or barrel changes needed |
+
+#### Deleting a package component
+
+1. **Grep first** — `grep -r "<ComponentName>" apps/ packages/` — do not delete if consumers exist; coordinate the removal instead.
+2. Remove from all barrel levels: component `index.ts` → group `index.ts` → `src/index.ts`.
+3. Delete `packages/<pkg>/docs/<Name>.md`.
+4. Delete `usage-doc/<pkg>/<Name>.md`.
+5. If the component owned a context or Zustand store, grep for consumers of those exports too before removing.
+
+---
+
+### Apps
+
+#### Creating an app module or layout
+
+1. Create the module/layout folder under `modules/<group>/<name>/` or `layouts/<name>/`.
+2. Export the component from the folder's `index.ts`.
+3. Add to the group barrel (`modules/<group>/index.ts` or `layouts/index.ts`).
+4. Wire `app/` page or layout file to re-export from the module/layout — no logic in `app/`.
+5. No usage-doc required. Add an inline `docs/README.md` only for modules complex enough that a new contributor would be lost without it.
+
+**Sub-modules** belong inside their parent module folder, not as siblings. If `organization` has sub-modules like `accounts` or `roles`, they live at `modules/<group>/organization/accounts/` and `modules/<group>/organization/roles/` — never at `modules/<group>/organization-accounts/`. The group barrel exports all of them, and their internal imports resolve relative to the parent module folder.
+
+#### Editing an app module or layout
+
+| What changed | Files that must also change |
+|---|---|
+| Module moved to a different group | Update `app/` re-export path + old group barrel |
+| Sub-component added under a layout | Add to `layouts/<name>/components/index.ts` |
+| Sub-component removed | Remove from `layouts/<name>/components/index.ts` |
+| Module or layout renamed | Rename folder + files + `app/` re-export + group barrel |
+| Internal refactor | No structural changes needed |
+
+#### Deleting an app module or layout
+
+1. Check `app/` for any page or layout file re-exporting it — delete or replace those files first.
+2. Remove from the group barrel (`modules/<group>/index.ts` or `layouts/index.ts`).
+3. Delete the module/layout folder.
+4. If an inline `docs/README.md` exists, delete it with the folder.
+
+---
+
+### Documentation lifecycle
+
+**Packages — both doc files move together:**
+
+| Event | `packages/<pkg>/docs/<Name>.md` | `usage-doc/<pkg>/<Name>.md` |
+|---|---|---|
+| Component created | Create (implementation notes) | Create (props, usage examples) |
+| Public API changed | Update | Update |
+| Internal refactor only | No change needed | No change needed |
+| Component deleted | Delete | Delete |
+
+**Apps:**
+
+- No usage-doc.
+- Inline `docs/README.md` is optional; only create for genuinely complex modules.
+- If an inline README exists and the module is deleted, delete the README with it.
+
+---
 
 ## Development Workflow
 
-- For major tasks, always create and maintain a ./todo folder with task files named after the related feature or functionality. Track progress continuously and mark tasks as completed as work is finished.
-- Do not work on the main branch. When implementing a task Always create a new branch: `/dev/<work-name>` and push it in the end.
-- Use pnpm, not npm
-- No testing infrastructure yet — do not generate test files unless explicitly asked
-- Do not go randomly reading all the folder structure all the time, unless required or requested
-- Check `@mint/ui` exports before building a new component
-- Plan before coding if the task spans more than two files
-- Refactor when it genuinely improves clarity or reduces duplication — not as a side effect of unrelated tasks
-- Split long files and components when they're doing too much, not just when they're long
-- No new dependencies that overlap the existing stack without flagging it first
-- Be concise in responses. Don't explain what you're about to do — just do it
-- When adding anything to a package, include a doc in `packages/<pkg>/docs/<Name>.md` and a usage doc in `usage-doc/<pkg>/<Name>.md`
-- When working on anything do not make extra documents for completion.
+**Before writing any code — run this checklist:**
+
+1. Check `@peppermint/ui` exports — don't build what already exists.
+2. If the task involves a module, identify its type (ContainedModule / MultiPageModule / ModalModule / RouteModule) before touching files.
+3. If the task spans more than two files, write a plan first.
+4. If the task doesn't fit a pattern described in this file — stop and ask. Don't invent a new pattern.
+
+**General rules:**
+
+- Do not work on the main branch. Always create a new branch: `dev/<work-name>` and push it at the end.
+- Use pnpm, not npm.
+- No testing infrastructure yet — do not generate test files unless explicitly asked.
+- Do not read the full folder structure speculatively — only read what the task requires.
+- For tasks that span more than 5 files or are expected to take more than one working session, create and maintain a `./todo` folder with task files named after the feature. Mark tasks completed as work finishes.
+- Plan before coding if the task spans more than two files.
+- Refactor when it genuinely improves clarity or reduces duplication — not as a side effect of unrelated tasks.
+- Split long files and components when they're doing too much, not just when they're long.
+- No new dependencies that overlap the existing stack without flagging it first.
+- Be concise in responses. Don't explain what you're about to do — just do it.
+- Do not create extra documents beyond what is specified in the Lifecycle Rules.
 
 ## App Structure
 
@@ -104,6 +251,10 @@ Apps live in `/apps/<app-name>/`. The `app/` directory is thin — it only impor
 ```
 apps/<app-name>/
 ├── app/                    # Next.js App Router — only imports from layouts/ and modules/
+│   ├── layout.tsx          # re-export only: export default from layouts/
+│   ├── page.tsx            # re-export only: export default from modules/
+│   ├── loading.tsx         # minimal markup — import skeleton from layouts/ or modules/
+│   └── error.tsx           # minimal markup — import error UI from layouts/ or modules/
 ├── layouts/
 │   └── <layout-name>/      # Component Structure applies here
 │       ├── index.ts
@@ -117,6 +268,7 @@ apps/<app-name>/
 ├── modules/
 │   └── <module-group>/
 │       └── <module-name>/            # Component Structure applies here
+│           └── <sub-module-name>/    # sub-modules nest inside their parent module folder
 ├── components/             # App-level shared components (Component Structure applies)
 ├── config/                 # App, framework, and env configs
 │   └── <config-name>.ts
@@ -146,6 +298,44 @@ import { ModuleDashboard } from "../modules/dashboard";
 export default ModuleDashboard;
 ```
 
+## Module Types
+
+Every module belongs to one of four types. Pick before writing any code.
+
+| Type | Use when… | Lives in |
+|---|---|---|
+| `ContainedModule` | Single view, no nested routes, self-contained | `modules/<group>/<name>/` |
+| `MultiPageModule` | Multiple sub-pages with their own routes | `modules/<group>/<name>/` with `pages/` subfolder |
+| `ModalModule` | Triggered from another module, overlays the page | `modules/<group>/<name>/` — opened via state, not a route |
+| `RouteModule` | Top-level route that needs its own layout shell | `modules/<group>/<name>/` + own layout wired in `app/` |
+
+**Decision flow:**
+
+1. Does it have its own URL segments? → No → `ContainedModule` or `ModalModule`
+2. Is it triggered/opened by another module? → Yes → `ModalModule`
+3. Does it need multiple nested routes? → Yes → `MultiPageModule`
+4. Does it need a unique layout shell different from the app default? → Yes → `RouteModule`
+5. Otherwise → `ContainedModule`
+
+See `/usage-doc/module-patterns/` for full pattern docs.
+
+## Anti-Patterns
+
+Things that look right but are wrong in this codebase. Stop if you're about to do any of these.
+
+- **Logic in `app/` pages** — `app/page.tsx` and `app/layout.tsx` are re-export files only. Even one line of logic goes in the module or layout instead.
+- **Direct `@mantine/*` imports** — If `@peppermint/ui` doesn't re-export what you need, add it to the wrapper first. Never import from `@mantine/*` directly.
+- **`useEffect` for data fetching** — Always use `useQuery`. No exceptions, even for "simple" one-off fetches.
+- **Inline Axios calls** — Data fetching always goes through the `api.ts` instance via React Query. Never call Axios directly in a component or event handler.
+- **New Zustand store per component** — Check whether an existing store already owns that state before creating a new one. Stores are shared, not per-component.
+- **`components/` folder for organization** — Only create a `components/` subfolder when the parent exceeds ~200 lines or a sub-component is reused. Not for tidiness.
+- **Skipping `.types.ts`** — Props typed inline in the component file are not acceptable. Types always go in `.types.ts`.
+- **Unnecessary `"use client"`** — In apps, `"use client"` converts the entire subtree to client rendering. Only add it where hooks, browser APIs, or event handlers are genuinely needed. `@peppermint/*` packages always need it (Mantine uses hooks), but app modules default to Server Components.
+- **Importing `@peppermint/api-client` directly in components** — Always import the Axios instance from the app's `src/lib/api.ts`. That file is where the base URL and auth headers are configured; importing the raw package bypasses all of that.
+- **Importing across the wrong package boundary** — Packages never import from `apps/`. `@peppermint/ui` never imports from other internal packages. See dependency direction above.
+- **Sibling sub-modules** — Never create `<module>-<sub>/` folders as siblings of `<module>/`. Sub-modules always nest inside their parent: `modules/<group>/<module>/<sub>/`, not `modules/<group>/<module>-<sub>/`.
+- **Inventing a new pattern when uncertain** — If a task doesn't fit a pattern described in this file, stop and ask. Don't improvise a new pattern.
+
 ## Git Commit Format
 
 ```
@@ -158,6 +348,6 @@ Note: Square brackets are a part of the commit message.
 
 Examples:
 
-- `[@zetsel/ui/UserCard] add: new UserCard component`
-- `[@zetsel/auth] fix: handle logout errors gracefully`
+- `[@peppermint/ui/UserCard] add: new UserCard component`
+- `[@peppermint/auth] fix: handle logout errors gracefully`
 - `[admin-app/dashboard] update: improve layout responsiveness`

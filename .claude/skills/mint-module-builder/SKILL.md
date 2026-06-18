@@ -1,7 +1,7 @@
 ---
 name: mint-module-builder
 description: >
-  Know-how and build guide for the Mojito app (Zetsel monorepo). Read this before
+  Know-how and build guide for the Mojito app (Peppermint monorepo). Read this before
   building any module or page. Covers stack rules, the Contained/Not-Contained
   decision, ContainedModule and MultiPageModule patterns, file structure, and
   common mistakes. Use as a bootstrap doc when given a requirements document.
@@ -10,7 +10,7 @@ model: opus
 
 # Mojito AI Usage Guide
 
-This is the authoritative build guide for the Mojito app and the Zetsel monorepo.
+This is the authoritative build guide for the Mojito app and the Peppermint monorepo.
 Reading this replaces the need to re-scan the repository before building a module.
 
 ---
@@ -19,8 +19,8 @@ Reading this replaces the need to re-scan the repository before building a modul
 
 | Concern | Tool | Rule |
 |---|---|---|
-| UI components | `@zetsel/ui` | Always import from here — never from `@mantine/*` directly |
-| Forms | `@mantine/form` via `@zetsel/ui` | Never React Hook Form or any other form library |
+| UI components | `@peppermint/ui` | Always import from here — never from `@mantine/*` directly |
+| Forms | `@mantine/form` via `@peppermint/ui` | Never React Hook Form or any other form library |
 | Server state | React Query (`useQuery` / `useMutation`) | No fetching in `useEffect`; no direct Axios in event handlers |
 | Global client state | Zustand | Colocate in `<Component>.store.ts` |
 | Scoped subtree state | React Context | |
@@ -28,8 +28,8 @@ Reading this replaces the need to re-scan the repository before building a modul
 | Routing | Next.js App Router | `app/` directory only; no client-side router libraries |
 | Icons | Phosphor Icons | Default weight `regular`; always `aria-label` on meaningful icons |
 | Animations | Framer Motion | Duration > 300ms or layout-shifting → check `useReducedMotion()` |
-| Admin shells | `@zetsel/admin` | `ModalTableShell`, `DataTableShell`, `FormWrapper`, `FormShell` |
-| HTTP client | `@zetsel/api-client` or the app's `src/lib/api.ts` | Never instantiate Axios inline |
+| Admin shells | `@peppermint/admin` | `ModalTableShell`, `DataTableShell`, `FormWrapper`, `FormShell` |
+| HTTP client | `@peppermint/api-client` or the app's `src/lib/api.ts` | Never instantiate Axios inline |
 
 **TypeScript:** strict mode. No `any`. No `@ts-ignore` without an explanatory comment.
 Functional components only. Props typed as `[Name]Props` in `<Name>.types.ts`.
@@ -125,10 +125,10 @@ export const studentQueryKeys = {
 
 ### Step 3 — `<name>.api.ts`
 
-Use `QueryParams` from `@zetsel/admin` — matches what the shell passes automatically.
+Use `QueryParams` from `@peppermint/admin` — matches what the shell passes automatically.
 
 ```ts
-import type { QueryParams } from "@zetsel/admin";
+import type { QueryParams } from "@peppermint/admin";
 import type { Student, StudentsFetchResponse } from "./students.types";
 
 export async function fetchStudents(params?: QueryParams): Promise<StudentsFetchResponse> {
@@ -146,7 +146,7 @@ export async function deleteStudent(id: string): Promise<void> { /* ... */ }
 Use `DataTableShellColumn<T>`. The default rule is **no `render`** — the shell renders plain values correctly on its own. Only add a `render` function when the output genuinely cannot be expressed as plain text: a colored badge, an icon, a stacked multi-line cell. Never wrap plain text in `<Text>` just to have a `render`. When you do use `render`, every piece of text inside it must be `size="xs"` unless there is a specific, documented reason to go larger.
 
 ```tsx
-import type { DataTableShellColumn } from "@zetsel/admin";
+import type { DataTableShellColumn } from "@peppermint/admin";
 import type { Student } from "../../students.types";
 
 export const studentsColumns: DataTableShellColumn<Student>[] = [
@@ -165,7 +165,7 @@ export const studentsColumns: DataTableShellColumn<Student>[] = [
 The form owns its submit button. `ModalTableShell` injects `initialValues`, `onSubmit`, and `isLoading`.
 
 ```tsx
-import { Stack, TextInput, Select, Button, useForm } from "@zetsel/ui";
+import { Stack, TextInput, Select, Button, useForm } from "@peppermint/ui";
 import type { StudentFormProps } from "./StudentForm.types";
 import type { Student } from "../students.types";
 
@@ -212,15 +212,15 @@ export interface StudentFormProps {
 
 ### Step 6 — `pages/list/<Name>List.tsx`
 
-Always wrap the shell in `<Paper p={0} withBorder radius="lg" h="calc(100vh - 16px)">`.
+Always wrap the shell in `<Paper p={0} withBorder radius="md" h="calc(100vh - 16px)">`.
 Tabs must be typed as `DataTableShellTab[]`. Use `filter` (not `forceFilter`) — `filter` sends values to the server via `params.filters`.
 
 ```tsx
 "use client";
 
-import { ModalTableShell } from "@zetsel/admin";
-import { Paper } from "@zetsel/ui";
-import type { DataTableShellTab } from "@zetsel/admin";
+import { ModalTableShell } from "@peppermint/admin";
+import { Paper } from "@peppermint/ui";
+import type { DataTableShellTab } from "@peppermint/admin";
 import { UsersIcon }       from "@phosphor-icons/react/dist/csr/Users";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { fetchStudents, createStudent, updateStudent, deleteStudent } from "../../students.api";
@@ -236,7 +236,7 @@ const tabs: DataTableShellTab[] = [
 
 export function StudentsList() {
   return (
-    <Paper p={0} withBorder radius="lg" h="calc(100vh - 16px)">
+    <Paper p={0} withBorder radius="md" h="calc(100vh - 16px)">
       <ModalTableShell<Student>
         queryKey={studentQueryKeys.list()}
         queryGetFn={fetchStudents}
@@ -319,7 +319,7 @@ modules/admin/
 All entity types and API functions in one file. Entity must extend `Record<string, unknown>`.
 
 ```ts
-import type { QueryParams } from "@zetsel/admin";
+import type { QueryParams } from "@peppermint/admin";
 
 export interface Product extends Record<string, unknown> {
   id: number;
@@ -393,8 +393,8 @@ export const PRODUCT_STEP_FIELDS: string[][] = [
 Step components receive no props — they read form state via `useFormControls()`.
 
 ```tsx
-import { Stack, TextInput } from "@zetsel/ui";
-import { useFormControls } from "@zetsel/admin";
+import { Stack, TextInput } from "@peppermint/ui";
+import { useFormControls } from "@peppermint/admin";
 import type { ProductFormValues } from "../productForm.types";
 
 export function StepIdentity() {
@@ -416,7 +416,7 @@ export function StepIdentity() {
 ```tsx
 "use client";
 
-import { useFormControls, FormShell, FormWrapper } from "@zetsel/admin";
+import { useFormControls, FormShell, FormWrapper } from "@peppermint/admin";
 import { createProduct } from "../module.api";
 import { PRODUCT_FORM_INITIAL } from "./productForm.initial";
 import { identitySchema, pricingSchema, PRODUCT_STEP_FIELDS } from "./productForm.schemas";
@@ -483,7 +483,7 @@ export function ProductForm({ onBack, onSuccess }: ProductFormProps) {
 Same strict rule as ContainedModule: **no `render` by default**. Only add one when the cell genuinely needs a badge, icon, or multi-line layout that plain text cannot express. Every text element inside any `render` must be `size="xs"` unless there is a specific, documented reason to go larger.
 
 ```ts
-import type { DataTableShellColumn } from "@zetsel/admin";
+import type { DataTableShellColumn } from "@peppermint/admin";
 import type { Product } from "../../module.api";
 
 export const PRODUCT_COLUMNS: DataTableShellColumn<Product>[] = [
@@ -503,9 +503,9 @@ Wrap in Paper. Tabs typed as `DataTableShellTab[]`. Use `filter`, not `forceFilt
 ```tsx
 "use client";
 
-import { DataTableShell } from "@zetsel/admin";
-import { Paper } from "@zetsel/ui";
-import type { DataTableShellTab } from "@zetsel/admin";
+import { DataTableShell } from "@peppermint/admin";
+import { Paper } from "@peppermint/ui";
+import type { DataTableShellTab } from "@peppermint/admin";
 import { PackageIcon }    from "@phosphor-icons/react/dist/csr/Package";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { fetchProducts } from "../../module.api";
@@ -519,7 +519,7 @@ const STATUS_TABS: DataTableShellTab[] = [
 
 export function ProductsList() {
   return (
-    <Paper p={0} withBorder radius="lg" h="calc(100vh - 16px)">
+    <Paper p={0} withBorder radius="md" h="calc(100vh - 16px)">
       <DataTableShell<Product>
         queryKey="products.list"
         queryGetFn={(params) => fetchProducts(params)}
@@ -546,12 +546,12 @@ Both are thin wrappers. Wrap in Paper. `onBack` calls `history.back()`.
 
 ```tsx
 "use client";
-import { Paper } from "@zetsel/ui";
+import { Paper } from "@peppermint/ui";
 import { ProductForm } from "../../form";
 
 export function ProductsNew() {
   return (
-    <Paper p={0} withBorder radius="lg" h="calc(100vh - 16px)">
+    <Paper p={0} withBorder radius="md" h="calc(100vh - 16px)">
       <ProductForm onBack={() => history.back()} />
     </Paper>
   );
@@ -563,13 +563,13 @@ export function ProductsNew() {
 ```tsx
 "use client";
 import { useParams } from "next/navigation";
-import { Paper } from "@zetsel/ui";
+import { Paper } from "@peppermint/ui";
 import { ProductView } from "./ProductView";
 
 export function ProductsView() {
   const { id } = useParams<{ id: string }>();
   return (
-    <Paper p={0} withBorder radius="lg" h="calc(100vh - 16px)">
+    <Paper p={0} withBorder radius="md" h="calc(100vh - 16px)">
       <ProductView productId={id} />
     </Paper>
   );
@@ -696,7 +696,7 @@ export function StudentsList() {
 // ✅ always wrap with the full Paper spec
 export function StudentsList() {
   return (
-    <Paper p={0} withBorder radius="lg" h="calc(100vh - 16px)">
+    <Paper p={0} withBorder radius="md" h="calc(100vh - 16px)">
       <ModalTableShell<Student> ... />
     </Paper>
   );
@@ -784,7 +784,7 @@ Square brackets are literal — they are part of the commit message.
 Examples:
 ```
 [mojito/channels] add: ContainedModule for channel management
-[@zetsel/admin/DataTableShell] fix: server filter not sent on tab change
+[@peppermint/admin/DataTableShell] fix: server filter not sent on tab change
 [mojito/products] update: add pricing step to MultiPageModule form
 ```
 
@@ -794,8 +794,8 @@ Examples:
 
 ```ts
 // UI components (Mantine wrappers — always use this)
-import { Paper, Stack, TextInput, Select, Button, Badge, Text } from "@zetsel/ui";
-import { useForm } from "@zetsel/ui";
+import { Paper, Stack, TextInput, Select, Button, Badge, Text } from "@peppermint/ui";
+import { useForm } from "@peppermint/ui";
 
 // Admin shells
 import {
@@ -804,8 +804,8 @@ import {
   FormWrapper,
   FormShell,
   useFormControls,
-} from "@zetsel/admin";
-import type { DataTableShellColumn, DataTableShellTab, QueryParams } from "@zetsel/admin";
+} from "@peppermint/admin";
+import type { DataTableShellColumn, DataTableShellTab, QueryParams } from "@peppermint/admin";
 
 // Icons — always from the CSR path
 import { UsersIcon }       from "@phosphor-icons/react/dist/csr/Users";
@@ -825,9 +825,9 @@ Given a requirements doc, follow this sequence:
 2. **If Contained — pick ContainedModule or MultiPageModule** (Section 3).
 3. **Create the branch**: `git checkout -b dev/<feature-name>`.
 4. **Build in order**: types → query keys → API → columns → form → list page → index → app page.
-5. **Every page** gets wrapped in `<Paper p={0} withBorder radius="lg" h="calc(100vh - 16px)">`.
+5. **Every page** gets wrapped in `<Paper p={0} withBorder radius="md" h="calc(100vh - 16px)">`.
 6. **Every `app/` page** is a one-line re-export.
 7. **Tabs** → always `DataTableShellTab[]`, always `filter` (not `forceFilter`).
 8. **Entity type** → always extends `Record<string, unknown>`.
-9. **Imports** → always from `@zetsel/ui`, never from `@mantine/*`.
+9. **Imports** → always from `@peppermint/ui`, never from `@mantine/*`.
 10. **Commit format** → `[app-name/module-name] add: description`.
