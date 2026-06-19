@@ -68,6 +68,11 @@ export const adminShellConfig: AdminShellConfig = {
                 icon: TreeStructureIcon,
               },
               {
+                label: "Structure Builder",
+                href: "/admin/organization/structure",
+                icon: TreeStructureIcon,
+              },
+              {
                 label: "Departments",
                 href: "/admin/organization/departments",
                 icon: BuildingsIcon,

@@ -1,0 +1,413 @@
+.node {
+  background: var(--mantine-color-default);
+  border: 1.5px solid var(--mantine-color-default-border);
+  border-radius: 12px;
+  min-width: 220px;
+  max-width: 280px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  position: relative;
+  cursor: pointer;
+  overflow: visible;
+}
+
+.nodeHovered {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.06);
+  border-color: var(--node-accent, var(--mantine-color-blue-4));
+}
+
+.nodeSelected {
+  border-color: var(--node-accent, var(--mantine-color-blue-5));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--node-accent, var(--mantine-color-blue-5)) 18%, transparent),
+    0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.orgNode {
+  --node-accent: #2563eb;
+  min-width: 240px;
+}
+
+.deptNode {
+  --node-accent: #7c3aed;
+}
+
+.personNode {
+  --node-accent: #059669;
+  min-width: 200px;
+  max-width: 240px;
+}
+
+.nodeHeader {
+  padding: 14px 14px 10px;
+  border-radius: 10px 10px 0 0;
+}
+
+.nodeBody {
+  padding: 10px 14px 16px;
+}
+
+.nodeIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nodeActions {
+  position: absolute;
+  top: -28px;
+  right: 6px;
+  display: flex;
+  gap: 4px;
+  background: var(--mantine-color-default);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: 8px;
+  padding: 4px 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  animation: fadeIn 0.1s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.handle {
+  width: 10px;
+  height: 10px;
+  background: var(--mantine-color-default);
+  border: 2px solid var(--node-accent, var(--mantine-color-blue-5));
+  border-radius: 50%;
+  transition: background 0.15s;
+}
+
+.handle:hover {
+  background: var(--node-accent, var(--mantine-color-blue-5));
+}
+
+.toolbar {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background: var(--mantine-color-default);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: 14px;
+  padding: 6px 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.toolbarDivider {
+  width: 1px;
+  height: 24px;
+  background: var(--mantine-color-default-border);
+  flex-shrink: 0;
+}
+
+.toolbarSearch {
+  width: 180px;
+}
+
+.personAddMode {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: color-mix(in srgb, var(--mantine-color-teal-5) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mantine-color-teal-5) 25%, transparent);
+  border-radius: 8px;
+  padding: 3px 8px 3px 6px;
+}
+
+.emptyState {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.emptyStateContent {
+  pointer-events: all;
+  text-align: center;
+  max-width: 480px;
+  padding: 48px 32px;
+  background: var(--mantine-color-default);
+  border: 1.5px dashed var(--mantine-color-default-border);
+  border-radius: 20px;
+  animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.contextMenu {
+  position: fixed;
+  background: var(--mantine-color-default);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  min-width: 160px;
+  animation: fadeIn 0.1s ease;
+}
+
+.contextMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.1s;
+  color: var(--mantine-color-text);
+}
+
+.contextMenuItem:hover {
+  background: var(--mantine-color-default-hover);
+}
+
+.contextMenuDanger:hover {
+  background: var(--mantine-color-red-light);
+  color: var(--mantine-color-red-filled);
+}
+
+.drawerSection {
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.statBadge {
+  flex: 1;
+  background: var(--mantine-color-default-hover);
+  border-radius: 10px;
+  padding: 8px 12px;
+  text-align: center;
+}
+
+/* ── Progressive explorer additions ─────────────────────────────────────── */
+
+.nodeExpandStrip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px 7px;
+  border-top: 1px dashed var(--mantine-color-default-border);
+  background: color-mix(in srgb, var(--node-accent, var(--mantine-color-blue-5)) 4%, transparent);
+  border-radius: 0 0 10px 10px;
+}
+
+.nodeDimmed {
+  opacity: 0.25;
+  filter: grayscale(0.5);
+  pointer-events: none;
+  transition: opacity 0.2s ease, filter 0.2s ease;
+}
+
+.nodePathHighlight {
+  border-color: var(--mantine-color-orange-5) !important;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--mantine-color-orange-5) 22%, transparent),
+    0 6px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.focusBranchMode {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: color-mix(in srgb, var(--mantine-color-indigo-5) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mantine-color-indigo-5) 25%, transparent);
+  border-radius: 8px;
+  padding: 3px 8px 3px 6px;
+}
+
+.toolbarBrand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px 5px 10px;
+  background: color-mix(in srgb, var(--mantine-color-blue-5) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mantine-color-blue-5) 20%, transparent);
+  border-radius: 8px;
+  flex-shrink: 0;
+  color: var(--mantine-color-blue-6);
+  margin-right: 4px;
+}
+
+/* ── Health dot ──────────────────────────────────────────────────────────── */
+
+.healthDot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--mantine-color-yellow-1, #fef9c3);
+  border: 1.5px solid var(--mantine-color-yellow-4, #facc15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Search match highlight ───────────────────────────────────────────────── */
+
+.nodeSearchMatch {
+  border-color: var(--mantine-color-yellow-5, #eab308) !important;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--mantine-color-yellow-5, #eab308) 25%, transparent),
+    0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ── Group node ───────────────────────────────────────────────────────────── */
+
+.groupNode {
+  --node-accent: #6b21a8;
+  min-width: 220px;
+  max-width: 280px;
+}
+
+.groupNodeHeader {
+  border-bottom: 1.5px dashed var(--mantine-color-violet-3, #c4b5fd);
+}
+
+/* ── Breadcrumb nav ───────────────────────────────────────────────────────── */
+
+.breadcrumbNav {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 20;
+  background: var(--mantine-color-default);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: 10px;
+  padding: 6px 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 600px;
+  flex-wrap: wrap;
+  pointer-events: all;
+}
+
+.breadcrumbItem {
+  font-size: 12px;
+  color: var(--mantine-color-blue-6);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.1s;
+  white-space: nowrap;
+}
+
+.breadcrumbItem:hover {
+  background: var(--mantine-color-blue-light);
+}
+
+.breadcrumbItemCurrent {
+  font-size: 12px;
+  color: var(--mantine-color-text);
+  padding: 2px 4px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.breadcrumbSeparator {
+  font-size: 11px;
+  color: var(--mantine-color-dimmed);
+}
+
+/* ── Filters panel ────────────────────────────────────────────────────────── */
+
+.filtersPanel {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 20;
+  background: var(--mantine-color-default);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  min-width: 220px;
+  max-width: 260px;
+  pointer-events: all;
+  overflow: hidden;
+}
+
+.filtersPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  cursor: pointer;
+  user-select: none;
+}
+
+.filtersPanelBody {
+  padding: 10px 12px;
+}
+
+/* ── Analytics panel ──────────────────────────────────────────────────────── */
+
+.analyticsPanel {
+  position: absolute;
+  bottom: 70px;
+  left: 12px;
+  z-index: 20;
+  background: var(--mantine-color-default);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  min-width: 200px;
+  max-width: 240px;
+  pointer-events: all;
+  overflow: hidden;
+}
+
+.analyticsPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  cursor: pointer;
+  user-select: none;
+}
+
+.analyticsPanelBody {
+  padding: 8px 12px;
+}
+
+.analyticsStat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+}
+
+.analyticsIssueRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 0;
+  font-size: 12px;
+  color: var(--mantine-color-orange-7);
+}

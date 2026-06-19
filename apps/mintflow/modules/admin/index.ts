@@ -9,3 +9,4 @@ export { ModuleOrganizationRoles } from "./organization/roles";
 export { ModuleOrganizationInvitations } from "./organization/invitations";
 export { ModuleOrganizationSessions } from "./organization/sessions";
 export { ModuleOrganizationAuditLogs } from "./organization/audit-logs";
+export { ModuleOrganizationTree } from "./organization/organization-tree";
