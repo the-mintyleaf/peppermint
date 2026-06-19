@@ -35,6 +35,7 @@ import { TrendUpIcon } from "@phosphor-icons/react/dist/csr/TrendUp";
 import { ChartBarHorizontalIcon } from "@phosphor-icons/react/dist/csr/ChartBarHorizontal";
 import { CurrencyDollarIcon } from "@phosphor-icons/react/dist/csr/CurrencyDollar";
 import { ChartScatterIcon } from "@phosphor-icons/react/dist/csr/ChartScatter";
+import { TreeStructureIcon } from "@phosphor-icons/react/dist/csr/TreeStructure";
 
 export const adminShellConfig: AdminShellConfig = {
   brand: {
@@ -205,6 +206,13 @@ export const adminShellConfig: AdminShellConfig = {
           },
         ],
       },
+    },
+    {
+      kind: "page",
+      id: "organization",
+      icon: TreeStructureIcon,
+      label: "Organization",
+      href: "/admin/organization",
     },
     {
       kind: "module",
