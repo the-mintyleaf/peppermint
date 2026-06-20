@@ -277,6 +277,47 @@ import { ModuleStudents } from "@/modules/students";
 export default ModuleStudents;
 ```
 
+### Step 9 — `modules/admin/<name>/docs/AI.md`
+
+Create the module AI navigation map. This is mandatory — a module without an AI map is incomplete.
+
+Minimum required content:
+
+```md
+# <Name> Module — AI Navigation Map
+
+## Purpose
+<one sentence>
+
+## Module type
+ContainedModule
+
+## Route
+/admin/<name>
+
+## Entry files
+- Module<Name>.tsx
+- index.ts
+
+## Common edit targets
+| Task | Files |
+|---|---|
+| List UI | pages/list/<Name>List.tsx |
+| Form UI | <Name>Form.tsx |
+| Queries | <name>.queryKeys.ts, module.api.ts |
+| Types | <name>.types.ts |
+
+## State ownership
+- Server data: React Query
+- Local UI state: useState
+
+## Do not do
+- Do not fetch data in useEffect.
+- Do not import Mantine directly.
+```
+
+After creating, run `/update-ai-map` to add the module to the app's `docs/AI.md` Major Modules table.
+
 ---
 
 ## 5. MultiPageModule — Build Guide
@@ -615,6 +656,51 @@ export default ModuleProducts.view;
 ```
 
 Each app page is one import and one export. No logic.
+
+### Step 13 — `modules/admin/<name>/docs/AI.md`
+
+Create the module AI navigation map. Mandatory — a module without an AI map is incomplete.
+
+```md
+# <Name> Module — AI Navigation Map
+
+## Purpose
+<one sentence>
+
+## Module type
+MultiPageModule
+
+## Routes
+| Route | File |
+|---|---|
+| /admin/<name> | pages/list/ |
+| /admin/<name>/new | pages/new/ |
+| /admin/<name>/[id] | pages/view/ |
+| /admin/<name>/[id]/edit | pages/edit/ |
+
+## Entry files
+- index.ts (exports Module<Name>)
+
+## Common edit targets
+| Task | Files |
+|---|---|
+| List page | pages/list/ |
+| Form steps | form/steps/ |
+| View page | pages/view/ |
+| Queries | <name>.queryKeys.ts, <name>.api.ts |
+| Types | <name>.types.ts |
+
+## State ownership
+- Server data: React Query
+- Form state: @mantine/form via FormWrapper
+- Shareable filters: URL search params
+
+## Do not do
+- Do not fetch data in useEffect.
+- Do not import Mantine directly.
+```
+
+After creating, run `/update-ai-map` to add the module to the app's `docs/AI.md` Major Modules table.
 
 ---
 
