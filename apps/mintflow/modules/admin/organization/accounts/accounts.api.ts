@@ -1,7 +1,7 @@
 import type { QueryParams } from "@peppermint/admin";
 import type { Account, AccountsFetchResponse } from "./accounts.types";
 
-const MOCK_ACCOUNTS: Account[] = [
+export const MOCK_ACCOUNTS: Account[] = [
   {
     id: "1",
     fullName: "Ram Bahadur Thapa",

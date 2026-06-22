@@ -1,15 +1,18 @@
 "use client";
 
+import { useCallback, useState } from "react";
 import { DataTableShell } from "@peppermint/admin";
+import type { DataTableShellModuleAccessChange } from "@peppermint/admin";
 import { Paper } from "@peppermint/ui";
 import type { DataTableShellTab } from "@peppermint/admin";
-import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
-import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
-import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
 import { fetchAccounts } from "../../accounts.api";
 import { ACCOUNTS_COLUMNS } from "./list.columns";
 import { ACCOUNTS_QUERY_KEY, ACCOUNTS_BASE_PATH } from "../../accounts.config";
 import type { Account } from "../../accounts.types";
+import {
+  applyModuleAccessChange,
+  buildModuleAccessFromPermissions,
+} from "../../../_shared/moduleAccess";
 
 const TABS: DataTableShellTab[] = [
   { label: "All Accounts" },
@@ -18,6 +21,17 @@ const TABS: DataTableShellTab[] = [
 ];
 
 export function AccountsList() {
+  const [moduleAccess, setModuleAccess] = useState(() =>
+    buildModuleAccessFromPermissions("accounts"),
+  );
+
+  const handleModuleAccessChange = useCallback(
+    (change: DataTableShellModuleAccessChange) => {
+      setModuleAccess((prev) => applyModuleAccessChange(prev, change));
+    },
+    [],
+  );
+
   return (
     <Paper p={0} withBorder radius="md" h="calc(100vh - 16px)">
       <DataTableShell<Account>
@@ -36,6 +50,8 @@ export function AccountsList() {
         tabs={TABS}
         pageSizes={[10, 20, 50]}
         defaultPageSize={20}
+        moduleAccess={moduleAccess}
+        onModuleAccessChange={handleModuleAccessChange}
       />
     </Paper>
   );

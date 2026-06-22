@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { Box, Button, Container, Divider, Group, ModuleHeader, Paper } from "@peppermint/ui";
-import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
+import { Box, Divider, ModuleHeader, Paper } from "@peppermint/ui";
 import {
   DataTableWrapper,
   useTableData,
@@ -12,7 +11,7 @@ import { DataTableShellContext } from "./DataTableShell.context";
 import {
   DataTableShellActiveFilters,
   DataTableShellHeader,
-  DataTableShellHeaderActions,
+  DataTableShellModuleHeaderRight,
   DataTableShellTable,
   DataTableShellTableActions,
   DataTableShellToolbar,
@@ -80,6 +79,11 @@ function DataTableShellInner<T extends Record<string, unknown>>({
   onTabChange,
   activeTabForceFilter,
   headerRight,
+  moduleAccess,
+  onModuleAccessChange,
+  lastEditedAt,
+  shareUrl,
+  hideAccessMenu,
 }: DataTableShellInnerProps<T>) {
   const { rows } = useTableData<T>();
   const useTable = useTableStore();
@@ -105,36 +109,32 @@ function DataTableShellInner<T extends Record<string, unknown>>({
     }));
   }, [basePath]);
 
+  const rowsUpdatedAt = useMemo(() => {
+    let latest: string | undefined;
+    for (const row of rows) {
+      const value = row.updatedAt;
+      if (typeof value === "string" && (!latest || value > latest)) {
+        latest = value;
+      }
+    }
+    return latest;
+  }, [rows]);
+
   return (
     <DataTableShellContext.Provider value={contextValue}>
       <ModuleHeader
         breadcrumbItems={breadcrumbItems}
         right={
-          <Group gap={4} pr="md" wrap="nowrap" align="center">
-            {headerRight}
-            {!disableCreateButton && (
-              sustained && onNewClick ? (
-                <Button
-                  size="xs"
-                  leftSection={<PlusIcon size={13} />}
-                  onClick={onNewClick}
-                >
-                  New {moduleInfo.label ?? moduleInfo.name}
-                </Button>
-              ) : (basePath || newButtonHref) ? (
-                <Button
-                  component="a"
-                  size="xs"
-                  href={newButtonHref ?? `${basePath}/new`}
-                  leftSection={<PlusIcon size={13} />}
-                  suppressHydrationWarning
-                >
-                  New {moduleInfo.label ?? moduleInfo.name}
-                </Button>
-              ) : null
-            )}
-            <DataTableShellHeaderActions exportFilename={moduleInfo.name} />
-          </Group>
+          <DataTableShellModuleHeaderRight
+            moduleInfo={moduleInfo}
+            headerRight={headerRight}
+            moduleAccess={moduleAccess}
+            onModuleAccessChange={onModuleAccessChange}
+            lastEditedAt={lastEditedAt}
+            shareUrl={shareUrl}
+            hideAccessMenu={hideAccessMenu}
+            rowsUpdatedAt={rowsUpdatedAt}
+          />
         }
       />
 
@@ -164,12 +164,17 @@ function DataTableShellInner<T extends Record<string, unknown>>({
       <Box px="md" size="xl" mt="md" pos="relative">
         <Paper
           withBorder
-          style={{ borderTop: "none", overflow: "hidden" }}
-          h={"calc(100vh  - 210px)"}
+          style={{
+            borderTop: "none",
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+            height: "calc(100vh - 210px)",
+          }}
         >
-          <DataTableShellActiveFilters />
-          <Divider />
-          <DataTableShellTable
+          <DataTableShellActiveFilters columns={columns} />
+          <Box style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+            <DataTableShellTable
             columns={columns}
             idAccessor={idAccessor}
             pageSizes={pageSizes}
@@ -179,6 +184,7 @@ function DataTableShellInner<T extends Record<string, unknown>>({
             rowExpansion={rowExpansion}
             disableActions={disableActions}
           />
+          </Box>
         </Paper>
 
         {!disableActions && (
@@ -238,6 +244,11 @@ export function DataTableShell<
   disableActions = false,
   sustained = false,
   headerRight,
+  moduleAccess,
+  onModuleAccessChange,
+  lastEditedAt,
+  shareUrl,
+  hideAccessMenu,
 }: DataTableShellProps<T>) {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -290,6 +301,11 @@ export function DataTableShell<
         onTabChange={handleTabChange}
         activeTabForceFilter={activeTabForceFilter}
         headerRight={headerRight}
+        moduleAccess={moduleAccess}
+        onModuleAccessChange={onModuleAccessChange}
+        lastEditedAt={lastEditedAt}
+        shareUrl={shareUrl}
+        hideAccessMenu={hideAccessMenu}
       />
     </DataTableWrapper>
   );

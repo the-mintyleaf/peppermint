@@ -40,12 +40,12 @@ export function DataTableShellHeaderActions({
     <Menu shadow="md" width={180} position="bottom-end">
       <Menu.Target>
         <ActionIcon
-          color="brand"
-          variant="light"
+          color="gray"
+          variant="subtle"
           size="md"
           aria-label="Table actions"
         >
-          <DotsThreeVertical size={14} weight="bold" />
+          <DotsThreeVertical size={16} weight="bold" />
         </ActionIcon>
       </Menu.Target>
 

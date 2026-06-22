@@ -9,11 +9,18 @@ const STATUS_COLORS: Record<AccountStatus, string> = {
 };
 
 export const ACCOUNTS_COLUMNS: DataTableShellColumn<Account>[] = [
-  { accessor: "fullName", title: "Full Name", sortable: true, width: 200 },
+  {
+    accessor: "fullName",
+    title: "Full Name",
+    sortable: true,
+    width: 200,
+    filter: { type: "text", placeholder: "Search by name" },
+  },
   {
     accessor: "roleName",
     title: "Role",
     width: 140,
+    filter: { type: "text", placeholder: "Search by role" },
     render: (record) =>
       record.roleName ? (
         <Badge size="xs" variant="light" color="blue">
@@ -45,6 +52,14 @@ export const ACCOUNTS_COLUMNS: DataTableShellColumn<Account>[] = [
     accessor: "status",
     title: "Status",
     width: 100,
+    filter: {
+      type: "select",
+      options: [
+        { label: "Active", value: "active" },
+        { label: "Inactive", value: "inactive" },
+        { label: "Suspended", value: "suspended" },
+      ],
+    },
     render: (record) => (
       <Badge size="xs" color={STATUS_COLORS[record.status as AccountStatus] ?? "gray"}>
         {record.status}

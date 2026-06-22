@@ -1,6 +1,6 @@
 # DataTableShell — Usage Guide
 
-Pre-composed admin table page for `@peppermint/admin`. Renders a page header with title and New button, a toolbar with tabs/search/column toggles, an active filters bar, a `mantine-datatable` table with pagination, and a floating bulk-action bar — all wired to `DataTableWrapper` state automatically.
+Pre-composed admin table page for `@peppermint/admin`. Renders a page header, an icon-based toolbar (sort, filter, columns, search, settings, add), an active filters bar, a `mantine-datatable` table with pagination, and a floating bulk-action bar — all wired to `DataTableWrapper` state automatically.
 
 ```ts
 import { DataTableShell } from '@peppermint/admin';
@@ -42,7 +42,7 @@ export function UsersPage() {
 
 The shell renders the full page layout. The `basePath` prop is used to build navigation hrefs:
 
-- New button → `${basePath}/new`
+- Add button (toolbar) → `${basePath}/new`
 - Edit (from action bar) → `${basePath}/${id}/edit`
 - Review (from action bar) → `${basePath}/${id}`
 
@@ -82,12 +82,22 @@ Search and filter changes are debounced 300ms before triggering a new request (c
 
 ## Column definitions
 
-Columns extend mantine-datatable's `DataTableColumn<T>` with two additional fields:
+Columns extend mantine-datatable's `DataTableColumn<T>` with additional fields:
 
 ```ts
+type DataTableColumnFilterType = 'text' | 'select' | 'number' | 'date';
+
+interface DataTableColumnFilter {
+  type?: DataTableColumnFilterType; // default: 'text'
+  icon?: React.ComponentType<{ size?: number; weight?: string }>;
+  options?: Array<{ label: string; value: string }>; // required for 'select'
+  placeholder?: string;
+}
+
 type DataTableShellColumn<T> = DataTableColumn<T> & {
   key?: string;          // visibility map key — defaults to String(accessor)
   defaultVisible?: boolean;  // initial visibility — defaults to true
+  filter?: DataTableColumnFilter; // when set, column appears in the filter picker
 };
 ```
 
@@ -96,9 +106,20 @@ Always provide a `key` when your column accessor might not be a plain string, or
 ```ts
 const COLUMNS: DataTableShellColumn<Order>[] = [
   { accessor: 'id',        title: '#',        key: 'id',        defaultVisible: false },
-  { accessor: 'customer',  title: 'Customer', key: 'customer',  sortable: true },
+  { accessor: 'customer',  title: 'Customer', key: 'customer',  sortable: true, filter: { type: 'text' } },
   { accessor: 'total',     title: 'Total',    key: 'total',     sortable: true },
-  { accessor: 'status',    title: 'Status',   key: 'status' },
+  {
+    accessor: 'status',
+    title: 'Status',
+    key: 'status',
+    filter: {
+      type: 'select',
+      options: [
+        { label: 'Active', value: 'active' },
+        { label: 'Cancelled', value: 'cancelled' },
+      ],
+    },
+  },
   {
     accessor: 'createdAt',
     title: 'Created',
@@ -109,7 +130,66 @@ const COLUMNS: DataTableShellColumn<Order>[] = [
 ];
 ```
 
-Column visibility is persisted to `localStorage` automatically, keyed by `moduleInfo.name`. Users can show/hide columns from the Columns popover in the toolbar. Their preference survives page refreshes.
+Column visibility is persisted to `localStorage` automatically, keyed by `moduleInfo.name`. Users can show/hide columns from the **Columns** icon in the toolbar. Their preference survives page refreshes.
+
+---
+
+## Toolbar
+
+The desktop toolbar renders icon actions on the right (each with a tooltip and popover):
+
+| Icon | Purpose |
+|------|---------|
+| Filter | Two-step field picker (`Filter by` search) then value editor |
+| Search | Global text search across all row fields (debounced 300ms) |
+| Settings | Row density and reset table state |
+| Columns | Toggle column visibility |
+| Add | Navigates to `${basePath}/new` (or calls `onNewClick` in sustained mode); uses brand color |
+
+The **Add** button lives in the toolbar only — not in the page header. Use `headerRight` for extra header actions.
+
+Field filters merge into the store's `filters` object and appear as removable chips above the table. Global search appears as a `Search: …` chip when active.
+
+Filter picker behavior:
+1. Click **Filter** → searchable list of columns with `filter` metadata
+2. Select a field → value editor (`text`, `select`, `number`, or `date`)
+3. Apply → filter chip appears; in server mode, `filters` is sent on the next query
+
+Disable the Add button with `disableCreateButton`. Hide the entire toolbar with `hideToolbar`.
+
+Toolbar trigger icons (Filter, Search, Settings, Columns) use Phosphor `weight="duotone"`.
+
+---
+
+## ModuleHeader access bar
+
+The `ModuleHeader` right slot renders:
+
+`Edited X min ago | Access ▾ | Bookmark | ⋯`
+
+| Element | Behavior |
+|---------|----------|
+| Edited | Relative timestamp from `lastEditedAt`, `moduleInfo.updatedAt`, or latest row `updatedAt` |
+| Access | Popover listing roles and accounts with module access; invite + permission edits |
+| Bookmark | Toggles favorite; persisted in `localStorage` at `peppermint:module-bookmark:{moduleInfo.name}` |
+| ⋯ | Reload table and export CSV |
+
+```tsx
+<DataTableShell<Account>
+  moduleAccess={{
+    accounts: [{ id: '1', name: 'Jane Doe', accessLevel: 'edit' }],
+    roles: [{ id: '2', name: 'Manager', accessLevel: 'manage' }],
+    invitedCount: 4,
+  }}
+  onModuleAccessChange={(change) => {
+    // change.type: 'invite' | 'account' | 'role'
+  }}
+  lastEditedAt={new Date()}
+  shareUrl="https://app.example.com/admin/accounts"
+/>
+```
+
+Hide the Access menu with `hideAccessMenu` or omit `moduleAccess`. Use `headerRight` for additional header actions before the edited label.
 
 ---
 
@@ -376,9 +456,9 @@ const invalidate = useInvalidateTable();
 | `idAccessor` | `string` | `'id'` | Row unique key field |
 | `basePath` | `string` | — | Base URL for New/Edit/Review navigation |
 | `tabs` | `DataTableShellTab[]` | `[]` | Tab filter buttons |
-| `newButtonHref` | `string` | — | Overrides `${basePath}/new` for the New button |
+| `newButtonHref` | `string` | — | Overrides `${basePath}/new` for the Add button |
 | `onNewClick` | `() => void` | — | Called instead of navigating in sustained mode |
-| `disableCreateButton` | `boolean` | `false` | Disables the New button |
+| `disableCreateButton` | `boolean` | `false` | Disables the Add button |
 | `onDeleteClick` | `(ids: Array<string \| number>) => Promise<void>` | — | Called with selected row IDs |
 | `onEditClick` | `(record: T) => void` | — | Called in sustained mode; navigates otherwise |
 | `onReviewClick` | `(record: T) => void` | — | Called for single-record review; navigates otherwise |
@@ -389,15 +469,21 @@ const invalidate = useInvalidateTable();
 | `forceFilter` | `(rows: T[]) => T[]` | — | Client-side post-filter applied after tab forceFilter |
 | `rowStyle` | `(record: T, index: number) => CSSProperties` | — | Per-row inline style |
 | `rowExpansion` | `DataTableRowExpansionProps<T>` | — | mantine-datatable row expansion config |
-| `hideToolbar` | `boolean` | `false` | Hides the entire toolbar (tabs, search, columns) |
+| `hideToolbar` | `boolean` | `false` | Hides the entire toolbar (tabs, icons) |
 | `disableActions` | `boolean` | `false` | Hides the selection action bar and disables checkboxes |
-| `sustained` | `boolean` | `false` | New/Edit trigger callbacks instead of navigating |
+| `sustained` | `boolean` | `false` | Add/Edit trigger callbacks instead of navigating |
+| `headerRight` | `ReactNode` | — | Extra content in the ModuleHeader right slot |
+| `moduleAccess` | `DataTableShellModuleAccess` | — | Roles and accounts shown in the Access popover |
+| `onModuleAccessChange` | `(change) => void` | — | Invite / edit permission callbacks |
+| `lastEditedAt` | `string \| Date` | — | Explicit edited timestamp for the header label |
+| `shareUrl` | `string` | current URL | URL shown in Access popover footer |
+| `hideAccessMenu` | `boolean` | `false` | Hides the Access dropdown |
 
 ### `DataTableShellModuleInfo`
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `name` | `string` | Used as the localStorage persistence key and "New X" button label |
+| `name` | `string` | Used as the localStorage persistence key |
 | `label` | `string` | Display label shown in the header. Defaults to `name` |
 | `description` | `string` | Subtitle shown under the title in the header |
 

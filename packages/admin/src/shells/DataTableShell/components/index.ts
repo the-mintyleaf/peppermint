@@ -7,3 +7,4 @@ export { DataTableShellHeader } from './DataTableShellHeader';
 export { DataTableShellTable } from './DataTableShellTable';
 export { DataTableShellTableActions } from './DataTableShellTableActions';
 export { DataTableShellToolbar } from './DataTableShellToolbar';
+export { DataTableShellModuleHeaderRight } from './DataTableShellModuleHeader';

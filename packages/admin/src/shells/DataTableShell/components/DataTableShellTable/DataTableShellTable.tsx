@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
+import { Box } from "@peppermint/ui";
 import { DataTable } from "mantine-datatable";
 import type { DataTableSortStatus } from "mantine-datatable";
 import {
@@ -10,6 +11,19 @@ import {
 import { useDataTableShellContext } from "../../DataTableShell.context";
 import { DataTableShellEmptyState } from "../DataTableShellEmptyState";
 import type { DataTableShellTableProps } from "../../DataTableShell.types";
+import type { DensitySize } from '../../../../wrappers/DataTableWrapper';
+import { useElementHeight } from '../../hooks/useElementHeight';
+
+const DENSITY_SPACING: Record<
+  DensitySize,
+  { verticalSpacing: number; horizontalSpacing: number; fz: string }
+> = {
+  xs: { verticalSpacing: 4, horizontalSpacing: 6, fz: 'xs' },
+  sm: { verticalSpacing: 6, horizontalSpacing: 8, fz: 'xs' },
+  md: { verticalSpacing: 6, horizontalSpacing: 8, fz: 'xs' },
+  lg: { verticalSpacing: 10, horizontalSpacing: 12, fz: 'sm' },
+  xl: { verticalSpacing: 12, horizontalSpacing: 14, fz: 'sm' },
+};
 
 export function DataTableShellTable<T extends Record<string, unknown>>({
   columns,
@@ -32,7 +46,12 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
   const sort = useTable((s) => s.sort);
   const setSort = useTable((s) => s.setSort);
   const columnVisibility = useTable((s) => s.columnVisibility);
+  const density = useTable((s) => s.density);
   const setSelection = useTable((s) => s.setSelection);
+
+  const spacing = DENSITY_SPACING[density];
+  const tableRef = useRef<HTMLDivElement>(null);
+  const tableHeight = useElementHeight(tableRef);
 
   // Apply tab-level then shell-level client-side post-filters
   const filteredRows = useMemo<T[]>(() => {
@@ -103,19 +122,24 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
   );
 
   return (
-    <DataTable<T>
+    <Box
+      ref={tableRef}
+      style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+    >
+      <DataTable<T>
       striped
       withColumnBorders
       withRowBorders
       highlightOnHover
-      fz="xs"
+      fz={spacing.fz}
       fw={500}
-      horizontalSpacing={8}
-      verticalSpacing={6}
+      horizontalSpacing={spacing.horizontalSpacing}
+      verticalSpacing={spacing.verticalSpacing}
       idAccessor={idAccessor as keyof T & string}
       columns={effectiveColumns}
       records={filteredRows}
       fetching={isLoading || isFetching || isDebouncing}
+      height={tableHeight > 0 ? tableHeight : undefined}
       emptyState={<DataTableShellEmptyState />}
       rowStyle={rowStyle}
       sortStatus={sortStatus}
@@ -136,5 +160,6 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
       selectionCheckboxProps={{ size: "xs" }}
       rowExpansion={rowExpansion}
     />
+    </Box>
   );
 }

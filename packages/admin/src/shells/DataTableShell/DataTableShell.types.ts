@@ -1,6 +1,19 @@
 import type { ReactNode } from 'react';
 import type { DataTableColumn, DataTableRowExpansionProps } from 'mantine-datatable';
+import type {
+  AccessAccount,
+  AccessLevel,
+  AccessMenuChange,
+  AccessMenuData,
+  AccessRole,
+} from '@peppermint/ui';
 import type { FilterState, DataTableWrapperProps } from '../../wrappers/DataTableWrapper';
+
+export type ModuleAccessLevel = AccessLevel;
+export type ModuleAccessAccount = AccessAccount;
+export type ModuleAccessRole = AccessRole;
+export type DataTableShellModuleAccess = AccessMenuData;
+export type DataTableShellModuleAccessChange = AccessMenuChange;
 
 export interface DataTableShellTab {
   label: string;
@@ -12,11 +25,22 @@ export interface DataTableShellTab {
   forceFilter?: <T>(rows: T[]) => T[];
 }
 
+export type DataTableColumnFilterType = 'text' | 'select' | 'number' | 'date';
+
+export interface DataTableColumnFilter {
+  type?: DataTableColumnFilterType;
+  icon?: React.ComponentType<any>;
+  options?: Array<{ label: string; value: string }>;
+  placeholder?: string;
+}
+
 export type DataTableShellColumn<T> = DataTableColumn<T> & {
   /** Key used in columnVisibility map. Defaults to String(accessor). */
   key?: string;
   /** Initial visibility before any user preference. Defaults to true. */
   defaultVisible?: boolean;
+  /** When set, column appears in the filter picker. */
+  filter?: DataTableColumnFilter;
 };
 
 export interface DataTableShellModuleInfo {
@@ -25,6 +49,8 @@ export interface DataTableShellModuleInfo {
   /** Human-readable display label. Defaults to name. */
   label?: string;
   description?: string;
+  /** Fallback for the Edited label when lastEditedAt is not set. */
+  updatedAt?: string | Date;
 }
 
 export interface DataTableShellProps<T extends Record<string, unknown> = Record<string, unknown>>
@@ -65,6 +91,12 @@ export interface DataTableShellProps<T extends Record<string, unknown> = Record<
   sustained?: boolean;
   /** Rendered in the right slot of ModuleHeader (e.g. New button, action menu). */
   headerRight?: ReactNode;
+
+  moduleAccess?: DataTableShellModuleAccess;
+  onModuleAccessChange?: (change: DataTableShellModuleAccessChange) => void;
+  lastEditedAt?: string | Date;
+  shareUrl?: string;
+  hideAccessMenu?: boolean;
 }
 
 // ── Internal props passed to DataTableShellInner ──────────────────────────────
@@ -95,6 +127,11 @@ export interface DataTableShellInnerProps<T extends Record<string, unknown>> {
   onTabChange: (index: number) => void;
   activeTabForceFilter?: (rows: T[]) => T[];
   headerRight?: ReactNode;
+  moduleAccess?: DataTableShellModuleAccess;
+  onModuleAccessChange?: (change: DataTableShellModuleAccessChange) => void;
+  lastEditedAt?: string | Date;
+  shareUrl?: string;
+  hideAccessMenu?: boolean;
 }
 
 // ── Sub-component prop types ──────────────────────────────────────────────────

@@ -1,82 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
   ActionIcon,
   Button,
   Center,
-  Checkbox,
-  Divider,
   Drawer,
   Group,
   Menu,
   Paper,
-  Popover,
   SegmentedControl,
   Stack,
   Text,
-  TextInput,
 } from "@peppermint/ui";
 import { ArrowLeftIcon } from "@phosphor-icons/react/dist/csr/ArrowLeft";
 import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
 import { FunnelIcon } from "@phosphor-icons/react/dist/csr/Funnel";
-import { GearSixIcon } from "@phosphor-icons/react/dist/csr/GearSix";
-import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
-import { XIcon } from "@phosphor-icons/react/dist/csr/X";
-import { useDebouncedValue, useDisclosure } from "@peppermint/ui";
-import { useTableStore } from "../../../../wrappers/DataTableWrapper";
+import { useDisclosure } from "@peppermint/ui";
 import { useDataTableShellContext } from "../../DataTableShell.context";
 import type { DataTableShellToolbarProps } from "../../DataTableShell.types";
-
-interface ColumnToggleListProps {
-  columnToggles: { key: string; label: string; visible: boolean }[];
-  toggleColumn: (key: string, visible: boolean) => void;
-  handleResetColumns: () => void;
-}
-
-function ColumnToggleList({ columnToggles, toggleColumn, handleResetColumns }: ColumnToggleListProps) {
-  return (
-    <Stack gap={0}>
-      <Text px="sm" py="xs" size="xs" c="dimmed">
-        Visible columns
-      </Text>
-      <Divider />
-      {columnToggles.map(({ key, label, visible }) => (
-        <Button
-          key={key}
-          justify="left"
-          radius={0}
-          variant="subtle"
-          size="xs"
-          leftSection={
-            <Checkbox
-              checked={visible}
-              readOnly
-              size="xs"
-              tabIndex={-1}
-            />
-          }
-          onClick={() => toggleColumn(key, !visible)}
-          style={{ color: "var(--mantine-color-text)" }}
-        >
-          {label}
-        </Button>
-      ))}
-      <Divider />
-      <Button
-        size="xs"
-        variant="subtle"
-        justify="left"
-        leftSection={<XIcon size={12} weight="bold" />}
-        styles={{ label: { paddingLeft: 4 } }}
-        onClick={handleResetColumns}
-      >
-        Reset to default
-      </Button>
-    </Stack>
-  );
-}
+import { ColumnToggleList } from "./ColumnToggleList";
+import { DataTableShellColumnsMenu } from "./DataTableShellColumnsMenu";
+import { DataTableShellFilterMenu } from "./DataTableShellFilterMenu";
+import { DataTableShellSearchMenu } from "./DataTableShellSearchMenu";
+import { DataTableShellSettingsMenu } from "./DataTableShellSettingsMenu";
+import { getColumnKey, getColumnLabel } from "./toolbar.utils";
+import { useTableStore } from "../../../../wrappers/DataTableWrapper";
 
 export function DataTableShellToolbar<T extends Record<string, unknown>>({
   moduleInfo,
@@ -91,18 +40,12 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
   const { activeTab, setActiveTab } = useDataTableShellContext<T>();
   const displayLabel = moduleInfo.label ?? moduleInfo.name;
   const finalHref = newButtonHref ?? (basePath ? `${basePath}/new` : undefined);
+  const showAddButton =
+    !disableCreateButton && (sustained ? !!onNewClick : !!(basePath || newButtonHref));
 
   const useTable = useTableStore();
-  const setSearch = useTable((s) => s.setSearch);
   const columnVisibility = useTable((s) => s.columnVisibility);
   const toggleColumn = useTable((s) => s.toggleColumn);
-
-  const [searchInput, setSearchInput] = useState("");
-  const [debouncedSearch] = useDebouncedValue(searchInput, 300);
-
-  useEffect(() => {
-    setSearch(debouncedSearch);
-  }, [debouncedSearch, setSearch]);
 
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
@@ -114,19 +57,45 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
 
   const handleResetColumns = () => {
     columns.forEach((col) => {
-      const key = col.key ?? String(col.accessor);
+      const key = getColumnKey(col);
       toggleColumn(key, col.defaultVisible !== false);
     });
   };
 
   const columnToggles = columns.map((col) => {
-    const key = col.key ?? String(col.accessor);
-    const visible = isColumnVisible(key, col.defaultVisible !== false);
-    const label = typeof col.title === "string" ? col.title : key;
-    return { key, label, visible };
+    const key = getColumnKey(col);
+    return {
+      key,
+      label: getColumnLabel(col),
+      visible: isColumnVisible(key, col.defaultVisible !== false),
+    };
   });
 
   const activeTabLabel = tabs[activeTab]?.label ?? `All ${displayLabel}`;
+
+  const addButton = showAddButton ? (
+    sustained && onNewClick ? (
+      <Button
+        size="xs"
+        color="brand"
+        rightSection={<PlusIcon size={13} weight="bold" />}
+        onClick={onNewClick}
+      >
+        Add
+      </Button>
+    ) : (
+      <Button
+        component="a"
+        size="xs"
+        color="brand"
+        href={finalHref}
+        rightSection={<PlusIcon size={13} weight="bold" />}
+        suppressHydrationWarning
+      >
+        Add
+      </Button>
+    )
+  ) : null;
 
   return (
     <>
@@ -158,30 +127,31 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
               aria-label="Open filters and options"
               onClick={openDrawer}
             >
-              <FunnelIcon size={18} />
+              <FunnelIcon size={18} weight="duotone" />
             </ActionIcon>
 
-            {sustained && onNewClick ? (
-              <ActionIcon
-                size="lg"
-                aria-label={`New ${displayLabel}`}
-                disabled={disableCreateButton}
-                onClick={onNewClick}
-              >
-                <PlusIcon size={18} />
-              </ActionIcon>
-            ) : (
-              <ActionIcon
-                component="a"
-                size="lg"
-                href={disableCreateButton ? undefined : finalHref}
-                aria-label={`New ${displayLabel}`}
-                disabled={disableCreateButton}
-                suppressHydrationWarning
-              >
-                <PlusIcon size={18} />
-              </ActionIcon>
-            )}
+            {showAddButton &&
+              (sustained && onNewClick ? (
+                <ActionIcon
+                  size="lg"
+                  color="brand"
+                  aria-label="Add"
+                  onClick={onNewClick}
+                >
+                  <PlusIcon size={18} />
+                </ActionIcon>
+              ) : (
+                <ActionIcon
+                  component="a"
+                  size="lg"
+                  color="brand"
+                  href={finalHref}
+                  aria-label="Add"
+                  suppressHydrationWarning
+                >
+                  <PlusIcon size={18} />
+                </ActionIcon>
+              ))}
           </Group>
         </Group>
       </Paper>
@@ -232,15 +202,14 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
             </Menu>
           )}
 
-          <TextInput
-            leftSection={<MagnifyingGlassIcon size={14} />}
-            size="sm"
-            placeholder="Search…"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.currentTarget.value)}
-          />
+          <DataTableShellSearchMenu inline />
+          <DataTableShellFilterMenu columns={columns} inline onApplied={closeDrawer} />
 
-          <ColumnToggleList columnToggles={columnToggles} toggleColumn={toggleColumn} handleResetColumns={handleResetColumns} />
+          <ColumnToggleList
+            columnToggles={columnToggles}
+            toggleColumn={toggleColumn}
+            handleResetColumns={handleResetColumns}
+          />
         </Stack>
       </Drawer>
 
@@ -256,7 +225,13 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
               return {
                 label: (
                   <Center style={{ gap: 8 }}>
-                    {IconComponent && <IconComponent weight="duotone" color="var(--mantine-color-brand-5)" size={14} />}
+                    {IconComponent && (
+                      <IconComponent
+                        weight="duotone"
+                        color="var(--mantine-color-brand-5)"
+                        size={14}
+                      />
+                    )}
                     <span>{tab.label}</span>
                   </Center>
                 ),
@@ -266,7 +241,12 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
             size="sm"
             color="white"
             autoContrast
-            styles={{ label: { paddingInline: 10, fontSize: "var(--mantine-font-size-xs)" } }}
+            styles={{
+              label: {
+                paddingInline: 10,
+                fontSize: "var(--mantine-font-size-xs)",
+              },
+            }}
           />
         ) : (
           <Text fw={700} size="xs">
@@ -274,34 +254,12 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
           </Text>
         )}
 
-        <Group gap={4}>
-          <div suppressHydrationWarning>
-            <TextInput
-              miw={280}
-              leftSection={<MagnifyingGlassIcon size={14} />}
-              size="xs"
-              placeholder="Search…"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.currentTarget.value)}
-            />
-          </div>
-
-          <Popover withArrow shadow="md" position="bottom-end">
-            <Popover.Target>
-              <Button
-                color="dark"
-                variant="default"
-                size="xs"
-                leftSection={<GearSixIcon size={13} />}
-                rightSection={<CaretDownIcon size={13} />}
-              >
-                Columns
-              </Button>
-            </Popover.Target>
-            <Popover.Dropdown p={0} w={200}>
-              <ColumnToggleList columnToggles={columnToggles} toggleColumn={toggleColumn} handleResetColumns={handleResetColumns} />
-            </Popover.Dropdown>
-          </Popover>
+        <Group gap={4} wrap="nowrap">
+          <DataTableShellFilterMenu columns={columns} />
+          <DataTableShellSearchMenu />
+          <DataTableShellSettingsMenu />
+          <DataTableShellColumnsMenu columns={columns} />
+          {addButton}
         </Group>
       </Group>
     </>

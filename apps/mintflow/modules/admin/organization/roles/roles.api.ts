@@ -1,7 +1,7 @@
 import type { QueryParams } from "@peppermint/admin";
 import type { Role, RolesFetchResponse } from "./roles.types";
 
-const MOCK_ROLES: Role[] = [
+export const MOCK_ROLES: Role[] = [
   {
     id: "1",
     name: "Super Admin",
