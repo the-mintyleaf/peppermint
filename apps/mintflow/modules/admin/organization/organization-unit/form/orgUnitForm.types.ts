@@ -1,4 +1,4 @@
-import type { ConfidentialityLevel, OrgUnitStatus, OrgUnitType, TaskVisibility } from "../module.api";
+import type { ConfidentialityLevel, OrgUnitStatus, OrgUnitType, TaskVisibility } from "../organization-unit.api";
 
 export interface OrgUnitFormValues extends Record<string, unknown> {
   // Identity

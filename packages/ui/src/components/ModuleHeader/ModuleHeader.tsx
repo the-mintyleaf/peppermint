@@ -2,6 +2,7 @@
 
 import { Box, Divider, Group } from "@mantine/core";
 import { PageBreadcrumb } from "../PageBreadcrumb";
+import { SubNavExpandButton } from "../SubNavExpandButton";
 import type { ModuleHeaderProps } from "./ModuleHeader.types";
 
 export function ModuleHeader({
@@ -15,12 +16,19 @@ export function ModuleHeader({
     <PageBreadcrumb items={breadcrumbItems} color={breadcrumbColor} />
   );
 
+  const leftContent = (
+    <Group gap={0} align="center" wrap="nowrap">
+      <SubNavExpandButton />
+      {breadcrumb}
+    </Group>
+  );
+
   return (
     <>
       {center ? (
         <Box pos="relative" h={38}>
           <Group pl="md" h="100%" justify="space-between" wrap="nowrap">
-            {breadcrumb}
+            {leftContent}
             {right}
           </Group>
 
@@ -35,7 +43,7 @@ export function ModuleHeader({
         </Box>
       ) : (
         <Group pl="md" h={38} justify="space-between" wrap="nowrap">
-          {breadcrumb}
+          {leftContent}
           {right}
         </Group>
       )}

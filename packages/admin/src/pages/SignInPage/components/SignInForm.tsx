@@ -115,9 +115,9 @@ export function SignInForm({
           size="md"
           radius="md"
           color="brand"
-          h={50}
+         
         >
-          Continue
+          Continue with email
         </Button>
       </Stack>
     </form>

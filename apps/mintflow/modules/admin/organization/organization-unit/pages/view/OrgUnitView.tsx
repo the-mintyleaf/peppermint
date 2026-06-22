@@ -18,8 +18,8 @@ import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
 import { KanbanIcon } from "@phosphor-icons/react/dist/csr/Kanban";
 import { ArrowsInLineVerticalIcon } from "@phosphor-icons/react/dist/csr/ArrowsInLineVertical";
 import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
-import { fetchOrgUnit } from "../../module.api";
-import type { OrganizationUnit, OrgUnitType, OrgUnitStatus, ConfidentialityLevel, TaskVisibility } from "../../module.api";
+import { fetchOrgUnit } from "../../organization-unit.api";
+import type { OrganizationUnit, OrgUnitType, OrgUnitStatus, ConfidentialityLevel, TaskVisibility } from "../../organization-unit.api";
 
 const UNIT_TYPE_LABELS: Record<OrgUnitType, string> = {
   ministry: "Ministry",

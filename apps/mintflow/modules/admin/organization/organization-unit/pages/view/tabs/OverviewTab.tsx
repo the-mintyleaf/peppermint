@@ -7,8 +7,8 @@ import {
   getOwnershipScopeLabel,
   getUnitTypeLabel,
   UNIT_TYPE_COLORS,
-} from "../../../organizationUnit.constants";
-import type { OrganizationUnit } from "../../../organizationUnit.types";
+} from "../../organization-unit.constants";
+import type { OrganizationUnit } from "../../organization-unit.api";
 
 function Field({ label, value }: { label: string; value?: string | number }) {
   if (value === undefined || value === "") return null;

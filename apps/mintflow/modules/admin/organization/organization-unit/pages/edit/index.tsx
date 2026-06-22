@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Center, Loader, Paper } from "@peppermint/ui";
 import { OrgUnitForm } from "../../form";
-import { fetchOrgUnit } from "../../module.api";
+import { fetchOrgUnit } from "../../organization-unit.api";
 
 export function OrgUnitEdit() {
   const { id } = useParams<{ id: string }>();

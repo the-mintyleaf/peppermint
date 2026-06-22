@@ -1,7 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { Box, Divider, Stack } from "@peppermint/ui";
+import { ActionIcon, Box, Divider, Stack } from "@peppermint/ui";
 import { MainNavIconButton } from "./MainNavIconButton";
 import { MainNavFooter } from "./MainNavFooter";
 import type {
@@ -16,11 +15,11 @@ import {
   shellCardStyle,
 } from "../../../shell.constants";
 import { spotlight } from "@peppermint/ui";
-import { MagnifyingGlass } from "@phosphor-icons/react";
+import { MagnifyingGlass, type Icon } from "@phosphor-icons/react";
 import { MainNavSpotlight } from "./MainNavSpotlight";
 
 interface MainNavProps {
-  header: ReactNode;
+  header: Icon;
   mainNav: AdminShellMainNavItem[];
   additional?: AdminShellMainNavAdditional[];
   aiButton?: AdminShellAiButton;
@@ -28,11 +27,12 @@ interface MainNavProps {
   activeItemId?: string;
   subNavCollapsed?: boolean;
   onSubNavExpand?: () => void;
+  onNavigate?: (href: string) => void;
   userMenu?: UserInfoPopoverProps;
 }
 
 export function MainNav({
-  header,
+  header: LeafIcon,
   mainNav,
   additional,
   aiButton,
@@ -40,6 +40,7 @@ export function MainNav({
   activeItemId,
   subNavCollapsed = false,
   onSubNavExpand,
+  onNavigate,
   userMenu,
 }: MainNavProps) {
   return (
@@ -59,7 +60,9 @@ export function MainNav({
           justify="center"
           w="100%"
         >
-          {header}
+          <ActionIcon size="lg">
+            <LeafIcon weight="fill" />
+          </ActionIcon>
         </Stack>
 
         <Divider color="dark.7" w="60%" />
@@ -127,7 +130,7 @@ export function MainNav({
         userMenu={userMenu}
       />
 
-      <MainNavSpotlight mainNav={mainNav} additional={additional} />
+      <MainNavSpotlight mainNav={mainNav} additional={additional} onNavigate={onNavigate} />
     </Stack>
   );
 }

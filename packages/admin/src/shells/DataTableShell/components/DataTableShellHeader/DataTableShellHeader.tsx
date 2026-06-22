@@ -9,8 +9,8 @@ export function DataTableShellHeader({ moduleInfo }: DataTableShellHeaderProps) 
   const { total } = useTableData();
 
   return (
-    <Stack gap={2} visibleFrom="lg">
-      <Group h={80} align="center" gap="xs">
+    <Stack gap={8} visibleFrom="lg" py="md">
+      <Group align="center" gap="xs">
         <Text size="1.6rem" fw={500}>
           Manage {displayLabel}
         </Text>
@@ -18,6 +18,9 @@ export function DataTableShellHeader({ moduleInfo }: DataTableShellHeaderProps) 
           {total}
         </Text>
       </Group>
+      <Text size="xs" opacity={.5}>
+        {moduleInfo.description}
+      </Text>
     </Stack>
   );
 }

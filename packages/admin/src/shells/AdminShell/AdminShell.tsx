@@ -2,11 +2,13 @@
 
 import { AppShell, Box, useDisclosure } from "@peppermint/ui";
 import type { ReactNode } from "react";
+import type { Icon } from "@phosphor-icons/react";
 import { useMemo } from "react";
 import { AdminShellNavbar } from "./components/Navbar/AdminShell.Navbar";
 import { resolveActiveMainNavItem } from "./nav.utils";
 import { SHELL_INSET, getNavbarWidth } from "./shell.constants";
 import type { AdminShellConfig } from "./AdminShell.types";
+import { useSubNavStore } from "@peppermint/ui";
 import styles from "./AdminShell.module.css";
 
 //@ts-ignore
@@ -30,7 +32,7 @@ const TRANSITION_STYLES = `
 interface AdminShellProps {
   children: ReactNode;
   config: AdminShellConfig;
-  mainNavHeader: ReactNode;
+  mainNavHeader: Icon;
   pathname?: string;
 }
 
@@ -41,7 +43,9 @@ export function AdminShell({
   pathname,
 }: AdminShellProps) {
   const [opened] = useDisclosure();
-  const [subNavCollapsed, subNavActions] = useDisclosure();
+  const subNavCollapsed = useSubNavStore((s) => s.subNavCollapsed);
+  const collapse = useSubNavStore((s) => s.collapse);
+  const expand = useSubNavStore((s) => s.expand);
 
   const activeItem = useMemo(
     () => resolveActiveMainNavItem(config.mainNav, pathname ?? ""),
@@ -76,8 +80,8 @@ export function AdminShell({
           mainNavHeader={mainNavHeader}
           pathname={pathname}
           subNavCollapsed={subNavCollapsed}
-          onSubNavCollapse={subNavActions.open}
-          onSubNavExpand={subNavActions.close}
+          onSubNavCollapse={collapse}
+          onSubNavExpand={expand}
         />
         <AppShell.Main
           bg="transparent"

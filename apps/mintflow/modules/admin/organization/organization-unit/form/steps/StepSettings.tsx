@@ -3,7 +3,7 @@
 import { Select, Stack } from "@peppermint/ui";
 import { useFormInstance } from "@peppermint/admin";
 import { useQuery } from "@tanstack/react-query";
-import { fetchOrgUnitOptions } from "../../module.api";
+import { fetchOrgUnitOptions } from "../../organization-unit.api";
 import type { OrgUnitFormValues } from "../orgUnitForm.types";
 
 const TASK_VISIBILITY_OPTIONS = [

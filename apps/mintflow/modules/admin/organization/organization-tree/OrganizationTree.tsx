@@ -66,6 +66,7 @@ const nodeTypes = {
 } as const;
 
 const DEFAULT_EDGE_OPTIONS = {
+  type: "smoothstep",
   style: { strokeWidth: 2, stroke: "#94a3b8" },
   markerEnd: { type: MarkerType.ArrowClosed, color: "#94a3b8" },
   animated: false,
@@ -414,7 +415,7 @@ function OrganizationTreeInner() {
         const isDim = dimmedNodeIds.has(e.source) || dimmedNodeIds.has(e.target);
         const relType = (e.data as { relationshipType?: string } | undefined)?.relationshipType;
         const { style, markerEnd } = getEdgeStyleForRelationship(relType, isPath, isDim);
-        return { ...e, style, markerEnd };
+        return { ...e, type: "smoothstep", style, markerEnd };
       });
   }, [edges, filteredVisibleIds, pathNodeIds, dimmedNodeIds]);
 

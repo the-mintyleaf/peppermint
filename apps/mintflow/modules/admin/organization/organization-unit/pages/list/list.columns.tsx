@@ -1,6 +1,6 @@
 import { Badge, Stack, Text } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
-import type { OrganizationUnit, OrgUnitStatus, OrgUnitType } from "../../module.api";
+import type { OrganizationUnit, OrgUnitStatus, OrgUnitType } from "../../organization-unit.api";
 
 const UNIT_TYPE_LABELS: Record<OrgUnitType, string> = {
   ministry: "Ministry",

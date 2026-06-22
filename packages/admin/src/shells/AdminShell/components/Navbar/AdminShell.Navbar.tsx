@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { Icon } from "@phosphor-icons/react";
 import { AppShell, Group, MantineProvider } from "@peppermint/ui";
 import { MainNav } from "./MainNav/MainNav";
 import { SubNav } from "./SubNav/SubNav";
@@ -12,7 +12,7 @@ export { MAIN_NAV_WIDTH, SUB_NAV_WIDTH } from "../../shell.constants";
 
 interface AdminShellNavbarProps {
   config: AdminShellConfig;
-  mainNavHeader: ReactNode;
+  mainNavHeader: Icon;
   pathname?: string;
   subNavCollapsed: boolean;
   onSubNavCollapse: () => void;

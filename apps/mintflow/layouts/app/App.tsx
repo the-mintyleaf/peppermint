@@ -5,6 +5,8 @@ import "@/app/globals.css";
 const colorSchemeScript = `try{var c=window.localStorage.getItem("mantine-color-scheme-value");var s=c==="light"||c==="dark"||c==="auto"?c:"light";var d=s!=="auto"?s:window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.setAttribute("data-mantine-color-scheme",d);}catch(e){}`;
 
 export function LayoutApp({ children }: { children: React.ReactNode }) {
+
+
   return (
     <html lang="en" {...mantineHtmlProps}>
       <head>

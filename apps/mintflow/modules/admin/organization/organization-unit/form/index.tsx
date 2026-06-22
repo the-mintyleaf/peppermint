@@ -1,8 +1,8 @@
 "use client";
 
 import { FormShell, FormWrapper, useFormControls } from "@peppermint/admin";
-import { createOrgUnit, updateOrgUnit } from "../module.api";
-import type { OrganizationUnit } from "../module.api";
+import { createOrgUnit, updateOrgUnit } from "../organization-unit.api";
+import type { OrganizationUnit } from "../organization-unit.api";
 import { ORG_UNIT_FORM_INITIAL } from "./orgUnitForm.initial";
 import {
   contactSchema,
@@ -105,7 +105,7 @@ export function OrgUnitForm({ onBack, onSuccess, initialValues }: OrgUnitFormPro
     <FormWrapper<OrgUnitFormValues>
       initial={initial}
       finalSubmitFn={async (data, _stepIds) => {
-        const payload = data as Partial<import("../module.api").OrganizationUnit>;
+        const payload = data as Partial<import("../organization-unit.api").OrganizationUnit>;
         if (isEdit && initialValues?.id) {
           await updateOrgUnit(initialValues.id, payload);
         } else {

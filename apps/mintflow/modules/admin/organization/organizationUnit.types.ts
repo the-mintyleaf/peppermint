@@ -5,4 +5,4 @@ export type {
   OrgUnitStatus,
   OrgUnitType,
   TaskVisibility,
-} from "./module.api";
+} from "./organization-unit/organization-unit.api";

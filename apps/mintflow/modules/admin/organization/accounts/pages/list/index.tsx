@@ -12,9 +12,9 @@ import { ACCOUNTS_QUERY_KEY, ACCOUNTS_BASE_PATH } from "../../accounts.config";
 import type { Account } from "../../accounts.types";
 
 const TABS: DataTableShellTab[] = [
-  { label: "All Accounts", icon: UsersIcon },
-  { label: "Active", icon: CheckCircleIcon, filter: { status: "active" } },
-  { label: "Inactive", icon: ProhibitIcon, filter: { status: "inactive" } },
+  { label: "All Accounts" },
+  { label: "Active", filter: { status: "active" } },
+  { label: "Inactive", filter: { status: "inactive" } },
 ];
 
 export function AccountsList() {

@@ -2,7 +2,7 @@ import type {
   ConfidentialityLevel,
   OrgUnitType,
   TaskVisibility,
-} from "./module.api";
+} from "./organization-unit.api";
 
 export const ORGANIZATION_BASE_PATH = "/admin/organization";
 

@@ -10,7 +10,7 @@ export function AdminMainNavHeader() {
       label="Mintflow"
       href="/admin"
       iconWeight="fill"
-      iconColor="var(--mantine-color-brand-5)"
+
     />
   );
 }

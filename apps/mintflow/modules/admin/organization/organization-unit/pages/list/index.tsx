@@ -8,9 +8,9 @@ import { ShieldIcon } from "@phosphor-icons/react/dist/csr/Shield";
 import { TreeStructureIcon } from "@phosphor-icons/react/dist/csr/TreeStructure";
 import { MapPinIcon } from "@phosphor-icons/react/dist/csr/MapPin";
 import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
-import { fetchOrgUnits } from "../../module.api";
+import { fetchOrgUnits } from "../../organization-unit.api";
 import { ORG_UNIT_COLUMNS } from "./list.columns";
-import type { OrganizationUnit } from "../../module.api";
+import type { OrganizationUnit } from "../../organization-unit.api";
 
 const TABS: DataTableShellTab[] = [
   { label: "All Units", icon: TreeStructureIcon },

@@ -20,11 +20,12 @@ import { PlanetIcon } from "@phosphor-icons/react/dist/csr/Planet";
 import { QuestionIcon } from "@phosphor-icons/react/dist/csr/Question";
 import { SignOutIcon } from "@phosphor-icons/react/dist/csr/SignOut";
 import { SunIcon } from "@phosphor-icons/react/dist/csr/Sun";
-import { useRouter } from "next/navigation";
 import type { UserInfoPopoverProps } from "./UserInfoPopover.types";
 
 export function UserInfoPopover({
   variant = "default",
+  user = null,
+  onLogout,
   disableSetAway = false,
   disablePauseNotifications = false,
   disableHelp = false,
@@ -34,20 +35,14 @@ export function UserInfoPopover({
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme("dark");
   const isDark = computedColorScheme === "dark";
-  const router = useRouter();
-
-  // TODO: Replace with actual user context when available
-  const user = null;
-  const logout = null;
 
   const displayName = user
     ? `${user.first_name} ${user.last_name}`.trim() || user.username
     : "User";
-  const userEmail = user?.email || "";
+  const userEmail = user?.email ?? "";
 
   const handleLogout = () => {
-    logout?.();
-    router.push("/");
+    onLogout?.();
   };
 
   const menuPosition = variant === "icon" ? "right-end" : "right-end";
@@ -74,7 +69,7 @@ export function UserInfoPopover({
                   variant="filled"
                   name={displayName}
                   color="orange"
-                  size="sm"
+                  size={32}
                 />
               </Indicator>
             </UnstyledButton>

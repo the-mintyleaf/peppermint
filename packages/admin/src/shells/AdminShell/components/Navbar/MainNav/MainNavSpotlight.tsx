@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { useRouter } from "next/navigation";
 import {
   Spotlight,
   type SpotlightActionData,
@@ -16,14 +15,14 @@ import type {
 interface MainNavSpotlightProps {
   mainNav: AdminShellMainNavItem[];
   additional?: AdminShellMainNavAdditional[];
+  onNavigate?: (href: string) => void;
 }
 
 export function MainNavSpotlight({
   mainNav,
   additional,
+  onNavigate,
 }: MainNavSpotlightProps) {
-  const router = useRouter();
-
   const actions = useMemo<SpotlightActionData[]>(() => {
     return buildNavSpotlightTargets(mainNav, additional).map((target) => {
       const IconComponent = target.icon;
@@ -44,12 +43,12 @@ export function MainNavSpotlight({
           }
 
           if (target.href) {
-            router.push(target.href);
+            onNavigate?.(target.href);
           }
         },
       };
     });
-  }, [mainNav, additional, router]);
+  }, [mainNav, additional, onNavigate]);
 
   return (
     <Spotlight
