@@ -2,7 +2,7 @@
 
 ## App purpose
 
-Task and organization management admin. Handles organization structure, department/account/role management, org-tree visualization, and task tracking with analytics and kanban views.
+Task and organization management admin. Handles organization structure, department/account/role management, org-tree visualization, and task tracking with analytics, kanban, and general list views.
 
 Stack: Next.js App Router, Mantine (via `@peppermint/ui`), React Query, Zustand, `@peppermint/admin` shells.
 
@@ -33,7 +33,8 @@ apps/mintflow/
 │   ├── organization/        # Org management (MultiPageModule) ← most complex
 │   └── tasks/
 │       ├── analytics/       # Task analytics dashboard
-│       └── kanban/          # Kanban board
+│       ├── kanban/          # Kanban board
+│       └── general-view/    # General View (team panel + task list)
 ├── modules/sign-in/         # Sign-in page
 └── lib/                     # App-level utilities
 ```
@@ -47,6 +48,7 @@ apps/mintflow/
 | Organization | `modules/admin/organization/` | `/admin/organization/*` | `modules/admin/organization/docs/AI.md` |
 | Task Analytics | `modules/admin/tasks/analytics/` | `/admin/tasks/analytics` | — |
 | Kanban | `modules/admin/tasks/kanban/` | `/admin/tasks` | — |
+| General View | `modules/admin/tasks/general-view/` | `/admin/tasks/general-view` | — |
 | Admin Home | `modules/admin/home/` | `/admin` | — |
 | Sign In | `modules/sign-in/` | `/sign-in` (inferred) | — |
 
@@ -88,6 +90,10 @@ apps/mintflow/
 | Task analytics UI | `modules/admin/tasks/analytics/TaskAnalyticsDashboard.tsx` |
 | Task analytics queries | `modules/admin/tasks/analytics/taskAnalytics.api.ts` |
 | Kanban board | `modules/admin/tasks/kanban/KanbanDashboard.tsx` |
+| General View dashboard | `modules/admin/tasks/general-view/GeneralViewDashboard.tsx` |
+| General View team panel | `modules/admin/tasks/general-view/components/TeamMembersPanel/` |
+| General View task row | `modules/admin/tasks/general-view/components/TaskListRow/` |
+| Task shared types + mock data | `modules/admin/tasks/kanban/module.api.ts` |
 | Admin layout shell | `layouts/admin/Admin.tsx` |
 | Route re-export | `app/admin/<route>/page.tsx` |
 
