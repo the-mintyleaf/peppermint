@@ -105,7 +105,7 @@ export function AccessMenu({
             </Text>
             <Stack gap="xs">
               <Group gap="sm" wrap="nowrap">
-                <ThemeIcon size="md" variant="light" color="brand" radius="md">
+                <ThemeIcon size="md" variant="light" color="brand" >
                   <UsersIcon size={16} />
                 </ThemeIcon>
                 <Box>
@@ -118,7 +118,7 @@ export function AccessMenu({
                 </Box>
               </Group>
               <Group gap="sm" wrap="nowrap">
-                <ThemeIcon size="md" variant="light" color="indigo" radius="md">
+                <ThemeIcon size="md" variant="light" color="indigo" >
                   <ShieldIcon size={16} />
                 </ThemeIcon>
                 <Box>
@@ -143,7 +143,7 @@ export function AccessMenu({
               {data.roles.map((role) => (
                 <Group key={role.id} gap="sm" wrap="nowrap" justify="space-between">
                   <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-                    <ThemeIcon size="sm" variant="light" color="gray" radius="md">
+                    <ThemeIcon size="sm" variant="light" color="gray" >
                       <ShieldIcon size={14} />
                     </ThemeIcon>
                     <Box style={{ minWidth: 0 }}>
@@ -190,8 +190,7 @@ export function AccessMenu({
                     <Avatar
                       src={account.avatarUrl}
                       size="sm"
-                      radius="xl"
-                      name={account.name}
+                       name={account.name}
                     />
                     <Box style={{ minWidth: 0 }}>
                       <Text size="xs" fw={600} truncate>

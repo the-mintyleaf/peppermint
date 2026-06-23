@@ -77,8 +77,7 @@ export function DataTableShellSortMenu<T extends Record<string, unknown>>({
                 justify="space-between"
                 variant={state ? 'light' : 'subtle'}
                 size="xs"
-                radius="sm"
-                onClick={() => toggleSort(key)}
+                 onClick={() => toggleSort(key)}
                 rightSection={
                   state ? (
                     <Badge size="xs" variant="light">

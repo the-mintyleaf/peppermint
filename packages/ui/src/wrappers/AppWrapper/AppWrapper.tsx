@@ -22,7 +22,7 @@ export function AppWrapper({
   children,
 }: AppWrapperProps) {
   const content = (
-    <MantineProvider theme={theme} forceColorScheme={"light"}>
+    <MantineProvider theme={theme} defaultColorScheme={defaultColorScheme}>
       <ModalsProvider>
         <NavigationProgress />
         <Notifications />

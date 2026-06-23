@@ -11,6 +11,7 @@ import {
   SegmentedControl,
   Stack,
   Text,
+  useComputedColorScheme,
 } from "@peppermint/ui";
 import { ArrowLeftIcon } from "@phosphor-icons/react/dist/csr/ArrowLeft";
 import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
@@ -38,6 +39,7 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
   sustained = false,
 }: DataTableShellToolbarProps<T>) {
   const { activeTab, setActiveTab } = useDataTableShellContext<T>();
+  const colorScheme = useComputedColorScheme("light");
   const displayLabel = moduleInfo.label ?? moduleInfo.name;
   const finalHref = newButtonHref ?? (basePath ? `${basePath}/new` : undefined);
   const showAddButton =
@@ -239,7 +241,7 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
               };
             })}
             size="sm"
-            color="white"
+            color={colorScheme === "dark" ? "dark.4" : "white"}
             autoContrast
             styles={{
               label: {

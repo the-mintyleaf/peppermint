@@ -80,8 +80,7 @@ export function DataTableShellTableActions<T extends Record<string, unknown>>({
         bottom={12}
         left="50%"
         style={{ transform: 'translateX(-50%)', zIndex: 10 }}
-        radius="md"
-        withBorder
+         withBorder
         shadow="md"
       >
         <Group gap={0} wrap="nowrap">

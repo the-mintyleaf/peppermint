@@ -47,8 +47,7 @@ export function FormShellHeader({
           <Button
             h={40}
             px="sm"
-            radius={0}
-            variant="subtle"
+             variant="subtle"
             size="xs"
             leftSection={<ArrowLeft size={14} aria-label="Go back" />}
             onClick={handleBack}

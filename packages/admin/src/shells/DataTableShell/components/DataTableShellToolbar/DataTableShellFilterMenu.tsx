@@ -123,8 +123,7 @@ export function DataTableShellFilterMenu<T extends Record<string, unknown>>({
                   justify="left"
                   variant="subtle"
                   size="xs"
-                  radius="sm"
-                  leftSection={<Icon size={16} weight="duotone" />}
+                   leftSection={<Icon size={16} weight="duotone" />}
                   onClick={() => handleSelectField(key)}
                 >
                   {label}
@@ -173,8 +172,7 @@ export function DataTableShellFilterMenu<T extends Record<string, unknown>>({
                     justify="left"
                     variant={draftValue === opt.value ? 'light' : 'subtle'}
                     size="xs"
-                    radius="sm"
-                    onClick={() => {
+                     onClick={() => {
                       setDraftValue(opt.value);
                       setFilters({ ...filters, [selectedKey!]: opt.value });
                       handleClose();

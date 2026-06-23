@@ -30,8 +30,7 @@ export function ColumnToggleList({
         <Button
           key={key}
           justify="left"
-          radius={0}
-          variant="subtle"
+           variant="subtle"
           size="xs"
           leftSection={
             <Checkbox checked={visible} readOnly size="xs" tabIndex={-1} />

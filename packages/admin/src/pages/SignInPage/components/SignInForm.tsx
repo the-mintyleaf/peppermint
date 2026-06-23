@@ -62,8 +62,7 @@ export function SignInForm({
       <Stack gap="md">
         <TextInput
           size="md"
-          radius="md"
-          placeholder={skipEmailValidation ? "Username" : "email@example.com"}
+           placeholder={skipEmailValidation ? "Username" : "email@example.com"}
           type={skipEmailValidation ? "text" : "email"}
           required
           {...form.getInputProps("username")}
@@ -75,8 +74,7 @@ export function SignInForm({
 
         <PasswordInput
           size="md"
-          radius="md"
-          placeholder="Password"
+           placeholder="Password"
           required
           {...form.getInputProps("password")}
           disabled={isLoading}
@@ -113,8 +111,7 @@ export function SignInForm({
           loading={isLoading}
           fullWidth
           size="md"
-          radius="md"
-          color="brand"
+           color="brand"
          
         >
           Continue with email

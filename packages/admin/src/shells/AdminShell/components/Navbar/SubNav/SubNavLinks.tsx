@@ -40,7 +40,6 @@ export function SubNavLinks({ groups, pathname }: SubNavLinksProps) {
                 py={6}
                 mx={4}
                 style={{
-                  borderRadius: "var(--mantine-radius-sm)",
                   backgroundColor: isActive
                     ? "var(--mantine-color-dark-6)"
                     : "transparent",

@@ -60,13 +60,11 @@ export function UserInfoPopover({
                 justifyContent: "center",
                 width: 40,
                 height: 40,
-                borderRadius: "var(--mantine-radius-md)",
               }}
             >
               <Indicator position="bottom-end" withBorder size={8} offset={2}>
                 <Avatar
-                  radius="md"
-                  variant="filled"
+                   variant="filled"
                   name={displayName}
                   color="orange"
                   size={32}
@@ -79,7 +77,6 @@ export function UserInfoPopover({
             bg={isDark ? "dark.7" : "gray.1"}
             style={{
               padding: "12px 8px",
-              borderRadius: "var(--mantine-radius-sm)",
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -88,8 +85,7 @@ export function UserInfoPopover({
           >
             <Indicator position="bottom-end" withBorder size={8} offset={2}>
               <Avatar
-                radius="md"
-                variant="filled"
+                 variant="filled"
                 name={displayName}
                 color="orange"
                 size="sm"
@@ -119,8 +115,7 @@ export function UserInfoPopover({
         <Menu.Item closeMenuOnClick={false} style={{ cursor: "default" }}>
           <Group gap="sm" wrap="nowrap">
             <Avatar
-              radius="sm"
-              variant="filled"
+               variant="filled"
               name={displayName}
               color="orange"
               size="sm"

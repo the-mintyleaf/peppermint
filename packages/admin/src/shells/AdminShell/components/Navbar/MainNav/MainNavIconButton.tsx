@@ -39,7 +39,6 @@ export function MainNavIconButton({
             justifyContent: "center",
             width: 32,
             height: 32,
-            borderRadius: "var(--mantine-radius-md)",
             backgroundColor: active
               ? "var(--mantine-color-dark-6)"
               : "transparent",

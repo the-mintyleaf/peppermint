@@ -9,7 +9,6 @@ export const NAV_HEADER_HEIGHT = 48;
 
 export const shellCardStyle: CSSProperties = {
   border: "1px solid var(--mantine-color-dark-6)",
-  borderRadius: "var(--mantine-radius-md)",
   overflow: "hidden",
 };
 

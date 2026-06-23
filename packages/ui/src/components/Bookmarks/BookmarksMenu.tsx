@@ -51,7 +51,7 @@ export function BookmarksMenu({
             justifyContent: 'center',
             width: 32,
             height: 32,
-            borderRadius: 'var(--mantine-radius-md)',
+            borderRadius: 0,
             color: 'var(--mantine-color-dark-2)',
             transition: 'background-color 150ms ease, color 150ms ease',
           }}
@@ -75,7 +75,7 @@ export function BookmarksMenu({
             justifyContent: 'center',
             width: 32,
             height: 32,
-            borderRadius: 'var(--mantine-radius-md)',
+            borderRadius: 0,
           }}
         >
           <BookmarkSimpleIcon size={18} />

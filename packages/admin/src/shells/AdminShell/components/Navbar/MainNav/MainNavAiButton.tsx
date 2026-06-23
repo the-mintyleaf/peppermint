@@ -45,7 +45,6 @@ export function MainNavAiButton({
         justifyContent: "center",
         width: 32,
         height: 32,
-        borderRadius: "var(--mantine-radius-md)",
         backgroundColor: isActive ? activeBg : "transparent",
         transition: "background-color 150ms ease",
       }}

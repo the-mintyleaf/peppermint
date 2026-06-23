@@ -154,25 +154,25 @@ export function SignInPage({
       <Stack>
 
         <Center>
-          <Group gap={4} bg="brand.0" px="md" py={4}>
-            <LeafIcon color="var(--mantine-color-brand-6)" weight="fill" />
-            <Text size="xs" c="brand.6">
+          <Group gap={4} px="md" py={4}>
+            <LeafIcon color="var(--mantine-color-brand-5)" weight="fill" />
+            <Title size="xs" c="brand.6">
               mintyflow <span style={{ color: "var(--mantine-color-gray-5)" }}>by mintyleaf.co</span>
-            </Text>
+            </Title>
           </Group>
         </Center>
 
 
-        <Paper w={{ base: "100%", sm: 440 }} p={{ base: "md", lg: "3rem" }} radius="lg">
+        <Paper w={{ base: "100%", sm: 440 }} p={{ base: "md", lg: "3rem" }} >
 
           <Stack gap="md" w="100%">
 
 
             <Stack gap="xs" align="center">
-              <Title order={2} ta="center" fw={500} lh="100%">
+              <Title size="2rem" order={2} ta="center" fw={500} lh="100%">
                 {heading[0]}
                 {" "}
-                <span style={{ color: "var(--mantine-color-brand-6)" }}>
+                <span style={{ color: "var(--mantine-color-brand-5)" }}>
                   {heading[1]}
                 </span>
               </Title>
@@ -209,8 +209,7 @@ export function SignInPage({
                           <Button
                             variant="default"
                             size="md"
-                            radius="md"
-                            leftSection={<GoogleIcon />}
+                             leftSection={<GoogleIcon />}
                             onClick={() =>
                               handleSocialLogin("google", onGoogleLogin)
                             }
@@ -227,8 +226,7 @@ export function SignInPage({
                           <Button
                             variant="default"
                             size="md"
-                            radius="md"
-                            leftSection={
+                             leftSection={
                               <AppleLogoIcon weight="fill" size={20} />
                             }
                             onClick={() =>
@@ -243,8 +241,7 @@ export function SignInPage({
                           <Button
                             variant="default"
                             size="md"
-                            radius="md"
-                            leftSection={
+                             leftSection={
                               <DiscordLogoIcon
                                 color="var(--mantine-color-indigo-6)"
                                 weight="fill"
@@ -263,8 +260,7 @@ export function SignInPage({
                           <Button
                             variant="light"
                             size="md"
-                            radius="md"
-                            h={50}
+                             h={50}
                             onClick={() => setShowMagicLink(true)}
                             fullWidth
                           >
@@ -288,8 +284,7 @@ export function SignInPage({
 
                   <TextInput
                     size="md"
-                    radius="md"
-                    label="Email"
+                     label="Email"
                     placeholder="name@example.com"
                     type="email"
                     required
@@ -299,8 +294,7 @@ export function SignInPage({
 
                   <Button
                     size="md"
-                    radius="md"
-                    color="black"
+                     color="black"
                     onClick={handleMagicLinkSubmit}
                     disabled={!magicLinkEmail.trim()}
                     fullWidth
@@ -312,8 +306,7 @@ export function SignInPage({
                   <Button
                     variant="subtle"
                     size="sm"
-                    radius="md"
-                    c="dimmed"
+                     c="dimmed"
                     onClick={() => {
                       setShowMagicLink(false);
                       setMagicLinkEmail("");
