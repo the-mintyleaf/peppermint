@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button, Stack, Text, TextInput } from '@peppermint/ui';
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
-import { useDebouncedValue } from '@peppermint/ui';
 import { useTableStore } from '../../../../wrappers/DataTableWrapper';
 import { ToolbarIconButton } from './ToolbarIconButton';
 
@@ -16,22 +15,17 @@ export function DataTableShellSearchMenu({
   inline = false,
 }: DataTableShellSearchMenuProps) {
   const [opened, setOpened] = useState(false);
-  const [searchInput, setSearchInput] = useState('');
-  const [debouncedSearch] = useDebouncedValue(searchInput, 300);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const useTable = useTableStore();
   const search = useTable((s) => s.search);
   const setSearch = useTable((s) => s.setSearch);
 
   useEffect(() => {
-    setSearch(debouncedSearch);
-  }, [debouncedSearch, setSearch]);
-
-  useEffect(() => {
-    if (opened && search && !searchInput) {
-      setSearchInput(search);
+    if (opened) {
+      inputRef.current?.focus();
     }
-  }, [opened, search, searchInput]);
+  }, [opened]);
 
   const handleClose = () => {
     setOpened(false);
@@ -43,22 +37,15 @@ export function DataTableShellSearchMenu({
         Search across all fields
       </Text>
       <TextInput
+        ref={inputRef}
         size="xs"
         placeholder="Search…"
         leftSection={<MagnifyingGlassIcon size={14} />}
-        value={searchInput}
-        onChange={(e) => setSearchInput(e.currentTarget.value)}
-        autoFocus
+        value={search}
+        onChange={(e) => setSearch(e.currentTarget.value)}
       />
-      {searchInput && (
-        <Button
-          size="xs"
-          variant="subtle"
-          onClick={() => {
-            setSearchInput('');
-            setSearch('');
-          }}
-        >
+      {search.trim().length > 0 && (
+        <Button size="xs" variant="subtle" onClick={() => setSearch('')}>
           Clear search
         </Button>
       )}

@@ -64,7 +64,7 @@ export function buildModuleAccessFromPermissions(
     return {
       id: account.id,
       name: account.fullName,
-      email: `${account.fullName.toLowerCase().replace(/\s+/g, '.')}@mintflow.local`,
+      email: account.email,
       accessLevel: highestAccessLevel(actions),
     };
   });

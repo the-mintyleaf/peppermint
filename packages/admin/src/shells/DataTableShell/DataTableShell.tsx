@@ -134,6 +134,7 @@ function DataTableShellInner<T extends Record<string, unknown>>({
             shareUrl={shareUrl}
             hideAccessMenu={hideAccessMenu}
             rowsUpdatedAt={rowsUpdatedAt}
+            basePath={basePath}
           />
         }
       />
@@ -165,7 +166,7 @@ function DataTableShellInner<T extends Record<string, unknown>>({
         <Paper
           withBorder
           style={{
-            borderTop: "none",
+           
             overflow: "hidden",
             display: "flex",
             flexDirection: "column",

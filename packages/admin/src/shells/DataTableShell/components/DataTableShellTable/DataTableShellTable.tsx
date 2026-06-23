@@ -13,6 +13,7 @@ import { DataTableShellEmptyState } from "../DataTableShellEmptyState";
 import type { DataTableShellTableProps } from "../../DataTableShell.types";
 import type { DensitySize } from '../../../../wrappers/DataTableWrapper';
 import { useElementHeight } from '../../hooks/useElementHeight';
+import { mapShellColumnsToDataTableColumns } from '../../column.utils';
 
 const DENSITY_SPACING: Record<
   DensitySize,
@@ -77,7 +78,7 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
         textAlign: "center" as const,
         render: (_row: T, index: number) => (page - 1) * pageSize + index + 1,
       },
-      ...visible,
+      ...mapShellColumnsToDataTableColumns(visible),
     ];
   }, [columns, columnVisibility, page, pageSize]);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { ActionIcon, Box, Divider, Stack } from "@peppermint/ui";
+import { ActionIcon, BookmarksMenu, Box, Divider, Stack } from "@peppermint/ui";
 import { MainNavIconButton } from "./MainNavIconButton";
 import { MainNavFooter } from "./MainNavFooter";
 import type {
@@ -73,6 +73,10 @@ export function MainNav({
             label="Search modules"
             onClick={() => spotlight.open()}
           />
+        </Box>
+
+        <Box py={4}>
+          <BookmarksMenu variant="sidenav" onNavigate={onNavigate} />
         </Box>
 
         <Divider color="dark.7" w="60%" />

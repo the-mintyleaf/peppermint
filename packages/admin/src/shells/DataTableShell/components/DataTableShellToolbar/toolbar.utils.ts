@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import type { Icon } from '@phosphor-icons/react';
 import { CalendarIcon } from '@phosphor-icons/react/dist/csr/Calendar';
 import { CaretCircleDownIcon } from '@phosphor-icons/react/dist/csr/CaretCircleDown';
 import { HashIcon } from '@phosphor-icons/react/dist/csr/Hash';
@@ -9,7 +10,7 @@ import type {
   DataTableShellColumn,
 } from '../../DataTableShell.types';
 
-type FilterIcon = ComponentType<{ size?: number; weight?: string }>;
+type FilterIcon = Icon | ComponentType<{ size?: number; weight?: string }>;
 
 const FILTER_TYPE_ICONS: Record<DataTableColumnFilterType, FilterIcon> = {
   text: TextAaIcon as FilterIcon,
@@ -18,11 +19,11 @@ const FILTER_TYPE_ICONS: Record<DataTableColumnFilterType, FilterIcon> = {
   date: CalendarIcon as FilterIcon,
 };
 
-export function getColumnKey<T>(col: DataTableShellColumn<T>): string {
+export function getColumnKey<T extends Record<string, unknown>>(col: DataTableShellColumn<T>): string {
   return col.key ?? String(col.accessor);
 }
 
-export function getColumnLabel<T>(col: DataTableShellColumn<T>): string {
+export function getColumnLabel<T extends Record<string, unknown>>(col: DataTableShellColumn<T>): string {
   return typeof col.title === 'string' ? col.title : getColumnKey(col);
 }
 

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { Icon } from '@phosphor-icons/react';
 import type { DataTableColumn, DataTableRowExpansionProps } from 'mantine-datatable';
 import type {
   AccessAccount,
@@ -27,21 +28,26 @@ export interface DataTableShellTab {
 
 export type DataTableColumnFilterType = 'text' | 'select' | 'number' | 'date';
 
+export type DataTableShellColumnIcon = Icon | ReactNode;
+
 export interface DataTableColumnFilter {
   type?: DataTableColumnFilterType;
-  icon?: React.ComponentType<any>;
+  icon?: Icon;
   options?: Array<{ label: string; value: string }>;
   placeholder?: string;
 }
 
-export type DataTableShellColumn<T> = DataTableColumn<T> & {
-  /** Key used in columnVisibility map. Defaults to String(accessor). */
-  key?: string;
-  /** Initial visibility before any user preference. Defaults to true. */
-  defaultVisible?: boolean;
-  /** When set, column appears in the filter picker. */
-  filter?: DataTableColumnFilter;
-};
+export type DataTableShellColumn<T extends Record<string, unknown> = Record<string, unknown>> =
+  Omit<DataTableColumn<T>, 'filter'> & {
+    /** Key used in columnVisibility map. Defaults to String(accessor). */
+    key?: string;
+    /** Initial visibility before any user preference. Defaults to true. */
+    defaultVisible?: boolean;
+    /** When set, column appears in the filter picker. */
+    filter?: DataTableColumnFilter;
+    /** Icon rendered beside the column title in the table header. */
+    icon?: DataTableShellColumnIcon;
+  };
 
 export interface DataTableShellModuleInfo {
   /** Used as the persistence storageKey and the "New X" button label. */

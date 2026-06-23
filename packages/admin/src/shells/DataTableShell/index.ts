@@ -10,17 +10,27 @@ export { DataTableShellTable } from './components/DataTableShellTable';
 export { DataTableShellNestedTable } from './components/DataTableShellNestedTable';
 export type { DataTableShellNestedTableProps } from './components/DataTableShellNestedTable';
 export { AccessMenu } from '@peppermint/ui';
+export {
+  BookmarkButton,
+  BookmarksMenu,
+  useBookmarks,
+} from '@peppermint/ui';
 export type {
   AccessMenuData,
   AccessMenuChange,
   AccessLevel,
   AccessAccount,
   AccessRole,
+  Bookmark,
+  BookmarkInput,
+  BookmarkButtonProps,
+  BookmarksMenuProps,
 } from '@peppermint/ui';
 export type {
   DataTableShellProps,
   DataTableShellTab,
   DataTableShellColumn,
+  DataTableShellColumnIcon,
   DataTableColumnFilter,
   DataTableColumnFilterType,
   DataTableShellModuleInfo,

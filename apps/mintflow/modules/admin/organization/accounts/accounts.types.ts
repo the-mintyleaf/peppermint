@@ -5,6 +5,8 @@ export type AccountStatus = "active" | "inactive" | "suspended";
 export interface Account extends Record<string, unknown> {
   id: string;
   fullName: string;
+  email: string;
+  phone: string;
   address: string;
   birthday: string;
   roleId: string | null;

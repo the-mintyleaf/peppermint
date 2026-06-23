@@ -1,14 +1,13 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { AccessMenu, Group, Text } from '@peppermint/ui';
+import { AccessMenu, BookmarkButton, Group, Text } from '@peppermint/ui';
 import type {
   DataTableShellModuleAccess,
   DataTableShellModuleAccessChange,
   DataTableShellModuleInfo,
 } from '../../DataTableShell.types';
 import { DataTableShellHeaderActions } from '../DataTableShellHeaderActions';
-import { DataTableShellBookmarkButton } from './DataTableShellBookmarkButton';
 import { DataTableShellEditedLabel } from './DataTableShellEditedLabel';
 
 function HeaderSeparator() {
@@ -28,6 +27,8 @@ interface DataTableShellModuleHeaderRightProps {
   shareUrl?: string;
   hideAccessMenu?: boolean;
   rowsUpdatedAt?: string | Date;
+  basePath?: string;
+  bookmarkId?: string;
 }
 
 export function DataTableShellModuleHeaderRight({
@@ -39,9 +40,12 @@ export function DataTableShellModuleHeaderRight({
   shareUrl,
   hideAccessMenu = false,
   rowsUpdatedAt,
+  basePath,
+  bookmarkId,
 }: DataTableShellModuleHeaderRightProps) {
   const editedDate = lastEditedAt ?? moduleInfo.updatedAt ?? rowsUpdatedAt;
   const showAccess = !hideAccessMenu && moduleAccess != null;
+  const resolvedBookmarkId = bookmarkId ?? basePath ?? moduleInfo.name;
 
   return (
     <Group gap={6} pr="md" wrap="nowrap" align="center">
@@ -55,7 +59,12 @@ export function DataTableShellModuleHeaderRight({
           shareUrl={shareUrl}
         />
       )}
-      <DataTableShellBookmarkButton storageKey={moduleInfo.name} />
+      <BookmarkButton
+        id={resolvedBookmarkId}
+        label={moduleInfo.label ?? moduleInfo.name}
+        addTooltip="Bookmark module"
+        removeTooltip="Remove bookmark"
+      />
       <DataTableShellHeaderActions exportFilename={moduleInfo.name} />
     </Group>
   );

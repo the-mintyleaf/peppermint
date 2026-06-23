@@ -171,7 +171,7 @@ The `ModuleHeader` right slot renders:
 |---------|----------|
 | Edited | Relative timestamp from `lastEditedAt`, `moduleInfo.updatedAt`, or latest row `updatedAt` |
 | Access | Popover listing roles and accounts with module access; invite + permission edits |
-| Bookmark | Toggles favorite; persisted in `localStorage` at `peppermint:module-bookmark:{moduleInfo.name}` |
+| Bookmark | Toggles favorite via shared `BookmarkButton` from `@peppermint/ui`; persisted in `localStorage` at `peppermint:bookmarks` (central list). Bookmark `id` defaults to `basePath ?? moduleInfo.name`; `href` is current pathname (no filter query params). Saved bookmarks appear in AdminShell MainNav hover menu. See [Bookmarks](../ui/Bookmarks.md). |
 | ⋯ | Reload table and export CSV |
 
 ```tsx

@@ -8,18 +8,17 @@ import {
   Divider,
   Group,
   Popover,
-  Select,
   Stack,
   Text,
   TextInput,
   ThemeIcon,
 } from '@mantine/core';
+import { AccessLevelMenu } from './AccessLevelMenu';
 import { notifications } from '@mantine/notifications';
 import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
 import { LinkIcon } from '@phosphor-icons/react/dist/csr/Link';
 import { ShieldIcon } from '@phosphor-icons/react/dist/csr/Shield';
 import { UsersIcon } from '@phosphor-icons/react/dist/csr/Users';
-import { ACCESS_LEVEL_OPTIONS } from './accessMenu.utils';
 import type { AccessLevel, AccessMenuProps } from './AccessMenu.types';
 
 export function AccessMenu({
@@ -68,8 +67,7 @@ export function AccessMenu({
     >
       <Popover.Target>
         <Button
-      
-          color="dark.9"
+          variant="light"
           size="xs"
           leftSection={<UsersIcon size={14} />}
           rightSection={<CaretDownIcon size={12} />}
@@ -92,12 +90,9 @@ export function AccessMenu({
                 if (e.key === 'Enter') handleInvite();
               }}
             />
-            <Select
-              size="xs"
-              w={110}
-              data={ACCESS_LEVEL_OPTIONS}
+            <AccessLevelMenu
               value={inviteLevel}
-              onChange={(v) => setInviteLevel((v as AccessLevel) ?? 'view')}
+              onChange={setInviteLevel}
             />
             <Button size="xs" color="brand" onClick={handleInvite}>
               Invite
@@ -110,7 +105,7 @@ export function AccessMenu({
             </Text>
             <Stack gap="xs">
               <Group gap="sm" wrap="nowrap">
-                <ThemeIcon size="md" variant="light" color="gray" radius="md">
+                <ThemeIcon size="md" variant="light" color="brand" radius="md">
                   <UsersIcon size={16} />
                 </ThemeIcon>
                 <Box>
@@ -123,7 +118,7 @@ export function AccessMenu({
                 </Box>
               </Group>
               <Group gap="sm" wrap="nowrap">
-                <ThemeIcon size="md" variant="light" color="gray" radius="md">
+                <ThemeIcon size="md" variant="light" color="indigo" radius="md">
                   <ShieldIcon size={16} />
                 </ThemeIcon>
                 <Box>
@@ -162,16 +157,13 @@ export function AccessMenu({
                       )}
                     </Box>
                   </Group>
-                  <Select
-                    size="xs"
-                    w={110}
-                    data={ACCESS_LEVEL_OPTIONS}
+                  <AccessLevelMenu
                     value={role.accessLevel}
-                    onChange={(v) =>
+                    onChange={(accessLevel) =>
                       onChange?.({
                         type: 'role',
                         roleId: role.id,
-                        accessLevel: (v as AccessLevel) ?? role.accessLevel,
+                        accessLevel,
                       })
                     }
                   />
@@ -212,16 +204,13 @@ export function AccessMenu({
                       )}
                     </Box>
                   </Group>
-                  <Select
-                    size="xs"
-                    w={110}
-                    data={ACCESS_LEVEL_OPTIONS}
+                  <AccessLevelMenu
                     value={account.accessLevel}
-                    onChange={(v) =>
+                    onChange={(accessLevel) =>
                       onChange?.({
                         type: 'account',
                         accountId: account.id,
-                        accessLevel: (v as AccessLevel) ?? account.accessLevel,
+                        accessLevel,
                       })
                     }
                   />

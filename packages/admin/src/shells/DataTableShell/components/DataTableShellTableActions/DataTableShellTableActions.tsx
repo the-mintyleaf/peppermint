@@ -96,8 +96,11 @@ export function DataTableShellTableActions<T extends Record<string, unknown>>({
               leftSection={<EyeIcon size={13} aria-hidden />}
               size="xs"
               variant="subtle"
+              color="gray"
               c="gray.3"
-              disabled={!isSingle || deleting}
+              opacity={isSingle && !deleting ? 1 : 0.45}
+              style={{ pointerEvents: isSingle && !deleting ? undefined : 'none' }}
+              aria-disabled={!isSingle || deleting}
               title={isSingle ? 'Review selected record' : 'Select only one record to review'}
               onClick={handleReview}
             >

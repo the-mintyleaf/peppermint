@@ -14,6 +14,20 @@ import {
   buildModuleAccessFromPermissions,
 } from "../../../_shared/moduleAccess";
 
+function accountRowStyle(record: Account): React.CSSProperties {
+  if (record.status === "inactive") {
+    return { color: "var(--mantine-color-gray-5)", };
+  }
+  if (record.status === "suspended") {
+    return {
+      color: "var(--mantine-color-red-6)",
+    
+     
+    };
+  }
+  return {};
+}
+
 const TABS: DataTableShellTab[] = [
   { label: "All Accounts" },
   { label: "Active", filter: { status: "active" } },
@@ -52,6 +66,7 @@ export function AccountsList() {
         defaultPageSize={20}
         moduleAccess={moduleAccess}
         onModuleAccessChange={handleModuleAccessChange}
+        rowStyle={accountRowStyle}
       />
     </Paper>
   );
