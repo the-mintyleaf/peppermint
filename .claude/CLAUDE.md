@@ -28,6 +28,20 @@ packages must never import from apps/
 
 ## Stack Rules
 
+**Framework versions (updated 2026-06-22):**
+
+| Package | Version |
+|---|---|
+| Next.js | 16.2.7 (App Router) |
+| React | 19.2.4 |
+| Mantine | 9.2.0 |
+| @tanstack/react-query | 5.100.9 |
+| Zustand | 5.0.13 |
+| Framer Motion | 12.38.0 |
+| TypeScript | 5.9.2 |
+
+Check these before assuming an API signature. Use `next/navigation` not `next/router`. Check Mantine 9 docs for prop names — they differ from v7.
+
 **`@peppermint/ui`** — always import Mantine components from here, never from `@mantine/*` directly.
 
 **Forms** — always use `@mantine/form` via `@peppermint/ui`. Never use React Hook Form or other form libraries.
@@ -148,6 +162,7 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 4. Add to the package root `src/index.ts` if it is part of the public API.
 5. Create `packages/<pkg>/docs/<Name>.md` — implementation reference (internals, key decisions).
 6. Create `usage-doc/<pkg>/<Name>.md` — consumer reference (props, usage examples).
+7. If the component is a public-facing UI component, create a story at `apps/storybook/stories/<pkg>/<Name>.stories.tsx` covering: default, loading, empty, error, and disabled states.
 
 #### Editing a package component
 
@@ -167,7 +182,8 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 2. Remove from all barrel levels: component `index.ts` → group `index.ts` → `src/index.ts`.
 3. Delete `packages/<pkg>/docs/<Name>.md`.
 4. Delete `usage-doc/<pkg>/<Name>.md`.
-5. If the component owned a context or Zustand store, grep for consumers of those exports too before removing.
+5. Check `apps/storybook/stories/` for a story file and delete it with the component.
+6. If the component owned a context or Zustand store, grep for consumers of those exports too before removing.
 
 ---
 
@@ -182,6 +198,12 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 5. No usage-doc required. Add an inline `docs/README.md` only for modules complex enough that a new contributor would be lost without it.
 
 **Sub-modules** belong inside their parent module folder, not as siblings. If `organization` has sub-modules like `accounts` or `roles`, they live at `modules/<group>/organization/accounts/` and `modules/<group>/organization/roles/` — never at `modules/<group>/organization-accounts/`. The group barrel exports all of them, and their internal imports resolve relative to the parent module folder.
+
+**Sub-module routing rule:**
+- If a parent module already has sub-modules, do not create or edit files at the parent level.
+- Place all new work inside the appropriate sub-module folder (`modules/<group>/<module>/<sub-module>/`).
+- If the user hasn't specified a sub-module, ask for its name before writing any code.
+- Once confirmed, create the sub-module folder (if it doesn't exist) and implement there.
 
 #### Editing an app module or layout
 
@@ -234,7 +256,7 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 
 - Do not work on the main branch. Always create a new branch: `dev/<work-name>` and push it at the end.
 - Use pnpm, not npm.
-- No testing infrastructure yet — do not generate test files unless explicitly asked.
+- Testing standards and required verification checks are in `STANDARDS.md → Verification & Testing Standards`. Run the applicable categories before marking any task complete.
 - Do not read the full folder structure speculatively — only read what the task requires.
 - For tasks that span more than 5 files or are expected to take more than one working session:
   1. Before writing any code, create `.todo/<task-name>-todo.md` at the repo root (`kebab-case` filename derived from the feature name).
@@ -248,6 +270,39 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 - No new dependencies that overlap the existing stack without flagging it first.
 - Be concise in responses. Don't explain what you're about to do — just do it.
 - Do not create extra documents beyond what is specified in the Lifecycle Rules.
+
+## Code Quality
+
+**Formatting** — run `pnpm format` before committing. The repo has no Prettier config file; it uses all Prettier v3 defaults (80-char print width, 2-space indent, double quotes, trailing commas). Never commit unformatted code.
+
+**Import order** (top to bottom, each group separated by a blank line):
+1. React / Next.js
+2. Third-party packages
+3. `@peppermint/*` packages
+4. App-level aliases (`@/*`)
+5. Relative imports (`./`, `../`)
+
+**Function length** — if a function exceeds ~40 lines, extract the excess into a named helper. Prefer many small named functions over one large one.
+
+**Conditional depth** — max 2 levels of nested ternaries. Beyond that, use an early return or a named variable.
+
+**Logical grouping** — within a component, keep hooks together at the top, derived values next, handlers after, and JSX last. Do not interleave them.
+
+## Bug Finding & Fixing
+
+**Before writing any fix:**
+1. Reproduce the bug with a minimal case. If you can't reproduce it, don't fix it.
+2. Classify the bug type before touching code:
+   - **Render bug** — wrong output for given props/state → check component logic and conditional rendering
+   - **State bug** — stale or incorrect data → check React Query cache, Zustand store, useState initialization
+   - **Async bug** — race condition, missing loading/error state, double-fetch → check useQuery deps, useMutation flow, component lifecycle
+   - **Type bug** — runtime shape mismatch → check DTO types vs API response, check type narrowing
+   - **Layout bug** — visual only, no logic error → check Mantine props, CSS modules, responsive breakpoints
+3. Read the error message completely before searching for a fix. Stack traces tell you where, not just what.
+4. Make the smallest possible diff. A bug fix that also refactors is two separate things — split them.
+5. After fixing: verify the original repro no longer triggers, and check adjacent code paths for the same class of bug.
+
+**Do not:** Patch the symptom when the root cause is findable. Wrap in try/catch to silence an error. Add a `|| []` fallback without understanding why the value is undefined.
 
 ## App Structure
 
@@ -370,258 +425,18 @@ Examples:
 - Handle all UI states: loading, empty, error, success, disabled, pending mutation.
 - No raw hex colors, arbitrary spacing, or one-off visual values — use design tokens.
 - Every data-driven component must use `useQuery`. No `useEffect` fetching.
-- Verify with `pnpm typecheck && pnpm lint` before committing. Use `/verify`.
+- Verify with `pnpm format && pnpm typecheck && pnpm lint` before committing. Use `/verify`. For complete pre-commit and testing standards, see `STANDARDS.md → Verification & Testing Standards`.
 - Update `docs/AI.md` whenever module structure changes. Use `/update-ai-map`.
 - One PR per task/feature. Use `/pre-pr` to prepare.
 
 ---
 
-## Tactical Programming for AI Agents
+## AI Map Authoring
 
-This repo must be optimized for agentic coding.
+When creating or updating `docs/AI.md` files (app-level or module-level), read `.claude/AI-AUTHORING.md` for required structure, content rules, style guide, and examples.
 
-The goal is not only clean code. The goal is code that an AI agent can understand, navigate, and edit with the least possible token usage and the highest possible accuracy.
-
-Agents must not scan the whole codebase to understand simple tasks. They must read the tactical docs first, then open only the exact source files needed.
-
-### Core principle
-
-Docs are the agent's map. Code is the source of truth.
-
-Agents should move from broad context to narrow implementation:
-
-```txt
-CLAUDE.md
-→ apps/<app>/docs/AI.md
-→ apps/<app>/modules/<group>/<module>/docs/AI.md
-→ exact source files needed for the task
+**Navigation pattern:**
 ```
-
-Do not start by reading source folders, full module trees, or unrelated files.
-
-Only open source files when the tactical docs identify them as relevant, or when the docs are missing, stale, or insufficient.
-
----
-
-### Required app-level AI map
-
-Every app must have:
-
-```txt
-apps/<app>/docs/AI.md
+CLAUDE.md → apps/<app>/docs/AI.md → module docs/AI.md → source files
 ```
-
-This is the first app-specific file an agent reads.
-
-It must be short, skimmable, and path-heavy.
-
-It should include:
-
-* app purpose
-* main routes
-* major modules
-* shared component locations
-* design docs location
-* API/query locations
-* state management locations
-* common edit targets
-* task-type reading guide
-* forbidden patterns
-* files or folders the agent should not touch casually
-
-Example:
-
-```md
-# AI Map
-
-## App purpose
-
-Short explanation of the app.
-
-## Read by task type
-
-| Task | Read first | Then inspect |
-|---|---|---|
-| Edit visual design | docs/design/DESIGN.md, docs/design/design-system.md | target component only |
-| Add component | docs/components/, @peppermint/ui exports | target component folder |
-| Edit module | module docs/AI.md | target module files |
-| Add query/mutation | module docs/AI.md, docs/api-contracts/ | module queries/hooks |
-| Edit state | module docs/AI.md | relevant store/context/hook |
-| Edit route | route section below | app route re-export + target module |
-
-## Major modules
-
-| Module | Path | Route | Module AI map |
-|---|---|---|---|
-| Organization | modules/admin/organization | /admin/organization | modules/admin/organization/docs/AI.md |
-
-## Do not do
-
-- Do not scan the full app.
-- Do not create duplicate components.
-- Do not invent new folder patterns.
-- Do not bypass design docs.
-- Do not add new state stores without checking existing state ownership.
-```
-
----
-
-### Required module-level AI map
-
-Every major module must have:
-
-```txt
-apps/<app>/modules/<group>/<module>/docs/AI.md
-```
-
-This is the first file an agent reads before changing that module.
-
-It should include:
-
-* module purpose
-* module type
-* route, if any
-* entry component
-* important child components
-* stores
-* contexts
-* hooks
-* queries
-* utilities
-* docs
-* common edit targets
-* known risks
-* what not to touch
-
-Example:
-
-```md
-# Organization Module AI Map
-
-## Purpose
-
-Manages organizations, departments, accounts, roles, permissions, and organization structure.
-
-## Module type
-
-MultiPageModule
-
-## Route
-
-/admin/organization
-
-## Entry files
-
-- ModuleOrganization.tsx
-- index.ts
-
-## Common edit targets
-
-| Task | Files |
-|---|---|
-| Organization tree UI | organization-tree/OrganizationTree.tsx |
-| Organization tree state | organization-tree/OrganizationTree.store.ts |
-| Organization tree behavior | organization-tree/OrganizationTree.hooks.ts |
-| Roles UI | roles/ |
-| Accounts UI | accounts/ |
-| Shared queries | queries/ |
-| Shared types | organization.types.ts |
-
-## State ownership
-
-- Server data: React Query
-- Tree interaction state: organization-tree store
-- Temporary drawer/modal state: local state unless shared across module
-- Shareable filters: URL search params
-
-## Do not do
-
-- Do not create sibling sub-modules like organization-roles.
-- Do not fetch data in useEffect.
-- Do not import Mantine directly.
-- Do not duplicate tree state into another Zustand store.
-```
-
----
-
-### Source reading budget
-
-For small tasks, the agent should usually read:
-
-* `CLAUDE.md`
-* one app AI map
-* one module AI map
-* 2–5 directly relevant source files
-
-Reading more is allowed only when the task genuinely requires it.
-
-If the agent needs to inspect many files, it must explain why in the plan or `.todo` file.
-
----
-
-### Documentation update rules
-
-Whenever code changes, tactical docs must stay accurate.
-
-Update `apps/<app>/docs/AI.md` when:
-
-* a new major module is added
-* a route changes
-* shared component locations change
-* API/state/design conventions change
-* a new repeated workflow appears
-
-Update `apps/<app>/modules/<group>/<module>/docs/AI.md` when:
-
-* module structure changes
-* entry files change
-* important components are added or removed
-* stores, contexts, hooks, or queries change
-* common edit targets change
-* module-specific rules change
-
-A change is not complete if the code changes but the AI maps become stale.
-
----
-
-### Map file style
-
-AI maps must be:
-
-* short
-* practical
-* skimmable
-* path-heavy
-* decision-focused
-* continuously updated
-
-Prefer:
-
-* tables
-* bullets
-* file paths
-* import paths
-* ownership notes
-* "use this / do not use this" rules
-
-Avoid:
-
-* long prose
-* duplicated implementation details
-* documenting every tiny internal function
-* creating multiple sources of truth
-* making agents read five docs when one map would do
-
-Bad AI docs explain everything.
-
-Good AI docs tell the agent exactly where to go.
-
----
-
-### Final rule
-
-The best frontend architecture is not only easy for humans to maintain.
-
-It must also be easy for AI agents to navigate.
-
-Every major frontend decision should reduce future search cost, reduce duplicate work, reduce token usage, and make the next edit faster.
+Read docs first. Only open source files when docs identify them as relevant or are missing/stale.

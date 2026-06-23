@@ -394,7 +394,7 @@ Adjust the structure above to match the recommended module type. Remove inapplic
 
 ### Phase 2 — UI Shell
 - [ ] Build `<Name>List.tsx` with the chosen shell (empty state, loading skeleton)
-- [ ] Define table columns in `<name>.columns.tsx`
+- [ ] Define table columns in `<name>.columns.tsx` — **each column must include an `icon`** (Phosphor) for the `DataTableShell` header
 - [ ] Implement toolbar with action buttons
 
 ### Phase 3 — Core Flows

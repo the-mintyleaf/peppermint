@@ -415,37 +415,473 @@ Utility docs should include:
 
 ---
 
-### Verification checklist
+### Verification & Testing Standards
 
-Before finishing any frontend task, run all available checks.
-
-Use the existing repo scripts. Prefer:
-
-```bash
-pnpm typecheck
-pnpm lint
-pnpm build
-pnpm format
-```
-
-Only run commands that exist in the repo. Use `/verify` to run this sequence automatically.
-
-If a command does not exist, do not invent infrastructure unless explicitly asked.
-
-For visual work, also verify:
-
-* desktop layout
-* tablet layout
-* mobile layout
-* loading state
-* empty state
-* error state
-* keyboard navigation
-* reduced-motion behavior
-* dark mode if the app supports it
-* design-system consistency
+> **Scope rule:** Items 1–2 and 22 apply to every task. All other categories apply when the task touches that area. Do not run all 22 categories for a one-line CSS fix.
 
 A task is not complete until code, docs, exports, and checks are all handled.
+
+---
+
+#### 1. Install, build, and environment sanity
+
+Run:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm build
+pnpm dev
+```
+
+Checks:
+
+- App installs without dependency errors.
+- Production build succeeds.
+- No TypeScript, bundler, or route generation errors.
+- No broken imports.
+- No missing environment variables.
+- No client-side use of server-only secrets.
+- No hardcoded local URLs like `localhost`, `127.0.0.1`, staging tokens, or test API keys.
+
+---
+
+#### 2. Static quality checks
+
+Run:
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm format:check
+```
+
+Also run:
+
+```bash
+grep -rE '#[0-9a-fA-F]{3,6}\b' apps/ packages/ --include="*.tsx" --include="*.ts" --include="*.css"
+```
+
+Checks:
+
+- ESLint passes.
+- TypeScript passes with no `any` abuse unless justified.
+- No unused variables, dead components, unused files, or unreachable code.
+- No `console` spam except intentional logging.
+- No `TODO`, `FIXME`, or temporary hacks left in production paths.
+- No duplicated components when an existing shared component could be reused.
+- No hardcoded hex colors or arbitrary pixel values — use design tokens only.
+
+---
+
+#### 3. Unit tests
+
+Run:
+
+```bash
+pnpm test
+pnpm test:coverage
+```
+
+Test:
+
+- Utility functions.
+- Date, currency, number, and status formatting.
+- Permission/role helpers.
+- Data mappers and transformers.
+- Form validation rules.
+- Table filtering/sorting helpers.
+- State reducers/stores.
+- Edge cases: empty array, null, undefined, invalid input, very long text.
+
+Minimum pass rule:
+
+- Core business logic must be covered.
+- No snapshot-only fake coverage.
+- Critical helpers should have positive, negative, and edge-case tests.
+
+---
+
+#### 4. Component tests
+
+Use Vitest/Jest + Testing Library.
+
+Run:
+
+```bash
+pnpm test:components
+```
+
+Test:
+
+- Component renders correctly with normal data.
+- Component renders correctly with empty data.
+- Loading state appears.
+- Error state appears.
+- Disabled state works.
+- Required fields show validation.
+- Buttons, menus, drawers, dialogs, modals, tabs, tables, filters, and pagination behave correctly.
+- Keyboard interaction works for menus, dialogs, dropdowns, and forms.
+
+Prefer queries in this order: `getByRole()` → `getByLabelText()` → `getByText()` → `getByPlaceholderText()`.
+
+Avoid fragile tests based on implementation details like internal class names.
+
+---
+
+#### 5. Integration tests
+
+Test full feature behavior, not isolated UI pieces.
+
+Examples:
+
+- Create item flow.
+- Edit item flow.
+- Delete item flow.
+- Search/filter/sort flow.
+- Form submit with API success.
+- Form submit with API validation error.
+- Drawer/modal opens, saves, closes, and refreshes list.
+- Route params load correct data.
+- User permissions hide or disable forbidden actions.
+- Optimistic updates roll back on failure.
+- Cache invalidation works after mutation.
+- Empty, loading, error, and success states are all reachable.
+
+**Data persistence round-trip:** For every create/edit flow, verify the data survives a hard refresh — not just that the API returned a success response.
+
+---
+
+#### 6. End-to-end browser tests
+
+Use Playwright or Cypress.
+
+Run:
+
+```bash
+pnpm test:e2e
+```
+
+Test on: Chromium · Firefox · WebKit/Safari where possible.
+
+E2E flows:
+
+- User can open the page.
+- User can complete the main happy path.
+- User can recover from validation errors.
+- User can navigate away and back.
+- User can refresh without losing required state.
+- Protected routes redirect correctly.
+- Forbidden users cannot access restricted UI.
+- Deep links work.
+- Back/forward browser navigation works.
+- Toasts/notifications appear correctly.
+- Destructive actions require confirmation.
+- Cancel buttons actually cancel.
+
+---
+
+#### 7. Visual regression tests
+
+Test:
+
+- Dashboard · list/table · detail page · create/edit form.
+- Empty state · loading state · error state.
+- Dark mode · mobile · tablet · desktop.
+
+Checks:
+
+- No layout shift, clipped text, overlapping buttons, or broken spacing.
+- No unreadable contrast, hidden actions, or modal/drawer overflow.
+- No broken icons, images, or scrollbars.
+
+---
+
+#### 8. Accessibility tests
+
+Run:
+
+```bash
+pnpm test:a11y
+```
+
+Use axe, Playwright accessibility checks, or equivalent.
+
+Also test manually with `prefers-reduced-motion` enabled (Chrome DevTools → Rendering → Emulate CSS media → prefers-reduced-motion: reduce). Verify no jarring or fully-disabled animations, as required by the `useReducedMotion()` rule in CLAUDE.md.
+
+Checks:
+
+- All inputs have labels. Buttons have accessible names. Icon-only buttons have `aria-label`.
+- Dialogs trap focus. Escape closes overlays. Focus returns to trigger on close.
+- Tab order is logical. Keyboard-only users can complete main flows.
+- Color contrast meets WCAG 2.1 AA. Color is not the sole communicator.
+- Error messages are announced or clearly connected to fields.
+- Images have meaningful `alt` or empty `alt=""` when decorative.
+- No duplicate IDs. No inaccessible custom dropdowns.
+- Tables have proper headers. Page has correct heading structure.
+- `prefers-reduced-motion` disables or reduces all animations > 300ms.
+
+---
+
+#### 9. Responsive design tests
+
+Test at: 320px · 375px · 390px · 430px · 768px · 1024px · 1280px · 1440px · 1920px.
+
+Checks:
+
+- No horizontal scroll unless intentionally designed.
+- Navigation, forms, tables, drawers/modals all work at each breakpoint.
+- Buttons are tappable. Text does not overflow cards. Sticky elements do not cover content.
+- Empty/error/loading states work on all sizes.
+
+---
+
+#### 10. Performance and optimization tests
+
+Run:
+
+```bash
+pnpm build && pnpm analyze && pnpm lighthouse
+```
+
+Core Web Vitals targets: LCP ≤ 2.5s · INP ≤ 200ms · CLS ≤ 0.1.
+
+Checks:
+
+- Initial JS bundle is not too large. Heavy components are lazy-loaded.
+- Images are compressed and correctly sized. Fonts are optimized.
+- No unnecessary re-renders or expensive render-path calculations.
+- No huge dependencies for tiny features. No duplicate libraries.
+- Route-level code splitting works. Loading skeletons appear for slow data.
+- Large lists use pagination or virtualization. Animations do not cause jank.
+
+---
+
+#### 11. Bundle and dependency tests
+
+Run:
+
+```bash
+pnpm build && pnpm analyze && pnpm audit
+```
+
+Checks:
+
+- No unexpected large package added. No duplicate versions of major libraries.
+- No unused or vulnerable dependency. Lockfile is committed.
+- Tree-shaking works. Icons imported individually (not as full icon pack).
+- Chart, editor, drag/drop, or date libraries are justified.
+
+---
+
+#### 12. Security tests
+
+Run:
+
+```bash
+pnpm audit
+```
+
+Also inspect code manually.
+
+Checks:
+
+- No secret or private API key in frontend bundle.
+- No `dangerouslySetInnerHTML` unless sanitized and documented.
+- No rendering raw user input as HTML. User-generated text is escaped.
+- URL params and redirect URLs are sanitized/validated.
+- File uploads validate type and size client-side (not relied upon as sole defense).
+- Auth tokens not stored unsafely. No sensitive data in logs, query params, or `localStorage`.
+- Protected UI backed by backend checks — hidden buttons are not real security.
+- CSP headers considered for production. Third-party scripts minimized.
+
+Security payload tests (must render as harmless text):
+
+```
+<script>alert(1)</script>
+<img src=x onerror=alert(1)>
+javascript:alert(1)
+"><svg/onload=alert(1)>
+```
+
+---
+
+#### 13. Form tests
+
+Test every form with: valid input · empty required fields · invalid email/phone · long text · special characters · duplicate submit · slow network · failed request · server validation error · success · cancel · reset · unsaved-changes warning.
+
+Checks:
+
+- Submit button disables while submitting. User cannot double-submit.
+- Error messages are clear. Focus moves to first invalid field.
+- Form does not lose user input after a recoverable error. Success state is obvious.
+
+---
+
+#### 14. API and network tests
+
+Checks:
+
+- Correct endpoint, HTTP method, and payload shape.
+- Loading/error states appear. Retry behavior works if designed.
+- 401 → login redirect. 403 → forbidden state. 404 → not found. 500 → graceful error.
+- Offline/timeout behavior is acceptable.
+- API calls are cancelled when component unmounts. No infinite loops or duplicate fetches.
+
+---
+
+#### 15. State management tests
+
+Checks:
+
+- State initializes correctly and resets on page exit if required.
+- Filters persist only when intended. Selected items clear after delete.
+- Modal/drawer state does not leak between routes.
+- Optimistic state matches server after refetch. Cache invalidates after create/edit/delete.
+- No stale Zustand or React Query state in UI. No memory leaks from subscriptions.
+- **React Query cache reconciliation:** After every mutation, optimistic UI converges with the server response on refetch. No stale cache survives after explicit invalidation.
+
+---
+
+#### 16. Routing and navigation tests
+
+Checks:
+
+- All routes load. Invalid route shows 404. Back button and refresh work on nested pages.
+- Direct URL access works. Breadcrumbs and active nav item are correct.
+- Query params preserved when needed, removed on reset.
+- Protected and role-based routes enforce access.
+- **URL shareability:** A URL with filter/tab/sort/pagination params must reproduce the same view when opened in a new tab. Required — STANDARDS.md mandates URL state for shareable UI.
+
+---
+
+#### 17. Error boundary tests
+
+Checks:
+
+- Component crash does not blank the entire app.
+- Error boundary shows a useful fallback. User can retry or navigate away.
+- Errors are logged to monitoring if configured.
+- Failed dynamic imports are handled. Suspense fallback appears correctly.
+
+---
+
+#### 18. UX polish tests
+
+Checks:
+
+- Loading states are not blank. Empty states tell user what to do next. Error states are human-readable.
+- Buttons have clear labels. Destructive actions are visually distinct. Success actions show feedback.
+- Long names truncate. Tooltips appear where needed. Skeletons match final layout.
+- Page title is correct. Cursor and disabled states are correct. Animations are smooth and not excessive.
+
+---
+
+#### 19. Storybook component story tests
+
+Run:
+
+```bash
+pnpm test:storybook
+```
+
+Every public-facing UI component in `@peppermint/*` packages must have a story in `apps/storybook`.
+
+Stories must cover at minimum: default · loading · empty · error · disabled · dark mode · responsive/constrained-width.
+
+Checks:
+
+- All stories render without console errors.
+- Interactive stories verify expected user interactions.
+- Story data is realistic, not lorem ipsum placeholder.
+
+---
+
+#### 20. Session and authentication lifecycle tests
+
+Distinct from API-level 401 handling in #14 — test the full user session lifecycle.
+
+Checks:
+
+- **Token expiry mid-session:** Expires while user is active → graceful redirect or refresh prompt, not a blank error page.
+- **Token refresh:** Succeeds → user continues without interruption; current view state preserved.
+- **Multi-tab logout sync:** Logout in Tab A → Tab B detects expired session on next interaction.
+- **Session timeout warning:** If designed, warning appears before expiry with option to extend.
+- **Hard refresh after expiry:** Any protected route → redirect to login, not a 401 rendered in UI.
+- **Post-login redirect:** After login, user lands on the originally requested page, not always the dashboard.
+
+---
+
+#### 21. Browser compatibility tests
+
+Test on: Chrome · Firefox · Safari/WebKit · Mobile Safari · Android Chrome (where possible).
+
+Checks:
+
+- CSS, sticky/fixed elements, scroll containers, and date inputs work across browsers.
+- Drag/drop, file upload, copy/paste, and keyboard shortcuts behave correctly.
+
+---
+
+#### 22. UI design (applies to visual components, pages, layouts, forms, tables, dashboards)
+
+> Scope rule: Run this category whenever the task touches any `.tsx` file in `layouts/`, `modules/`, or `components/`. Skip for config-only, type-only, or backend changes.
+
+Doctrine reference: `.claude/DESIGN.md`
+
+**Output contract — all required states present or explicitly N/A:**
+
+- [ ] Empty state (no data yet)
+- [ ] No-results state (filtered to nothing) — required for filterable lists
+- [ ] Loading and partial loading states
+- [ ] Request-failed state with retry path
+- [ ] Permission-denied state
+- [ ] Read-only mode (when applicable)
+- [ ] Archived/deleted record state (when applicable)
+- [ ] Conflicting edits state (when applicable — multi-user forms)
+- [ ] Unsaved changes warning (forms and settings)
+- [ ] Long-running / background job state (when applicable)
+
+**Design non-negotiables:**
+
+- [ ] Page has one dominant anchor; regional anchors subordinate and non-competing (§1.1)
+- [ ] State ≠ Action: badge/fact and button/lever look different and sit in different positions (§1.9)
+- [ ] Status expressed as words + color + position — never color alone (Layer 4)
+- [ ] Actions labeled by risk tier (safe / important / risky / destructive); destructive ones spatially separated (§1.5, Layer 5)
+- [ ] Recovery path exists for every consequential action (undo / audit / retry / restore) (Layer 5)
+- [ ] Confirmations for dangerous actions state what happens, who is affected, and whether it's reversible — not just "Are you sure?" (§1.10)
+- [ ] Consistent components: table, drawer, confirmation, badge reused from `@peppermint/ui` — no per-page reinvention (§1.8)
+
+**Decision ladder applied when principles conflict:**
+Safety > Truth > Clarity > Speed > Density > Consistency > Aesthetics
+
+**Verification steps:**
+
+- [ ] `/verify` Step 2b (design scan) ran and passed — no BLOCK violations, WARN items reviewed
+- [ ] `/design-check` run for new page patterns, complex flows, or pre-release polish
+
+---
+
+#### 23. Production readiness tests
+
+Run before final answer:
+
+```bash
+pnpm clean
+pnpm install --frozen-lockfile
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm test:e2e
+pnpm audit
+```
+
+Checks:
+
+- Fresh install works from scratch. No hidden dependency on local cache.
+- Production build succeeds. No generated files missing.
+- No broken deployment output. No source maps exposing secrets.
+- No debug UI, test routes, or hardcoded environment values in production.
 
 ---
 

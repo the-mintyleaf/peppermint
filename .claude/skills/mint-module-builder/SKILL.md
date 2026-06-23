@@ -145,16 +145,22 @@ export async function deleteStudent(id: string): Promise<void> { /* ... */ }
 
 Use `DataTableShellColumn<T>`. The default rule is **no `render`** — the shell renders plain values correctly on its own. Only add a `render` function when the output genuinely cannot be expressed as plain text: a colored badge, an icon, a stacked multi-line cell. Never wrap plain text in `<Text>` just to have a `render`. When you do use `render`, every piece of text inside it must be `size="xs"` unless there is a specific, documented reason to go larger.
 
+**Every column must pass an `icon`** (Phosphor icon component from `@phosphor-icons/react/dist/csr/*`). `DataTableShell` renders it beside the column title in the table header — do not skip icons on list columns.
+
 ```tsx
 import type { DataTableShellColumn } from "@peppermint/admin";
+import { EnvelopeIcon } from "@phosphor-icons/react/dist/csr/Envelope";
+import { PulseIcon } from "@phosphor-icons/react/dist/csr/Pulse";
+import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
 import type { Student } from "../../students.types";
 
 export const studentsColumns: DataTableShellColumn<Student>[] = [
-  { accessor: "fullName", title: "Full Name", sortable: true },
-  { accessor: "email",    title: "Email",     sortable: true },
+  { accessor: "fullName", title: "Full Name", icon: UserIcon, sortable: true },
+  { accessor: "email",    title: "Email",     icon: EnvelopeIcon, sortable: true },
   {
     accessor: "status",
     title: "Status",
+    icon: PulseIcon,
     render: (record) => <Badge size="xs" color={colorMap[record.status]}>{record.status}</Badge>,
   },
 ];
@@ -212,7 +218,8 @@ export interface StudentFormProps {
 
 ### Step 6 — `pages/list/<Name>List.tsx`
 
-Always wrap the shell in `<Paper p={0} withBorder radius="md" h="calc(100vh - 16px)">`.
+Always wrap the shell in `<Paper p={0} withBorder radius="var(--mantine-radius-default)" h="calc(100vh - 16px)">`.
+Use `radius="var(--mantine-radius-default)"` — not a hardcoded size like `"md"` — so the section always respects whatever the app's Mantine theme configures as its default radius.
 Tabs must be typed as `DataTableShellTab[]`. Use `filter` (not `forceFilter`) — `filter` sends values to the server via `params.filters`.
 
 ```tsx
@@ -236,7 +243,7 @@ const tabs: DataTableShellTab[] = [
 
 export function StudentsList() {
   return (
-    <Paper p={0} withBorder radius="md" h="calc(100vh - 16px)">
+    <Paper p={0} withBorder radius="var(--mantine-radius-default)" h="calc(100vh - 16px)">
       <ModalTableShell<Student>
         queryKey={studentQueryKeys.list()}
         queryGetFn={fetchStudents}
@@ -523,17 +530,24 @@ export function ProductForm({ onBack, onSuccess }: ProductFormProps) {
 
 Same strict rule as ContainedModule: **no `render` by default**. Only add one when the cell genuinely needs a badge, icon, or multi-line layout that plain text cannot express. Every text element inside any `render` must be `size="xs"` unless there is a specific, documented reason to go larger.
 
-```ts
+**Every column must pass an `icon`** (Phosphor icon component from `@phosphor-icons/react/dist/csr/*`) so `DataTableShell` can render it in the table header beside the title.
+
+```tsx
 import type { DataTableShellColumn } from "@peppermint/admin";
+import { CurrencyDollarIcon } from "@phosphor-icons/react/dist/csr/CurrencyDollar";
+import { PackageIcon } from "@phosphor-icons/react/dist/csr/Package";
+import { PulseIcon } from "@phosphor-icons/react/dist/csr/Pulse";
+import { TagIcon } from "@phosphor-icons/react/dist/csr/Tag";
+import { Text } from "@peppermint/ui";
 import type { Product } from "../../module.api";
 
 export const PRODUCT_COLUMNS: DataTableShellColumn<Product>[] = [
-  { accessor: "title",    title: "Product",  key: "title",    sortable: true, width: 260 },
-  { accessor: "brand",    title: "Brand",    key: "brand",    sortable: true, width: 140 },
-  { accessor: "category", title: "Category", key: "category", sortable: true, width: 140 },
-  { accessor: "price",    title: "Price",    key: "price",    sortable: true, width: 100,
+  { accessor: "title",    title: "Product",  icon: PackageIcon, key: "title",    sortable: true, width: 260 },
+  { accessor: "brand",    title: "Brand",    icon: TagIcon,     key: "brand",    sortable: true, width: 140 },
+  { accessor: "category", title: "Category", icon: TagIcon,     key: "category", sortable: true, width: 140 },
+  { accessor: "price",    title: "Price",    icon: CurrencyDollarIcon, key: "price", sortable: true, width: 100,
     render: (row) => <Text size="xs">${row.price.toFixed(2)}</Text> },
-  { accessor: "availabilityStatus", title: "Status", key: "status", width: 130 },
+  { accessor: "availabilityStatus", title: "Status", icon: PulseIcon, key: "status", width: 130 },
 ];
 ```
 
@@ -560,7 +574,7 @@ const STATUS_TABS: DataTableShellTab[] = [
 
 export function ProductsList() {
   return (
-    <Paper p={0} withBorder radius="md" h="calc(100vh - 16px)">
+    <Paper p={0} withBorder radius="var(--mantine-radius-default)" h="calc(100vh - 16px)">
       <DataTableShell<Product>
         queryKey="products.list"
         queryGetFn={(params) => fetchProducts(params)}
@@ -592,7 +606,7 @@ import { ProductForm } from "../../form";
 
 export function ProductsNew() {
   return (
-    <Paper p={0} withBorder radius="md" h="calc(100vh - 16px)">
+    <Paper p={0} withBorder radius="var(--mantine-radius-default)" h="calc(100vh - 16px)">
       <ProductForm onBack={() => history.back()} />
     </Paper>
   );
@@ -610,7 +624,7 @@ import { ProductView } from "./ProductView";
 export function ProductsView() {
   const { id } = useParams<{ id: string }>();
   return (
-    <Paper p={0} withBorder radius="md" h="calc(100vh - 16px)">
+    <Paper p={0} withBorder radius="var(--mantine-radius-default)" h="calc(100vh - 16px)">
       <ProductView productId={id} />
     </Paper>
   );
@@ -782,7 +796,7 @@ export function StudentsList() {
 // ✅ always wrap with the full Paper spec
 export function StudentsList() {
   return (
-    <Paper p={0} withBorder radius="md" h="calc(100vh - 16px)">
+    <Paper p={0} withBorder radius="var(--mantine-radius-default)" h="calc(100vh - 16px)">
       <ModalTableShell<Student> ... />
     </Paper>
   );
@@ -825,6 +839,19 @@ The default is **no `render`**. The shell handles plain values. Only add `render
 
 // ✅ if text must be rendered, xs unless there is a documented reason otherwise
 { accessor: "name", render: (r) => <Text size="xs">{r.name}</Text> }
+```
+
+### Missing column header icons
+
+Every entry in `list.columns.ts` / `list.columns.tsx` must include an `icon` on each column. `DataTableShell` uses it in the table header — columns without `icon` render title-only headers and break the list UI convention.
+
+```tsx
+// ❌ no header icon
+{ accessor: "email", title: "Email", sortable: true }
+
+// ✅ pass a Phosphor icon component
+import { EnvelopeIcon } from "@phosphor-icons/react/dist/csr/Envelope";
+{ accessor: "email", title: "Email", icon: EnvelopeIcon, sortable: true }
 ```
 
 ### Untyped tabs array
@@ -911,7 +938,7 @@ Given a requirements doc, follow this sequence:
 2. **If Contained — pick ContainedModule or MultiPageModule** (Section 3).
 3. **Create the branch**: `git checkout -b dev/<feature-name>`.
 4. **Build in order**: types → query keys → API → columns → form → list page → index → app page.
-5. **Every page** gets wrapped in `<Paper p={0} withBorder radius="md" h="calc(100vh - 16px)">`.
+5. **Every page** gets wrapped in `<Paper p={0} withBorder radius="var(--mantine-radius-default)" h="calc(100vh - 16px)">`.
 6. **Every `app/` page** is a one-line re-export.
 7. **Tabs** → always `DataTableShellTab[]`, always `filter` (not `forceFilter`).
 8. **Entity type** → always extends `Record<string, unknown>`.
