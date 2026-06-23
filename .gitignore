@@ -38,6 +38,3 @@ yarn-error.log*
 *.pem
 .pnpm-store/
 
-# AI agent local files (entire trees — never commit)
-.claude/
-.todo/
