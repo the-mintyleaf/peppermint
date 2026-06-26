@@ -1,9 +1,3 @@
-import { DelegationList } from "../../../../../modules/admin/organization/delegations";
+import { ModuleDelegations } from "@/modules/admin";
 
-export default function DelegationsPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  return <DelegationList orgId={params.id} />;
-}
+export default ModuleDelegations;

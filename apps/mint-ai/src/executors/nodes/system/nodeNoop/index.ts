@@ -1,4 +1,7 @@
-import { ExecutorContext, createExecutorError } from "@/shared/executor-context";
+import {
+  ExecutorContext,
+  createExecutorError,
+} from "@/shared/executor-context";
 import { Result, ok, err } from "@/shared/result";
 import {
   PropNodeNoopInput,
@@ -21,7 +24,7 @@ import {
 export const nodeNoop = async (
   input: unknown,
   ctx: ExecutorContext,
-  config?: any
+  config?: any,
 ): Promise<Result<PropNodeNoopOutput, any>> => {
   try {
     // 1. Validate input schema
@@ -32,7 +35,7 @@ export const nodeNoop = async (
           errors: parseResult.error.issues,
           nodeId: ctx.nodeId,
         },
-        "Invalid input to nodeNoop"
+        "Invalid input to nodeNoop",
       );
       return err(
         createExecutorError(
@@ -41,8 +44,8 @@ export const nodeNoop = async (
           {
             nodeId: ctx.nodeId,
             retryable: false,
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -54,7 +57,7 @@ export const nodeNoop = async (
         nodeId: ctx.nodeId,
         payloadType: typeof parsed.payload,
       },
-      "Processing noop node"
+      "Processing noop node",
     );
 
     // 2. Echo the payload
@@ -69,7 +72,7 @@ export const nodeNoop = async (
           event: "noop.node.invalid_output",
           nodeId: ctx.nodeId,
         },
-        "Output validation failed for nodeNoop"
+        "Output validation failed for nodeNoop",
       );
       return err(
         createExecutorError(
@@ -78,8 +81,8 @@ export const nodeNoop = async (
           {
             nodeId: ctx.nodeId,
             retryable: false,
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -88,7 +91,7 @@ export const nodeNoop = async (
         event: "noop.node.completed",
         nodeId: ctx.nodeId,
       },
-      "Noop node completed successfully"
+      "Noop node completed successfully",
     );
 
     return ok(outputParseResult.data);
@@ -100,12 +103,12 @@ export const nodeNoop = async (
         nodeId: ctx.nodeId,
         cause: error,
         retryable: false,
-      }
+      },
     );
 
     ctx.logger.error(
       { error: executorError, event: "noop.node.error" },
-      "Unexpected error in nodeNoop"
+      "Unexpected error in nodeNoop",
     );
     return err(executorError);
   }

@@ -22,6 +22,7 @@ curl -X POST http://localhost:3000/v1/runs/chat \
 ```
 
 **Response:**
+
 ```json
 {
   "reply": "Hello! How can I help you today?",
@@ -31,14 +32,14 @@ curl -X POST http://localhost:3000/v1/runs/chat \
 
 ## 📚 Documentation
 
-| Document | Purpose |
-|----------|---------|
-| **[QUICK_START.md](QUICK_START.md)** | 5-minute setup & cheat sheet |
-| **[USAGE_GUIDE.md](USAGE_GUIDE.md)** | Complete API & usage reference |
-| **[docs/PROJECT_OVERVIEW.md](docs/PROJECT_OVERVIEW.md)** | Architecture & system design |
-| **[docs/EXECUTOR_PATTERN.md](docs/EXECUTOR_PATTERN.md)** | Building custom executors |
-| **[ENV_SETUP_GUIDE.md](ENV_SETUP_GUIDE.md)** | Environment configuration |
-| **[.env.example](.env.example)** | All environment variables |
+| Document                                                 | Purpose                        |
+| -------------------------------------------------------- | ------------------------------ |
+| **[QUICK_START.md](QUICK_START.md)**                     | 5-minute setup & cheat sheet   |
+| **[USAGE_GUIDE.md](USAGE_GUIDE.md)**                     | Complete API & usage reference |
+| **[docs/PROJECT_OVERVIEW.md](docs/PROJECT_OVERVIEW.md)** | Architecture & system design   |
+| **[docs/EXECUTOR_PATTERN.md](docs/EXECUTOR_PATTERN.md)** | Building custom executors      |
+| **[ENV_SETUP_GUIDE.md](ENV_SETUP_GUIDE.md)**             | Environment configuration      |
+| **[.env.example](.env.example)**                         | All environment variables      |
 
 ## 🎯 What Is sAgent?
 
@@ -55,6 +56,7 @@ curl -X POST http://localhost:3000/v1/runs/chat \
 ## 🏗️ Key Concepts
 
 ### Workflows
+
 A directed graph of **nodes** (execution units) connected by **edges**.
 
 ```
@@ -63,25 +65,29 @@ A directed graph of **nodes** (execution units) connected by **edges**.
 ```
 
 ### Sessions
+
 User conversations with:
+
 - **Message history** – Last N messages (bounded)
 - **Session summary** – Persistent context across turns
 
 ### Runs
+
 Single workflow execution with:
+
 - Status tracking (queued → running → completed/failed)
 - Real-time event streaming
 - Result storage
 
 ## 🔌 API Reference
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/v1/runs` | POST | Enqueue workflow |
-| `/v1/runs/:runId/stream` | GET | Stream events (SSE) |
-| `/v1/runs/chat` | POST | Synchronous chat |
-| `/v1/runs/:runId` | GET | Get run status |
-| `/v1/health` | GET | Health check |
+| Endpoint                 | Method | Purpose             |
+| ------------------------ | ------ | ------------------- |
+| `/v1/runs`               | POST   | Enqueue workflow    |
+| `/v1/runs/:runId/stream` | GET    | Stream events (SSE) |
+| `/v1/runs/chat`          | POST   | Synchronous chat    |
+| `/v1/runs/:runId`        | GET    | Get run status      |
+| `/v1/health`             | GET    | Health check        |
 
 ### Example: Enqueue a Workflow
 
@@ -114,14 +120,14 @@ curl -N http://localhost:3000/v1/runs/run-abc-123/stream
 
 ## 📦 Core Components
 
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| **Fastify API** | `src/apps/api/` | HTTP server + routes |
-| **BullMQ Queue** | `src/orchestrator/queue/` | Job persistence & retry |
-| **Worker Pool** | `src/orchestrator/worker/` | Job processing |
-| **Executor Registry** | `src/executors/` | Maps node kind → function |
-| **Session Memory** | `src/shared/memory/` | Redis-backed history |
-| **Event Bus** | `src/shared/events/` | Pub/sub for SSE |
+| Component             | Location                   | Purpose                   |
+| --------------------- | -------------------------- | ------------------------- |
+| **Fastify API**       | `src/apps/api/`            | HTTP server + routes      |
+| **BullMQ Queue**      | `src/orchestrator/queue/`  | Job persistence & retry   |
+| **Worker Pool**       | `src/orchestrator/worker/` | Job processing            |
+| **Executor Registry** | `src/executors/`           | Maps node kind → function |
+| **Session Memory**    | `src/shared/memory/`       | Redis-backed history      |
+| **Event Bus**         | `src/shared/events/`       | Pub/sub for SSE           |
 
 ## ⚙️ Requirements
 
@@ -132,9 +138,11 @@ curl -N http://localhost:3000/v1/runs/run-abc-123/stream
 ## 🔧 Environment Variables
 
 **Required:**
+
 - `DEEPSEEK_API_KEY` – LLM API key
 
 **Recommended:**
+
 - `VAGENT_PORT` – Server port (default: 3000)
 - `VAGENT_REDIS_URL` – Redis connection (default: redis://localhost:6379)
 - `NODE_ENV` – Environment (default: development)
@@ -145,6 +153,7 @@ See [.env.example](.env.example) for all 40+ variables.
 ## 🚀 Common Patterns
 
 ### Multi-Turn Conversation
+
 ```bash
 # Turn 1
 curl -X POST http://localhost:3000/v1/runs/chat \
@@ -156,14 +165,15 @@ curl -X POST http://localhost:3000/v1/runs/chat \
 ```
 
 ### Real-Time Streaming
+
 ```javascript
 const res = await fetch("http://localhost:3000/v1/runs", {
   method: "POST",
   body: JSON.stringify({
     workflowId: "momo.salesbot",
     sessionId: "user-123",
-    input: { message: "Hello" }
-  })
+    input: { message: "Hello" },
+  }),
 });
 
 const { runId } = await res.json();
@@ -175,11 +185,13 @@ es.addEventListener("token", (e) => {
 ```
 
 ### Tool-Calling Loop
+
 Configure tools in workflow → AI autonomously calls APIs → Reports results.
 
 ## 📖 Workflows
 
 ### momo.salesbot
+
 Multi-turn sales conversations with AI reasoning.
 
 ```
@@ -187,6 +199,7 @@ guard.policy (validate) ──> agents.reasoning (LLM reply)
 ```
 
 ### business.onboarding
+
 Guided onboarding with API integration and tool-calling.
 
 ```
@@ -196,17 +209,20 @@ guard.policy ──> agents.reasoning (with tools: createBusinessRecord)
 ## 🧪 Testing
 
 ### Health Check
+
 ```bash
 curl http://localhost:3000/v1/health
 ```
 
 ### Simple Test
+
 ```bash
 curl -X POST http://localhost:3000/v1/runs/chat \
   -d '{"sessionId":"test","message":"Hi!"}'
 ```
 
 ### With Logs
+
 ```bash
 LOG_LEVEL=debug npm run dev
 ```
@@ -232,25 +248,28 @@ See [ENV_SETUP_GUIDE.md](ENV_SETUP_GUIDE.md) for production security practices.
 
 ## 📈 Performance
 
-| Operation | Latency |
-|-----------|---------|
-| Guard validation | <50ms |
-| LLM inference | 1-5s |
-| Tool call | 500ms-2s |
-| End-to-end workflow | 3-10s |
+| Operation           | Latency  |
+| ------------------- | -------- |
+| Guard validation    | <50ms    |
+| LLM inference       | 1-5s     |
+| Tool call           | 500ms-2s |
+| End-to-end workflow | 3-10s    |
 
 ## 🚢 Deployment
 
 ### Docker
+
 ```bash
 docker build -t sagent .
 docker run -e DEEPSEEK_API_KEY=sk-... sagent
 ```
 
 ### Kubernetes
+
 See deployment docs (coming soon).
 
 ### Scaling
+
 ```bash
 # Multiple workers on same Redis
 VAGENT_WORKER_CONCURRENCY=16 npm run dev
@@ -259,6 +278,7 @@ VAGENT_WORKER_CONCURRENCY=16 npm run dev
 ## 🤝 Contributing
 
 See [docs/EXECUTOR_PATTERN.md](docs/EXECUTOR_PATTERN.md) to:
+
 - Implement custom executors
 - Add new node types
 - Create custom workflows
@@ -275,17 +295,20 @@ Follow standards in [docs/rules.md](docs/rules.md).
 ## 🐛 Troubleshooting
 
 **Redis connection refused?**
+
 ```bash
 npm run redis-start
 redis-cli ping  # Should return PONG
 ```
 
 **DeepSeek key invalid?**
+
 - Get key from [platform.deepseek.com/api/keys](https://platform.deepseek.com/api/keys)
 - Add to .env: `DEEPSEEK_API_KEY=sk-...`
 - Restart: `npm run dev`
 
 **Port already in use?**
+
 ```bash
 VAGENT_PORT=3001 npm run dev
 ```

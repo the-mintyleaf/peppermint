@@ -6,7 +6,7 @@
  */
 export function resolveToolConfig<T extends Record<string, any>>(
   config: T,
-  args: Record<string, any>
+  args: Record<string, any>,
 ): T {
   const replacer = (val: any): any => {
     if (typeof val === "string") {
@@ -18,7 +18,7 @@ export function resolveToolConfig<T extends Record<string, any>>(
     if (Array.isArray(val)) return val.map(replacer);
     if (val && typeof val === "object") {
       return Object.fromEntries(
-        Object.entries(val).map(([k, v]) => [k, replacer(v)])
+        Object.entries(val).map(([k, v]) => [k, replacer(v)]),
       );
     }
     return val;

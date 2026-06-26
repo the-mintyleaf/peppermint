@@ -1,5 +1,3 @@
-import { EventLog } from "../../../../../modules/admin/organization/event-log";
+import { ModuleHistory } from "@/modules/admin";
 
-export default function EventLogPage({ params }: { params: { id: string } }) {
-  return <EventLog orgId={params.id} />;
-}
+export default ModuleHistory;

@@ -1,6 +1,15 @@
 "use client";
 
-import { Stack, Group, Title, Text, Paper, SegmentedControl, Skeleton, Tabs } from "@peppermint/ui";
+import {
+  Stack,
+  Group,
+  Title,
+  Text,
+  Paper,
+  SegmentedControl,
+  Skeleton,
+  Tabs,
+} from "@peppermint/ui";
 import { LineChart, BarChart } from "@peppermint/ui";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -29,44 +38,73 @@ export function ChannelPerformance() {
         <Group justify="space-between">
           <Stack gap={4}>
             <Title order={3}>Channel Performance</Title>
-            <Text c="dimmed" size="sm">Per-platform follower and engagement trends</Text>
+            <Text c="dimmed" size="sm">
+              Per-platform follower and engagement trends
+            </Text>
           </Stack>
           <SegmentedControl
             size="xs"
             value={period}
             onChange={setPeriod}
-            data={[{ label: "7d", value: "7d" }, { label: "30d", value: "30d" }, { label: "90d", value: "90d" }]}
+            data={[
+              { label: "7d", value: "7d" },
+              { label: "30d", value: "30d" },
+              { label: "90d", value: "90d" },
+            ]}
           />
         </Group>
       </Paper>
 
       {isLoading ? (
-        <><Skeleton h={300} radius="md" /><Skeleton h={300} radius="md" /></>
+        <>
+          <Skeleton h={300} radius="md" />
+          <Skeleton h={300} radius="md" />
+        </>
       ) : data ? (
         <Tabs value={platform} onChange={(v) => setPlatform(v ?? "instagram")}>
           <Tabs.List>
-            {data.platforms.map((p) => <Tabs.Tab key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</Tabs.Tab>)}
+            {data.platforms.map((p) => (
+              <Tabs.Tab key={p} value={p}>
+                {p.charAt(0).toUpperCase() + p.slice(1)}
+              </Tabs.Tab>
+            ))}
           </Tabs.List>
           {data.platforms.map((p) => (
             <Tabs.Panel key={p} value={p} pt="md">
               <Stack gap="md">
                 <Paper withBorder radius="md" p="md">
-                  <Text fw={500} size="sm" mb="sm">Follower Growth</Text>
+                  <Text fw={500} size="sm" mb="sm">
+                    Follower Growth
+                  </Text>
                   <LineChart
                     h={220}
                     data={data.followerGrowth[p] ?? []}
                     dataKey="date"
-                    series={[{ name: "value", color: PLATFORM_COLORS[p] ?? "blue", label: "Followers gained" }]}
+                    series={[
+                      {
+                        name: "value",
+                        color: PLATFORM_COLORS[p] ?? "blue",
+                        label: "Followers gained",
+                      },
+                    ]}
                     curveType="natural"
                   />
                 </Paper>
                 <Paper withBorder radius="md" p="md">
-                  <Text fw={500} size="sm" mb="sm">Engagement Rate (%)</Text>
+                  <Text fw={500} size="sm" mb="sm">
+                    Engagement Rate (%)
+                  </Text>
                   <BarChart
                     h={220}
                     data={data.engagementRate[p] ?? []}
                     dataKey="date"
-                    series={[{ name: "value", color: PLATFORM_COLORS[p] ?? "blue", label: "Engagement %" }]}
+                    series={[
+                      {
+                        name: "value",
+                        color: PLATFORM_COLORS[p] ?? "blue",
+                        label: "Engagement %",
+                      },
+                    ]}
                   />
                 </Paper>
               </Stack>

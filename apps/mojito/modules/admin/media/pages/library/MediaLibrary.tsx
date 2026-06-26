@@ -25,7 +25,13 @@ import { FolderIcon } from "@phosphor-icons/react/dist/csr/Folder";
 import { PlayIcon } from "@phosphor-icons/react/dist/csr/Play";
 import { useState } from "react";
 import { notifications } from "@mantine/notifications";
-import { useMedia, useFolders, useUploadMedia, useDeleteMedia, useBulkDeleteMedia } from "../../media.hooks";
+import {
+  useMedia,
+  useFolders,
+  useUploadMedia,
+  useDeleteMedia,
+  useBulkDeleteMedia,
+} from "../../media.hooks";
 import type { MediaFilters } from "../../media.api";
 import type { MediaAsset } from "../../../shared/entities.types";
 import { ModulePageShell } from "@/modules/admin/shared/ModulePageShell";
@@ -52,7 +58,13 @@ function MediaCard({ asset, selected, onToggle, onDelete }: MediaCardProps) {
       }}
     >
       <div style={{ position: "relative" }}>
-        <Image src={asset.thumbnailUrl ?? asset.url} alt={asset.alt} height={140} fit="cover" radius="md" />
+        <Image
+          src={asset.thumbnailUrl ?? asset.url}
+          alt={asset.alt}
+          height={140}
+          fit="cover"
+          radius="md"
+        />
         {asset.kind === "video" && (
           <div
             style={{
@@ -89,13 +101,18 @@ function MediaCard({ asset, selected, onToggle, onDelete }: MediaCardProps) {
           <TrashIcon size={10} />
         </ActionIcon>
       </div>
-      <Text size="xs" p="xs" truncate>{asset.alt}</Text>
+      <Text size="xs" p="xs" truncate>
+        {asset.alt}
+      </Text>
     </Paper>
   );
 }
 
 export function MediaLibrary() {
-  const [filters, setFilters] = useState<MediaFilters>({ page: 1, pageSize: 20 });
+  const [filters, setFilters] = useState<MediaFilters>({
+    page: 1,
+    pageSize: 20,
+  });
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const { data: foldersData = [] } = useFolders();
@@ -117,7 +134,10 @@ export function MediaLibrary() {
     for (const file of files) {
       await upload.mutateAsync({ file, folderId: filters.folderId });
     }
-    notifications.show({ message: `${files.length} file(s) uploaded`, color: "green" });
+    notifications.show({
+      message: `${files.length} file(s) uploaded`,
+      color: "green",
+    });
   }
 
   async function handleBulkDelete() {
@@ -169,7 +189,11 @@ export function MediaLibrary() {
         </Group>
       }
     >
-      <Group gap={0} align="flex-start" style={{ height: "calc(100vh - 160px)" }}>
+      <Group
+        gap={0}
+        align="flex-start"
+        style={{ height: "calc(100vh - 160px)" }}
+      >
         <div
           style={{
             width: 200,
@@ -203,7 +227,9 @@ export function MediaLibrary() {
               placeholder="Search assets…"
               leftSection={<MagnifyingGlassIcon size={14} />}
               value={filters.search ?? ""}
-              onChange={(e) => update({ search: e.currentTarget.value || undefined })}
+              onChange={(e) =>
+                update({ search: e.currentTarget.value || undefined })
+              }
             />
             <Select
               size="xs"
@@ -215,17 +241,23 @@ export function MediaLibrary() {
                 { label: "Videos", value: "video" },
               ]}
               value={filters.kind ?? null}
-              onChange={(v) => update({ kind: (v as MediaFilters["kind"]) ?? undefined })}
+              onChange={(v) =>
+                update({ kind: (v as MediaFilters["kind"]) ?? undefined })
+              }
             />
           </Group>
 
           {isLoading ? (
             <SimpleGrid cols={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="sm">
-              {Array.from({ length: 10 }).map((_, i) => <Skeleton key={i} h={180} radius="md" />)}
+              {Array.from({ length: 10 }).map((_, i) => (
+                <Skeleton key={i} h={180} radius="md" />
+              ))}
             </SimpleGrid>
           ) : assets.length === 0 ? (
             <Center py="xl">
-              <Text c="dimmed" size="sm">No assets found — upload some files</Text>
+              <Text c="dimmed" size="sm">
+                No assets found — upload some files
+              </Text>
             </Center>
           ) : (
             <SimpleGrid cols={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="sm">
@@ -237,7 +269,10 @@ export function MediaLibrary() {
                   onToggle={() => toggleSelect(asset.id)}
                   onDelete={async () => {
                     await remove.mutateAsync(asset.id);
-                    notifications.show({ message: "File deleted", color: "green" });
+                    notifications.show({
+                      message: "File deleted",
+                      color: "green",
+                    });
                   }}
                 />
               ))}

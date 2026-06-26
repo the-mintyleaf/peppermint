@@ -9,17 +9,17 @@ export function matchesPath(pathname: string, href: string): boolean {
 
 export function moduleMatches(
   pathname: string,
-  module: AdminShellMainNavModule
+  module: AdminShellMainNavModule,
 ): boolean {
   if (matchesPath(pathname, module.subNav.homeHref)) return true;
   return module.subNav.groups.some((group) =>
-    group.items.some((item) => matchesPath(pathname, item.href))
+    group.items.some((item) => matchesPath(pathname, item.href)),
   );
 }
 
 export function resolveActiveMainNavItem(
   mainNav: AdminShellMainNavItem[],
-  pathname: string
+  pathname: string,
 ): AdminShellMainNavItem | null {
   for (const item of mainNav) {
     if (item.kind === "module" && moduleMatches(pathname, item)) return item;

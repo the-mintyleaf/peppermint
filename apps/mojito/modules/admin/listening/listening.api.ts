@@ -1,5 +1,10 @@
 import { delay, paginate, USE_MOCK } from "../shared/mock.utils";
-import type { Mention, Keyword, Competitor, Alert } from "../shared/entities.types";
+import type {
+  Mention,
+  Keyword,
+  Competitor,
+  Alert,
+} from "../shared/entities.types";
 
 // TODO(backend): replace with real API
 
@@ -36,14 +41,24 @@ const DAYS = Array.from({ length: 14 }, (_, i) => {
 });
 
 let keywords: Keyword[] = [
-  "social media", "content marketing", "influencer", "brand awareness",
-  "#mojito", "#contentcreator", "#digitalmarketing", "#growthhacks",
-  "competitor brand", "your brand name",
+  "social media",
+  "content marketing",
+  "influencer",
+  "brand awareness",
+  "#mojito",
+  "#contentcreator",
+  "#digitalmarketing",
+  "#growthhacks",
+  "competitor brand",
+  "your brand name",
 ].map((term, i) => ({
   id: `kw_${i + 1}`,
   term,
   kind: term.startsWith("#") ? "hashtag" : "keyword",
-  volumeSeries: DAYS.map((date) => ({ date, value: Math.floor(Math.random() * 500) + 50 })),
+  volumeSeries: DAYS.map((date) => ({
+    date,
+    value: Math.floor(Math.random() * 500) + 50,
+  })),
 }));
 
 let competitors: Competitor[] = [
@@ -56,12 +71,17 @@ let competitors: Competitor[] = [
   id: `comp_${i + 1}`,
   handle: c.handle,
   platform: c.platform as Competitor["platform"],
-  volumeSeries: DAYS.map((date) => ({ date, value: Math.floor(Math.random() * 1000) + 100 })),
+  volumeSeries: DAYS.map((date) => ({
+    date,
+    value: Math.floor(Math.random() * 1000) + 100,
+  })),
 }));
 
 let alerts: Alert[] = Array.from({ length: 10 }, (_, i) => ({
   id: `alert_${i + 1}`,
-  type: (["volume_spike", "crisis", "keyword_mention"] as Alert["type"][])[i % 3],
+  type: (["volume_spike", "crisis", "keyword_mention"] as Alert["type"][])[
+    i % 3
+  ],
   text: [
     "Volume spike detected for #yourbrand (+340% in 2h)",
     "Potential crisis: negative sentiment spike on Instagram",
@@ -89,11 +109,15 @@ export interface MentionFilters {
 export async function fetchMentions(filters: MentionFilters = {}) {
   await delay();
   let items = [...mentions];
-  if (filters.sentiment) items = items.filter((m) => m.sentiment === filters.sentiment);
-  if (filters.platform) items = items.filter((m) => m.platform === filters.platform);
+  if (filters.sentiment)
+    items = items.filter((m) => m.sentiment === filters.sentiment);
+  if (filters.platform)
+    items = items.filter((m) => m.platform === filters.platform);
   if (filters.search) {
     const q = filters.search.toLowerCase();
-    items = items.filter((m) => m.author.includes(q) || m.text.toLowerCase().includes(q));
+    items = items.filter(
+      (m) => m.author.includes(q) || m.text.toLowerCase().includes(q),
+    );
   }
   return paginate(items, filters.page ?? 1, filters.pageSize ?? 15);
 }
@@ -103,7 +127,10 @@ export async function fetchKeywords(): Promise<Keyword[]> {
   return [...keywords];
 }
 
-export async function addKeyword(term: string, kind: Keyword["kind"]): Promise<Keyword> {
+export async function addKeyword(
+  term: string,
+  kind: Keyword["kind"],
+): Promise<Keyword> {
   await delay();
   const kw: Keyword = {
     id: `kw_${Date.now()}`,
@@ -125,7 +152,10 @@ export async function fetchCompetitors(): Promise<Competitor[]> {
   return [...competitors];
 }
 
-export async function addCompetitor(handle: string, platform: Competitor["platform"]): Promise<Competitor> {
+export async function addCompetitor(
+  handle: string,
+  platform: Competitor["platform"],
+): Promise<Competitor> {
   await delay();
   const c: Competitor = {
     id: `comp_${Date.now()}`,
@@ -161,7 +191,9 @@ export async function fetchSentimentStream(): Promise<SentimentPoint[]> {
 
 export async function fetchAlerts(): Promise<Alert[]> {
   await delay();
-  return [...alerts].sort((a, b) => b.triggeredAt.getTime() - a.triggeredAt.getTime());
+  return [...alerts].sort(
+    (a, b) => b.triggeredAt.getTime() - a.triggeredAt.getTime(),
+  );
 }
 
 export async function markAlertRead(id: string): Promise<void> {

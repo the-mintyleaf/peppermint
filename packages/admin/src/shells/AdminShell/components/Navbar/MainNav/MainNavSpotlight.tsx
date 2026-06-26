@@ -1,10 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import {
-  Spotlight,
-  type SpotlightActionData,
-} from "@peppermint/ui";
+import { Spotlight, type SpotlightActionData } from "@peppermint/ui";
 import { MagnifyingGlass } from "@phosphor-icons/react";
 import { buildNavSpotlightTargets } from "../../../navSpotlight.utils";
 import type {

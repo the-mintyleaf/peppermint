@@ -1,4 +1,7 @@
-import { ExecutorContext, createExecutorError } from "@/shared/executor-context";
+import {
+  ExecutorContext,
+  createExecutorError,
+} from "@/shared/executor-context";
 import { Result, ok, err } from "@/shared/result";
 import {
   PropNodeGuardPolicyInput,
@@ -21,7 +24,7 @@ import "dotenv/config"; // ✅ Ensure process.env is loaded
  */
 export const nodeGuardPolicy = async (
   input: unknown,
-  ctx: ExecutorContext
+  ctx: ExecutorContext,
 ): Promise<Result<PropNodeGuardPolicyOutput, any>> => {
   try {
     // 1. Validate input schema
@@ -32,7 +35,7 @@ export const nodeGuardPolicy = async (
           errors: parseResult.error.issues,
           nodeId: ctx.nodeId,
         },
-        "Invalid input to nodeGuardPolicy"
+        "Invalid input to nodeGuardPolicy",
       );
       return err(
         createExecutorError(
@@ -41,8 +44,8 @@ export const nodeGuardPolicy = async (
           {
             nodeId: ctx.nodeId,
             retryable: false,
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -55,7 +58,7 @@ export const nodeGuardPolicy = async (
         inputPreview: parsed.message.substring(0, 50),
         messageLength: parsed.message.length,
       },
-      "Executing nodeGuardPolicy"
+      "Executing nodeGuardPolicy",
     );
 
     // 2. Apply guard policies
@@ -72,7 +75,7 @@ export const nodeGuardPolicy = async (
           reason,
           messageLength: parsed.message.length,
         },
-        "Guard policy denied input"
+        "Guard policy denied input",
       );
     }
 
@@ -85,7 +88,7 @@ export const nodeGuardPolicy = async (
           errors: validateResult.error.issues,
           nodeId: ctx.nodeId,
         },
-        "Invalid output from nodeGuardPolicy"
+        "Invalid output from nodeGuardPolicy",
       );
       return err(
         createExecutorError(
@@ -94,8 +97,8 @@ export const nodeGuardPolicy = async (
           {
             nodeId: ctx.nodeId,
             retryable: false,
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -106,7 +109,7 @@ export const nodeGuardPolicy = async (
         allow: validateResult.data.allow,
         reason: validateResult.data.reason,
       },
-      "nodeGuardPolicy execution complete"
+      "nodeGuardPolicy execution complete",
     );
 
     return ok(validateResult.data);
@@ -118,7 +121,7 @@ export const nodeGuardPolicy = async (
         nodeId: ctx.nodeId,
         cause: error,
         retryable: false,
-      }
+      },
     );
 
     ctx.logger.error(
@@ -126,7 +129,7 @@ export const nodeGuardPolicy = async (
         error: executorError,
         nodeId: ctx.nodeId,
       },
-      "Unexpected error in nodeGuardPolicy"
+      "Unexpected error in nodeGuardPolicy",
     );
 
     return err(executorError);

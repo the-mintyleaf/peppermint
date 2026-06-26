@@ -3,9 +3,13 @@
 import { FormShell, FormWrapper, useFormControls } from "@peppermint/admin";
 import { createLoan } from "../module.api";
 import { LOAN_FORM_INITIAL } from "./loanForm.initial";
-import { loanDetailsSchema, loanDatesSchema, LOAN_STEP_FIELDS } from "./loanForm.schemas";
+import {
+  loanDetailsSchema,
+  loanDatesSchema,
+  LOAN_STEP_FIELDS,
+} from "./loanForm.schemas";
 import { StepLoanDetails } from "./steps/StepLoanDetails";
-import { StepDates }       from "./steps/StepDates";
+import { StepDates } from "./steps/StepDates";
 import type { LoanFormValues } from "./loanForm.types";
 
 const STEPS = [
@@ -15,7 +19,7 @@ const STEPS = [
 
 const STEP_COMPONENTS = [
   <StepLoanDetails key="loan-details" />,
-  <StepDates       key="dates" />,
+  <StepDates key="dates" />,
 ];
 
 function LoanFormBody({ onBack }: { onBack: () => void }) {

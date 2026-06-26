@@ -1,9 +1,9 @@
-import React from 'react';
-import { MantineProvider } from '@mantine/core';
-import { ModalsProvider } from '@mantine/modals';
-import { Notifications } from '@mantine/notifications';
-import { QueryClientWrapper } from '@peppermint/ui';
-import type { Preview, Decorator } from '@storybook/react';
+import React from "react";
+import { MantineProvider } from "@mantine/core";
+import { ModalsProvider } from "@mantine/modals";
+import { Notifications } from "@mantine/notifications";
+import { QueryClientWrapper } from "@peppermint/ui";
+import type { Preview, Decorator } from "@storybook/react";
 
 const withMantine: Decorator = (Story) => (
   <QueryClientWrapper>
@@ -19,12 +19,12 @@ const withMantine: Decorator = (Story) => (
 const preview: Preview = {
   decorators: [withMantine],
   parameters: {
-    layout: 'padded',
+    layout: "padded",
     a11y: {
       config: {
         rules: [
-          { id: 'color-contrast', enabled: true },
-          { id: 'valid-aria-role', enabled: true },
+          { id: "color-contrast", enabled: true },
+          { id: "valid-aria-role", enabled: true },
         ],
       },
     },

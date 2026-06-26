@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import { Button, Divider, Group, Text } from '@peppermint/ui';
-import { XIcon } from '@phosphor-icons/react/dist/csr/X';
-import { useTableStore } from '../../../../wrappers/DataTableWrapper';
-import type { DataTableShellColumn } from '../../DataTableShell.types';
+import { useMemo } from "react";
+import { Button, Divider, Group, Text } from "@peppermint/ui";
+import { XIcon } from "@phosphor-icons/react/dist/csr/X";
+import { useTableStore } from "../../../../wrappers/DataTableWrapper";
+import type { DataTableShellColumn } from "../../DataTableShell.types";
 import {
   buildColumnLabelMap,
   formatFilterValue,
   getColumnKey,
-} from '../DataTableShellToolbar/toolbar.utils';
+} from "../DataTableShellToolbar/toolbar.utils";
 
 interface DataTableShellActiveFiltersProps<T extends Record<string, unknown>> {
   columns: DataTableShellColumn<T>[];
@@ -26,7 +26,7 @@ export function DataTableShellActiveFilters<T extends Record<string, unknown>>({
 
   const labelMap = useMemo(() => buildColumnLabelMap(columns), [columns]);
   const filterMetaByKey = useMemo(() => {
-    const map: Record<string, DataTableShellColumn<T>['filter']> = {};
+    const map: Record<string, DataTableShellColumn<T>["filter"]> = {};
     for (const col of columns) {
       if (col.filter) map[getColumnKey(col)] = col.filter;
     }
@@ -60,8 +60,8 @@ export function DataTableShellActiveFilters<T extends Record<string, unknown>>({
                 size={10}
                 weight="bold"
                 aria-label="Remove search"
-                style={{ cursor: 'pointer' }}
-                onClick={() => setSearch('')}
+                style={{ cursor: "pointer" }}
+                onClick={() => setSearch("")}
               />
             }
           >
@@ -78,12 +78,13 @@ export function DataTableShellActiveFilters<T extends Record<string, unknown>>({
                 size={10}
                 weight="bold"
                 aria-label={`Remove ${key} filter`}
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: "pointer" }}
                 onClick={() => removeFilter(key)}
               />
             }
           >
-            {labelMap[key] ?? key}: {formatFilterValue(value, filterMetaByKey[key])}
+            {labelMap[key] ?? key}:{" "}
+            {formatFilterValue(value, filterMetaByKey[key])}
           </Button>
         ))}
       </Group>

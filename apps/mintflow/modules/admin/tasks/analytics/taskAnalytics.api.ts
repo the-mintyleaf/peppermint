@@ -34,9 +34,7 @@ const MOCK_DASHBOARD: TaskAnalyticsDashboardData = {
       dayIndex: 1,
       startHour: 10.5,
       endHour: 13,
-      assignees: [
-        { name: "Richard L.", initials: "RL", color: "blue" },
-      ],
+      assignees: [{ name: "Richard L.", initials: "RL", color: "blue" }],
       checklist: ["Research", "Wireframe", "UI Design", "Review"],
       progress: 65,
       taskNumber: "T-2001002",
@@ -66,9 +64,7 @@ const MOCK_DASHBOARD: TaskAnalyticsDashboardData = {
       dayIndex: 3,
       startHour: 12,
       endHour: 14,
-      assignees: [
-        { name: "Henky A.", initials: "HA", color: "orange" },
-      ],
+      assignees: [{ name: "Henky A.", initials: "HA", color: "orange" }],
       taskNumber: "T-2001004",
     },
     {
@@ -109,10 +105,30 @@ const MOCK_DASHBOARD: TaskAnalyticsDashboardData = {
     { day: "Sun", hours: 9, assigned: 12, completed: 10 },
   ],
   archiveProjects: [
-    { id: "arch-1", name: "Zentra-Landing.framer", app: "framer", appColor: "#0055FF" },
-    { id: "arch-2", name: "Mavence landing.fig", app: "figma", appColor: "#F24E1E" },
-    { id: "arch-3", name: "orbitlabs.webflow", app: "webflow", appColor: "#4353FF" },
-    { id: "arch-4", name: "PulseApp Styleguide.fig", app: "figma", appColor: "#F24E1E" },
+    {
+      id: "arch-1",
+      name: "Zentra-Landing.framer",
+      app: "framer",
+      appColor: "#0055FF",
+    },
+    {
+      id: "arch-2",
+      name: "Mavence landing.fig",
+      app: "figma",
+      appColor: "#F24E1E",
+    },
+    {
+      id: "arch-3",
+      name: "orbitlabs.webflow",
+      app: "webflow",
+      appColor: "#4353FF",
+    },
+    {
+      id: "arch-4",
+      name: "PulseApp Styleguide.fig",
+      app: "figma",
+      appColor: "#F24E1E",
+    },
   ],
   teamMembers: [
     { name: "Sudhan G.", initials: "SG", color: "blue" },
@@ -123,7 +139,7 @@ const MOCK_DASHBOARD: TaskAnalyticsDashboardData = {
 };
 
 export async function fetchTaskAnalyticsDashboard(
-  _month: string
+  _month: string,
 ): Promise<TaskAnalyticsDashboardData> {
   await new Promise((r) => setTimeout(r, 200));
   return MOCK_DASHBOARD;

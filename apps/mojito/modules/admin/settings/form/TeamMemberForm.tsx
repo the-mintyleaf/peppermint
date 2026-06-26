@@ -5,7 +5,11 @@ import { useForm } from "@mantine/form";
 import type { TeamMemberFormProps } from "./teamMemberForm.types";
 import type { TeamMemberRow } from "../team.types";
 
-export function TeamMemberForm({ initialValues, onSubmit, isLoading }: TeamMemberFormProps) {
+export function TeamMemberForm({
+  initialValues,
+  onSubmit,
+  isLoading,
+}: TeamMemberFormProps) {
   const isInvite = !initialValues?.id;
 
   const form = useForm({

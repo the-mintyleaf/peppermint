@@ -3,7 +3,7 @@
 Pre-composed admin table page for `@peppermint/admin`. Renders a page header, an icon-based toolbar (sort, filter, columns, search, settings, add), an active filters bar, a `mantine-datatable` table with pagination, and a floating bulk-action bar — all wired to `DataTableWrapper` state automatically.
 
 ```ts
-import { DataTableShell } from '@peppermint/admin';
+import { DataTableShell } from "@peppermint/admin";
 ```
 
 `DataTableShell` is self-contained. It wraps `DataTableWrapper` internally — you do not need to add a separate wrapper. It accepts all `DataTableWrapper` props directly alongside its own.
@@ -13,27 +13,31 @@ import { DataTableShell } from '@peppermint/admin';
 ## Minimal usage
 
 ```tsx
-'use client';
-import { DataTableShell } from '@peppermint/admin';
-import type { DataTableShellColumn } from '@peppermint/admin';
-import { api } from '@/lib/api';
+"use client";
+import { DataTableShell } from "@peppermint/admin";
+import type { DataTableShellColumn } from "@peppermint/admin";
+import { api } from "@/lib/api";
 
 type User = { id: number; name: string; email: string; role: string };
 
 const COLUMNS: DataTableShellColumn<User>[] = [
-  { accessor: 'name',  title: 'Name',  key: 'name',  sortable: true },
-  { accessor: 'email', title: 'Email', key: 'email', sortable: true },
-  { accessor: 'role',  title: 'Role',  key: 'role'  },
+  { accessor: "name", title: "Name", key: "name", sortable: true },
+  { accessor: "email", title: "Email", key: "email", sortable: true },
+  { accessor: "role", title: "Role", key: "role" },
 ];
 
 export function UsersPage() {
   return (
     <DataTableShell<User>
       queryKey="users.list"
-      queryGetFn={() => api.get({ endpoint: '/users/' })}
+      queryGetFn={() => api.get({ endpoint: "/users/" })}
       dataKey="data"
       columns={COLUMNS}
-      moduleInfo={{ name: 'User', label: 'Users', description: 'Manage all users' }}
+      moduleInfo={{
+        name: "User",
+        label: "Users",
+        description: "Manage all users",
+      }}
       basePath="/admin/users"
     />
   );
@@ -55,23 +59,24 @@ Pass `enableServerQuery` to have React Query send page, pageSize, search, sort, 
 ```tsx
 <DataTableShell<User>
   queryKey="users.list"
-  queryGetFn={(params) => api.get({ endpoint: '/users/', params })}
+  queryGetFn={(params) => api.get({ endpoint: "/users/", params })}
   dataKey="data.items"
   paginationKey="data.meta"
   enableServerQuery
   columns={COLUMNS}
-  moduleInfo={{ name: 'User', label: 'Users' }}
+  moduleInfo={{ name: "User", label: "Users" }}
   basePath="/admin/users"
 />
 ```
 
 `params` is a `QueryParams` object:
+
 ```ts
 {
   page: number;
   pageSize: number;
   search: string;
-  sort: Array<{ field: string; direction: 'asc' | 'desc' }>;
+  sort: Array<{ field: string; direction: "asc" | "desc" }>;
   filters: Record<string, unknown>;
 }
 ```
@@ -85,7 +90,7 @@ Search and filter changes are debounced 300ms before triggering a new request (c
 Columns extend mantine-datatable's `DataTableColumn<T>` with additional fields:
 
 ```ts
-type DataTableColumnFilterType = 'text' | 'select' | 'number' | 'date';
+type DataTableColumnFilterType = "text" | "select" | "number" | "date";
 
 interface DataTableColumnFilter {
   type?: DataTableColumnFilterType; // default: 'text'
@@ -95,8 +100,8 @@ interface DataTableColumnFilter {
 }
 
 type DataTableShellColumn<T> = DataTableColumn<T> & {
-  key?: string;          // visibility map key — defaults to String(accessor)
-  defaultVisible?: boolean;  // initial visibility — defaults to true
+  key?: string; // visibility map key — defaults to String(accessor)
+  defaultVisible?: boolean; // initial visibility — defaults to true
   filter?: DataTableColumnFilter; // when set, column appears in the filter picker
 };
 ```
@@ -105,25 +110,31 @@ Always provide a `key` when your column accessor might not be a plain string, or
 
 ```ts
 const COLUMNS: DataTableShellColumn<Order>[] = [
-  { accessor: 'id',        title: '#',        key: 'id',        defaultVisible: false },
-  { accessor: 'customer',  title: 'Customer', key: 'customer',  sortable: true, filter: { type: 'text' } },
-  { accessor: 'total',     title: 'Total',    key: 'total',     sortable: true },
+  { accessor: "id", title: "#", key: "id", defaultVisible: false },
   {
-    accessor: 'status',
-    title: 'Status',
-    key: 'status',
+    accessor: "customer",
+    title: "Customer",
+    key: "customer",
+    sortable: true,
+    filter: { type: "text" },
+  },
+  { accessor: "total", title: "Total", key: "total", sortable: true },
+  {
+    accessor: "status",
+    title: "Status",
+    key: "status",
     filter: {
-      type: 'select',
+      type: "select",
       options: [
-        { label: 'Active', value: 'active' },
-        { label: 'Cancelled', value: 'cancelled' },
+        { label: "Active", value: "active" },
+        { label: "Cancelled", value: "cancelled" },
       ],
     },
   },
   {
-    accessor: 'createdAt',
-    title: 'Created',
-    key: 'createdAt',
+    accessor: "createdAt",
+    title: "Created",
+    key: "createdAt",
     defaultVisible: false,
     render: (row) => new Date(row.createdAt).toLocaleDateString(),
   },
@@ -138,19 +149,20 @@ Column visibility is persisted to `localStorage` automatically, keyed by `module
 
 The desktop toolbar renders icon actions on the right (each with a tooltip and popover):
 
-| Icon | Purpose |
-|------|---------|
-| Filter | Two-step field picker (`Filter by` search) then value editor |
-| Search | Global text search across all row fields (debounced 300ms) |
-| Settings | Row density and reset table state |
-| Columns | Toggle column visibility |
-| Add | Navigates to `${basePath}/new` (or calls `onNewClick` in sustained mode); uses brand color |
+| Icon     | Purpose                                                                                    |
+| -------- | ------------------------------------------------------------------------------------------ |
+| Filter   | Two-step field picker (`Filter by` search) then value editor                               |
+| Search   | Global text search across all row fields (debounced 300ms)                                 |
+| Settings | Row density and reset table state                                                          |
+| Columns  | Toggle column visibility                                                                   |
+| Add      | Navigates to `${basePath}/new` (or calls `onNewClick` in sustained mode); uses brand color |
 
 The **Add** button lives in the toolbar only — not in the page header. Use `headerRight` for extra header actions.
 
 Field filters merge into the store's `filters` object and appear as removable chips above the table. Global search appears as a `Search: …` chip when active.
 
 Filter picker behavior:
+
 1. Click **Filter** → searchable list of columns with `filter` metadata
 2. Select a field → value editor (`text`, `select`, `number`, or `date`)
 3. Apply → filter chip appears; in server mode, `filters` is sent on the next query
@@ -167,18 +179,18 @@ The `ModuleHeader` right slot renders:
 
 `Edited X min ago | Access ▾ | Bookmark | ⋯`
 
-| Element | Behavior |
-|---------|----------|
-| Edited | Relative timestamp from `lastEditedAt`, `moduleInfo.updatedAt`, or latest row `updatedAt` |
-| Access | Popover listing roles and accounts with module access; invite + permission edits |
+| Element  | Behavior                                                                                                                                                                                                                                                                                                                                              |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Edited   | Relative timestamp from `lastEditedAt`, `moduleInfo.updatedAt`, or latest row `updatedAt`                                                                                                                                                                                                                                                             |
+| Access   | Popover listing roles and accounts with module access; invite + permission edits                                                                                                                                                                                                                                                                      |
 | Bookmark | Toggles favorite via shared `BookmarkButton` from `@peppermint/ui`; persisted in `localStorage` at `peppermint:bookmarks` (central list). Bookmark `id` defaults to `basePath ?? moduleInfo.name`; `href` is current pathname (no filter query params). Saved bookmarks appear in AdminShell MainNav hover menu. See [Bookmarks](../ui/Bookmarks.md). |
-| ⋯ | Reload table and export CSV |
+| ⋯        | Reload table and export CSV                                                                                                                                                                                                                                                                                                                           |
 
 ```tsx
 <DataTableShell<Account>
   moduleAccess={{
-    accounts: [{ id: '1', name: 'Jane Doe', accessLevel: 'edit' }],
-    roles: [{ id: '2', name: 'Manager', accessLevel: 'manage' }],
+    accounts: [{ id: "1", name: "Jane Doe", accessLevel: "edit" }],
+    roles: [{ id: "2", name: "Manager", accessLevel: "manage" }],
     invitedCount: 4,
   }}
   onModuleAccessChange={(change) => {
@@ -265,12 +277,12 @@ The shell renders a floating dark action bar at the bottom of the table whenever
 
 **Action visibility:**
 
-| Action | Shown when |
-|--------|-----------|
+| Action | Shown when                                                                       |
+| ------ | -------------------------------------------------------------------------------- |
 | Review | Always (unless `disableReviewButton`) — enabled only when exactly 1 row selected |
-| Edit | Exactly 1 row selected (unless `disableEditButton`) |
-| Delete | Always (unless `disableDeleteButton`) |
-| Clear | Always |
+| Edit   | Exactly 1 row selected (unless `disableEditButton`)                              |
+| Delete | Always (unless `disableDeleteButton`)                                            |
+| Clear  | Always                                                                           |
 
 **After delete:** On success, the shell automatically clears the selection so the action bar disappears. The caller is responsible for calling `useInvalidateTable()` to trigger a refetch and for showing a success/error notification.
 
@@ -401,13 +413,13 @@ Because `DataTableShell` renders `DataTableWrapper` internally, these hooks only
 ## Invalidating after mutations
 
 ```tsx
-import { useInvalidateTable } from '@peppermint/admin';
+import { useInvalidateTable } from "@peppermint/admin";
 
 function DeleteButton({ ids }: { ids: number[] }) {
   const invalidate = useInvalidateTable();
 
   const handleDelete = async () => {
-    await api.del({ endpoint: '/users/', ids });
+    await api.del({ endpoint: "/users/", ids });
     invalidate(); // triggers React Query refetch
   };
 
@@ -422,10 +434,10 @@ const invalidate = useInvalidateTable();
 
 <DataTableShell
   onDeleteClick={async (ids) => {
-    await api.del({ endpoint: '/users/', ids });
+    await api.del({ endpoint: "/users/", ids });
     invalidate();
   }}
-/>
+/>;
 ```
 
 ---
@@ -434,66 +446,66 @@ const invalidate = useInvalidateTable();
 
 ### DataTableWrapper passthrough props
 
-| Prop | Type | Default | Notes |
-|------|------|---------|-------|
-| `queryKey` | `string` | — | Dot-notation key, e.g. `'users.list'` |
-| `queryGetFn` | `(params?) => Promise<unknown>` | — | API call. Receives `QueryParams` when `enableServerQuery` is true |
-| `dataKey` | `string` | — | Dot-path into response to rows array, e.g. `'data.items'` |
-| `paginationKey` | `string` | — | Dot-path to object with `total` field, e.g. `'meta'` |
-| `enableServerQuery` | `boolean` | `false` | Send page/search/sort/filters to server on every change |
-| `defaultPageSize` | `number` | `20` | Initial rows per page |
-| `staleTime` | `number` | `300000` | React Query staleTime in ms (5 min) |
-| `debounceMs` | `number` | `300` | Debounce delay before search/filter changes fire a server request |
-| `forceFilters` | `FilterState` | — | Merged into every server query, never reset |
-| `onError` | `(error: Error) => void` | — | Called on query failure |
+| Prop                | Type                            | Default  | Notes                                                             |
+| ------------------- | ------------------------------- | -------- | ----------------------------------------------------------------- |
+| `queryKey`          | `string`                        | —        | Dot-notation key, e.g. `'users.list'`                             |
+| `queryGetFn`        | `(params?) => Promise<unknown>` | —        | API call. Receives `QueryParams` when `enableServerQuery` is true |
+| `dataKey`           | `string`                        | —        | Dot-path into response to rows array, e.g. `'data.items'`         |
+| `paginationKey`     | `string`                        | —        | Dot-path to object with `total` field, e.g. `'meta'`              |
+| `enableServerQuery` | `boolean`                       | `false`  | Send page/search/sort/filters to server on every change           |
+| `defaultPageSize`   | `number`                        | `20`     | Initial rows per page                                             |
+| `staleTime`         | `number`                        | `300000` | React Query staleTime in ms (5 min)                               |
+| `debounceMs`        | `number`                        | `300`    | Debounce delay before search/filter changes fire a server request |
+| `forceFilters`      | `FilterState`                   | —        | Merged into every server query, never reset                       |
+| `onError`           | `(error: Error) => void`        | —        | Called on query failure                                           |
 
 ### Shell props
 
-| Prop | Type | Default | Notes |
-|------|------|---------|-------|
-| `columns` | `DataTableShellColumn<T>[]` | — | Column definitions |
-| `moduleInfo` | `DataTableShellModuleInfo` | — | `{ name, label?, description? }` |
-| `idAccessor` | `string` | `'id'` | Row unique key field |
-| `basePath` | `string` | — | Base URL for New/Edit/Review navigation |
-| `tabs` | `DataTableShellTab[]` | `[]` | Tab filter buttons |
-| `newButtonHref` | `string` | — | Overrides `${basePath}/new` for the Add button |
-| `onNewClick` | `() => void` | — | Called instead of navigating in sustained mode |
-| `disableCreateButton` | `boolean` | `false` | Disables the Add button |
-| `onDeleteClick` | `(ids: Array<string \| number>) => Promise<void>` | — | Called with selected row IDs |
-| `onEditClick` | `(record: T) => void` | — | Called in sustained mode; navigates otherwise |
-| `onReviewClick` | `(record: T) => void` | — | Called for single-record review; navigates otherwise |
-| `disableEditButton` | `boolean` | `false` | Hides Edit from the action bar |
-| `disableDeleteButton` | `boolean` | `false` | Hides Delete from the action bar |
-| `disableReviewButton` | `boolean` | `false` | Hides Review from the action bar |
-| `pageSizes` | `number[]` | `[10,20,50,100]` | Available page-size options |
-| `forceFilter` | `(rows: T[]) => T[]` | — | Client-side post-filter applied after tab forceFilter |
-| `rowStyle` | `(record: T, index: number) => CSSProperties` | — | Per-row inline style |
-| `rowExpansion` | `DataTableRowExpansionProps<T>` | — | mantine-datatable row expansion config |
-| `hideToolbar` | `boolean` | `false` | Hides the entire toolbar (tabs, icons) |
-| `disableActions` | `boolean` | `false` | Hides the selection action bar and disables checkboxes |
-| `sustained` | `boolean` | `false` | Add/Edit trigger callbacks instead of navigating |
-| `headerRight` | `ReactNode` | — | Extra content in the ModuleHeader right slot |
-| `moduleAccess` | `DataTableShellModuleAccess` | — | Roles and accounts shown in the Access popover |
-| `onModuleAccessChange` | `(change) => void` | — | Invite / edit permission callbacks |
-| `lastEditedAt` | `string \| Date` | — | Explicit edited timestamp for the header label |
-| `shareUrl` | `string` | current URL | URL shown in Access popover footer |
-| `hideAccessMenu` | `boolean` | `false` | Hides the Access dropdown |
+| Prop                   | Type                                              | Default          | Notes                                                  |
+| ---------------------- | ------------------------------------------------- | ---------------- | ------------------------------------------------------ |
+| `columns`              | `DataTableShellColumn<T>[]`                       | —                | Column definitions                                     |
+| `moduleInfo`           | `DataTableShellModuleInfo`                        | —                | `{ name, label?, description? }`                       |
+| `idAccessor`           | `string`                                          | `'id'`           | Row unique key field                                   |
+| `basePath`             | `string`                                          | —                | Base URL for New/Edit/Review navigation                |
+| `tabs`                 | `DataTableShellTab[]`                             | `[]`             | Tab filter buttons                                     |
+| `newButtonHref`        | `string`                                          | —                | Overrides `${basePath}/new` for the Add button         |
+| `onNewClick`           | `() => void`                                      | —                | Called instead of navigating in sustained mode         |
+| `disableCreateButton`  | `boolean`                                         | `false`          | Disables the Add button                                |
+| `onDeleteClick`        | `(ids: Array<string \| number>) => Promise<void>` | —                | Called with selected row IDs                           |
+| `onEditClick`          | `(record: T) => void`                             | —                | Called in sustained mode; navigates otherwise          |
+| `onReviewClick`        | `(record: T) => void`                             | —                | Called for single-record review; navigates otherwise   |
+| `disableEditButton`    | `boolean`                                         | `false`          | Hides Edit from the action bar                         |
+| `disableDeleteButton`  | `boolean`                                         | `false`          | Hides Delete from the action bar                       |
+| `disableReviewButton`  | `boolean`                                         | `false`          | Hides Review from the action bar                       |
+| `pageSizes`            | `number[]`                                        | `[10,20,50,100]` | Available page-size options                            |
+| `forceFilter`          | `(rows: T[]) => T[]`                              | —                | Client-side post-filter applied after tab forceFilter  |
+| `rowStyle`             | `(record: T, index: number) => CSSProperties`     | —                | Per-row inline style                                   |
+| `rowExpansion`         | `DataTableRowExpansionProps<T>`                   | —                | mantine-datatable row expansion config                 |
+| `hideToolbar`          | `boolean`                                         | `false`          | Hides the entire toolbar (tabs, icons)                 |
+| `disableActions`       | `boolean`                                         | `false`          | Hides the selection action bar and disables checkboxes |
+| `sustained`            | `boolean`                                         | `false`          | Add/Edit trigger callbacks instead of navigating       |
+| `headerRight`          | `ReactNode`                                       | —                | Extra content in the ModuleHeader right slot           |
+| `moduleAccess`         | `DataTableShellModuleAccess`                      | —                | Roles and accounts shown in the Access popover         |
+| `onModuleAccessChange` | `(change) => void`                                | —                | Invite / edit permission callbacks                     |
+| `lastEditedAt`         | `string \| Date`                                  | —                | Explicit edited timestamp for the header label         |
+| `shareUrl`             | `string`                                          | current URL      | URL shown in Access popover footer                     |
+| `hideAccessMenu`       | `boolean`                                         | `false`          | Hides the Access dropdown                              |
 
 ### `DataTableShellModuleInfo`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `name` | `string` | Used as the localStorage persistence key |
-| `label` | `string` | Display label shown in the header. Defaults to `name` |
-| `description` | `string` | Subtitle shown under the title in the header |
+| Field         | Type     | Notes                                                 |
+| ------------- | -------- | ----------------------------------------------------- |
+| `name`        | `string` | Used as the localStorage persistence key              |
+| `label`       | `string` | Display label shown in the header. Defaults to `name` |
+| `description` | `string` | Subtitle shown under the title in the header          |
 
 ### `DataTableShellTab`
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `label` | `string` | Button label |
-| `filter` | `FilterState` | Merged into `setFilters` when tab is selected (server mode) |
-| `forceFilter` | `(rows: T[]) => T[]` | Applied client-side after wrapper resolves rows |
+| Field         | Type                 | Notes                                                       |
+| ------------- | -------------------- | ----------------------------------------------------------- |
+| `label`       | `string`             | Button label                                                |
+| `filter`      | `FilterState`        | Merged into `setFilters` when tab is selected (server mode) |
+| `forceFilter` | `(rows: T[]) => T[]` | Applied client-side after wrapper resolves rows             |
 
 ---
 

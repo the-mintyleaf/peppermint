@@ -3,4 +3,6 @@
 import { TemplateSumnimaStatement } from "@/sample/templates/bank/sumnima/statement";
 import { createTemplateAdapter } from "../../utils/createTemplateAdapter";
 
-export const SumnimaStatementTemplate = createTemplateAdapter(TemplateSumnimaStatement);
+export const SumnimaStatementTemplate = createTemplateAdapter(
+  TemplateSumnimaStatement,
+);

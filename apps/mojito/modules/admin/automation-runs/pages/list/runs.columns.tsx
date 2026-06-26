@@ -19,25 +19,33 @@ function duration(run: AutomationRun & { workflowName?: string }): string {
     const secs = Math.floor((Date.now() - run.startedAt.getTime()) / 1000);
     return `${secs}s (running)`;
   }
-  const secs = Math.floor((run.finishedAt.getTime() - run.startedAt.getTime()) / 1000);
+  const secs = Math.floor(
+    (run.finishedAt.getTime() - run.startedAt.getTime()) / 1000,
+  );
   return secs < 60 ? `${secs}s` : `${Math.floor(secs / 60)}m ${secs % 60}s`;
 }
 
 export function getRunsColumns(
   onRetry: (id: string) => void,
-  onCancel: (id: string) => void
+  onCancel: (id: string) => void,
 ): DataTableColumn<AutomationRun & { workflowName: string }>[] {
   return [
     {
       accessor: "workflowName",
       title: "Workflow",
-      render: (r) => <Text size="xs" fw={500}>{r.workflowName}</Text>,
+      render: (r) => (
+        <Text size="xs" fw={500}>
+          {r.workflowName}
+        </Text>
+      ),
     },
     {
       accessor: "status",
       title: "Status",
       render: (r) => (
-        <Badge size="sm" color={STATUS_COLORS[r.status]} variant="light">{r.status.replace("_", " ")}</Badge>
+        <Badge size="sm" color={STATUS_COLORS[r.status]} variant="light">
+          {r.status.replace("_", " ")}
+        </Badge>
       ),
       width: 130,
     },
@@ -68,12 +76,24 @@ export function getRunsColumns(
             <EyeIcon size={14} />
           </ActionIcon>
           {r.status === "failed" && (
-            <ActionIcon size="sm" variant="subtle" color="blue" onClick={() => onRetry(r.id)} aria-label="Retry">
+            <ActionIcon
+              size="sm"
+              variant="subtle"
+              color="blue"
+              onClick={() => onRetry(r.id)}
+              aria-label="Retry"
+            >
               <ArrowClockwiseIcon size={14} />
             </ActionIcon>
           )}
           {r.status === "running" && (
-            <ActionIcon size="sm" variant="subtle" color="red" onClick={() => onCancel(r.id)} aria-label="Cancel">
+            <ActionIcon
+              size="sm"
+              variant="subtle"
+              color="red"
+              onClick={() => onCancel(r.id)}
+              aria-label="Cancel"
+            >
               <XIcon size={14} />
             </ActionIcon>
           )}

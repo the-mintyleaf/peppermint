@@ -1,30 +1,30 @@
-import type { Bookmark } from './bookmarks.types';
+import type { Bookmark } from "./bookmarks.types";
 
-export const BOOKMARKS_STORAGE_KEY = 'peppermint:bookmarks';
-export const BOOKMARKS_CHANGED_EVENT = 'peppermint:bookmarks-changed';
+export const BOOKMARKS_STORAGE_KEY = "peppermint:bookmarks";
+export const BOOKMARKS_CHANGED_EVENT = "peppermint:bookmarks-changed";
 
 export function resolveBookmarkHref(): string {
-  if (typeof window === 'undefined') return '/';
+  if (typeof window === "undefined") return "/";
   return window.location.pathname;
 }
 
 export function formatHrefAsBreadcrumb(href: string): string {
-  const segments = href.split('/').filter(Boolean);
-  if (segments.length === 0) return 'Home';
+  const segments = href.split("/").filter(Boolean);
+  if (segments.length === 0) return "Home";
 
   return segments
     .map((segment) =>
       segment
-        .split('-')
+        .split("-")
         .filter(Boolean)
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(' '),
+        .join(" "),
     )
-    .join(' / ');
+    .join(" / ");
 }
 
 export function readBookmarks(): Bookmark[] {
-  if (typeof window === 'undefined') return [];
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(BOOKMARKS_STORAGE_KEY);
     if (!raw) return [];
@@ -32,12 +32,12 @@ export function readBookmarks(): Bookmark[] {
     if (!Array.isArray(parsed)) return [];
     return parsed.filter(
       (item): item is Bookmark =>
-        typeof item === 'object' &&
+        typeof item === "object" &&
         item !== null &&
-        typeof (item as Bookmark).id === 'string' &&
-        typeof (item as Bookmark).label === 'string' &&
-        typeof (item as Bookmark).href === 'string' &&
-        typeof (item as Bookmark).createdAt === 'string',
+        typeof (item as Bookmark).id === "string" &&
+        typeof (item as Bookmark).label === "string" &&
+        typeof (item as Bookmark).href === "string" &&
+        typeof (item as Bookmark).createdAt === "string",
     );
   } catch {
     return [];
@@ -45,7 +45,7 @@ export function readBookmarks(): Bookmark[] {
 }
 
 export function writeBookmarks(bookmarks: Bookmark[]): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   try {
     localStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(bookmarks));
     window.dispatchEvent(new CustomEvent(BOOKMARKS_CHANGED_EVENT));

@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import { Badge, Text, ActionIcon, Group, Stack, Tooltip, Avatar } from "@peppermint/ui";
+import {
+  Badge,
+  Text,
+  ActionIcon,
+  Group,
+  Stack,
+  Tooltip,
+  Avatar,
+} from "@peppermint/ui";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react/dist/csr/ArrowSquareOut";
@@ -34,7 +42,11 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-export function PersonNode({ data, selected, id }: NodeProps<PersonFlowNodeType>) {
+export function PersonNode({
+  data,
+  selected,
+  id,
+}: NodeProps<PersonFlowNodeType>) {
   const [hovered, setHovered] = useState(false);
   const { openEditModal, selectNode } = useOrgBuilderStore();
 
@@ -45,7 +57,12 @@ export function PersonNode({ data, selected, id }: NodeProps<PersonFlowNodeType>
       onMouseLeave={() => setHovered(false)}
     >
       <Handle type="target" position={Position.Top} className={styles.handle} />
-      <Handle type="target" position={Position.Left} id="left-target" className={styles.handle} />
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left-target"
+        className={styles.handle}
+      />
 
       <div className={styles.nodeBody} style={{ padding: "12px 14px" }}>
         <Group gap="sm" wrap="nowrap" align="flex-start">
@@ -64,7 +81,11 @@ export function PersonNode({ data, selected, id }: NodeProps<PersonFlowNodeType>
               <Text size="sm" fw={700} lineClamp={1}>
                 {data.fullName}
               </Text>
-              <Badge size="xs" color={STATUS_COLORS[data.status]} variant="dot" />
+              <Badge
+                size="xs"
+                color={STATUS_COLORS[data.status]}
+                variant="dot"
+              />
             </Group>
             <Text size="xs" c="dimmed" lineClamp={1}>
               {data.designation}
@@ -75,7 +96,12 @@ export function PersonNode({ data, selected, id }: NodeProps<PersonFlowNodeType>
               </Text>
             )}
             {data.role && (
-              <Badge size="xs" color={ROLE_COLORS[data.role] ?? "gray"} variant="light" mt={2}>
+              <Badge
+                size="xs"
+                color={ROLE_COLORS[data.role] ?? "gray"}
+                variant="light"
+                mt={2}
+              >
                 {data.role}
               </Badge>
             )}
@@ -85,7 +111,8 @@ export function PersonNode({ data, selected, id }: NodeProps<PersonFlowNodeType>
         {data.activeTasks !== undefined && data.activeTasks > 0 && (
           <Group gap="xs" mt={8}>
             <Text size="xs" c="dimmed">
-              ✓ {data.activeTasks} active task{data.activeTasks !== 1 ? "s" : ""}
+              ✓ {data.activeTasks} active task
+              {data.activeTasks !== 1 ? "s" : ""}
             </Text>
           </Group>
         )}
@@ -98,7 +125,10 @@ export function PersonNode({ data, selected, id }: NodeProps<PersonFlowNodeType>
               size="xs"
               variant="light"
               color="teal"
-              onClick={(e) => { e.stopPropagation(); selectNode(id); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                selectNode(id);
+              }}
               aria-label="View profile"
             >
               <ArrowSquareOutIcon size={12} />
@@ -109,7 +139,10 @@ export function PersonNode({ data, selected, id }: NodeProps<PersonFlowNodeType>
               size="xs"
               variant="light"
               color="gray"
-              onClick={(e) => { e.stopPropagation(); openEditModal(id); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                openEditModal(id);
+              }}
               aria-label="Edit person"
             >
               <PencilSimpleIcon size={12} />
@@ -120,7 +153,9 @@ export function PersonNode({ data, selected, id }: NodeProps<PersonFlowNodeType>
               size="xs"
               variant="light"
               color="red"
-              onClick={(e) => { e.stopPropagation(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
               aria-label="Remove person"
             >
               <TrashIcon size={12} />
@@ -129,8 +164,17 @@ export function PersonNode({ data, selected, id }: NodeProps<PersonFlowNodeType>
         </div>
       )}
 
-      <Handle type="source" position={Position.Bottom} className={styles.handle} />
-      <Handle type="source" position={Position.Right} id="right-source" className={styles.handle} />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        className={styles.handle}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right-source"
+        className={styles.handle}
+      />
     </div>
   );
 }

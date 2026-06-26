@@ -52,7 +52,7 @@ export function detectExecutorPattern(executor: any): ExecutorPattern {
  */
 export async function normalizeExecutorOutput(
   output: any,
-  pattern: ExecutorPattern
+  pattern: ExecutorPattern,
 ): Promise<Result<any, any>> {
   try {
     // Check if output is already a Result type

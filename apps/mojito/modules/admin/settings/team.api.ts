@@ -9,21 +9,26 @@ import {
 } from "./settings.api";
 import type { TeamMemberRow, TeamFetchResponse } from "./team.types";
 
-export async function fetchTeamPaginated(params?: QueryParams): Promise<TeamFetchResponse> {
+export async function fetchTeamPaginated(
+  params?: QueryParams,
+): Promise<TeamFetchResponse> {
   await delay();
   let items = (await fetchTeamMembers()) as TeamMemberRow[];
 
   if (params?.search) {
     const q = params.search.toLowerCase();
     items = items.filter(
-      (m) => m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q),
+      (m) =>
+        m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q),
     );
   }
 
   return paginate(items, params?.page ?? 1, params?.pageSize ?? 20);
 }
 
-export async function createTeamMember(values: Partial<TeamMemberRow>): Promise<TeamMemberRow> {
+export async function createTeamMember(
+  values: Partial<TeamMemberRow>,
+): Promise<TeamMemberRow> {
   const email = values.email ?? "";
   const role = (values.role ?? "editor") as TeamMember["role"];
   return inviteMember(email, role) as TeamMemberRow;

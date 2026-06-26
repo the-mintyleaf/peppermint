@@ -1,10 +1,31 @@
-export type Platform = "instagram" | "facebook" | "x" | "linkedin" | "tiktok" | "youtube" | "threads" | "pinterest";
+export type Platform =
+  | "instagram"
+  | "facebook"
+  | "x"
+  | "linkedin"
+  | "tiktok"
+  | "youtube"
+  | "threads"
+  | "pinterest";
 
-export type ContentStatus = "draft" | "pending_review" | "approved" | "scheduled" | "publishing" | "published" | "failed";
+export type ContentStatus =
+  | "draft"
+  | "pending_review"
+  | "approved"
+  | "scheduled"
+  | "publishing"
+  | "published"
+  | "failed";
 
 export type ContentSource = "manual" | "agent";
 
-export type MediaKind = "image" | "video" | "carousel" | "story" | "reel" | "short";
+export type MediaKind =
+  | "image"
+  | "video"
+  | "carousel"
+  | "story"
+  | "reel"
+  | "short";
 
 export interface MediaRef {
   id: string;
@@ -29,7 +50,14 @@ export interface ChannelVariant {
   platform: Platform;
   channelId: string;
   enabled: boolean;
-  format: "single" | "carousel" | "thread" | "story" | "reel" | "short" | "poll";
+  format:
+    | "single"
+    | "carousel"
+    | "thread"
+    | "story"
+    | "reel"
+    | "short"
+    | "poll";
   caption: string;
   media: MediaRef[];
   hashtags: string[];

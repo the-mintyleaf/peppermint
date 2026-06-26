@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useState } from 'react';
-import type { Bookmark, BookmarkInput } from './bookmarks.types';
+import { useCallback, useEffect, useState } from "react";
+import type { Bookmark, BookmarkInput } from "./bookmarks.types";
 import {
   BOOKMARKS_CHANGED_EVENT,
   isBookmarked as checkBookmarked,
@@ -9,7 +9,7 @@ import {
   removeBookmark,
   toggleBookmark,
   writeBookmarks,
-} from './bookmarks.utils';
+} from "./bookmarks.utils";
 
 export function useBookmarks() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
@@ -23,10 +23,10 @@ export function useBookmarks() {
 
     const handleChange = () => sync();
     window.addEventListener(BOOKMARKS_CHANGED_EVENT, handleChange);
-    window.addEventListener('storage', handleChange);
+    window.addEventListener("storage", handleChange);
     return () => {
       window.removeEventListener(BOOKMARKS_CHANGED_EVENT, handleChange);
-      window.removeEventListener('storage', handleChange);
+      window.removeEventListener("storage", handleChange);
     };
   }, [sync]);
 

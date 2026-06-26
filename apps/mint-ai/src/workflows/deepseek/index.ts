@@ -71,7 +71,8 @@ export const workflowDeepseekReasoning = schemaWorkflow.parse({
           {
             name: "fetchProducts",
             type: "apicall",
-            description: "Fetches the product catalog from dummyjson.com including product details, prices, ratings, and availability. Use this when the user asks about products, pricing, availability, or product comparisons.",
+            description:
+              "Fetches the product catalog from dummyjson.com including product details, prices, ratings, and availability. Use this when the user asks about products, pricing, availability, or product comparisons.",
             config: {
               method: "GET",
               url: "https://dummyjson.com/products",
@@ -85,7 +86,8 @@ export const workflowDeepseekReasoning = schemaWorkflow.parse({
           {
             name: "fetchProductByCategory",
             type: "apicall",
-            description: "Fetches products filtered by category (e.g., 'beauty', 'electronics', 'clothing'). Provide the category name to filter results.",
+            description:
+              "Fetches products filtered by category (e.g., 'beauty', 'electronics', 'clothing'). Provide the category name to filter results.",
             config: {
               method: "GET",
               url: "https://dummyjson.com/products/category/${{fromAI(category)}}",
@@ -99,7 +101,8 @@ export const workflowDeepseekReasoning = schemaWorkflow.parse({
           {
             name: "fetchProductCategories",
             type: "apicall",
-            description: "Fetches the list of all available product categories. Use this when the user asks what categories are available.",
+            description:
+              "Fetches the list of all available product categories. Use this when the user asks what categories are available.",
             config: {
               method: "GET",
               url: "https://dummyjson.com/products/categories",
@@ -113,7 +116,8 @@ export const workflowDeepseekReasoning = schemaWorkflow.parse({
           {
             name: "searchProducts",
             type: "apicall",
-            description: "Searches for products by keyword. Provide a search term to find relevant products.",
+            description:
+              "Searches for products by keyword. Provide a search term to find relevant products.",
             config: {
               method: "GET",
               url: "https://dummyjson.com/products/search",

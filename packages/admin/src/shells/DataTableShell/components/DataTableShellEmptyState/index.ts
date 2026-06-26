@@ -1,1 +1,1 @@
-export { DataTableShellEmptyState } from './DataTableShellEmptyState';
+export { DataTableShellEmptyState } from "./DataTableShellEmptyState";

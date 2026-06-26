@@ -13,9 +13,9 @@ Traditional error handling (throw/catch) has issues:
 ```typescript
 // ✗ Problem: Exception can be thrown anywhere, hard to track
 async function process(input) {
-  const data = await fetchData();  // Can throw
-  const parsed = parseJson(data);  // Can throw
-  await save(parsed);              // Can throw
+  const data = await fetchData(); // Can throw
+  const parsed = parseJson(data); // Can throw
+  await save(parsed); // Can throw
   return parsed;
   // If any throw, caller must have try/catch
   // But maybe they forget!
@@ -57,7 +57,7 @@ import { ok } from "@/shared/result";
 
 return ok({
   reply: "Hello!",
-  summary: { phase: "greeting" }
+  summary: { phase: "greeting" },
 });
 ```
 
@@ -69,7 +69,7 @@ import { err } from "@/shared/result";
 return err({
   code: "INVALID_INPUT",
   message: "Message too long",
-  retryable: false
+  retryable: false,
 });
 ```
 
@@ -97,12 +97,12 @@ if (result.isOk()) {
 
 ```typescript
 const result = ok(5)
-  .map(n => n * 2)           // Ok(10)
-  .andThen(n => ok(n + 3))   // Ok(13)
-  .map(n => n.toString());   // Ok("13")
+  .map((n) => n * 2) // Ok(10)
+  .andThen((n) => ok(n + 3)) // Ok(13)
+  .map((n) => n.toString()); // Ok("13")
 
 if (result.isOk()) {
-  console.log(result.value);  // "13"
+  console.log(result.value); // "13"
 }
 ```
 
@@ -116,9 +116,9 @@ const value = result.unwrap();
 const value = result.unwrapOr(defaultValue);
 
 // Transform error
-const result2 = result.mapErr(e => ({
+const result2 = result.mapErr((e) => ({
   ...e,
-  message: `[custom] ${e.message}`
+  message: `[custom] ${e.message}`,
 }));
 ```
 
@@ -128,18 +128,18 @@ const result2 = result.mapErr(e => ({
 
 ### Standard Error Codes
 
-| Code | Meaning | Retryable | Example |
-|------|---------|-----------|---------|
-| `INVALID_INPUT` | Client sent bad data | No | Message too long |
-| `MISSING_CONTEXT` | Required context unavailable | No | No sessionId |
-| `DEPENDENCY_ERROR` | Infrastructure unavailable | **Yes** | Redis timeout |
-| `LLM_ERROR` | LLM call failed | **Yes** | Rate limit, timeout |
-| `TOOL_ERROR` | Tool invocation failed | **Yes** | API error |
-| `TOKEN_BUDGET_EXCEEDED` | Token limit reached | No | Over budget |
-| `CANCELLED` | Run was cancelled | No | User stopped |
-| `TIMEOUT` | Operation too long | **Yes** | Slow API |
-| `UNAUTHORIZED` | Auth failed | No | Bad API key |
-| `INTERNAL_ERROR` | Unexpected error | Maybe | Null pointer |
+| Code                    | Meaning                      | Retryable | Example             |
+| ----------------------- | ---------------------------- | --------- | ------------------- |
+| `INVALID_INPUT`         | Client sent bad data         | No        | Message too long    |
+| `MISSING_CONTEXT`       | Required context unavailable | No        | No sessionId        |
+| `DEPENDENCY_ERROR`      | Infrastructure unavailable   | **Yes**   | Redis timeout       |
+| `LLM_ERROR`             | LLM call failed              | **Yes**   | Rate limit, timeout |
+| `TOOL_ERROR`            | Tool invocation failed       | **Yes**   | API error           |
+| `TOKEN_BUDGET_EXCEEDED` | Token limit reached          | No        | Over budget         |
+| `CANCELLED`             | Run was cancelled            | No        | User stopped        |
+| `TIMEOUT`               | Operation too long           | **Yes**   | Slow API            |
+| `UNAUTHORIZED`          | Auth failed                  | No        | Bad API key         |
+| `INTERNAL_ERROR`        | Unexpected error             | Maybe     | Null pointer        |
 
 ### Defining Error Types
 
@@ -190,14 +190,14 @@ Worker receives result:
 return err({
   code: "LLM_ERROR",
   message: "Rate limit exceeded",
-  retryable: true  // Will retry automatically
+  retryable: true, // Will retry automatically
 });
 
 // Error that won't be retried
 return err({
   code: "INVALID_INPUT",
   message: "Message too long",
-  retryable: false  // Permanent failure
+  retryable: false, // Permanent failure
 });
 ```
 
@@ -213,7 +213,7 @@ if (!result.success) {
   return err({
     code: "INVALID_INPUT",
     message: `Validation failed: ${result.error.message}`,
-    retryable: false
+    retryable: false,
   });
 }
 
@@ -232,7 +232,7 @@ try {
   return err({
     code: "DEPENDENCY_ERROR",
     message: `Session store unavailable: ${e instanceof Error ? e.message : String(e)}`,
-    retryable: true  // Will be retried
+    retryable: true, // Will be retried
   });
 }
 ```
@@ -249,7 +249,7 @@ try {
   return err({
     code: "LLM_ERROR",
     message: e instanceof Error ? e.message : "Unknown LLM error",
-    retryable: true
+    retryable: true,
   });
 }
 ```
@@ -262,11 +262,11 @@ try {
   // ...
 } catch (e) {
   const isNetwork = e instanceof TypeError && e.message.includes("fetch");
-  
+
   return err({
     code: "TOOL_ERROR",
     message: `Tool call failed: ${e instanceof Error ? e.message : String(e)}`,
-    retryable: isNetwork  // Retry network errors, not 404s
+    retryable: isNetwork, // Retry network errors, not 404s
   });
 }
 ```
@@ -275,14 +275,15 @@ try {
 
 ```typescript
 // Get session or return error
-const messages = await ctx.memory.getSessionMessages(sessionId)
-  .catch(e => null);
+const messages = await ctx.memory
+  .getSessionMessages(sessionId)
+  .catch((e) => null);
 
 if (!messages) {
   return err({
     code: "DEPENDENCY_ERROR",
     message: "Cannot load session history",
-    retryable: true
+    retryable: true,
   });
 }
 ```
@@ -300,9 +301,9 @@ ctx.logger.error(
     errorCode: "LLM_ERROR",
     errorMessage: e.message,
     sessionId,
-    retries: retryCount
+    retries: retryCount,
   },
-  "LLM call failed"
+  "LLM call failed",
 );
 ```
 
@@ -334,10 +335,8 @@ try {
 ```typescript
 const ctx = createMockExecutorContext({
   memory: {
-    getSessionMessages: async () => [
-      { role: "user", content: "hello" }
-    ]
-  }
+    getSessionMessages: async () => [{ role: "user", content: "hello" }],
+  },
 });
 
 const result = await nodeCustom(input, ctx);
@@ -351,8 +350,8 @@ const ctx = createMockExecutorContext({
   memory: {
     getSessionMessages: async () => {
       throw new Error("Redis unavailable");
-    }
-  }
+    },
+  },
 });
 
 const result = await nodeCustom(input, ctx);
@@ -408,6 +407,7 @@ try {
 ```
 
 **Fix:** Log and return error
+
 ```typescript
 try {
   await ctx.memory.updateSession(...);
@@ -427,6 +427,7 @@ catch (e) {
 ```
 
 **Fix:** Include original error
+
 ```typescript
 catch (e) {
   ctx.logger.error({ error: e }, "Something failed");
@@ -445,17 +446,18 @@ catch (e) {
 return err({
   code: "INVALID_INPUT",
   message: "Message too long",
-  retryable: true  // ✗ Will waste retries
+  retryable: true, // ✗ Will waste retries
 });
 ```
 
 **Fix:** Only retry transient errors
+
 ```typescript
 // Only network/service errors should be retryable
 return err({
   code: "INVALID_INPUT",
   message: "Message too long",
-  retryable: false  // ✓ Fail fast
+  retryable: false, // ✓ Fail fast
 });
 ```
 
@@ -465,16 +467,17 @@ return err({
 // Bad – vague error
 return err({
   code: "ERROR",
-  message: "Something went wrong"
+  message: "Something went wrong",
 });
 ```
 
 **Fix:** Specific, actionable errors
+
 ```typescript
 return err({
   code: "LLM_ERROR",
   message: "DeepSeek rate limit exceeded",
-  retryable: true
+  retryable: true,
 });
 ```
 

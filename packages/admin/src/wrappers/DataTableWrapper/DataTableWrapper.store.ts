@@ -1,5 +1,10 @@
-import { createStore } from 'zustand/vanilla';
-import type { DataTableState, DensitySize, FilterState, SortState } from './DataTableWrapper.types';
+import { createStore } from "zustand/vanilla";
+import type {
+  DataTableState,
+  DensitySize,
+  FilterState,
+  SortState,
+} from "./DataTableWrapper.types";
 
 interface CreateTableStoreOptions {
   defaultPageSize: number;
@@ -9,13 +14,13 @@ export function createTableStore({ defaultPageSize }: CreateTableStoreOptions) {
   return createStore<DataTableState>()((set, get) => ({
     page: 1,
     pageSize: defaultPageSize,
-    search: '',
+    search: "",
     sort: [] as SortState[],
     filters: {} as FilterState,
     selection: new Set<string | number>(),
     columnVisibility: {} as Record<string, boolean>,
     columnOrder: [] as string[],
-    density: 'md' as DensitySize,
+    density: "md" as DensitySize,
 
     setPage: (page) => set({ page }),
     setPageSize: (pageSize) => set({ pageSize, page: 1 }),
@@ -29,11 +34,16 @@ export function createTableStore({ defaultPageSize }: CreateTableStoreOptions) {
       const current = get().sort;
       const existing = current.find((s) => s.field === field);
       if (!existing) {
-        set({ sort: [...current, { field, direction: 'asc' }], page: 1 });
+        set({ sort: [...current, { field, direction: "asc" }], page: 1 });
         return;
       }
-      if (existing.direction === 'asc') {
-        set({ sort: current.map((s) => s.field === field ? { field, direction: 'desc' } : s), page: 1 });
+      if (existing.direction === "asc") {
+        set({
+          sort: current.map((s) =>
+            s.field === field ? { field, direction: "desc" } : s,
+          ),
+          page: 1,
+        });
         return;
       }
       // direction === 'desc' → remove
@@ -44,7 +54,9 @@ export function createTableStore({ defaultPageSize }: CreateTableStoreOptions) {
     setFilters: (filters) => set({ filters, page: 1 }),
     setSelection: (selection) => set({ selection }),
     toggleColumn: (key, visible) =>
-      set((s) => ({ columnVisibility: { ...s.columnVisibility, [key]: visible } })),
+      set((s) => ({
+        columnVisibility: { ...s.columnVisibility, [key]: visible },
+      })),
     setColumnOrder: (columnOrder) => set({ columnOrder }),
     setDensity: (density) => set({ density }),
 
@@ -52,11 +64,11 @@ export function createTableStore({ defaultPageSize }: CreateTableStoreOptions) {
       set((s) => ({
         page: 1,
         pageSize: defaultPageSize,
-        search: '',
+        search: "",
         sort: [],
         filters: {},
         selection: new Set<string | number>(),
-        density: 'md',
+        density: "md",
         // UI preferences preserved across resets
         columnVisibility: s.columnVisibility,
         columnOrder: s.columnOrder,

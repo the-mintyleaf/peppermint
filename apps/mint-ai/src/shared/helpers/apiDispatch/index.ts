@@ -15,7 +15,7 @@ function toQueryString(params?: Record<string, any>): string {
 async function get(
   url: string,
   params?: Record<string, any>,
-  headers?: Record<string, any>
+  headers?: Record<string, any>,
 ) {
   const fullUrl = url + toQueryString(params);
   const res = await request(fullUrl, { method: "GET", headers });

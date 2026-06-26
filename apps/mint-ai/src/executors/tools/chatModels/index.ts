@@ -1,5 +1,9 @@
 import { toolDeepseekChat } from "./deepseek/chat";
-import { toolClaudeHaiku, toolClaudeOpus, toolClaudeSonnet } from "./claude/chat";
+import {
+  toolClaudeHaiku,
+  toolClaudeOpus,
+  toolClaudeSonnet,
+} from "./claude/chat";
 import { toolOpenAIGpt4o, toolOpenAIGpt4oMini } from "./openai/chat";
 
 export const chatModels: Record<string, any> = {

@@ -1,7 +1,12 @@
-'use client';
+"use client";
 
-import { cloneElement, isValidElement, type ReactElement, type ReactNode } from 'react';
-import { ActionIcon, Popover, Tooltip } from '@peppermint/ui';
+import {
+  cloneElement,
+  isValidElement,
+  type ReactElement,
+  type ReactNode,
+} from "react";
+import { ActionIcon, Popover, Tooltip } from "@peppermint/ui";
 
 interface ToolbarIconButtonProps {
   label: string;
@@ -17,7 +22,7 @@ interface ToolbarIconButtonProps {
 function withDuotoneWeight(icon: ReactNode): ReactNode {
   if (!isValidElement(icon)) return icon;
   return cloneElement(icon as ReactElement<{ weight?: string }>, {
-    weight: 'duotone',
+    weight: "duotone",
   });
 }
 
@@ -36,7 +41,13 @@ export function ToolbarIconButton({
   if (disabled) {
     return (
       <Tooltip label={label} withArrow position="bottom">
-        <ActionIcon variant="subtle" color="gray" size="md" aria-label={label} disabled>
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          size="md"
+          aria-label={label}
+          disabled
+        >
           {duotoneIcon}
         </ActionIcon>
       </Tooltip>

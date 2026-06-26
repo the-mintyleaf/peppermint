@@ -54,6 +54,7 @@ interface Edge {
 ### System Nodes
 
 #### 1. system.guardPolicy
+
 Validates input and allows/denies execution.
 
 ```typescript
@@ -69,25 +70,34 @@ Validates input and allows/denies execution.
 ```
 
 **Input:**
+
 ```typescript
-{ message: string }
+{
+  message: string;
+}
 ```
 
 **Output (on success):**
+
 ```typescript
-{ allow: true }
+{
+  allow: true;
+}
 ```
 
 **Output (on failure):**
+
 ```typescript
 { allow: false, reason: "Message too long" }
 ```
 
 **Next node logic:**
+
 - If `allow === true` → proceed to successors
 - If `allow === false` → stop workflow
 
 #### 2. system.noop
+
 Pass-through node (no-op). Useful for testing or placeholder nodes.
 
 ```typescript
@@ -100,6 +110,7 @@ Pass-through node (no-op). Useful for testing or placeholder nodes.
 ### Agent Nodes
 
 #### agents.reasoning
+
 Invoke LLM with optional tool-calling.
 
 ```typescript
@@ -127,6 +138,7 @@ Invoke LLM with optional tool-calling.
 ```
 
 **Input:**
+
 ```typescript
 {
   message: string;
@@ -134,16 +146,18 @@ Invoke LLM with optional tool-calling.
 ```
 
 **Output:**
+
 ```typescript
 {
-  reply: string;              // Model's response
-  summary: Record<string, any> // Updated session summary
+  reply: string; // Model's response
+  summary: Record<string, any>; // Updated session summary
 }
 ```
 
 ### Tool Nodes
 
 #### tools.apicall
+
 Make HTTP calls to external APIs.
 
 ```typescript
@@ -165,6 +179,7 @@ Make HTTP calls to external APIs.
 ```
 
 **Input:**
+
 ```typescript
 {
   // Any data needed for templating
@@ -172,10 +187,11 @@ Make HTTP calls to external APIs.
 ```
 
 **Output:**
+
 ```typescript
 {
   status: number;
-  body: Record<string, any>;  // API response
+  body: Record<string, any>; // API response
   headers: Record<string, string>;
 }
 ```
@@ -193,14 +209,14 @@ import { Workflow } from "@/types";
 
 export const workflowExampleFlow: Workflow = {
   id: "momo.example",
-  
+
   nodes: [
     {
       id: "guard",
       kind: "system.guardPolicy",
       config: {
-        maxLength: 5000
-      }
+        maxLength: 5000,
+      },
     },
     {
       id: "reason",
@@ -208,14 +224,12 @@ export const workflowExampleFlow: Workflow = {
       config: {
         chatModel: "deepseek.chat",
         systemPrompt: "You are helpful.",
-        temperature: 0.7
-      }
-    }
+        temperature: 0.7,
+      },
+    },
   ],
-  
-  edges: [
-    { source: "guard", target: "reason" }
-  ]
+
+  edges: [{ source: "guard", target: "reason" }],
 };
 ```
 
@@ -255,7 +269,7 @@ import { Workflow } from "@/types";
 
 export const workflowSalesBot: Workflow = {
   id: "momo.salesbot",
-  
+
   nodes: [
     // 1. Validate input
     {
@@ -263,20 +277,20 @@ export const workflowSalesBot: Workflow = {
       kind: "system.guardPolicy",
       config: {
         maxLength: 5000,
-        denyPatterns: ["malicious_word"]
-      }
+        denyPatterns: ["malicious_word"],
+      },
     },
-    
+
     // 2. Fetch prior context (optional)
     {
       id: "memory_fetch",
       kind: "memory.session.fetch",
       config: {
         sessionId: "{{sessionId}}",
-        summaryKey: "salesbot"
-      }
+        summaryKey: "salesbot",
+      },
     },
-    
+
     // 3. AI reasoning with tools
     {
       id: "reason",
@@ -294,37 +308,37 @@ Be friendly, professional, and concise.`,
             description: "Search for products in our catalog",
             config: {
               url: "https://api.example.com/v1/search",
-              method: "POST"
-            }
+              method: "POST",
+            },
           },
           {
             name: "createOrder",
             description: "Create a new order",
             config: {
               url: "https://api.example.com/v1/orders",
-              method: "POST"
-            }
-          }
-        ]
-      }
+              method: "POST",
+            },
+          },
+        ],
+      },
     },
-    
+
     // 4. Update session memory (optional)
     {
       id: "memory_update",
       kind: "memory.session.update",
       config: {
         sessionId: "{{sessionId}}",
-        summaryKey: "salesbot"
-      }
-    }
+        summaryKey: "salesbot",
+      },
+    },
   ],
-  
+
   edges: [
     { source: "guard", target: "memory_fetch" },
     { source: "memory_fetch", target: "reason" },
-    { source: "reason", target: "memory_update" }
-  ]
+    { source: "reason", target: "memory_update" },
+  ],
 };
 ```
 
@@ -414,6 +428,7 @@ Within workflow config, you can use template variables that are substituted at r
 ```
 
 Available variables:
+
 - `{{sessionId}}` – Current session ID
 - `{{runId}}` – Current run ID
 - `{{nodeId}}` – Current node ID
@@ -429,15 +444,16 @@ Always validate input first:
 
 ```typescript
 edges: [
-  { source: "guard", target: "reason" }  // ✓ Guard first
-]
+  { source: "guard", target: "reason" }, // ✓ Guard first
+];
 ```
 
 Not:
+
 ```typescript
 edges: [
-  { source: "reason", target: "guard" }  // ✗ Process before guarding
-]
+  { source: "reason", target: "guard" }, // ✗ Process before guarding
+];
 ```
 
 ### 2. Use Meaningful Node IDs

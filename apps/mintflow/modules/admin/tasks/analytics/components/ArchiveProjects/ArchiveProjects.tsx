@@ -7,7 +7,10 @@ import { DownloadSimpleIcon } from "@phosphor-icons/react/dist/csr/DownloadSimpl
 import { ANALYTICS_COLORS, darkCardStyle } from "../../taskAnalytics.styles";
 import type { ArchiveProjectsProps } from "./ArchiveProjects.types";
 
-const APP_LABELS: Record<ArchiveProjectsProps["projects"][number]["app"], string> = {
+const APP_LABELS: Record<
+  ArchiveProjectsProps["projects"][number]["app"],
+  string
+> = {
   framer: "Fr",
   figma: "Fi",
   webflow: "Wf",
@@ -22,7 +25,12 @@ export function ArchiveProjects({ projects }: ArchiveProjectsProps) {
         <Text c={ANALYTICS_COLORS.textPrimary} fw={700} size="md">
           Archive Project
         </Text>
-        <DotsThreeIcon size={20} color={ANALYTICS_COLORS.textMuted} aria-label="More options" style={{ cursor: "pointer" }} />
+        <DotsThreeIcon
+          size={20}
+          color={ANALYTICS_COLORS.textMuted}
+          aria-label="More options"
+          style={{ cursor: "pointer" }}
+        />
       </Group>
 
       <Stack gap="sm">
@@ -39,7 +47,9 @@ export function ArchiveProjects({ projects }: ArchiveProjectsProps) {
                 padding: "10px 12px",
                 borderRadius: 12,
                 cursor: "pointer",
-                background: isHovered ? "rgba(255,255,255,0.06)" : "transparent",
+                background: isHovered
+                  ? "rgba(255,255,255,0.06)"
+                  : "transparent",
                 boxShadow: isHovered ? `0 0 16px rgba(67,83,255,0.2)` : "none",
                 transition: "all 0.15s ease",
               }}

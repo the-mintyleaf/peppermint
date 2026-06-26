@@ -1,1 +1,1 @@
-export { DataTableShellTableActions } from './DataTableShellTableActions';
+export { DataTableShellTableActions } from "./DataTableShellTableActions";

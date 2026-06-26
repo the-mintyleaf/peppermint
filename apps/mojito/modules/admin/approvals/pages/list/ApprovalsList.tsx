@@ -18,7 +18,11 @@ import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
 import { CaretUpIcon } from "@phosphor-icons/react/dist/csr/CaretUp";
 import { useState } from "react";
-import { useApprovals, useApproveItem, useRejectItem } from "../../approvals.hooks";
+import {
+  useApprovals,
+  useApproveItem,
+  useRejectItem,
+} from "../../approvals.hooks";
 import { RejectModal } from "../../components/RejectModal/RejectModal";
 import type { ContentItem } from "@/modules/admin/shared/domain.types";
 import { ModulePageShell } from "@/modules/admin/shared/ModulePageShell";
@@ -43,13 +47,21 @@ function ApprovalRow({ item }: { item: ContentItem }) {
               onClick={() => setExpanded((e) => !e)}
               aria-label="Toggle preview"
             >
-              {expanded ? <CaretUpIcon size={12} /> : <CaretDownIcon size={12} />}
+              {expanded ? (
+                <CaretUpIcon size={12} />
+              ) : (
+                <CaretDownIcon size={12} />
+              )}
             </ActionIcon>
             <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
-              <Text size="sm" fw={500} lineClamp={1}>{item.title}</Text>
+              <Text size="sm" fw={500} lineClamp={1}>
+                {item.title}
+              </Text>
               <Group gap={4}>
                 {item.variants.slice(0, 4).map((v) => (
-                  <Badge key={v.platform} size="xs" variant="dot">{v.platform}</Badge>
+                  <Badge key={v.platform} size="xs" variant="dot">
+                    {v.platform}
+                  </Badge>
                 ))}
               </Group>
             </Stack>
@@ -85,9 +97,13 @@ function ApprovalRow({ item }: { item: ContentItem }) {
               <Paper key={v.platform} withBorder radius="xs" p="xs" bg="gray.0">
                 <Group justify="space-between" mb={4}>
                   <Badge size="xs">{v.platform}</Badge>
-                  <Badge size="xs" variant="light">{v.format}</Badge>
+                  <Badge size="xs" variant="light">
+                    {v.format}
+                  </Badge>
                 </Group>
-                <Text size="xs" lineClamp={3}>{v.caption}</Text>
+                <Text size="xs" lineClamp={3}>
+                  {v.caption}
+                </Text>
               </Paper>
             ))}
           </Stack>
@@ -120,18 +136,31 @@ export function ApprovalsList() {
       basePath={BASE_PATH}
       moduleInfo={MODULE_INFO}
       disableCreateButton
-      actions={total > 0 ? <Badge size="lg" color="yellow">{total} pending</Badge> : undefined}
+      actions={
+        total > 0 ? (
+          <Badge size="lg" color="yellow">
+            {total} pending
+          </Badge>
+        ) : undefined
+      }
     >
-      <Stack gap="md" style={{ height: "calc(100vh - 160px)", overflow: "auto" }}>
+      <Stack
+        gap="md"
+        style={{ height: "calc(100vh - 160px)", overflow: "auto" }}
+      >
         {isLoading && (
           <Stack gap="xs">
-            {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} h={72} radius="sm" />)}
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} h={72} radius="sm" />
+            ))}
           </Stack>
         )}
 
         {isError && (
           <Center py="xl">
-            <Text c="red" size="sm">Failed to load approvals</Text>
+            <Text c="red" size="sm">
+              Failed to load approvals
+            </Text>
           </Center>
         )}
 
@@ -139,18 +168,26 @@ export function ApprovalsList() {
           <Center py="xl">
             <Stack align="center" gap="xs">
               <CheckIcon size={32} />
-              <Text size="sm" c="dimmed">All caught up — no pending approvals</Text>
+              <Text size="sm" c="dimmed">
+                All caught up — no pending approvals
+              </Text>
             </Stack>
           </Center>
         )}
 
-        {!isLoading && items.map((item: ContentItem) => (
-          <ApprovalRow key={item.id} item={item} />
-        ))}
+        {!isLoading &&
+          items.map((item: ContentItem) => (
+            <ApprovalRow key={item.id} item={item} />
+          ))}
 
         {totalPages > 1 && (
           <Group justify="center">
-            <Pagination total={totalPages} value={page} onChange={setPage} size="sm" />
+            <Pagination
+              total={totalPages}
+              value={page}
+              onChange={setPage}
+              size="sm"
+            />
           </Group>
         )}
       </Stack>

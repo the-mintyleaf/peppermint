@@ -9,7 +9,11 @@ interface TemplateViewProps {
 }
 
 export function TemplateView({ templateId }: TemplateViewProps) {
-  const { data: template, isLoading, error } = useQuery({
+  const {
+    data: template,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["templates", templateId],
     queryFn: () => fetchTemplate(templateId),
   });

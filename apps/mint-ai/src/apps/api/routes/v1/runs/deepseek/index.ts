@@ -21,7 +21,10 @@ export async function routeRunsDeepseek(app: FastifyInstance) {
         console.log(`[DEEPSEEK] Received event for ${runId}:`, event.type);
 
         if (event.type === "run.finished") {
-          console.log(`[DEEPSEEK] Got run.finished for ${runId}, resolving with:`, event.data?.output);
+          console.log(
+            `[DEEPSEEK] Got run.finished for ${runId}, resolving with:`,
+            event.data?.output,
+          );
           clearTimeout(timeout);
           unsub();
           resolve({

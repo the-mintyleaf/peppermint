@@ -140,7 +140,7 @@ export function err<E>(error: E): Result<never, E> {
  */
 export async function tryCatch<T, E>(
   fn: () => Promise<T>,
-  mapError: (err: any) => E
+  mapError: (err: any) => E,
 ): Promise<Result<T, E>> {
   try {
     const value = await fn();

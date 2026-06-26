@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import type { MouseEvent } from 'react';
+import type { MouseEvent } from "react";
 import {
   Box,
   Indicator,
@@ -8,22 +8,22 @@ import {
   Text,
   Tooltip,
   UnstyledButton,
-} from '@mantine/core';
-import { BookmarkSimpleIcon } from '@phosphor-icons/react/dist/csr/BookmarkSimple';
-import { formatHrefAsBreadcrumb } from './bookmarks.utils';
-import type { BookmarksMenuProps } from './bookmarks.types';
-import { useBookmarks } from './useBookmarks';
+} from "@mantine/core";
+import { BookmarkSimpleIcon } from "@phosphor-icons/react/dist/csr/BookmarkSimple";
+import { formatHrefAsBreadcrumb } from "./bookmarks.utils";
+import type { BookmarksMenuProps } from "./bookmarks.types";
+import { useBookmarks } from "./useBookmarks";
 
 const MENU_TEXT_STYLE = { fontSize: 10, lineHeight: 1.3 } as const;
 
 export function BookmarksMenu({
   onNavigate,
-  variant = 'default',
-  emptyLabel = 'No bookmarks yet',
-  label = 'Bookmarks',
+  variant = "default",
+  emptyLabel = "No bookmarks yet",
+  label = "Bookmarks",
 }: BookmarksMenuProps) {
   const { bookmarks } = useBookmarks();
-  const isSidenav = variant === 'sidenav';
+  const isSidenav = variant === "sidenav";
 
   const handleNavigate = (event: MouseEvent, href: string) => {
     if (onNavigate) {
@@ -46,22 +46,23 @@ export function BookmarksMenu({
         <UnstyledButton
           aria-label={label}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             width: 32,
             height: 32,
             borderRadius: 0,
-            color: 'var(--mantine-color-dark-2)',
-            transition: 'background-color 150ms ease, color 150ms ease',
+            color: "var(--mantine-color-dark-2)",
+            transition: "background-color 150ms ease, color 150ms ease",
           }}
           onMouseEnter={(event) => {
-            event.currentTarget.style.backgroundColor = 'var(--mantine-color-dark-6)';
-            event.currentTarget.style.color = 'var(--mantine-color-gray-0)';
+            event.currentTarget.style.backgroundColor =
+              "var(--mantine-color-dark-6)";
+            event.currentTarget.style.color = "var(--mantine-color-gray-0)";
           }}
           onMouseLeave={(event) => {
-            event.currentTarget.style.backgroundColor = 'transparent';
-            event.currentTarget.style.color = 'var(--mantine-color-dark-2)';
+            event.currentTarget.style.backgroundColor = "transparent";
+            event.currentTarget.style.color = "var(--mantine-color-dark-2)";
           }}
         >
           <BookmarkSimpleIcon size={16} weight="duotone" />
@@ -70,9 +71,9 @@ export function BookmarksMenu({
         <UnstyledButton
           aria-label={label}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             width: 32,
             height: 32,
             borderRadius: 0,
@@ -118,7 +119,9 @@ export function BookmarksMenu({
               key={bookmark.id}
               component="a"
               href={bookmark.href}
-              onClick={(event: MouseEvent) => handleNavigate(event, bookmark.href)}
+              onClick={(event: MouseEvent) =>
+                handleNavigate(event, bookmark.href)
+              }
             >
               <Text fw={500} lineClamp={1} style={MENU_TEXT_STYLE}>
                 {bookmark.label}

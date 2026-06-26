@@ -25,9 +25,15 @@ export function Billing() {
 
   if (isLoading) {
     return (
-      <ModulePageShell basePath={BASE_PATH} moduleInfo={MODULE_INFO} disableCreateButton>
+      <ModulePageShell
+        basePath={BASE_PATH}
+        moduleInfo={MODULE_INFO}
+        disableCreateButton
+      >
         <Stack gap="md">
-          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} h={120} radius="md" />)}
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} h={120} radius="md" />
+          ))}
         </Stack>
       </ModulePageShell>
     );
@@ -35,42 +41,78 @@ export function Billing() {
 
   if (!data) return null;
 
-  const { currentPlan, nextBillingDate, paymentMethod, usage, invoices, availablePlans } = data;
+  const {
+    currentPlan,
+    nextBillingDate,
+    paymentMethod,
+    usage,
+    invoices,
+    availablePlans,
+  } = data;
 
   return (
-    <ModulePageShell basePath={BASE_PATH} moduleInfo={MODULE_INFO} disableCreateButton>
-      <Stack gap="md" style={{ overflow: "auto", height: "calc(100vh - 160px)" }}>
+    <ModulePageShell
+      basePath={BASE_PATH}
+      moduleInfo={MODULE_INFO}
+      disableCreateButton
+    >
+      <Stack
+        gap="md"
+        style={{ overflow: "auto", height: "calc(100vh - 160px)" }}
+      >
         <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
           <Paper withBorder radius="md" p="md">
             <Stack gap="sm">
               <Group justify="space-between">
-                <Text fw={600} size="sm">Current Plan</Text>
-                <Badge color="blue" variant="light" size="sm">{currentPlan.name}</Badge>
+                <Text fw={600} size="sm">
+                  Current Plan
+                </Text>
+                <Badge color="blue" variant="light" size="sm">
+                  {currentPlan.name}
+                </Badge>
               </Group>
               <Text size="xl" fw={700}>
                 ${currentPlan.price}
-                <Text component="span" size="sm" c="dimmed" fw={400}>/{currentPlan.period}</Text>
+                <Text component="span" size="sm" c="dimmed" fw={400}>
+                  /{currentPlan.period}
+                </Text>
               </Text>
-              <Text size="xs" c="dimmed">Next billing: {nextBillingDate.toLocaleDateString()}</Text>
+              <Text size="xs" c="dimmed">
+                Next billing: {nextBillingDate.toLocaleDateString()}
+              </Text>
               <Text size="xs" c="dimmed">
                 Payment: {paymentMethod.brand} ending in {paymentMethod.last4}
               </Text>
-              <Button size="xs" variant="light" mt="xs">Upgrade Plan</Button>
+              <Button size="xs" variant="light" mt="xs">
+                Upgrade Plan
+              </Button>
             </Stack>
           </Paper>
 
           <Paper withBorder radius="md" p="md">
-            <Text fw={600} size="sm" mb="md">Usage</Text>
+            <Text fw={600} size="sm" mb="md">
+              Usage
+            </Text>
             <Stack gap="sm">
               {Object.entries(usage).map(([key, { used, limit }]) => (
                 <Stack key={key} gap={4}>
                   <Group justify="space-between">
-                    <Text size="xs" tt="capitalize">{key}</Text>
-                    <Text size="xs" c="dimmed">{used} / {limit}</Text>
+                    <Text size="xs" tt="capitalize">
+                      {key}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {used} / {limit}
+                    </Text>
                   </Group>
                   <Progress
                     value={(used / limit) * 100}
-                    color={used / limit > 0.9 ? "red" : used / limit > 0.7 ? "yellow" : "blue"}
+                    color={
+                      used / limit > 0.9
+                        ? "red"
+                        : used / limit > 0.7
+                          ? "yellow"
+                          : "blue"
+                    }
                     size="sm"
                   />
                 </Stack>
@@ -80,7 +122,9 @@ export function Billing() {
         </SimpleGrid>
 
         <Paper withBorder radius="md" p="md">
-          <Text fw={600} size="sm" mb="md">Available Plans</Text>
+          <Text fw={600} size="sm" mb="md">
+            Available Plans
+          </Text>
           <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
             {availablePlans.map((plan) => (
               <Paper
@@ -89,27 +133,42 @@ export function Billing() {
                 radius="md"
                 p="md"
                 style={{
-                  borderColor: plan.id === currentPlan.id ? "var(--mantine-color-blue-4)" : undefined,
+                  borderColor:
+                    plan.id === currentPlan.id
+                      ? "var(--mantine-color-blue-4)"
+                      : undefined,
                 }}
               >
                 <Stack gap="sm">
                   <Group justify="space-between">
-                    <Text fw={600} size="sm">{plan.name}</Text>
-                    {plan.id === currentPlan.id && <Badge size="xs" color="blue">Current</Badge>}
+                    <Text fw={600} size="sm">
+                      {plan.name}
+                    </Text>
+                    {plan.id === currentPlan.id && (
+                      <Badge size="xs" color="blue">
+                        Current
+                      </Badge>
+                    )}
                   </Group>
                   <Text fw={700}>
                     ${plan.price}
-                    <Text component="span" size="xs" c="dimmed" fw={400}>/mo</Text>
+                    <Text component="span" size="xs" c="dimmed" fw={400}>
+                      /mo
+                    </Text>
                   </Text>
                   <Stack gap="xs">
                     {plan.features.map((f) => (
-                      <Text key={f} size="xs" c="dimmed">· {f}</Text>
+                      <Text key={f} size="xs" c="dimmed">
+                        · {f}
+                      </Text>
                     ))}
                   </Stack>
                   {plan.id !== currentPlan.id && (
                     <Button
                       size="xs"
-                      variant={plan.price > currentPlan.price ? "filled" : "light"}
+                      variant={
+                        plan.price > currentPlan.price ? "filled" : "light"
+                      }
                       fullWidth
                     >
                       {plan.price > currentPlan.price ? "Upgrade" : "Downgrade"}
@@ -122,7 +181,9 @@ export function Billing() {
         </Paper>
 
         <Paper withBorder radius="md" p="md">
-          <Text fw={600} size="sm" mb="md">Invoices</Text>
+          <Text fw={600} size="sm" mb="md">
+            Invoices
+          </Text>
           <Table>
             <Table.Thead>
               <Table.Tr>
@@ -135,12 +196,25 @@ export function Billing() {
             <Table.Tbody>
               {invoices.map((inv) => (
                 <Table.Tr key={inv.id}>
-                  <Table.Td><Text size="sm">{inv.date.toLocaleDateString()}</Text></Table.Td>
-                  <Table.Td><Text size="sm">${inv.amount}</Text></Table.Td>
-                  <Table.Td><Badge size="xs" color="green" variant="light">{inv.status}</Badge></Table.Td>
+                  <Table.Td>
+                    <Text size="sm">{inv.date.toLocaleDateString()}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm">${inv.amount}</Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge size="xs" color="green" variant="light">
+                      {inv.status}
+                    </Badge>
+                  </Table.Td>
                   <Table.Td>
                     {inv.pdfUrl && (
-                      <Anchor href={inv.pdfUrl} size="xs" c="dimmed" aria-label="Download invoice">
+                      <Anchor
+                        href={inv.pdfUrl}
+                        size="xs"
+                        c="dimmed"
+                        aria-label="Download invoice"
+                      >
                         <DownloadSimpleIcon size={14} />
                       </Anchor>
                     )}

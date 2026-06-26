@@ -90,7 +90,7 @@ export interface ChatModelsRegistry {
 export interface ChatModel {
   invoke(
     messages: any[],
-    options?: { temperature?: number; tools?: any[] }
+    options?: { temperature?: number; tools?: any[] },
   ): Promise<any>;
 }
 
@@ -104,7 +104,7 @@ export interface MetricsCollector {
   recordExecutorSuccess(
     nodeId: string,
     durationMs: number,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): void;
 
   /**
@@ -114,7 +114,7 @@ export interface MetricsCollector {
     nodeId: string,
     errorCode: string,
     durationMs: number,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): void;
 
   /**
@@ -122,7 +122,7 @@ export interface MetricsCollector {
    */
   recordTokens(
     runId: string,
-    tokens: { input: number; output: number; total: number }
+    tokens: { input: number; output: number; total: number },
   ): void;
 
   /**
@@ -137,7 +137,7 @@ export interface MetricsCollector {
     toolName: string,
     durationMs: number,
     success: boolean,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): void;
 
   /**
@@ -210,7 +210,7 @@ export interface MemoryStore {
    */
   getSessionMessages(
     sessionId: string,
-    limit?: number
+    limit?: number,
   ): Promise<Array<{ role: string; content: string }>>;
 
   /**
@@ -218,7 +218,7 @@ export interface MemoryStore {
    */
   addSessionMessage(
     sessionId: string,
-    message: { role: string; content: string }
+    message: { role: string; content: string },
   ): Promise<void>;
 
   /**
@@ -231,7 +231,7 @@ export interface MemoryStore {
    */
   updateSessionSummary(
     sessionId: string,
-    summary: Record<string, string>
+    summary: Record<string, string>,
   ): Promise<void>;
 
   /**
@@ -245,7 +245,7 @@ export interface MemoryStore {
  */
 export type ExecutorFn<Input, Output, Error> = (
   input: Input,
-  ctx: ExecutorContext
+  ctx: ExecutorContext,
 ) => Promise<Result<Output, Error>>;
 
 /**

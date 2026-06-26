@@ -3,6 +3,7 @@
 A **MultiPageModule** owns multiple routes. Each route is a separate page component; the module exports them together as a named object so app pages stay as thin re-exports.
 
 Use this when:
+
 - The module needs distinct URLs for list, create, edit, and/or detail (e.g. `/products`, `/products/new`, `/products/:id/edit`, `/products/:id`)
 - The form is complex — multi-step, file uploads, or a dedicated detail view
 
@@ -67,15 +68,28 @@ export interface ProductsResponse {
   meta: { total: number };
 }
 
-export async function fetchProducts(params?: QueryParams): Promise<ProductsResponse> {
+export async function fetchProducts(
+  params?: QueryParams,
+): Promise<ProductsResponse> {
   // params.filters.availabilityStatus is set by the active tab
   // handle params.page, params.pageSize, params.sort, params.search
 }
 
-export async function fetchProduct(id: number): Promise<Product> { /* ... */ }
-export async function createProduct(data: Partial<Product>): Promise<Product> { /* ... */ }
-export async function updateProduct(id: number, data: Partial<Product>): Promise<Product> { /* ... */ }
-export async function deleteProduct(id: number): Promise<void> { /* ... */ }
+export async function fetchProduct(id: number): Promise<Product> {
+  /* ... */
+}
+export async function createProduct(data: Partial<Product>): Promise<Product> {
+  /* ... */
+}
+export async function updateProduct(
+  id: number,
+  data: Partial<Product>,
+): Promise<Product> {
+  /* ... */
+}
+export async function deleteProduct(id: number): Promise<void> {
+  /* ... */
+}
 ```
 
 ### 2. `form/<name>Form.types.ts`
@@ -125,8 +139,8 @@ export const pricingSchema = z.object({
 
 // maps step index → field names validated at that step
 export const PRODUCT_STEP_FIELDS: string[][] = [
-  ["title", "brand", "category"],   // step 0 — identity
-  ["price", "stock"],                // step 1 — pricing
+  ["title", "brand", "category"], // step 0 — identity
+  ["price", "stock"], // step 1 — pricing
 ];
 ```
 
@@ -143,9 +157,24 @@ export function StepIdentity() {
   const { form } = useFormControls<ProductFormValues>();
   return (
     <Stack gap="md">
-      <TextInput label="Title"    placeholder="iPhone 15 Pro" required {...form.getInputProps("title")} />
-      <TextInput label="Brand"    placeholder="Apple"         required {...form.getInputProps("brand")} />
-      <TextInput label="Category" placeholder="Smartphones"   required {...form.getInputProps("category")} />
+      <TextInput
+        label="Title"
+        placeholder="iPhone 15 Pro"
+        required
+        {...form.getInputProps("title")}
+      />
+      <TextInput
+        label="Brand"
+        placeholder="Apple"
+        required
+        {...form.getInputProps("brand")}
+      />
+      <TextInput
+        label="Category"
+        placeholder="Smartphones"
+        required
+        {...form.getInputProps("category")}
+      />
     </Stack>
   );
 }
@@ -160,19 +189,23 @@ export function StepIdentity() {
 
 import { useFormControls, FormShell, FormWrapper } from "@peppermint/admin";
 import { PRODUCT_FORM_INITIAL } from "./productForm.initial";
-import { identitySchema, pricingSchema, PRODUCT_STEP_FIELDS } from "./productForm.schemas";
+import {
+  identitySchema,
+  pricingSchema,
+  PRODUCT_STEP_FIELDS,
+} from "./productForm.schemas";
 import { StepIdentity } from "./steps/StepIdentity";
-import { StepPricing }  from "./steps/StepPricing";
+import { StepPricing } from "./steps/StepPricing";
 import type { ProductFormValues } from "./productForm.types";
 
 const STEPS = [
   { label: "Identity", description: "Name, brand & category" },
-  { label: "Pricing",  description: "Price & stock" },
+  { label: "Pricing", description: "Price & stock" },
 ];
 
 const STEP_COMPONENTS = [
   <StepIdentity key="identity" />,
-  <StepPricing  key="pricing"  />,
+  <StepPricing key="pricing" />,
 ];
 
 function ProductFormBody({ onBack }: { onBack: () => void }) {
@@ -228,13 +261,48 @@ import type { DataTableShellColumn } from "@peppermint/admin";
 import type { Product } from "../../module.api";
 
 export const PRODUCT_COLUMNS: DataTableShellColumn<Product>[] = [
-  { accessor: "title",    title: "Product",  key: "title",    sortable: true, width: 260 },
-  { accessor: "brand",    title: "Brand",    key: "brand",    sortable: true, width: 140 },
-  { accessor: "category", title: "Category", key: "category", sortable: true, width: 140 },
-  { accessor: "price",    title: "Price",    key: "price",    sortable: true, width: 100,
-    render: (row) => `$${row.price.toFixed(2)}` },
-  { accessor: "stock",    title: "Stock",    key: "stock",    sortable: true, width: 90  },
-  { accessor: "availabilityStatus", title: "Status", key: "status", width: 130 },
+  {
+    accessor: "title",
+    title: "Product",
+    key: "title",
+    sortable: true,
+    width: 260,
+  },
+  {
+    accessor: "brand",
+    title: "Brand",
+    key: "brand",
+    sortable: true,
+    width: 140,
+  },
+  {
+    accessor: "category",
+    title: "Category",
+    key: "category",
+    sortable: true,
+    width: 140,
+  },
+  {
+    accessor: "price",
+    title: "Price",
+    key: "price",
+    sortable: true,
+    width: 100,
+    render: (row) => `$${row.price.toFixed(2)}`,
+  },
+  {
+    accessor: "stock",
+    title: "Stock",
+    key: "stock",
+    sortable: true,
+    width: 90,
+  },
+  {
+    accessor: "availabilityStatus",
+    title: "Status",
+    key: "status",
+    width: 130,
+  },
 ];
 ```
 
@@ -250,41 +318,53 @@ Always wrap the shell in a `Paper` with `p={0}`, `withBorder`, `radius="lg"`, an
 import { DataTableShell } from "@peppermint/admin";
 import { Paper } from "@peppermint/ui";
 import type { DataTableShellTab } from "@peppermint/admin";
-import { PackageIcon }    from "@phosphor-icons/react/dist/csr/Package";
+import { PackageIcon } from "@phosphor-icons/react/dist/csr/Package";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
-import { WarningIcon }    from "@phosphor-icons/react/dist/csr/Warning";
-import { ProhibitIcon }   from "@phosphor-icons/react/dist/csr/Prohibit";
+import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
+import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
 import { fetchProducts } from "../../module.api";
 import { PRODUCT_COLUMNS } from "./list.columns";
 import type { Product } from "../../module.api";
 
 const STATUS_TABS: DataTableShellTab[] = [
-  { label: "All Products",  icon: PackageIcon },
-  { label: "In Stock",      icon: CheckCircleIcon, filter: { availabilityStatus: "In Stock" } },
-  { label: "Low Stock",     icon: WarningIcon,     filter: { availabilityStatus: "Low Stock" } },
-  { label: "Out of Stock",  icon: ProhibitIcon,    filter: { availabilityStatus: "Out of Stock" } },
+  { label: "All Products", icon: PackageIcon },
+  {
+    label: "In Stock",
+    icon: CheckCircleIcon,
+    filter: { availabilityStatus: "In Stock" },
+  },
+  {
+    label: "Low Stock",
+    icon: WarningIcon,
+    filter: { availabilityStatus: "Low Stock" },
+  },
+  {
+    label: "Out of Stock",
+    icon: ProhibitIcon,
+    filter: { availabilityStatus: "Out of Stock" },
+  },
 ];
 
 export function ProductsList() {
   return (
     <Paper p={0} withBorder radius="lg" h="calc(100vh - 16px)">
-    <DataTableShell<Product>
-      queryKey="products.list"
-      queryGetFn={(params) => fetchProducts(params)}
-      dataKey="products"
-      paginationKey="meta"
-      enableServerQuery
-      columns={PRODUCT_COLUMNS}
-      moduleInfo={{
-        name: "Product",
-        label: "Products",
-        description: "Manage your product catalogue",
-      }}
-      basePath="/admin/product-management/products"
-      tabs={STATUS_TABS}
-      pageSizes={[10, 20, 50, 100]}
-      defaultPageSize={20}
-    />
+      <DataTableShell<Product>
+        queryKey="products.list"
+        queryGetFn={(params) => fetchProducts(params)}
+        dataKey="products"
+        paginationKey="meta"
+        enableServerQuery
+        columns={PRODUCT_COLUMNS}
+        moduleInfo={{
+          name: "Product",
+          label: "Products",
+          description: "Manage your product catalogue",
+        }}
+        basePath="/admin/product-management/products"
+        tabs={STATUS_TABS}
+        pageSizes={[10, 20, 50, 100]}
+        defaultPageSize={20}
+      />
     </Paper>
   );
 }
@@ -344,13 +424,13 @@ export function ProductsView() {
 
 ```ts
 import { ProductsList } from "./pages/list";
-import { ProductsNew }  from "./pages/new";
+import { ProductsNew } from "./pages/new";
 import { ProductsEdit } from "./pages/edit";
 import { ProductsView } from "./pages/view";
 
 export const ModuleProducts = {
   main: ProductsList,
-  new:  ProductsNew,
+  new: ProductsNew,
   edit: ProductsEdit,
   view: ProductsView,
 };
@@ -398,10 +478,18 @@ Each app page is one import and one export. No logic.
 
 ```tsx
 // ❌ TypeScript won't catch mistyped prop names
-const STATUS_TABS = [{ label: "In Stock", filter: { availabilityStatus: "In Stock" } }];
+const STATUS_TABS = [
+  { label: "In Stock", filter: { availabilityStatus: "In Stock" } },
+];
 
 // ✅
-const STATUS_TABS: DataTableShellTab[] = [{ label: "In Stock", icon: CheckCircleIcon, filter: { availabilityStatus: "In Stock" } }];
+const STATUS_TABS: DataTableShellTab[] = [
+  {
+    label: "In Stock",
+    icon: CheckCircleIcon,
+    filter: { availabilityStatus: "In Stock" },
+  },
+];
 ```
 
 **Importing page components directly instead of via the module object**

@@ -1,4 +1,11 @@
-import type { OrgNodeData, OrgOfficeData, DepartmentData, PersonData, GroupData, NodeHealthIssue } from "../../OrganizationTree.types";
+import type {
+  OrgNodeData,
+  OrgOfficeData,
+  DepartmentData,
+  PersonData,
+  GroupData,
+  NodeHealthIssue,
+} from "../../OrganizationTree.types";
 import type { OrgFlowNode } from "../../OrganizationTree.store";
 
 export interface InspectorPanelProps {

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { Button, Checkbox, Divider, Stack, Text } from '@peppermint/ui';
-import { XIcon } from '@phosphor-icons/react/dist/csr/X';
+import { Button, Checkbox, Divider, Stack, Text } from "@peppermint/ui";
+import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 
 export interface ColumnToggleItem {
   key: string;
@@ -30,13 +30,13 @@ export function ColumnToggleList({
         <Button
           key={key}
           justify="left"
-           variant="subtle"
+          variant="subtle"
           size="xs"
           leftSection={
             <Checkbox checked={visible} readOnly size="xs" tabIndex={-1} />
           }
           onClick={() => toggleColumn(key, !visible)}
-          style={{ color: 'var(--mantine-color-text)' }}
+          style={{ color: "var(--mantine-color-text)" }}
         >
           {label}
         </Button>

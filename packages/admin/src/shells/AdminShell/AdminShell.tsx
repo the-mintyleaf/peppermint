@@ -49,11 +49,10 @@ export function AdminShell({
 
   const activeItem = useMemo(
     () => resolveActiveMainNavItem(config.mainNav, pathname ?? ""),
-    [config.mainNav, pathname]
+    [config.mainNav, pathname],
   );
 
-  const showSubNav =
-    activeItem?.kind === "module" && !subNavCollapsed;
+  const showSubNav = activeItem?.kind === "module" && !subNavCollapsed;
 
   const navbarWidth = getNavbarWidth(showSubNav);
 

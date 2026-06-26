@@ -3,6 +3,7 @@
 ## Overview
 
 `DataTableShell` is a complete data table layout with built-in features for displaying and managing tabular data. It provides:
+
 - **Header with module info** and create button
 - **Tab navigation** for filtering data views
 - **Toolbar with filters** and column visibility controls
@@ -91,40 +92,40 @@ export function UsersPage() {
 
 ## Props Reference
 
-| Prop | Type | Required | Default | Description |
-|------|------|----------|---------|-------------|
-| **Core Configuration** |
-| `moduleInfo` | `object` | ✅ Yes | - | Module name and term (singular) |
-| `idAccessor` | `string` | No | `"id"` | Primary key field name |
-| `columns` | `array` | ✅ Yes | - | Column definitions |
-| `sustained` | `boolean` | No | `false` | Keep table state on unmount |
+| Prop                     | Type       | Required | Default                         | Description                            |
+| ------------------------ | ---------- | -------- | ------------------------------- | -------------------------------------- |
+| **Core Configuration**   |
+| `moduleInfo`             | `object`   | ✅ Yes   | -                               | Module name and term (singular)        |
+| `idAccessor`             | `string`   | No       | `"id"`                          | Primary key field name                 |
+| `columns`                | `array`    | ✅ Yes   | -                               | Column definitions                     |
+| `sustained`              | `boolean`  | No       | `false`                         | Keep table state on unmount            |
 | **Navigation & Actions** |
-| `tabs` | `array` | No | `[]` | Tab configuration |
-| `newButtonHref` | `string` | No | `undefined` | Create button link |
-| `onNewClick` | `function` | No | `undefined` | Create button click handler |
-| `onEditClick` | `function` | No | `undefined` | Edit row handler |
-| `onDeleteClick` | `function` | No | `undefined` | Delete rows handler (bulk) |
-| `onReviewClick` | `function` | No | `undefined` | Review row handler |
-| **Table Configuration** |
-| `tableActions` | `array` | No | `[]` | Custom table action buttons |
-| `rowColor` | `string` | No | `"var(--mantine-color-gray-0)"` | Row text color |
-| `rowBackgroundColor` | `string` | No | `"var(--mantine-color-gray-0)"` | Row background color |
-| `rowStyle` | `function` | No | `undefined` | Custom row styling function |
-| `pageSizes` | `number[]` | No | `[10, 20, 50, 100]` | Available page sizes |
-| `hasServerSearch` | `boolean` | No | `false` | Enable server-side search |
-| `disableActions` | `boolean` | No | `false` | Hide action buttons |
-| `rowExpansion` | `object` | No | `undefined` | Row expansion config for nested tables |
-| **Filters** |
-| `hideFilters` | `boolean` | No | `false` | Hide filter toolbar |
-| `filterList` | `array` | No | `[]` | Filter configurations |
-| `forceFilter` | `function` | No | `undefined` | Force filter on data |
+| `tabs`                   | `array`    | No       | `[]`                            | Tab configuration                      |
+| `newButtonHref`          | `string`   | No       | `undefined`                     | Create button link                     |
+| `onNewClick`             | `function` | No       | `undefined`                     | Create button click handler            |
+| `onEditClick`            | `function` | No       | `undefined`                     | Edit row handler                       |
+| `onDeleteClick`          | `function` | No       | `undefined`                     | Delete rows handler (bulk)             |
+| `onReviewClick`          | `function` | No       | `undefined`                     | Review row handler                     |
+| **Table Configuration**  |
+| `tableActions`           | `array`    | No       | `[]`                            | Custom table action buttons            |
+| `rowColor`               | `string`   | No       | `"var(--mantine-color-gray-0)"` | Row text color                         |
+| `rowBackgroundColor`     | `string`   | No       | `"var(--mantine-color-gray-0)"` | Row background color                   |
+| `rowStyle`               | `function` | No       | `undefined`                     | Custom row styling function            |
+| `pageSizes`              | `number[]` | No       | `[10, 20, 50, 100]`             | Available page sizes                   |
+| `hasServerSearch`        | `boolean`  | No       | `false`                         | Enable server-side search              |
+| `disableActions`         | `boolean`  | No       | `false`                         | Hide action buttons                    |
+| `rowExpansion`           | `object`   | No       | `undefined`                     | Row expansion config for nested tables |
+| **Filters**              |
+| `hideFilters`            | `boolean`  | No       | `false`                         | Hide filter toolbar                    |
+| `filterList`             | `array`    | No       | `[]`                            | Filter configurations                  |
+| `forceFilter`            | `function` | No       | `undefined`                     | Force filter on data                   |
 
 ### ModuleInfo Type
 
 ```typescript
 type ModuleInfo = {
-  name: string;     // Plural name (e.g., "Users")
-  term: string;     // Singular name (e.g., "User")
+  name: string; // Plural name (e.g., "Users")
+  term: string; // Singular name (e.g., "User")
 };
 ```
 
@@ -132,12 +133,12 @@ type ModuleInfo = {
 
 ```typescript
 type Column = {
-  accessor: string;           // Data key
-  title: string;              // Column header
-  width?: number;             // Column width
-  sortable?: boolean;         // Enable sorting
+  accessor: string; // Data key
+  title: string; // Column header
+  width?: number; // Column width
+  sortable?: boolean; // Enable sorting
   render?: (record) => ReactNode; // Custom cell renderer
-  visible?: boolean;          // Initial visibility
+  visible?: boolean; // Initial visibility
 };
 ```
 
@@ -145,9 +146,9 @@ type Column = {
 
 ```typescript
 type Tab = {
-  label: string;              // Tab label
-  leftSection?: ReactNode;    // Icon or element on left
-  rightSection?: ReactNode;   // Badge or element on right
+  label: string; // Tab label
+  leftSection?: ReactNode; // Icon or element on left
+  rightSection?: ReactNode; // Badge or element on right
 };
 ```
 
@@ -183,9 +184,7 @@ const columns = [
   {
     accessor: "email",
     title: "Email",
-    render: (record) => (
-      <a href={`mailto:${record.email}`}>{record.email}</a>
-    ),
+    render: (record) => <a href={`mailto:${record.email}`}>{record.email}</a>,
   },
   {
     accessor: "createdAt",
@@ -271,19 +270,19 @@ export function UsersTable() {
       title: "Name",
       render: (record) => (
         <div>
-          <Text size="sm" fw={500}>{record.firstName} {record.lastName}</Text>
-          <Text size="xs" c="dimmed">{record.email}</Text>
+          <Text size="sm" fw={500}>
+            {record.firstName} {record.lastName}
+          </Text>
+          <Text size="xs" c="dimmed">
+            {record.email}
+          </Text>
         </div>
       ),
     },
     {
       accessor: "role",
       title: "Role",
-      render: (record) => (
-        <Badge variant="light">
-          {record.role}
-        </Badge>
-      ),
+      render: (record) => <Badge variant="light">{record.role}</Badge>,
     },
     {
       accessor: "status",
@@ -381,12 +380,12 @@ export function OrdersTable() {
   return (
     <DataTableWrapper
       queryKey="orders.list"
-      enableServerQuery={true}  // Enable server-side mode
+      enableServerQuery={true} // Enable server-side mode
       dataKey="results"
       paginationDataKey="pagination"
       queryGetFn={async ({ page, pageSize, search }) => {
         const res = await fetch(
-          `/api/orders?page=${page}&pageSize=${pageSize}&search=${search}`
+          `/api/orders?page=${page}&pageSize=${pageSize}&search=${search}`,
         );
         return res.json();
       }}
@@ -394,7 +393,7 @@ export function OrdersTable() {
       <DataTableShell
         moduleInfo={{ name: "Orders", term: "Order" }}
         idAccessor="orderId"
-        hasServerSearch={true}  // Enable server search
+        hasServerSearch={true} // Enable server search
         columns={[
           { accessor: "orderId", title: "Order ID" },
           { accessor: "customer", title: "Customer" },
@@ -414,7 +413,7 @@ export function OrdersTable() {
 <DataTableShell
   moduleInfo={{ name: "Transactions", term: "Transaction" }}
   columns={columns}
-  pageSizes={[25, 50, 100, 250]}  // Custom page size options
+  pageSizes={[25, 50, 100, 250]} // Custom page size options
   onEditClick={handleEdit}
 />
 ```
@@ -447,9 +446,9 @@ const filterList = [
   moduleInfo={{ name: "Users", term: "User" }}
   columns={columns}
   filterList={filterList}
-  hideFilters={false}  // Show filter toolbar
+  hideFilters={false} // Show filter toolbar
   onEditClick={handleEdit}
-/>
+/>;
 ```
 
 ## Row Expansion (Nested Tables)
@@ -475,7 +474,7 @@ export function CompaniesPage() {
           allowMultiple: true,
           expanded: {
             recordIds: expandedRecordIds,
-            onRecordIdsChange: setExpandedRecordIds
+            onRecordIdsChange: setExpandedRecordIds,
           },
           content: ({ record }) => <DepartmentsTable companyId={record.id} />,
         }}
@@ -512,7 +511,9 @@ function EmployeesTable({ departmentId }: { departmentId: string }) {
           render: ({ firstName, lastName }) => (
             <Box component="span" ml={40}>
               <IconUser className={classes.icon} />
-              <span>{firstName} {lastName}</span>
+              <span>
+                {firstName} {lastName}
+              </span>
             </Box>
           ),
         },
@@ -561,7 +562,10 @@ function DepartmentsTable({ companyId }: { companyId: string }) {
       fetching={loading}
       rowExpansion={{
         allowMultiple: true,
-        expanded: { recordIds: expandedRecordIds, onRecordIdsChange: setExpandedRecordIds },
+        expanded: {
+          recordIds: expandedRecordIds,
+          onRecordIdsChange: setExpandedRecordIds,
+        },
         content: ({ record }) => <EmployeesTable departmentId={record.id} />,
       }}
     />
@@ -598,7 +602,10 @@ export function CompaniesPage() {
         columns={columns}
         rowExpansion={{
           allowMultiple: true,
-          expanded: { recordIds: expandedRecordIds, onRecordIdsChange: setExpandedRecordIds },
+          expanded: {
+            recordIds: expandedRecordIds,
+            onRecordIdsChange: setExpandedRecordIds,
+          },
           content: ({ record }) => <DepartmentsTable companyId={record.id} />,
         }}
       />
@@ -640,20 +647,16 @@ function UsersWithTabs() {
   // Filter data based on active tab
   const filteredData = useMemo(() => {
     if (activeTab === 0) return data; // All users
-    if (activeTab === 1) return data.filter(u => u.status === "active");
-    if (activeTab === 2) return data.filter(u => u.status === "inactive");
+    if (activeTab === 1) return data.filter((u) => u.status === "active");
+    if (activeTab === 2) return data.filter((u) => u.status === "inactive");
     return data;
   }, [data, activeTab]);
 
   return (
     <DataTableShell
       columns={columns}
-      tabs={[
-        { label: "All" },
-        { label: "Active" },
-        { label: "Inactive" },
-      ]}
-      forceFilter={() => filteredData}  // Use filtered data
+      tabs={[{ label: "All" }, { label: "Active" }, { label: "Inactive" }]}
+      forceFilter={() => filteredData} // Use filtered data
       onEditClick={handleEdit}
     />
   );
@@ -759,7 +762,7 @@ const handleDelete = (ids: number[]) => {
 
 ```tsx
 const { data } = DataTableWrapper.useDataTableContext();
-console.log("Data:", data);  // Check if data is loaded
+console.log("Data:", data); // Check if data is loaded
 ```
 
 ### Issue: Actions not working
@@ -768,7 +771,7 @@ console.log("Data:", data);  // Check if data is loaded
 
 ```tsx
 <DataTableShell
-  onEditClick={(record) => console.log(record)}  // Must provide handler
+  onEditClick={(record) => console.log(record)} // Must provide handler
   onDeleteClick={(ids) => console.log(ids)}
 />
 ```

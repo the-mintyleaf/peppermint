@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Grid,
-  Paper,
-  Stack,
-  Group,
-  Text,
-  Button,
-} from "@peppermint/ui";
+import { Grid, Paper, Stack, Group, Text, Button } from "@peppermint/ui";
 import { SparkleIcon } from "@phosphor-icons/react/dist/csr/Sparkle";
 import { ChannelSelector } from "../../components/ChannelSelector/ChannelSelector";
 import { CaptionEditor } from "../../components/CaptionEditor/CaptionEditor";
@@ -47,7 +40,10 @@ export function ComposeEditor() {
         ) : undefined
       }
     >
-      <Stack gap="md" style={{ height: "calc(100vh - 160px)", overflow: "auto" }}>
+      <Stack
+        gap="md"
+        style={{ height: "calc(100vh - 160px)", overflow: "auto" }}
+      >
         <ValidationBanner />
 
         <Grid gutter="md">

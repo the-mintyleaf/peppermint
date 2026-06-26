@@ -1,4 +1,10 @@
-import type { Platform, ContentItem, ChannelVariant, ScheduleInfo, MediaRef } from "../shared/domain.types";
+import type {
+  Platform,
+  ContentItem,
+  ChannelVariant,
+  ScheduleInfo,
+  MediaRef,
+} from "../shared/domain.types";
 
 export interface VariantEditorState {
   platform: Platform;

@@ -1,26 +1,20 @@
-'use client';
+"use client";
 
-import { useCallback, useMemo, useState } from 'react';
-import {
-  Button,
-  NumberInput,
-  Stack,
-  Text,
-  TextInput,
-} from '@peppermint/ui';
-import { ArrowLeftIcon } from '@phosphor-icons/react/dist/csr/ArrowLeft';
-import { FunnelIcon } from '@phosphor-icons/react/dist/csr/Funnel';
-import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
-import { DateInput } from '@mantine/dates';
-import { useTableStore } from '../../../../wrappers/DataTableWrapper';
-import type { DataTableShellColumn } from '../../DataTableShell.types';
-import { ToolbarIconButton } from './ToolbarIconButton';
+import { useCallback, useMemo, useState } from "react";
+import { Button, NumberInput, Stack, Text, TextInput } from "@peppermint/ui";
+import { ArrowLeftIcon } from "@phosphor-icons/react/dist/csr/ArrowLeft";
+import { FunnelIcon } from "@phosphor-icons/react/dist/csr/Funnel";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
+import { DateInput } from "@mantine/dates";
+import { useTableStore } from "../../../../wrappers/DataTableWrapper";
+import type { DataTableShellColumn } from "../../DataTableShell.types";
+import { ToolbarIconButton } from "./ToolbarIconButton";
 import {
   getColumnKey,
   getColumnLabel,
   getFilterIcon,
   getFilterableColumns,
-} from './toolbar.utils';
+} from "./toolbar.utils";
 
 interface DataTableShellFilterMenuProps<T extends Record<string, unknown>> {
   columns: DataTableShellColumn<T>[];
@@ -29,7 +23,7 @@ interface DataTableShellFilterMenuProps<T extends Record<string, unknown>> {
   onApplied?: () => void;
 }
 
-type FilterStep = 'pick' | 'value';
+type FilterStep = "pick" | "value";
 
 export function DataTableShellFilterMenu<T extends Record<string, unknown>>({
   columns,
@@ -37,11 +31,13 @@ export function DataTableShellFilterMenu<T extends Record<string, unknown>>({
   onApplied,
 }: DataTableShellFilterMenuProps<T>) {
   const [opened, setOpened] = useState(false);
-  const [step, setStep] = useState<FilterStep>('pick');
-  const [fieldQuery, setFieldQuery] = useState('');
-  const [optionQuery, setOptionQuery] = useState('');
+  const [step, setStep] = useState<FilterStep>("pick");
+  const [fieldQuery, setFieldQuery] = useState("");
+  const [optionQuery, setOptionQuery] = useState("");
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const [draftValue, setDraftValue] = useState<string | number | Date | null>('');
+  const [draftValue, setDraftValue] = useState<string | number | Date | null>(
+    "",
+  );
 
   const useTable = useTableStore();
   const filters = useTable((s) => s.filters);
@@ -62,7 +58,7 @@ export function DataTableShellFilterMenu<T extends Record<string, unknown>>({
     getColumnLabel(col).toLowerCase().includes(normalizedFieldQuery),
   );
 
-  const filterType = selectedColumn?.filter?.type ?? 'text';
+  const filterType = selectedColumn?.filter?.type ?? "text";
   const selectOptions = selectedColumn?.filter?.options ?? [];
   const normalizedOptionQuery = optionQuery.trim().toLowerCase();
   const filteredOptions = selectOptions.filter((opt) =>
@@ -70,11 +66,11 @@ export function DataTableShellFilterMenu<T extends Record<string, unknown>>({
   );
 
   const resetState = useCallback(() => {
-    setStep('pick');
-    setFieldQuery('');
-    setOptionQuery('');
+    setStep("pick");
+    setFieldQuery("");
+    setOptionQuery("");
     setSelectedKey(null);
-    setDraftValue('');
+    setDraftValue("");
   }, []);
 
   const handleClose = useCallback(() => {
@@ -84,25 +80,33 @@ export function DataTableShellFilterMenu<T extends Record<string, unknown>>({
 
   const handleSelectField = useCallback((key: string) => {
     setSelectedKey(key);
-    setStep('value');
-    setOptionQuery('');
-    setDraftValue('');
+    setStep("value");
+    setOptionQuery("");
+    setDraftValue("");
   }, []);
 
   const handleApply = useCallback(() => {
-    if (!selectedKey || draftValue === '' || draftValue == null) return;
+    if (!selectedKey || draftValue === "" || draftValue == null) return;
     const value =
-      filterType === 'date' && draftValue instanceof Date
+      filterType === "date" && draftValue instanceof Date
         ? draftValue.toISOString().slice(0, 10)
         : draftValue;
     setFilters({ ...filters, [selectedKey]: value });
     handleClose();
     onApplied?.();
-  }, [selectedKey, draftValue, filterType, filters, setFilters, handleClose, onApplied]);
+  }, [
+    selectedKey,
+    draftValue,
+    filterType,
+    filters,
+    setFilters,
+    handleClose,
+    onApplied,
+  ]);
 
   const content = (
     <Stack gap="xs">
-      {step === 'pick' ? (
+      {step === "pick" ? (
         <>
           <TextInput
             size="xs"
@@ -112,7 +116,7 @@ export function DataTableShellFilterMenu<T extends Record<string, unknown>>({
             onChange={(e) => setFieldQuery(e.currentTarget.value)}
             autoFocus
           />
-          <Stack gap={0} mah={280} style={{ overflowY: 'auto' }}>
+          <Stack gap={0} mah={280} style={{ overflowY: "auto" }}>
             {filteredFields.map((col) => {
               const key = getColumnKey(col);
               const label = getColumnLabel(col);
@@ -123,7 +127,7 @@ export function DataTableShellFilterMenu<T extends Record<string, unknown>>({
                   justify="left"
                   variant="subtle"
                   size="xs"
-                   leftSection={<Icon size={16} weight="duotone" />}
+                  leftSection={<Icon size={16} weight="duotone" />}
                   onClick={() => handleSelectField(key)}
                 >
                   {label}
@@ -133,8 +137,8 @@ export function DataTableShellFilterMenu<T extends Record<string, unknown>>({
             {filteredFields.length === 0 && (
               <Text size="xs" c="dimmed" ta="center" py="sm">
                 {filterableColumns.length === 0
-                  ? 'No filterable columns'
-                  : 'No columns match'}
+                  ? "No filterable columns"
+                  : "No columns match"}
               </Text>
             )}
           </Stack>
@@ -147,15 +151,15 @@ export function DataTableShellFilterMenu<T extends Record<string, unknown>>({
             justify="left"
             leftSection={<ArrowLeftIcon size={14} />}
             onClick={() => {
-              setStep('pick');
+              setStep("pick");
               setSelectedKey(null);
-              setDraftValue('');
+              setDraftValue("");
             }}
           >
-            {selectedColumn ? getColumnLabel(selectedColumn) : 'Back'}
+            {selectedColumn ? getColumnLabel(selectedColumn) : "Back"}
           </Button>
 
-          {filterType === 'select' && (
+          {filterType === "select" && (
             <>
               <TextInput
                 size="xs"
@@ -165,14 +169,14 @@ export function DataTableShellFilterMenu<T extends Record<string, unknown>>({
                 onChange={(e) => setOptionQuery(e.currentTarget.value)}
                 autoFocus
               />
-              <Stack gap={0} mah={200} style={{ overflowY: 'auto' }}>
+              <Stack gap={0} mah={200} style={{ overflowY: "auto" }}>
                 {filteredOptions.map((opt) => (
                   <Button
                     key={opt.value}
                     justify="left"
-                    variant={draftValue === opt.value ? 'light' : 'subtle'}
+                    variant={draftValue === opt.value ? "light" : "subtle"}
                     size="xs"
-                     onClick={() => {
+                    onClick={() => {
                       setDraftValue(opt.value);
                       setFilters({ ...filters, [selectedKey!]: opt.value });
                       handleClose();
@@ -186,43 +190,45 @@ export function DataTableShellFilterMenu<T extends Record<string, unknown>>({
             </>
           )}
 
-          {filterType === 'text' && (
+          {filterType === "text" && (
             <TextInput
               size="xs"
-              placeholder={selectedColumn?.filter?.placeholder ?? 'Enter value'}
-              value={String(draftValue ?? '')}
+              placeholder={selectedColumn?.filter?.placeholder ?? "Enter value"}
+              value={String(draftValue ?? "")}
               onChange={(e) => setDraftValue(e.currentTarget.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleApply();
+                if (e.key === "Enter") handleApply();
               }}
               autoFocus
             />
           )}
 
-          {filterType === 'number' && (
+          {filterType === "number" && (
             <NumberInput
               size="xs"
-              placeholder={selectedColumn?.filter?.placeholder ?? 'Enter number'}
-              value={typeof draftValue === 'number' ? draftValue : ''}
+              placeholder={
+                selectedColumn?.filter?.placeholder ?? "Enter number"
+              }
+              value={typeof draftValue === "number" ? draftValue : ""}
               onChange={(val) => setDraftValue(val)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleApply();
+                if (e.key === "Enter") handleApply();
               }}
               autoFocus
             />
           )}
 
-          {filterType === 'date' && (
+          {filterType === "date" && (
             <DateInput
               size="xs"
-              placeholder={selectedColumn?.filter?.placeholder ?? 'Pick date'}
+              placeholder={selectedColumn?.filter?.placeholder ?? "Pick date"}
               value={draftValue instanceof Date ? draftValue : null}
               onChange={(val) => setDraftValue(val)}
               autoFocus
             />
           )}
 
-          {filterType !== 'select' && (
+          {filterType !== "select" && (
             <Button size="xs" onClick={handleApply} disabled={!draftValue}>
               Apply filter
             </Button>

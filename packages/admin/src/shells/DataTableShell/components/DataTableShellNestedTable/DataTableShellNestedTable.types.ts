@@ -1,6 +1,8 @@
-import type { DataTableColumn } from 'mantine-datatable';
+import type { DataTableColumn } from "mantine-datatable";
 
-export interface DataTableShellNestedTableProps<T extends Record<string, unknown>> {
+export interface DataTableShellNestedTableProps<
+  T extends Record<string, unknown>,
+> {
   records: T[];
   columns: DataTableColumn<T>[];
   idAccessor?: string;

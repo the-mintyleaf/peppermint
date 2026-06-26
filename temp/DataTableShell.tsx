@@ -108,20 +108,23 @@ export function DataTableShell({
     [resetPage],
   );
 
-  const handleToggleColumn = useCallback((index: number) => {
-    setCustomColumns((prev: any) => {
-      const updated = prev.map((cinfo: any, cindex: number) =>
-        cindex === index ? { ...cinfo, visible: !cinfo.visible } : cinfo,
-      );
-      // Save to localStorage
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(updated));
-      } catch (error) {
-        console.warn("Failed to save column preferences:", error);
-      }
-      return updated;
-    });
-  }, [storageKey]);
+  const handleToggleColumn = useCallback(
+    (index: number) => {
+      setCustomColumns((prev: any) => {
+        const updated = prev.map((cinfo: any, cindex: number) =>
+          cindex === index ? { ...cinfo, visible: !cinfo.visible } : cinfo,
+        );
+        // Save to localStorage
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(updated));
+        } catch (error) {
+          console.warn("Failed to save column preferences:", error);
+        }
+        return updated;
+      });
+    },
+    [storageKey],
+  );
 
   const handleResetColumns = useCallback(() => {
     setCustomColumns((prev: any) => {

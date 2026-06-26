@@ -1,4 +1,8 @@
-import type { ScheduledTask, ScheduleDay, TeamMember } from "../../taskAnalytics.types";
+import type {
+  ScheduledTask,
+  ScheduleDay,
+  TeamMember,
+} from "../../taskAnalytics.types";
 import type { DashboardView } from "../../taskAnalytics.types";
 
 export interface PlanningScheduleProps {

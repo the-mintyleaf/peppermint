@@ -1,7 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Badge, Button, Chip, Divider, Group, Paper, Stack, Text } from "@peppermint/ui";
+import {
+  Badge,
+  Button,
+  Chip,
+  Divider,
+  Group,
+  Paper,
+  Stack,
+  Text,
+} from "@peppermint/ui";
 import { FunnelIcon } from "@phosphor-icons/react/dist/csr/Funnel";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
@@ -19,17 +28,49 @@ const FILTER_OPTIONS: Array<{ key: FilterKey; label: string }> = [
   { key: "inactive_only", label: "Inactive only" },
 ];
 
-const STRATEGY_OPTIONS: Array<{ key: ExpandStrategy; label: string; description: string }> = [
-  { key: "direct", label: "Direct children", description: "Show only immediate next level" },
-  { key: "depts_only", label: "Depts only", description: "Expand departments, skip people" },
-  { key: "people_only", label: "People only", description: "Expand people, skip departments" },
-  { key: "leadership", label: "Leadership chain", description: "Head and manager roles only" },
-  { key: "full_branch", label: "Full branch", description: "Expand entire subtree (may be large)" },
+const STRATEGY_OPTIONS: Array<{
+  key: ExpandStrategy;
+  label: string;
+  description: string;
+}> = [
+  {
+    key: "direct",
+    label: "Direct children",
+    description: "Show only immediate next level",
+  },
+  {
+    key: "depts_only",
+    label: "Depts only",
+    description: "Expand departments, skip people",
+  },
+  {
+    key: "people_only",
+    label: "People only",
+    description: "Expand people, skip departments",
+  },
+  {
+    key: "leadership",
+    label: "Leadership chain",
+    description: "Head and manager roles only",
+  },
+  {
+    key: "full_branch",
+    label: "Full branch",
+    description: "Expand entire subtree (may be large)",
+  },
 ];
 
 export function FiltersPanel() {
   const [open, setOpen] = useState(false);
-  const { activeFilters, expandStrategy, expandedNodeIds, setFilter, clearFilters, setExpandStrategy, reapplyExpandStrategy } = useOrgTreeStore();
+  const {
+    activeFilters,
+    expandStrategy,
+    expandedNodeIds,
+    setFilter,
+    clearFilters,
+    setExpandStrategy,
+    reapplyExpandStrategy,
+  } = useOrgTreeStore();
 
   const activeCount = activeFilters.length;
 
@@ -47,7 +88,13 @@ export function FiltersPanel() {
         variant={activeCount > 0 ? "filled" : "light"}
         color="indigo"
         leftSection={<FunnelIcon size={13} aria-label="Filters" />}
-        rightSection={activeCount > 0 ? <Badge size="xs" color="white" c="indigo" circle>{activeCount}</Badge> : null}
+        rightSection={
+          activeCount > 0 ? (
+            <Badge size="xs" color="white" c="indigo" circle>
+              {activeCount}
+            </Badge>
+          ) : null
+        }
         onClick={() => setOpen((v) => !v)}
       >
         Filters
@@ -69,7 +116,9 @@ export function FiltersPanel() {
         >
           <Stack gap="sm">
             <Group justify="space-between" align="center">
-              <Text size="xs" fw={600} tt="uppercase" c="dimmed">Filters</Text>
+              <Text size="xs" fw={600} tt="uppercase" c="dimmed">
+                Filters
+              </Text>
               {activeCount > 0 && (
                 <Button
                   size="compact-xs"
@@ -100,13 +149,17 @@ export function FiltersPanel() {
 
             <Stack gap={6}>
               <Group justify="space-between" align="center">
-                <Text size="xs" fw={600} tt="uppercase" c="dimmed">Expand Strategy</Text>
+                <Text size="xs" fw={600} tt="uppercase" c="dimmed">
+                  Expand Strategy
+                </Text>
                 {expandedNodeIds.length > 0 && (
                   <Button
                     size="compact-xs"
                     variant="light"
                     color="indigo"
-                    leftSection={<ArrowsClockwiseIcon size={11} aria-label="Re-apply" />}
+                    leftSection={
+                      <ArrowsClockwiseIcon size={11} aria-label="Re-apply" />
+                    }
                     onClick={reapplyExpandStrategy}
                   >
                     Re-apply
@@ -120,19 +173,27 @@ export function FiltersPanel() {
                     padding: "6px 8px",
                     borderRadius: 6,
                     cursor: "pointer",
-                    background: expandStrategy === key
-                      ? "var(--mantine-color-indigo-0)"
-                      : "transparent",
-                    border: expandStrategy === key
-                      ? "1px solid var(--mantine-color-indigo-3)"
-                      : "1px solid transparent",
+                    background:
+                      expandStrategy === key
+                        ? "var(--mantine-color-indigo-0)"
+                        : "transparent",
+                    border:
+                      expandStrategy === key
+                        ? "1px solid var(--mantine-color-indigo-3)"
+                        : "1px solid transparent",
                   }}
                   onClick={() => setExpandStrategy(key)}
                 >
-                  <Text size="xs" fw={expandStrategy === key ? 600 : 400} c={expandStrategy === key ? "indigo" : "dark"}>
+                  <Text
+                    size="xs"
+                    fw={expandStrategy === key ? 600 : 400}
+                    c={expandStrategy === key ? "indigo" : "dark"}
+                  >
                     {label}
                   </Text>
-                  <Text size="xs" c="dimmed" style={{ fontSize: 10 }}>{description}</Text>
+                  <Text size="xs" c="dimmed" style={{ fontSize: 10 }}>
+                    {description}
+                  </Text>
                 </div>
               ))}
             </Stack>

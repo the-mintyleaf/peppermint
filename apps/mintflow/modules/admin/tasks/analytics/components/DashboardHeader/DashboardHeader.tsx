@@ -57,12 +57,19 @@ export function DashboardHeader({
           radius="xl"
           styles={{
             root: { background: "var(--mantine-color-gray-1)" },
-            label: { paddingInline: 12, fontSize: "var(--mantine-font-size-xs)" },
+            label: {
+              paddingInline: 12,
+              fontSize: "var(--mantine-font-size-xs)",
+            },
           }}
         />
       </Group>
 
-      <Group gap="md" wrap="wrap" style={{ flex: 1, justifyContent: "flex-end" }}>
+      <Group
+        gap="md"
+        wrap="wrap"
+        style={{ flex: 1, justifyContent: "flex-end" }}
+      >
         <TextInput
           placeholder="Search event, task, or meeting..."
           leftSection={<MagnifyingGlassIcon size={14} aria-label="Search" />}
@@ -81,7 +88,12 @@ export function DashboardHeader({
         />
         <Avatar.Group spacing="sm">
           {teamMembers.map((member) => (
-            <Avatar key={member.initials} radius="xl" color={member.color} size="sm">
+            <Avatar
+              key={member.initials}
+              radius="xl"
+              color={member.color}
+              size="sm"
+            >
               {member.initials}
             </Avatar>
           ))}

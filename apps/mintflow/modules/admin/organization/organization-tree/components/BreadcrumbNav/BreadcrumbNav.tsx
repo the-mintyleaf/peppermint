@@ -11,7 +11,11 @@ interface BreadcrumbNavProps {
   onExitFocus: () => void;
 }
 
-export function BreadcrumbNav({ path, onNavigate, onExitFocus }: BreadcrumbNavProps) {
+export function BreadcrumbNav({
+  path,
+  onNavigate,
+  onExitFocus,
+}: BreadcrumbNavProps) {
   if (path.length === 0) return null;
 
   return (
@@ -33,17 +37,40 @@ export function BreadcrumbNav({ path, onNavigate, onExitFocus }: BreadcrumbNavPr
         overflow: "hidden",
       }}
     >
-      <CrosshairIcon size={13} color="var(--mantine-color-indigo-5)" aria-label="Focus mode" />
+      <CrosshairIcon
+        size={13}
+        color="var(--mantine-color-indigo-5)"
+        aria-label="Focus mode"
+      />
       <Group gap={2} wrap="nowrap" style={{ overflow: "hidden", flex: 1 }}>
         {path.map((item, i) => {
           const isLast = i === path.length - 1;
           return (
-            <Group key={item.id} gap={2} wrap="nowrap" style={{ flexShrink: isLast ? 1 : 0 }}>
+            <Group
+              key={item.id}
+              gap={2}
+              wrap="nowrap"
+              style={{ flexShrink: isLast ? 1 : 0 }}
+            >
               {i > 0 && (
-                <CaretRightIcon size={11} color="var(--mantine-color-dimmed)" aria-hidden />
+                <CaretRightIcon
+                  size={11}
+                  color="var(--mantine-color-dimmed)"
+                  aria-hidden
+                />
               )}
               {isLast ? (
-                <Text size="xs" fw={700} c="dark" style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 160 }}>
+                <Text
+                  size="xs"
+                  fw={700}
+                  c="dark"
+                  style={{
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    maxWidth: 160,
+                  }}
+                >
                   {item.label}
                 </Text>
               ) : (
@@ -52,7 +79,12 @@ export function BreadcrumbNav({ path, onNavigate, onExitFocus }: BreadcrumbNavPr
                   variant="subtle"
                   color="indigo"
                   onClick={() => onNavigate(item.id)}
-                  style={{ padding: "0 4px", height: "auto", minHeight: "auto", fontSize: 11 }}
+                  style={{
+                    padding: "0 4px",
+                    height: "auto",
+                    minHeight: "auto",
+                    fontSize: 11,
+                  }}
                 >
                   {item.label}
                 </Button>
@@ -67,7 +99,13 @@ export function BreadcrumbNav({ path, onNavigate, onExitFocus }: BreadcrumbNavPr
         color="gray"
         leftSection={<XIcon size={11} aria-label="Exit focus" />}
         onClick={onExitFocus}
-        style={{ padding: "0 6px", height: "auto", minHeight: "auto", fontSize: 11, flexShrink: 0 }}
+        style={{
+          padding: "0 6px",
+          height: "auto",
+          minHeight: "auto",
+          fontSize: 11,
+          flexShrink: 0,
+        }}
       >
         Exit Focus
       </Button>

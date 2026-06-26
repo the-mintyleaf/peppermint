@@ -119,20 +119,20 @@ Response (200 OK):
 
 ```typescript
 interface Workflow {
-  id: string;              // e.g., "momo.salesbot"
+  id: string; // e.g., "momo.salesbot"
   nodes: Node[];
   edges: Edge[];
 }
 
 interface Node {
-  id: string;              // e.g., "guard", "reason"
-  kind: string;            // e.g., "system.guardPolicy", "agents.reasoning"
+  id: string; // e.g., "guard", "reason"
+  kind: string; // e.g., "system.guardPolicy", "agents.reasoning"
   config?: Record<string, any>;
 }
 
 interface Edge {
-  source: string;          // Node ID
-  target: string;          // Node ID
+  source: string; // Node ID
+  target: string; // Node ID
 }
 ```
 
@@ -157,16 +157,23 @@ interface Edge {
 ```
 
 **Input:**
+
 ```typescript
-{ message: string }
+{
+  message: string;
+}
 ```
 
 **Output (ok):**
+
 ```typescript
-{ allow: true }
+{
+  allow: true;
+}
 ```
 
 **Output (err):**
+
 ```typescript
 { allow: false, reason: string }
 ```
@@ -212,11 +219,15 @@ interface Edge {
 ```
 
 **Input:**
+
 ```typescript
-{ message: string }
+{
+  message: string;
+}
 ```
 
 **Output:**
+
 ```typescript
 {
   reply: string;
@@ -247,6 +258,7 @@ interface Edge {
 **Input:** Any (for templating)
 
 **Output:**
+
 ```typescript
 {
   status: number;
@@ -281,7 +293,7 @@ type ErrorCode =
 interface ExecutorError {
   code: ErrorCode;
   message: string;
-  retryable?: boolean;  // true = will be retried, false = permanent failure
+  retryable?: boolean; // true = will be retried, false = permanent failure
 }
 ```
 
@@ -298,7 +310,7 @@ interface Ok<T> {
   value: T;
   map<U>(fn: (val: T) => U): Result<U, E>;
   andThen<U, E2>(fn: (val: T) => Result<U, E2>): Result<U, E | E2>;
-  unwrap(): T;  // Throws if Err
+  unwrap(): T; // Throws if Err
   unwrapOr(def: T): T;
 }
 
@@ -324,13 +336,13 @@ interface ExecutorContext {
   sessionId?: string;
 
   // Dependencies
-  redis: Redis;                          // Redis client
-  logger: Logger;                        // Pino logger
-  models: ModelRegistry;                 // LLM adapters
-  metrics: Metrics;                      // Observability
-  config: RuntimeConfig;                 // Settings
-  memory: SessionMemory;                 // Session store
-  eventBus: EventBus;                    // SSE pub/sub
+  redis: Redis; // Redis client
+  logger: Logger; // Pino logger
+  models: ModelRegistry; // LLM adapters
+  metrics: Metrics; // Observability
+  config: RuntimeConfig; // Settings
+  memory: SessionMemory; // Session store
+  eventBus: EventBus; // SSE pub/sub
 
   // Methods
   isCancelled(): Promise<boolean>;
@@ -344,23 +356,15 @@ interface ExecutorContext {
 
 ```typescript
 interface SessionMemory {
-  getSessionMessages(
-    sessionId: string,
-    limit?: number
-  ): Promise<Message[]>;
+  getSessionMessages(sessionId: string, limit?: number): Promise<Message[]>;
 
-  addSessionMessage(
-    sessionId: string,
-    message: Message
-  ): Promise<void>;
+  addSessionMessage(sessionId: string, message: Message): Promise<void>;
 
-  getSessionSummary(
-    sessionId: string
-  ): Promise<Record<string, any> | null>;
+  getSessionSummary(sessionId: string): Promise<Record<string, any> | null>;
 
   updateSessionSummary(
     sessionId: string,
-    summary: Record<string, any>
+    summary: Record<string, any>,
   ): Promise<void>;
 
   clearSession(sessionId: string): Promise<void>;
@@ -379,7 +383,7 @@ interface Message {
 ```typescript
 type Executor<I, O, E> = (
   input: unknown,
-  ctx: ExecutorContext
+  ctx: ExecutorContext,
 ) => Promise<Result<O, E>>;
 ```
 
@@ -398,6 +402,7 @@ const executorRegistry = {
 ```
 
 **Lookup:**
+
 ```typescript
 const executor = executorRegistry["agents.reasoning"];
 const result = await executor(input, ctx);
@@ -424,8 +429,8 @@ interface Event {
   nodeId?: string;
   result?: Record<string, any>;
   error?: ExecutorError;
-  partial?: string;  // For "token" events
-  timestamp: string;  // ISO 8601
+  partial?: string; // For "token" events
+  timestamp: string; // ISO 8601
 }
 ```
 
@@ -468,9 +473,9 @@ if (result.isOk()) {
 
 ```typescript
 const result = ok(data)
-  .map(d => transform(d))
-  .andThen(d => fetchMore(d))
-  .mapErr(e => ({ ...e, context: "myExecutor" }));
+  .map((d) => transform(d))
+  .andThen((d) => fetchMore(d))
+  .mapErr((e) => ({ ...e, context: "myExecutor" }));
 ```
 
 ---
@@ -484,17 +489,17 @@ interface RuntimeConfig {
   maxTokensPerRun?: number;
 
   // Memory
-  sessionMemoryLimit?: number;           // Default: 10 messages
-  sessionTTL?: number;                   // Default: 86400 (24h)
+  sessionMemoryLimit?: number; // Default: 10 messages
+  sessionTTL?: number; // Default: 86400 (24h)
 
   // Jobs
-  maxRetries?: number;                   // Default: 5
-  backoffMS?: number;                    // Default: 1000 (exponential)
-  jobTimeout?: number;                   // Default: 30000 (30s)
+  maxRetries?: number; // Default: 5
+  backoffMS?: number; // Default: 1000 (exponential)
+  jobTimeout?: number; // Default: 30000 (30s)
 
   // Tools
-  toolTimeout?: number;                  // Default: 5000
-  maxToolCalls?: number;                 // Default: 3
+  toolTimeout?: number; // Default: 5000
+  maxToolCalls?: number; // Default: 3
 
   // Guard
   guardPolicy?: {
@@ -536,14 +541,14 @@ SENTRY_DSN=https://...                 # Error tracking
 
 ## Common Error Messages
 
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `Workflow not found: X` | Workflow not registered | Add to registry |
-| `Unknown executor: Y` | Executor not registered | Add to registry |
-| `Invalid input: ...` | Zod validation failed | Check schema |
-| `Redis timeout` | Redis unavailable | Check connection |
-| `Rate limit exceeded` | LLM provider limit hit | Wait & retry |
-| `Session not found` | Session expired or lost | New session |
+| Error                   | Cause                   | Fix              |
+| ----------------------- | ----------------------- | ---------------- |
+| `Workflow not found: X` | Workflow not registered | Add to registry  |
+| `Unknown executor: Y`   | Executor not registered | Add to registry  |
+| `Invalid input: ...`    | Zod validation failed   | Check schema     |
+| `Redis timeout`         | Redis unavailable       | Check connection |
+| `Rate limit exceeded`   | LLM provider limit hit  | Wait & retry     |
+| `Session not found`     | Session expired or lost | New session      |
 
 ---
 

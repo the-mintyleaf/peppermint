@@ -1,6 +1,6 @@
-import type { ZodSchema } from 'zod';
-import type { UseFormReturnType } from '@mantine/form';
-import type { FormValues } from './FormWrapper.types';
+import type { ZodSchema } from "zod";
+import type { UseFormReturnType } from "@mantine/form";
+import type { FormValues } from "./FormWrapper.types";
 
 /**
  * Validates only the fields belonging to the current step.
@@ -19,7 +19,7 @@ import type { FormValues } from './FormWrapper.types';
 export function validateStep(
   form: UseFormReturnType<FormValues>,
   fieldKeys: string[],
-  schema?: ZodSchema
+  schema?: ZodSchema,
 ): boolean {
   if (schema) {
     const result = schema.safeParse(form.values);
@@ -31,7 +31,7 @@ export function validateStep(
     }
     const errors: Record<string, string> = {};
     for (const issue of result.error.issues) {
-      const path = issue.path.map(String).join('.');
+      const path = issue.path.map(String).join(".");
       if (path && !(path in errors)) errors[path] = issue.message;
     }
     form.setErrors(errors);
@@ -41,7 +41,9 @@ export function validateStep(
   // No schema — fall back to form.validate() scoped to this step's field prefixes
   const { errors } = form.validate();
   return !Object.keys(errors).some((errorPath) =>
-    fieldKeys.some((key) => errorPath === key || errorPath.startsWith(key + '.'))
+    fieldKeys.some(
+      (key) => errorPath === key || errorPath.startsWith(key + "."),
+    ),
   );
 }
 
@@ -50,7 +52,7 @@ export function validateStep(
  */
 export function shallowEqual(
   a: Record<string, unknown>,
-  b: Record<string, unknown>
+  b: Record<string, unknown>,
 ): boolean {
   const aKeys = Object.keys(a);
   const bKeys = Object.keys(b);
@@ -66,6 +68,6 @@ export function draftSerialize(values: unknown): string {
   try {
     return JSON.stringify(values);
   } catch {
-    return '';
+    return "";
   }
 }

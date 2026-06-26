@@ -37,14 +37,14 @@ describe("nodeCustom", () => {
       logger: {
         info: jest.fn(),
         warn: jest.fn(),
-        error: jest.fn()
+        error: jest.fn(),
       },
       memory: {
         getSessionMessages: jest.fn().mockResolvedValue([]),
         addSessionMessage: jest.fn(),
         getSessionSummary: jest.fn().mockResolvedValue(null),
-        updateSessionSummary: jest.fn()
-      }
+        updateSessionSummary: jest.fn(),
+      },
     });
   });
 
@@ -58,7 +58,7 @@ describe("nodeCustom", () => {
 it("should process valid input", async () => {
   const input = {
     sessionId: "test-session",
-    message: "Hello"
+    message: "Hello",
   };
 
   const result = await nodeCustom(input, mockCtx);
@@ -73,7 +73,7 @@ it("should process valid input", async () => {
   // Verify session was updated
   expect(mockCtx.memory.addSessionMessage).toHaveBeenCalledWith(
     "test-session",
-    expect.objectContaining({ role: "user" })
+    expect.objectContaining({ role: "user" }),
   );
 });
 ```
@@ -84,7 +84,7 @@ it("should process valid input", async () => {
 it("should reject invalid input", async () => {
   const input = {
     sessionId: "test-session",
-    message: ""  // Empty message
+    message: "", // Empty message
   };
 
   const result = await nodeCustom(input, mockCtx);
@@ -105,12 +105,13 @@ it("should reject invalid input", async () => {
 
 ```typescript
 it("should handle Redis errors gracefully", async () => {
-  mockCtx.memory.getSessionMessages = jest.fn()
+  mockCtx.memory.getSessionMessages = jest
+    .fn()
     .mockRejectedValueOnce(new Error("Redis timeout"));
 
   const input = {
     sessionId: "test-session",
-    message: "Hello"
+    message: "Hello",
   };
 
   const result = await nodeCustom(input, mockCtx);
@@ -119,7 +120,7 @@ it("should handle Redis errors gracefully", async () => {
 
   if (result.isErr()) {
     expect(result.error.code).toBe("DEPENDENCY_ERROR");
-    expect(result.error.retryable).toBe(true);  // Should be retried
+    expect(result.error.retryable).toBe(true); // Should be retried
   }
 });
 ```
@@ -128,12 +129,13 @@ it("should handle Redis errors gracefully", async () => {
 
 ```typescript
 it("should handle LLM errors with retry", async () => {
-  mockCtx.models.invoke = jest.fn()
+  mockCtx.models.invoke = jest
+    .fn()
     .mockRejectedValueOnce(new Error("Rate limit exceeded"));
 
   const input = {
     sessionId: "test-session",
-    message: "Hello"
+    message: "Hello",
   };
 
   const result = await nodeCustom(input, mockCtx);
@@ -155,7 +157,7 @@ it("should respect cancellation", async () => {
 
   const input = {
     sessionId: "test-session",
-    message: "Hello"
+    message: "Hello",
   };
 
   const result = await nodeCustom(input, mockCtx);
@@ -190,7 +192,7 @@ describe("nodeCustom integration", () => {
     ctx = createExecutorContext({
       redis,
       sessionId: "integration-test",
-      memory: new RealSessionStore(redis)
+      memory: new RealSessionStore(redis),
     });
 
     // Clean test data
@@ -205,7 +207,7 @@ describe("nodeCustom integration", () => {
   it("should update session memory", async () => {
     const input = {
       sessionId: "integration-test",
-      message: "Hello"
+      message: "Hello",
     };
 
     const result = await nodeCustom(input, ctx);
@@ -216,7 +218,7 @@ describe("nodeCustom integration", () => {
     const messages = await redis.lrange(
       "session:integration-test:messages",
       0,
-      -1
+      -1,
     );
     expect(messages.length).toBeGreaterThan(0);
   });
@@ -241,8 +243,8 @@ describe("Sales bot workflow E2E", () => {
       body: JSON.stringify({
         workflowId: "momo.salesbot",
         sessionId: "e2e-test",
-        input: { message: "I want running shoes" }
-      })
+        input: { message: "I want running shoes" },
+      }),
     });
 
     expect(runRes.status).toBe(202);
@@ -277,12 +279,12 @@ describe("Sales bot workflow E2E", () => {
     expect(events).toContainEqual(expect.stringContaining("run.finished"));
 
     // Should have processed through guard → reason
-    const nodeEvents = events.filter(e => e.includes("node."));
+    const nodeEvents = events.filter((e) => e.includes("node."));
     expect(nodeEvents.length).toBeGreaterThanOrEqual(4);
   });
 
   it("should reject invalid input via guard", async () => {
-    const tooLong = "a".repeat(6000);  // > 5000 limit
+    const tooLong = "a".repeat(6000); // > 5000 limit
 
     const runRes = await fetch(`${baseUrl}/v1/runs`, {
       method: "POST",
@@ -290,15 +292,15 @@ describe("Sales bot workflow E2E", () => {
       body: JSON.stringify({
         workflowId: "momo.salesbot",
         sessionId: "e2e-test-2",
-        input: { message: tooLong }
-      })
+        input: { message: tooLong },
+      }),
     });
 
     const { runId } = await runRes.json();
 
     // Guard should reject
     const events = await streamEventsUntilComplete(runId);
-    const failed = events.find(e => e.type === "run.failed");
+    const failed = events.find((e) => e.type === "run.failed");
     expect(failed).toBeDefined();
   });
 });
@@ -317,7 +319,9 @@ async function streamEventsUntilComplete(runId: string): Promise<any[]> {
 
     events.push(...parsed);
 
-    if (parsed.some(e => e.type === "run.finished" || e.type === "run.failed")) {
+    if (
+      parsed.some((e) => e.type === "run.finished" || e.type === "run.failed")
+    ) {
       break;
     }
   }
@@ -332,12 +336,12 @@ async function streamEventsUntilComplete(runId: string): Promise<any[]> {
 
 ### Target Coverage
 
-| Layer | Coverage | Critical |
-|-------|----------|----------|
-| Executors | 80%+ | Yes |
-| Workflows | 60%+ | No |
-| Utilities | 90%+ | Yes |
-| **Overall** | **70%+** | - |
+| Layer       | Coverage | Critical |
+| ----------- | -------- | -------- |
+| Executors   | 80%+     | Yes      |
+| Workflows   | 60%+     | No       |
+| Utilities   | 90%+     | Yes      |
+| **Overall** | **70%+** | -        |
 
 ### Critical Paths to Test
 
@@ -385,25 +389,19 @@ npm test -- --coverage
 ### Create Fixture: Test Session
 
 ```typescript
-export async function createTestSession(
-  redis: Redis,
-  sessionId: string
-) {
+export async function createTestSession(redis: Redis, sessionId: string) {
   const messages = [
     { role: "user", content: "Hello" },
-    { role: "assistant", content: "Hi there!" }
+    { role: "assistant", content: "Hi there!" },
   ];
 
   for (const msg of messages) {
-    await redis.lpush(
-      `session:${sessionId}:messages`,
-      JSON.stringify(msg)
-    );
+    await redis.lpush(`session:${sessionId}:messages`, JSON.stringify(msg));
   }
 
   await redis.set(
     `session:${sessionId}:summary`,
-    JSON.stringify({ phase: "greeting" })
+    JSON.stringify({ phase: "greeting" }),
   );
 }
 ```
@@ -417,10 +415,10 @@ export const testWorkflow: Workflow = {
     {
       id: "guard",
       kind: "system.guardPolicy",
-      config: { maxLength: 100 }
-    }
+      config: { maxLength: 100 },
+    },
   ],
-  edges: []
+  edges: [],
 };
 ```
 
@@ -489,6 +487,7 @@ beforeEach(() => {
 **Cause:** Mock not set up, async operation hangs
 
 **Fix:**
+
 ```typescript
 jest.useFakeTimers();
 // Run test
@@ -501,6 +500,7 @@ jest.useRealTimers();
 **Cause:** Wrong mock setup or test logic wrong
 
 **Fix:**
+
 ```typescript
 expect(mockCtx.memory.addSessionMessage).toHaveBeenCalled();
 // If fails, check:

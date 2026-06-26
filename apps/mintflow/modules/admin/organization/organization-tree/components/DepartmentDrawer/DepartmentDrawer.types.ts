@@ -1,4 +1,7 @@
-import type { DepartmentData, NodeHealthIssue } from "../../OrganizationTree.types";
+import type {
+  DepartmentData,
+  NodeHealthIssue,
+} from "../../OrganizationTree.types";
 
 export interface DepartmentDrawerProps {
   opened: boolean;

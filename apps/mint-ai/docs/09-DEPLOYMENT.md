@@ -52,16 +52,16 @@ SENTRY_DSN=https://...  # Error tracking
 
 ### Critical Variables
 
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| `NODE_ENV` | Environment | development |
-| `LOG_LEVEL` | Log verbosity | info |
-| `DEEPSEEK_API_KEY` | LLM API key | (required) |
-| `VAGENT_REDIS_URL` | Redis connection | redis://localhost:6379 |
-| `VAGENT_PORT` | Server port | 3000 |
-| `VAGENT_WORKERS` | Worker count | 2 |
-| `VAGENT_JOB_TIMEOUT` | Max job duration (ms) | 30000 |
-| `VAGENT_SESSION_TTL` | Session expiry (s) | 86400 |
+| Variable             | Purpose               | Default                |
+| -------------------- | --------------------- | ---------------------- |
+| `NODE_ENV`           | Environment           | development            |
+| `LOG_LEVEL`          | Log verbosity         | info                   |
+| `DEEPSEEK_API_KEY`   | LLM API key           | (required)             |
+| `VAGENT_REDIS_URL`   | Redis connection      | redis://localhost:6379 |
+| `VAGENT_PORT`        | Server port           | 3000                   |
+| `VAGENT_WORKERS`     | Worker count          | 2                      |
+| `VAGENT_JOB_TIMEOUT` | Max job duration (ms) | 30000                  |
+| `VAGENT_SESSION_TTL` | Session expiry (s)    | 86400                  |
 
 ---
 
@@ -179,44 +179,44 @@ spec:
         app: mint-ai
     spec:
       containers:
-      - name: api
-        image: mint-ai:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 3000
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: LOG_LEVEL
-          value: "info"
-        - name: DEEPSEEK_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: mint-ai-secrets
-              key: deepseek-key
-        - name: VAGENT_REDIS_URL
-          value: "redis://redis-cluster:6379"
-        - name: VAGENT_WORKERS
-          value: "8"
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "500m"
-          limits:
-            memory: "512Mi"
-            cpu: "1000m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 3000
-          initialDelaySeconds: 10
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 3000
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: api
+          image: mint-ai:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: LOG_LEVEL
+              value: "info"
+            - name: DEEPSEEK_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: mint-ai-secrets
+                  key: deepseek-key
+            - name: VAGENT_REDIS_URL
+              value: "redis://redis-cluster:6379"
+            - name: VAGENT_WORKERS
+              value: "8"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "500m"
+            limits:
+              memory: "512Mi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
 
 ---
 apiVersion: v1
@@ -226,8 +226,8 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 3000
-    targetPort: 3000
+    - port: 3000
+      targetPort: 3000
   selector:
     app: mint-ai
 
@@ -244,18 +244,18 @@ spec:
   minReplicas: 3
   maxReplicas: 10
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
 ```
 
 ### Deploy
@@ -287,7 +287,7 @@ kubectl scale deployment mint-ai --replicas=5
 
 const concurrency = parseInt(process.env.VAGENT_WORKERS || "2");
 const maxStalledCount = 2;
-const lockDuration = 30000;  // 30 seconds
+const lockDuration = 30000; // 30 seconds
 const lockRenewTime = 15000; // 15 seconds
 
 const queue = new Queue("nodes", {
@@ -295,16 +295,16 @@ const queue = new Queue("nodes", {
     attempts: 5,
     backoff: {
       type: "exponential",
-      delay: 1000
-    }
+      delay: 1000,
+    },
   },
   settings: {
     maxStalledCount,
     lockDuration,
     lockRenewTime,
     // Process up to `concurrency` jobs in parallel
-    max: concurrency
-  }
+    max: concurrency,
+  },
 });
 
 // Process jobs with concurrency
@@ -315,22 +315,22 @@ queue.process(concurrency, async (job) => {
 
 ### Capacity Planning
 
-| Scenario | Workers | Capacity |
-|----------|---------|----------|
-| Light (QA/dev) | 2 | ~20 nodes/sec |
-| Medium | 4 | ~80 nodes/sec |
-| High | 8 | ~200 nodes/sec |
-| Very High | 16 | ~400 nodes/sec |
+| Scenario       | Workers | Capacity       |
+| -------------- | ------- | -------------- |
+| Light (QA/dev) | 2       | ~20 nodes/sec  |
+| Medium         | 4       | ~80 nodes/sec  |
+| High           | 8       | ~200 nodes/sec |
+| Very High      | 16      | ~400 nodes/sec |
 
 **Formula:** ~50 nodes/sec per worker (depends on executor complexity)
 
 ### Memory & CPU
 
-| Component | CPU | Memory |
-|-----------|-----|--------|
-| API Server | 0.5 CPU | 256 MB |
-| Worker (per core) | 1 CPU | 512 MB |
-| Redis | 2 CPU | 2-4 GB |
+| Component         | CPU     | Memory |
+| ----------------- | ------- | ------ |
+| API Server        | 0.5 CPU | 256 MB |
+| Worker (per core) | 1 CPU   | 512 MB |
+| Redis             | 2 CPU   | 2-4 GB |
 
 ### Scaling Strategy
 
@@ -350,9 +350,9 @@ import { check, sleep } from "k6";
 
 export const options = {
   stages: [
-    { duration: "30s", target: 20 },   // Ramp up
-    { duration: "1m", target: 100 },   // Hold
-    { duration: "30s", target: 0 },    // Ramp down
+    { duration: "30s", target: 20 }, // Ramp up
+    { duration: "1m", target: 100 }, // Hold
+    { duration: "30s", target: 0 }, // Ramp down
   ],
 };
 
@@ -361,7 +361,7 @@ export default function () {
   const payload = JSON.stringify({
     workflowId: "momo.salesbot",
     sessionId: `user-${__VU}-${__ITER}`,
-    input: { message: "Hello!" }
+    input: { message: "Hello!" },
   });
 
   const params = {
@@ -422,23 +422,23 @@ scrape_configs:
 groups:
   - name: mint-ai
     rules:
-    - alert: HighErrorRate
-      expr: rate(executor_error_total[5m]) > 0.05
-      for: 5m
-      annotations:
-        summary: "High executor error rate"
+      - alert: HighErrorRate
+        expr: rate(executor_error_total[5m]) > 0.05
+        for: 5m
+        annotations:
+          summary: "High executor error rate"
 
-    - alert: QueueBacklog
-      expr: bull_queue_waiting > 1000
-      for: 5m
-      annotations:
-        summary: "Job queue backlog > 1000"
+      - alert: QueueBacklog
+        expr: bull_queue_waiting > 1000
+        for: 5m
+        annotations:
+          summary: "Job queue backlog > 1000"
 
-    - alert: RedisMemory
-      expr: redis_memory_used_bytes > 80000000000
-      for: 5m
-      annotations:
-        summary: "Redis memory > 80 GB"
+      - alert: RedisMemory
+        expr: redis_memory_used_bytes > 80000000000
+        for: 5m
+        annotations:
+          summary: "Redis memory > 80 GB"
 ```
 
 ---
@@ -452,8 +452,8 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 1        # 1 extra pod during update
-      maxUnavailable: 0  # No downtime
+      maxSurge: 1 # 1 extra pod during update
+      maxUnavailable: 0 # No downtime
   minReadySeconds: 10
 ```
 
@@ -515,11 +515,11 @@ ls -lah /var/lib/redis/
 
 ### Backup Strategy
 
-| Data | Method | Frequency |
-|------|--------|-----------|
-| Session memory | Redis AOF | Real-time |
-| Run history | Database | Continuous |
-| Workflows | Git | On change |
+| Data           | Method    | Frequency  |
+| -------------- | --------- | ---------- |
+| Session memory | Redis AOF | Real-time  |
+| Run history    | Database  | Continuous |
+| Workflows      | Git       | On change  |
 
 ---
 

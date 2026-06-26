@@ -11,19 +11,19 @@ import {
 import { useDataTableShellContext } from "../../DataTableShell.context";
 import { DataTableShellEmptyState } from "../DataTableShellEmptyState";
 import type { DataTableShellTableProps } from "../../DataTableShell.types";
-import type { DensitySize } from '../../../../wrappers/DataTableWrapper';
-import { useElementHeight } from '../../hooks/useElementHeight';
-import { mapShellColumnsToDataTableColumns } from '../../column.utils';
+import type { DensitySize } from "../../../../wrappers/DataTableWrapper";
+import { useElementHeight } from "../../hooks/useElementHeight";
+import { mapShellColumnsToDataTableColumns } from "../../column.utils";
 
 const DENSITY_SPACING: Record<
   DensitySize,
   { verticalSpacing: number; horizontalSpacing: number; fz: string }
 > = {
-  xs: { verticalSpacing: 4, horizontalSpacing: 6, fz: 'xs' },
-  sm: { verticalSpacing: 6, horizontalSpacing: 8, fz: 'xs' },
-  md: { verticalSpacing: 6, horizontalSpacing: 8, fz: 'xs' },
-  lg: { verticalSpacing: 10, horizontalSpacing: 12, fz: 'sm' },
-  xl: { verticalSpacing: 12, horizontalSpacing: 14, fz: 'sm' },
+  xs: { verticalSpacing: 4, horizontalSpacing: 6, fz: "xs" },
+  sm: { verticalSpacing: 6, horizontalSpacing: 8, fz: "xs" },
+  md: { verticalSpacing: 6, horizontalSpacing: 8, fz: "xs" },
+  lg: { verticalSpacing: 10, horizontalSpacing: 12, fz: "sm" },
+  xl: { verticalSpacing: 12, horizontalSpacing: 14, fz: "sm" },
 };
 
 export function DataTableShellTable<T extends Record<string, unknown>>({
@@ -36,7 +36,8 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
   rowExpansion,
   disableActions = false,
 }: DataTableShellTableProps<T>) {
-  const { rows, isLoading, isFetching, isDebouncing, paginationMeta } = useTableData<T>();
+  const { rows, isLoading, isFetching, isDebouncing, paginationMeta } =
+    useTableData<T>();
   const { selectedRecords } = useDataTableShellContext<T>();
 
   const useTable = useTableStore();
@@ -125,42 +126,47 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
   return (
     <Box
       ref={tableRef}
-      style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+      style={{
+        flex: 1,
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
+      }}
     >
       <DataTable<T>
-      striped
-      withColumnBorders
-      withRowBorders
-      highlightOnHover
-      fz={spacing.fz}
-      fw={500}
-      horizontalSpacing={spacing.horizontalSpacing}
-      verticalSpacing={spacing.verticalSpacing}
-      idAccessor={idAccessor as keyof T & string}
-      columns={effectiveColumns}
-      records={filteredRows}
-      fetching={isLoading || isFetching || isDebouncing}
-      height={tableHeight > 0 ? tableHeight : undefined}
-      emptyState={<DataTableShellEmptyState />}
-      rowStyle={rowStyle}
-      sortStatus={sortStatus}
-      onSortStatusChange={handleSortStatusChange}
-      totalRecords={paginationMeta.total}
-      page={page}
-      onPageChange={handlePageChange}
-      recordsPerPage={pageSize}
-      recordsPerPageOptions={pageSizes}
-      onRecordsPerPageChange={handlePageSizeChange}
-      paginationSize="xs"
-      selectedRecords={disableActions ? undefined : selectedRecords}
-      onSelectedRecordsChange={
-        disableActions ? undefined : handleSelectionChange
-      }
-      selectionTrigger="cell"
-      selectionColumnStyle={{ maxWidth: 32 }}
-      selectionCheckboxProps={{ size: "xs" }}
-      rowExpansion={rowExpansion}
-    />
+        striped
+        withColumnBorders
+        withRowBorders
+        highlightOnHover
+        fz={spacing.fz}
+        fw={500}
+        horizontalSpacing={spacing.horizontalSpacing}
+        verticalSpacing={spacing.verticalSpacing}
+        idAccessor={idAccessor as keyof T & string}
+        columns={effectiveColumns}
+        records={filteredRows}
+        fetching={isLoading || isFetching || isDebouncing}
+        height={tableHeight > 0 ? tableHeight : undefined}
+        emptyState={<DataTableShellEmptyState />}
+        rowStyle={rowStyle}
+        sortStatus={sortStatus}
+        onSortStatusChange={handleSortStatusChange}
+        totalRecords={paginationMeta.total}
+        page={page}
+        onPageChange={handlePageChange}
+        recordsPerPage={pageSize}
+        recordsPerPageOptions={pageSizes}
+        onRecordsPerPageChange={handlePageSizeChange}
+        paginationSize="xs"
+        selectedRecords={disableActions ? undefined : selectedRecords}
+        onSelectedRecordsChange={
+          disableActions ? undefined : handleSelectionChange
+        }
+        selectionTrigger="cell"
+        selectionColumnStyle={{ maxWidth: 32 }}
+        selectionCheckboxProps={{ size: "xs" }}
+        rowExpansion={rowExpansion}
+      />
     </Box>
   );
 }

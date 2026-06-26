@@ -54,8 +54,8 @@ export function DataTableShellHeader({
 
   const handleNewClick = sustained
     ? onNewClick ||
-    // dataTableModalContext?.openCreateModal ||
-    modalContext?.openModal
+      // dataTableModalContext?.openCreateModal ||
+      modalContext?.openModal
     : undefined;
 
   return (
@@ -68,7 +68,6 @@ export function DataTableShellHeader({
                 {customHeading || moduleInfo.label}
               </Text>
             </div>
-
           </Group>
           <Text size="xs" opacity={0.5}>
             {moduleInfo.description}
@@ -77,7 +76,6 @@ export function DataTableShellHeader({
 
         {/* Desktop: Full buttons */}
         <Group gap={4} visibleFrom="lg">
-
           {/* <Menu id={moreActionsMenuId}>
             <Menu.Target>
               <Button

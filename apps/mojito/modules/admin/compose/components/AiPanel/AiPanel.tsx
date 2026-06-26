@@ -35,15 +35,21 @@ const TONE_OPTIONS = [
 ];
 
 export function AiPanel() {
-  const { draft, aiPanel, setGlobalCaption, addMedia, closeAiPanel, setAiLoading } =
-    useComposeStore();
+  const {
+    draft,
+    aiPanel,
+    setGlobalCaption,
+    addMedia,
+    closeAiPanel,
+    setAiLoading,
+  } = useComposeStore();
 
   const [brief, setBrief] = useState("");
   const [tone, setTone] = useState<string>("casual");
   const [variations, setVariations] = useState<string[]>([]);
 
   const activePlatform: Platform =
-    (draft.selectedChannelIds.length > 0 ? "instagram" : "instagram");
+    draft.selectedChannelIds.length > 0 ? "instagram" : "instagram";
 
   async function runAi(action: () => Promise<void>) {
     setAiLoading(true);
@@ -119,7 +125,11 @@ export function AiPanel() {
                   const caption = await generateCaption({
                     platform: activePlatform,
                     brief,
-                    tone: tone as "casual" | "professional" | "playful" | "educational",
+                    tone: tone as
+                      | "casual"
+                      | "professional"
+                      | "playful"
+                      | "educational",
                   });
                   setGlobalCaption(caption);
                 })
@@ -150,7 +160,10 @@ export function AiPanel() {
               disabled={!draft.globalCaption}
               onClick={() =>
                 runAi(async () => {
-                  const shorter = await adjustLength(draft.globalCaption, "shorter");
+                  const shorter = await adjustLength(
+                    draft.globalCaption,
+                    "shorter",
+                  );
                   setGlobalCaption(shorter);
                 })
               }
@@ -165,7 +178,10 @@ export function AiPanel() {
               disabled={!draft.globalCaption}
               onClick={() =>
                 runAi(async () => {
-                  const longer = await adjustLength(draft.globalCaption, "longer");
+                  const longer = await adjustLength(
+                    draft.globalCaption,
+                    "longer",
+                  );
                   setGlobalCaption(longer);
                 })
               }
@@ -182,7 +198,11 @@ export function AiPanel() {
                 runAi(async () => {
                   const adjusted = await adjustTone(
                     draft.globalCaption,
-                    tone as "casual" | "professional" | "playful" | "educational"
+                    tone as
+                      | "casual"
+                      | "professional"
+                      | "playful"
+                      | "educational",
                   );
                   setGlobalCaption(adjusted);
                 })
@@ -217,7 +237,14 @@ export function AiPanel() {
           <Stack gap="xs">
             <Divider label="Variations" labelPosition="center" />
             {variations.map((v, i) => (
-              <Paper key={i} p="xs" withBorder radius="sm" style={{ cursor: "pointer" }} onClick={() => setGlobalCaption(v)}>
+              <Paper
+                key={i}
+                p="xs"
+                withBorder
+                radius="sm"
+                style={{ cursor: "pointer" }}
+                onClick={() => setGlobalCaption(v)}
+              >
                 <Text size="xs" lineClamp={3}>
                   {v}
                 </Text>

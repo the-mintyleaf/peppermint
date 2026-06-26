@@ -51,7 +51,9 @@ export function ConversationList({
   if (conversations.length === 0) {
     return (
       <Center py="xl">
-        <Text c="dimmed" size="sm">No conversations</Text>
+        <Text c="dimmed" size="sm">
+          No conversations
+        </Text>
       </Center>
     );
   }
@@ -67,8 +69,12 @@ export function ConversationList({
             p="sm"
             style={{
               borderRadius: 8,
-              background: isSelected ? "var(--mantine-color-blue-light)" : "transparent",
-              border: isSelected ? "1px solid var(--mantine-color-blue-3)" : "1px solid transparent",
+              background: isSelected
+                ? "var(--mantine-color-blue-light)"
+                : "transparent",
+              border: isSelected
+                ? "1px solid var(--mantine-color-blue-3)"
+                : "1px solid transparent",
             }}
           >
             <Group gap="sm" wrap="nowrap">
@@ -77,17 +83,29 @@ export function ConversationList({
               </Avatar>
               <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
                 <Group justify="space-between" wrap="nowrap">
-                  <Text size="sm" fw={500} truncate>{conv.author}</Text>
+                  <Text size="sm" fw={500} truncate>
+                    {conv.author}
+                  </Text>
                   <Group gap={4} wrap="nowrap">
-                    <Badge size="xs" color={TYPE_COLOR[conv.type]} variant="light">
+                    <Badge
+                      size="xs"
+                      color={TYPE_COLOR[conv.type]}
+                      variant="light"
+                    >
                       {conv.type}
                     </Badge>
-                    <Badge size="xs" color={STATUS_COLOR[conv.status]} variant="dot">
+                    <Badge
+                      size="xs"
+                      color={STATUS_COLOR[conv.status]}
+                      variant="dot"
+                    >
                       {conv.status}
                     </Badge>
                   </Group>
                 </Group>
-                <Text size="xs" c="dimmed" truncate>{conv.text}</Text>
+                <Text size="xs" c="dimmed" truncate>
+                  {conv.text}
+                </Text>
               </Stack>
             </Group>
           </UnstyledButton>

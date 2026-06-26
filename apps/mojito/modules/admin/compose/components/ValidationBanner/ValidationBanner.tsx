@@ -21,14 +21,22 @@ export function ValidationBanner() {
 
   const platformErrors = Object.entries(variantEditorStates)
     .filter(([, state]) => !state.isValid)
-    .map(([platform]) => `${PLATFORM_LABELS[platform as Platform]} caption exceeds character limit.`);
+    .map(
+      ([platform]) =>
+        `${PLATFORM_LABELS[platform as Platform]} caption exceeds character limit.`,
+    );
 
   const allErrors = [...errors, ...platformErrors];
 
   if (allErrors.length === 0) return null;
 
   return (
-    <Alert icon={<WarningIcon size={16} />} color="orange" variant="light" radius="sm">
+    <Alert
+      icon={<WarningIcon size={16} />}
+      color="orange"
+      variant="light"
+      radius="sm"
+    >
       <Stack gap={2}>
         {allErrors.map((e, i) => (
           <Text key={i} size="xs">

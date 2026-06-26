@@ -78,7 +78,10 @@ export async function routeRunsChat(app: FastifyInstance) {
 
         // Listen for run.finished which contains the final output
         if (event.type === "run.finished") {
-          console.log(`[CHAT] Got run.finished for ${runId}, resolving with:`, event.data?.output);
+          console.log(
+            `[CHAT] Got run.finished for ${runId}, resolving with:`,
+            event.data?.output,
+          );
           clearTimeout(timeout);
           unsub();
           resolve({
@@ -100,7 +103,11 @@ export async function routeRunsChat(app: FastifyInstance) {
       // Set 60 second timeout to prevent hanging
       timeout = setTimeout(() => {
         unsub();
-        reject(new Error("Workflow execution timeout - no response from agents.reasoning"));
+        reject(
+          new Error(
+            "Workflow execution timeout - no response from agents.reasoning",
+          ),
+        );
       }, 60000);
     });
 

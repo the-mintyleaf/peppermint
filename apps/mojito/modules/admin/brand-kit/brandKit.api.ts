@@ -49,7 +49,9 @@ export async function fetchBrandKit(): Promise<BrandKit> {
   return { ...brandKit };
 }
 
-export async function updateBrandKit(patch: Partial<BrandKit>): Promise<BrandKit> {
+export async function updateBrandKit(
+  patch: Partial<BrandKit>,
+): Promise<BrandKit> {
   await delay();
   brandKit = { ...brandKit, ...patch };
   return { ...brandKit };

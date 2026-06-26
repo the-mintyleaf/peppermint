@@ -1,1 +1,1 @@
-export { DataTableShellHeader } from './DataTableShellHeader';
+export { DataTableShellHeader } from "./DataTableShellHeader";

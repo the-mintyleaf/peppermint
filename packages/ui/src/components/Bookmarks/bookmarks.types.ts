@@ -15,14 +15,14 @@ export interface BookmarkButtonProps {
   id: string;
   label: string;
   href?: string;
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
   addTooltip?: string;
   removeTooltip?: string;
 }
 
 export interface BookmarksMenuProps {
   onNavigate?: (href: string) => void;
-  variant?: 'default' | 'sidenav';
+  variant?: "default" | "sidenav";
   emptyLabel?: string;
   label?: string;
 }

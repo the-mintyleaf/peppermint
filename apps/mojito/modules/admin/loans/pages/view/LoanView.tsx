@@ -1,16 +1,24 @@
 "use client";
 
 import { useQuery } from "@peppermint/ui";
-import { Stack, Group, Text, Badge, Paper, Divider, Timeline } from "@peppermint/ui";
-import { ClockIcon }        from "@phosphor-icons/react/dist/csr/Clock";
-import { CheckCircleIcon }  from "@phosphor-icons/react/dist/csr/CheckCircle";
-import { WarningIcon }      from "@phosphor-icons/react/dist/csr/Warning";
+import {
+  Stack,
+  Group,
+  Text,
+  Badge,
+  Paper,
+  Divider,
+  Timeline,
+} from "@peppermint/ui";
+import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
+import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
+import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { fetchLoan } from "../../module.api";
 import type { LoanStatus } from "../../module.api";
 
 const statusColor: Record<LoanStatus, string> = {
-  active:   "blue",
-  overdue:  "red",
+  active: "blue",
+  overdue: "red",
   returned: "green",
 };
 
@@ -24,33 +32,55 @@ export function LoanView({ loanId }: LoanViewProps) {
     queryFn: () => fetchLoan(loanId),
   });
 
-  if (isPending) return <Text p="xl" size="sm">Loading...</Text>;
-  if (!loan)     return <Text p="xl" size="sm">Loan not found.</Text>;
+  if (isPending)
+    return (
+      <Text p="xl" size="sm">
+        Loading...
+      </Text>
+    );
+  if (!loan)
+    return (
+      <Text p="xl" size="sm">
+        Loan not found.
+      </Text>
+    );
 
   return (
     <Stack gap="xl" p="xl">
       <Group justify="space-between" align="flex-start">
         <Stack gap={4}>
-          <Text fw={600} size="lg">{loan.bookTitle}</Text>
-          <Text size="sm" c="dimmed">Loaned to {loan.memberName}</Text>
+          <Text fw={600} size="lg">
+            {loan.bookTitle}
+          </Text>
+          <Text size="sm" c="dimmed">
+            Loaned to {loan.memberName}
+          </Text>
         </Stack>
-        <Badge size="md" color={statusColor[loan.status as LoanStatus]}>{loan.status}</Badge>
+        <Badge size="md" color={statusColor[loan.status as LoanStatus]}>
+          {loan.status}
+        </Badge>
       </Group>
 
       <Divider />
 
       <Group gap="xl">
         <Stack gap={2}>
-          <Text size="xs" c="dimmed">Loan Date</Text>
+          <Text size="xs" c="dimmed">
+            Loan Date
+          </Text>
           <Text size="sm">{loan.loanDate}</Text>
         </Stack>
         <Stack gap={2}>
-          <Text size="xs" c="dimmed">Due Date</Text>
+          <Text size="xs" c="dimmed">
+            Due Date
+          </Text>
           <Text size="sm">{loan.dueDate}</Text>
         </Stack>
         {loan.returnDate && (
           <Stack gap={2}>
-            <Text size="xs" c="dimmed">Return Date</Text>
+            <Text size="xs" c="dimmed">
+              Return Date
+            </Text>
             <Text size="sm">{loan.returnDate}</Text>
           </Stack>
         )}
@@ -58,7 +88,9 @@ export function LoanView({ loanId }: LoanViewProps) {
 
       {loan.notes && (
         <Stack gap={4}>
-          <Text size="xs" c="dimmed" fw={500}>Notes</Text>
+          <Text size="xs" c="dimmed" fw={500}>
+            Notes
+          </Text>
           <Paper withBorder p="sm" radius="md">
             <Text size="sm">{loan.notes}</Text>
           </Paper>
@@ -72,10 +104,20 @@ export function LoanView({ loanId }: LoanViewProps) {
           <Timeline.Item
             key={event.id}
             bullet={<ClockIcon size={12} aria-label="Event" />}
-            title={<Text size="xs" fw={500}>{event.event}</Text>}
+            title={
+              <Text size="xs" fw={500}>
+                {event.event}
+              </Text>
+            }
           >
-            <Text size="xs" c="dimmed">{new Date(event.timestamp).toLocaleString()}</Text>
-            {event.note && <Text size="xs" mt={2}>{event.note}</Text>}
+            <Text size="xs" c="dimmed">
+              {new Date(event.timestamp).toLocaleString()}
+            </Text>
+            {event.note && (
+              <Text size="xs" mt={2}>
+                {event.note}
+              </Text>
+            )}
           </Timeline.Item>
         ))}
       </Timeline>

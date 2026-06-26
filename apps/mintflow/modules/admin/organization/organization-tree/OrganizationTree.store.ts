@@ -43,14 +43,24 @@ interface OrgBuilderState {
   closeDrawer: () => void;
   setActiveDepartment: (id: string | null) => void;
   setHighlightedNodeId: (id: string | null) => void;
-  openAddModal: (nodeType: OrgNodeType, parentId?: string, parentName?: string) => void;
+  openAddModal: (
+    nodeType: OrgNodeType,
+    parentId?: string,
+    parentName?: string,
+  ) => void;
   openEditModal: (nodeId: string) => void;
   closeModal: () => void;
   setSearchQuery: (q: string) => void;
   setSearchMatchIds: (ids: string[]) => void;
   pushHistory: (nodes: OrgFlowNode[], edges: OrgFlowEdge[]) => void;
-  undo: (setNodes: (n: OrgFlowNode[]) => void, setEdges: (e: OrgFlowEdge[]) => void) => void;
-  redo: (setNodes: (n: OrgFlowNode[]) => void, setEdges: (e: OrgFlowEdge[]) => void) => void;
+  undo: (
+    setNodes: (n: OrgFlowNode[]) => void,
+    setEdges: (e: OrgFlowEdge[]) => void,
+  ) => void;
+  redo: (
+    setNodes: (n: OrgFlowNode[]) => void,
+    setEdges: (e: OrgFlowEdge[]) => void,
+  ) => void;
   canUndo: () => boolean;
   canRedo: () => boolean;
   markSaved: () => void;
@@ -188,14 +198,19 @@ export const useOrgTreeStore = create<OrgBuilderState>((set, get) => ({
     const updates: Partial<OrgBuilderState> = {
       expandedNodeIds: expandedNodeIds.filter((eid) => !descendants.has(eid)),
     };
-    if (selectedNodeId && selectedNodeId !== id && descendants.has(selectedNodeId)) {
+    if (
+      selectedNodeId &&
+      selectedNodeId !== id &&
+      descendants.has(selectedNodeId)
+    ) {
       updates.selectedNodeId = id;
       updates.drawerOpen = true;
     }
     set(updates);
   },
 
-  collapseAll: () => set({ expandedNodeIds: [], expandedGroupIds: [], focusedBranchId: null }),
+  collapseAll: () =>
+    set({ expandedNodeIds: [], expandedGroupIds: [], focusedBranchId: null }),
 
   setFocusedBranch: (id) => set({ focusedBranchId: id }),
 
@@ -208,7 +223,8 @@ export const useOrgTreeStore = create<OrgBuilderState>((set, get) => ({
   setFilter: (key, on) => {
     const { activeFilters } = get();
     if (on) {
-      if (!activeFilters.includes(key)) set({ activeFilters: [...activeFilters, key] });
+      if (!activeFilters.includes(key))
+        set({ activeFilters: [...activeFilters, key] });
     } else {
       set({ activeFilters: activeFilters.filter((f) => f !== key) });
     }

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useState, type RefObject } from 'react';
+import { useEffect, useState, type RefObject } from "react";
 
 export function useElementHeight(ref: RefObject<HTMLElement | null>) {
   const [height, setHeight] = useState(0);

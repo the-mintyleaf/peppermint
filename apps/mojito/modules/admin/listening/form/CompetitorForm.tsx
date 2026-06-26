@@ -7,7 +7,11 @@ import type { CompetitorRow } from "../competitors.types";
 
 const PLATFORMS = ["instagram", "x", "linkedin", "tiktok", "facebook"];
 
-export function CompetitorForm({ initialValues, onSubmit, isLoading }: CompetitorFormProps) {
+export function CompetitorForm({
+  initialValues,
+  onSubmit,
+  isLoading,
+}: CompetitorFormProps) {
   const form = useForm({
     initialValues: {
       id: initialValues?.id ?? "",

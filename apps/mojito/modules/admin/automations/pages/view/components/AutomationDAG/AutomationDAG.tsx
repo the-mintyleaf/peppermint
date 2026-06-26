@@ -16,7 +16,12 @@ import {
 import "@xyflow/react/dist/style.css";
 import { Popover, Stack, Text, Anchor, Badge } from "@peppermint/ui";
 import { useRouter } from "next/navigation";
-import type { AutomationNode, AutomationEdge, NodeType, NodeStatus } from "../../../../module.api";
+import type {
+  AutomationNode,
+  AutomationEdge,
+  NodeType,
+  NodeStatus,
+} from "../../../../module.api";
 
 const NODE_COLORS: Record<NodeType, string> = {
   trigger: "#9ca3af",
@@ -30,7 +35,10 @@ const NODE_COLORS: Record<NodeType, string> = {
 
 const STATUS_STYLES: Record<NodeStatus, React.CSSProperties> = {
   ok: {},
-  running: { animation: "pulse-border 1.5s infinite", border: "2px solid #3b82f6" },
+  running: {
+    animation: "pulse-border 1.5s infinite",
+    border: "2px solid #3b82f6",
+  },
   pending: { opacity: 0.5 },
   error: { border: "2px solid #ef4444" },
   skipped: { opacity: 0.4 },
@@ -61,15 +69,33 @@ function AutomationFlowNode({ data }: { data: FlowNodeData }) {
 
   const nodeEl = (
     <div style={style}>
-      <Handle type="target" position={Position.Left} style={{ visibility: "hidden" }} />
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{ visibility: "hidden" }}
+      />
       <div>{data.label}</div>
       {data.status === "error" && (
-        <div style={{ color: "#ef4444", fontSize: 10, marginTop: 2 }}>⚠ Error</div>
+        <div style={{ color: "#ef4444", fontSize: 10, marginTop: 2 }}>
+          ⚠ Error
+        </div>
       )}
       {data.status === "skipped" && (
-        <div style={{ textDecoration: "line-through", color: "#9ca3af", fontSize: 10 }}>skipped</div>
+        <div
+          style={{
+            textDecoration: "line-through",
+            color: "#9ca3af",
+            fontSize: 10,
+          }}
+        >
+          skipped
+        </div>
       )}
-      <Handle type="source" position={Position.Right} style={{ visibility: "hidden" }} />
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{ visibility: "hidden" }}
+      />
     </div>
   );
 
@@ -91,7 +117,9 @@ function AutomationFlowNode({ data }: { data: FlowNodeData }) {
             <Anchor
               size="xs"
               onClick={() =>
-                router.push(`/admin/automation/templates/${String(data.meta!.template_id)}/preview`)
+                router.push(
+                  `/admin/automation/templates/${String(data.meta!.template_id)}/preview`,
+                )
               }
             >
               View Template →
@@ -110,7 +138,10 @@ interface AutomationDAGProps {
   edges: AutomationEdge[];
 }
 
-export function AutomationDAG({ nodes: rawNodes, edges: rawEdges }: AutomationDAGProps) {
+export function AutomationDAG({
+  nodes: rawNodes,
+  edges: rawEdges,
+}: AutomationDAGProps) {
   const flowNodes: Node<FlowNodeData>[] = rawNodes.map((n, i) => ({
     id: n.id,
     type: "automationNode",
@@ -136,7 +167,14 @@ export function AutomationDAG({ nodes: rawNodes, edges: rawEdges }: AutomationDA
   const [edges, , onEdgesChange] = useEdgesState(flowEdges);
 
   return (
-    <div style={{ height: 340, border: "1px solid var(--mantine-color-default-border)", borderRadius: 8, overflow: "hidden" }}>
+    <div
+      style={{
+        height: 340,
+        border: "1px solid var(--mantine-color-default-border)",
+        borderRadius: 8,
+        overflow: "hidden",
+      }}
+    >
       <style>{`
         @keyframes pulse-border {
           0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); }

@@ -11,7 +11,7 @@ export function lcToText(raw: any): string {
   if (Array.isArray(raw?.content)) {
     return raw.content
       .map((c: any) =>
-        typeof c?.text === "string" ? c.text : typeof c === "string" ? c : ""
+        typeof c?.text === "string" ? c.text : typeof c === "string" ? c : "",
       )
       .join("\n");
   }

@@ -5,7 +5,11 @@ import { useForm } from "@mantine/form";
 import type { KeywordFormProps } from "./keywordForm.types";
 import type { KeywordRow } from "../keywords.types";
 
-export function KeywordForm({ initialValues, onSubmit, isLoading }: KeywordFormProps) {
+export function KeywordForm({
+  initialValues,
+  onSubmit,
+  isLoading,
+}: KeywordFormProps) {
   const form = useForm({
     initialValues: {
       id: initialValues?.id ?? "",

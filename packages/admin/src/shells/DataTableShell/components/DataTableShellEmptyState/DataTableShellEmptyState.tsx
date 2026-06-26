@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { Center, Stack, Text } from '@peppermint/ui';
-import { SmileyNervousIcon } from '@phosphor-icons/react/dist/csr/SmileyNervous';
+import { Center, Stack, Text } from "@peppermint/ui";
+import { SmileyNervousIcon } from "@phosphor-icons/react/dist/csr/SmileyNervous";
 
 export function DataTableShellEmptyState() {
   return (

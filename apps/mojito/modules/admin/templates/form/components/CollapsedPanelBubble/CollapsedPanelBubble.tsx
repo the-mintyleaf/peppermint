@@ -47,9 +47,20 @@ export function CollapsedPanelBubble({
           boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
         }}
       >
-        <Group gap={6} wrap="nowrap" align="center" style={{ flex: 1, minWidth: 0 }}>
-          <Box style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>{icon}</Box>
-          <Text fw={500} truncate style={{ minWidth: 0, fontSize: 10, lineHeight: 1.2 }}>
+        <Group
+          gap={6}
+          wrap="nowrap"
+          align="center"
+          style={{ flex: 1, minWidth: 0 }}
+        >
+          <Box style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+            {icon}
+          </Box>
+          <Text
+            fw={500}
+            truncate
+            style={{ minWidth: 0, fontSize: 10, lineHeight: 1.2 }}
+          >
             {label}
           </Text>
         </Group>

@@ -3,7 +3,10 @@
 import { Box, ModuleHeader, Paper, Stack } from "@peppermint/ui";
 import type { ReactNode } from "react";
 import { buildBreadcrumbItems } from "./pageShell.utils";
-import { ModulePageHeader, type ModulePageHeaderProps } from "./ModulePageHeader";
+import {
+  ModulePageHeader,
+  type ModulePageHeaderProps,
+} from "./ModulePageHeader";
 
 export interface ModulePageShellProps extends ModulePageHeaderProps {
   basePath: string;
@@ -28,7 +31,11 @@ export function ModulePageShell({
         <Box px="md">
           <ModulePageHeader {...headerProps} basePath={basePath} />
         </Box>
-        <Box px="md" pb="md" style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
+        <Box
+          px="md"
+          pb="md"
+          style={{ flex: 1, minHeight: 0, overflow: "hidden" }}
+        >
           {children}
         </Box>
       </Stack>

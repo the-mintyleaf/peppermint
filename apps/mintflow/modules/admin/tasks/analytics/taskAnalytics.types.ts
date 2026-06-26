@@ -2,11 +2,7 @@ import type { TaskAssignee } from "../kanban/module.api";
 
 export type DashboardView = "card" | "block" | "table";
 
-export type TaskCategoryFilter =
-  | "urgent"
-  | "daily_task"
-  | "task"
-  | "reminders";
+export type TaskCategoryFilter = "urgent" | "daily_task" | "task" | "reminders";
 
 export interface ScheduledTask {
   id: string;

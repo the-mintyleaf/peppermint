@@ -44,11 +44,15 @@ export interface MediaFilters {
 export async function fetchMedia(filters: MediaFilters = {}) {
   await delay();
   let items = [...assets];
-  if (filters.folderId) items = items.filter((a) => a.folderId === filters.folderId);
+  if (filters.folderId)
+    items = items.filter((a) => a.folderId === filters.folderId);
   if (filters.kind) items = items.filter((a) => a.kind === filters.kind);
   if (filters.search) {
     const q = filters.search.toLowerCase();
-    items = items.filter((a) => a.alt.toLowerCase().includes(q) || a.tags.some((t) => t.includes(q)));
+    items = items.filter(
+      (a) =>
+        a.alt.toLowerCase().includes(q) || a.tags.some((t) => t.includes(q)),
+    );
   }
   return paginate(items, filters.page ?? 1, filters.pageSize ?? 20);
 }
@@ -58,7 +62,10 @@ export async function fetchFolders(): Promise<MediaFolder[]> {
   return [...folders];
 }
 
-export async function createFolder(name: string, parentId?: string): Promise<MediaFolder> {
+export async function createFolder(
+  name: string,
+  parentId?: string,
+): Promise<MediaFolder> {
   await delay();
   const folder: MediaFolder = { id: `f_${Date.now()}`, name, parentId };
   folders.push(folder);
@@ -72,7 +79,7 @@ export async function deleteFolder(id: string): Promise<void> {
 
 export async function uploadMedia(
   file: File,
-  folderId?: string
+  folderId?: string,
 ): Promise<MediaAsset> {
   await delay(800);
   const url = URL.createObjectURL(file);
@@ -94,7 +101,7 @@ export async function uploadMedia(
 
 export async function updateMedia(
   id: string,
-  patch: Partial<Pick<MediaAsset, "alt" | "tags" | "folderId">>
+  patch: Partial<Pick<MediaAsset, "alt" | "tags" | "folderId">>,
 ): Promise<MediaAsset> {
   await delay();
   const idx = assets.findIndex((a) => a.id === id);

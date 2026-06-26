@@ -42,7 +42,11 @@ export function InboxPage() {
       moduleInfo={MODULE_INFO}
       disableCreateButton
       actions={
-        openCount > 0 ? <Badge color="red" size="sm">{openCount} open</Badge> : undefined
+        openCount > 0 ? (
+          <Badge color="red" size="sm">
+            {openCount} open
+          </Badge>
+        ) : undefined
       }
     >
       <Grid gutter={0} style={{ height: "calc(100vh - 160px)" }}>
@@ -64,7 +68,12 @@ export function InboxPage() {
             />
           </div>
           {pageCount > 1 && (
-            <div style={{ padding: "8px", borderTop: "1px solid var(--mantine-color-default-border)" }}>
+            <div
+              style={{
+                padding: "8px",
+                borderTop: "1px solid var(--mantine-color-default-border)",
+              }}
+            >
               <Pagination
                 size="xs"
                 total={pageCount}
@@ -75,12 +84,17 @@ export function InboxPage() {
           )}
         </Grid.Col>
 
-        <Grid.Col span={{ base: 12, md: 8 }} style={{ display: "flex", flexDirection: "column" }}>
+        <Grid.Col
+          span={{ base: 12, md: 8 }}
+          style={{ display: "flex", flexDirection: "column" }}
+        >
           {selectedId ? (
             <ConversationThread conversationId={selectedId} />
           ) : (
             <Stack align="center" justify="center" h="100%">
-              <Text c="dimmed" size="sm">Select a conversation to view the thread</Text>
+              <Text c="dimmed" size="sm">
+                Select a conversation to view the thread
+              </Text>
             </Stack>
           )}
         </Grid.Col>

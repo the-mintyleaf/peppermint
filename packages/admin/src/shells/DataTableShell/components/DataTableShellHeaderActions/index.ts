@@ -1,1 +1,1 @@
-export { DataTableShellHeaderActions } from './DataTableShellHeaderActions';
+export { DataTableShellHeaderActions } from "./DataTableShellHeaderActions";

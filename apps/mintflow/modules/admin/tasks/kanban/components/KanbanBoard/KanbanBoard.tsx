@@ -25,7 +25,9 @@ import type { Task, TaskStatus } from "../../module.api";
 const COLUMN_ORDER: TaskStatus[] = ["inbox", "ongoing", "hold", "rejected"];
 const STATUS_SET = new Set<string>(COLUMN_ORDER);
 
-function buildTaskStatusMap(tasksByStatus: Record<string, Task[]>): Map<string, string> {
+function buildTaskStatusMap(
+  tasksByStatus: Record<string, Task[]>,
+): Map<string, string> {
   const map = new Map<string, string>();
   for (const status of COLUMN_ORDER) {
     for (const task of tasksByStatus[status] ?? []) {
@@ -35,12 +37,14 @@ function buildTaskStatusMap(tasksByStatus: Record<string, Task[]>): Map<string, 
   return map;
 }
 
-function createCollisionDetection(taskStatusMap: Map<string, string>): CollisionDetection {
+function createCollisionDetection(
+  taskStatusMap: Map<string, string>,
+): CollisionDetection {
   return (args) => {
     const columnCollisions = pointerWithin({
       ...args,
       droppableContainers: args.droppableContainers.filter((c) =>
-        STATUS_SET.has(String(c.id))
+        STATUS_SET.has(String(c.id)),
       ),
     });
 
@@ -66,7 +70,10 @@ function createCollisionDetection(taskStatusMap: Map<string, string>): Collision
   };
 }
 
-function findTaskById(tasksByStatus: Record<string, Task[]>, id: string | null): Task | undefined {
+function findTaskById(
+  tasksByStatus: Record<string, Task[]>,
+  id: string | null,
+): Task | undefined {
   if (!id) return undefined;
   for (const tasks of Object.values(tasksByStatus)) {
     const t = tasks.find((t) => t.id === id);
@@ -74,27 +81,41 @@ function findTaskById(tasksByStatus: Record<string, Task[]>, id: string | null):
   }
 }
 
-function findStatusForTask(tasksByStatus: Record<string, Task[]>, taskId: string): string | undefined {
-  return COLUMN_ORDER.find((s) => (tasksByStatus[s] ?? []).some((t) => t.id === taskId));
+function findStatusForTask(
+  tasksByStatus: Record<string, Task[]>,
+  taskId: string,
+): string | undefined {
+  return COLUMN_ORDER.find((s) =>
+    (tasksByStatus[s] ?? []).some((t) => t.id === taskId),
+  );
 }
 
-export function KanbanBoard({ tasksByStatus, onMoveTask, onReorderTask, onCardClick, onAddTask }: KanbanBoardProps) {
+export function KanbanBoard({
+  tasksByStatus,
+  onMoveTask,
+  onReorderTask,
+  onCardClick,
+  onAddTask,
+}: KanbanBoardProps) {
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const lastOverId = useRef<string | null>(null);
 
   const activeTask = useMemo(
     () => findTaskById(tasksByStatus, activeTaskId),
-    [tasksByStatus, activeTaskId]
+    [tasksByStatus, activeTaskId],
   );
 
-  const taskStatusMap = useMemo(() => buildTaskStatusMap(tasksByStatus), [tasksByStatus]);
+  const taskStatusMap = useMemo(
+    () => buildTaskStatusMap(tasksByStatus),
+    [tasksByStatus],
+  );
   const collisionDetection = useMemo(
     () => createCollisionDetection(taskStatusMap),
-    [taskStatusMap]
+    [taskStatusMap],
   );
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
   );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
@@ -121,7 +142,7 @@ export function KanbanBoard({ tasksByStatus, onMoveTask, onReorderTask, onCardCl
         onReorderTask(taskId, overId);
       }
     },
-    [tasksByStatus, onReorderTask]
+    [tasksByStatus, onReorderTask],
   );
 
   const handleDragEnd = useCallback(
@@ -145,44 +166,49 @@ export function KanbanBoard({ tasksByStatus, onMoveTask, onReorderTask, onCardCl
         onMoveTask(taskId, fromStatus, toStatus);
       }
     },
-    [tasksByStatus, onMoveTask]
+    [tasksByStatus, onMoveTask],
   );
 
   return (
     <Box style={{ height: "100%", minHeight: "calc(100vh - 180px)" }}>
-    <DndContext
-      sensors={sensors}
-      collisionDetection={collisionDetection}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-    >
-      <Box
-        style={{
-          display: "flex",
-          gap: 8,
-          overflowX: "auto",
-          paddingBottom: 16,
-          alignItems: "stretch",
-          minHeight: "calc(100vh - 180px)",
-          height: "100%",
-        }}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={collisionDetection}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
       >
-        {COLUMN_ORDER.map((status) => (
-          <KanbanColumn
-            key={status}
-            status={status}
-            tasks={tasksByStatus[status] ?? []}
-            onCardClick={onCardClick}
-            onAddTask={onAddTask}
-          />
-        ))}
-      </Box>
+        <Box
+          style={{
+            display: "flex",
+            gap: 8,
+            overflowX: "auto",
+            paddingBottom: 16,
+            alignItems: "stretch",
+            minHeight: "calc(100vh - 180px)",
+            height: "100%",
+          }}
+        >
+          {COLUMN_ORDER.map((status) => (
+            <KanbanColumn
+              key={status}
+              status={status}
+              tasks={tasksByStatus[status] ?? []}
+              onCardClick={onCardClick}
+              onAddTask={onAddTask}
+            />
+          ))}
+        </Box>
 
-      <DragOverlay dropAnimation={{ duration: 180, easing: "cubic-bezier(0.18,0.67,0.6,1.22)" }}>
-        {activeTask ? <KanbanCard task={activeTask} overlay /> : null}
-      </DragOverlay>
-    </DndContext>
+        <DragOverlay
+          dropAnimation={{
+            duration: 180,
+            easing: "cubic-bezier(0.18,0.67,0.6,1.22)",
+          }}
+        >
+          {activeTask ? <KanbanCard task={activeTask} overlay /> : null}
+        </DragOverlay>
+      </DndContext>
     </Box>
   );
 }

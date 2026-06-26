@@ -26,7 +26,8 @@ export const workflowMomoSalesbot = schemaWorkflow.parse({
           {
             name: "getProductCategory",
             type: "apicall",
-            description: "Fetches the list of all available product categories.",
+            description:
+              "Fetches the list of all available product categories.",
             config: {
               method: "GET",
               url: "https://dummyjson.com/products/category-list",
@@ -40,7 +41,8 @@ export const workflowMomoSalesbot = schemaWorkflow.parse({
           {
             name: "getProductsByCategory",
             type: "apicall",
-            description: "Fetches products by category. Use when the user specifies a product category.",
+            description:
+              "Fetches products by category. Use when the user specifies a product category.",
             config: {
               method: "GET",
               url: "https://dummyjson.com/products/category/${{fromAI(category)}}",

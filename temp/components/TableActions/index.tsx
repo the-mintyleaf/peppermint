@@ -26,8 +26,8 @@ export function DataTableShellTableActions({
   const Pathname = usePathname();
 
   const handleDelete = async () => {
-    const idsToDelete = selectedRecords.map((record: any) =>
-      record[idAccessor]
+    const idsToDelete = selectedRecords.map(
+      (record: any) => record[idAccessor],
     );
     setDeleting(true);
     try {

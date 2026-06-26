@@ -1,3 +1,3 @@
-import { ModuleOrganization } from "@/modules/admin";
+import { ModuleOrganizations } from "@/modules/admin";
 
-export default ModuleOrganization.main;
+export default ModuleOrganizations;

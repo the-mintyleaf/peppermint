@@ -9,7 +9,10 @@ interface PageBreadcrumbProps {
   color?: MantineColor;
 }
 
-export function PageBreadcrumb({ items = [], color = "gray" }: PageBreadcrumbProps) {
+export function PageBreadcrumb({
+  items = [],
+  color = "gray",
+}: PageBreadcrumbProps) {
   if (items.length === 0) return null;
 
   const lastItem = items[items.length - 1];

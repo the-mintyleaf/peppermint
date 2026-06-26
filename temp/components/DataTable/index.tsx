@@ -24,7 +24,11 @@ export function DataTableShellDataTable({
 }: PropDataTableShellDataTable) {
   //* CONTEXT
 
-  const { data, isLoading: isFetching, selectOnRowClick } = DataTableWrapper.useDataTableContext();
+  const {
+    data,
+    isLoading: isFetching,
+    selectOnRowClick,
+  } = DataTableWrapper.useDataTableContext();
   const {
     page,
     pageSize,
@@ -166,13 +170,23 @@ export function DataTableShellDataTable({
         selectedRecords={selectedRecords}
         onSelectedRecordsChange={handleSelectionChange}
         rowExpansion={rowExpansion}
-        onRowClick={selectOnRowClick ? ({ record }) => {
-          setSelectedRecords(
-            selectedRecords.some((r: any) => r[idAccessor || "id"] === record[idAccessor || "id"])
-              ? selectedRecords.filter((r: any) => r[idAccessor || "id"] !== record[idAccessor || "id"])
-              : [...selectedRecords, record]
-          );
-        } : undefined}
+        onRowClick={
+          selectOnRowClick
+            ? ({ record }) => {
+                setSelectedRecords(
+                  selectedRecords.some(
+                    (r: any) =>
+                      r[idAccessor || "id"] === record[idAccessor || "id"],
+                  )
+                    ? selectedRecords.filter(
+                        (r: any) =>
+                          r[idAccessor || "id"] !== record[idAccessor || "id"],
+                      )
+                    : [...selectedRecords, record],
+                );
+              }
+            : undefined
+        }
       />
     </>
   );

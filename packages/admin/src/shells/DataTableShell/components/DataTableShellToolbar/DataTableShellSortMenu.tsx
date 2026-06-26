@@ -1,13 +1,21 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { ActionIcon, Badge, Button, Stack, Text, TextInput, Tooltip } from '@peppermint/ui';
-import { ArrowsDownUpIcon } from '@phosphor-icons/react/dist/csr/ArrowsDownUp';
-import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
-import { useTableStore } from '../../../../wrappers/DataTableWrapper';
-import type { DataTableShellColumn } from '../../DataTableShell.types';
-import { ToolbarIconButton } from './ToolbarIconButton';
-import { getColumnKey, getColumnLabel } from './toolbar.utils';
+import { useState } from "react";
+import {
+  ActionIcon,
+  Badge,
+  Button,
+  Stack,
+  Text,
+  TextInput,
+  Tooltip,
+} from "@peppermint/ui";
+import { ArrowsDownUpIcon } from "@phosphor-icons/react/dist/csr/ArrowsDownUp";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
+import { useTableStore } from "../../../../wrappers/DataTableWrapper";
+import type { DataTableShellColumn } from "../../DataTableShell.types";
+import { ToolbarIconButton } from "./ToolbarIconButton";
+import { getColumnKey, getColumnLabel } from "./toolbar.utils";
 
 interface DataTableShellSortMenuProps<T extends Record<string, unknown>> {
   columns: DataTableShellColumn<T>[];
@@ -17,7 +25,7 @@ export function DataTableShellSortMenu<T extends Record<string, unknown>>({
   columns,
 }: DataTableShellSortMenuProps<T>) {
   const [opened, setOpened] = useState(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
 
   const useTable = useTableStore();
   const sort = useTable((s) => s.sort);
@@ -34,13 +42,19 @@ export function DataTableShellSortMenu<T extends Record<string, unknown>>({
 
   const handleClose = () => {
     setOpened(false);
-    setQuery('');
+    setQuery("");
   };
 
   if (sortableColumns.length === 0) {
     return (
       <Tooltip label="Sort" withArrow position="bottom">
-        <ActionIcon variant="subtle" color="gray" size="md" aria-label="Sort" disabled>
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          size="md"
+          aria-label="Sort"
+          disabled
+        >
           <ArrowsDownUpIcon size={18} />
         </ActionIcon>
       </Tooltip>
@@ -64,7 +78,7 @@ export function DataTableShellSortMenu<T extends Record<string, unknown>>({
           value={query}
           onChange={(e) => setQuery(e.currentTarget.value)}
         />
-        <Stack gap={0} mah={240} style={{ overflowY: 'auto' }}>
+        <Stack gap={0} mah={240} style={{ overflowY: "auto" }}>
           {filteredColumns.map((col) => {
             const key = getColumnKey(col);
             const label = getColumnLabel(col);
@@ -75,14 +89,14 @@ export function DataTableShellSortMenu<T extends Record<string, unknown>>({
               <Button
                 key={key}
                 justify="space-between"
-                variant={state ? 'light' : 'subtle'}
+                variant={state ? "light" : "subtle"}
                 size="xs"
-                 onClick={() => toggleSort(key)}
+                onClick={() => toggleSort(key)}
                 rightSection={
                   state ? (
                     <Badge size="xs" variant="light">
-                      {sortIndex === 0 ? '1' : String(sortIndex + 1)}{' '}
-                      {state.direction === 'asc' ? '↑' : '↓'}
+                      {sortIndex === 0 ? "1" : String(sortIndex + 1)}{" "}
+                      {state.direction === "asc" ? "↑" : "↓"}
                     </Badge>
                   ) : null
                 }

@@ -9,6 +9,7 @@
 ## What Is an Executor?
 
 An **executor** is a function that implements a node's logic. It:
+
 1. Receives input and context
 2. Performs work (validate, call LLM, HTTP request, etc.)
 3. Returns a typed Result (success or error)
@@ -16,7 +17,7 @@ An **executor** is a function that implements a node's logic. It:
 ```typescript
 async function nodeCustom(
   input: PropNodeCustomInput,
-  ctx: ExecutorContext
+  ctx: ExecutorContext,
 ): Promise<Result<PropNodeCustomOutput, PropNodeCustomError>> {
   // Validate
   // Execute logic
@@ -47,7 +48,7 @@ import { z } from "zod";
 export const schemaPropNodeCustomInput = z.object({
   sessionId: z.string(),
   message: z.string().max(5000, "Message too long"),
-  config: z.record(z.string()).optional()
+  config: z.record(z.string()).optional(),
 });
 
 export type PropNodeCustomInput = z.infer<typeof schemaPropNodeCustomInput>;
@@ -55,7 +56,7 @@ export type PropNodeCustomInput = z.infer<typeof schemaPropNodeCustomInput>;
 // Output schema – what executor returns on success
 export const schemaPropNodeCustomOutput = z.object({
   reply: z.string(),
-  summary: z.record(z.string())
+  summary: z.record(z.string()),
 });
 
 export type PropNodeCustomOutput = z.infer<typeof schemaPropNodeCustomOutput>;
@@ -87,23 +88,20 @@ import {
   PropNodeCustomInput,
   PropNodeCustomOutput,
   PropNodeCustomError,
-  schemaPropNodeCustomInput
+  schemaPropNodeCustomInput,
 } from "./custom.type";
 
 export async function nodeCustom(
   input: unknown,
-  ctx: ExecutorContext
+  ctx: ExecutorContext,
 ): Promise<Result<PropNodeCustomOutput, PropNodeCustomError>> {
   // Step 1: Validate input at boundary
   const parseResult = schemaPropNodeCustomInput.safeParse(input);
   if (!parseResult.success) {
-    ctx.logger.warn(
-      { errors: parseResult.error.issues },
-      "Invalid input"
-    );
+    ctx.logger.warn({ errors: parseResult.error.issues }, "Invalid input");
     return err({
       code: "INVALID_INPUT",
-      message: `Invalid input: ${parseResult.error.message}`
+      message: `Invalid input: ${parseResult.error.message}`,
     });
   }
 
@@ -112,7 +110,7 @@ export async function nodeCustom(
   // Step 2: Structured logging (includes runId, nodeId, sessionId)
   ctx.logger.info(
     { sessionId, messageLen: message.length },
-    "Starting custom node"
+    "Starting custom node",
   );
 
   // Step 3: Check if run was cancelled
@@ -121,7 +119,7 @@ export async function nodeCustom(
     return err({
       code: "SESSION_ERROR",
       message: "Run was cancelled",
-      retryable: false
+      retryable: false,
     });
   }
 
@@ -137,11 +135,11 @@ export async function nodeCustom(
     // Step 6: Update persistent state
     await ctx.memory.addSessionMessage(sessionId, {
       role: "user",
-      content: message
+      content: message,
     });
     await ctx.memory.addSessionMessage(sessionId, {
       role: "assistant",
-      content: reply
+      content: reply,
     });
     await ctx.memory.updateSessionSummary(sessionId, newSummary);
 
@@ -154,23 +152,18 @@ export async function nodeCustom(
     // Step 9: Return success
     return ok({
       reply,
-      summary: newSummary
+      summary: newSummary,
     });
-
   } catch (e) {
     // Step 10: Handle errors
     ctx.logger.error({ error: e }, "Custom node failed");
 
-    ctx.metrics.recordExecutorError(
-      "agents.custom",
-      "EXECUTION_ERROR",
-      500
-    );
+    ctx.metrics.recordExecutorError("agents.custom", "EXECUTION_ERROR", 500);
 
     return err({
       code: "LLM_ERROR",
       message: e instanceof Error ? e.message : String(e),
-      retryable: true  // Will be retried by worker
+      retryable: true, // Will be retried by worker
     });
   }
 }
@@ -204,14 +197,14 @@ describe("nodeCustom", () => {
         getSessionMessages: async () => [],
         addSessionMessage: async () => {},
         getSessionSummary: async () => null,
-        updateSessionSummary: async () => {}
-      }
+        updateSessionSummary: async () => {},
+      },
     });
 
     // Call executor
     const result = await nodeCustom(
       { sessionId: "test-session", message: "hello" },
-      ctx
+      ctx,
     );
 
     // Assert
@@ -225,8 +218,8 @@ describe("nodeCustom", () => {
   it("should reject invalid input", async () => {
     const ctx = createMockExecutorContext();
     const result = await nodeCustom(
-      { sessionId: "test", message: "" },  // Empty message
-      ctx
+      { sessionId: "test", message: "" }, // Empty message
+      ctx,
     );
 
     expect(result.isErr()).toBe(true);
@@ -240,13 +233,13 @@ describe("nodeCustom", () => {
       memory: {
         getSessionMessages: async () => {
           throw new Error("Redis connection failed");
-        }
-      }
+        },
+      },
     });
 
     const result = await nodeCustom(
       { sessionId: "test", message: "hello" },
-      ctx
+      ctx,
     );
 
     expect(result.isErr()).toBe(true);
@@ -267,7 +260,7 @@ logger.info("Starting");
 
 // ✗ Don't use singletons
 import { logger as globalLogger } from "@/shared/logging";
-globalLogger.info("Starting");  // Hard to mock, test
+globalLogger.info("Starting"); // Hard to mock, test
 ```
 
 ### Available Methods
@@ -301,14 +294,14 @@ const value = await ctx.redis.get(key);
 await ctx.emitEvent("token", { partial: "hello" });
 
 // Runtime info
-ctx.runId          // Current run ID
-ctx.nodeId         // Current node ID
-ctx.sessionId      // Current session ID
-ctx.requestId      // Request trace ID
+ctx.runId; // Current run ID
+ctx.nodeId; // Current node ID
+ctx.sessionId; // Current session ID
+ctx.requestId; // Request trace ID
 
 // Config
-ctx.config.defaultSystemPrompt
-ctx.config.maxTokensPerRun
+ctx.config.defaultSystemPrompt;
+ctx.config.maxTokensPerRun;
 
 // Cancellation
 const cancelled = await ctx.isCancelled();
@@ -327,19 +320,19 @@ import {
   PropNodeGuardPolicyInput,
   PropNodeGuardPolicyOutput,
   PropNodeGuardPolicyError,
-  schemaPropNodeGuardPolicyInput
+  schemaPropNodeGuardPolicyInput,
 } from "./nodeGuardPolicy.type";
 
 export async function nodeGuardPolicy(
   input: unknown,
-  ctx: ExecutorContext
+  ctx: ExecutorContext,
 ): Promise<Result<PropNodeGuardPolicyOutput, PropNodeGuardPolicyError>> {
   // Validate input
   const parseResult = schemaPropNodeGuardPolicyInput.safeParse(input);
   if (!parseResult.success) {
     return err({
       code: "INVALID_INPUT",
-      message: "Invalid guard policy input"
+      message: "Invalid guard policy input",
     });
   }
 
@@ -351,10 +344,13 @@ export async function nodeGuardPolicy(
   // Check length
   const maxLength = config.maxLength ?? 5000;
   if (message.length > maxLength) {
-    ctx.logger.warn({ messageLen: message.length, maxLength }, "Message too long");
+    ctx.logger.warn(
+      { messageLen: message.length, maxLength },
+      "Message too long",
+    );
     return ok({
       allow: false,
-      reason: "Message exceeds maximum length"
+      reason: "Message exceeds maximum length",
     });
   }
 
@@ -365,7 +361,7 @@ export async function nodeGuardPolicy(
       ctx.logger.warn({ pattern }, "Message matches deny pattern");
       return ok({
         allow: false,
-        reason: "Message contains blocked content"
+        reason: "Message contains blocked content",
       });
     }
   }
@@ -373,7 +369,7 @@ export async function nodeGuardPolicy(
   // All checks passed
   ctx.logger.info("Input validation passed");
   return ok({
-    allow: true
+    allow: true,
   });
 }
 ```
@@ -522,7 +518,7 @@ const result = schema.safeParse(input);
 if (!result.success) {
   return err({
     code: "INVALID_INPUT",
-    message: result.error.message
+    message: result.error.message,
   });
 }
 ```
@@ -537,7 +533,7 @@ try {
   return err({
     code: "DEPENDENCY_ERROR",
     message: "Redis unavailable",
-    retryable: true
+    retryable: true,
   });
 }
 ```
@@ -545,14 +541,15 @@ try {
 ### Pattern 3: Cascading Results
 
 ```typescript
-const messages = await ctx.memory.getSessionMessages(sessionId, 10)
+const messages = await ctx.memory
+  .getSessionMessages(sessionId, 10)
   .catch(() => null);
 
 if (!messages) {
   return err({
     code: "SESSION_ERROR",
     message: "Failed to load session",
-    retryable: true
+    retryable: true,
   });
 }
 ```
@@ -591,7 +588,9 @@ redis.get(key);
 ctx.logger.info({ sessionId, count: 5, duration: 123 }, "Processed");
 
 // ✗ String interpolation
-ctx.logger.info(`Session ${sessionId} processed ${count} items in ${duration}ms`);
+ctx.logger.info(
+  `Session ${sessionId} processed ${count} items in ${duration}ms`,
+);
 ```
 
 ### 4. Return Explicit Errors
@@ -601,7 +600,7 @@ ctx.logger.info(`Session ${sessionId} processed ${count} items in ${duration}ms`
 return err({
   code: "LLM_ERROR",
   message: "Rate limit exceeded",
-  retryable: true
+  retryable: true,
 });
 
 // ✗ Vague

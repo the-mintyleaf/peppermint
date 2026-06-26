@@ -20,13 +20,18 @@ export async function fetchKeywordsPaginated(
   return paginate(items, params?.page ?? 1, params?.pageSize ?? 20);
 }
 
-export async function createKeyword(values: Partial<KeywordRow>): Promise<KeywordRow> {
+export async function createKeyword(
+  values: Partial<KeywordRow>,
+): Promise<KeywordRow> {
   const term = values.term ?? "";
   const kind = values.kind ?? "keyword";
   return (await addKeyword(term, kind)) as KeywordRow;
 }
 
-export async function updateKeyword(_id: string, _values: Partial<KeywordRow>): Promise<KeywordRow> {
+export async function updateKeyword(
+  _id: string,
+  _values: Partial<KeywordRow>,
+): Promise<KeywordRow> {
   await delay();
   throw new Error("Keyword update not supported");
 }

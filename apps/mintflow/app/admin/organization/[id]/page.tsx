@@ -1,3 +1,9 @@
-import { ModuleOrganization } from "@/modules/admin";
+import { redirect } from "next/navigation";
 
-export default ModuleOrganization.view;
+export default function OrgDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  redirect(`/admin/organization/${params.id}/structure`);
+}

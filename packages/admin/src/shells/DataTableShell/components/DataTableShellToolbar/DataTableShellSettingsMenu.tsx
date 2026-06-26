@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button, SegmentedControl, Stack, Text } from '@peppermint/ui';
-import { SlidersHorizontalIcon } from '@phosphor-icons/react/dist/csr/SlidersHorizontal';
-import type { DensitySize } from '../../../../wrappers/DataTableWrapper';
-import { useTableStore } from '../../../../wrappers/DataTableWrapper';
-import { ToolbarIconButton } from './ToolbarIconButton';
+import { useState } from "react";
+import { Button, SegmentedControl, Stack, Text } from "@peppermint/ui";
+import { SlidersHorizontalIcon } from "@phosphor-icons/react/dist/csr/SlidersHorizontal";
+import type { DensitySize } from "../../../../wrappers/DataTableWrapper";
+import { useTableStore } from "../../../../wrappers/DataTableWrapper";
+import { ToolbarIconButton } from "./ToolbarIconButton";
 
 const DENSITY_OPTIONS: { label: string; value: DensitySize }[] = [
-  { label: 'Compact', value: 'xs' },
-  { label: 'Default', value: 'md' },
-  { label: 'Comfortable', value: 'lg' },
+  { label: "Compact", value: "xs" },
+  { label: "Default", value: "md" },
+  { label: "Comfortable", value: "lg" },
 ];
 
 export function DataTableShellSettingsMenu() {

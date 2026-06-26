@@ -71,11 +71,18 @@ export function ContentItemView({ contentId }: ContentItemViewProps) {
       <Breadcrumbs>
         <Anchor
           size="sm"
-          onClick={() => router.push(`/admin/automation/workflows/${item.automationId}`)}
+          onClick={() =>
+            router.push(`/admin/automation/workflows/${item.automationId}`)
+          }
         >
           {item.automationName}
         </Anchor>
-        <Anchor size="sm" onClick={() => router.push(`/admin/automation/workflows/${item.automationId}`)}>
+        <Anchor
+          size="sm"
+          onClick={() =>
+            router.push(`/admin/automation/workflows/${item.automationId}`)
+          }
+        >
           Run #{item.runId}
         </Anchor>
         <Text size="sm" c="dimmed">
@@ -143,18 +150,20 @@ export function ContentItemView({ contentId }: ContentItemViewProps) {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {Object.entries(item.slotValues as Record<string, string>).map(([key, val]) => (
-              <Table.Tr key={key}>
-                <Table.Td>
-                  <Text size="xs" c="dimmed" ff="monospace">
-                    {key}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size="xs">{val}</Text>
-                </Table.Td>
-              </Table.Tr>
-            ))}
+            {Object.entries(item.slotValues as Record<string, string>).map(
+              ([key, val]) => (
+                <Table.Tr key={key}>
+                  <Table.Td>
+                    <Text size="xs" c="dimmed" ff="monospace">
+                      {key}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="xs">{val}</Text>
+                  </Table.Td>
+                </Table.Tr>
+              ),
+            )}
           </Table.Tbody>
         </Table>
       </Stack>

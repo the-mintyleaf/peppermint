@@ -10,7 +10,6 @@ export function AdminMainNavHeader() {
       label="Mintflow"
       href="/admin"
       iconWeight="fill"
-
     />
   );
 }

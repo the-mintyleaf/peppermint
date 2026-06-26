@@ -1,12 +1,12 @@
 "use client";
 
-import { DataTable } from 'mantine-datatable';
-import type { DataTableShellNestedTableProps } from './DataTableShellNestedTable.types';
+import { DataTable } from "mantine-datatable";
+import type { DataTableShellNestedTableProps } from "./DataTableShellNestedTable.types";
 
 export function DataTableShellNestedTable<T extends Record<string, unknown>>({
   records,
   columns,
-  idAccessor = 'id',
+  idAccessor = "id",
   indentLeft,
 }: DataTableShellNestedTableProps<T>) {
   return (

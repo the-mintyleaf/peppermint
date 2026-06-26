@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Avatar,
   Box,
@@ -12,47 +12,50 @@ import {
   Text,
   TextInput,
   ThemeIcon,
-} from '@mantine/core';
-import { AccessLevelMenu } from './AccessLevelMenu';
-import { notifications } from '@mantine/notifications';
-import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
-import { LinkIcon } from '@phosphor-icons/react/dist/csr/Link';
-import { ShieldIcon } from '@phosphor-icons/react/dist/csr/Shield';
-import { UsersIcon } from '@phosphor-icons/react/dist/csr/Users';
-import type { AccessLevel, AccessMenuProps } from './AccessMenu.types';
+} from "@mantine/core";
+import { AccessLevelMenu } from "./AccessLevelMenu";
+import { notifications } from "@mantine/notifications";
+import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
+import { LinkIcon } from "@phosphor-icons/react/dist/csr/Link";
+import { ShieldIcon } from "@phosphor-icons/react/dist/csr/Shield";
+import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
+import type { AccessLevel, AccessMenuProps } from "./AccessMenu.types";
 
 export function AccessMenu({
   data,
   onChange,
   shareUrl,
-  label = 'Access',
+  label = "Access",
   width = 400,
 }: AccessMenuProps) {
   const [opened, setOpened] = useState(false);
-  const [inviteQuery, setInviteQuery] = useState('');
-  const [inviteLevel, setInviteLevel] = useState<AccessLevel>('view');
+  const [inviteQuery, setInviteQuery] = useState("");
+  const [inviteLevel, setInviteLevel] = useState<AccessLevel>("view");
 
   const resolvedShareUrl =
-    shareUrl ?? (typeof window !== 'undefined' ? window.location.href : '');
+    shareUrl ?? (typeof window !== "undefined" ? window.location.href : "");
 
   const handleInvite = () => {
     const query = inviteQuery.trim();
     if (!query) return;
     onChange?.({
-      type: 'invite',
+      type: "invite",
       inviteQuery: query,
       accessLevel: inviteLevel,
     });
-    setInviteQuery('');
+    setInviteQuery("");
     setOpened(false);
   };
 
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(resolvedShareUrl);
-      notifications.show({ message: 'Link copied to clipboard', color: 'green' });
+      notifications.show({
+        message: "Link copied to clipboard",
+        color: "green",
+      });
     } catch {
-      notifications.show({ message: 'Failed to copy link', color: 'red' });
+      notifications.show({ message: "Failed to copy link", color: "red" });
     }
   };
 
@@ -87,13 +90,10 @@ export function AccessMenu({
               value={inviteQuery}
               onChange={(e) => setInviteQuery(e.currentTarget.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleInvite();
+                if (e.key === "Enter") handleInvite();
               }}
             />
-            <AccessLevelMenu
-              value={inviteLevel}
-              onChange={setInviteLevel}
-            />
+            <AccessLevelMenu value={inviteLevel} onChange={setInviteLevel} />
             <Button size="xs" color="brand" onClick={handleInvite}>
               Invite
             </Button>
@@ -105,7 +105,7 @@ export function AccessMenu({
             </Text>
             <Stack gap="xs">
               <Group gap="sm" wrap="nowrap">
-                <ThemeIcon size="md" variant="light" color="brand" >
+                <ThemeIcon size="md" variant="light" color="brand">
                   <UsersIcon size={16} />
                 </ThemeIcon>
                 <Box>
@@ -118,7 +118,7 @@ export function AccessMenu({
                 </Box>
               </Group>
               <Group gap="sm" wrap="nowrap">
-                <ThemeIcon size="md" variant="light" color="indigo" >
+                <ThemeIcon size="md" variant="light" color="indigo">
                   <ShieldIcon size={16} />
                 </ThemeIcon>
                 <Box>
@@ -139,11 +139,20 @@ export function AccessMenu({
             <Text size="xs" c="dimmed" mb="xs">
               Roles with access
             </Text>
-            <Stack gap="xs" mah={140} style={{ overflowY: 'auto' }}>
+            <Stack gap="xs" mah={140} style={{ overflowY: "auto" }}>
               {data.roles.map((role) => (
-                <Group key={role.id} gap="sm" wrap="nowrap" justify="space-between">
-                  <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-                    <ThemeIcon size="sm" variant="light" color="gray" >
+                <Group
+                  key={role.id}
+                  gap="sm"
+                  wrap="nowrap"
+                  justify="space-between"
+                >
+                  <Group
+                    gap="sm"
+                    wrap="nowrap"
+                    style={{ flex: 1, minWidth: 0 }}
+                  >
+                    <ThemeIcon size="sm" variant="light" color="gray">
                       <ShieldIcon size={14} />
                     </ThemeIcon>
                     <Box style={{ minWidth: 0 }}>
@@ -161,7 +170,7 @@ export function AccessMenu({
                     value={role.accessLevel}
                     onChange={(accessLevel) =>
                       onChange?.({
-                        type: 'role',
+                        type: "role",
                         roleId: role.id,
                         accessLevel,
                       })
@@ -183,14 +192,23 @@ export function AccessMenu({
             <Text size="xs" c="dimmed" mb="xs">
               Accounts with access
             </Text>
-            <Stack gap="xs" mah={160} style={{ overflowY: 'auto' }}>
+            <Stack gap="xs" mah={160} style={{ overflowY: "auto" }}>
               {data.accounts.map((account) => (
-                <Group key={account.id} gap="sm" wrap="nowrap" justify="space-between">
-                  <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+                <Group
+                  key={account.id}
+                  gap="sm"
+                  wrap="nowrap"
+                  justify="space-between"
+                >
+                  <Group
+                    gap="sm"
+                    wrap="nowrap"
+                    style={{ flex: 1, minWidth: 0 }}
+                  >
                     <Avatar
                       src={account.avatarUrl}
                       size="sm"
-                       name={account.name}
+                      name={account.name}
                     />
                     <Box style={{ minWidth: 0 }}>
                       <Text size="xs" fw={600} truncate>
@@ -207,7 +225,7 @@ export function AccessMenu({
                     value={account.accessLevel}
                     onChange={(accessLevel) =>
                       onChange?.({
-                        type: 'account',
+                        type: "account",
                         accountId: account.id,
                         accessLevel,
                       })
@@ -231,8 +249,8 @@ export function AccessMenu({
           wrap="nowrap"
           justify="space-between"
           style={{
-            borderTop: '1px solid var(--mantine-color-gray-3)',
-            backgroundColor: 'var(--mantine-color-gray-0)',
+            borderTop: "1px solid var(--mantine-color-gray-3)",
+            backgroundColor: "var(--mantine-color-gray-0)",
           }}
         >
           <Text size="xs" c="dimmed" truncate style={{ flex: 1 }}>

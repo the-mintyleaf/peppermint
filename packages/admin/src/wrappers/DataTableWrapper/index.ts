@@ -1,10 +1,10 @@
-export { DataTableWrapper } from './DataTableWrapper';
+export { DataTableWrapper } from "./DataTableWrapper";
 export {
   useTableData,
   useTableStore,
   useInvalidateTable,
   useTableSelection,
-} from './DataTableWrapper.hooks';
+} from "./DataTableWrapper.hooks";
 export {
   getNestedValue,
   clientSearch,
@@ -14,7 +14,7 @@ export {
   clearAll,
   toggleRow,
   isAllSelected,
-} from './DataTableWrapper.utils';
+} from "./DataTableWrapper.utils";
 export type {
   DataTableWrapperProps,
   DataTableDataContextValue,
@@ -27,4 +27,4 @@ export type {
   PaginationMeta,
   DensitySize,
   TablePersistenceOptions,
-} from './DataTableWrapper.types';
+} from "./DataTableWrapper.types";

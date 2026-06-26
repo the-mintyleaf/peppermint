@@ -3,6 +3,7 @@
 A **ContainedModule** lives on a single route and handles its full CRUD lifecycle there. List, create, edit, and delete are all managed by `ModalTableShell` — creates and edits open in drawers/modals, no page navigation happens.
 
 Use this when:
+
 - The module lives at one URL (e.g. `/admin/students`)
 - The form is self-contained and reasonably sized
 - You don't need a dedicated detail or multi-step create page
@@ -76,14 +77,27 @@ Import `QueryParams` from `@peppermint/admin` so the function signature matches 
 import type { QueryParams } from "@peppermint/admin";
 import type { Student, StudentsFetchResponse } from "./students.types";
 
-export async function fetchStudents(params?: QueryParams): Promise<StudentsFetchResponse> {
+export async function fetchStudents(
+  params?: QueryParams,
+): Promise<StudentsFetchResponse> {
   // params.filters.status is set by the active tab
   // params.search, params.page, params.pageSize, params.sort are handled here
 }
 
-export async function createStudent(values: Partial<Student>): Promise<Student> { /* ... */ }
-export async function updateStudent(id: string, values: Partial<Student>): Promise<Student> { /* ... */ }
-export async function deleteStudent(id: string): Promise<void> { /* ... */ }
+export async function createStudent(
+  values: Partial<Student>,
+): Promise<Student> {
+  /* ... */
+}
+export async function updateStudent(
+  id: string,
+  values: Partial<Student>,
+): Promise<Student> {
+  /* ... */
+}
+export async function deleteStudent(id: string): Promise<void> {
+  /* ... */
+}
 ```
 
 ### 4. `pages/list/<name>.columns.tsx`
@@ -98,11 +112,13 @@ import type { Student } from "../../students.types";
 
 export const studentsColumns: DataTableShellColumn<Student>[] = [
   { accessor: "fullName", title: "Full Name", sortable: true },
-  { accessor: "email",    title: "Email",     sortable: true },
+  { accessor: "email", title: "Email", sortable: true },
   {
     accessor: "status",
     title: "Status",
-    render: (record) => <Badge color={colorMap[record.status]}>{record.status}</Badge>,
+    render: (record) => (
+      <Badge color={colorMap[record.status]}>{record.status}</Badge>
+    ),
   },
 ];
 ```
@@ -117,12 +133,21 @@ import { useForm } from "@peppermint/ui";
 import type { StudentFormProps } from "./StudentForm.types";
 import type { Student } from "../students.types";
 
-export function StudentForm({ initialValues, onSubmit, isLoading }: StudentFormProps) {
+export function StudentForm({
+  initialValues,
+  onSubmit,
+  isLoading,
+}: StudentFormProps) {
   const form = useForm<Student>({
-    initialValues: initialValues ?? { fullName: "", email: "", status: "active", /* ... */ },
+    initialValues: initialValues ?? {
+      fullName: "",
+      email: "",
+      status: "active" /* ... */,
+    },
     validate: {
       fullName: (v) => (!v ? "Required" : null),
-      email: (v) => (!v ? "Required" : !/^\S+@\S+$/.test(v) ? "Invalid email" : null),
+      email: (v) =>
+        !v ? "Required" : !/^\S+@\S+$/.test(v) ? "Invalid email" : null,
     },
     onSubmit,
   });
@@ -130,8 +155,21 @@ export function StudentForm({ initialValues, onSubmit, isLoading }: StudentFormP
   return (
     <form onSubmit={form.onSubmit}>
       <Stack gap="md" p="md">
-        <TextInput label="Full Name" placeholder="Alice Johnson" required disabled={isLoading} {...form.getInputProps("fullName")} />
-        <TextInput label="Email" placeholder="student@example.com" type="email" required disabled={isLoading} {...form.getInputProps("email")} />
+        <TextInput
+          label="Full Name"
+          placeholder="Alice Johnson"
+          required
+          disabled={isLoading}
+          {...form.getInputProps("fullName")}
+        />
+        <TextInput
+          label="Email"
+          placeholder="student@example.com"
+          type="email"
+          required
+          disabled={isLoading}
+          {...form.getInputProps("email")}
+        />
         <Select
           label="Status"
           data={[
@@ -174,50 +212,59 @@ Always wrap the shell in a `Paper` with `p={0}`, `withBorder`, `radius="lg"`, an
 import { ModalTableShell } from "@peppermint/admin";
 import { Paper } from "@peppermint/ui";
 import type { DataTableShellTab } from "@peppermint/admin";
-import { UsersIcon }        from "@phosphor-icons/react/dist/csr/Users";
-import { CheckCircleIcon }  from "@phosphor-icons/react/dist/csr/CheckCircle";
-import { ClockIcon }        from "@phosphor-icons/react/dist/csr/Clock";
+import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
+import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
+import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
 import { GraduationCapIcon } from "@phosphor-icons/react/dist/csr/GraduationCap";
-import { XCircleIcon }      from "@phosphor-icons/react/dist/csr/XCircle";
-import { fetchStudents, createStudent, updateStudent, deleteStudent } from "../../students.api";
+import { XCircleIcon } from "@phosphor-icons/react/dist/csr/XCircle";
+import {
+  fetchStudents,
+  createStudent,
+  updateStudent,
+  deleteStudent,
+} from "../../students.api";
 import { studentsColumns } from "./students.columns";
 import { studentQueryKeys } from "../../students.queryKeys";
 import { StudentForm } from "../../form/StudentForm";
 import type { Student } from "../../students.types";
 
 const tabs: DataTableShellTab[] = [
-  { label: "All Students",  icon: UsersIcon },
-  { label: "Active",        icon: CheckCircleIcon,  filter: { status: "active" } },
-  { label: "On Leave",      icon: ClockIcon,        filter: { status: "on-leave" } },
-  { label: "Graduated",     icon: GraduationCapIcon, filter: { status: "graduated" } },
-  { label: "Dropped",       icon: XCircleIcon,      filter: { status: "dropped" } },
+  { label: "All Students", icon: UsersIcon },
+  { label: "Active", icon: CheckCircleIcon, filter: { status: "active" } },
+  { label: "On Leave", icon: ClockIcon, filter: { status: "on-leave" } },
+  {
+    label: "Graduated",
+    icon: GraduationCapIcon,
+    filter: { status: "graduated" },
+  },
+  { label: "Dropped", icon: XCircleIcon, filter: { status: "dropped" } },
 ];
 
 export function StudentsList() {
   return (
     <Paper p={0} withBorder radius="lg" h="calc(100vh - 16px)">
-    <ModalTableShell<Student>
-      queryKey={studentQueryKeys.list()}
-      queryGetFn={fetchStudents}
-      dataKey="data"
-      paginationKey="meta"
-      columns={studentsColumns}
-      moduleInfo={{
-        name: "students",
-        label: "Students",
-        description: "Manage student enrollments and profiles",
-      }}
-      idAccessor="id"
-      createFormComponent={StudentForm}
-      editFormComponent={StudentForm}
-      onCreateApi={(values) => createStudent(values)}
-      onEditApi={(values) => updateStudent(values.id, values)}
-      onDeleteApi={(id) => deleteStudent(String(id))}
-      pageSizes={[10, 20, 30, 50]}
-      defaultPageSize={20}
-      tabs={tabs}
-      basePath="/admin/students"
-    />
+      <ModalTableShell<Student>
+        queryKey={studentQueryKeys.list()}
+        queryGetFn={fetchStudents}
+        dataKey="data"
+        paginationKey="meta"
+        columns={studentsColumns}
+        moduleInfo={{
+          name: "students",
+          label: "Students",
+          description: "Manage student enrollments and profiles",
+        }}
+        idAccessor="id"
+        createFormComponent={StudentForm}
+        editFormComponent={StudentForm}
+        onCreateApi={(values) => createStudent(values)}
+        onEditApi={(values) => updateStudent(values.id, values)}
+        onDeleteApi={(id) => deleteStudent(String(id))}
+        pageSizes={[10, 20, 30, 50]}
+        defaultPageSize={20}
+        tabs={tabs}
+        basePath="/admin/students"
+      />
     </Paper>
   );
 }
@@ -263,7 +310,9 @@ No logic. No imports from inside the module. One line.
 const tabs = [{ label: "Active", filter: { status: "active" } }];
 
 // ✅
-const tabs: DataTableShellTab[] = [{ label: "Active", icon: CheckCircleIcon, filter: { status: "active" } }];
+const tabs: DataTableShellTab[] = [
+  { label: "Active", icon: CheckCircleIcon, filter: { status: "active" } },
+];
 ```
 
 **Putting logic in `app/page.tsx`**

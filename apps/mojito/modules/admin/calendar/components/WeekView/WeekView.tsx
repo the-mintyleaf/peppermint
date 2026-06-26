@@ -34,7 +34,9 @@ export function WeekView({ weekStart, entries, onEntryClick }: WeekViewProps) {
   const today = new Date();
 
   return (
-    <Box style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 8 }}>
+    <Box
+      style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 8 }}
+    >
       {days.map((day, i) => {
         const dayEntries = entriesByDay(day);
         const visible = dayEntries.slice(0, MAX_VISIBLE);
@@ -81,8 +83,12 @@ export function WeekView({ weekStart, entries, onEntryClick }: WeekViewProps) {
                     </div>
                   </ScheduledPopover>
                 ) : (
-                  <CalendarEntry key={entry.id} entry={entry} onClick={onEntryClick} />
-                )
+                  <CalendarEntry
+                    key={entry.id}
+                    entry={entry}
+                    onClick={onEntryClick}
+                  />
+                ),
               )}
               {overflow > 0 && (
                 <Text size="xs" c="dimmed" ta="center">

@@ -1,20 +1,16 @@
-export { DataTableShell } from './DataTableShell';
+export { DataTableShell } from "./DataTableShell";
 export {
   DataTableShellContext,
   useDataTableShellContext,
-} from './DataTableShell.context';
-export type { DataTableShellContextValue } from './DataTableShell.context';
-export { DataTableShellHeader } from './components/DataTableShellHeader';
-export { DataTableShellToolbar } from './components/DataTableShellToolbar';
-export { DataTableShellTable } from './components/DataTableShellTable';
-export { DataTableShellNestedTable } from './components/DataTableShellNestedTable';
-export type { DataTableShellNestedTableProps } from './components/DataTableShellNestedTable';
-export { AccessMenu } from '@peppermint/ui';
-export {
-  BookmarkButton,
-  BookmarksMenu,
-  useBookmarks,
-} from '@peppermint/ui';
+} from "./DataTableShell.context";
+export type { DataTableShellContextValue } from "./DataTableShell.context";
+export { DataTableShellHeader } from "./components/DataTableShellHeader";
+export { DataTableShellToolbar } from "./components/DataTableShellToolbar";
+export { DataTableShellTable } from "./components/DataTableShellTable";
+export { DataTableShellNestedTable } from "./components/DataTableShellNestedTable";
+export type { DataTableShellNestedTableProps } from "./components/DataTableShellNestedTable";
+export { AccessMenu } from "@peppermint/ui";
+export { BookmarkButton, BookmarksMenu, useBookmarks } from "@peppermint/ui";
 export type {
   AccessMenuData,
   AccessMenuChange,
@@ -25,7 +21,7 @@ export type {
   BookmarkInput,
   BookmarkButtonProps,
   BookmarksMenuProps,
-} from '@peppermint/ui';
+} from "@peppermint/ui";
 export type {
   DataTableShellProps,
   DataTableShellTab,
@@ -43,4 +39,4 @@ export type {
   DataTableShellToolbarProps,
   DataTableShellTableProps,
   DataTableShellTableActionsProps,
-} from './DataTableShell.types';
+} from "./DataTableShell.types";

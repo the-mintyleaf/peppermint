@@ -1,2 +1,2 @@
-export { DataTableShellModuleHeaderRight } from './DataTableShellModuleHeaderRight';
-export { DataTableShellEditedLabel } from './DataTableShellEditedLabel';
+export { DataTableShellModuleHeaderRight } from "./DataTableShellModuleHeaderRight";
+export { DataTableShellEditedLabel } from "./DataTableShellEditedLabel";

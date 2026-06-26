@@ -57,28 +57,61 @@ export function RunsList() {
   }
 
   return (
-    <ModulePageShell basePath={BASE_PATH} moduleInfo={MODULE_INFO} disableCreateButton>
-      <Paper radius="md" withBorder style={{ overflow: "hidden", height: "calc(100vh - 160px)" }}>
+    <ModulePageShell
+      basePath={BASE_PATH}
+      moduleInfo={MODULE_INFO}
+      disableCreateButton
+    >
+      <Paper
+        radius="md"
+        withBorder
+        style={{ overflow: "hidden", height: "calc(100vh - 160px)" }}
+      >
         <Tabs value={activeTab} onChange={handleTabChange}>
           <Tabs.List>
-            {(["all", "running", "waiting_review", "succeeded", "failed"] as TabStatus[]).map((s) => (
+            {(
+              [
+                "all",
+                "running",
+                "waiting_review",
+                "succeeded",
+                "failed",
+              ] as TabStatus[]
+            ).map((s) => (
               <Tabs.Tab key={s} value={s}>
-                {s === "all" ? "All" : s.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                {s === "all"
+                  ? "All"
+                  : s
+                      .replace("_", " ")
+                      .replace(/\b\w/g, (c) => c.toUpperCase())}
               </Tabs.Tab>
             ))}
           </Tabs.List>
 
-          <Tabs.Panel value={activeTab} style={{ overflow: "auto", maxHeight: "calc(100vh - 220px)" }}>
+          <Tabs.Panel
+            value={activeTab}
+            style={{ overflow: "auto", maxHeight: "calc(100vh - 220px)" }}
+          >
             {isLoading && (
               <Stack gap="xs" p="md">
-                {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} h={48} radius="sm" />)}
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} h={48} radius="sm" />
+                ))}
               </Stack>
             )}
             {isError && (
-              <Center py="xl"><Text c="red" size="sm">Failed to load runs</Text></Center>
+              <Center py="xl">
+                <Text c="red" size="sm">
+                  Failed to load runs
+                </Text>
+              </Center>
             )}
             {!isLoading && !isError && items.length === 0 && (
-              <Center py="xl"><Text c="dimmed" size="sm">No runs found</Text></Center>
+              <Center py="xl">
+                <Text c="dimmed" size="sm">
+                  No runs found
+                </Text>
+              </Center>
             )}
             {!isLoading && items.length > 0 && (
               <Table striped highlightOnHover>
@@ -95,24 +128,43 @@ export function RunsList() {
                   {items.map((run) => {
                     const durationSecs = run.finishedAt
                       ? Math.floor(
-                          (new Date(run.finishedAt).getTime() - new Date(run.startedAt).getTime()) / 1000,
+                          (new Date(run.finishedAt).getTime() -
+                            new Date(run.startedAt).getTime()) /
+                            1000,
                         )
-                      : Math.floor((Date.now() - new Date(run.startedAt).getTime()) / 1000);
+                      : Math.floor(
+                          (Date.now() - new Date(run.startedAt).getTime()) /
+                            1000,
+                        );
                     const durationStr =
-                      durationSecs < 60 ? `${durationSecs}s` : `${Math.floor(durationSecs / 60)}m`;
+                      durationSecs < 60
+                        ? `${durationSecs}s`
+                        : `${Math.floor(durationSecs / 60)}m`;
                     return (
                       <Table.Tr key={run.id}>
-                        <Table.Td><Text size="sm" fw={500}>{run.workflowName}</Text></Table.Td>
                         <Table.Td>
-                          <Badge size="sm" color={STATUS_COLORS[run.status]} variant="light">
+                          <Text size="sm" fw={500}>
+                            {run.workflowName}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Badge
+                            size="sm"
+                            color={STATUS_COLORS[run.status]}
+                            variant="light"
+                          >
                             {run.status.replace("_", " ")}
                           </Badge>
                         </Table.Td>
                         <Table.Td>
-                          <Text size="xs" c="dimmed">{new Date(run.startedAt).toLocaleString()}</Text>
+                          <Text size="xs" c="dimmed">
+                            {new Date(run.startedAt).toLocaleString()}
+                          </Text>
                         </Table.Td>
                         <Table.Td>
-                          <Text size="xs" c="dimmed">{durationStr}</Text>
+                          <Text size="xs" c="dimmed">
+                            {durationStr}
+                          </Text>
                         </Table.Td>
                         <Table.Td>
                           <Group gap="xs" justify="flex-end">
@@ -157,7 +209,12 @@ export function RunsList() {
             )}
             {totalPages > 1 && (
               <Group justify="center" p="md">
-                <Pagination total={totalPages} value={page} onChange={setPage} size="sm" />
+                <Pagination
+                  total={totalPages}
+                  value={page}
+                  onChange={setPage}
+                  size="sm"
+                />
               </Group>
             )}
           </Tabs.Panel>

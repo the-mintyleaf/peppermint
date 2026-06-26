@@ -38,8 +38,13 @@ export function useUploadMedia() {
 export function useUpdateMedia() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, patch }: { id: string; patch: Parameters<typeof updateMedia>[1] }) =>
-      updateMedia(id, patch),
+    mutationFn: ({
+      id,
+      patch,
+    }: {
+      id: string;
+      patch: Parameters<typeof updateMedia>[1];
+    }) => updateMedia(id, patch),
     onSuccess: () => qc.invalidateQueries({ queryKey: mediaKeys.lists() }),
   });
 }

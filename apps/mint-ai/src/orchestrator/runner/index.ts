@@ -32,7 +32,7 @@ export async function advanceWorkflow({
         workflowId,
         nodeId,
       },
-      `Unknown workflow: ${workflowId}`
+      `Unknown workflow: ${workflowId}`,
     );
     throw new Error(`Unknown workflow: ${workflowId}`);
   }
@@ -58,7 +58,7 @@ export async function advanceWorkflow({
         lastNode: nodeId,
         outputPreview: JSON.stringify(output)?.substring(0, 100),
       },
-      "End of workflow reached"
+      "End of workflow reached",
     );
 
     eventBus.emitEvent({
@@ -82,7 +82,7 @@ export async function advanceWorkflow({
           nodeId,
           missingNode: next,
         },
-        "Edge points to unknown node"
+        "Edge points to unknown node",
       );
       continue;
     }
@@ -111,7 +111,7 @@ export async function advanceWorkflow({
         toNode: nextNode.id,
         kind: nextNode.kind,
       },
-      "Enqueued successor node"
+      "Enqueued successor node",
     );
   }
 }

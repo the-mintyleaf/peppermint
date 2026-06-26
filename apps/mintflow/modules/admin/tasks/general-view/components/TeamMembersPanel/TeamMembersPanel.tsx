@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Avatar,
-  Group,
-  Indicator,
-  Text,
-  Tooltip,
-} from "@peppermint/ui";
+import { Avatar, Group, Indicator, Text, Tooltip } from "@peppermint/ui";
 import type { TeamMembersPanelProps } from "./TeamMembersPanel.types";
 
 export function TeamMembersPanel({

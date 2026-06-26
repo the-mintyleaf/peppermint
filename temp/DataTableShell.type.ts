@@ -99,12 +99,13 @@ export type PropDataTableShell = PropSustained &
     disableReviewButton?: boolean;
   };
 
-export type PropDataTableShellActions = PropIdAccessor & PropSustained & {
-  onNewClick?: () => void;
-  onEditClick?: (record: any) => void;
-  onDeleteClick?: (ids: (string | number)[]) => void;
-  onReviewClick?: (record: any) => void;
-  disableEditButton?: boolean;
-  disableDeleteButton?: boolean;
-  disableReviewButton?: boolean;
-};
+export type PropDataTableShellActions = PropIdAccessor &
+  PropSustained & {
+    onNewClick?: () => void;
+    onEditClick?: (record: any) => void;
+    onDeleteClick?: (ids: (string | number)[]) => void;
+    onReviewClick?: (record: any) => void;
+    disableEditButton?: boolean;
+    disableDeleteButton?: boolean;
+    disableReviewButton?: boolean;
+  };

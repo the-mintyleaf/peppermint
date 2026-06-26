@@ -1,6 +1,10 @@
 import { create } from "zustand";
 import type { Node, Edge } from "@xyflow/react";
-import type { OrgNodeData, OrgNodeType, NodeModalConfig } from "./organization.types";
+import type {
+  OrgNodeData,
+  OrgNodeType,
+  NodeModalConfig,
+} from "./organization.types";
 
 export type OrgFlowNode = Node<OrgNodeData, OrgNodeType>;
 export type OrgFlowEdge = Edge;
@@ -29,8 +33,14 @@ interface OrgBuilderState {
   setSearchQuery: (q: string) => void;
   toggleShowPeople: () => void;
   pushHistory: (nodes: OrgFlowNode[], edges: OrgFlowEdge[]) => void;
-  undo: (setNodes: (n: OrgFlowNode[]) => void, setEdges: (e: OrgFlowEdge[]) => void) => void;
-  redo: (setNodes: (n: OrgFlowNode[]) => void, setEdges: (e: OrgFlowEdge[]) => void) => void;
+  undo: (
+    setNodes: (n: OrgFlowNode[]) => void,
+    setEdges: (e: OrgFlowEdge[]) => void,
+  ) => void;
+  redo: (
+    setNodes: (n: OrgFlowNode[]) => void,
+    setEdges: (e: OrgFlowEdge[]) => void,
+  ) => void;
   canUndo: () => boolean;
   canRedo: () => boolean;
   markSaved: () => void;
@@ -55,13 +65,27 @@ export const useOrgBuilderStore = create<OrgBuilderState>((set, get) => ({
   closeDrawer: () => set({ selectedNodeId: null, drawerOpen: false }),
 
   openAddModal: (nodeType) =>
-    set({ nodeModal: { open: true, mode: "add", nodeType, editingNodeId: undefined } }),
+    set({
+      nodeModal: {
+        open: true,
+        mode: "add",
+        nodeType,
+        editingNodeId: undefined,
+      },
+    }),
 
   openEditModal: (nodeId) =>
     set({ nodeModal: { open: true, mode: "edit", editingNodeId: nodeId } }),
 
   closeModal: () =>
-    set({ nodeModal: { open: false, mode: "add", nodeType: undefined, editingNodeId: undefined } }),
+    set({
+      nodeModal: {
+        open: false,
+        mode: "add",
+        nodeType: undefined,
+        editingNodeId: undefined,
+      },
+    }),
 
   setSearchQuery: (q) => set({ searchQuery: q }),
 

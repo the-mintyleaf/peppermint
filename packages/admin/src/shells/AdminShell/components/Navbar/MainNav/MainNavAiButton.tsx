@@ -1,7 +1,11 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import { Tooltip, UnstyledButton, useComputedColorScheme } from "@peppermint/ui";
+import {
+  Tooltip,
+  UnstyledButton,
+  useComputedColorScheme,
+} from "@peppermint/ui";
 import { OpenAIIcon } from "./OpenAIIcon";
 import type { AdminShellAiButton } from "../../../AdminShell.types";
 import { OpenAiLogoIcon as OpenAiLogo } from "@phosphor-icons/react/dist/csr/OpenAiLogo";
@@ -27,7 +31,9 @@ export function MainNavAiButton({
   const label = aiButton?.label ?? DEFAULT_AI_BUTTON_LABEL;
   const isActive = pathname === href || pathname.startsWith(href + "/");
 
-  const activeBg = isDark ? "var(--mantine-color-dark-5)" : "var(--mantine-color-gray-2)";
+  const activeBg = isDark
+    ? "var(--mantine-color-dark-5)"
+    : "var(--mantine-color-gray-2)";
 
   const button = (
     <UnstyledButton
@@ -49,7 +55,11 @@ export function MainNavAiButton({
         transition: "background-color 150ms ease",
       }}
     >
-      <OpenAiLogo size={20} weight="bold" color="var(--mantine-color-brand-3)" />
+      <OpenAiLogo
+        size={20}
+        weight="bold"
+        color="var(--mantine-color-brand-3)"
+      />
     </UnstyledButton>
   );
 

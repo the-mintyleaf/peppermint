@@ -3,6 +3,7 @@
 Provides a `QueryClient` to the component tree via `@tanstack/react-query`'s `QueryClientProvider`.
 
 Default configuration:
+
 - `staleTime`: 5 minutes
 - `gcTime`: 10 minutes
 - `retry`: 1
@@ -20,10 +21,10 @@ Default configuration:
 
 ### Props
 
-| Prop | Type | Required | Description |
-|---|---|---|---|
-| `children` | `ReactNode` | Yes | Component tree that needs React Query access |
-| `config` | `QueryClientConfig` | No | Override the default `QueryClient` config |
+| Prop       | Type                | Required | Description                                  |
+| ---------- | ------------------- | -------- | -------------------------------------------- |
+| `children` | `ReactNode`         | Yes      | Component tree that needs React Query access |
+| `config`   | `QueryClientConfig` | No       | Override the default `QueryClient` config    |
 
 ---
 

@@ -23,7 +23,12 @@ import { ArrowClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowClockwis
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { useState } from "react";
 import Link from "next/link";
-import { useRun, useApproveGate, useRetryRun, useCancelRun } from "../../runs.hooks";
+import {
+  useRun,
+  useApproveGate,
+  useRetryRun,
+  useCancelRun,
+} from "../../runs.hooks";
 import type { AutomationStep } from "@/modules/admin/shared/entities.types";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -80,13 +85,19 @@ export function RunView({ id }: RunViewProps) {
   if (isError || !run) {
     return (
       <Center py="xl">
-        <Text c="red" size="sm">Failed to load run details</Text>
+        <Text c="red" size="sm">
+          Failed to load run details
+        </Text>
       </Center>
     );
   }
 
   const durationSecs = run.finishedAt
-    ? Math.floor((new Date(run.finishedAt).getTime() - new Date(run.startedAt).getTime()) / 1000)
+    ? Math.floor(
+        (new Date(run.finishedAt).getTime() -
+          new Date(run.startedAt).getTime()) /
+          1000,
+      )
     : Math.floor((Date.now() - new Date(run.startedAt).getTime()) / 1000);
 
   return (
@@ -101,7 +112,8 @@ export function RunView({ id }: RunViewProps) {
               </Badge>
             </Group>
             <Text size="xs" c="dimmed">
-              Run ID: {run.id} · Started {new Date(run.startedAt).toLocaleString()} · {durationSecs}s
+              Run ID: {run.id} · Started{" "}
+              {new Date(run.startedAt).toLocaleString()} · {durationSecs}s
             </Text>
           </Stack>
           <Group gap="xs">
@@ -132,8 +144,13 @@ export function RunView({ id }: RunViewProps) {
       </Paper>
 
       {run.status === "waiting_review" && (
-        <Alert icon={<WarningIcon size={16} />} color="yellow" title="Waiting for Approval">
-          This workflow is paused at a human-in-the-loop gate. Review the generated content and approve to continue.
+        <Alert
+          icon={<WarningIcon size={16} />}
+          color="yellow"
+          title="Waiting for Approval"
+        >
+          This workflow is paused at a human-in-the-loop gate. Review the
+          generated content and approve to continue.
           <Button
             size="sm"
             mt="sm"
@@ -148,8 +165,16 @@ export function RunView({ id }: RunViewProps) {
 
       <Paper p="lg" radius="md" withBorder>
         <Stack gap="md">
-          <Text fw={600} size="sm">Step Timeline</Text>
-          <Timeline active={run.steps.findIndex((s) => s.status === "running" || s.status === "pending") - 1}>
+          <Text fw={600} size="sm">
+            Step Timeline
+          </Text>
+          <Timeline
+            active={
+              run.steps.findIndex(
+                (s) => s.status === "running" || s.status === "pending",
+              ) - 1
+            }
+          >
             {run.steps.map((step) => (
               <Timeline.Item
                 key={step.id}
@@ -157,8 +182,16 @@ export function RunView({ id }: RunViewProps) {
                 color={StepColor(step.status)}
                 title={
                   <Group gap="sm">
-                    <Text size="sm" fw={500}>{step.label}</Text>
-                    <Badge size="xs" color={StepColor(step.status)} variant="light">{step.status}</Badge>
+                    <Text size="sm" fw={500}>
+                      {step.label}
+                    </Text>
+                    <Badge
+                      size="xs"
+                      color={StepColor(step.status)}
+                      variant="light"
+                    >
+                      {step.status}
+                    </Badge>
                     {step.log && (
                       <Text
                         size="xs"
@@ -175,14 +208,17 @@ export function RunView({ id }: RunViewProps) {
                 {step.log && (
                   <Collapse in={expandedSteps.has(step.id)}>
                     <Paper p="xs" radius="xs" bg="gray.1" mt="xs">
-                      <Text size="xs" ff="monospace">{step.log}</Text>
+                      <Text size="xs" ff="monospace">
+                        {step.log}
+                      </Text>
                     </Paper>
                   </Collapse>
                 )}
                 {step.startedAt && (
                   <Text size="xs" c="dimmed">
                     {new Date(step.startedAt).toLocaleTimeString()}
-                    {step.finishedAt && ` → ${new Date(step.finishedAt).toLocaleTimeString()}`}
+                    {step.finishedAt &&
+                      ` → ${new Date(step.finishedAt).toLocaleTimeString()}`}
                   </Text>
                 )}
               </Timeline.Item>
@@ -194,13 +230,29 @@ export function RunView({ id }: RunViewProps) {
       {run.producedContentIds.length > 0 && (
         <Paper p="lg" radius="md" withBorder>
           <Stack gap="sm">
-            <Text fw={600} size="sm">Generated Content</Text>
+            <Text fw={600} size="sm">
+              Generated Content
+            </Text>
             {run.producedContentIds.map((contentId) => (
               <Group key={contentId} justify="space-between">
-                <Text size="sm" c="dimmed">{contentId}</Text>
+                <Text size="sm" c="dimmed">
+                  {contentId}
+                </Text>
                 <Group gap="xs">
-                  <Anchor component={Link} href={`/admin/publish/library`} size="xs">View in Library</Anchor>
-                  <Anchor component={Link} href={`/admin/publish/approvals`} size="xs">Review</Anchor>
+                  <Anchor
+                    component={Link}
+                    href={`/admin/publish/library`}
+                    size="xs"
+                  >
+                    View in Library
+                  </Anchor>
+                  <Anchor
+                    component={Link}
+                    href={`/admin/publish/approvals`}
+                    size="xs"
+                  >
+                    Review
+                  </Anchor>
                 </Group>
               </Group>
             ))}

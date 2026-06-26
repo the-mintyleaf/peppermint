@@ -25,7 +25,11 @@ const STATUS_OPTIONS = [
 ];
 
 export function ContentFilters({ filter, onChange }: ContentFiltersProps) {
-  const hasFilters = !!(filter.platform || filter.status || filter.automationId);
+  const hasFilters = !!(
+    filter.platform ||
+    filter.status ||
+    filter.automationId
+  );
 
   return (
     <Group gap="sm" wrap="wrap">
@@ -34,7 +38,9 @@ export function ContentFilters({ filter, onChange }: ContentFiltersProps) {
         placeholder="Platform"
         data={PLATFORM_OPTIONS}
         value={filter.platform ?? null}
-        onChange={(v) => onChange({ ...filter, platform: v ?? undefined, page: 1 })}
+        onChange={(v) =>
+          onChange({ ...filter, platform: v ?? undefined, page: 1 })
+        }
         clearable
         size="xs"
         w={140}
@@ -43,7 +49,9 @@ export function ContentFilters({ filter, onChange }: ContentFiltersProps) {
         placeholder="Status"
         data={STATUS_OPTIONS}
         value={filter.status ?? null}
-        onChange={(v) => onChange({ ...filter, status: v ?? undefined, page: 1 })}
+        onChange={(v) =>
+          onChange({ ...filter, status: v ?? undefined, page: 1 })
+        }
         clearable
         size="xs"
         w={140}

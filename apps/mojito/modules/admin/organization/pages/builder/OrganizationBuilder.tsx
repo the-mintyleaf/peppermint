@@ -26,8 +26,16 @@ import { DepartmentDrawer } from "./components/DepartmentDrawer";
 import { PersonDrawer } from "./components/PersonDrawer";
 import { NodeFormModal } from "./components/NodeFormModal";
 import { EmptyState } from "./components/EmptyState";
-import { useOrgBuilderStore, type OrgFlowNode, type OrgFlowEdge } from "../../organization.store";
-import type { OrgNodeData, DepartmentData, PersonData } from "../../organization.types";
+import {
+  useOrgBuilderStore,
+  type OrgFlowNode,
+  type OrgFlowEdge,
+} from "../../organization.store";
+import type {
+  OrgNodeData,
+  DepartmentData,
+  PersonData,
+} from "../../organization.types";
 import styles from "./OrganizationBuilder.module.css";
 
 const nodeTypes = {
@@ -42,7 +50,10 @@ const DEFAULT_EDGE_OPTIONS = {
   animated: false,
 };
 
-function autoArrangeNodes(nodes: OrgFlowNode[], edges: OrgFlowEdge[]): OrgFlowNode[] {
+function autoArrangeNodes(
+  nodes: OrgFlowNode[],
+  edges: OrgFlowEdge[],
+): OrgFlowNode[] {
   if (nodes.length === 0) return nodes;
 
   const NODE_W = 300;
@@ -66,7 +77,10 @@ function autoArrangeNodes(nodes: OrgFlowNode[], edges: OrgFlowEdge[]): OrgFlowNo
     // Fallback: lay out all nodes in a grid
     return nodes.map((n, i) => ({
       ...n,
-      position: { x: (i % 4) * (NODE_W + H_GAP), y: Math.floor(i / 4) * (NODE_H + V_GAP) },
+      position: {
+        x: (i % 4) * (NODE_W + H_GAP),
+        y: Math.floor(i / 4) * (NODE_H + V_GAP),
+      },
     }));
   }
 
@@ -78,7 +92,7 @@ function autoArrangeNodes(nodes: OrgFlowNode[], edges: OrgFlowEdge[]): OrgFlowNo
     const childWidths = children[id].map(subtreeWidth);
     return Math.max(
       NODE_W,
-      childWidths.reduce((acc, w) => acc + w + H_GAP, -H_GAP)
+      childWidths.reduce((acc, w) => acc + w + H_GAP, -H_GAP),
     );
   }
 
@@ -90,7 +104,9 @@ function autoArrangeNodes(nodes: OrgFlowNode[], edges: OrgFlowEdge[]): OrgFlowNo
     const kids = children[id] ?? [];
     if (kids.length === 0) return;
 
-    const totalWidth = kids.map(subtreeWidth).reduce((a, w) => a + w + H_GAP, -H_GAP);
+    const totalWidth = kids
+      .map(subtreeWidth)
+      .reduce((a, w) => a + w + H_GAP, -H_GAP);
     let cx = x - totalWidth / 2;
 
     for (const kid of kids) {
@@ -166,8 +182,10 @@ function OrganizationBuilderInner() {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     const data = n.data;
-    if (data.nodeType === "person") return data.fullName.toLowerCase().includes(q);
-    if (data.nodeType === "department") return data.name.toLowerCase().includes(q);
+    if (data.nodeType === "person")
+      return data.fullName.toLowerCase().includes(q);
+    if (data.nodeType === "department")
+      return data.name.toLowerCase().includes(q);
     if (data.nodeType === "org") return data.name.toLowerCase().includes(q);
     return true;
   });
@@ -184,14 +202,14 @@ function OrganizationBuilderInner() {
       setEdges((eds) => addEdge(newEdge, eds));
       markDirty();
     },
-    [setEdges, markDirty]
+    [setEdges, markDirty],
   );
 
   const onNodeClick: NodeMouseHandler<OrgFlowNode> = useCallback(
     (_event, node) => {
       useOrgBuilderStore.getState().selectNode(node.id);
     },
-    []
+    [],
   );
 
   const onNodeContextMenu: NodeMouseHandler<OrgFlowNode> = useCallback(
@@ -199,7 +217,7 @@ function OrganizationBuilderInner() {
       event.preventDefault();
       openContextMenu(event.clientX, event.clientY, node.id);
     },
-    [openContextMenu]
+    [openContextMenu],
   );
 
   const onPaneClick = useCallback(() => {
@@ -210,18 +228,23 @@ function OrganizationBuilderInner() {
   const handleNodesChangeWithHistory = useCallback(
     (changes: Parameters<typeof onNodesChange>[0]) => {
       onNodesChange(changes);
-      const hasMoveEnd = changes.some((c) => c.type === "position" && c.dragging === false);
+      const hasMoveEnd = changes.some(
+        (c) => c.type === "position" && c.dragging === false,
+      );
       if (hasMoveEnd) {
         markDirty();
       }
     },
-    [onNodesChange, markDirty]
+    [onNodesChange, markDirty],
   );
 
   const handleAddNode = useCallback(
     (data: OrgNodeData) => {
       const id = `node-${Date.now()}`;
-      const center = { x: 200 + Math.random() * 300, y: 200 + Math.random() * 200 };
+      const center = {
+        x: 200 + Math.random() * 300,
+        y: 200 + Math.random() * 200,
+      };
       const newNode: OrgFlowNode = {
         id,
         type: data.nodeType,
@@ -235,7 +258,7 @@ function OrganizationBuilderInner() {
       });
       markDirty();
     },
-    [setNodes, edges, pushHistory, markDirty]
+    [setNodes, edges, pushHistory, markDirty],
   );
 
   const handleEditNode = useCallback(
@@ -243,14 +266,14 @@ function OrganizationBuilderInner() {
       if (!nodeModal.editingNodeId) return;
       setNodes((ns) => {
         const updated = ns.map((n) =>
-          n.id === nodeModal.editingNodeId ? { ...n, data } : n
+          n.id === nodeModal.editingNodeId ? { ...n, data } : n,
         );
         pushHistory(updated, edges);
         return updated;
       });
       markDirty();
     },
-    [nodeModal.editingNodeId, setNodes, edges, pushHistory, markDirty]
+    [nodeModal.editingNodeId, setNodes, edges, pushHistory, markDirty],
   );
 
   const handleDeleteNode = useCallback(
@@ -260,11 +283,13 @@ function OrganizationBuilderInner() {
         pushHistory(updated, edges);
         return updated;
       });
-      setEdges((es) => es.filter((e) => e.source !== nodeId && e.target !== nodeId));
+      setEdges((es) =>
+        es.filter((e) => e.source !== nodeId && e.target !== nodeId),
+      );
       closeDrawer();
       markDirty();
     },
-    [setNodes, setEdges, edges, pushHistory, closeDrawer, markDirty]
+    [setNodes, setEdges, edges, pushHistory, closeDrawer, markDirty],
   );
 
   const handleAutoArrange = useCallback(() => {
@@ -289,14 +314,14 @@ function OrganizationBuilderInner() {
   const handleUndo = useCallback(() => {
     undo(
       (ns) => setNodes(ns),
-      (es) => setEdges(es)
+      (es) => setEdges(es),
     );
   }, [undo, setNodes, setEdges]);
 
   const handleRedo = useCallback(() => {
     redo(
       (ns) => setNodes(ns),
-      (es) => setEdges(es)
+      (es) => setEdges(es),
     );
   }, [redo, setNodes, setEdges]);
 
@@ -372,7 +397,6 @@ function OrganizationBuilderInner() {
           }}
           maskColor="rgba(0,0,0,0.04)"
         />
-
       </ReactFlow>
 
       {nodes.length === 0 && <EmptyState />}
@@ -385,16 +409,40 @@ function OrganizationBuilderInner() {
           onMouseLeave={closeContextMenu}
         >
           {[
-            { label: "Edit", action: () => openEditModal(contextMenu.nodeId), color: undefined },
-            { label: "Add child department", action: () => openAddModal("department"), color: undefined },
-            { label: "Add person", action: () => openAddModal("person"), color: undefined },
-            { label: "Open details", action: () => useOrgBuilderStore.getState().selectNode(contextMenu.nodeId), color: undefined },
-            { label: "Delete", action: () => handleDeleteNode(contextMenu.nodeId), danger: true },
+            {
+              label: "Edit",
+              action: () => openEditModal(contextMenu.nodeId),
+              color: undefined,
+            },
+            {
+              label: "Add child department",
+              action: () => openAddModal("department"),
+              color: undefined,
+            },
+            {
+              label: "Add person",
+              action: () => openAddModal("person"),
+              color: undefined,
+            },
+            {
+              label: "Open details",
+              action: () =>
+                useOrgBuilderStore.getState().selectNode(contextMenu.nodeId),
+              color: undefined,
+            },
+            {
+              label: "Delete",
+              action: () => handleDeleteNode(contextMenu.nodeId),
+              danger: true,
+            },
           ].map(({ label, action, danger }) => (
             <div
               key={label}
               className={`${styles.contextMenuItem} ${danger ? styles.contextMenuDanger : ""}`}
-              onClick={() => { action(); closeContextMenu(); }}
+              onClick={() => {
+                action();
+                closeContextMenu();
+              }}
             >
               {label}
             </div>
@@ -433,7 +481,9 @@ function OrganizationBuilderInner() {
         opened={nodeModal.open}
         onClose={closeModal}
         mode={nodeModal.mode}
-        nodeType={nodeModal.mode === "add" ? nodeModal.nodeType : editingNode?.type}
+        nodeType={
+          nodeModal.mode === "add" ? nodeModal.nodeType : editingNode?.type
+        }
         initialData={editingNode?.data}
         onSubmit={nodeModal.mode === "add" ? handleAddNode : handleEditNode}
       />

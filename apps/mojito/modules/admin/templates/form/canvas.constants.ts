@@ -40,7 +40,10 @@ export const MAX_CANVAS_ZOOM = 2;
 export const CANVAS_ZOOM_FACTOR = 1.08;
 
 export function clampCanvasZoom(zoom: number): number {
-  return Math.min(MAX_CANVAS_ZOOM, Math.max(MIN_CANVAS_ZOOM, Math.round(zoom * 100) / 100));
+  return Math.min(
+    MAX_CANVAS_ZOOM,
+    Math.max(MIN_CANVAS_ZOOM, Math.round(zoom * 100) / 100),
+  );
 }
 
 export function zoomPercent(zoom: number): number {

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { Button, Menu } from '@mantine/core';
-import { CaretDownIcon } from '@phosphor-icons/react/dist/csr/CaretDown';
-import { ACCESS_LEVEL_OPTIONS } from './accessMenu.utils';
-import type { AccessLevel } from './AccessMenu.types';
+import { Button, Menu } from "@mantine/core";
+import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
+import { ACCESS_LEVEL_OPTIONS } from "./accessMenu.utils";
+import type { AccessLevel } from "./AccessMenu.types";
 
 interface AccessLevelMenuProps {
   value: AccessLevel;

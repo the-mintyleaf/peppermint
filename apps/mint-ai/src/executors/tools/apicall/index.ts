@@ -1,6 +1,14 @@
-import { ExecutorContext, createExecutorError } from "@/shared/executor-context";
+import {
+  ExecutorContext,
+  createExecutorError,
+} from "@/shared/executor-context";
 import { Result, ok, err } from "@/shared/result";
-import { schemaApiCallInput, schemaApiCallOutput, PropApiCallInput, PropApiCallOutput } from "./apicall.type";
+import {
+  schemaApiCallInput,
+  schemaApiCallOutput,
+  PropApiCallInput,
+  PropApiCallOutput,
+} from "./apicall.type";
 import { apiDispatch } from "@/shared/helpers/apiDispatch";
 import { resolveToolConfig } from "@/shared/helpers/resolveToolDynamic";
 
@@ -18,7 +26,7 @@ import { resolveToolConfig } from "@/shared/helpers/resolveToolDynamic";
 export async function toolApiCall(
   input: unknown,
   ctx: ExecutorContext,
-  config?: any
+  config?: any,
 ): Promise<Result<PropApiCallOutput, any>> {
   try {
     // 1. Validate input schema
@@ -29,7 +37,7 @@ export async function toolApiCall(
           errors: parseResult.error.issues,
           nodeId: ctx.nodeId,
         },
-        "Invalid input to toolApiCall"
+        "Invalid input to toolApiCall",
       );
       return err(
         createExecutorError(
@@ -38,8 +46,8 @@ export async function toolApiCall(
           {
             nodeId: ctx.nodeId,
             retryable: false,
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -48,14 +56,10 @@ export async function toolApiCall(
     // 2. Resolve tool configuration
     if (!config?.url) {
       return err(
-        createExecutorError(
-          "CONFIG_ERROR",
-          "Missing required config: url",
-          {
-            nodeId: ctx.nodeId,
-            retryable: false,
-          }
-        )
+        createExecutorError("CONFIG_ERROR", "Missing required config: url", {
+          nodeId: ctx.nodeId,
+          retryable: false,
+        }),
       );
     }
 
@@ -71,7 +75,7 @@ export async function toolApiCall(
         url: resolvedConfig.url,
         dataKey: resolvedConfig.dataKey,
       },
-      "toolApiCall invoked"
+      "toolApiCall invoked",
     );
 
     // 3. Execute API dispatch based on method
@@ -82,30 +86,30 @@ export async function toolApiCall(
         res = await apiDispatch.get(
           resolvedConfig.url,
           resolvedConfig.query,
-          resolvedConfig.headers
+          resolvedConfig.headers,
         );
       } else if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
         res =
           (await apiDispatch[method.toLowerCase()]?.(
             resolvedConfig.url,
             resolvedConfig.body,
-            resolvedConfig.headers
+            resolvedConfig.headers,
           )) ??
           (await apiDispatch.post(
             resolvedConfig.url,
             resolvedConfig.body,
-            resolvedConfig.headers
+            resolvedConfig.headers,
           ));
       } else {
         // Fallback → treat as GET
         ctx.logger.debug(
           { method, nodeId: ctx.nodeId },
-          "Unknown method, falling back to GET"
+          "Unknown method, falling back to GET",
         );
         res = await apiDispatch.get(
           resolvedConfig.url,
           resolvedConfig.query,
-          resolvedConfig.headers
+          resolvedConfig.headers,
         );
       }
     } catch (dispatchErr) {
@@ -118,7 +122,7 @@ export async function toolApiCall(
           url: resolvedConfig.url,
           error: dispatchErr,
         },
-        "API dispatch failed"
+        "API dispatch failed",
       );
       return err(
         createExecutorError(
@@ -128,8 +132,8 @@ export async function toolApiCall(
             nodeId: ctx.nodeId,
             cause: dispatchErr,
             retryable: true, // Network errors may be transient
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -143,7 +147,7 @@ export async function toolApiCall(
             nodeId: ctx.nodeId,
             availableKeys: Object.keys(res.data),
           },
-          "dataKey not found in response"
+          "dataKey not found in response",
         );
       } else {
         output = res.data[resolvedConfig.dataKey];
@@ -161,7 +165,7 @@ export async function toolApiCall(
           errors: validateResult.error.issues,
           nodeId: ctx.nodeId,
         },
-        "Invalid output from toolApiCall"
+        "Invalid output from toolApiCall",
       );
       return err(
         createExecutorError(
@@ -170,8 +174,8 @@ export async function toolApiCall(
           {
             nodeId: ctx.nodeId,
             retryable: false,
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -185,7 +189,7 @@ export async function toolApiCall(
         resultPreview: resultString.substring(0, 100),
         statusCode: res.status,
       },
-      "toolApiCall completed"
+      "toolApiCall completed",
     );
 
     return ok(validateResult.data);
@@ -197,7 +201,7 @@ export async function toolApiCall(
         nodeId: ctx.nodeId,
         cause: error,
         retryable: false,
-      }
+      },
     );
 
     ctx.logger.error(
@@ -205,7 +209,7 @@ export async function toolApiCall(
         error: executorError,
         nodeId: ctx.nodeId,
       },
-      "Unexpected error in toolApiCall"
+      "Unexpected error in toolApiCall",
     );
 
     return err(executorError);

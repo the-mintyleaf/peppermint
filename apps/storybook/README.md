@@ -81,6 +81,7 @@ The following addons are configured:
 ### Accessibility Testing
 
 Use the **a11y** tab to audit components for:
+
 - Color contrast issues
 - ARIA role validity
 - Keyboard navigation

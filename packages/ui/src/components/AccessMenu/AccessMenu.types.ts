@@ -1,4 +1,4 @@
-export type AccessLevel = 'view' | 'edit' | 'manage' | 'owner';
+export type AccessLevel = "view" | "edit" | "manage" | "owner";
 
 export interface AccessAccount {
   id: string;
@@ -23,7 +23,7 @@ export interface AccessMenuData {
 }
 
 export interface AccessMenuChange {
-  type: 'invite' | 'account' | 'role';
+  type: "invite" | "account" | "role";
   accountId?: string;
   roleId?: string;
   accessLevel: AccessLevel;

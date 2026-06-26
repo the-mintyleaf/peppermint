@@ -1,7 +1,12 @@
 "use client";
 
 import { Checkbox, Table, Text, Box } from "@peppermint/ui";
-import type { PermissionAction, PermissionArea, PermissionsMatrixProps, PermissionSet } from "./PermissionsMatrix.types";
+import type {
+  PermissionAction,
+  PermissionArea,
+  PermissionsMatrixProps,
+  PermissionSet,
+} from "./PermissionsMatrix.types";
 
 const AREAS: { value: PermissionArea; label: string }[] = [
   { value: "tickets", label: "Tickets" },
@@ -22,11 +27,18 @@ const ACTIONS: { value: PermissionAction; label: string }[] = [
   { value: "manage", label: "Manage" },
 ];
 
-function getActionsForArea(permissions: PermissionSet[], area: PermissionArea): PermissionAction[] {
+function getActionsForArea(
+  permissions: PermissionSet[],
+  area: PermissionArea,
+): PermissionAction[] {
   return permissions.find((p) => p.area === area)?.actions ?? [];
 }
 
-function isChecked(permissions: PermissionSet[], area: PermissionArea, action: PermissionAction): boolean {
+function isChecked(
+  permissions: PermissionSet[],
+  area: PermissionArea,
+  action: PermissionAction,
+): boolean {
   return getActionsForArea(permissions, area).includes(action);
 }
 
@@ -47,21 +59,34 @@ function toggle(
   if (newActions.length === 0) {
     return permissions.filter((p) => p.area !== area);
   }
-  return permissions.map((p) => (p.area === area ? { ...p, actions: newActions } : p));
+  return permissions.map((p) =>
+    p.area === area ? { ...p, actions: newActions } : p,
+  );
 }
 
-export function PermissionsMatrix({ value, onChange, disabled }: PermissionsMatrixProps) {
+export function PermissionsMatrix({
+  value,
+  onChange,
+  disabled,
+}: PermissionsMatrixProps) {
   return (
     <Box style={{ overflowX: "auto" }}>
       <Table withTableBorder withColumnBorders fz="xs">
         <Table.Thead>
           <Table.Tr>
             <Table.Th style={{ minWidth: 120 }}>
-              <Text size="xs" fw={600}>Area</Text>
+              <Text size="xs" fw={600}>
+                Area
+              </Text>
             </Table.Th>
             {ACTIONS.map((action) => (
-              <Table.Th key={action.value} style={{ textAlign: "center", minWidth: 72 }}>
-                <Text size="xs" fw={600}>{action.label}</Text>
+              <Table.Th
+                key={action.value}
+                style={{ textAlign: "center", minWidth: 72 }}
+              >
+                <Text size="xs" fw={600}>
+                  {action.label}
+                </Text>
               </Table.Th>
             ))}
           </Table.Tr>
@@ -77,7 +102,9 @@ export function PermissionsMatrix({ value, onChange, disabled }: PermissionsMatr
                   <Checkbox
                     size="xs"
                     checked={isChecked(value, area.value, action.value)}
-                    onChange={() => onChange(toggle(value, area.value, action.value))}
+                    onChange={() =>
+                      onChange(toggle(value, area.value, action.value))
+                    }
                     disabled={disabled}
                     aria-label={`${area.label} – ${action.label}`}
                   />

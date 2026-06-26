@@ -93,26 +93,26 @@ type OrgNodeData = OrgOfficeData | DepartmentData | PersonData | GroupData;
 
 Every node data object has a discriminant `nodeType` field matching the React Flow node `type`.
 
-| `nodeType` | React Flow `type` | Key fields |
-|---|---|---|
-| `"org"` | `"org"` | `name`, `orgType` (ministry/office/district…), `status`, `location`, `headCount` |
-| `"department"` | `"department"` | `name`, `deptType` (department/division/section…), `status`, `head`, `peopleCount` |
-| `"person"` | `"person"` | `fullName`, `designation`, `role`, `status`, `email`, `avatarUrl` |
-| `"group"` | `"group"` | `name`, `groupCategory` (dept/person), `memberCount`, `memberIds[]` |
+| `nodeType`     | React Flow `type` | Key fields                                                                         |
+| -------------- | ----------------- | ---------------------------------------------------------------------------------- |
+| `"org"`        | `"org"`           | `name`, `orgType` (ministry/office/district…), `status`, `location`, `headCount`   |
+| `"department"` | `"department"`    | `name`, `deptType` (department/division/section…), `status`, `head`, `peopleCount` |
+| `"person"`     | `"person"`        | `fullName`, `designation`, `role`, `status`, `email`, `avatarUrl`                  |
+| `"group"`      | `"group"`         | `name`, `groupCategory` (dept/person), `memberCount`, `memberIds[]`                |
 
 ### Runtime Enrichment Fields
 
 The main component attaches computed fields to each node's data before passing to React Flow. These start with `_` and are never persisted:
 
-| Field | Type | Description |
-|---|---|---|
-| `_expanded` | `boolean` | Whether this node's children are currently visible |
-| `_pathHighlighted` | `boolean` | On the path from root to selected node |
-| `_dimmed` | `boolean` | Outside the focused branch |
-| `_searchMatch` | `boolean` | Matches the current search query |
-| `_directChildCounts` | `{ deptCount, personCount }` | Immediate children counts |
-| `_descendantStats` | `DescendantStats` | Total people/depts in entire subtree |
-| `_healthIssues` | `NodeHealthIssue[]` | Structural problems (empty, missing head, etc.) |
+| Field                | Type                         | Description                                        |
+| -------------------- | ---------------------------- | -------------------------------------------------- |
+| `_expanded`          | `boolean`                    | Whether this node's children are currently visible |
+| `_pathHighlighted`   | `boolean`                    | On the path from root to selected node             |
+| `_dimmed`            | `boolean`                    | Outside the focused branch                         |
+| `_searchMatch`       | `boolean`                    | Matches the current search query                   |
+| `_directChildCounts` | `{ deptCount, personCount }` | Immediate children counts                          |
+| `_descendantStats`   | `DescendantStats`            | Total people/depts in entire subtree               |
+| `_healthIssues`      | `NodeHealthIssue[]`          | Structural problems (empty, missing head, etc.)    |
 
 ### Edge Data
 
@@ -128,11 +128,11 @@ Edge styles are computed live in `getEdgeStyleForRelationship` based on the rela
 
 ```ts
 type NodeHealthIssue =
-  | "missing_head"     // dept/org has no person child with a head/manager/minister/secretary role
-  | "empty_dept"       // dept/org has zero person descendants
-  | "no_parent"        // department with no incoming edge (orphan)
+  | "missing_head" // dept/org has no person child with a head/manager/minister/secretary role
+  | "empty_dept" // dept/org has zero person descendants
+  | "no_parent" // department with no incoming edge (orphan)
   | "too_many_reports" // person has > 10 direct person reports
-  | "inactive_head";   // the connected head person has status "inactive"
+  | "inactive_head"; // the connected head person has status "inactive"
 ```
 
 ---
@@ -178,32 +178,32 @@ expandStrategy: ExpandStrategy
 
 ### Key Actions
 
-| Action | What it does |
-|---|---|
-| `selectNode(id)` | Sets `selectedNodeId`, opens the inspector |
-| `closeDrawer()` | Clears selection and closes inspector |
-| `expandNode(id)` | Adds id to `expandedNodeIds`. If `expandStrategy === "full_branch"`, expands entire subtree |
-| `collapseNode(id)` | Removes id and all descendants from `expandedNodeIds`. If the selected node is inside the collapsing subtree, moves selection up to `id` |
-| `collapseAll()` | Clears `expandedNodeIds`, `expandedGroupIds`, `focusedBranchId` |
-| `setFocusedBranch(id)` | Enters focus mode on a branch |
-| `pushHistory(nodes, edges)` | Saves a snapshot for undo; capped at 50 entries |
-| `undo(setNodes, setEdges)` | Restores previous snapshot |
-| `redo(setNodes, setEdges)` | Restores next snapshot |
-| `setFilter(key, on)` | Toggles a visibility filter |
-| `reapplyExpandStrategy()` | Re-runs expansion from current `expandedNodeIds` using the active strategy |
-| `syncEdgeCache(edges)` | Keeps `edgeCache` in sync so store-side graph operations (subtree BFS) have the latest topology |
+| Action                      | What it does                                                                                                                             |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `selectNode(id)`            | Sets `selectedNodeId`, opens the inspector                                                                                               |
+| `closeDrawer()`             | Clears selection and closes inspector                                                                                                    |
+| `expandNode(id)`            | Adds id to `expandedNodeIds`. If `expandStrategy === "full_branch"`, expands entire subtree                                              |
+| `collapseNode(id)`          | Removes id and all descendants from `expandedNodeIds`. If the selected node is inside the collapsing subtree, moves selection up to `id` |
+| `collapseAll()`             | Clears `expandedNodeIds`, `expandedGroupIds`, `focusedBranchId`                                                                          |
+| `setFocusedBranch(id)`      | Enters focus mode on a branch                                                                                                            |
+| `pushHistory(nodes, edges)` | Saves a snapshot for undo; capped at 50 entries                                                                                          |
+| `undo(setNodes, setEdges)`  | Restores previous snapshot                                                                                                               |
+| `redo(setNodes, setEdges)`  | Restores next snapshot                                                                                                                   |
+| `setFilter(key, on)`        | Toggles a visibility filter                                                                                                              |
+| `reapplyExpandStrategy()`   | Re-runs expansion from current `expandedNodeIds` using the active strategy                                                               |
+| `syncEdgeCache(edges)`      | Keeps `edgeCache` in sync so store-side graph operations (subtree BFS) have the latest topology                                          |
 
 ### Expand Strategy
 
 Controls what happens when `expandNode` is called with `expandStrategy === "full_branch"`:
 
-| Strategy | Effect on expand click |
-|---|---|
-| `"direct"` | Shows only immediate children (default) |
-| `"full_branch"` | Recursively expands all descendants |
+| Strategy                                          | Effect on expand click                                                                                                |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `"direct"`                                        | Shows only immediate children (default)                                                                               |
+| `"full_branch"`                                   | Recursively expands all descendants                                                                                   |
 | `"depts_only"` / `"people_only"` / `"leadership"` | Currently behave like `"direct"` (expansion is per-click); the **Filters panel** handles visibility scoping for these |
 
-> The filter-based strategies work at the *visibility* layer, not the expansion layer. Set `expandStrategy: "direct"` and `activeFilters: ["depts_only"]` together to expand freely but only show department nodes.
+> The filter-based strategies work at the _visibility_ layer, not the expansion layer. Set `expandStrategy: "direct"` and `activeFilters: ["depts_only"]` together to expand freely but only show department nodes.
 
 ---
 
@@ -214,15 +214,15 @@ Controls what happens when `expandNode` is called with `expandStrategy === "full
 ### Shared Constants
 
 ```ts
-STATUS_COLORS   // { active: "teal", inactive: "gray", archived: "red" }
-getInitials(name) // "John Doe" → "JD"
+STATUS_COLORS; // { active: "teal", inactive: "gray", archived: "red" }
+getInitials(name); // "John Doe" → "JD"
 ```
 
 ### Graph Builders
 
 ```ts
-computeChildrenMap(edges)  // → Record<id, id[]>   — source → children
-computeParentMap(edges)    // → Record<id, id>     — target → parent
+computeChildrenMap(edges); // → Record<id, id[]>   — source → children
+computeParentMap(edges); // → Record<id, id>     — target → parent
 ```
 
 Both are used to build the `graphMaps` object once per render. Never call these inside loops.
@@ -266,11 +266,11 @@ computeNodeHealth(nodeId, nodes, edges, childrenOf?, nodeTypeMap?, nodeDataMap?,
 ### Helper Functions
 
 ```ts
-expandAncestors(nodeId, edges, currentExpandedIds)
+expandAncestors(nodeId, edges, currentExpandedIds);
 // Returns a new expanded id array that includes all ancestors of nodeId.
 // Used by smart search to auto-open the tree to matching nodes.
 
-collectAncestors(matchedIds, parentMap)
+collectAncestors(matchedIds, parentMap);
 // → Set<string> of all ancestors across a set of matched ids.
 // Used by filter ancestor-preservation (O(ancestors) total, not O(matches × depth)).
 ```
@@ -282,8 +282,8 @@ collectAncestors(matchedIds, parentMap)
 `OrganizationTree.tsx` exports two components:
 
 ```tsx
-export function OrganizationTree()        // outer — wraps ReactFlowProvider
-function OrganizationTreeInner()          // inner — all logic lives here
+export function OrganizationTree(); // outer — wraps ReactFlowProvider
+function OrganizationTreeInner(); // inner — all logic lives here
 ```
 
 The split is required because React Flow hooks (`useReactFlow`, `useNodesState`, `useEdgesState`) can only be called inside a `ReactFlowProvider`.
@@ -317,13 +317,16 @@ Each layer only recomputes when its direct inputs change. A search query change 
 ### `graphMaps` — The Key Optimization
 
 ```tsx
-const graphMaps = useMemo(() => ({
-  childrenOf: computeChildrenMap(edges),
-  parentMap:  computeParentMap(edges),
-  nodeTypeMap: new Map(nodes.map(n => [n.id, n.type])),
-  nodeDataMap: new Map(nodes.map(n => [n.id, n.data])),
-  nodesMap:   new Map(nodes.map(n => [n.id, n])),
-}), [nodes, edges]);
+const graphMaps = useMemo(
+  () => ({
+    childrenOf: computeChildrenMap(edges),
+    parentMap: computeParentMap(edges),
+    nodeTypeMap: new Map(nodes.map((n) => [n.id, n.type])),
+    nodeDataMap: new Map(nodes.map((n) => [n.id, n.data])),
+    nodesMap: new Map(nodes.map((n) => [n.id, n])),
+  }),
+  [nodes, edges],
+);
 ```
 
 All five maps are built **once** per `nodes`/`edges` change and passed into every dependent memo and callback. Without this, each utility call in a loop would rebuild O(n) + O(e) maps independently — for 200 nodes, that was ~400+ redundant map constructions per render.
@@ -346,6 +349,7 @@ The layout runs automatically when `visibleLayoutKey` changes (the sorted join o
 4. Node cards read `_searchMatch` and apply a highlight CSS class
 
 `nodeMatchesSearch` (local function in main component):
+
 - `person` → matches `fullName` or `designation`
 - `department` / `org` → matches `name`
 - `group` → always passes (groups aren't text-searchable but shouldn't be hidden)
@@ -388,6 +392,7 @@ Represents a collapsed set of nodes (people or offices). Shows member count. Two
 A fixed-width (480px) panel that slides in on the right side of the canvas when a node is selected. It does not use a Drawer — it sits in the flex row alongside the canvas for better spatial continuity.
 
 Routes to sub-content based on `selectedNode.type`:
+
 - `"org"` → `OrgDrawerContent`
 - `"department"` → `DepartmentDrawerContent`
 - `"person"` → `PersonDrawerContent`
@@ -399,16 +404,16 @@ The header 3-dot menu provides type-appropriate actions (Edit, Add Division, Add
 
 Each drawer content component (`OrgDrawerContent`, `DepartmentDrawerContent`, `PersonDrawerContent`) renders a stack of KPI cards using the shared `charts.tsx` primitives:
 
-| Primitive | Description |
-|---|---|
-| `KpiCard` | Titled card wrapper |
-| `StatRow` | Metric with value, delta badge, sparkline |
-| `MiniBarChart` | Small bar chart (6 months) |
-| `RingChart` | Donut ring with center label |
-| `ProgressBar` | Labeled progress bar |
-| `ActivityHeatmap` | GitHub-style contribution grid |
-| `StackedBar` | Horizontal proportional bar |
-| `makeSeededRng` | Deterministic RNG seeded by node id — produces consistent demo data per node |
+| Primitive         | Description                                                                  |
+| ----------------- | ---------------------------------------------------------------------------- |
+| `KpiCard`         | Titled card wrapper                                                          |
+| `StatRow`         | Metric with value, delta badge, sparkline                                    |
+| `MiniBarChart`    | Small bar chart (6 months)                                                   |
+| `RingChart`       | Donut ring with center label                                                 |
+| `ProgressBar`     | Labeled progress bar                                                         |
+| `ActivityHeatmap` | GitHub-style contribution grid                                               |
+| `StackedBar`      | Horizontal proportional bar                                                  |
+| `makeSeededRng`   | Deterministic RNG seeded by node id — produces consistent demo data per node |
 
 ### FiltersPanel
 
@@ -431,6 +436,7 @@ All counts are derived live from the `nodes` array and `healthIssuesMap`.
 ### Toolbar
 
 Floating bar (bottom-center of canvas). Groups:
+
 - **Add** — opens `NodeFormModal` for org/department/person
 - **Active department badge** — shown when "add person" mode is active for a specific department
 - **Focus mode badge** — back-to-parent and clear-focus when in focus mode
@@ -446,6 +452,7 @@ Shown only in focus mode (when `focusedBranchId` is set). Displays the path from
 ### NodeFormModal
 
 Shared add/edit form for all node types. The displayed fields change based on `nodeType`:
+
 - `"org"` → name, orgType, description, location, status
 - `"department"` → name, deptType, head, parent, status
 - `"person"` → fullName, designation, role, email, phone, status
@@ -561,10 +568,10 @@ graphMaps = {
 
 Every downstream memo and callback receives maps from here instead of rebuilding them. The performance impact scales with tree size:
 
-| Approach | Operations per render (200 nodes, 200 edges) |
-|---|---|
-| Old: rebuild maps inside each util call | ~1,200 map builds per render cycle |
-| New: graphMaps built once, shared | 5 map builds per render cycle |
+| Approach                                | Operations per render (200 nodes, 200 edges) |
+| --------------------------------------- | -------------------------------------------- |
+| Old: rebuild maps inside each util call | ~1,200 map builds per render cycle           |
+| New: graphMaps built once, shared       | 5 map builds per render cycle                |
 
 ### Util Function Signatures
 
@@ -586,7 +593,15 @@ If called without the optional params (e.g., from the store), they build maps in
 `computeNodeHealth` needs `totalPeople` to detect empty departments. Rather than re-running the BFS inside `computeNodeHealth`, the main component passes the already-computed entry from `descendantStatsMap`:
 
 ```tsx
-computeNodeHealth(id, nodes, edges, childrenOf, nodeTypeMap, nodeDataMap, descendantStatsMap.get(id))
+computeNodeHealth(
+  id,
+  nodes,
+  edges,
+  childrenOf,
+  nodeTypeMap,
+  nodeDataMap,
+  descendantStatsMap.get(id),
+);
 ```
 
 This eliminates N redundant BFS traversals per render when health issues are shown.

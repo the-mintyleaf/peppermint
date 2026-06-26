@@ -3,10 +3,15 @@
 import { ModalTableShell } from "@peppermint/admin";
 import { Paper } from "@peppermint/ui";
 import type { DataTableShellTab } from "@peppermint/admin";
-import { UsersIcon }       from "@phosphor-icons/react/dist/csr/Users";
+import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
-import { ProhibitIcon }    from "@phosphor-icons/react/dist/csr/Prohibit";
-import { fetchMembers, createMember, updateMember, deleteMember } from "../../members.api";
+import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
+import {
+  fetchMembers,
+  createMember,
+  updateMember,
+  deleteMember,
+} from "../../members.api";
 import { membersColumns } from "./members.columns";
 import { memberQueryKeys } from "../../members.queryKeys";
 import { MemberForm } from "../../form/MemberForm";
@@ -14,8 +19,8 @@ import type { Member } from "../../members.types";
 
 const tabs: DataTableShellTab[] = [
   { label: "All Members", icon: UsersIcon },
-  { label: "Active",      icon: CheckCircleIcon, filter: { status: "active" } },
-  { label: "Suspended",   icon: ProhibitIcon,    filter: { status: "suspended" } },
+  { label: "Active", icon: CheckCircleIcon, filter: { status: "active" } },
+  { label: "Suspended", icon: ProhibitIcon, filter: { status: "suspended" } },
 ];
 
 export function MembersList() {

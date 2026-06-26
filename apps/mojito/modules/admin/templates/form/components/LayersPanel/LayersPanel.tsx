@@ -18,7 +18,11 @@ import { useBuilderStore } from "../../TemplateBuilder.store";
 import type { ElementType } from "../../templateForm.types";
 
 function ElementTypeIcon({ type }: { type: ElementType }) {
-  const iconProps = { size: 14, weight: "fill" as const, color: "var(--mantine-color-dimmed)" };
+  const iconProps = {
+    size: 14,
+    weight: "fill" as const,
+    color: "var(--mantine-color-dimmed)",
+  };
 
   switch (type) {
     case "text":
@@ -43,8 +47,14 @@ interface LayersPanelProps {
 }
 
 export function LayersPanel({ onCollapse }: LayersPanelProps) {
-  const { elements, selectedElementId, selectElement, reorderLayers, toggleVisible, toggleLocked } =
-    useBuilderStore();
+  const {
+    elements,
+    selectedElementId,
+    selectElement,
+    reorderLayers,
+    toggleVisible,
+    toggleLocked,
+  } = useBuilderStore();
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
@@ -70,7 +80,14 @@ export function LayersPanel({ onCollapse }: LayersPanelProps) {
         overflowY: "auto",
       }}
     >
-      <Group justify="space-between" wrap="nowrap" align="center" px="sm" pt="sm" pb="xs">
+      <Group
+        justify="space-between"
+        wrap="nowrap"
+        align="center"
+        px="sm"
+        pt="sm"
+        pb="xs"
+      >
         <Text size="xs" fw={600} tt="uppercase" c="dimmed" lts={0.5}>
           Layers
         </Text>
@@ -116,12 +133,34 @@ export function LayersPanel({ onCollapse }: LayersPanelProps) {
                   opacity: el.visible ? 1 : 0.5,
                 }}
               >
-                <Group gap={6} justify="space-between" wrap="nowrap" align="center" px="sm">
-                  <Group gap={6} wrap="nowrap" align="center" style={{ flex: 1, minWidth: 0 }}>
-                    <Box style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
+                <Group
+                  gap={6}
+                  justify="space-between"
+                  wrap="nowrap"
+                  align="center"
+                  px="sm"
+                >
+                  <Group
+                    gap={6}
+                    wrap="nowrap"
+                    align="center"
+                    style={{ flex: 1, minWidth: 0 }}
+                  >
+                    <Box
+                      style={{
+                        flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
                       <ElementTypeIcon type={el.type} />
                     </Box>
-                    <Text size="xs" truncate fw={500} style={{ flex: 1, minWidth: 0 }}>
+                    <Text
+                      size="xs"
+                      truncate
+                      fw={500}
+                      style={{ flex: 1, minWidth: 0 }}
+                    >
                       {el.purpose}
                     </Text>
                   </Group>
@@ -141,7 +180,11 @@ export function LayersPanel({ onCollapse }: LayersPanelProps) {
                       aria-label={el.visible ? "Hide layer" : "Show layer"}
                       onClick={() => toggleVisible(el.id)}
                     >
-                      {el.visible ? <EyeIcon size={12} /> : <EyeSlashIcon size={12} />}
+                      {el.visible ? (
+                        <EyeIcon size={12} />
+                      ) : (
+                        <EyeSlashIcon size={12} />
+                      )}
                     </ActionIcon>
                     <ActionIcon
                       size="xs"
@@ -149,7 +192,11 @@ export function LayersPanel({ onCollapse }: LayersPanelProps) {
                       aria-label={el.locked ? "Unlock layer" : "Lock layer"}
                       onClick={() => toggleLocked(el.id)}
                     >
-                      {el.locked ? <LockIcon size={12} /> : <LockOpenIcon size={12} />}
+                      {el.locked ? (
+                        <LockIcon size={12} />
+                      ) : (
+                        <LockOpenIcon size={12} />
+                      )}
                     </ActionIcon>
                   </Group>
                 </Group>

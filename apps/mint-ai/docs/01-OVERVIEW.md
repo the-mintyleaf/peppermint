@@ -19,6 +19,7 @@ You describe a workflow as a series of connected steps (nodes). Each step can va
 ## Real-World Examples
 
 ### Example 1: Sales Bot
+
 ```
 User: "I want running shoes under $150"
   ↓
@@ -35,6 +36,7 @@ Memory: Update session summary with user's budget and preferences
 ```
 
 ### Example 2: Onboarding Flow
+
 ```
 User: "I want to onboard my business"
   ↓
@@ -59,17 +61,17 @@ Response: "Great! Your business TechCorp Inc is registered as BIZ-123"
 
 ### ✅ What We Have
 
-| Feature | Description |
-|---------|-------------|
-| **Graph-based Workflows** | Define workflows as connected nodes (DAGs) |
-| **Type-Safe Execution** | Zod schemas at every boundary; no surprise runtime errors |
-| **Session Memory** | Bounded chat history + persistent summaries |
-| **Tool-Calling** | AI invokes APIs, interprets results, decides next steps |
-| **Job Queue** | BullMQ-powered; reliable, retry-safe, horizontally scalable |
-| **SSE Streaming** | Real-time events to clients (tokens, lifecycle events) |
-| **LLM Support** | DeepSeek, with extensible model registry |
-| **Observability** | Structured logging, metrics, event streaming |
-| **Error Handling** | Result types; no silent failures |
+| Feature                   | Description                                                 |
+| ------------------------- | ----------------------------------------------------------- |
+| **Graph-based Workflows** | Define workflows as connected nodes (DAGs)                  |
+| **Type-Safe Execution**   | Zod schemas at every boundary; no surprise runtime errors   |
+| **Session Memory**        | Bounded chat history + persistent summaries                 |
+| **Tool-Calling**          | AI invokes APIs, interprets results, decides next steps     |
+| **Job Queue**             | BullMQ-powered; reliable, retry-safe, horizontally scalable |
+| **SSE Streaming**         | Real-time events to clients (tokens, lifecycle events)      |
+| **LLM Support**           | DeepSeek, with extensible model registry                    |
+| **Observability**         | Structured logging, metrics, event streaming                |
+| **Error Handling**        | Result types; no silent failures                            |
 
 ### 🔄 Planned
 
@@ -90,13 +92,14 @@ A **workflow** is a directed graph of **nodes** and **edges**.
 
 ```typescript
 interface Workflow {
-  id: string;           // e.g., "momo.salesbot"
-  nodes: Node[];        // Execution steps
-  edges: Edge[];        // Connections: { source, target }
+  id: string; // e.g., "momo.salesbot"
+  nodes: Node[]; // Execution steps
+  edges: Edge[]; // Connections: { source, target }
 }
 ```
 
 Example:
+
 ```
 [guard.policy] → [agent.reasoning]
 ```
@@ -123,6 +126,7 @@ Why? Bounded memory prevents token bloat. Summaries preserve critical context.
 ### 4. Tool-Calling Loop
 
 When an AI node has tools, it can:
+
 1. See the tool definitions
 2. Choose to call one
 3. Get the result
@@ -130,6 +134,7 @@ When an AI node has tools, it can:
 5. Repeat up to 3 times
 
 Example:
+
 ```
 Turn 1: "Show me running shoes"
   → Model calls: searchProducts("running shoes")
@@ -225,7 +230,9 @@ if (result.isOk()) {
 ## Why mint-ai?
 
 ### Problem
+
 Building multi-turn AI agents is complex:
+
 - Need to manage conversation history (but bounded)
 - Need to handle LLM tool-calling loops
 - Need reliable job scheduling with retries
@@ -233,7 +240,9 @@ Building multi-turn AI agents is complex:
 - Need type safety (no silent failures)
 
 ### Solution
+
 mint-ai abstracts away the complexity. Define workflows as graphs of typed nodes. The platform handles:
+
 - ✅ Job scheduling & retry logic
 - ✅ Session memory management
 - ✅ Tool-calling loops

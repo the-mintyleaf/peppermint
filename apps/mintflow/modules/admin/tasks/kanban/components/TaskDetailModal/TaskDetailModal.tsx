@@ -54,14 +54,24 @@ function TaskDetailContent({
           </TaskModalFieldRow>
 
           <TaskModalFieldRow icon={<UserIcon size={14} />} label="Assignee">
-            <TaskAssigneePills assignees={task.assignees} fallback={task.assignee} />
+            <TaskAssigneePills
+              assignees={task.assignees}
+              fallback={task.assignee}
+            />
           </TaskModalFieldRow>
 
           {(task.startDate || task.endDate) && (
-            <TaskModalFieldRow icon={<CalendarBlankIcon size={14} />} label="Date">
+            <TaskModalFieldRow
+              icon={<CalendarBlankIcon size={14} />}
+              label="Date"
+            >
               <Group gap={8} wrap="nowrap">
                 <Text size="xs">{task.startDate}</Text>
-                <ArrowRightIcon size={12} color="var(--mantine-color-gray-5)" aria-label="to" />
+                <ArrowRightIcon
+                  size={12}
+                  color="var(--mantine-color-gray-5)"
+                  aria-label="to"
+                />
                 <Text size="xs">{task.endDate}</Text>
               </Group>
             </TaskModalFieldRow>
@@ -90,7 +100,11 @@ function TaskDetailContent({
   );
 }
 
-export function TaskDetailModal({ task, onClose, onEdit }: TaskDetailModalProps) {
+export function TaskDetailModal({
+  task,
+  onClose,
+  onEdit,
+}: TaskDetailModalProps) {
   return (
     <Modal
       opened={!!task}
@@ -100,7 +114,9 @@ export function TaskDetailModal({ task, onClose, onEdit }: TaskDetailModalProps)
       withCloseButton={false}
       radius="md"
     >
-      {task && <TaskDetailContent task={task} onClose={onClose} onEdit={onEdit} />}
+      {task && (
+        <TaskDetailContent task={task} onClose={onClose} onEdit={onEdit} />
+      )}
     </Modal>
   );
 }

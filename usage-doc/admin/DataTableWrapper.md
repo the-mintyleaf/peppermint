@@ -11,7 +11,7 @@ import {
   useTableStore,
   useInvalidateTable,
   useTableSelection,
-} from '@peppermint/admin';
+} from "@peppermint/admin";
 ```
 
 ---
@@ -48,13 +48,17 @@ Each `DataTableWrapper` mount gets its own isolated Zustand store. Multiple tabl
 Client-side mode fetches all data once and handles search, sort, and pagination in the browser. No server integration needed.
 
 ```tsx
-'use client';
-import { DataTableWrapper, useTableData, useTableStore } from '@peppermint/admin';
-import { DataTable } from 'mantine-datatable';
+"use client";
+import {
+  DataTableWrapper,
+  useTableData,
+  useTableStore,
+} from "@peppermint/admin";
+import { DataTable } from "mantine-datatable";
 
 type User = { id: number; name: string; email: string; role: string };
 
-const getUsers = async () => api.get({ endpoint: '/users/' });
+const getUsers = async () => api.get({ endpoint: "/users/" });
 
 export function UsersTableModule() {
   return (
@@ -87,9 +91,9 @@ function UsersTable() {
         records={rows}
         fetching={isLoading}
         columns={[
-          { accessor: 'name', title: 'Name' },
-          { accessor: 'email', title: 'Email' },
-          { accessor: 'role', title: 'Role' },
+          { accessor: "name", title: "Name" },
+          { accessor: "email", title: "Email" },
+          { accessor: "role", title: "Role" },
         ]}
         totalRecords={paginationMeta.total}
         recordsPerPage={paginationMeta.pageSize}
@@ -110,14 +114,18 @@ function UsersTable() {
 When `enableServerQuery` is true, the wrapper sends `page`, `pageSize`, `search`, `sort`, and `filters` to your API on every change. Your API handles filtering and pagination. The wrapper only renders what the server returns.
 
 ```tsx
-'use client';
-import { DataTableWrapper, useTableData, useTableStore } from '@peppermint/admin';
-import type { QueryParams } from '@peppermint/admin';
+"use client";
+import {
+  DataTableWrapper,
+  useTableData,
+  useTableStore,
+} from "@peppermint/admin";
+import type { QueryParams } from "@peppermint/admin";
 
 type Product = { id: number; name: string; price: number; stock: number };
 
 const getProducts = (params?: QueryParams) =>
-  api.get({ endpoint: '/products/', params });
+  api.get({ endpoint: "/products/", params });
 
 export function ProductsTableModule() {
   return (
@@ -125,10 +133,10 @@ export function ProductsTableModule() {
       queryKey="products.list"
       queryGetFn={getProducts}
       dataKey="data.items"
-      paginationKey="data"      // response.data.total is used as the record count
+      paginationKey="data" // response.data.total is used as the record count
       enableServerQuery
       defaultPageSize={25}
-      debounceMs={400}          // wait 400ms after typing before firing a request
+      debounceMs={400} // wait 400ms after typing before firing a request
     >
       <ProductsTable />
     </DataTableWrapper>
@@ -143,7 +151,7 @@ interface QueryParams {
   page: number;
   pageSize: number;
   search: string;
-  sort: SortState[];   // primary sort first
+  sort: SortState[]; // primary sort first
   filters: FilterState;
 }
 ```
@@ -192,15 +200,17 @@ function SortableTable() {
   const getSortIcon = (field: string) => {
     const entry = sort.find((s) => s.field === field);
     if (!entry) return null;
-    return entry.direction === 'asc' ? '↑' : '↓';
+    return entry.direction === "asc" ? "↑" : "↓";
   };
 
   return (
     <table>
       <thead>
         <tr>
-          <th onClick={() => toggleSort('name')}>Name {getSortIcon('name')}</th>
-          <th onClick={() => toggleSort('email')}>Email {getSortIcon('email')}</th>
+          <th onClick={() => toggleSort("name")}>Name {getSortIcon("name")}</th>
+          <th onClick={() => toggleSort("email")}>
+            Email {getSortIcon("email")}
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -221,7 +231,7 @@ To set sort programmatically (e.g., default sort on mount):
 ```tsx
 const setSort = useTable((s) => s.setSort);
 // Pass [] to clear all sorts
-setSort([{ field: 'name', direction: 'asc' }]);
+setSort([{ field: "name", direction: "asc" }]);
 ```
 
 ---
@@ -236,8 +246,13 @@ function SelectableTable() {
   const useTable = useTableStore();
   const selection = useTable((s) => s.selection);
 
-  const { toggle, selectPage, deselectPage, clearSelection, isAllPageSelected } =
-    useTableSelection();
+  const {
+    toggle,
+    selectPage,
+    deselectPage,
+    clearSelection,
+    isAllPageSelected,
+  } = useTableSelection();
 
   const ids = rows.map((r) => r.id);
   const allSelected = isAllPageSelected(ids);
@@ -293,7 +308,10 @@ function BulkDeleteButton() {
   const invalidate = useInvalidateTable();
 
   const handleDelete = async () => {
-    await api.post({ endpoint: '/users/bulk-delete/', body: { ids: Array.from(selection) } });
+    await api.post({
+      endpoint: "/users/bulk-delete/",
+      body: { ids: Array.from(selection) },
+    });
     clearSelection();
     invalidate();
   };
@@ -317,7 +335,7 @@ function CreateUserModal() {
   const invalidate = useInvalidateTable();
 
   const handleSubmit = async (data: CreateUserInput) => {
-    const res = await api.post({ endpoint: '/users/', body: data });
+    const res = await api.post({ endpoint: "/users/", body: data });
     if (res.ok) invalidate(); // table refetches automatically
   };
 }
@@ -342,8 +360,8 @@ const setColumnOrder = useTable((s) => s.setColumnOrder);
 <Switch
   label="Show Email"
   checked={columnVisibility.email !== false}
-  onChange={(e) => toggleColumn('email', e.currentTarget.checked)}
-/>
+  onChange={(e) => toggleColumn("email", e.currentTarget.checked)}
+/>;
 ```
 
 ### Persisting preferences to localStorage
@@ -408,28 +426,28 @@ const setDensity = useTable((s) => s.setDensity);
 
 ## Props
 
-| Prop | Type | Default | Notes |
-|---|---|---|---|
-| `queryKey` | `string` | — | Required. Dot-notation, e.g. `'users.list'`. Split into array for React Query. |
-| `queryGetFn` | `(params?) => Promise<unknown>` | — | Required. Receives `QueryParams` when `enableServerQuery` is true, `undefined` otherwise. |
-| `dataKey` | `string` | — | Dot-notation path to the rows array in the response, e.g. `'data.items'`. Omit if the response is already an array. |
-| `paginationKey` | `string` | — | Dot-notation path to an object with a `total` field, e.g. `'meta'`. Only used when `enableServerQuery` is true. |
-| `enableServerQuery` | `boolean` | `false` | When true, page/search/sort/filters are sent to `queryGetFn` and the server handles them. |
-| `defaultPageSize` | `number` | `20` | Initial page size. Read once at mount. |
-| `pageSizes` | `number[]` | — | Available page sizes. Passed to your table component — the wrapper doesn't render a selector itself. |
-| `staleTime` | `number` | `300000` | React Query stale time in ms. |
-| `debounceMs` | `number` | `300` | Delay before search/filter changes trigger a server query. Has no effect in client-side mode. |
-| `forceFilters` | `FilterState` | — | Always merged into server query params. Never reset by the store. |
-| `persistence` | `TablePersistenceOptions` | — | When set, `columnVisibility`, `columnOrder`, and/or `density` are persisted to `localStorage`. |
-| `onError` | `(error: Error) => void` | — | Called once when the query first enters an error state. |
-| `children` | `ReactNode` | — | Required. |
+| Prop                | Type                            | Default  | Notes                                                                                                               |
+| ------------------- | ------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------- |
+| `queryKey`          | `string`                        | —        | Required. Dot-notation, e.g. `'users.list'`. Split into array for React Query.                                      |
+| `queryGetFn`        | `(params?) => Promise<unknown>` | —        | Required. Receives `QueryParams` when `enableServerQuery` is true, `undefined` otherwise.                           |
+| `dataKey`           | `string`                        | —        | Dot-notation path to the rows array in the response, e.g. `'data.items'`. Omit if the response is already an array. |
+| `paginationKey`     | `string`                        | —        | Dot-notation path to an object with a `total` field, e.g. `'meta'`. Only used when `enableServerQuery` is true.     |
+| `enableServerQuery` | `boolean`                       | `false`  | When true, page/search/sort/filters are sent to `queryGetFn` and the server handles them.                           |
+| `defaultPageSize`   | `number`                        | `20`     | Initial page size. Read once at mount.                                                                              |
+| `pageSizes`         | `number[]`                      | —        | Available page sizes. Passed to your table component — the wrapper doesn't render a selector itself.                |
+| `staleTime`         | `number`                        | `300000` | React Query stale time in ms.                                                                                       |
+| `debounceMs`        | `number`                        | `300`    | Delay before search/filter changes trigger a server query. Has no effect in client-side mode.                       |
+| `forceFilters`      | `FilterState`                   | —        | Always merged into server query params. Never reset by the store.                                                   |
+| `persistence`       | `TablePersistenceOptions`       | —        | When set, `columnVisibility`, `columnOrder`, and/or `density` are persisted to `localStorage`.                      |
+| `onError`           | `(error: Error) => void`        | —        | Called once when the query first enters an error state.                                                             |
+| `children`          | `ReactNode`                     | —        | Required.                                                                                                           |
 
 ### `TablePersistenceOptions`
 
-| Field | Type | Default | Notes |
-|---|---|---|---|
-| `storageKey` | `string` | `queryKey` | `localStorage` key prefix. Prefixed with `dtw:` internally. |
-| `persist` | `Array<'columnVisibility' \| 'columnOrder' \| 'density'>` | all three | Which slices to persist. |
+| Field        | Type                                                      | Default    | Notes                                                       |
+| ------------ | --------------------------------------------------------- | ---------- | ----------------------------------------------------------- |
+| `storageKey` | `string`                                                  | `queryKey` | `localStorage` key prefix. Prefixed with `dtw:` internally. |
+| `persist`    | `Array<'columnVisibility' \| 'columnOrder' \| 'density'>` | all three  | Which slices to persist.                                    |
 
 ---
 
@@ -439,12 +457,12 @@ Returns data context. Subscribe here in components that render the table body.
 
 ```tsx
 const {
-  rows,           // T[] — current page of rows
-  total,          // total record count (server total or full client array length)
-  isLoading,      // true on first load (no data yet)
-  isFetching,     // true on any background refetch (data may exist from previous query)
-  isError,        // true when the last query failed
-  refetch,        // () => void — manually trigger a refetch
+  rows, // T[] — current page of rows
+  total, // total record count (server total or full client array length)
+  isLoading, // true on first load (no data yet)
+  isFetching, // true on any background refetch (data may exist from previous query)
+  isError, // true when the last query failed
+  refetch, // () => void — manually trigger a refetch
   paginationMeta, // { page, pageSize, total, totalPages }
 } = useTableData<User>();
 ```
@@ -464,7 +482,7 @@ const useTable = useTableStore();
 const page = useTable((s) => s.page);
 const pageSize = useTable((s) => s.pageSize);
 const search = useTable((s) => s.search);
-const sort = useTable((s) => s.sort);           // SortState[]
+const sort = useTable((s) => s.sort); // SortState[]
 const filters = useTable((s) => s.filters);
 const selection = useTable((s) => s.selection); // Set<string | number>
 const columnVisibility = useTable((s) => s.columnVisibility);
@@ -475,9 +493,9 @@ const density = useTable((s) => s.density);
 const setPage = useTable((s) => s.setPage);
 const setSearch = useTable((s) => s.setSearch);
 const toggleSort = useTable((s) => s.toggleSort); // cycles asc → desc → removed
-const setSort = useTable((s) => s.setSort);       // replace full sort array
+const setSort = useTable((s) => s.setSort); // replace full sort array
 const setFilters = useTable((s) => s.setFilters);
-const reset = useTable((s) => s.reset);           // resets query state, keeps UI prefs
+const reset = useTable((s) => s.reset); // resets query state, keeps UI prefs
 ```
 
 Each `useTable(selector)` call is an independent subscription. A component that reads only `page` does not re-render when `search` changes.
@@ -505,12 +523,12 @@ Returns selection helpers bound to this table's store.
 
 ```tsx
 const {
-  toggle,            // (id) => void — add or remove a single row
-  selectPage,        // (ids) => void — add all given ids
-  deselectPage,      // (ids) => void — remove all given ids
-  clearSelection,    // () => void — empty the selection
+  toggle, // (id) => void — add or remove a single row
+  selectPage, // (ids) => void — add all given ids
+  deselectPage, // (ids) => void — remove all given ids
+  clearSelection, // () => void — empty the selection
   isAllPageSelected, // (ids) => boolean — true when all given ids are selected
-  setSelection,      // (Set<string | number>) => void — replace entire selection
+  setSelection, // (Set<string | number>) => void — replace entire selection
 } = useTableSelection();
 ```
 
@@ -526,7 +544,9 @@ Preserved across reset: `columnVisibility`, `columnOrder` — these are UI prefe
 
 ```tsx
 const reset = useTable((s) => s.reset);
-<Button variant="subtle" onClick={reset}>Clear filters</Button>
+<Button variant="subtle" onClick={reset}>
+  Clear filters
+</Button>;
 ```
 
 ---
@@ -564,11 +584,14 @@ function UsersTableBody() {
 
 ```tsx
 // Wrong — inline arrow recreates on every parent render, React Query sees a new fn
-<DataTableWrapper queryGetFn={async (p) => api.get({ endpoint: '/users/', params: p })} />
+<DataTableWrapper
+  queryGetFn={async (p) => api.get({ endpoint: "/users/", params: p })}
+/>;
 
 // Right — defined outside the component or wrapped in useCallback
-const getUsers = (params?: QueryParams) => api.get({ endpoint: '/users/', params });
-<DataTableWrapper queryGetFn={getUsers} />
+const getUsers = (params?: QueryParams) =>
+  api.get({ endpoint: "/users/", params });
+<DataTableWrapper queryGetFn={getUsers} />;
 ```
 
 **`queryGetFn` in server-side mode always receives the full `QueryParams` — including debounced values.** The debounce only delays when the query fires, not what it receives. There is no need to read `search` from the store inside `queryGetFn`.

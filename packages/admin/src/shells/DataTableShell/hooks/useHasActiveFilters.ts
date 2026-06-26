@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useTableStore } from '../../../wrappers/DataTableWrapper';
+import { useTableStore } from "../../../wrappers/DataTableWrapper";
 
 export function useHasActiveFilters() {
   const useTable = useTableStore();

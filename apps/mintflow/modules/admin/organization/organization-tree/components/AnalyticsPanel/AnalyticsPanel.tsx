@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Divider, Group, Paper, Stack, Text, UnstyledButton } from "@peppermint/ui";
+import {
+  Divider,
+  Group,
+  Paper,
+  Stack,
+  Text,
+  UnstyledButton,
+} from "@peppermint/ui";
 import { BuildingsIcon } from "@phosphor-icons/react/dist/csr/Buildings";
 import { FolderIcon } from "@phosphor-icons/react/dist/csr/Folder";
 import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
@@ -39,11 +46,23 @@ function StatChip({
   );
 }
 
-function StatRow({ label, value, color }: { label: string; value: number; color?: string }) {
+function StatRow({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: number;
+  color?: string;
+}) {
   return (
     <Group justify="space-between" gap={8}>
-      <Text size="xs" c="dimmed">{label}</Text>
-      <Text size="xs" fw={600} c={color ?? "dark"}>{value.toLocaleString()}</Text>
+      <Text size="xs" c="dimmed">
+        {label}
+      </Text>
+      <Text size="xs" fw={600} c={color ?? "dark"}>
+        {value.toLocaleString()}
+      </Text>
     </Group>
   );
 }
@@ -68,10 +87,18 @@ export function AnalyticsPanel({
           shadow="md"
           radius="md"
           p="sm"
-          style={{ position: "absolute", bottom: 44, left: 0, width: 200, zIndex: 20 }}
+          style={{
+            position: "absolute",
+            bottom: 44,
+            left: 0,
+            width: 200,
+            zIndex: 20,
+          }}
         >
           <Stack gap="sm">
-            <Text size="xs" fw={600} tt="uppercase" c="dimmed">Structure</Text>
+            <Text size="xs" fw={600} tt="uppercase" c="dimmed">
+              Structure
+            </Text>
             <Stack gap={4}>
               <StatRow label="Organizations" value={totalOrgs} />
               <StatRow label="Departments" value={totalDepts} />
@@ -82,13 +109,37 @@ export function AnalyticsPanel({
               <>
                 <Divider />
                 <Group gap={4}>
-                  <WarningIcon size={12} color="var(--mantine-color-orange-6)" aria-label="Issues" />
-                  <Text size="xs" fw={600} tt="uppercase" c="orange">Issues</Text>
+                  <WarningIcon
+                    size={12}
+                    color="var(--mantine-color-orange-6)"
+                    aria-label="Issues"
+                  />
+                  <Text size="xs" fw={600} tt="uppercase" c="orange">
+                    Issues
+                  </Text>
                 </Group>
                 <Stack gap={4}>
-                  {missingHeads > 0 && <StatRow label="Missing heads" value={missingHeads} color="orange" />}
-                  {emptyDepts > 0 && <StatRow label="Empty depts" value={emptyDepts} color="orange" />}
-                  {inactivePeople > 0 && <StatRow label="Inactive people" value={inactivePeople} color="gray" />}
+                  {missingHeads > 0 && (
+                    <StatRow
+                      label="Missing heads"
+                      value={missingHeads}
+                      color="orange"
+                    />
+                  )}
+                  {emptyDepts > 0 && (
+                    <StatRow
+                      label="Empty depts"
+                      value={emptyDepts}
+                      color="orange"
+                    />
+                  )}
+                  {inactivePeople > 0 && (
+                    <StatRow
+                      label="Inactive people"
+                      value={inactivePeople}
+                      color="gray"
+                    />
+                  )}
                 </Stack>
               </>
             )}
@@ -114,30 +165,72 @@ export function AnalyticsPanel({
         aria-label="Toggle overview"
       >
         <StatChip
-          icon={<BuildingsIcon size={13} color="var(--mantine-color-blue-5)" aria-label="Organizations" />}
+          icon={
+            <BuildingsIcon
+              size={13}
+              color="var(--mantine-color-blue-5)"
+              aria-label="Organizations"
+            />
+          }
           value={totalOrgs}
           color="blue"
           label="Organizations"
         />
-        <div style={{ width: 1, height: 14, background: "var(--mantine-color-default-border)" }} />
+        <div
+          style={{
+            width: 1,
+            height: 14,
+            background: "var(--mantine-color-default-border)",
+          }}
+        />
         <StatChip
-          icon={<FolderIcon size={13} color="var(--mantine-color-violet-5)" aria-label="Departments" />}
+          icon={
+            <FolderIcon
+              size={13}
+              color="var(--mantine-color-violet-5)"
+              aria-label="Departments"
+            />
+          }
           value={totalDepts}
           color="violet"
           label="Departments"
         />
-        <div style={{ width: 1, height: 14, background: "var(--mantine-color-default-border)" }} />
+        <div
+          style={{
+            width: 1,
+            height: 14,
+            background: "var(--mantine-color-default-border)",
+          }}
+        />
         <StatChip
-          icon={<UsersIcon size={13} color="var(--mantine-color-teal-5)" aria-label="People" />}
+          icon={
+            <UsersIcon
+              size={13}
+              color="var(--mantine-color-teal-5)"
+              aria-label="People"
+            />
+          }
           value={totalPeople}
           color="teal"
           label="People"
         />
         {hasIssues && (
           <>
-            <div style={{ width: 1, height: 14, background: "var(--mantine-color-default-border)" }} />
+            <div
+              style={{
+                width: 1,
+                height: 14,
+                background: "var(--mantine-color-default-border)",
+              }}
+            />
             <StatChip
-              icon={<WarningIcon size={13} color="var(--mantine-color-orange-5)" aria-label="Issues" />}
+              icon={
+                <WarningIcon
+                  size={13}
+                  color="var(--mantine-color-orange-5)"
+                  aria-label="Issues"
+                />
+              }
               value={totalIssues}
               color="orange"
               label="Health issues"
@@ -146,9 +239,21 @@ export function AnalyticsPanel({
         )}
         {inactivePeople > 0 && (
           <>
-            <div style={{ width: 1, height: 14, background: "var(--mantine-color-default-border)" }} />
+            <div
+              style={{
+                width: 1,
+                height: 14,
+                background: "var(--mantine-color-default-border)",
+              }}
+            />
             <StatChip
-              icon={<UserMinusIcon size={13} color="var(--mantine-color-gray-5)" aria-label="Inactive" />}
+              icon={
+                <UserMinusIcon
+                  size={13}
+                  color="var(--mantine-color-gray-5)"
+                  aria-label="Inactive"
+                />
+              }
               value={inactivePeople}
               color="dimmed"
               label="Inactive people"

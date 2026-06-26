@@ -49,7 +49,7 @@ export function TemplatesEdit() {
         width: template.width,
         height: template.height,
       },
-      elements
+      elements,
     );
   }, [template, initStore]);
 
@@ -64,7 +64,13 @@ export function TemplatesEdit() {
   }
 
   return (
-    <Paper p={0} withBorder radius="lg" h="calc(100vh - 16px)" style={{ overflow: "hidden" }}>
+    <Paper
+      p={0}
+      withBorder
+      radius="lg"
+      h="calc(100vh - 16px)"
+      style={{ overflow: "hidden" }}
+    >
       <TemplateBuilder templateId={id} />
     </Paper>
   );

@@ -68,7 +68,9 @@ let mockChannels: Channel[] = [
   },
 ];
 
-export async function fetchChannels(params?: QueryParams): Promise<ChannelsFetchResponse> {
+export async function fetchChannels(
+  params?: QueryParams,
+): Promise<ChannelsFetchResponse> {
   const page = params?.page || 1;
   const pageSize = params?.pageSize || 10;
   const search = params?.search || "";
@@ -80,7 +82,7 @@ export async function fetchChannels(params?: QueryParams): Promise<ChannelsFetch
     filtered = filtered.filter(
       (c) =>
         c.handle.toLowerCase().includes(search.toLowerCase()) ||
-        c.displayName.toLowerCase().includes(search.toLowerCase())
+        c.displayName.toLowerCase().includes(search.toLowerCase()),
     );
   }
 
@@ -97,7 +99,9 @@ export async function fetchChannels(params?: QueryParams): Promise<ChannelsFetch
   };
 }
 
-export async function createChannel(values: Partial<Channel>): Promise<Channel> {
+export async function createChannel(
+  values: Partial<Channel>,
+): Promise<Channel> {
   const newChannel: Channel = {
     id: uuidv4(),
     platform: values.platform || "instagram",
@@ -113,7 +117,10 @@ export async function createChannel(values: Partial<Channel>): Promise<Channel> 
   return newChannel;
 }
 
-export async function updateChannel(id: string, values: Partial<Channel>): Promise<Channel> {
+export async function updateChannel(
+  id: string,
+  values: Partial<Channel>,
+): Promise<Channel> {
   const index = mockChannels.findIndex((c) => c.id === id);
   if (index === -1) throw new Error("Channel not found");
   const updated = { ...mockChannels[index], ...values, id };
@@ -125,7 +132,9 @@ export async function deleteChannel(id: string): Promise<void> {
   mockChannels = mockChannels.filter((c) => c.id !== id);
 }
 
-export async function connectChannel(platform: Channel["platform"]): Promise<Channel> {
+export async function connectChannel(
+  platform: Channel["platform"],
+): Promise<Channel> {
   await new Promise((r) => setTimeout(r, 1500)); // simulate OAuth delay
   const newChannel: Channel = {
     id: uuidv4(),
@@ -156,7 +165,7 @@ export async function updateChannelSettings(
     timezone?: string;
     signature?: string;
     defaultFirstComment?: string;
-  }
+  },
 ): Promise<Channel> {
   return updateChannel(id, settings as Partial<Channel>);
 }

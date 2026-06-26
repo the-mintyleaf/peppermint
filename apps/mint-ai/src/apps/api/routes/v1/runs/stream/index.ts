@@ -43,6 +43,6 @@ export async function routeRunsStream(app: FastifyInstance) {
         clearInterval(heartbeat);
         unsubscribe();
       });
-    }
+    },
   );
 }

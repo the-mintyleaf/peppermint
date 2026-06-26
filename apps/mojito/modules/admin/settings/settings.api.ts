@@ -27,7 +27,9 @@ export async function fetchUserProfile(): Promise<UserProfile> {
   return { ...userProfile };
 }
 
-export async function updateUserProfile(patch: Partial<UserProfile>): Promise<UserProfile> {
+export async function updateUserProfile(
+  patch: Partial<UserProfile>,
+): Promise<UserProfile> {
   await delay();
   userProfile = { ...userProfile, ...patch };
   return { ...userProfile };
@@ -58,7 +60,9 @@ export async function fetchWorkspace(): Promise<Workspace> {
   return { ...workspace };
 }
 
-export async function updateWorkspace(patch: Partial<Workspace>): Promise<Workspace> {
+export async function updateWorkspace(
+  patch: Partial<Workspace>,
+): Promise<Workspace> {
   await delay();
   workspace = { ...workspace, ...patch };
   return { ...workspace };
@@ -77,11 +81,46 @@ export interface TeamMember {
 }
 
 let teamMembers: TeamMember[] = [
-  { id: "m_1", name: "Alex Johnson", email: "alex@yourbrand.com", role: "owner", joinedAt: new Date("2024-01-15"), status: "active" },
-  { id: "m_2", name: "Sam Rivera", email: "sam@yourbrand.com", role: "admin", joinedAt: new Date("2024-02-10"), status: "active" },
-  { id: "m_3", name: "Jordan Lee", email: "jordan@yourbrand.com", role: "editor", joinedAt: new Date("2024-03-05"), status: "active" },
-  { id: "m_4", name: "Casey Park", email: "casey@yourbrand.com", role: "viewer", joinedAt: new Date("2024-04-01"), status: "active" },
-  { id: "m_5", name: "Morgan Chen", email: "morgan@yourbrand.com", role: "editor", joinedAt: new Date("2024-05-20"), status: "invited" },
+  {
+    id: "m_1",
+    name: "Alex Johnson",
+    email: "alex@yourbrand.com",
+    role: "owner",
+    joinedAt: new Date("2024-01-15"),
+    status: "active",
+  },
+  {
+    id: "m_2",
+    name: "Sam Rivera",
+    email: "sam@yourbrand.com",
+    role: "admin",
+    joinedAt: new Date("2024-02-10"),
+    status: "active",
+  },
+  {
+    id: "m_3",
+    name: "Jordan Lee",
+    email: "jordan@yourbrand.com",
+    role: "editor",
+    joinedAt: new Date("2024-03-05"),
+    status: "active",
+  },
+  {
+    id: "m_4",
+    name: "Casey Park",
+    email: "casey@yourbrand.com",
+    role: "viewer",
+    joinedAt: new Date("2024-04-01"),
+    status: "active",
+  },
+  {
+    id: "m_5",
+    name: "Morgan Chen",
+    email: "morgan@yourbrand.com",
+    role: "editor",
+    joinedAt: new Date("2024-05-20"),
+    status: "invited",
+  },
 ];
 
 export async function fetchTeamMembers(): Promise<TeamMember[]> {
@@ -89,7 +128,10 @@ export async function fetchTeamMembers(): Promise<TeamMember[]> {
   return [...teamMembers];
 }
 
-export async function inviteMember(email: string, role: TeamMember["role"]): Promise<TeamMember> {
+export async function inviteMember(
+  email: string,
+  role: TeamMember["role"],
+): Promise<TeamMember> {
   await delay();
   const member: TeamMember = {
     id: `m_${Date.now()}`,
@@ -103,7 +145,10 @@ export async function inviteMember(email: string, role: TeamMember["role"]): Pro
   return member;
 }
 
-export async function updateMemberRole(id: string, role: TeamMember["role"]): Promise<TeamMember> {
+export async function updateMemberRole(
+  id: string,
+  role: TeamMember["role"],
+): Promise<TeamMember> {
   await delay();
   const idx = teamMembers.findIndex((m) => m.id === id);
   if (idx === -1) throw new Error("Member not found");
@@ -114,7 +159,8 @@ export async function updateMemberRole(id: string, role: TeamMember["role"]): Pr
 export async function removeMember(id: string): Promise<void> {
   await delay();
   const member = teamMembers.find((m) => m.id === id);
-  if (member?.role === "owner") throw new Error("Cannot remove workspace owner");
+  if (member?.role === "owner")
+    throw new Error("Cannot remove workspace owner");
   teamMembers = teamMembers.filter((m) => m.id !== id);
 } // TODO(backend): DELETE /team/:id
 
@@ -157,7 +203,9 @@ export async function fetchNotificationPrefs(): Promise<NotificationPrefs> {
   return JSON.parse(JSON.stringify(notifPrefs));
 }
 
-export async function updateNotificationPrefs(patch: Partial<NotificationPrefs>): Promise<NotificationPrefs> {
+export async function updateNotificationPrefs(
+  patch: Partial<NotificationPrefs>,
+): Promise<NotificationPrefs> {
   await delay();
   notifPrefs = { ...notifPrefs, ...patch };
   return JSON.parse(JSON.stringify(notifPrefs));
@@ -176,14 +224,73 @@ export interface Integration {
 }
 
 let integrations: Integration[] = [
-  { id: "int_1", name: "Google Analytics", description: "Track website traffic and conversions", category: "analytics", logoUrl: "https://picsum.photos/seed/ga/40/40", connected: true, connectedAt: new Date("2024-02-01") },
-  { id: "int_2", name: "HubSpot", description: "Sync leads and CRM data", category: "crm", logoUrl: "https://picsum.photos/seed/hs/40/40", connected: false },
-  { id: "int_3", name: "Shopify", description: "Link product catalog to posts", category: "ecommerce", logoUrl: "https://picsum.photos/seed/sh/40/40", connected: true, connectedAt: new Date("2024-03-15") },
-  { id: "int_4", name: "Slack", description: "Post-publish notifications to channels", category: "messaging", logoUrl: "https://picsum.photos/seed/sl/40/40", connected: true, connectedAt: new Date("2024-01-20") },
-  { id: "int_5", name: "Zapier", description: "Automate workflows with 5000+ apps", category: "productivity", logoUrl: "https://picsum.photos/seed/zap/40/40", connected: false },
-  { id: "int_6", name: "Stripe", description: "Link campaign spend to revenue", category: "ecommerce", logoUrl: "https://picsum.photos/seed/str/40/40", connected: false },
-  { id: "int_7", name: "Mailchimp", description: "Sync newsletter audience data", category: "messaging", logoUrl: "https://picsum.photos/seed/mc/40/40", connected: false },
-  { id: "int_8", name: "Notion", description: "Import content briefs and docs", category: "productivity", logoUrl: "https://picsum.photos/seed/nt/40/40", connected: false },
+  {
+    id: "int_1",
+    name: "Google Analytics",
+    description: "Track website traffic and conversions",
+    category: "analytics",
+    logoUrl: "https://picsum.photos/seed/ga/40/40",
+    connected: true,
+    connectedAt: new Date("2024-02-01"),
+  },
+  {
+    id: "int_2",
+    name: "HubSpot",
+    description: "Sync leads and CRM data",
+    category: "crm",
+    logoUrl: "https://picsum.photos/seed/hs/40/40",
+    connected: false,
+  },
+  {
+    id: "int_3",
+    name: "Shopify",
+    description: "Link product catalog to posts",
+    category: "ecommerce",
+    logoUrl: "https://picsum.photos/seed/sh/40/40",
+    connected: true,
+    connectedAt: new Date("2024-03-15"),
+  },
+  {
+    id: "int_4",
+    name: "Slack",
+    description: "Post-publish notifications to channels",
+    category: "messaging",
+    logoUrl: "https://picsum.photos/seed/sl/40/40",
+    connected: true,
+    connectedAt: new Date("2024-01-20"),
+  },
+  {
+    id: "int_5",
+    name: "Zapier",
+    description: "Automate workflows with 5000+ apps",
+    category: "productivity",
+    logoUrl: "https://picsum.photos/seed/zap/40/40",
+    connected: false,
+  },
+  {
+    id: "int_6",
+    name: "Stripe",
+    description: "Link campaign spend to revenue",
+    category: "ecommerce",
+    logoUrl: "https://picsum.photos/seed/str/40/40",
+    connected: false,
+  },
+  {
+    id: "int_7",
+    name: "Mailchimp",
+    description: "Sync newsletter audience data",
+    category: "messaging",
+    logoUrl: "https://picsum.photos/seed/mc/40/40",
+    connected: false,
+  },
+  {
+    id: "int_8",
+    name: "Notion",
+    description: "Import content briefs and docs",
+    category: "productivity",
+    logoUrl: "https://picsum.photos/seed/nt/40/40",
+    connected: false,
+  },
 ];
 
 export async function fetchIntegrations(): Promise<Integration[]> {
@@ -195,7 +302,11 @@ export async function connectIntegration(id: string): Promise<Integration> {
   await delay(1200);
   const idx = integrations.findIndex((i) => i.id === id);
   if (idx === -1) throw new Error("Integration not found");
-  integrations[idx] = { ...integrations[idx], connected: true, connectedAt: new Date() };
+  integrations[idx] = {
+    ...integrations[idx],
+    connected: true,
+    connectedAt: new Date(),
+  };
   return integrations[idx];
 }
 
@@ -203,7 +314,11 @@ export async function disconnectIntegration(id: string): Promise<Integration> {
   await delay();
   const idx = integrations.findIndex((i) => i.id === id);
   if (idx === -1) throw new Error("Integration not found");
-  integrations[idx] = { ...integrations[idx], connected: false, connectedAt: undefined };
+  integrations[idx] = {
+    ...integrations[idx],
+    connected: false,
+    connectedAt: undefined,
+  };
   return integrations[idx];
 } // TODO(backend): DELETE /integrations/:id/connection
 
@@ -229,7 +344,11 @@ export interface BillingInfo {
   currentPlan: Plan;
   nextBillingDate: Date;
   paymentMethod: { brand: string; last4: string };
-  usage: { channels: { used: number; limit: number }; posts: { used: number; limit: number }; team: { used: number; limit: number } };
+  usage: {
+    channels: { used: number; limit: number };
+    posts: { used: number; limit: number };
+    team: { used: number; limit: number };
+  };
   invoices: Invoice[];
   availablePlans: Plan[];
 }
@@ -242,7 +361,13 @@ export async function fetchBillingInfo(): Promise<BillingInfo> {
       name: "Pro",
       price: 49,
       period: "monthly",
-      features: ["10 channels", "500 posts/month", "5 team members", "Analytics", "Automation"],
+      features: [
+        "10 channels",
+        "500 posts/month",
+        "5 team members",
+        "Analytics",
+        "Automation",
+      ],
     },
     nextBillingDate: new Date(Date.now() + 15 * 86_400_000),
     paymentMethod: { brand: "Visa", last4: "4242" },
@@ -259,9 +384,44 @@ export async function fetchBillingInfo(): Promise<BillingInfo> {
       pdfUrl: "#",
     })),
     availablePlans: [
-      { id: "plan_starter", name: "Starter", price: 19, period: "monthly", features: ["3 channels", "100 posts/month", "1 team member", "Basic analytics"] },
-      { id: "plan_pro", name: "Pro", price: 49, period: "monthly", features: ["10 channels", "500 posts/month", "5 team members", "Analytics", "Automation"] },
-      { id: "plan_business", name: "Business", price: 99, period: "monthly", features: ["Unlimited channels", "Unlimited posts", "15 team members", "Advanced analytics", "Priority support"] },
+      {
+        id: "plan_starter",
+        name: "Starter",
+        price: 19,
+        period: "monthly",
+        features: [
+          "3 channels",
+          "100 posts/month",
+          "1 team member",
+          "Basic analytics",
+        ],
+      },
+      {
+        id: "plan_pro",
+        name: "Pro",
+        price: 49,
+        period: "monthly",
+        features: [
+          "10 channels",
+          "500 posts/month",
+          "5 team members",
+          "Analytics",
+          "Automation",
+        ],
+      },
+      {
+        id: "plan_business",
+        name: "Business",
+        price: 99,
+        period: "monthly",
+        features: [
+          "Unlimited channels",
+          "Unlimited posts",
+          "15 team members",
+          "Advanced analytics",
+          "Priority support",
+        ],
+      },
     ],
   };
 } // TODO(backend): GET /billing

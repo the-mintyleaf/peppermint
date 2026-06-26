@@ -150,17 +150,35 @@ export function Toolbar({
 
       {/* Zoom */}
       <Tooltip label="Zoom in" withArrow>
-        <ActionIcon size="sm" variant="subtle" color="gray" onClick={onZoomIn} aria-label="Zoom in">
+        <ActionIcon
+          size="sm"
+          variant="subtle"
+          color="gray"
+          onClick={onZoomIn}
+          aria-label="Zoom in"
+        >
           <MagnifyingGlassPlusIcon size={16} />
         </ActionIcon>
       </Tooltip>
       <Tooltip label="Zoom out" withArrow>
-        <ActionIcon size="sm" variant="subtle" color="gray" onClick={onZoomOut} aria-label="Zoom out">
+        <ActionIcon
+          size="sm"
+          variant="subtle"
+          color="gray"
+          onClick={onZoomOut}
+          aria-label="Zoom out"
+        >
           <MagnifyingGlassMinusIcon size={16} />
         </ActionIcon>
       </Tooltip>
       <Tooltip label="Fit to screen" withArrow>
-        <ActionIcon size="sm" variant="subtle" color="gray" onClick={onFitView} aria-label="Fit view">
+        <ActionIcon
+          size="sm"
+          variant="subtle"
+          color="gray"
+          onClick={onFitView}
+          aria-label="Fit view"
+        >
           <FrameCornersIcon size={16} />
         </ActionIcon>
       </Tooltip>

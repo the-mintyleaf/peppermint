@@ -14,14 +14,35 @@ import type { TaskGroupSectionProps } from "./TaskGroupSection.types";
 import type { DisplayStatus } from "../../GeneralViewDashboard.hooks";
 
 const STATUS_ICON: Record<DisplayStatus, React.ReactNode> = {
-  new:              <TrayIcon               size={14} style={{ color: "var(--mantine-color-gray-5)" }}  />,
-  in_progress:      <SpinnerGapIcon         size={14} style={{ color: "var(--mantine-color-gray-6)" }}  />,
-  ready_for_review: <ArrowCircleUpRightIcon size={14} style={{ color: "var(--mantine-color-teal-6)" }}  />,
-  in_review:        <CheckCircleIcon        size={14} style={{ color: "var(--mantine-color-green-6)" }} />,
-  rejected:         <XCircleIcon            size={14} style={{ color: "var(--mantine-color-red-5)" }}   />,
+  new: <TrayIcon size={14} style={{ color: "var(--mantine-color-gray-5)" }} />,
+  in_progress: (
+    <SpinnerGapIcon
+      size={14}
+      style={{ color: "var(--mantine-color-gray-6)" }}
+    />
+  ),
+  ready_for_review: (
+    <ArrowCircleUpRightIcon
+      size={14}
+      style={{ color: "var(--mantine-color-teal-6)" }}
+    />
+  ),
+  in_review: (
+    <CheckCircleIcon
+      size={14}
+      style={{ color: "var(--mantine-color-green-6)" }}
+    />
+  ),
+  rejected: (
+    <XCircleIcon size={14} style={{ color: "var(--mantine-color-red-5)" }} />
+  ),
 };
 
-export function TaskGroupSection({ displayStatus, label, tasks }: TaskGroupSectionProps) {
+export function TaskGroupSection({
+  displayStatus,
+  label,
+  tasks,
+}: TaskGroupSectionProps) {
   const [open, setOpen] = useState(true);
 
   if (tasks.length === 0) return null;
@@ -48,7 +69,13 @@ export function TaskGroupSection({ displayStatus, label, tasks }: TaskGroupSecti
         <Badge variant="filled" color="gray" size="xs" radius="xl">
           {tasks.length}
         </Badge>
-        <ActionIcon size="xs" variant="subtle" color="gray" ml="auto" aria-label={open ? "Collapse" : "Expand"}>
+        <ActionIcon
+          size="xs"
+          variant="subtle"
+          color="gray"
+          ml="auto"
+          aria-label={open ? "Collapse" : "Expand"}
+        >
           {open ? <CaretDownIcon size={12} /> : <CaretRightIcon size={12} />}
         </ActionIcon>
       </Group>

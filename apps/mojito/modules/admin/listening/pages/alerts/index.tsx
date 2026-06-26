@@ -1,13 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Paper,
-  Stack,
-  Button,
-  Box,
-  ModuleHeader,
-} from "@peppermint/ui";
+import { Paper, Stack, Button, Box, ModuleHeader } from "@peppermint/ui";
 import {
   DataTableWrapper,
   DataTableShellToolbar,
@@ -31,7 +25,8 @@ const BASE_PATH = "/admin/listening/alerts";
 const MODULE_INFO = {
   name: "alerts",
   label: "Alerts",
-  description: "Real-time alerts for volume spikes, crises, and keyword mentions",
+  description:
+    "Real-time alerts for volume spikes, crises, and keyword mentions",
 };
 
 const TABS: DataTableShellTab[] = [
@@ -124,7 +119,8 @@ export function AlertsPage() {
   const qc = useQueryClient();
   const markAll = useMutation({
     mutationFn: markAllAlertsReadApi,
-    onSuccess: () => qc.invalidateQueries({ queryKey: [alertQueryKeys.list()] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: [alertQueryKeys.list()] }),
   });
 
   const handleMarkAllRead = useCallback(() => {
@@ -136,7 +132,13 @@ export function AlertsPage() {
   }, []);
 
   return (
-    <Paper p={0} withBorder radius="lg" h="calc(100vh - 16px)" style={{ overflow: "hidden" }}>
+    <Paper
+      p={0}
+      withBorder
+      radius="lg"
+      h="calc(100vh - 16px)"
+      style={{ overflow: "hidden" }}
+    >
       <Stack gap={0} h="100%">
         <DataTableWrapper<AlertRow>
           queryKey={alertQueryKeys.list()}

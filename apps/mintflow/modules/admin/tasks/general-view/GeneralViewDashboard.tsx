@@ -33,17 +33,20 @@ import type { GeneralViewDashboardProps } from "./GeneralViewDashboard.types";
 import tableClasses from "./TaskTable.module.css";
 
 const TABS: { value: TaskBoardFilter; label: string }[] = [
-  { value: "all",        label: "All Tasks"        },
-  { value: "mine",       label: "My Board"         },
-  { value: "team",       label: "Team Board"       },
+  { value: "all", label: "All Tasks" },
+  { value: "mine", label: "My Board" },
+  { value: "team", label: "Team Board" },
   { value: "department", label: "Department Board" },
 ];
 
 const TAB_INDEX_MAP: TaskBoardFilter[] = TABS.map((t) => t.value);
-const TAB_SEGMENTS = TABS.map((tab, i) => ({ label: tab.label, value: String(i) }));
+const TAB_SEGMENTS = TABS.map((tab, i) => ({
+  label: tab.label,
+  value: String(i),
+}));
 
 const BREADCRUMB = [
-  { label: "Tasks",        href: "/admin/tasks"              },
+  { label: "Tasks", href: "/admin/tasks" },
   { label: "General View", href: "/admin/tasks/general-view" },
 ];
 
@@ -65,11 +68,16 @@ export function GeneralViewDashboard(_props: GeneralViewDashboardProps) {
 
   const { data: tasks, isLoading } = useTasks(activeFilter);
   const { members, taskCountByMember } = useTeamMembers(tasks);
-  const groupedTasks = useGroupedTasks(tasks, debouncedSearch, selectedMemberId);
+  const groupedTasks = useGroupedTasks(
+    tasks,
+    debouncedSearch,
+    selectedMemberId,
+  );
 
   const totalVisible = useMemo(
-    () => DISPLAY_STATUS_ORDER.reduce((sum, s) => sum + groupedTasks[s].length, 0),
-    [groupedTasks]
+    () =>
+      DISPLAY_STATUS_ORDER.reduce((sum, s) => sum + groupedTasks[s].length, 0),
+    [groupedTasks],
   );
 
   return (
@@ -99,7 +107,12 @@ export function GeneralViewDashboard(_props: GeneralViewDashboardProps) {
             size="sm"
             color="white"
             autoContrast
-            styles={{ label: { paddingInline: 10, fontSize: "var(--mantine-font-size-xs)" } }}
+            styles={{
+              label: {
+                paddingInline: 10,
+                fontSize: "var(--mantine-font-size-xs)",
+              },
+            }}
           />
           <TextInput
             miw={240}
@@ -122,7 +135,9 @@ export function GeneralViewDashboard(_props: GeneralViewDashboardProps) {
         <Divider />
 
         {/* Column headers */}
-        <Box className={`${tableClasses.table} ${tableClasses.header} ${tableClasses.grid}`}>
+        <Box
+          className={`${tableClasses.table} ${tableClasses.header} ${tableClasses.grid}`}
+        >
           <span />
           <span className={tableClasses.headerLabel}>Case ID</span>
           <span className={tableClasses.headerLabel}>Task</span>
@@ -132,7 +147,10 @@ export function GeneralViewDashboard(_props: GeneralViewDashboardProps) {
         </Box>
 
         {/* Task list */}
-        <ScrollArea className={tableClasses.table} style={{ flex: 1, minHeight: 0 }}>
+        <ScrollArea
+          className={tableClasses.table}
+          style={{ flex: 1, minHeight: 0 }}
+        >
           {isLoading ? (
             <Stack p="md" gap="xs">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -141,13 +159,18 @@ export function GeneralViewDashboard(_props: GeneralViewDashboardProps) {
             </Stack>
           ) : totalVisible === 0 ? (
             <Stack align="center" justify="center" h={300} gap="xs">
-              <Text c="dimmed" size="sm">No tasks found</Text>
+              <Text c="dimmed" size="sm">
+                No tasks found
+              </Text>
               {(debouncedSearch || selectedMemberId) && (
                 <Text
                   size="xs"
                   c="blue"
                   style={{ cursor: "pointer" }}
-                  onClick={() => { setSearchInput(""); setSelectedMemberId(null); }}
+                  onClick={() => {
+                    setSearchInput("");
+                    setSelectedMemberId(null);
+                  }}
                 >
                   Clear filters
                 </Text>

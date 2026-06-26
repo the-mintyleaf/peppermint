@@ -12,9 +12,8 @@ import {
   Text,
   TextInput,
   ThemeIcon,
-  Title
+  Title,
 } from "@peppermint/ui";
-
 
 import { useState } from "react";
 import { GoogleIcon } from "./components/GoogleIcon";
@@ -22,7 +21,11 @@ import { SignInForm } from "./components/SignInForm";
 import type { SignInPageProps } from "./SignInPage.types";
 import { AUTH_TOKEN_KEYS } from "./utils/authTokenKeys";
 import { decodeJWT } from "./utils/decodeJWT";
-import { AppleLogoIcon, DiscordLogoIcon, LeafIcon } from "@phosphor-icons/react/dist/ssr";
+import {
+  AppleLogoIcon,
+  DiscordLogoIcon,
+  LeafIcon,
+} from "@phosphor-icons/react/dist/ssr";
 
 export function SignInPage({
   heading = ["Sign into", "to your portal."],
@@ -62,7 +65,7 @@ export function SignInPage({
         body: JSON.stringify(
           skipEmailValidation
             ? { username, password }
-            : { email: username, password }
+            : { email: username, password },
         ),
       });
 
@@ -120,7 +123,7 @@ export function SignInPage({
 
   const handleSocialLogin = (
     provider: "google" | "apple" | "discord",
-    callback?: () => void
+    callback?: () => void,
   ) => {
     callback?.();
   };
@@ -149,29 +152,24 @@ export function SignInPage({
 
   return (
     <Center h="100vh">
-
-
       <Stack>
-
         <Center>
           <Group gap={4} px="md" py={4}>
             <LeafIcon color="var(--mantine-color-brand-5)" weight="fill" />
             <Title size="xs" c="brand.6">
-              mintyflow <span style={{ color: "var(--mantine-color-gray-5)" }}>by mintyleaf.co</span>
+              mintyflow{" "}
+              <span style={{ color: "var(--mantine-color-gray-5)" }}>
+                by mintyleaf.co
+              </span>
             </Title>
           </Group>
         </Center>
 
-
-        <Paper w={{ base: "100%", sm: 440 }} p={{ base: "md", lg: "3rem" }} >
-
+        <Paper w={{ base: "100%", sm: 440 }} p={{ base: "md", lg: "3rem" }}>
           <Stack gap="md" w="100%">
-
-
             <Stack gap="xs" align="center">
               <Title size="2rem" order={2} ta="center" fw={500} lh="100%">
-                {heading[0]}
-                {" "}
+                {heading[0]}{" "}
                 <span style={{ color: "var(--mantine-color-brand-5)" }}>
                   {heading[1]}
                 </span>
@@ -209,7 +207,7 @@ export function SignInPage({
                           <Button
                             variant="default"
                             size="md"
-                             leftSection={<GoogleIcon />}
+                            leftSection={<GoogleIcon />}
                             onClick={() =>
                               handleSocialLogin("google", onGoogleLogin)
                             }
@@ -226,7 +224,7 @@ export function SignInPage({
                           <Button
                             variant="default"
                             size="md"
-                             leftSection={
+                            leftSection={
                               <AppleLogoIcon weight="fill" size={20} />
                             }
                             onClick={() =>
@@ -241,7 +239,7 @@ export function SignInPage({
                           <Button
                             variant="default"
                             size="md"
-                             leftSection={
+                            leftSection={
                               <DiscordLogoIcon
                                 color="var(--mantine-color-indigo-6)"
                                 weight="fill"
@@ -260,7 +258,7 @@ export function SignInPage({
                           <Button
                             variant="light"
                             size="md"
-                             h={50}
+                            h={50}
                             onClick={() => setShowMagicLink(true)}
                             fullWidth
                           >
@@ -284,7 +282,7 @@ export function SignInPage({
 
                   <TextInput
                     size="md"
-                     label="Email"
+                    label="Email"
                     placeholder="name@example.com"
                     type="email"
                     required
@@ -294,7 +292,7 @@ export function SignInPage({
 
                   <Button
                     size="md"
-                     color="black"
+                    color="black"
                     onClick={handleMagicLinkSubmit}
                     disabled={!magicLinkEmail.trim()}
                     fullWidth
@@ -306,7 +304,7 @@ export function SignInPage({
                   <Button
                     variant="subtle"
                     size="sm"
-                     c="dimmed"
+                    c="dimmed"
                     onClick={() => {
                       setShowMagicLink(false);
                       setMagicLinkEmail("");
@@ -318,30 +316,27 @@ export function SignInPage({
                 </Stack>
               )}
             </Stack>
-
-
           </Stack>
         </Paper>
 
-
-
-
-
         <Center>
-
           <Stack gap="xs">
-            <Text ta="center" size="10px" >
+            <Text ta="center" size="10px">
               By signing in, you agree to our{" "}
-              <Anchor href="/terms" c="brand.4">Terms of Service</Anchor> and{" "}
-              <Anchor href="/privacy" c="brand.4">Privacy Policy</Anchor>.
+              <Anchor href="/terms" c="brand.4">
+                Terms of Service
+              </Anchor>{" "}
+              and{" "}
+              <Anchor href="/privacy" c="brand.4">
+                Privacy Policy
+              </Anchor>
+              .
             </Text>
-
 
             <Text ta="center" size="10px" c="gray.5">
               Versoin v1.0.1 @ Copyright 2026 mintyleaf.co
             </Text>
           </Stack>
-
         </Center>
       </Stack>
     </Center>

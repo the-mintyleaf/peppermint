@@ -3,21 +3,30 @@
 import { ModalTableShell } from "@peppermint/admin";
 import { Paper } from "@peppermint/ui";
 import type { DataTableShellTab } from "@peppermint/admin";
-import { BooksIcon }       from "@phosphor-icons/react/dist/csr/Books";
+import { BooksIcon } from "@phosphor-icons/react/dist/csr/Books";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
-import { ClockIcon }       from "@phosphor-icons/react/dist/csr/Clock";
-import { BookmarkIcon }    from "@phosphor-icons/react/dist/csr/Bookmark";
-import { fetchBooks, createBook, updateBook, deleteBook } from "../../books.api";
+import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
+import { BookmarkIcon } from "@phosphor-icons/react/dist/csr/Bookmark";
+import {
+  fetchBooks,
+  createBook,
+  updateBook,
+  deleteBook,
+} from "../../books.api";
 import { booksColumns } from "./books.columns";
 import { bookQueryKeys } from "../../books.queryKeys";
 import { BookForm } from "../../form/BookForm";
 import type { Book } from "../../books.types";
 
 const tabs: DataTableShellTab[] = [
-  { label: "All Books",   icon: BooksIcon },
-  { label: "Available",   icon: CheckCircleIcon, filter: { status: "available" } },
-  { label: "Checked Out", icon: ClockIcon,        filter: { status: "checked-out" } },
-  { label: "Reserved",    icon: BookmarkIcon,     filter: { status: "reserved" } },
+  { label: "All Books", icon: BooksIcon },
+  {
+    label: "Available",
+    icon: CheckCircleIcon,
+    filter: { status: "available" },
+  },
+  { label: "Checked Out", icon: ClockIcon, filter: { status: "checked-out" } },
+  { label: "Reserved", icon: BookmarkIcon, filter: { status: "reserved" } },
 ];
 
 export function BooksList() {

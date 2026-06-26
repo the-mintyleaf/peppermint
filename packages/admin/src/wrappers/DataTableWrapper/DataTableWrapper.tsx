@@ -1,18 +1,32 @@
-'use client';
+"use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useStore } from 'zustand/react';
-import { DataTableDataContext, DataTableStoreContext } from './DataTableWrapper.context';
-import { createTableStore } from './DataTableWrapper.store';
-import { clientPaginate, clientSearch, clientSort, getNestedValue } from './DataTableWrapper.utils';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useStore } from "zustand/react";
+import {
+  DataTableDataContext,
+  DataTableStoreContext,
+} from "./DataTableWrapper.context";
+import { createTableStore } from "./DataTableWrapper.store";
+import {
+  clientPaginate,
+  clientSearch,
+  clientSort,
+  getNestedValue,
+} from "./DataTableWrapper.utils";
 import type {
   DataTableDataContextValue,
   DataTableStoreContextValue,
   DataTableWrapperProps,
   PaginationMeta,
   QueryParams,
-} from './DataTableWrapper.types';
+} from "./DataTableWrapper.types";
 
 export function DataTableWrapper<T = unknown>({
   queryKey,
@@ -53,7 +67,7 @@ export function DataTableWrapper<T = unknown>({
     if (Array.isArray(queryKey)) {
       return queryKey as readonly string[];
     }
-    return queryKey.split('.');
+    return queryKey.split(".");
   }, [queryKey]);
 
   // Subscribe to query-relevant store slices.
@@ -93,27 +107,36 @@ export function DataTableWrapper<T = unknown>({
   useEffect(() => {
     if (!persistence) return;
     const key = persistence.storageKey ?? queryKey;
-    const targets = persistence.persist ?? ['columnVisibility', 'columnOrder', 'density'];
+    const targets = persistence.persist ?? [
+      "columnVisibility",
+      "columnOrder",
+      "density",
+    ];
     try {
       const raw = localStorage.getItem(`dtw:${key}`);
       if (!raw) return;
       const saved = JSON.parse(raw) as Record<string, unknown>;
       const { getState } = store;
-      if (targets.includes('columnVisibility') && saved.columnVisibility) {
+      if (targets.includes("columnVisibility") && saved.columnVisibility) {
         getState().toggleColumn; // verify store is ready
-        store.setState({ columnVisibility: saved.columnVisibility as Record<string, boolean> });
+        store.setState({
+          columnVisibility: saved.columnVisibility as Record<string, boolean>,
+        });
       }
-      if (targets.includes('columnOrder') && Array.isArray(saved.columnOrder)) {
+      if (targets.includes("columnOrder") && Array.isArray(saved.columnOrder)) {
         store.setState({ columnOrder: saved.columnOrder as string[] });
       }
-      if (targets.includes('density') && saved.density) {
-        store.setState({ density: saved.density as import('./DataTableWrapper.types').DensitySize });
+      if (targets.includes("density") && saved.density) {
+        store.setState({
+          density:
+            saved.density as import("./DataTableWrapper.types").DensitySize,
+        });
       }
     } catch {
       // Corrupted localStorage — silently ignore, defaults apply
     }
-  // Run once on mount only
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Run once on mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persist UI preferences to localStorage whenever they change
@@ -124,12 +147,17 @@ export function DataTableWrapper<T = unknown>({
   useEffect(() => {
     if (!persistence) return;
     const key = persistence.storageKey ?? queryKey;
-    const targets = persistence.persist ?? ['columnVisibility', 'columnOrder', 'density'];
+    const targets = persistence.persist ?? [
+      "columnVisibility",
+      "columnOrder",
+      "density",
+    ];
     try {
       const toSave: Record<string, unknown> = {};
-      if (targets.includes('columnVisibility')) toSave.columnVisibility = columnVisibility;
-      if (targets.includes('columnOrder')) toSave.columnOrder = columnOrder;
-      if (targets.includes('density')) toSave.density = density;
+      if (targets.includes("columnVisibility"))
+        toSave.columnVisibility = columnVisibility;
+      if (targets.includes("columnOrder")) toSave.columnOrder = columnOrder;
+      if (targets.includes("density")) toSave.density = density;
       localStorage.setItem(`dtw:${key}`, JSON.stringify(toSave));
     } catch {
       // localStorage unavailable (SSR, private mode quota exceeded) — silently ignore
@@ -174,7 +202,7 @@ export function DataTableWrapper<T = unknown>({
   const prevIsError = useRef(false);
   if (isError && !prevIsError.current) {
     prevIsError.current = true;
-    onErrorRef.current?.(new Error('DataTableWrapper query failed'));
+    onErrorRef.current?.(new Error("DataTableWrapper query failed"));
   } else if (!isError) {
     prevIsError.current = false;
   }
@@ -192,7 +220,11 @@ export function DataTableWrapper<T = unknown>({
   const serverTotal = useMemo(() => {
     if (!rawData || !paginationKeyRef.current) return 0;
     const meta = getNestedValue(rawData, paginationKeyRef.current);
-    if (meta != null && typeof meta === 'object' && 'total' in (meta as object)) {
+    if (
+      meta != null &&
+      typeof meta === "object" &&
+      "total" in (meta as object)
+    ) {
       return Number((meta as Record<string, unknown>).total) || 0;
     }
     return 0;
@@ -219,7 +251,7 @@ export function DataTableWrapper<T = unknown>({
       total,
       totalPages: Math.max(Math.ceil(total / pageSize), 1),
     }),
-    [page, pageSize, total]
+    [page, pageSize, total],
   );
 
   const stableRefetch = useCallback(() => {
@@ -237,13 +269,25 @@ export function DataTableWrapper<T = unknown>({
       refetch: stableRefetch,
       paginationMeta,
     }),
-    [rows, total, isLoading, isFetching, isDebouncing, isError, stableRefetch, paginationMeta]
+    [
+      rows,
+      total,
+      isLoading,
+      isFetching,
+      isDebouncing,
+      isError,
+      stableRefetch,
+      paginationMeta,
+    ],
   );
 
   // storeValue is stable — only the store ref and static parsed key are passed.
   // Consumers subscribe to specific slices via useTableStore(), not this context value.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const storeValue = useMemo<DataTableStoreContextValue>(() => ({ store, parsedQueryKey: parsedKey }), []);
+  const storeValue = useMemo<DataTableStoreContextValue>(
+    () => ({ store, parsedQueryKey: parsedKey }),
+    [],
+  );
 
   return (
     <DataTableDataContext.Provider value={dataValue}>

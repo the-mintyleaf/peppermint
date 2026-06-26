@@ -32,7 +32,9 @@ export function ImpactPreviewModal({
           <ThemeIcon size="sm" color="red" variant="light">
             <WarningIcon size={14} aria-label="Warning" />
           </ThemeIcon>
-          <Text fw={600} size="sm">Confirm Deletion</Text>
+          <Text fw={600} size="sm">
+            Confirm Deletion
+          </Text>
         </Group>
       }
       size="sm"
@@ -40,24 +42,44 @@ export function ImpactPreviewModal({
     >
       <Stack gap="md">
         <Text size="sm">
-          You are about to delete <Text span fw={700}>{nodeName}</Text> ({nodeType}).
+          You are about to delete{" "}
+          <Text span fw={700}>
+            {nodeName}
+          </Text>{" "}
+          ({nodeType}).
         </Text>
 
         {(affectedPeople > 0 || affectedDepts > 0) && (
-          <Stack gap={6} style={{ background: "var(--mantine-color-red-0)", borderRadius: 8, padding: "10px 12px" }}>
-            <Text size="xs" fw={600} c="red">This will also affect:</Text>
+          <Stack
+            gap={6}
+            style={{
+              background: "var(--mantine-color-red-0)",
+              borderRadius: 8,
+              padding: "10px 12px",
+            }}
+          >
+            <Text size="xs" fw={600} c="red">
+              This will also affect:
+            </Text>
             {affectedPeople > 0 && (
-              <Text size="xs" c="dimmed">• {affectedPeople} people in this branch</Text>
+              <Text size="xs" c="dimmed">
+                • {affectedPeople} people in this branch
+              </Text>
             )}
             {affectedDepts > 0 && (
-              <Text size="xs" c="dimmed">• {affectedDepts} departments / units</Text>
+              <Text size="xs" c="dimmed">
+                • {affectedDepts} departments / units
+              </Text>
             )}
-            <Text size="xs" c="dimmed">• All reporting relationships and edges in this branch</Text>
+            <Text size="xs" c="dimmed">
+              • All reporting relationships and edges in this branch
+            </Text>
           </Stack>
         )}
 
         <Text size="xs" c="dimmed">
-          This action cannot be undone. However, you can undo via the undo button after confirming.
+          This action cannot be undone. However, you can undo via the undo
+          button after confirming.
         </Text>
 
         <Group gap={8} justify="flex-end">
@@ -68,7 +90,10 @@ export function ImpactPreviewModal({
             size="xs"
             color="red"
             leftSection={<TrashIcon size={13} aria-label="Delete" />}
-            onClick={() => { onConfirm(); onClose(); }}
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
           >
             Delete
           </Button>

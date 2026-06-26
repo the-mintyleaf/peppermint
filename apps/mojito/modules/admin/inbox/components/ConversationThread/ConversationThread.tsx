@@ -20,7 +20,12 @@ import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowC
 import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
 import { useState } from "react";
 import { notifications } from "@mantine/notifications";
-import { useConversation, useReply, useResolveConversation, useReopenConversation } from "../../inbox.hooks";
+import {
+  useConversation,
+  useReply,
+  useResolveConversation,
+  useReopenConversation,
+} from "../../inbox.hooks";
 import type { ThreadMessage } from "../../../shared/entities.types";
 
 const MSG_TYPE_LABEL: Record<ThreadMessage["type"], string> = {
@@ -39,9 +44,13 @@ interface ConversationThreadProps {
   conversationId: string;
 }
 
-export function ConversationThread({ conversationId }: ConversationThreadProps) {
+export function ConversationThread({
+  conversationId,
+}: ConversationThreadProps) {
   const [replyText, setReplyText] = useState("");
-  const [replyType, setReplyType] = useState<"reply" | "internal_note">("reply");
+  const [replyType, setReplyType] = useState<"reply" | "internal_note">(
+    "reply",
+  );
 
   const { data: conv, isLoading } = useConversation(conversationId);
   const reply = useReply();
@@ -50,7 +59,11 @@ export function ConversationThread({ conversationId }: ConversationThreadProps) 
 
   async function handleSend() {
     if (!replyText.trim()) return;
-    await reply.mutateAsync({ id: conversationId, text: replyText.trim(), type: replyType });
+    await reply.mutateAsync({
+      id: conversationId,
+      text: replyText.trim(),
+      type: replyType,
+    });
     setReplyText("");
     notifications.show({ message: "Reply sent", color: "green" });
   }
@@ -71,20 +84,34 @@ export function ConversationThread({ conversationId }: ConversationThreadProps) 
 
   return (
     <Stack gap={0} h="100%">
-      <Paper p="md" radius={0} style={{ borderBottom: "1px solid var(--mantine-color-default-border)" }}>
+      <Paper
+        p="md"
+        radius={0}
+        style={{
+          borderBottom: "1px solid var(--mantine-color-default-border)",
+        }}
+      >
         <Group justify="space-between">
           <Group gap="sm">
             <Avatar size="sm" radius="xl" color="blue">
               {conv.author.charAt(0).toUpperCase()}
             </Avatar>
             <Stack gap={0}>
-              <Text fw={600} size="sm">{conv.author}</Text>
-              <Text size="xs" c="dimmed">{conv.platform} · {conv.type}</Text>
+              <Text fw={600} size="sm">
+                {conv.author}
+              </Text>
+              <Text size="xs" c="dimmed">
+                {conv.platform} · {conv.type}
+              </Text>
             </Stack>
           </Group>
           <Group gap="xs">
             {conv.assignedTo && (
-              <Badge size="xs" leftSection={<UserIcon size={10} />} variant="light">
+              <Badge
+                size="xs"
+                leftSection={<UserIcon size={10} />}
+                variant="light"
+              >
                 {conv.assignedTo}
               </Badge>
             )}
@@ -117,14 +144,21 @@ export function ConversationThread({ conversationId }: ConversationThreadProps) 
 
       <ScrollArea style={{ flex: 1 }} p="md">
         <Stack gap="sm">
-          <Paper withBorder p="sm" radius="md" bg="var(--mantine-color-default-hover)">
+          <Paper
+            withBorder
+            p="sm"
+            radius="md"
+            bg="var(--mantine-color-default-hover)"
+          >
             <Text size="sm">{conv.text}</Text>
             <Text size="xs" c="dimmed" mt={4}>
               Original · {conv.createdAt.toLocaleString()}
             </Text>
           </Paper>
 
-          {conv.threadMessages.length > 0 && <Divider label="Thread" labelPosition="center" />}
+          {conv.threadMessages.length > 0 && (
+            <Divider label="Thread" labelPosition="center" />
+          )}
 
           {conv.threadMessages.map((msg) => (
             <Paper
@@ -147,24 +181,40 @@ export function ConversationThread({ conversationId }: ConversationThreadProps) 
             >
               <Group justify="space-between" mb={4}>
                 <Group gap="xs">
-                  <Avatar size="xs" radius="xl" color={msg.author === "You" ? "blue" : "gray"}>
+                  <Avatar
+                    size="xs"
+                    radius="xl"
+                    color={msg.author === "You" ? "blue" : "gray"}
+                  >
                     {msg.author.charAt(0).toUpperCase()}
                   </Avatar>
-                  <Text size="xs" fw={500}>{msg.author}</Text>
+                  <Text size="xs" fw={500}>
+                    {msg.author}
+                  </Text>
                 </Group>
-                <Badge size="xs" color={MSG_TYPE_COLOR[msg.type]} variant="light">
+                <Badge
+                  size="xs"
+                  color={MSG_TYPE_COLOR[msg.type]}
+                  variant="light"
+                >
                   {MSG_TYPE_LABEL[msg.type]}
                 </Badge>
               </Group>
               <Text size="sm">{msg.text}</Text>
-              <Text size="xs" c="dimmed" mt={4}>{msg.createdAt.toLocaleString()}</Text>
+              <Text size="xs" c="dimmed" mt={4}>
+                {msg.createdAt.toLocaleString()}
+              </Text>
             </Paper>
           ))}
         </Stack>
       </ScrollArea>
 
       {conv.status !== "done" && (
-        <Paper p="md" radius={0} style={{ borderTop: "1px solid var(--mantine-color-default-border)" }}>
+        <Paper
+          p="md"
+          radius={0}
+          style={{ borderTop: "1px solid var(--mantine-color-default-border)" }}
+        >
           <Stack gap="sm">
             <SegmentedControl
               size="xs"
@@ -176,7 +226,11 @@ export function ConversationThread({ conversationId }: ConversationThreadProps) 
               ]}
             />
             <Textarea
-              placeholder={replyType === "internal_note" ? "Add internal note…" : "Write a reply…"}
+              placeholder={
+                replyType === "internal_note"
+                  ? "Add internal note…"
+                  : "Write a reply…"
+              }
               value={replyText}
               onChange={(e) => setReplyText(e.currentTarget.value)}
               minRows={2}

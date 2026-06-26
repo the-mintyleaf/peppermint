@@ -74,6 +74,7 @@ POST /v1/runs/chat
 ### 2. BullMQ Job Queue
 
 **Files:**
+
 - `src/orchestrator/queue/` – Queue setup
 - `src/orchestrator/worker/` – Job processors
 
@@ -148,6 +149,7 @@ Step 2: agent.reasoning finishes
 ```
 
 **Key insight:** Workflows are **lazy DAGs**. Successors are enqueued only when their predecessor completes. This allows:
+
 - Conditional branching (enqueue different successors based on output)
 - Dynamic workflows (generate successors at runtime)
 - Parallel execution (enqueue multiple successors)
@@ -177,13 +179,13 @@ const result = await executor(input, ctx);
 
 **Node Types:**
 
-| Kind | Category | Purpose |
-|------|----------|---------|
-| `system.guardPolicy` | System | Validate input |
-| `system.noop` | System | No-op pass-through |
-| `agents.reasoning` | Agent | AI reasoning with tools |
-| `tools.apicall` | Tool | HTTP API call |
-| `tools.chatModels.*` | Tool | LLM provider |
+| Kind                 | Category | Purpose                 |
+| -------------------- | -------- | ----------------------- |
+| `system.guardPolicy` | System   | Validate input          |
+| `system.noop`        | System   | No-op pass-through      |
+| `agents.reasoning`   | Agent    | AI reasoning with tools |
+| `tools.apicall`      | Tool     | HTTP API call           |
+| `tools.chatModels.*` | Tool     | LLM provider            |
 
 ---
 
@@ -194,6 +196,7 @@ const result = await executor(input, ctx);
 **Two data structures per session:**
 
 #### Messages (Redis LIST)
+
 ```
 Key: session:{sessionId}:messages
 Type: [ { role: "user", content: "..." }, ... ]
@@ -204,6 +207,7 @@ Behavior:
 ```
 
 Example:
+
 ```
 session:user-123:messages =
   { role: "assistant", content: "I found..." }
@@ -213,6 +217,7 @@ session:user-123:messages =
 ```
 
 #### Summary (Redis JSON)
+
 ```
 Key: session:{sessionId}:summary
 Type: { phase: "...", intent: "...", budget: "...", ... }
@@ -223,6 +228,7 @@ Behavior:
 ```
 
 Example:
+
 ```
 session:user-123:summary =
 {
@@ -234,6 +240,7 @@ session:user-123:summary =
 ```
 
 **Why this design?**
+
 - **Bounded:** Only recent N messages; older ones dropped
 - **Efficient:** O(1) lookups; summaries reduce token count
 - **Scalable:** Redis is fast; session-aware isolation
@@ -255,13 +262,13 @@ interface ExecutorContext {
   sessionId?: string;
 
   // Dependencies
-  redis: Redis;              // Redis client
-  logger: Logger;            // Pino logger
-  models: ModelRegistry;     // LLM adapters
-  metrics: Metrics;          // Observability
-  config: RuntimeConfig;     // Settings
-  memory: SessionMemory;     // Session store
-  eventBus: EventBus;        // SSE pub/sub
+  redis: Redis; // Redis client
+  logger: Logger; // Pino logger
+  models: ModelRegistry; // LLM adapters
+  metrics: Metrics; // Observability
+  config: RuntimeConfig; // Settings
+  memory: SessionMemory; // Session store
+  eventBus: EventBus; // SSE pub/sub
 
   // Methods
   isCancelled(): Promise<boolean>;
@@ -287,6 +294,7 @@ POST /v1/runs
 ```
 
 **API does:**
+
 ```
 1. Validate input schema (Zod)
 2. Create run record in memory: { runId, status: "queued" }
@@ -314,6 +322,7 @@ Worker does:
 ```
 
 **Event emitted:**
+
 ```json
 {
   "type": "run.started",
@@ -347,6 +356,7 @@ Worker does:
 ```
 
 **Events emitted:**
+
 ```json
 { "type": "node.started", "nodeId": "guard.policy", ... }
 { "type": "node.finished", "nodeId": "guard.policy", "result": {...} }
@@ -438,6 +448,7 @@ async function nodeAIReasoning(input, ctx) {
 ```
 
 **When no successors:**
+
 ```
 1. Emit: run.finished
 2. Store final result
@@ -510,13 +521,13 @@ type Result<T, E> = Ok<T> | Err<E>;
 return err({
   code: "INVALID_INPUT",
   message: "Message too long",
-  retryable: false  // Won't retry
+  retryable: false, // Won't retry
 });
 
 return err({
   code: "LLM_ERROR",
   message: "Rate limit exceeded",
-  retryable: true  // Will retry
+  retryable: true, // Will retry
 });
 ```
 
@@ -524,14 +535,14 @@ return err({
 
 ## Performance Characteristics
 
-| Operation | Time | Notes |
-|-----------|------|-------|
-| Enqueue run | <10ms | Quick HTTP POST |
-| Guard validation | <50ms | In-memory check |
-| LLM inference | 1-5s | Model dependent |
-| Tool call | 500ms-2s | API latency |
-| End-to-end workflow | 3-10s | Nodes + LLM |
-| SSE event delivery | <100ms | In-process |
+| Operation           | Time     | Notes           |
+| ------------------- | -------- | --------------- |
+| Enqueue run         | <10ms    | Quick HTTP POST |
+| Guard validation    | <50ms    | In-memory check |
+| LLM inference       | 1-5s     | Model dependent |
+| Tool call           | 500ms-2s | API latency     |
+| End-to-end workflow | 3-10s    | Nodes + LLM     |
+| SSE event delivery  | <100ms   | In-process      |
 
 ---
 
@@ -550,6 +561,7 @@ npm run dev-worker &
 All workers pull from same Redis queues. BullMQ automatically distributes jobs.
 
 **Capacity:**
+
 - 1 worker: ~50 nodes/sec
 - 4 workers: ~200 nodes/sec
 - 16 workers: ~800 nodes/sec
@@ -563,14 +575,14 @@ All workers pull from same Redis queues. BullMQ automatically distributes jobs.
 const queue = new Queue("nodes", {
   defaultJobOptions: {
     attempts: 5,
-    backoff: { type: "exponential", delay: 1000 }
+    backoff: { type: "exponential", delay: 1000 },
   },
   settings: {
     maxStalledCount: 2,
     lockDuration: 30000,
     lockRenewTime: 15000,
-    max: 100  // Process 100 jobs in parallel
-  }
+    max: 100, // Process 100 jobs in parallel
+  },
 });
 ```
 
@@ -601,22 +613,27 @@ flowchart LR
 ## Key Design Decisions
 
 ### 1. Job Queue (BullMQ)
+
 **Why:** Reliable, retryable, horizontally scalable  
 **Tradeoff:** Redis dependency, operational complexity
 
 ### 2. Bounded Session Memory
+
 **Why:** Prevents token bloat, forces summarization  
 **Tradeoff:** Oldest messages are lost
 
 ### 3. Result Types Instead of Exceptions
+
 **Why:** Type-safe error handling, forced error propagation  
 **Tradeoff:** More verbose than throw/catch
 
 ### 4. Graph-based Workflows
+
 **Why:** Flexible, composable, testable  
 **Tradeoff:** Upfront workflow definition (not fully dynamic)
 
 ### 5. Stateless Node.js
+
 **Why:** Horizontal scalability, no in-process state loss  
 **Tradeoff:** All state must be persisted
 

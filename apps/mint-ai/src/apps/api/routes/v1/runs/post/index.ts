@@ -34,7 +34,7 @@ export async function routeRunsPost(app: FastifyInstance) {
           workflowId: body.workflowId,
           sessionId: body.sessionId,
         },
-        "Workflow run enqueued"
+        "Workflow run enqueued",
       );
 
       return reply.code(202).send(routeRunsPostOutputSchema.parse(response));
@@ -44,7 +44,7 @@ export async function routeRunsPost(app: FastifyInstance) {
           event: "run.enqueue_failed",
           err,
         },
-        "Failed to enqueue workflow run"
+        "Failed to enqueue workflow run",
       );
 
       return reply.status(400).send({ error: "Invalid request" });

@@ -74,21 +74,25 @@ curl http://localhost:3000/v1/runs/abc123def456/stream
 ## Best Use Cases
 
 ✅ **Complex Problem-Solving**
+
 - Breaking down difficult questions
 - Analyzing tradeoffs and decisions
 - Evaluating multiple approaches
 
 ✅ **Analytical Reasoning**
+
 - Logical explanations
 - Cause-and-effect analysis
 - Hypothesis evaluation
 
 ✅ **Educational Explanations**
+
 - Teaching concepts step-by-step
 - Providing detailed reasoning chains
 - Clarifying difficult topics
 
 ✅ **Decision Support**
+
 - Weighing pros and cons
 - Analyzing options systematically
 - Supporting conclusions with logic
@@ -105,6 +109,7 @@ The workflow uses:
 ## Example Queries
 
 ### Example 1: Technical Analysis
+
 ```
 Q: "Explain how REST APIs and GraphQL differ, and when you'd choose each one"
 
@@ -112,6 +117,7 @@ A: [Deep analysis of both approaches, tradeoffs, use cases, and decision criteri
 ```
 
 ### Example 2: Business Analysis
+
 ```
 Q: "What should a startup consider before choosing between bootstrapping or seeking venture capital?"
 
@@ -119,6 +125,7 @@ A: [Structured analysis of factors, risks, benefits, and considerations for each
 ```
 
 ### Example 3: Complex Problem
+
 ```
 Q: "How would you design a system to detect and prevent fraud in real-time payment processing?"
 

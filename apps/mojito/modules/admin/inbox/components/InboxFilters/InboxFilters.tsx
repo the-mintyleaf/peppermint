@@ -18,7 +18,9 @@ export function InboxFilters({ filters, onChange }: InboxFiltersProps) {
         placeholder="Search conversations…"
         leftSection={<MagnifyingGlassIcon size={14} />}
         value={filters.search ?? ""}
-        onChange={(e) => onChange({ search: e.currentTarget.value || undefined })}
+        onChange={(e) =>
+          onChange({ search: e.currentTarget.value || undefined })
+        }
       />
       <Select
         size="xs"
@@ -31,7 +33,9 @@ export function InboxFilters({ filters, onChange }: InboxFiltersProps) {
           { label: "Done", value: "done" },
         ]}
         value={filters.status ?? null}
-        onChange={(v) => onChange({ status: (v as Filters["status"]) ?? undefined })}
+        onChange={(v) =>
+          onChange({ status: (v as Filters["status"]) ?? undefined })
+        }
       />
       <Select
         size="xs"
@@ -45,7 +49,9 @@ export function InboxFilters({ filters, onChange }: InboxFiltersProps) {
           { label: "Review", value: "review" },
         ]}
         value={filters.type ?? null}
-        onChange={(v) => onChange({ type: (v as Filters["type"]) ?? undefined })}
+        onChange={(v) =>
+          onChange({ type: (v as Filters["type"]) ?? undefined })
+        }
       />
     </Group>
   );

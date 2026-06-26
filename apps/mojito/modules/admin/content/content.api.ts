@@ -1,5 +1,12 @@
 import { delay, paginate, PaginatedResponse } from "../shared/mock.utils";
-import type { ContentItem, ContentStatus, Platform, ContentSource, ChannelVariant, MediaRef } from "../shared/domain.types";
+import type {
+  ContentItem,
+  ContentStatus,
+  Platform,
+  ContentSource,
+  ChannelVariant,
+  MediaRef,
+} from "../shared/domain.types";
 import { v4 as uuidv4 } from "uuid";
 
 const MOCK_PLATFORMS: Platform[] = [
@@ -79,7 +86,7 @@ function createMockContentItem(index: number): ContentItem {
   const sources: ContentSource[] = ["manual", "agent"];
   const platformsForItem = MOCK_PLATFORMS.slice(
     0,
-    Math.floor(Math.random() * 4) + 1
+    Math.floor(Math.random() * 4) + 1,
   );
 
   const status = statuses[Math.floor(Math.random() * statuses.length)];
@@ -124,9 +131,8 @@ function createMockContentItem(index: number): ContentItem {
   };
 }
 
-let contentStore: ContentItem[] = Array.from(
-  { length: 40 },
-  (_, i) => createMockContentItem(i)
+let contentStore: ContentItem[] = Array.from({ length: 40 }, (_, i) =>
+  createMockContentItem(i),
 );
 
 export interface QueryParams {
@@ -141,7 +147,7 @@ export interface QueryParams {
 }
 
 export async function fetchContentItems(
-  params?: QueryParams
+  params?: QueryParams,
 ): Promise<PaginatedResponse<ContentItem>> {
   await delay(300);
 
@@ -157,7 +163,7 @@ export async function fetchContentItems(
 
   if (params?.platform) {
     filtered = filtered.filter((item) =>
-      item.variants.some((v) => v.platform === params.platform)
+      item.variants.some((v) => v.platform === params.platform),
     );
   }
 
@@ -165,7 +171,7 @@ export async function fetchContentItems(
     filtered = filtered.filter(
       (item) =>
         item.createdAt >= params.range!.from &&
-        item.createdAt <= params.range!.to
+        item.createdAt <= params.range!.to,
     );
   }
 
@@ -175,18 +181,14 @@ export async function fetchContentItems(
       (item) =>
         item.title.toLowerCase().includes(searchLower) ||
         item.variants.some((v) =>
-          v.caption.toLowerCase().includes(searchLower)
-        )
+          v.caption.toLowerCase().includes(searchLower),
+        ),
     );
   }
 
   filtered.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 
-  return paginate(
-    filtered,
-    params?.page || 1,
-    params?.pageSize || 10
-  );
+  return paginate(filtered, params?.page || 1, params?.pageSize || 10);
 }
 
 export async function fetchContentItem(id: string): Promise<ContentItem> {
@@ -197,7 +199,7 @@ export async function fetchContentItem(id: string): Promise<ContentItem> {
 }
 
 export async function createContentItem(
-  data: Omit<ContentItem, "id" | "createdAt" | "updatedAt" | "analytics">
+  data: Omit<ContentItem, "id" | "createdAt" | "updatedAt" | "analytics">,
 ): Promise<ContentItem> {
   await delay(500);
 
@@ -224,7 +226,7 @@ export async function createContentItem(
 
 export async function updateContentItem(
   id: string,
-  data: Partial<ContentItem>
+  data: Partial<ContentItem>,
 ): Promise<ContentItem> {
   await delay(500);
 
@@ -255,7 +257,7 @@ export async function deleteContentItem(id: string): Promise<void> {
 export async function scheduleContentItem(
   id: string,
   scheduledAt: Date,
-  timezone: string
+  timezone: string,
 ): Promise<ContentItem> {
   await delay(300);
 
@@ -289,7 +291,7 @@ export async function publishNowContentItem(id: string): Promise<ContentItem> {
 
 export async function approveContentItem(
   id: string,
-  notes?: string
+  notes?: string,
 ): Promise<ContentItem> {
   await delay(300);
 
@@ -306,7 +308,7 @@ export async function approveContentItem(
 
 export async function rejectContentItem(
   id: string,
-  notes: string
+  notes: string,
 ): Promise<ContentItem> {
   await delay(300);
 

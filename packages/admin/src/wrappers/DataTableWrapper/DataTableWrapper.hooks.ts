@@ -1,8 +1,14 @@
-import { useCallback } from 'react';
-import { useStore } from 'zustand/react';
-import { useQueryClient } from '@tanstack/react-query';
-import { useDataTableDataContext, useDataTableStoreContext } from './DataTableWrapper.context';
-import type { DataTableDataContextValue, DataTableState } from './DataTableWrapper.types';
+import { useCallback } from "react";
+import { useStore } from "zustand/react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useDataTableDataContext,
+  useDataTableStoreContext,
+} from "./DataTableWrapper.context";
+import type {
+  DataTableDataContextValue,
+  DataTableState,
+} from "./DataTableWrapper.types";
 
 /**
  * Returns row data, loading state, error state, refetch, and pagination meta.
@@ -25,12 +31,15 @@ export function useTableData<T = unknown>(): DataTableDataContextValue<T> {
  * const sort = useTable((s) => s.sort);        // SortState[]
  * const toggleSort = useTable((s) => s.toggleSort);
  */
-export function useTableStore(): <U>(selector: (state: DataTableState) => U) => U {
+export function useTableStore(): <U>(
+  selector: (state: DataTableState) => U,
+) => U {
   const { store } = useDataTableStoreContext();
   // The returned function is called unconditionally at the top level of consumer
   // components — useStore inside it is a valid hook call at render time.
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  return <U,>(selector: (state: DataTableState) => U): U => useStore(store, selector);
+  return <U>(selector: (state: DataTableState) => U): U =>
+    useStore(store, selector);
 }
 
 /**
@@ -66,7 +75,7 @@ export function useTableSelection() {
 
   const setSelection = useCallback(
     (next: Set<string | number>) => store.getState().setSelection(next),
-    [store]
+    [store],
   );
 
   const toggle = useCallback(
@@ -80,7 +89,7 @@ export function useTableSelection() {
       }
       store.getState().setSelection(next);
     },
-    [store]
+    [store],
   );
 
   const selectPage = useCallback(
@@ -90,7 +99,7 @@ export function useTableSelection() {
       for (const id of ids) next.add(id);
       store.getState().setSelection(next);
     },
-    [store]
+    [store],
   );
 
   const deselectPage = useCallback(
@@ -100,7 +109,7 @@ export function useTableSelection() {
       for (const id of ids) next.delete(id);
       store.getState().setSelection(next);
     },
-    [store]
+    [store],
   );
 
   const clearSelection = useCallback(() => {
@@ -112,7 +121,7 @@ export function useTableSelection() {
       const current = store.getState().selection;
       return ids.length > 0 && ids.every((id) => current.has(id));
     },
-    [store]
+    [store],
   );
 
   return {

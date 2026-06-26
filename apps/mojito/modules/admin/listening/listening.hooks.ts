@@ -32,9 +32,15 @@ export function useKeywords() {
 export function useAddKeyword() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ term, kind }: { term: string; kind: "keyword" | "hashtag" }) =>
-      addKeyword(term, kind),
-    onSuccess: () => qc.invalidateQueries({ queryKey: listeningKeys.keywords() }),
+    mutationFn: ({
+      term,
+      kind,
+    }: {
+      term: string;
+      kind: "keyword" | "hashtag";
+    }) => addKeyword(term, kind),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: listeningKeys.keywords() }),
   });
 }
 
@@ -42,7 +48,8 @@ export function useDeleteKeyword() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: deleteKeyword,
-    onSuccess: () => qc.invalidateQueries({ queryKey: listeningKeys.keywords() }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: listeningKeys.keywords() }),
   });
 }
 
@@ -58,7 +65,8 @@ export function useAddCompetitor() {
   return useMutation({
     mutationFn: ({ handle, platform }: { handle: string; platform: string }) =>
       addCompetitor(handle, platform as any),
-    onSuccess: () => qc.invalidateQueries({ queryKey: listeningKeys.competitors() }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: listeningKeys.competitors() }),
   });
 }
 
@@ -66,7 +74,8 @@ export function useDeleteCompetitor() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: deleteCompetitor,
-    onSuccess: () => qc.invalidateQueries({ queryKey: listeningKeys.competitors() }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: listeningKeys.competitors() }),
   });
 }
 

@@ -16,7 +16,11 @@ import { CopySimpleIcon } from "@phosphor-icons/react/dist/csr/CopySimple";
 import { useState } from "react";
 import { notifications } from "@mantine/notifications";
 import { useComposeStore } from "../../compose.store";
-import { useCreateContent, useScheduleContent, usePublishNow } from "@/modules/admin/content/content.hooks";
+import {
+  useCreateContent,
+  useScheduleContent,
+  usePublishNow,
+} from "@/modules/admin/content/content.hooks";
 import type { ContentItem } from "@/modules/admin/shared/domain.types";
 
 const TIMEZONES = [
@@ -31,7 +35,9 @@ const TIMEZONES = [
   "Australia/Sydney",
 ];
 
-function buildContentItemFromDraft(draft: ReturnType<typeof useComposeStore>["draft"]): Omit<ContentItem, "id" | "createdAt" | "updatedAt" | "analytics"> {
+function buildContentItemFromDraft(
+  draft: ReturnType<typeof useComposeStore>["draft"],
+): Omit<ContentItem, "id" | "createdAt" | "updatedAt" | "analytics"> {
   return {
     title: draft.title || draft.globalCaption.slice(0, 60) || "Untitled",
     status: "draft",
@@ -70,7 +76,9 @@ export function ComposeActions() {
   }
 
   async function handlePublishNow() {
-    const item = await createContent.mutateAsync(buildContentItemFromDraft(draft));
+    const item = await createContent.mutateAsync(
+      buildContentItemFromDraft(draft),
+    );
     if (item) {
       await publishNow.mutateAsync(item.id);
       reset();
@@ -79,10 +87,15 @@ export function ComposeActions() {
 
   async function handleSchedule() {
     if (!scheduledAt) {
-      notifications.show({ message: "Pick a date/time first", color: "orange" });
+      notifications.show({
+        message: "Pick a date/time first",
+        color: "orange",
+      });
       return;
     }
-    const item = await createContent.mutateAsync(buildContentItemFromDraft(draft));
+    const item = await createContent.mutateAsync(
+      buildContentItemFromDraft(draft),
+    );
     if (item) {
       const scheduleContent = useScheduleContent();
       await scheduleContent.mutateAsync({ id: item.id, scheduledAt, timezone });
@@ -116,7 +129,12 @@ export function ComposeActions() {
         Submit for Approval
       </Button>
 
-      <Popover opened={scheduleOpen} onClose={() => setScheduleOpen(false)} width={280} position="top-end">
+      <Popover
+        opened={scheduleOpen}
+        onClose={() => setScheduleOpen(false)}
+        width={280}
+        position="top-end"
+      >
         <Popover.Target>
           <Button
             variant="light"
@@ -130,7 +148,9 @@ export function ComposeActions() {
         </Popover.Target>
         <Popover.Dropdown>
           <Stack gap="sm">
-            <Text size="sm" fw={500}>Schedule Post</Text>
+            <Text size="sm" fw={500}>
+              Schedule Post
+            </Text>
             <DateTimePicker
               label="Date & Time"
               placeholder="Pick date and time"
@@ -146,7 +166,12 @@ export function ComposeActions() {
               onChange={(v) => setTimezone(v ?? "UTC")}
               size="sm"
             />
-            <Button size="sm" fullWidth onClick={handleSchedule} loading={isLoading}>
+            <Button
+              size="sm"
+              fullWidth
+              onClick={handleSchedule}
+              loading={isLoading}
+            >
               Schedule
             </Button>
           </Stack>

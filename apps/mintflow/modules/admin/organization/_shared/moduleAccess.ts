@@ -2,23 +2,44 @@ import type {
   AccessLevel,
   AccessMenuChange,
   AccessMenuData,
-} from '@peppermint/ui';
-import { MOCK_ACCOUNTS } from '../accounts/accounts.api';
-import { MOCK_ROLES } from '../roles/roles.api';
-import type { PermissionAction, PermissionArea } from './PermissionsMatrix/PermissionsMatrix.types';
+} from "@peppermint/ui";
+import type {
+  PermissionAction,
+  PermissionArea,
+} from "./PermissionsMatrix/PermissionsMatrix.types";
+
+// Stubs — replace with real API calls when accounts/roles sub-modules are built
+const MOCK_ACCOUNTS: Array<{
+  id: string;
+  fullName: string;
+  email: string;
+  status: string;
+  roleId: string;
+  personalizedPermissions: Array<{
+    area: PermissionArea;
+    actions: PermissionAction[];
+  }>;
+}> = [];
+const MOCK_ROLES: Array<{
+  id: string;
+  name: string;
+  description: string;
+  status: string;
+  permissions: Array<{ area: PermissionArea; actions: PermissionAction[] }>;
+}> = [];
 
 const ACTION_TO_LEVEL: Record<PermissionAction, AccessLevel> = {
-  view: 'view',
-  create: 'edit',
-  edit: 'edit',
-  delete: 'manage',
-  approve: 'manage',
-  manage: 'manage',
+  view: "view",
+  create: "edit",
+  edit: "edit",
+  delete: "manage",
+  approve: "manage",
+  manage: "manage",
 };
 
 function highestAccessLevel(actions: PermissionAction[]): AccessLevel {
-  const order: AccessLevel[] = ['view', 'edit', 'manage', 'owner'];
-  let best: AccessLevel = 'view';
+  const order: AccessLevel[] = ["view", "edit", "manage", "owner"];
+  let best: AccessLevel = "view";
   for (const action of actions) {
     const level = ACTION_TO_LEVEL[action];
     if (order.indexOf(level) > order.indexOf(best)) best = level;
@@ -37,7 +58,7 @@ export function buildModuleAccessFromPermissions(
   area: PermissionArea,
 ): AccessMenuData {
   const roles = MOCK_ROLES.filter(
-    (role) => role.status === 'active' && hasAreaAccess(role.permissions, area),
+    (role) => role.status === "active" && hasAreaAccess(role.permissions, area),
   ).map((role) => {
     const perm = role.permissions.find((p) => p.area === area);
     return {
@@ -45,22 +66,24 @@ export function buildModuleAccessFromPermissions(
       name: role.name,
       description: role.description,
       memberCount: MOCK_ACCOUNTS.filter((a) => a.roleId === role.id).length,
-      accessLevel: highestAccessLevel(perm?.actions ?? ['view']),
+      accessLevel: highestAccessLevel(perm?.actions ?? ["view"]),
     };
   });
 
   const accounts = MOCK_ACCOUNTS.filter((account) => {
-    if (account.status !== 'active') return false;
+    if (account.status !== "active") return false;
     const role = MOCK_ROLES.find((r) => r.id === account.roleId);
     if (role && hasAreaAccess(role.permissions, area)) return true;
     return hasAreaAccess(account.personalizedPermissions, area);
   }).map((account) => {
-    const personalized = account.personalizedPermissions.find((p) => p.area === area);
+    const personalized = account.personalizedPermissions.find(
+      (p) => p.area === area,
+    );
     const role = MOCK_ROLES.find((r) => r.id === account.roleId);
     const rolePerm = role?.permissions.find((p) => p.area === area);
     const actions = personalized?.actions.length
       ? personalized.actions
-      : rolePerm?.actions ?? ['view'];
+      : (rolePerm?.actions ?? ["view"]);
     return {
       id: account.id,
       name: account.fullName,
@@ -80,7 +103,7 @@ export function applyModuleAccessChange(
   current: AccessMenuData,
   change: AccessMenuChange,
 ): AccessMenuData {
-  if (change.type === 'invite' && change.inviteQuery) {
+  if (change.type === "invite" && change.inviteQuery) {
     const id = `invite-${Date.now()}`;
     return {
       ...current,
@@ -89,7 +112,9 @@ export function applyModuleAccessChange(
         {
           id,
           name: change.inviteQuery,
-          email: change.inviteQuery.includes('@') ? change.inviteQuery : undefined,
+          email: change.inviteQuery.includes("@")
+            ? change.inviteQuery
+            : undefined,
           accessLevel: change.accessLevel,
         },
       ],
@@ -97,16 +122,18 @@ export function applyModuleAccessChange(
     };
   }
 
-  if (change.type === 'account' && change.accountId) {
+  if (change.type === "account" && change.accountId) {
     return {
       ...current,
       accounts: current.accounts.map((a) =>
-        a.id === change.accountId ? { ...a, accessLevel: change.accessLevel } : a,
+        a.id === change.accountId
+          ? { ...a, accessLevel: change.accessLevel }
+          : a,
       ),
     };
   }
 
-  if (change.type === 'role' && change.roleId) {
+  if (change.type === "role" && change.roleId) {
     return {
       ...current,
       roles: current.roles.map((r) =>

@@ -1,16 +1,16 @@
-declare module '*.module.css' {
+declare module "*.module.css" {
   const classes: Record<string, string>;
   export default classes;
 }
 
-declare module '@phosphor-icons/react' {
-  import * as React from 'react';
+declare module "@phosphor-icons/react" {
+  import * as React from "react";
   export interface IconProps extends React.SVGProps<SVGSVGElement> {
     size?: number | string;
-    weight?: 'thin' | 'light' | 'regular' | 'bold' | 'fill' | 'duotone';
+    weight?: "thin" | "light" | "regular" | "bold" | "fill" | "duotone";
     color?: string;
     mirrored?: boolean;
-    'aria-label'?: string;
+    "aria-label"?: string;
   }
   export type Icon = React.FC<IconProps>;
   export const MagnifyingGlass: Icon;

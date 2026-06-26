@@ -40,13 +40,28 @@ export function OrgNode({ data, selected, id }: NodeProps<OrgFlowNodeType>) {
     >
       <Handle type="target" position={Position.Top} className={styles.handle} />
 
-      <div className={styles.nodeHeader} style={{ background: accent + "15", borderBottom: `2px solid ${accent}40` }}>
+      <div
+        className={styles.nodeHeader}
+        style={{
+          background: accent + "15",
+          borderBottom: `2px solid ${accent}40`,
+        }}
+      >
         <Group gap="xs" wrap="nowrap">
-          <div className={styles.nodeIcon} style={{ background: accent + "20", color: accent }}>
+          <div
+            className={styles.nodeIcon}
+            style={{ background: accent + "20", color: accent }}
+          >
             <BuildingsIcon size={16} weight="fill" aria-label="Organization" />
           </div>
           <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
-            <Text size="xs" fw={600} c="dimmed" tt="uppercase" style={{ letterSpacing: "0.05em" }}>
+            <Text
+              size="xs"
+              fw={600}
+              c="dimmed"
+              tt="uppercase"
+              style={{ letterSpacing: "0.05em" }}
+            >
               {data.orgType}
             </Text>
             <Text size="sm" fw={700} lineClamp={1} style={{ color: accent }}>
@@ -91,7 +106,10 @@ export function OrgNode({ data, selected, id }: NodeProps<OrgFlowNodeType>) {
               size="xs"
               variant="light"
               color="blue"
-              onClick={(e) => { e.stopPropagation(); openAddModal("department"); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                openAddModal("department");
+              }}
               aria-label="Add department"
             >
               <PlusIcon size={12} />
@@ -102,7 +120,10 @@ export function OrgNode({ data, selected, id }: NodeProps<OrgFlowNodeType>) {
               size="xs"
               variant="light"
               color="gray"
-              onClick={(e) => { e.stopPropagation(); openEditModal(id); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                openEditModal(id);
+              }}
               aria-label="Edit organization"
             >
               <PencilSimpleIcon size={12} />
@@ -113,7 +134,9 @@ export function OrgNode({ data, selected, id }: NodeProps<OrgFlowNodeType>) {
               size="xs"
               variant="light"
               color="red"
-              onClick={(e) => { e.stopPropagation(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
               aria-label="Delete organization"
             >
               <TrashIcon size={12} />
@@ -122,7 +145,11 @@ export function OrgNode({ data, selected, id }: NodeProps<OrgFlowNodeType>) {
         </div>
       )}
 
-      <Handle type="source" position={Position.Bottom} className={styles.handle} />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        className={styles.handle}
+      />
     </div>
   );
 }

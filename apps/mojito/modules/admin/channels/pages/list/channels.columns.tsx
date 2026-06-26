@@ -1,6 +1,10 @@
 import type { DataTableShellColumn } from "@peppermint/admin";
 import { Badge, Text } from "@peppermint/ui";
-import type { Channel, ChannelPlatform, ChannelStatus } from "../../channels.types";
+import type {
+  Channel,
+  ChannelPlatform,
+  ChannelStatus,
+} from "../../channels.types";
 
 const platformLabel: Record<ChannelPlatform, string> = {
   instagram: "Instagram",
@@ -26,8 +30,12 @@ export const channelsColumns: DataTableShellColumn<Channel>[] = [
     sortable: true,
     render: (record) => (
       <div>
-        <Text fw={500} size="xs">{record.displayName}</Text>
-        <Text size="xs" c="dimmed">{record.handle}</Text>
+        <Text fw={500} size="xs">
+          {record.displayName}
+        </Text>
+        <Text size="xs" c="dimmed">
+          {record.handle}
+        </Text>
       </div>
     ),
   },

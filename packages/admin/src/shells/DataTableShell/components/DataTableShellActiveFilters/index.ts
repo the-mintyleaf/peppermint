@@ -1,1 +1,1 @@
-export { DataTableShellActiveFilters } from './DataTableShellActiveFilters';
+export { DataTableShellActiveFilters } from "./DataTableShellActiveFilters";

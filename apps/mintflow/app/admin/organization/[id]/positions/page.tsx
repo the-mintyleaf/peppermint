@@ -1,5 +1,3 @@
-import { PositionList } from "../../../../../modules/admin/organization/positions";
+import { ModulePositions } from "@/modules/admin";
 
-export default function PositionsPage({ params }: { params: { id: string } }) {
-  return <PositionList orgId={params.id} />;
-}
+export default ModulePositions;

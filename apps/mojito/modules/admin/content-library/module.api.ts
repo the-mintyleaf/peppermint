@@ -31,7 +31,12 @@ export interface ContentFilter {
 }
 
 const PLATFORMS = ["instagram", "twitter", "linkedin", "tiktok"];
-const STATUSES: ContentItem["status"][] = ["generated", "approved", "published", "failed"];
+const STATUSES: ContentItem["status"][] = [
+  "generated",
+  "approved",
+  "published",
+  "failed",
+];
 const AUTOMATIONS = [
   { id: "auto_1", name: "Weekly Instagram Post" },
   { id: "auto_2", name: "LinkedIn Article" },
@@ -57,7 +62,10 @@ let mockItems: ContentItem[] = Array.from({ length: 48 }, (_, i) => {
     platform,
     status,
     generatedAt: new Date(Date.now() - i * 3_600_000).toISOString(),
-    publishedAt: status === "published" ? new Date(Date.now() - i * 1_800_000).toISOString() : undefined,
+    publishedAt:
+      status === "published"
+        ? new Date(Date.now() - i * 1_800_000).toISOString()
+        : undefined,
     previewUrl: `https://placehold.co/600x600?text=${platform}+${i + 1}`,
     slotValues: {
       headline: `Sample headline ${i + 1}`,
@@ -67,13 +75,18 @@ let mockItems: ContentItem[] = Array.from({ length: 48 }, (_, i) => {
   };
 });
 
-export async function fetchContentList(filter: ContentFilter = {}): Promise<ContentListResponse> {
+export async function fetchContentList(
+  filter: ContentFilter = {},
+): Promise<ContentListResponse> {
   await new Promise((r) => setTimeout(r, 350));
   let results = [...mockItems];
 
-  if (filter.automationId) results = results.filter((c) => c.automationId === filter.automationId);
-  if (filter.platform) results = results.filter((c) => c.platform === filter.platform);
-  if (filter.status) results = results.filter((c) => c.status === filter.status);
+  if (filter.automationId)
+    results = results.filter((c) => c.automationId === filter.automationId);
+  if (filter.platform)
+    results = results.filter((c) => c.platform === filter.platform);
+  if (filter.status)
+    results = results.filter((c) => c.status === filter.status);
 
   const page = filter.page ?? 1;
   const limit = filter.limit ?? 24;

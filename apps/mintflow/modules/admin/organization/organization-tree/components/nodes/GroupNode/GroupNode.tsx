@@ -10,7 +10,11 @@ import type { GroupFlowNodeType } from "./GroupNode.types";
 import { useOrgTreeStore } from "../../../OrganizationTree.store";
 import styles from "../../../OrganizationTree.module.css";
 
-export function GroupNode({ data, selected, id }: NodeProps<GroupFlowNodeType>) {
+export function GroupNode({
+  data,
+  selected,
+  id,
+}: NodeProps<GroupFlowNodeType>) {
   const [hovered, setHovered] = useState(false);
   const { expandGroup, selectNode } = useOrgTreeStore();
   const isPathHighlight = data._pathHighlighted as boolean | undefined;
@@ -27,28 +31,53 @@ export function GroupNode({ data, selected, id }: NodeProps<GroupFlowNodeType>) 
     >
       <Handle type="target" position={Position.Top} className={styles.handle} />
 
-      <div className={styles.nodeHeader} style={{ background: accent + "12", borderBottom: `2px dashed ${accent}40` }}>
+      <div
+        className={styles.nodeHeader}
+        style={{
+          background: accent + "12",
+          borderBottom: `2px dashed ${accent}40`,
+        }}
+      >
         <Group gap="xs" wrap="nowrap">
-          <div className={styles.nodeIcon} style={{ background: accent + "18", color: accent }}>
+          <div
+            className={styles.nodeIcon}
+            style={{ background: accent + "18", color: accent }}
+          >
             <StackIcon size={16} weight="fill" aria-label="Group" />
           </div>
           <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
-            <Text size="xs" fw={500} c="dimmed" tt="uppercase" style={{ letterSpacing: "0.05em", fontSize: 10 }}>
-              {data.groupCategory === "person" ? "group · people" : "group · offices"}
+            <Text
+              size="xs"
+              fw={500}
+              c="dimmed"
+              tt="uppercase"
+              style={{ letterSpacing: "0.05em", fontSize: 10 }}
+            >
+              {data.groupCategory === "person"
+                ? "group · people"
+                : "group · offices"}
             </Text>
             <Text size="sm" fw={700} lineClamp={1} style={{ color: accent }}>
               {data.name}
             </Text>
           </Stack>
-          <Badge size="sm" color={data.groupCategory === "person" ? "teal" : "violet"} variant="light">
+          <Badge
+            size="sm"
+            color={data.groupCategory === "person" ? "teal" : "violet"}
+            variant="light"
+          >
             {data.memberCount}
           </Badge>
         </Group>
       </div>
 
-      <div className={styles.nodeBody} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div
+        className={styles.nodeBody}
+        style={{ display: "flex", flexDirection: "column", gap: 8 }}
+      >
         <Text size="xs" c="dimmed">
-          {data.memberCount} {data.groupCategory === "person" ? "people" : "offices"} grouped here
+          {data.memberCount}{" "}
+          {data.groupCategory === "person" ? "people" : "offices"} grouped here
         </Text>
         <Group gap="xs">
           <Tooltip label="View members as list" position="top" withArrow>
@@ -87,7 +116,11 @@ export function GroupNode({ data, selected, id }: NodeProps<GroupFlowNodeType>) 
         </Group>
       </div>
 
-      <Handle type="source" position={Position.Bottom} className={styles.handle} />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        className={styles.handle}
+      />
     </div>
   );
 }

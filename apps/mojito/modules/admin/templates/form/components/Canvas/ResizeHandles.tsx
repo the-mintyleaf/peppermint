@@ -4,7 +4,12 @@ import type { CanvasElement } from "../../templateForm.types";
 import type { ResizeHandle } from "../../canvas.resize.utils";
 import { CANVAS_BASE_SCALE } from "../../canvas.constants";
 
-const HANDLES: { id: ResizeHandle; cursor: string; left: string; top: string }[] = [
+const HANDLES: {
+  id: ResizeHandle;
+  cursor: string;
+  left: string;
+  top: string;
+}[] = [
   { id: "nw", cursor: "nw-resize", left: "0%", top: "0%" },
   { id: "ne", cursor: "ne-resize", left: "100%", top: "0%" },
   { id: "sw", cursor: "sw-resize", left: "0%", top: "100%" },

@@ -18,7 +18,8 @@ function MarkReadButton({ id }: { id: string }) {
   const qc = useQueryClient();
   const markRead = useMutation({
     mutationFn: () => markAlertReadById(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: [alertQueryKeys.list()] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: [alertQueryKeys.list()] }),
   });
 
   return (
@@ -49,7 +50,11 @@ export const alertsColumns: DataTableShellColumn<AlertRow>[] = [
     accessor: "text",
     title: "Message",
     render: (record) => (
-      <Text size="xs" fw={record.read ? 400 : 500} c={record.read ? "dimmed" : undefined}>
+      <Text
+        size="xs"
+        fw={record.read ? 400 : 500}
+        c={record.read ? "dimmed" : undefined}
+      >
         {record.text}
       </Text>
     ),

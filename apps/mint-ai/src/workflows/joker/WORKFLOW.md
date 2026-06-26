@@ -9,6 +9,7 @@
 ## 📋 Overview
 
 The Joker Chatbot is an intelligent, witty conversational agent designed to:
+
 1. **Entertain** users with humor and clever observations
 2. **Fetch Data** from APIs or user information sources
 3. **Analyze** that data intelligently
@@ -68,6 +69,7 @@ This workflow combines entertainment with functionality, making information deli
 ## 🔧 Workflow Configuration
 
 ### ID & Entry Point
+
 - **Workflow ID:** `joker.chatbot`
 - **Entry Node:** `system.guardPolicy`
 - **Primary Agent:** `agents.reasoning`
@@ -91,6 +93,7 @@ This workflow combines entertainment with functionality, making information deli
 The Joker agent can use these tools to fetch data:
 
 ### 1. **fetchUserInfo**
+
 - **Purpose:** Get user profile, preferences, activity, performance metrics
 - **API:** `https://dummyjson.com/users/1`
 - **Data Key:** `user`
@@ -100,6 +103,7 @@ The Joker agent can use these tools to fetch data:
   - "What are my preferences?"
 
 ### 2. **fetchProductData**
+
 - **Purpose:** Retrieve product catalog, pricing, inventory, performance
 - **API:** `https://dummyjson.com/products`
 - **Data Key:** `products`
@@ -110,6 +114,7 @@ The Joker agent can use these tools to fetch data:
   - "What's the most expensive item?"
 
 ### 3. **fetchCategoryData**
+
 - **Purpose:** Get product categories and metadata
 - **API:** `https://dummyjson.com/products/categories`
 - **Data Key:** `categories`
@@ -119,6 +124,7 @@ The Joker agent can use these tools to fetch data:
   - "What's trending?"
 
 ### 4. **fetchOrderData**
+
 - **Purpose:** Retrieve user cart, orders, transaction history
 - **API:** `https://dummyjson.com/carts/1`
 - **Data Key:** `cart`
@@ -129,6 +135,7 @@ The Joker agent can use these tools to fetch data:
   - "Analyze my spending"
 
 ### 5. **fetchPostData**
+
 - **Purpose:** Get user posts, comments, content engagement metrics
 - **API:** `https://dummyjson.com/posts`
 - **Data Key:** `posts`
@@ -143,12 +150,14 @@ The Joker agent can use these tools to fetch data:
 ## 💬 Persona & Communication Style
 
 ### Identity
+
 - **Name:** Joker
 - **Type:** Witty, intelligent AI chatbot
 - **Tone:** Entertaining, informative, charming
 - **Specialty:** Combining humor with data-driven insights
 
 ### Key Characteristics
+
 ✅ Quick-witted and clever
 ✅ Master of wordplay and puns
 ✅ Never mean-spirited
@@ -158,7 +167,7 @@ The Joker agent can use these tools to fetch data:
 ### Communication Examples
 
 **User:** "What's your best-selling product?"
-**Joker:** "Ah, a person of excellent taste! Let me check our data vault... *This product is flying off the shelves!* It's top choice because it's reliable, affordable, and makes people smile. Want details?"
+**Joker:** "Ah, a person of excellent taste! Let me check our data vault... _This product is flying off the shelves!_ It's top choice because it's reliable, affordable, and makes people smile. Want details?"
 
 **User:** "How am I performing this month?"
 **Joker:** "Let me peek at your stats... 📊
@@ -247,11 +256,13 @@ const jokerWorkflow = getWorkflow("joker.chatbot");
 ### Nodes
 
 **Node 1: system.guardPolicy**
+
 - Type: Guard/Validator
 - Purpose: Filter inappropriate input
 - Config: Default settings (adjustable)
 
 **Node 2: agents.reasoning**
+
 - Type: AI Agent
 - Purpose: Process user intent, fetch data, analyze, respond
 - Tools: 5 data fetching APIs
@@ -272,26 +283,31 @@ Simple flow: Input validation → AI processing
 ## 📈 Example Use Cases
 
 ### 1. Product Discovery
+
 - **User:** "What products are trending?"
 - **Joker Fetches:** Products, Categories
 - **Joker Responds:** Fun recommendations with sales data
 
 ### 2. User Analytics
+
 - **User:** "How am I doing this month?"
 - **Joker Fetches:** UserInfo, OrderData, PostData
 - **Joker Responds:** Performance breakdown with witty commentary
 
 ### 3. Personalized Recommendations
+
 - **User:** "What should I buy?"
 - **Joker Fetches:** UserInfo, ProductData, OrderData
 - **Joker Responds:** Smart recommendations based on history
 
 ### 4. Content Analysis
+
 - **User:** "How are my posts performing?"
 - **Joker Fetches:** PostData
 - **Joker Responds:** Engagement metrics with humor
 
 ### 5. Purchase History Analysis
+
 - **User:** "Show me my recent orders"
 - **Joker Fetches:** OrderData, ProductData
 - **Joker Responds:** Organized purchase history with insights
@@ -301,12 +317,14 @@ Simple flow: Input validation → AI processing
 ## 🔐 Security & Guidelines
 
 ✅ **Always:**
+
 - Be honest about data limitations
 - Ask clarifying questions when context is unclear
 - Maintain positive, inclusive tone
 - Respect user privacy
 
 ❌ **Never:**
+
 - Share sensitive data without context
 - Use offensive or stereotypical humor
 - Make up data
@@ -359,6 +377,7 @@ src/workflows/joker/
 ### Modify the System Prompt
 
 Edit `prompt.ts` to change:
+
 - Personality traits
 - Communication style
 - Instructions for tool usage
@@ -379,18 +398,19 @@ config: {
 
 ## 🐛 Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
+| Issue                   | Solution                                  |
+| ----------------------- | ----------------------------------------- |
 | Agent not fetching data | Check tool configuration, verify API URLs |
-| Responses not witty | Review system prompt, adjust temperature |
-| Long response time | Reduce memoryLimit, optimize tool calls |
-| Generic responses | Provide more specific user context |
+| Responses not witty     | Review system prompt, adjust temperature  |
+| Long response time      | Reduce memoryLimit, optimize tool calls   |
+| Generic responses       | Provide more specific user context        |
 
 ---
 
 ## 📞 Support
 
 For issues with:
+
 - **Workflow definition:** Check `index.ts`
 - **Persona/tone:** Edit `prompt.ts`
 - **Tools/APIs:** Verify dummy JSON URLs

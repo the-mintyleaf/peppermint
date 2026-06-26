@@ -1,4 +1,8 @@
-import type { NodeHealthIssue, DescendantStats, PersonRole } from "./OrganizationTree.types";
+import type {
+  NodeHealthIssue,
+  DescendantStats,
+  PersonRole,
+} from "./OrganizationTree.types";
 
 type MinNode = { id: string; type?: string; data?: Record<string, unknown> };
 type MinEdge = { source: string; target: string };
@@ -10,13 +14,18 @@ export const STATUS_COLORS: Record<string, string> = {
 };
 
 export function getInitials(name: string): string {
-  return name.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase();
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
 }
 
 // Given a set of matched IDs, collect all ancestors from a pre-built parent map.
 export function collectAncestors(
   matchedIds: Iterable<string>,
-  parentMap: Record<string, string>
+  parentMap: Record<string, string>,
 ): Set<string> {
   const ancestors = new Set<string>();
   const visited = new Set<string>();
@@ -50,7 +59,9 @@ export function computeParentMap(edges: MinEdge[]): Record<string, string> {
 
 export function computeRootIds(nodes: MinNode[], edges: MinEdge[]): string[] {
   const hasParent = new Set(edges.map((e) => e.target));
-  return nodes.filter((n) => n.type !== "person" && !hasParent.has(n.id)).map((n) => n.id);
+  return nodes
+    .filter((n) => n.type !== "person" && !hasParent.has(n.id))
+    .map((n) => n.id);
 }
 
 // Updated: person nodes are now part of the BFS traversal when their parent is expanded.
@@ -59,7 +70,7 @@ export function computeVisibleNodeIds(
   nodes: MinNode[],
   edges: MinEdge[],
   expandedIds: string[],
-  viewMode: "explorer" | "fullmap"
+  viewMode: "explorer" | "fullmap",
 ): string[] {
   const allIds = new Set(nodes.map((n) => n.id));
 
@@ -106,7 +117,7 @@ export function computeDirectChildCounts(
   nodes: MinNode[],
   edges: MinEdge[],
   childrenOf?: Record<string, string[]>,
-  nodeTypeMap?: Map<string, string | undefined>
+  nodeTypeMap?: Map<string, string | undefined>,
 ): { deptCount: number; personCount: number } {
   const typeMap = nodeTypeMap ?? new Map(nodes.map((n) => [n.id, n.type]));
   const kids = childrenOf
@@ -125,7 +136,7 @@ export function computeDirectChildCounts(
 export function computePathFromRoot(
   nodeId: string,
   edges: MinEdge[],
-  parentMap?: Record<string, string>
+  parentMap?: Record<string, string>,
 ): string[] {
   const pMap = parentMap ?? computeParentMap(edges);
   const path: string[] = [];
@@ -142,7 +153,7 @@ export function computePathFromRoot(
 export function computeSubtreeIds(
   nodeId: string,
   edges: MinEdge[],
-  childrenOf?: Record<string, string[]>
+  childrenOf?: Record<string, string[]>,
 ): string[] {
   const kids = childrenOf ?? computeChildrenMap(edges);
   const result = new Set<string>();
@@ -161,11 +172,15 @@ export function computeDimmedNodeIds(
   visibleNodeIds: string[],
   edges: MinEdge[],
   childrenOf?: Record<string, string[]>,
-  parentMap?: Record<string, string>
+  parentMap?: Record<string, string>,
 ): string[] {
   if (!focusedBranchId) return [];
-  const pathIds = new Set(computePathFromRoot(focusedBranchId, edges, parentMap));
-  const subtreeIds = new Set(computeSubtreeIds(focusedBranchId, edges, childrenOf));
+  const pathIds = new Set(
+    computePathFromRoot(focusedBranchId, edges, parentMap),
+  );
+  const subtreeIds = new Set(
+    computeSubtreeIds(focusedBranchId, edges, childrenOf),
+  );
   const keepIds = new Set([...pathIds, ...subtreeIds]);
   return visibleNodeIds.filter((id) => !keepIds.has(id));
 }
@@ -173,7 +188,7 @@ export function computeDimmedNodeIds(
 export function expandAncestors(
   nodeId: string,
   edges: MinEdge[],
-  currentExpandedIds: string[]
+  currentExpandedIds: string[],
 ): string[] {
   const parentMap = computeParentMap(edges);
   const result = new Set(currentExpandedIds);
@@ -194,7 +209,7 @@ export function computeDescendantStats(
   nodes: MinNode[],
   edges: MinEdge[],
   childrenOf?: Record<string, string[]>,
-  nodeTypeMap?: Map<string, string | undefined>
+  nodeTypeMap?: Map<string, string | undefined>,
 ): DescendantStats {
   const typeMap = nodeTypeMap ?? new Map(nodes.map((n) => [n.id, n.type]));
   const kids = childrenOf ?? computeChildrenMap(edges);
@@ -203,7 +218,9 @@ export function computeDescendantStats(
   let totalDepts = 0;
   let maxDepth = 0;
 
-  const queue: Array<{ id: string; depth: number }> = [{ id: nodeId, depth: 0 }];
+  const queue: Array<{ id: string; depth: number }> = [
+    { id: nodeId, depth: 0 },
+  ];
   const visited = new Set<string>([nodeId]);
 
   while (queue.length > 0) {
@@ -215,7 +232,8 @@ export function computeDescendantStats(
       visited.add(child);
       const type = typeMap.get(child);
       if (type === "person") totalPeople++;
-      else if (type === "department" || type === "org" || type === "group") totalDepts++;
+      else if (type === "department" || type === "org" || type === "group")
+        totalDepts++;
       queue.push({ id: child, depth: depth + 1 });
     }
   }
@@ -236,10 +254,11 @@ export function computeNodeHealth(
   childrenOf?: Record<string, string[]>,
   nodeTypeMap?: Map<string, string | undefined>,
   nodeDataMap?: Map<string, Record<string, unknown>>,
-  descendantStats?: DescendantStats
+  descendantStats?: DescendantStats,
 ): NodeHealthIssue[] {
   const typeMap = nodeTypeMap ?? new Map(nodes.map((n) => [n.id, n.type]));
-  const dataMap = nodeDataMap ?? new Map(nodes.map((n) => [n.id, n.data ?? {}]));
+  const dataMap =
+    nodeDataMap ?? new Map(nodes.map((n) => [n.id, n.data ?? {}]));
   const issues: NodeHealthIssue[] = [];
   const type = typeMap.get(nodeId);
 
@@ -248,15 +267,24 @@ export function computeNodeHealth(
   const children = kids[nodeId] ?? [];
 
   if (type === "department" || type === "org") {
-    const personChildren = children.filter((cid) => typeMap.get(cid) === "person");
+    const personChildren = children.filter(
+      (cid) => typeMap.get(cid) === "person",
+    );
     const hasHead = personChildren.some((pid) => {
       const pData = dataMap.get(pid) ?? {};
       const role = pData.role as PersonRole | undefined;
-      return role === "head" || role === "manager" || role === "minister" || role === "secretary";
+      return (
+        role === "head" ||
+        role === "manager" ||
+        role === "minister" ||
+        role === "secretary"
+      );
     });
     if (!hasHead) issues.push("missing_head");
 
-    const stats = descendantStats ?? computeDescendantStats(nodeId, nodes, edges, kids, typeMap);
+    const stats =
+      descendantStats ??
+      computeDescendantStats(nodeId, nodes, edges, kids, typeMap);
     if (stats.totalPeople === 0) issues.push("empty_dept");
 
     if (!hasParentEdge && type === "department") issues.push("no_parent");
@@ -265,7 +293,10 @@ export function computeNodeHealth(
       const pData = dataMap.get(pid) ?? {};
       const role = pData.role as PersonRole | undefined;
       if (
-        (role === "head" || role === "manager" || role === "minister" || role === "secretary") &&
+        (role === "head" ||
+          role === "manager" ||
+          role === "minister" ||
+          role === "secretary") &&
         pData.status === "inactive"
       ) {
         issues.push("inactive_head");
@@ -275,7 +306,9 @@ export function computeNodeHealth(
   }
 
   if (type === "person") {
-    const directPersonReports = children.filter((cid) => typeMap.get(cid) === "person");
+    const directPersonReports = children.filter(
+      (cid) => typeMap.get(cid) === "person",
+    );
     if (directPersonReports.length > 10) issues.push("too_many_reports");
   }
 

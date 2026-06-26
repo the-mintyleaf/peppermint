@@ -1,5 +1,5 @@
-export { AdminShell } from './AdminShell';
-export { MainNavIconButton } from './components/Navbar/MainNav/MainNavIconButton';
+export { AdminShell } from "./AdminShell";
+export { MainNavIconButton } from "./components/Navbar/MainNav/MainNavIconButton";
 export type {
   AdminShellConfig,
   AdminShellBrand,
@@ -11,4 +11,4 @@ export type {
   AdminShellSubNav,
   AdminShellNavGroup,
   AdminShellNavItem,
-} from './AdminShell.types';
+} from "./AdminShell.types";

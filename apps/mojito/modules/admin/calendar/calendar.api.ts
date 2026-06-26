@@ -1,6 +1,9 @@
 import type { CalendarEntry } from "./Calendar.types";
 import { fetchContentItems } from "@/modules/admin/content/content.api";
-import type { ContentStatus, Platform } from "@/modules/admin/shared/domain.types";
+import type {
+  ContentStatus,
+  Platform,
+} from "@/modules/admin/shared/domain.types";
 
 export const STATUS_COLORS: Record<ContentStatus, string> = {
   draft: "gray",
@@ -15,7 +18,11 @@ export const STATUS_COLORS: Record<ContentStatus, string> = {
 export async function fetchCalendarEntries(
   from: string,
   to: string,
-  filters?: { platform?: Platform; status?: ContentStatus; source?: "manual" | "agent" }
+  filters?: {
+    platform?: Platform;
+    status?: ContentStatus;
+    source?: "manual" | "agent";
+  },
 ): Promise<CalendarEntry[]> {
   const result = await fetchContentItems({
     range: { from: new Date(from), to: new Date(to) },
@@ -43,8 +50,9 @@ export async function fetchCalendarEntries(
 export async function rescheduleCalendarEntry(
   contentId: string,
   newDate: Date,
-  timezone: string
+  timezone: string,
 ): Promise<void> {
-  const { scheduleContentItem } = await import("@/modules/admin/content/content.api");
+  const { scheduleContentItem } =
+    await import("@/modules/admin/content/content.api");
   await scheduleContentItem(contentId, newDate, timezone);
 }

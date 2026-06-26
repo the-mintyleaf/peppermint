@@ -1,4 +1,7 @@
-import { ExecutorContext, createExecutorError } from "@/shared/executor-context";
+import {
+  ExecutorContext,
+  createExecutorError,
+} from "@/shared/executor-context";
 import { Result, ok, err } from "@/shared/result";
 import {
   PropToolCheckInput,
@@ -21,7 +24,7 @@ import {
 export const toolCheck = async (
   input: unknown,
   ctx: ExecutorContext,
-  config?: any
+  config?: any,
 ): Promise<Result<PropToolCheckOutput, any>> => {
   try {
     // 1. Validate input schema
@@ -32,7 +35,7 @@ export const toolCheck = async (
           errors: parseResult.error.issues,
           nodeId: ctx.nodeId,
         },
-        "Invalid input to toolCheck"
+        "Invalid input to toolCheck",
       );
       return err(
         createExecutorError(
@@ -41,8 +44,8 @@ export const toolCheck = async (
           {
             nodeId: ctx.nodeId,
             retryable: false,
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -54,7 +57,7 @@ export const toolCheck = async (
         nodeId: ctx.nodeId,
         inputLength: parsed.input.length,
       },
-      "Processing check tool"
+      "Processing check tool",
     );
 
     // 2. Process the input with timestamp
@@ -72,7 +75,7 @@ export const toolCheck = async (
           event: "check.tool.invalid_output",
           nodeId: ctx.nodeId,
         },
-        "Output validation failed for toolCheck"
+        "Output validation failed for toolCheck",
       );
       return err(
         createExecutorError(
@@ -81,8 +84,8 @@ export const toolCheck = async (
           {
             nodeId: ctx.nodeId,
             retryable: false,
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -92,7 +95,7 @@ export const toolCheck = async (
         nodeId: ctx.nodeId,
         resultLength: resultString.length,
       },
-      "Check tool completed successfully"
+      "Check tool completed successfully",
     );
 
     return ok(outputParseResult.data);
@@ -104,12 +107,12 @@ export const toolCheck = async (
         nodeId: ctx.nodeId,
         cause: error,
         retryable: false,
-      }
+      },
     );
 
     ctx.logger.error(
       { error: executorError, event: "check.tool.error" },
-      "Unexpected error in toolCheck"
+      "Unexpected error in toolCheck",
     );
     return err(executorError);
   }

@@ -36,7 +36,10 @@ const TAB_SEGMENTS = TABS.map((tab, index) => ({
   value: String(index),
 }));
 
-const BREADCRUMB = [{ label: "Tasks", href: "/admin/tasks" }, { label: "Kanban Home", href: "/admin/tasks" }];
+const BREADCRUMB = [
+  { label: "Tasks", href: "/admin/tasks" },
+  { label: "Kanban Home", href: "/admin/tasks" },
+];
 
 export function KanbanDashboard() {
   const [activeTabIndex, setActiveTabIndex] = useState(0);
@@ -46,7 +49,10 @@ export function KanbanDashboard() {
   const [debouncedSearch] = useDebouncedValue(searchInput, 300);
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const handleCardClick = useCallback((task: Task) => setSelectedTask(task), []);
+  const handleCardClick = useCallback(
+    (task: Task) => setSelectedTask(task),
+    [],
+  );
   const handleCloseModal = useCallback(() => setSelectedTask(null), []);
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -70,7 +76,10 @@ export function KanbanDashboard() {
   }, []);
 
   const { data: tasks, isLoading } = useTasks(activeTab);
-  const { tasksByStatus, moveTask, reorderTask } = useKanbanBoard(tasks, activeTab);
+  const { tasksByStatus, moveTask, reorderTask } = useKanbanBoard(
+    tasks,
+    activeTab,
+  );
 
   const filteredByStatus = useMemo(() => {
     const q = debouncedSearch.trim().toLowerCase();
@@ -78,8 +87,12 @@ export function KanbanDashboard() {
     return Object.fromEntries(
       Object.entries(tasksByStatus).map(([status, list]) => [
         status,
-        list.filter((t) => t.title.toLowerCase().includes(q) || t.taskNumber.toLowerCase().includes(q)),
-      ])
+        list.filter(
+          (t) =>
+            t.title.toLowerCase().includes(q) ||
+            t.taskNumber.toLowerCase().includes(q),
+        ),
+      ]),
     ) as typeof tasksByStatus;
   }, [tasksByStatus, debouncedSearch]);
 
@@ -112,7 +125,12 @@ export function KanbanDashboard() {
             size="sm"
             color="white"
             autoContrast
-            styles={{ label: { paddingInline: 10, fontSize: "var(--mantine-font-size-xs)" } }}
+            styles={{
+              label: {
+                paddingInline: 10,
+                fontSize: "var(--mantine-font-size-xs)",
+              },
+            }}
           />
           <TextInput
             miw={240}
@@ -124,11 +142,21 @@ export function KanbanDashboard() {
           />
         </Group>
 
-
-
-        <Box p="md" style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "auto", display: "flex", flexDirection: "column" }}>
+        <Box
+          p="md"
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            overflowX: "auto",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           {isLoading ? (
-            <Text c="dimmed" size="sm">Loading tasks…</Text>
+            <Text c="dimmed" size="sm">
+              Loading tasks…
+            </Text>
           ) : (
             <KanbanBoard
               tasksByStatus={filteredByStatus}
@@ -141,7 +169,11 @@ export function KanbanDashboard() {
         </Box>
       </Stack>
 
-      <TaskDetailModal task={selectedTask} onClose={handleCloseModal} onEdit={handleEditTask} />
+      <TaskDetailModal
+        task={selectedTask}
+        onClose={handleCloseModal}
+        onEdit={handleEditTask}
+      />
       <CreateTaskModal
         opened={createOpen || !!editTask}
         editTask={editTask}

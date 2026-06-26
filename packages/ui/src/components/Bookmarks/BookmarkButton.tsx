@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { ActionIcon, Tooltip } from '@mantine/core';
-import { BookmarkIcon } from '@phosphor-icons/react/dist/csr/Bookmark';
-import { BookmarkSimpleIcon } from '@phosphor-icons/react/dist/csr/BookmarkSimple';
-import { resolveBookmarkHref } from './bookmarks.utils';
-import type { BookmarkButtonProps } from './bookmarks.types';
-import { useBookmarks } from './useBookmarks';
+import { ActionIcon, Tooltip } from "@mantine/core";
+import { BookmarkIcon } from "@phosphor-icons/react/dist/csr/Bookmark";
+import { BookmarkSimpleIcon } from "@phosphor-icons/react/dist/csr/BookmarkSimple";
+import { resolveBookmarkHref } from "./bookmarks.utils";
+import type { BookmarkButtonProps } from "./bookmarks.types";
+import { useBookmarks } from "./useBookmarks";
 
 export function BookmarkButton({
   id,
   label,
   href,
-  size = 'md',
-  addTooltip = 'Bookmark page',
-  removeTooltip = 'Remove bookmark',
+  size = "md",
+  addTooltip = "Bookmark page",
+  removeTooltip = "Remove bookmark",
 }: BookmarkButtonProps) {
   const { isBookmarked, toggle } = useBookmarks();
   const bookmarked = isBookmarked(id);
@@ -34,7 +34,7 @@ export function BookmarkButton({
     >
       <ActionIcon
         variant="subtle"
-        color={bookmarked ? 'brand' : 'gray'}
+        color={bookmarked ? "brand" : "gray"}
         size={size}
         aria-label={bookmarked ? removeTooltip : addTooltip}
         onClick={handleToggle}

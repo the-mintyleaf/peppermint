@@ -1,4 +1,7 @@
-import type { DataTableShellProps, DataTableShellModuleInfo } from '../DataTableShell';
+import type {
+  DataTableShellProps,
+  DataTableShellModuleInfo,
+} from "../DataTableShell";
 
 export interface ModalFormComponentProps<T extends Record<string, unknown>> {
   initialValues?: Partial<T>;
@@ -6,7 +9,9 @@ export interface ModalFormComponentProps<T extends Record<string, unknown>> {
   isLoading: boolean;
 }
 
-export interface ModalTableShellContextValue<T extends Record<string, unknown>> {
+export interface ModalTableShellContextValue<
+  T extends Record<string, unknown>,
+> {
   isCreateModalOpen: boolean;
   isEditModalOpen: boolean;
   activeEditRecord: T | null;
@@ -37,13 +42,13 @@ export interface ModalHandlerProps<T extends Record<string, unknown>> {
 
 export type ModalTableShellProps<T extends Record<string, unknown>> = Omit<
   DataTableShellProps<T>,
-  | 'sustained'
-  | 'onNewClick'
-  | 'onEditClick'
-  | 'onDeleteClick'
-  | 'disableCreateButton'
-  | 'disableEditButton'
-  | 'disableDeleteButton'
+  | "sustained"
+  | "onNewClick"
+  | "onEditClick"
+  | "onDeleteClick"
+  | "disableCreateButton"
+  | "disableEditButton"
+  | "disableDeleteButton"
 > & {
   modalWidth?: number | string;
   createModalTitle?: string;

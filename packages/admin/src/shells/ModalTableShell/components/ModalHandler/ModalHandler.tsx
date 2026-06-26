@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useCallback } from 'react';
-import { Box, Modal, Loader, Center, notifications } from '@peppermint/ui';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useModalTableShellContext } from '../../ModalTableShell.context';
-import { ShellModalHeader } from '../ShellModalHeader';
-import type { ModalHandlerProps } from '../../ModalTableShell.types';
+import { useCallback } from "react";
+import { Box, Modal, Loader, Center, notifications } from "@peppermint/ui";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useModalTableShellContext } from "../../ModalTableShell.context";
+import { ShellModalHeader } from "../ShellModalHeader";
+import type { ModalHandlerProps } from "../../ModalTableShell.types";
 
 const MODAL_BODY_PADDING = 0;
 
 export function ModalHandler<T extends Record<string, unknown>>({
   queryKey,
   moduleInfo,
-  modalWidth = 'md',
+  modalWidth = "md",
   createModalTitle,
   editModalTitle,
   createFormComponent: CreateFormComponent,
@@ -41,7 +41,8 @@ export function ModalHandler<T extends Record<string, unknown>>({
   const editLabel = editModalTitle ?? `Edit ${moduleInfo.name}`;
 
   const invalidate = useCallback(() => {
-    const normalizedKey = typeof queryKey === 'string' ? queryKey.split('.') : queryKey;
+    const normalizedKey =
+      typeof queryKey === "string" ? queryKey.split(".") : queryKey;
     void queryClient.invalidateQueries({
       queryKey: normalizedKey,
     });
@@ -55,8 +56,8 @@ export function ModalHandler<T extends Record<string, unknown>>({
     },
     onSuccess: (result) => {
       notifications.show({
-        color: 'green',
-        title: 'Created',
+        color: "green",
+        title: "Created",
         message: `${moduleLabel} created successfully.`,
       });
       closeCreateModal();
@@ -65,8 +66,8 @@ export function ModalHandler<T extends Record<string, unknown>>({
     },
     onError: () => {
       notifications.show({
-        color: 'red',
-        title: 'Error',
+        color: "red",
+        title: "Error",
         message: `Failed to create ${moduleLabel}.`,
       });
     },
@@ -82,8 +83,8 @@ export function ModalHandler<T extends Record<string, unknown>>({
     },
     onSuccess: (result) => {
       notifications.show({
-        color: 'green',
-        title: 'Updated',
+        color: "green",
+        title: "Updated",
         message: `${moduleLabel} updated successfully.`,
       });
       closeEditModal();
@@ -93,8 +94,8 @@ export function ModalHandler<T extends Record<string, unknown>>({
     },
     onError: () => {
       notifications.show({
-        color: 'red',
-        title: 'Error',
+        color: "red",
+        title: "Error",
         message: `Failed to update ${moduleLabel}.`,
       });
     },
@@ -149,7 +150,8 @@ export function ModalHandler<T extends Record<string, unknown>>({
               <Loader size="sm" />
             </Center>
           ) : (
-            EditFormComponent && activeEditRecord && (
+            EditFormComponent &&
+            activeEditRecord && (
               <EditFormComponent
                 initialValues={activeEditRecord}
                 onSubmit={editMutation.mutate}

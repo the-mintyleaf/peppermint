@@ -11,22 +11,22 @@ No React. No JSX. Safe to import in Node.js.
 Call once at app boot (e.g. in `app/layout.tsx`) before any API calls are made.
 
 ```typescript
-import { configureApiClient } from '@peppermint/api-client';
+import { configureApiClient } from "@peppermint/api-client";
 
 configureApiClient({
-  tokenKey: 'access_token',       // sessionStorage key for the access token
-  refreshEndpoint: '/auth/refresh', // POST endpoint called on 401
-  onLogout: () => router.push('/login'), // called when refresh fails
-  debug: false,                   // optional — logs all requests/responses
+  tokenKey: "access_token", // sessionStorage key for the access token
+  refreshEndpoint: "/auth/refresh", // POST endpoint called on 401
+  onLogout: () => router.push("/login"), // called when refresh fails
+  debug: false, // optional — logs all requests/responses
 });
 ```
 
-| Option | Type | Required | Description |
-|---|---|---|---|
-| `tokenKey` | `string` | Yes | `sessionStorage` key where the access token is stored |
-| `refreshEndpoint` | `string` | Yes | Endpoint POSTed to refresh the token on 401 |
-| `onLogout` | `() => void` | Yes | Callback invoked when token refresh fails |
-| `debug` | `boolean` | No | Logs requests and responses to the console |
+| Option            | Type         | Required | Description                                           |
+| ----------------- | ------------ | -------- | ----------------------------------------------------- |
+| `tokenKey`        | `string`     | Yes      | `sessionStorage` key where the access token is stored |
+| `refreshEndpoint` | `string`     | Yes      | Endpoint POSTed to refresh the token on 401           |
+| `onLogout`        | `() => void` | Yes      | Callback invoked when token refresh fails             |
+| `debug`           | `boolean`    | No       | Logs requests and responses to the console            |
 
 ---
 
@@ -37,13 +37,13 @@ The main HTTP client. All methods return `Promise<ApiResponse<T>>`. Errors are r
 ### `api.get<T>(options)`
 
 ```typescript
-const result = await api.get<User[]>({ url: '/users', params: { page: 1 } });
+const result = await api.get<User[]>({ url: "/users", params: { page: 1 } });
 ```
 
 ### `api.post<T>(options)`
 
 ```typescript
-const result = await api.post<User>({ url: '/users', body: { name: 'Alice' } });
+const result = await api.post<User>({ url: "/users", body: { name: "Alice" } });
 ```
 
 If offline: mutation is queued, returns `{ ok: false, status: 0, data: null, message: 'Offline — queued' }`.
@@ -51,13 +51,16 @@ If offline: mutation is queued, returns `{ ok: false, status: 0, data: null, mes
 ### `api.patch<T>(options)`
 
 ```typescript
-const result = await api.patch<User>({ url: '/users/1', body: { name: 'Bob' } });
+const result = await api.patch<User>({
+  url: "/users/1",
+  body: { name: "Bob" },
+});
 ```
 
 ### `api.del<T>(options)`
 
 ```typescript
-const result = await api.del<void>({ url: '/users/1' });
+const result = await api.del<void>({ url: "/users/1" });
 ```
 
 ### `api.login<T>(options)`
@@ -66,7 +69,7 @@ Like `api.post` but always fires immediately — never queued, never intercepted
 
 ```typescript
 const result = await api.login<{ access_token: string }>({
-  url: '/auth/login',
+  url: "/auth/login",
   body: { email, password },
 });
 ```

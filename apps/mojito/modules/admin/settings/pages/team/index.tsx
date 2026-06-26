@@ -36,9 +36,14 @@ export function TeamList() {
         editFormComponent={TeamMemberForm}
         createModalTitle="Invite Team Member"
         editModalTitle="Update Role"
-        onCreateApi={(values) => createTeamMember(values as Partial<TeamMemberRow>)}
+        onCreateApi={(values) =>
+          createTeamMember(values as Partial<TeamMemberRow>)
+        }
         onEditApi={(values) =>
-          updateTeamMember((values as TeamMemberRow).id, values as Partial<TeamMemberRow>)
+          updateTeamMember(
+            (values as TeamMemberRow).id,
+            values as Partial<TeamMemberRow>,
+          )
         }
         onDeleteApi={(id) => deleteTeamMember(String(id))}
         pageSizes={[10, 20, 50]}

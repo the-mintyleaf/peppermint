@@ -58,7 +58,12 @@ export function MediaPanel() {
         <Paper p="md" withBorder radius="sm" style={{ borderStyle: "dashed" }}>
           <FileButton onChange={handleFileSelect} accept="image/*,video/*">
             {(props) => (
-              <Stack gap="xs" align="center" style={{ cursor: "pointer" }} {...props}>
+              <Stack
+                gap="xs"
+                align="center"
+                style={{ cursor: "pointer" }}
+                {...props}
+              >
                 <UploadSimpleIcon size={24} />
                 <Text size="sm" c="dimmed">
                   Drag & drop or click to upload
@@ -73,7 +78,12 @@ export function MediaPanel() {
       ) : (
         <SimpleGrid cols={3} spacing="xs">
           {mediaRefs.map((ref) => (
-            <Paper key={ref.id} pos="relative" radius="sm" style={{ overflow: "hidden" }}>
+            <Paper
+              key={ref.id}
+              pos="relative"
+              radius="sm"
+              style={{ overflow: "hidden" }}
+            >
               <Image
                 src={ref.url}
                 alt={ref.alt}

@@ -30,7 +30,11 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { TemplateCard } from "./components/TemplateCard";
 import { templatesColumns } from "./templates.columns";
-import { fetchTemplates, PLATFORM_LABELS, type Template } from "../../module.api";
+import {
+  fetchTemplates,
+  PLATFORM_LABELS,
+  type Template,
+} from "../../module.api";
 import type { PlatformFormat } from "../../module.api";
 import { buildBreadcrumbItems } from "@/modules/admin/shared/pageShell.utils";
 
@@ -42,7 +46,10 @@ const MODULE_INFO = {
   description: "Visual HTML layouts for AI-generated posts",
 };
 
-const PLATFORM_TABS = Object.entries(PLATFORM_LABELS) as [PlatformFormat, string][];
+const PLATFORM_TABS = Object.entries(PLATFORM_LABELS) as [
+  PlatformFormat,
+  string,
+][];
 
 const TABS: DataTableShellTab[] = [
   { label: "All", icon: SquaresFourIcon },
@@ -108,8 +115,9 @@ function TemplatesListGrid({
             No templates yet
           </Text>
           <Text size="sm" c="dimmed" ta="center" maw={380}>
-            Templates are visual HTML layouts that define named slots. The AI agent fills those
-            slots with real content when running an automation.
+            Templates are visual HTML layouts that define named slots. The AI
+            agent fills those slots with real content when running an
+            automation.
           </Text>
           <Button
             size="sm"
@@ -158,7 +166,7 @@ function TemplatesListInner({
 
   const contextValue = useMemo(
     () => ({ activeTab, setActiveTab: onTabChange, selectedRecords }),
-    [activeTab, onTabChange, selectedRecords]
+    [activeTab, onTabChange, selectedRecords],
   );
 
   const activeTabForceFilter = TABS[activeTab]?.forceFilter as
@@ -170,10 +178,7 @@ function TemplatesListInner({
       <ModuleHeader breadcrumbItems={buildBreadcrumbItems(BASE_PATH)} />
 
       <Box px="md">
-        <DataTableShellHeader
-          moduleInfo={MODULE_INFO}
-          basePath={BASE_PATH}
-        />
+        <DataTableShellHeader moduleInfo={MODULE_INFO} basePath={BASE_PATH} />
       </Box>
 
       <Box px="md">
@@ -212,7 +217,13 @@ export function TemplatesList() {
   }, []);
 
   return (
-    <Paper p={0} withBorder radius="lg" h="calc(100vh - 16px)" style={{ overflow: "hidden" }}>
+    <Paper
+      p={0}
+      withBorder
+      radius="lg"
+      h="calc(100vh - 16px)"
+      style={{ overflow: "hidden" }}
+    >
       <Stack gap={0} h="100%">
         <DataTableWrapper<Template>
           queryKey="templates"

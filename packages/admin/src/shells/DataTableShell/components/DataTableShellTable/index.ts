@@ -1,1 +1,1 @@
-export { DataTableShellTable } from './DataTableShellTable';
+export { DataTableShellTable } from "./DataTableShellTable";

@@ -1,14 +1,14 @@
-import type { ComponentType } from 'react';
-import type { Icon } from '@phosphor-icons/react';
-import { CalendarIcon } from '@phosphor-icons/react/dist/csr/Calendar';
-import { CaretCircleDownIcon } from '@phosphor-icons/react/dist/csr/CaretCircleDown';
-import { HashIcon } from '@phosphor-icons/react/dist/csr/Hash';
-import { TextAaIcon } from '@phosphor-icons/react/dist/csr/TextAa';
+import type { ComponentType } from "react";
+import type { Icon } from "@phosphor-icons/react";
+import { CalendarIcon } from "@phosphor-icons/react/dist/csr/Calendar";
+import { CaretCircleDownIcon } from "@phosphor-icons/react/dist/csr/CaretCircleDown";
+import { HashIcon } from "@phosphor-icons/react/dist/csr/Hash";
+import { TextAaIcon } from "@phosphor-icons/react/dist/csr/TextAa";
 import type {
   DataTableColumnFilter,
   DataTableColumnFilterType,
   DataTableShellColumn,
-} from '../../DataTableShell.types';
+} from "../../DataTableShell.types";
 
 type FilterIcon = Icon | ComponentType<{ size?: number; weight?: string }>;
 
@@ -19,17 +19,21 @@ const FILTER_TYPE_ICONS: Record<DataTableColumnFilterType, FilterIcon> = {
   date: CalendarIcon as FilterIcon,
 };
 
-export function getColumnKey<T extends Record<string, unknown>>(col: DataTableShellColumn<T>): string {
+export function getColumnKey<T extends Record<string, unknown>>(
+  col: DataTableShellColumn<T>,
+): string {
   return col.key ?? String(col.accessor);
 }
 
-export function getColumnLabel<T extends Record<string, unknown>>(col: DataTableShellColumn<T>): string {
-  return typeof col.title === 'string' ? col.title : getColumnKey(col);
+export function getColumnLabel<T extends Record<string, unknown>>(
+  col: DataTableShellColumn<T>,
+): string {
+  return typeof col.title === "string" ? col.title : getColumnKey(col);
 }
 
 export function getFilterIcon(filter?: DataTableColumnFilter): FilterIcon {
   if (filter?.icon) return filter.icon as FilterIcon;
-  const type = filter?.type ?? 'text';
+  const type = filter?.type ?? "text";
   return FILTER_TYPE_ICONS[type];
 }
 
@@ -53,10 +57,10 @@ export function formatFilterValue(
   value: unknown,
   filter?: DataTableColumnFilter,
 ): string {
-  if (value !== null && typeof value === 'object' && 'label' in value) {
+  if (value !== null && typeof value === "object" && "label" in value) {
     return String((value as Record<string, unknown>).label);
   }
-  if (filter?.type === 'select' && filter.options) {
+  if (filter?.type === "select" && filter.options) {
     const match = filter.options.find((o) => o.value === value);
     if (match) return match.label;
   }

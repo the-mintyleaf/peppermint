@@ -3,4 +3,6 @@
 import { TemplateBigyalaxmiCertificate } from "@/sample/templates/bank/bigyalaxmi/certificate";
 import { createTemplateAdapter } from "../../utils/createTemplateAdapter";
 
-export const BigyalaxmiCertificateTemplate = createTemplateAdapter(TemplateBigyalaxmiCertificate);
+export const BigyalaxmiCertificateTemplate = createTemplateAdapter(
+  TemplateBigyalaxmiCertificate,
+);

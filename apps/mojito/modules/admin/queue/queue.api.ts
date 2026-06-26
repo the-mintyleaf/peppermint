@@ -21,30 +21,34 @@ let queueSlots: QueueSlot[] = CHANNEL_IDS.flatMap((channelId) =>
       dayOfWeek: day,
       time,
       timezone: "UTC",
-    }))
-  )
+    })),
+  ),
 );
 
 let queuedContentIds: string[] = [];
 
-export async function fetchQueueSlots(channelId?: string): Promise<QueueSlot[]> {
+export async function fetchQueueSlots(
+  channelId?: string,
+): Promise<QueueSlot[]> {
   await delay(300);
-  return channelId ? queueSlots.filter((s) => s.channelId === channelId) : queueSlots;
+  return channelId
+    ? queueSlots.filter((s) => s.channelId === channelId)
+    : queueSlots;
 }
 
-export async function fetchQueuedContent(channelId?: string): Promise<ContentItem[]> {
+export async function fetchQueuedContent(
+  channelId?: string,
+): Promise<ContentItem[]> {
   await delay(300);
   const { fetchContentItems } = await import("../content/content.api");
   const all = await fetchContentItems({ status: "scheduled", pageSize: 100 });
   return all.data.filter((item) =>
-    channelId
-      ? item.variants.some((v) => v.channelId === channelId)
-      : true
+    channelId ? item.variants.some((v) => v.channelId === channelId) : true,
   );
 }
 
 export async function addQueueSlot(
-  slot: Omit<QueueSlot, "id">
+  slot: Omit<QueueSlot, "id">,
 ): Promise<QueueSlot> {
   await delay(300);
   const newSlot = { ...slot, id: uuidv4() };
@@ -54,7 +58,7 @@ export async function addQueueSlot(
 
 export async function updateQueueSlot(
   id: string,
-  data: Partial<QueueSlot>
+  data: Partial<QueueSlot>,
 ): Promise<QueueSlot> {
   await delay(300);
   const idx = queueSlots.findIndex((s) => s.id === id);
@@ -68,7 +72,10 @@ export async function deleteQueueSlot(id: string): Promise<void> {
   queueSlots = queueSlots.filter((s) => s.id !== id);
 }
 
-export async function placeInQueue(contentId: string, slotId: string): Promise<void> {
+export async function placeInQueue(
+  contentId: string,
+  slotId: string,
+): Promise<void> {
   await delay(300);
   if (!queuedContentIds.includes(contentId)) {
     queuedContentIds.push(contentId);
@@ -80,12 +87,17 @@ export async function removeFromQueue(contentId: string): Promise<void> {
   queuedContentIds = queuedContentIds.filter((id) => id !== contentId);
 }
 
-export async function reorderQueue(channelId: string, orderedIds: string[]): Promise<void> {
+export async function reorderQueue(
+  channelId: string,
+  orderedIds: string[],
+): Promise<void> {
   await delay(300);
   // mock reorder — no-op in memory beyond acknowledging
 }
 
-export async function getNextSlot(channelId: string): Promise<QueueSlot | null> {
+export async function getNextSlot(
+  channelId: string,
+): Promise<QueueSlot | null> {
   await delay(200);
   const now = new Date();
   const dayOfWeek = now.getDay() as QueueSlot["dayOfWeek"];

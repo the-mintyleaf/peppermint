@@ -1,9 +1,9 @@
-import type { ReactNode } from 'react';
-import type { ModuleHeaderBreadcrumbItem } from '@peppermint/ui';
+import type { ReactNode } from "react";
+import type { ModuleHeaderBreadcrumbItem } from "@peppermint/ui";
 
 export type Step = { label: string; description?: string };
 
-export type StepJumpMode = 'always' | 'completed-only' | 'never';
+export type StepJumpMode = "always" | "completed-only" | "never";
 
 export interface FormShellProps {
   title: string;

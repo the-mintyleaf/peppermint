@@ -1,7 +1,14 @@
 import type { QueryParams } from "@peppermint/admin";
 import { delay, paginate } from "../shared/mock.utils";
-import { addCompetitor, deleteCompetitor, fetchCompetitors } from "./listening.api";
-import type { CompetitorRow, CompetitorsFetchResponse } from "./competitors.types";
+import {
+  addCompetitor,
+  deleteCompetitor,
+  fetchCompetitors,
+} from "./listening.api";
+import type {
+  CompetitorRow,
+  CompetitorsFetchResponse,
+} from "./competitors.types";
 
 export async function fetchCompetitorsPaginated(
   params?: QueryParams,
@@ -20,7 +27,9 @@ export async function fetchCompetitorsPaginated(
   return paginate(items, params?.page ?? 1, params?.pageSize ?? 20);
 }
 
-export async function createCompetitor(values: Partial<CompetitorRow>): Promise<CompetitorRow> {
+export async function createCompetitor(
+  values: Partial<CompetitorRow>,
+): Promise<CompetitorRow> {
   const handle = values.handle ?? "";
   const platform = values.platform ?? "instagram";
   return (await addCompetitor(handle, platform)) as CompetitorRow;

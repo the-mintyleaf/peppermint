@@ -38,7 +38,7 @@ interface CreateContextOptions {
  * Create an ExecutorContext with all dependencies injected
  */
 export async function createExecutorContext(
-  options: CreateContextOptions
+  options: CreateContextOptions,
 ): Promise<ExecutorContext> {
   const {
     requestId,
@@ -91,7 +91,7 @@ export async function createExecutorContext(
  * Useful in unit tests where you want to provide minimal dependencies.
  */
 export function createMockExecutorContext(
-  overrides?: Partial<ExecutorContext>
+  overrides?: Partial<ExecutorContext>,
 ): ExecutorContext {
   const mockRedis = {
     get: async () => null,

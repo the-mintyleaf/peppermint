@@ -31,10 +31,34 @@ let page: LinkInBioPage = {
   theme: "light",
   accentColor: "#228be6",
   links: [
-    { id: "lnk_1", label: "Website", url: "https://yourbrand.com", enabled: true, order: 0 },
-    { id: "lnk_2", label: "Newsletter", url: "https://newsletter.yourbrand.com", enabled: true, order: 1 },
-    { id: "lnk_3", label: "Shop", url: "https://shop.yourbrand.com", enabled: true, order: 2 },
-    { id: "lnk_4", label: "YouTube", url: "https://youtube.com/@yourbrand", enabled: false, order: 3 },
+    {
+      id: "lnk_1",
+      label: "Website",
+      url: "https://yourbrand.com",
+      enabled: true,
+      order: 0,
+    },
+    {
+      id: "lnk_2",
+      label: "Newsletter",
+      url: "https://newsletter.yourbrand.com",
+      enabled: true,
+      order: 1,
+    },
+    {
+      id: "lnk_3",
+      label: "Shop",
+      url: "https://shop.yourbrand.com",
+      enabled: true,
+      order: 2,
+    },
+    {
+      id: "lnk_4",
+      label: "YouTube",
+      url: "https://youtube.com/@yourbrand",
+      enabled: false,
+      order: 3,
+    },
   ],
   publishedAt: new Date(Date.now() - 7 * 86_400_000),
 };
@@ -44,7 +68,9 @@ export async function fetchLinkInBioPage(): Promise<LinkInBioPage> {
   return { ...page, links: [...page.links].sort((a, b) => a.order - b.order) };
 }
 
-export async function updateLinkInBioPage(patch: Partial<Omit<LinkInBioPage, "links">>): Promise<LinkInBioPage> {
+export async function updateLinkInBioPage(
+  patch: Partial<Omit<LinkInBioPage, "links">>,
+): Promise<LinkInBioPage> {
   await delay();
   page = { ...page, ...patch };
   return { ...page };

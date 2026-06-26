@@ -1,7 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Stack, Group, Text, Badge, Anchor, Accordion, Table, Loader, Center } from "@peppermint/ui";
+import {
+  Stack,
+  Group,
+  Text,
+  Badge,
+  Anchor,
+  Accordion,
+  Table,
+  Loader,
+  Center,
+} from "@peppermint/ui";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { fetchRuns, type Run } from "../../../../module.api";
@@ -15,7 +25,8 @@ const RUN_STATUS_COLORS: Record<string, string> = {
 
 function duration(run: Run): string {
   if (!run.endedAt) return "—";
-  const ms = new Date(run.endedAt).getTime() - new Date(run.startedAt).getTime();
+  const ms =
+    new Date(run.endedAt).getTime() - new Date(run.startedAt).getTime();
   const secs = Math.round(ms / 1000);
   if (secs < 60) return `${secs}s`;
   return `${Math.floor(secs / 60)}m ${secs % 60}s`;
@@ -58,7 +69,10 @@ export function RunHistory({ automationId }: RunHistoryProps) {
           <Accordion.Item key={run.id} value={run.id}>
             <Accordion.Control>
               <Group gap="sm" wrap="nowrap">
-                <Badge size="xs" color={RUN_STATUS_COLORS[run.status] ?? "gray"}>
+                <Badge
+                  size="xs"
+                  color={RUN_STATUS_COLORS[run.status] ?? "gray"}
+                >
                   {run.status}
                 </Badge>
                 <Text size="xs" fw={500}>
@@ -90,7 +104,16 @@ export function RunHistory({ automationId }: RunHistoryProps) {
                           <Text size="xs">{step.nodeLabel}</Text>
                         </Table.Td>
                         <Table.Td>
-                          <Badge size="xs" color={step.status === "success" ? "green" : step.status === "error" ? "red" : "gray"}>
+                          <Badge
+                            size="xs"
+                            color={
+                              step.status === "success"
+                                ? "green"
+                                : step.status === "error"
+                                  ? "red"
+                                  : "gray"
+                            }
+                          >
                             {step.status}
                           </Badge>
                         </Table.Td>

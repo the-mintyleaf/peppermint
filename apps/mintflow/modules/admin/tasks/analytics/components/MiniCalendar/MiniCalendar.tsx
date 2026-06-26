@@ -6,7 +6,10 @@ import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/csr/ArrowUpRight";
 import { CaretLeftIcon } from "@phosphor-icons/react/dist/csr/CaretLeft";
 import { CaretRightIcon } from "@phosphor-icons/react/dist/csr/CaretRight";
 import { LightningIcon } from "@phosphor-icons/react/dist/csr/Lightning";
-import { MINI_CALENDAR_COLORS, miniCalendarCardStyle } from "./miniCalendar.styles";
+import {
+  MINI_CALENDAR_COLORS,
+  miniCalendarCardStyle,
+} from "./miniCalendar.styles";
 import type { MiniCalendarProps } from "./MiniCalendar.types";
 
 const CALENDAR_DAYS = ["M", "T", "W", "T", "F", "S", "S"];
@@ -95,16 +98,27 @@ function FilterTabs({
                 borderRadius: 20,
                 cursor: "pointer",
                 flexShrink: 0,
-                background: isActive ? MINI_CALENDAR_COLORS.textWhite : "transparent",
-                border: isActive ? "none" : `1px solid ${MINI_CALENDAR_COLORS.borderMuted}`,
+                background: isActive
+                  ? MINI_CALENDAR_COLORS.textWhite
+                  : "transparent",
+                border: isActive
+                  ? "none"
+                  : `1px solid ${MINI_CALENDAR_COLORS.borderMuted}`,
                 transition: "background 0.15s ease",
               }}
             >
               <Text
                 size="xs"
                 fw={600}
-                style={{ fontSize: "var(--mantine-font-size-xs)", whiteSpace: "nowrap" }}
-                c={isActive ? MINI_CALENDAR_COLORS.textDark : MINI_CALENDAR_COLORS.textWhite}
+                style={{
+                  fontSize: "var(--mantine-font-size-xs)",
+                  whiteSpace: "nowrap",
+                }}
+                c={
+                  isActive
+                    ? MINI_CALENDAR_COLORS.textDark
+                    : MINI_CALENDAR_COLORS.textWhite
+                }
               >
                 {chip}
               </Text>
@@ -120,7 +134,10 @@ function FilterTabs({
               width: 5,
               height: 5,
               borderRadius: "50%",
-              background: dot === 1 ? MINI_CALENDAR_COLORS.pink : MINI_CALENDAR_COLORS.textWhite,
+              background:
+                dot === 1
+                  ? MINI_CALENDAR_COLORS.pink
+                  : MINI_CALENDAR_COLORS.textWhite,
               opacity: dot === 1 ? 1 : 0.5,
             }}
           />
@@ -207,7 +224,9 @@ function DateCell({
           : isPink
             ? MINI_CALENDAR_COLORS.pink
             : MINI_CALENDAR_COLORS.textWhite,
-        border: isEmpty ? `1.5px dashed ${MINI_CALENDAR_COLORS.dashedEmpty}` : "none",
+        border: isEmpty
+          ? `1.5px dashed ${MINI_CALENDAR_COLORS.dashedEmpty}`
+          : "none",
       }}
     >
       {isMarked && (
@@ -229,7 +248,11 @@ function DateCell({
           size="xs"
           fw={600}
           style={{ fontSize: "var(--mantine-font-size-xs)" }}
-          c={isPink ? MINI_CALENDAR_COLORS.textWhite : MINI_CALENDAR_COLORS.textDark}
+          c={
+            isPink
+              ? MINI_CALENDAR_COLORS.textWhite
+              : MINI_CALENDAR_COLORS.textDark
+          }
         >
           {date}
         </Text>
@@ -238,7 +261,10 @@ function DateCell({
   );
 }
 
-export function MiniCalendar({ activeFilter, onFilterChange }: MiniCalendarProps) {
+export function MiniCalendar({
+  activeFilter,
+  onFilterChange,
+}: MiniCalendarProps) {
   const [viewDate, setViewDate] = useState(new Date(2025, 5, 1));
   const { ref: gridRef, width: gridWidth } = useElementSize();
   const year = viewDate.getFullYear();
@@ -246,7 +272,10 @@ export function MiniCalendar({ activeFilter, onFilterChange }: MiniCalendarProps
   const calendarWeeks = buildCalendarGrid(year, month);
   const cellSize = getCellSize(gridWidth);
 
-  const monthLabel = viewDate.toLocaleString("default", { month: "long", year: "numeric" });
+  const monthLabel = viewDate.toLocaleString("default", {
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <Box style={{ ...miniCalendarCardStyle(), width: "100%" }}>
@@ -338,9 +367,15 @@ export function MiniCalendar({ activeFilter, onFilterChange }: MiniCalendarProps
       <Group justify="center" align="center" gap="lg" mt="lg">
         <Box
           style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
-          onClick={() => setViewDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))}
+          onClick={() =>
+            setViewDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))
+          }
         >
-          <CaretLeftIcon size={14} color={MINI_CALENDAR_COLORS.textWhite} aria-label="Previous month" />
+          <CaretLeftIcon
+            size={14}
+            color={MINI_CALENDAR_COLORS.textWhite}
+            aria-label="Previous month"
+          />
         </Box>
         <Text
           size="xs"
@@ -352,9 +387,15 @@ export function MiniCalendar({ activeFilter, onFilterChange }: MiniCalendarProps
         </Text>
         <Box
           style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
-          onClick={() => setViewDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))}
+          onClick={() =>
+            setViewDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))
+          }
         >
-          <CaretRightIcon size={14} color={MINI_CALENDAR_COLORS.textWhite} aria-label="Next month" />
+          <CaretRightIcon
+            size={14}
+            color={MINI_CALENDAR_COLORS.textWhite}
+            aria-label="Next month"
+          />
         </Box>
       </Group>
     </Box>

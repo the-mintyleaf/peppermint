@@ -51,7 +51,7 @@ export function FormShell({
               color="orange"
               px="md"
               h={38}
-               size="xs"
+              size="xs"
               variant="subtle"
               leftSection={<TrashIcon weight="fill" size={14} />}
               onClick={onBack}
@@ -62,7 +62,7 @@ export function FormShell({
             <Button
               px="md"
               h={38}
-               size="xs"
+              size="xs"
               variant="light"
               leftSection={<XIcon size={14} />}
               onClick={onBack}
@@ -89,7 +89,7 @@ export function FormShell({
           <Progress
             value={completionPct == 0 ? 5 : completionPct}
             size="xs"
-             animated
+            animated
           />
         )}
       </Box>

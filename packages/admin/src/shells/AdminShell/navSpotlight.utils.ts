@@ -17,7 +17,7 @@ export interface NavSpotlightTarget {
 
 export function buildNavSpotlightTargets(
   mainNav: AdminShellMainNavItem[],
-  additional?: AdminShellMainNavAdditional[]
+  additional?: AdminShellMainNavAdditional[],
 ): NavSpotlightTarget[] {
   const targets: NavSpotlightTarget[] = [];
 

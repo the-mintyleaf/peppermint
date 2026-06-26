@@ -19,7 +19,8 @@ export function useLinkInBioPage() {
 export function useUpdateLinkInBioPage() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (patch: Partial<Omit<LinkInBioPage, "links">>) => updateLinkInBioPage(patch),
+    mutationFn: (patch: Partial<Omit<LinkInBioPage, "links">>) =>
+      updateLinkInBioPage(patch),
     onSuccess: (data) => qc.setQueryData(linkInBioKeys.page(), data),
   });
 }

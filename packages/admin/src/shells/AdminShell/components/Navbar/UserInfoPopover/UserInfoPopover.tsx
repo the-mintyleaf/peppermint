@@ -64,7 +64,7 @@ export function UserInfoPopover({
             >
               <Indicator position="bottom-end" withBorder size={8} offset={2}>
                 <Avatar
-                   variant="filled"
+                  variant="filled"
                   name={displayName}
                   color="orange"
                   size={32}
@@ -85,14 +85,19 @@ export function UserInfoPopover({
           >
             <Indicator position="bottom-end" withBorder size={8} offset={2}>
               <Avatar
-                 variant="filled"
+                variant="filled"
                 name={displayName}
                 color="orange"
                 size="sm"
               />
             </Indicator>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <Text fw={600} size="xs" truncate c={isDark ? "gray.0" : "dark.8"}>
+              <Text
+                fw={600}
+                size="xs"
+                truncate
+                c={isDark ? "gray.0" : "dark.8"}
+              >
                 {displayName}
               </Text>
               <Text size="10px" c="dimmed" truncate>
@@ -104,7 +109,11 @@ export function UserInfoPopover({
             <DotsThreeVerticalIcon
               size={16}
               weight="bold"
-              color={isDark ? "var(--mantine-color-gray-0)" : "var(--mantine-color-dark-5)"}
+              color={
+                isDark
+                  ? "var(--mantine-color-gray-0)"
+                  : "var(--mantine-color-dark-5)"
+              }
               style={{ flexShrink: 0 }}
             />
           </UnstyledButton>
@@ -115,7 +124,7 @@ export function UserInfoPopover({
         <Menu.Item closeMenuOnClick={false} style={{ cursor: "default" }}>
           <Group gap="sm" wrap="nowrap">
             <Avatar
-               variant="filled"
+              variant="filled"
               name={displayName}
               color="orange"
               size="sm"

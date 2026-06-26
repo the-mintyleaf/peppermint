@@ -11,17 +11,35 @@ const PLATFORM_FOR_CHANNEL: Record<string, string> = {
 };
 
 const SAMPLE_AUTHORS = [
-  "sarah_m", "dev_john", "pixel_art99", "techblogger", "johndoe_real",
-  "marketing_pro", "insta_queen", "code_wizard", "design_daily", "growth_hacker",
+  "sarah_m",
+  "dev_john",
+  "pixel_art99",
+  "techblogger",
+  "johndoe_real",
+  "marketing_pro",
+  "insta_queen",
+  "code_wizard",
+  "design_daily",
+  "growth_hacker",
 ];
 
-const CONV_TYPES: Conversation["type"][] = ["comment", "mention", "dm", "review"];
+const CONV_TYPES: Conversation["type"][] = [
+  "comment",
+  "mention",
+  "dm",
+  "review",
+];
 const STATUSES: Conversation["status"][] = ["open", "assigned", "done"];
 
 function makeThread(count: number): ThreadMessage[] {
   return Array.from({ length: count }, (_, i) => ({
     id: `msg_${i}`,
-    type: i % 5 === 4 ? ("internal_note" as const) : i % 2 === 0 ? ("comment" as const) : ("reply" as const),
+    type:
+      i % 5 === 4
+        ? ("internal_note" as const)
+        : i % 2 === 0
+          ? ("comment" as const)
+          : ("reply" as const),
     author: i % 2 === 0 ? SAMPLE_AUTHORS[i % SAMPLE_AUTHORS.length] : "You",
     text: [
       "Thanks for reaching out! We'll look into this.",
@@ -58,7 +76,7 @@ let conversations: Conversation[] = Array.from({ length: 25 }, (_, i) => {
     ][i % 10],
     status: status as Conversation["status"],
     assignedTo: status === "assigned" ? "You" : undefined,
-    threadMessages: makeThread(i % 4 + 1),
+    threadMessages: makeThread((i % 4) + 1),
     createdAt: new Date(Date.now() - i * 2 * 3600_000),
   };
 });
@@ -77,26 +95,37 @@ export async function fetchConversations(filters: InboxFilters = {}) {
   let items = [...conversations];
   if (filters.status) items = items.filter((c) => c.status === filters.status);
   if (filters.type) items = items.filter((c) => c.type === filters.type);
-  if (filters.channelId) items = items.filter((c) => c.channelId === filters.channelId);
+  if (filters.channelId)
+    items = items.filter((c) => c.channelId === filters.channelId);
   if (filters.search) {
     const q = filters.search.toLowerCase();
     items = items.filter(
-      (c) => c.author.toLowerCase().includes(q) || c.text.toLowerCase().includes(q)
+      (c) =>
+        c.author.toLowerCase().includes(q) || c.text.toLowerCase().includes(q),
     );
   }
   return paginate(items, filters.page ?? 1, filters.pageSize ?? 15);
 }
 
-export async function fetchConversation(id: string): Promise<Conversation | null> {
+export async function fetchConversation(
+  id: string,
+): Promise<Conversation | null> {
   await delay();
   return conversations.find((c) => c.id === id) ?? null;
 }
 
-export async function assignConversation(id: string, assignedTo: string): Promise<Conversation> {
+export async function assignConversation(
+  id: string,
+  assignedTo: string,
+): Promise<Conversation> {
   await delay();
   const idx = conversations.findIndex((c) => c.id === id);
   if (idx === -1) throw new Error("Not found");
-  conversations[idx] = { ...conversations[idx], assignedTo, status: "assigned" };
+  conversations[idx] = {
+    ...conversations[idx],
+    assignedTo,
+    status: "assigned",
+  };
   return conversations[idx];
 }
 
@@ -112,14 +141,18 @@ export async function reopenConversation(id: string): Promise<Conversation> {
   await delay();
   const idx = conversations.findIndex((c) => c.id === id);
   if (idx === -1) throw new Error("Not found");
-  conversations[idx] = { ...conversations[idx], status: "open", assignedTo: undefined };
+  conversations[idx] = {
+    ...conversations[idx],
+    status: "open",
+    assignedTo: undefined,
+  };
   return conversations[idx];
 }
 
 export async function replyToConversation(
   id: string,
   text: string,
-  type: ThreadMessage["type"] = "reply"
+  type: ThreadMessage["type"] = "reply",
 ): Promise<Conversation> {
   await delay();
   const idx = conversations.findIndex((c) => c.id === id);

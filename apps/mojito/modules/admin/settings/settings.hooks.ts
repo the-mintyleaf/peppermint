@@ -22,7 +22,10 @@ import {
 import { settingsKeys } from "./settings.queryKeys";
 
 export function useUserProfile() {
-  return useQuery({ queryKey: settingsKeys.profile(), queryFn: fetchUserProfile });
+  return useQuery({
+    queryKey: settingsKeys.profile(),
+    queryFn: fetchUserProfile,
+  });
 }
 
 export function useUpdateUserProfile() {
@@ -34,7 +37,10 @@ export function useUpdateUserProfile() {
 }
 
 export function useWorkspace() {
-  return useQuery({ queryKey: settingsKeys.workspace(), queryFn: fetchWorkspace });
+  return useQuery({
+    queryKey: settingsKeys.workspace(),
+    queryFn: fetchWorkspace,
+  });
 }
 
 export function useUpdateWorkspace() {
@@ -52,8 +58,13 @@ export function useTeamMembers() {
 export function useInviteMember() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ email, role }: { email: string; role: TeamMember["role"] }) =>
-      inviteMember(email, role),
+    mutationFn: ({
+      email,
+      role,
+    }: {
+      email: string;
+      role: TeamMember["role"];
+    }) => inviteMember(email, role),
     onSuccess: () => qc.invalidateQueries({ queryKey: settingsKeys.team() }),
   });
 }
@@ -76,26 +87,34 @@ export function useRemoveMember() {
 }
 
 export function useNotificationPrefs() {
-  return useQuery({ queryKey: settingsKeys.notifPrefs(), queryFn: fetchNotificationPrefs });
+  return useQuery({
+    queryKey: settingsKeys.notifPrefs(),
+    queryFn: fetchNotificationPrefs,
+  });
 }
 
 export function useUpdateNotificationPrefs() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (patch: Partial<NotificationPrefs>) => updateNotificationPrefs(patch),
+    mutationFn: (patch: Partial<NotificationPrefs>) =>
+      updateNotificationPrefs(patch),
     onSuccess: (data) => qc.setQueryData(settingsKeys.notifPrefs(), data),
   });
 }
 
 export function useIntegrations() {
-  return useQuery({ queryKey: settingsKeys.integrations(), queryFn: fetchIntegrations });
+  return useQuery({
+    queryKey: settingsKeys.integrations(),
+    queryFn: fetchIntegrations,
+  });
 }
 
 export function useConnectIntegration() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: connectIntegration,
-    onSuccess: () => qc.invalidateQueries({ queryKey: settingsKeys.integrations() }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: settingsKeys.integrations() }),
   });
 }
 
@@ -103,10 +122,14 @@ export function useDisconnectIntegration() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: disconnectIntegration,
-    onSuccess: () => qc.invalidateQueries({ queryKey: settingsKeys.integrations() }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: settingsKeys.integrations() }),
   });
 }
 
 export function useBillingInfo() {
-  return useQuery({ queryKey: settingsKeys.billing(), queryFn: fetchBillingInfo });
+  return useQuery({
+    queryKey: settingsKeys.billing(),
+    queryFn: fetchBillingInfo,
+  });
 }

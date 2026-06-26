@@ -14,13 +14,7 @@ import { useComposeStore } from "../../compose.store";
 import { PLATFORM_CHAR_LIMITS, PLATFORM_LABELS } from "../../compose.types";
 import type { Platform } from "@/modules/admin/shared/domain.types";
 
-function CaptionProgress({
-  count,
-  limit,
-}: {
-  count: number;
-  limit: number;
-}) {
+function CaptionProgress({ count, limit }: { count: number; limit: number }) {
   const pct = Math.min((count / limit) * 100, 100);
   const color = pct > 90 ? "red" : pct > 70 ? "yellow" : "blue";
   return (
@@ -90,7 +84,12 @@ export function CaptionEditor() {
             const count = globalCaption.length;
             return (
               count > limit * 0.7 && (
-                <Badge key={p} size="xs" color={count > limit ? "red" : "yellow"} variant="light">
+                <Badge
+                  key={p}
+                  size="xs"
+                  color={count > limit ? "red" : "yellow"}
+                  variant="light"
+                >
                   {PLATFORM_LABELS[p]}: {count}/{limit}
                 </Badge>
               )

@@ -5,7 +5,11 @@ interface OpenAIIconProps extends SVGProps<SVGSVGElement> {
   color?: string;
 }
 
-export function OpenAIIcon({ size = 20, color = "currentColor", ...props }: OpenAIIconProps) {
+export function OpenAIIcon({
+  size = 20,
+  color = "currentColor",
+  ...props
+}: OpenAIIconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

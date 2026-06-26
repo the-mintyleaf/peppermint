@@ -8,23 +8,23 @@ Root layout wrapper for Next.js App Router applications. Composes `MantineProvid
 
 ## Files
 
-| File | Purpose |
-|---|---|
-| `AppWrapper.tsx` | Component implementation |
-| `AppWrapper.types.ts` | `AppWrapperProps` and `AppWrapperClassNames` interfaces |
-| `AppWrapper.module.css` | Base body styles |
-| `index.ts` | Barrel export |
+| File                    | Purpose                                                 |
+| ----------------------- | ------------------------------------------------------- |
+| `AppWrapper.tsx`        | Component implementation                                |
+| `AppWrapper.types.ts`   | `AppWrapperProps` and `AppWrapperClassNames` interfaces |
+| `AppWrapper.module.css` | Base body styles                                        |
+| `index.ts`              | Barrel export                                           |
 
 ## Props
 
-| Prop | Type | Default | Description |
-|---|---|---|---|
-| `children` | `ReactNode` | — | Page content rendered inside `<body>` |
-| `title` | `string` | `'built to build.'` | `<title>` tag value |
-| `theme` | `MantineThemeOverride` | `undefined` | Mantine theme overrides |
-| `defaultColorScheme` | `MantineColorScheme` | `'light'` | Initial color scheme before hydration |
-| `extraHeadTags` | `ReactNode` | `undefined` | Additional tags injected into `<head>` (meta, link, script) |
-| `classNames.body` | `string` | `undefined` | Extra class applied to `<body>` |
+| Prop                 | Type                   | Default             | Description                                                 |
+| -------------------- | ---------------------- | ------------------- | ----------------------------------------------------------- |
+| `children`           | `ReactNode`            | —                   | Page content rendered inside `<body>`                       |
+| `title`              | `string`               | `'built to build.'` | `<title>` tag value                                         |
+| `theme`              | `MantineThemeOverride` | `undefined`         | Mantine theme overrides                                     |
+| `defaultColorScheme` | `MantineColorScheme`   | `'light'`           | Initial color scheme before hydration                       |
+| `extraHeadTags`      | `ReactNode`            | `undefined`         | Additional tags injected into `<head>` (meta, link, script) |
+| `classNames.body`    | `string`               | `undefined`         | Extra class applied to `<body>`                             |
 
 ## Internals
 

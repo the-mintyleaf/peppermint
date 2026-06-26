@@ -23,15 +23,20 @@ export function EmptyState() {
           mb="lg"
           style={{ display: "flex" }}
         >
-          <TreeStructureIcon size={32} weight="duotone" aria-label="Organization structure" />
+          <TreeStructureIcon
+            size={32}
+            weight="duotone"
+            aria-label="Organization structure"
+          />
         </ThemeIcon>
 
         <Text size="xl" fw={700} mb="xs">
           Build your organization structure
         </Text>
         <Text size="sm" c="dimmed" mb="xl" style={{ lineHeight: 1.6 }}>
-          Start by adding your first organization, department, or person. You can connect them
-          later to define hierarchy, ownership, reporting lines, and responsibilities.
+          Start by adding your first organization, department, or person. You
+          can connect them later to define hierarchy, ownership, reporting
+          lines, and responsibilities.
         </Text>
 
         <Group gap="sm" justify="center" wrap="wrap">

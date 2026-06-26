@@ -1,4 +1,8 @@
-import type { CanvasElement, CanvasElementInput, ElementType } from "./templateForm.types";
+import type {
+  CanvasElement,
+  CanvasElementInput,
+  ElementType,
+} from "./templateForm.types";
 import {
   DEFAULT_IMAGE_PLACEHOLDER_FILL,
   DEFAULT_LINE_FILL,
@@ -20,7 +24,12 @@ function defaultProps(type: ElementType): CanvasElementInput["props"] {
     case "text":
       return { text: "Text", fontSize: 32, fill: "#000000", opacity: 100 };
     case "staticText":
-      return { text: "Static text", fontSize: 32, fill: "#000000", opacity: 100 };
+      return {
+        text: "Static text",
+        fontSize: 32,
+        fill: "#000000",
+        opacity: 100,
+      };
     case "dynamicText":
       return {
         text: "Dynamic text",
@@ -30,13 +39,34 @@ function defaultProps(type: ElementType): CanvasElementInput["props"] {
         opacity: 100,
       };
     case "image":
-      return { imageUrl: "", fill: DEFAULT_IMAGE_PLACEHOLDER_FILL, borderRadius: 0, opacity: 100 };
+      return {
+        imageUrl: "",
+        fill: DEFAULT_IMAGE_PLACEHOLDER_FILL,
+        borderRadius: 0,
+        opacity: 100,
+      };
     case "rectangle":
-      return { fill: DEFAULT_SHAPE_FILL, stroke: "#000000", strokeWidth: 0, borderRadius: 8, opacity: 100 };
+      return {
+        fill: DEFAULT_SHAPE_FILL,
+        stroke: "#000000",
+        strokeWidth: 0,
+        borderRadius: 8,
+        opacity: 100,
+      };
     case "circle":
-      return { fill: DEFAULT_SHAPE_FILL, stroke: "#000000", strokeWidth: 0, opacity: 100 };
+      return {
+        fill: DEFAULT_SHAPE_FILL,
+        stroke: "#000000",
+        strokeWidth: 0,
+        opacity: 100,
+      };
     case "line":
-      return { fill: DEFAULT_LINE_FILL, stroke: DEFAULT_LINE_FILL, strokeWidth: 1, opacity: 100 };
+      return {
+        fill: DEFAULT_LINE_FILL,
+        stroke: DEFAULT_LINE_FILL,
+        strokeWidth: 1,
+        opacity: 100,
+      };
   }
 }
 
@@ -57,7 +87,10 @@ function defaultSize(type: ElementType): { width: number; height: number } {
   }
 }
 
-export function getDefaultSize(type: ElementType): { width: number; height: number } {
+export function getDefaultSize(type: ElementType): {
+  width: number;
+  height: number;
+} {
   return defaultSize(type);
 }
 
@@ -77,7 +110,7 @@ function normalizeDragRect(
   currentX: number,
   currentY: number,
   constrainSquare: boolean,
-  minSize: number
+  minSize: number,
 ): NormalizedRect {
   let width = Math.abs(currentX - anchorX);
   let height = Math.abs(currentY - anchorY);
@@ -109,7 +142,7 @@ export function resolveElementRect(
   anchorY: number,
   currentX: number,
   currentY: number,
-  constrainSquare: boolean
+  constrainSquare: boolean,
 ): NormalizedRect {
   const dx = Math.abs(currentX - anchorX);
   const dy = Math.abs(currentY - anchorY);
@@ -127,7 +160,14 @@ export function resolveElementRect(
 
   const minSize = type === "line" ? 4 : MIN_ELEMENT_SIZE;
   const square = constrainSquare || type === "circle";
-  const rect = normalizeDragRect(anchorX, anchorY, currentX, currentY, square, minSize);
+  const rect = normalizeDragRect(
+    anchorX,
+    anchorY,
+    currentX,
+    currentY,
+    square,
+    minSize,
+  );
 
   if (type === "line") {
     return { ...rect, height: Math.max(rect.height, 4) };
@@ -142,7 +182,7 @@ export function createElementAtRect(
   y: number,
   width: number,
   height: number,
-  zIndex: number
+  zIndex: number,
 ): CanvasElementInput {
   return {
     purpose: TYPE_LABELS[type],
@@ -163,7 +203,7 @@ export function createElementDefaults(
   type: ElementType,
   canvasWidth: number,
   canvasHeight: number,
-  zIndex: number
+  zIndex: number,
 ): CanvasElementInput {
   const { width, height } = defaultSize(type);
 
@@ -188,7 +228,7 @@ export function getElementTypeLabel(type: ElementType): string {
 
 export function generateElementPurpose(
   type: ElementType,
-  existingElements: Pick<CanvasElement, "type">[]
+  existingElements: Pick<CanvasElement, "type">[],
 ): string {
   const count = existingElements.filter((el) => el.type === type).length;
   return `${TYPE_LABELS[type]} ${count + 1}`;

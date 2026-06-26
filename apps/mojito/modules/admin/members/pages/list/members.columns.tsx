@@ -13,14 +13,17 @@ const membershipColor: Record<MembershipType, string> = {
 };
 
 export const membersColumns: DataTableShellColumn<Member>[] = [
-  { accessor: "name",           title: "Name",            sortable: true },
-  { accessor: "email",          title: "Email",           sortable: true },
-  { accessor: "phone",          title: "Phone" },
+  { accessor: "name", title: "Name", sortable: true },
+  { accessor: "email", title: "Email", sortable: true },
+  { accessor: "phone", title: "Phone" },
   {
     accessor: "membershipType",
     title: "Membership",
     render: (record) => (
-      <Badge size="xs" color={membershipColor[record.membershipType as MembershipType]}>
+      <Badge
+        size="xs"
+        color={membershipColor[record.membershipType as MembershipType]}
+      >
         {record.membershipType}
       </Badge>
     ),

@@ -10,7 +10,12 @@ export const templatesColumns: DataTableShellColumn<Template>[] = [
     sortable: true,
     render: (t) => PLATFORM_LABELS[t.platform],
   },
-  { accessor: "description", title: "Description", key: "description", defaultVisible: false },
+  {
+    accessor: "description",
+    title: "Description",
+    key: "description",
+    defaultVisible: false,
+  },
   {
     accessor: "updatedAt",
     title: "Updated",

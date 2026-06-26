@@ -18,12 +18,18 @@ export function TemplatesNew() {
         width: PLATFORM_DIMENSIONS.instagram_square.width,
         height: PLATFORM_DIMENSIONS.instagram_square.height,
       },
-      []
+      [],
     );
   }, [initStore]);
 
   return (
-    <Paper p={0} withBorder radius="lg" h="calc(100vh - 16px)" style={{ overflow: "hidden" }}>
+    <Paper
+      p={0}
+      withBorder
+      radius="lg"
+      h="calc(100vh - 16px)"
+      style={{ overflow: "hidden" }}
+    >
       <TemplateBuilder />
     </Paper>
   );

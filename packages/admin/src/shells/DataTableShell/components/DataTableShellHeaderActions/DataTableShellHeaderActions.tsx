@@ -15,7 +15,7 @@ function exportRowsToCsv(rows: Record<string, unknown>[], filename: string) {
   const csv = [
     keys.join(","),
     ...rows.map((row) =>
-      keys.map((k) => JSON.stringify(row[k] ?? "")).join(",")
+      keys.map((k) => JSON.stringify(row[k] ?? "")).join(","),
     ),
   ].join("\n");
   const blob = new Blob([csv], { type: "text/csv" });

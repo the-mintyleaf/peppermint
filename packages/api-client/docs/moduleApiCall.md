@@ -13,7 +13,7 @@ All functions return `Promise<ApiResponse<T>>`. Errors are returned, never throw
 Fetch a list of records.
 
 ```typescript
-getRecords<User>('/api/users', { page: 1, pageSize: 20 })
+getRecords<User>("/api/users", { page: 1, pageSize: 20 });
 ```
 
 ### `getSingleRecord<T>(url, id)`
@@ -21,7 +21,7 @@ getRecords<User>('/api/users', { page: 1, pageSize: 20 })
 Fetch one record by ID. Constructs URL as `${url}/${id}`.
 
 ```typescript
-getSingleRecord<User>('/api/users', 42)  // GET /api/users/42
+getSingleRecord<User>("/api/users", 42); // GET /api/users/42
 ```
 
 ### `createRecord<T>(url, body)`
@@ -29,7 +29,7 @@ getSingleRecord<User>('/api/users', 42)  // GET /api/users/42
 POST a new record.
 
 ```typescript
-createRecord<User>('/api/users', { name: 'Alice', email: 'alice@example.com' })
+createRecord<User>("/api/users", { name: "Alice", email: "alice@example.com" });
 ```
 
 ### `editRecord<T>(url, id, body)`
@@ -37,7 +37,7 @@ createRecord<User>('/api/users', { name: 'Alice', email: 'alice@example.com' })
 PATCH an existing record. Constructs URL as `${url}/${id}`.
 
 ```typescript
-editRecord<User>('/api/users', 42, { name: 'Alicia' })  // PATCH /api/users/42
+editRecord<User>("/api/users", 42, { name: "Alicia" }); // PATCH /api/users/42
 ```
 
 ### `deleteRecord(url, id)`
@@ -45,7 +45,7 @@ editRecord<User>('/api/users', 42, { name: 'Alicia' })  // PATCH /api/users/42
 DELETE a record by ID. Constructs URL as `${url}/${id}`.
 
 ```typescript
-deleteRecord('/api/users', 42)  // DELETE /api/users/42
+deleteRecord("/api/users", 42); // DELETE /api/users/42
 ```
 
 ---
@@ -57,10 +57,10 @@ deleteRecord('/api/users', 42)  // DELETE /api/users/42
 POST an array of records in a single request.
 
 ```typescript
-createGroupRecords<User>('/api/users/batch', [
-  { name: 'Alice' },
-  { name: 'Bob' },
-])
+createGroupRecords<User>("/api/users/batch", [
+  { name: "Alice" },
+  { name: "Bob" },
+]);
 ```
 
 ### `editGroupRecords<T>(url, items)`
@@ -68,10 +68,10 @@ createGroupRecords<User>('/api/users/batch', [
 PATCH an array of records. Each item must include an `id` field.
 
 ```typescript
-editGroupRecords<User>('/api/users/batch', [
-  { id: 1, name: 'Alicia' },
-  { id: 2, name: 'Robert' },
-])
+editGroupRecords<User>("/api/users/batch", [
+  { id: 1, name: "Alicia" },
+  { id: 2, name: "Robert" },
+]);
 ```
 
 ### `deleteGroupRecords(url, ids)`
@@ -79,7 +79,7 @@ editGroupRecords<User>('/api/users/batch', [
 DELETE multiple records by ID array. Sends IDs as query params.
 
 ```typescript
-deleteGroupRecords('/api/users', [1, 2, 3])
+deleteGroupRecords("/api/users", [1, 2, 3]);
 // DELETE /api/users?ids[]=1&ids[]=2&ids[]=3
 ```
 

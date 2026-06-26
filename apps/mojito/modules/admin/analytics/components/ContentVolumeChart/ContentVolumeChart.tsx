@@ -28,11 +28,15 @@ export function ContentVolumeChart({ series }: ContentVolumeChartProps) {
   // Pivot: { date, instagram: N, twitter: N, ... }
   const dateMap = new Map<string, Record<string, number>>();
   for (const point of series) {
-    if (!dateMap.has(point.date)) dateMap.set(point.date, { date: point.date } as unknown as Record<string, number>);
+    if (!dateMap.has(point.date))
+      dateMap.set(point.date, { date: point.date } as unknown as Record<
+        string,
+        number
+      >);
     dateMap.get(point.date)![point.platform] = point.count;
   }
   const data = [...dateMap.values()].sort((a, b) =>
-    String(a.date) < String(b.date) ? -1 : 1
+    String(a.date) < String(b.date) ? -1 : 1,
   );
 
   const chartSeries = platforms.map((p) => ({

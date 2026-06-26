@@ -166,7 +166,6 @@ function DataTableShellInner<T extends Record<string, unknown>>({
         <Paper
           withBorder
           style={{
-           
             overflow: "hidden",
             display: "flex",
             flexDirection: "column",
@@ -174,17 +173,24 @@ function DataTableShellInner<T extends Record<string, unknown>>({
           }}
         >
           <DataTableShellActiveFilters columns={columns} />
-          <Box style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+          <Box
+            style={{
+              flex: 1,
+              minHeight: 0,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
             <DataTableShellTable
-            columns={columns}
-            idAccessor={idAccessor}
-            pageSizes={pageSizes}
-            forceFilter={forceFilter}
-            activeTabForceFilter={activeTabForceFilter}
-            rowStyle={rowStyle}
-            rowExpansion={rowExpansion}
-            disableActions={disableActions}
-          />
+              columns={columns}
+              idAccessor={idAccessor}
+              pageSizes={pageSizes}
+              forceFilter={forceFilter}
+              activeTabForceFilter={activeTabForceFilter}
+              rowStyle={rowStyle}
+              rowExpansion={rowExpansion}
+              disableActions={disableActions}
+            />
           </Box>
         </Paper>
 

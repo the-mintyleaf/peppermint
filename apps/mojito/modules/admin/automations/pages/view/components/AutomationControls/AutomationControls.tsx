@@ -41,9 +41,12 @@ function humanCron(cron: string): string {
   const parts = cron.trim().split(/\s+/);
   if (parts.length < 5) return cron;
   const [min, hr, dom, mon, dow] = parts;
-  if (dow === "1" && dom === "*") return `Every Monday at ${hr}:${min.padStart(2, "0")} UTC`;
-  if (dow === "*" && dom === "1") return `Monthly on the 1st at ${hr}:${min.padStart(2, "0")} UTC`;
-  if (dow === "*" && dom === "*") return `Daily at ${hr}:${min.padStart(2, "0")} UTC`;
+  if (dow === "1" && dom === "*")
+    return `Every Monday at ${hr}:${min.padStart(2, "0")} UTC`;
+  if (dow === "*" && dom === "1")
+    return `Monthly on the 1st at ${hr}:${min.padStart(2, "0")} UTC`;
+  if (dow === "*" && dom === "*")
+    return `Daily at ${hr}:${min.padStart(2, "0")} UTC`;
   return cron;
 }
 
@@ -54,30 +57,53 @@ interface AutomationControlsProps {
 export function AutomationControls({ automation }: AutomationControlsProps) {
   const queryClient = useQueryClient();
   const [editingSchedule, setEditingSchedule] = useState(false);
-  const [scheduleType, setScheduleType] = useState<ScheduleType>(automation.schedule?.type ?? "manual");
-  const [cronExpr, setCronExpr] = useState(automation.schedule?.cron ?? "0 9 * * 1");
-  const [intervalVal, setIntervalVal] = useState(automation.schedule?.interval ?? 60);
-  const [intervalUnit, setIntervalUnit] = useState<"minutes" | "hours">(automation.schedule?.intervalUnit ?? "minutes");
+  const [scheduleType, setScheduleType] = useState<ScheduleType>(
+    automation.schedule?.type ?? "manual",
+  );
+  const [cronExpr, setCronExpr] = useState(
+    automation.schedule?.cron ?? "0 9 * * 1",
+  );
+  const [intervalVal, setIntervalVal] = useState(
+    automation.schedule?.interval ?? 60,
+  );
+  const [intervalUnit, setIntervalUnit] = useState<"minutes" | "hours">(
+    automation.schedule?.intervalUnit ?? "minutes",
+  );
 
   const { mutate: triggerRun, isPending: isRunning } = useMutation({
     mutationFn: () => runAutomation(automation.id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["automation", automation.id] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: ["automation", automation.id],
+      }),
   });
 
   const { mutate: togglePause, isPending: isPausing } = useMutation({
-    mutationFn: () => pauseAutomation(automation.id, automation.status !== "paused"),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["automation", automation.id] }),
+    mutationFn: () =>
+      pauseAutomation(automation.id, automation.status !== "paused"),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: ["automation", automation.id],
+      }),
   });
 
   const { mutate: saveSchedule, isPending: isSaving } = useMutation({
     mutationFn: () => {
       const schedule: AutomationSchedule = { type: scheduleType };
-      if (scheduleType === "cron") { schedule.cron = cronExpr; schedule.timezone = "UTC"; }
-      if (scheduleType === "interval") { schedule.interval = intervalVal; schedule.intervalUnit = intervalUnit; }
+      if (scheduleType === "cron") {
+        schedule.cron = cronExpr;
+        schedule.timezone = "UTC";
+      }
+      if (scheduleType === "interval") {
+        schedule.interval = intervalVal;
+        schedule.intervalUnit = intervalUnit;
+      }
       return updateSchedule(automation.id, schedule);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["automation", automation.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["automation", automation.id],
+      });
       setEditingSchedule(false);
     },
   });
@@ -112,7 +138,13 @@ export function AutomationControls({ automation }: AutomationControlsProps) {
         </Button>
         <Button
           size="xs"
-          leftSection={isPaused ? <ArrowCounterClockwiseIcon size={13} /> : <PauseIcon size={13} />}
+          leftSection={
+            isPaused ? (
+              <ArrowCounterClockwiseIcon size={13} />
+            ) : (
+              <PauseIcon size={13} />
+            )
+          }
           onClick={() => togglePause()}
           loading={isPausing}
           disabled={isActivelyRunning}
@@ -146,8 +178,8 @@ export function AutomationControls({ automation }: AutomationControlsProps) {
             {automation.schedule.type === "cron" && automation.schedule.cron
               ? humanCron(automation.schedule.cron)
               : automation.schedule.type === "interval"
-              ? `Every ${automation.schedule.interval} ${automation.schedule.intervalUnit}`
-              : "Manual only"}
+                ? `Every ${automation.schedule.interval} ${automation.schedule.intervalUnit}`
+                : "Manual only"}
           </Text>
         )}
 
@@ -192,7 +224,9 @@ export function AutomationControls({ automation }: AutomationControlsProps) {
                 <Select
                   label="Unit"
                   value={intervalUnit}
-                  onChange={(v) => setIntervalUnit((v as "minutes" | "hours") ?? "minutes")}
+                  onChange={(v) =>
+                    setIntervalUnit((v as "minutes" | "hours") ?? "minutes")
+                  }
                   data={["minutes", "hours"]}
                   size="xs"
                   w={100}

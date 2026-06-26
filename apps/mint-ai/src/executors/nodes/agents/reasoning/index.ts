@@ -1,4 +1,7 @@
-import { ExecutorContext, createExecutorError } from "@/shared/executor-context";
+import {
+  ExecutorContext,
+  createExecutorError,
+} from "@/shared/executor-context";
 import { Result, ok, err } from "@/shared/result";
 import {
   schemaNodeAIReasoningInput,
@@ -56,7 +59,7 @@ function classifyAck(s: string): AckKind {
   const t = (s || "").trim().toLowerCase();
   if (
     /^(y|ye|yes|yeah|yup|yep|sure|ok|okay|pls|please|do it|go ahead|continue|that works|sounds good|alright|go on|proceed|yes please)[.!?]*$/i.test(
-      t
+      t,
     )
   )
     return "positive";
@@ -67,7 +70,7 @@ function classifyAck(s: string): AckKind {
 
 /** Last assistant utterance (ignoring recaps/summaries) */
 function lastAssistantUtterance(
-  history: Array<{ role: string; content: string }>
+  history: Array<{ role: string; content: string }>,
 ): string | null {
   for (let i = history.length - 1; i >= 0; i--) {
     const m = history[i];
@@ -84,7 +87,7 @@ function lastAssistantUtterance(
 /** Fallback JSOC wrapper */
 function synthesizeJsocFromText(
   text: string,
-  opts?: { phase?: string; intent?: string; extras?: Record<string, string> }
+  opts?: { phase?: string; intent?: string; extras?: Record<string, string> },
 ) {
   return {
     v: "jsoc-1",
@@ -100,7 +103,7 @@ function synthesizeJsocFromText(
 /** Merge summaries (flat, last-write-wins) */
 function mergeSummaries(
   prev: Record<string, string> | undefined | null,
-  next: Record<string, string> | undefined | null
+  next: Record<string, string> | undefined | null,
 ): Record<string, string> {
   return { ...(prev ?? {}), ...(next ?? {}) };
 }
@@ -134,7 +137,7 @@ export const nodeAIReasoning = async (
       description?: string;
       config?: any;
     }[];
-  }
+  },
 ): Promise<Result<PropNodeAIReasoningOutput, any>> => {
   try {
     // 1. Validate input schema
@@ -145,7 +148,7 @@ export const nodeAIReasoning = async (
           errors: parseResult.error.issues,
           nodeId: ctx.nodeId,
         },
-        "Invalid input to nodeAIReasoning"
+        "Invalid input to nodeAIReasoning",
       );
       return err(
         createExecutorError(
@@ -154,8 +157,8 @@ export const nodeAIReasoning = async (
           {
             nodeId: ctx.nodeId,
             retryable: false,
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -169,7 +172,7 @@ export const nodeAIReasoning = async (
         sessionId,
         messagePreview: parsed.message.substring(0, 50),
       },
-      "Executing nodeAIReasoning"
+      "Executing nodeAIReasoning",
     );
 
     // 2. Resolve LLM model
@@ -182,8 +185,8 @@ export const nodeAIReasoning = async (
           {
             nodeId: ctx.nodeId,
             retryable: false,
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -194,7 +197,7 @@ export const nodeAIReasoning = async (
       } catch (e) {
         ctx.logger.warn(
           { error: e, sessionId, nodeId: ctx.nodeId },
-          "Failed to persist user message"
+          "Failed to persist user message",
         );
       }
     }
@@ -208,7 +211,8 @@ export const nodeAIReasoning = async (
     // Filter out legacy summary/recap lines from history and order oldest → newest
     const filtered = rawHistory.filter(
       (m) =>
-        !m.content.startsWith(SUMMARY_PREFIX) && !m.content.startsWith("Recap:")
+        !m.content.startsWith(SUMMARY_PREFIX) &&
+        !m.content.startsWith("Recap:"),
     );
     const chronological = filtered.slice().reverse();
     const recentMessages = chronological.slice(-10);
@@ -237,7 +241,7 @@ export const nodeAIReasoning = async (
       ...(latestSummary
         ? [
             new SystemMessage(
-              `SESSION SUMMARY (authoritative JSON): ${JSON.stringify(latestSummary)}`
+              `SESSION SUMMARY (authoritative JSON): ${JSON.stringify(latestSummary)}`,
             ),
           ]
         : []),
@@ -247,7 +251,7 @@ export const nodeAIReasoning = async (
             new SystemMessage(
               ackKind === "positive"
                 ? `ACK INTERPRETATION: User confirmed. Continue from the last assistant message:\n"""${lastAI}"""`
-                : `ACK INTERPRETATION: User declined the previous proposal. Based on the last assistant message:\n"""${lastAI}"""\nOffer the next best step or ask a targeted follow-up aligned with the session summary.`
+                : `ACK INTERPRETATION: User declined the previous proposal. Based on the last assistant message:\n"""${lastAI}"""\nOffer the next best step or ask a targeted follow-up aligned with the session summary.`,
             ),
           ]
         : []),
@@ -278,7 +282,7 @@ export const nodeAIReasoning = async (
               description: t.description || "",
               func: async (input: string) =>
                 handlerRegistry[t.name]?.(input, toolConfigMap[t.name]),
-            })
+            }),
       ) ?? [];
 
     // 8. LLM reasoning — stream tokens when no tools, invoke when tools present
@@ -319,7 +323,7 @@ export const nodeAIReasoning = async (
         try {
           toolResult = await handlerRegistry[toolName](
             args,
-            toolConfigMap[toolName]
+            toolConfigMap[toolName],
           );
           ctx.logger.debug(
             {
@@ -327,17 +331,20 @@ export const nodeAIReasoning = async (
               nodeId: ctx.nodeId,
               resultPreview: String(toolResult).slice(0, 100),
             },
-            "Tool executed successfully"
+            "Tool executed successfully",
           );
         } catch (toolErr) {
           toolResult = `Tool ${toolName} failed: ${toolErr}`;
           ctx.logger.warn(
             { toolName, error: toolErr, nodeId: ctx.nodeId },
-            "Tool execution failed"
+            "Tool execution failed",
           );
         }
         messages.push(
-          new ToolMessage({ content: String(toolResult), tool_call_id: call.id })
+          new ToolMessage({
+            content: String(toolResult),
+            tool_call_id: call.id,
+          }),
         );
       }
       result = await model.invoke(messages, {
@@ -356,10 +363,10 @@ export const nodeAIReasoning = async (
     } catch (parseErr) {
       ctx.logger.debug(
         { error: parseErr, nodeId: ctx.nodeId },
-        "JSOC parsing failed, using fallback"
+        "JSOC parsing failed, using fallback",
       );
       const fb = synthesizeJsocFromText(
-        (result as any)?.content ?? lcToText(result)
+        (result as any)?.content ?? lcToText(result),
       );
       replyText = fb.reply;
       jsocSummary = fb.summary;
@@ -374,7 +381,7 @@ export const nodeAIReasoning = async (
       } catch (e) {
         ctx.logger.warn(
           { error: e, sessionId, nodeId: ctx.nodeId },
-          "Failed to persist assistant message or summary"
+          "Failed to persist assistant message or summary",
         );
       }
     }
@@ -395,7 +402,7 @@ export const nodeAIReasoning = async (
           errors: validateResult.error.issues,
           nodeId: ctx.nodeId,
         },
-        "Invalid output from nodeAIReasoning"
+        "Invalid output from nodeAIReasoning",
       );
       return err(
         createExecutorError(
@@ -404,8 +411,8 @@ export const nodeAIReasoning = async (
           {
             nodeId: ctx.nodeId,
             retryable: false,
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -416,7 +423,7 @@ export const nodeAIReasoning = async (
         sessionId,
         replyPreview: replyText.substring(0, 50),
       },
-      "nodeAIReasoning execution complete"
+      "nodeAIReasoning execution complete",
     );
 
     return ok(validateResult.data);
@@ -428,7 +435,7 @@ export const nodeAIReasoning = async (
         nodeId: ctx.nodeId,
         cause: error,
         retryable: false,
-      }
+      },
     );
 
     ctx.logger.error(
@@ -436,7 +443,7 @@ export const nodeAIReasoning = async (
         error: executorError,
         nodeId: ctx.nodeId,
       },
-      "Unexpected error in nodeAIReasoning"
+      "Unexpected error in nodeAIReasoning",
     );
 
     return err(executorError);

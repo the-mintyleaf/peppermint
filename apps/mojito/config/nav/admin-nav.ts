@@ -78,11 +78,27 @@ export const adminShellConfig: AdminShellConfig = {
           {
             label: "Publish",
             items: [
-              { label: "Calendar", href: "/admin/publish/calendar", icon: CalendarIcon },
+              {
+                label: "Calendar",
+                href: "/admin/publish/calendar",
+                icon: CalendarIcon,
+              },
               { label: "Queue", href: "/admin/publish/queue", icon: QueueIcon },
-              { label: "Drafts", href: "/admin/publish/drafts", icon: FileTextIcon },
-              { label: "Library", href: "/admin/publish/library", icon: ArchiveIcon },
-              { label: "Approvals", href: "/admin/publish/approvals", icon: CheckSquareIcon },
+              {
+                label: "Drafts",
+                href: "/admin/publish/drafts",
+                icon: FileTextIcon,
+              },
+              {
+                label: "Library",
+                href: "/admin/publish/library",
+                icon: ArchiveIcon,
+              },
+              {
+                label: "Approvals",
+                href: "/admin/publish/approvals",
+                icon: CheckSquareIcon,
+              },
             ],
           },
         ],
@@ -99,7 +115,11 @@ export const adminShellConfig: AdminShellConfig = {
           {
             label: "Engage",
             items: [
-              { label: "Inbox", href: "/admin/engage/inbox", icon: ChatTeardropDotsIcon },
+              {
+                label: "Inbox",
+                href: "/admin/engage/inbox",
+                icon: ChatTeardropDotsIcon,
+              },
             ],
           },
         ],
@@ -116,11 +136,31 @@ export const adminShellConfig: AdminShellConfig = {
           {
             label: "Listening",
             items: [
-              { label: "Mentions", href: "/admin/listening/mentions", icon: AtIcon },
-              { label: "Keywords & Hashtags", href: "/admin/listening/keywords", icon: HashIcon },
-              { label: "Competitors", href: "/admin/listening/competitors", icon: UsersIcon },
-              { label: "Sentiment Stream", href: "/admin/listening/sentiment", icon: SmileyIcon },
-              { label: "Alerts", href: "/admin/listening/alerts", icon: BellIcon },
+              {
+                label: "Mentions",
+                href: "/admin/listening/mentions",
+                icon: AtIcon,
+              },
+              {
+                label: "Keywords & Hashtags",
+                href: "/admin/listening/keywords",
+                icon: HashIcon,
+              },
+              {
+                label: "Competitors",
+                href: "/admin/listening/competitors",
+                icon: UsersIcon,
+              },
+              {
+                label: "Sentiment Stream",
+                href: "/admin/listening/sentiment",
+                icon: SmileyIcon,
+              },
+              {
+                label: "Alerts",
+                href: "/admin/listening/alerts",
+                icon: BellIcon,
+              },
             ],
           },
         ],
@@ -137,9 +177,21 @@ export const adminShellConfig: AdminShellConfig = {
           {
             label: "Automation",
             items: [
-              { label: "Templates", href: "/admin/automation/templates", icon: LayoutIcon },
-              { label: "Workflows", href: "/admin/automation/workflows", icon: FlowArrowIcon },
-              { label: "Runs & Monitoring", href: "/admin/automation/runs", icon: PlayIcon },
+              {
+                label: "Templates",
+                href: "/admin/automation/templates",
+                icon: LayoutIcon,
+              },
+              {
+                label: "Workflows",
+                href: "/admin/automation/workflows",
+                icon: FlowArrowIcon,
+              },
+              {
+                label: "Runs & Monitoring",
+                href: "/admin/automation/runs",
+                icon: PlayIcon,
+              },
             ],
           },
         ],
@@ -156,14 +208,46 @@ export const adminShellConfig: AdminShellConfig = {
           {
             label: "Analytics",
             items: [
-              { label: "Overview", href: "/admin/analytics/overview", icon: ChartPieIcon },
-              { label: "Post Analysis", href: "/admin/analytics/post-analysis", icon: ArticleIcon },
-              { label: "Channel Performance", href: "/admin/analytics/channels", icon: ShareNetworkIcon },
-              { label: "Audience", href: "/admin/analytics/audience", icon: UsersIcon },
-              { label: "Sentiment", href: "/admin/analytics/sentiment", icon: SmileyIcon },
-              { label: "Benchmark", href: "/admin/analytics/benchmark", icon: ChartBarHorizontalIcon },
-              { label: "ROI / Attribution", href: "/admin/analytics/roi", icon: CurrencyDollarIcon },
-              { label: "Reports", href: "/admin/analytics/reports", icon: FileTextIcon },
+              {
+                label: "Overview",
+                href: "/admin/analytics/overview",
+                icon: ChartPieIcon,
+              },
+              {
+                label: "Post Analysis",
+                href: "/admin/analytics/post-analysis",
+                icon: ArticleIcon,
+              },
+              {
+                label: "Channel Performance",
+                href: "/admin/analytics/channels",
+                icon: ShareNetworkIcon,
+              },
+              {
+                label: "Audience",
+                href: "/admin/analytics/audience",
+                icon: UsersIcon,
+              },
+              {
+                label: "Sentiment",
+                href: "/admin/analytics/sentiment",
+                icon: SmileyIcon,
+              },
+              {
+                label: "Benchmark",
+                href: "/admin/analytics/benchmark",
+                icon: ChartBarHorizontalIcon,
+              },
+              {
+                label: "ROI / Attribution",
+                href: "/admin/analytics/roi",
+                icon: CurrencyDollarIcon,
+              },
+              {
+                label: "Reports",
+                href: "/admin/analytics/reports",
+                icon: FileTextIcon,
+              },
             ],
           },
         ],
@@ -180,9 +264,21 @@ export const adminShellConfig: AdminShellConfig = {
           {
             label: "Assets",
             items: [
-              { label: "Media Library", href: "/admin/assets/media", icon: ImagesIcon },
-              { label: "Brand Kit", href: "/admin/assets/brand-kit", icon: PaintBucketIcon },
-              { label: "Link-in-Bio", href: "/admin/assets/link-in-bio", icon: LinkIcon },
+              {
+                label: "Media Library",
+                href: "/admin/assets/media",
+                icon: ImagesIcon,
+              },
+              {
+                label: "Brand Kit",
+                href: "/admin/assets/brand-kit",
+                icon: PaintBucketIcon,
+              },
+              {
+                label: "Link-in-Bio",
+                href: "/admin/assets/link-in-bio",
+                icon: LinkIcon,
+              },
             ],
           },
         ],
@@ -200,8 +296,16 @@ export const adminShellConfig: AdminShellConfig = {
             label: "Channels",
             items: [
               { label: "Accounts", href: "/admin/channels", icon: PlugIcon },
-              { label: "Connect", href: "/admin/channels/connect", icon: ShareNetworkIcon },
-              { label: "Channel Settings", href: "/admin/channels/settings", icon: GearIcon },
+              {
+                label: "Connect",
+                href: "/admin/channels/connect",
+                icon: ShareNetworkIcon,
+              },
+              {
+                label: "Channel Settings",
+                href: "/admin/channels/settings",
+                icon: GearIcon,
+              },
             ],
           },
         ],
@@ -225,12 +329,36 @@ export const adminShellConfig: AdminShellConfig = {
           {
             label: "Settings",
             items: [
-              { label: "Profile", href: "/admin/settings/profile", icon: UserIcon },
-              { label: "Workspace", href: "/admin/settings/workspace", icon: BuildingsIcon },
-              { label: "Team & Roles", href: "/admin/settings/team", icon: UsersIcon },
-              { label: "Notifications", href: "/admin/settings/notifications", icon: BellIcon },
-              { label: "Integrations", href: "/admin/settings/integrations", icon: PlugIcon },
-              { label: "Billing & Plan", href: "/admin/settings/billing", icon: CreditCardIcon },
+              {
+                label: "Profile",
+                href: "/admin/settings/profile",
+                icon: UserIcon,
+              },
+              {
+                label: "Workspace",
+                href: "/admin/settings/workspace",
+                icon: BuildingsIcon,
+              },
+              {
+                label: "Team & Roles",
+                href: "/admin/settings/team",
+                icon: UsersIcon,
+              },
+              {
+                label: "Notifications",
+                href: "/admin/settings/notifications",
+                icon: BellIcon,
+              },
+              {
+                label: "Integrations",
+                href: "/admin/settings/integrations",
+                icon: PlugIcon,
+              },
+              {
+                label: "Billing & Plan",
+                href: "/admin/settings/billing",
+                icon: CreditCardIcon,
+              },
             ],
           },
         ],

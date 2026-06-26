@@ -1,9 +1,9 @@
-import type { ReactNode } from 'react';
-import type { ZodTypeAny } from 'zod';
-import type { UseFormReturnType } from '@mantine/form';
+import type { ReactNode } from "react";
+import type { ZodTypeAny } from "zod";
+import type { UseFormReturnType } from "@mantine/form";
 
 export type FormValues = Record<string, unknown>;
-export type StepStatus = 'pending' | 'complete' | 'error';
+export type StepStatus = "pending" | "complete" | "error";
 
 export interface ApiResponse<T = unknown> {
   ok: boolean;
@@ -11,7 +11,7 @@ export interface ApiResponse<T = unknown> {
   message?: string;
 }
 
-export type StepApiMode = 'on-next' | 'on-submit';
+export type StepApiMode = "on-next" | "on-submit";
 
 export interface StepApiConfig<T extends FormValues> {
   mode: StepApiMode;
@@ -20,12 +20,19 @@ export interface StepApiConfig<T extends FormValues> {
    * Receives only the fields relevant to this step + all IDs collected so far.
    * Must return an ApiResponse — if the created resource has an ID, include it in data.id.
    */
-  createFn: (data: Partial<T>, stepIds: Record<number, string>) => Promise<ApiResponse<{ id?: string } | undefined>>;
+  createFn: (
+    data: Partial<T>,
+    stepIds: Record<number, string>,
+  ) => Promise<ApiResponse<{ id?: string } | undefined>>;
   /**
    * Called when an ID is already stored for this step (patch path).
    * If omitted, createFn is always used regardless of whether an ID exists.
    */
-  patchFn?: (id: string, data: Partial<T>, stepIds: Record<number, string>) => Promise<ApiResponse>;
+  patchFn?: (
+    id: string,
+    data: Partial<T>,
+    stepIds: Record<number, string>,
+  ) => Promise<ApiResponse>;
 }
 
 export interface FormWrapperProps<T extends FormValues> {
@@ -39,12 +46,19 @@ export interface FormWrapperProps<T extends FormValues> {
    * Called after all on-submit steps complete.
    * Receives full form values + the complete stepIds map.
    */
-  finalSubmitFn?: (data: T, stepIds: Record<number, string>) => Promise<ApiResponse>;
+  finalSubmitFn?: (
+    data: T,
+    stepIds: Record<number, string>,
+  ) => Promise<ApiResponse>;
   /**
    * Fired after any step's API call succeeds.
    * id is the value from response.data.id (if returned), otherwise undefined.
    */
-  onStepSuccess?: (stepIndex: number, id: string | undefined, responseData: unknown) => void;
+  onStepSuccess?: (
+    stepIndex: number,
+    id: string | undefined,
+    responseData: unknown,
+  ) => void;
   /** Sparse array — index matches step. Step with no entry is always valid. */
   validation?: ZodTypeAny[];
   /** Field dot-paths per step for scoped validation on handleStepNext. */

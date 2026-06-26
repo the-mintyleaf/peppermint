@@ -3,6 +3,7 @@
 A **ModalModule** is a CRUD admin module where the list, create, edit, and delete all live on a **single route**. Create and edit open in modals; no page navigation happens.
 
 Use this when:
+
 - The record form is simple enough to fit in a modal (< ~8 fields)
 - You want the user to stay on the list after acting
 
@@ -39,47 +40,50 @@ apps/<app-name>/
 ### 1. `module.config.ts`
 
 ```ts
-export const MODULE_KEY = 'users';
-export const MODULE_API = '/api/users';
-export const MODULE_TITLE = 'Users';
+export const MODULE_KEY = "users";
+export const MODULE_API = "/api/users";
+export const MODULE_TITLE = "Users";
 ```
 
 ### 2. `module.api.ts`
 
 ```ts
-import { getRecords, createRecord, editRecord, deleteRecord } from '@peppermint/api-client';
-import { MODULE_API } from './module.config';
-import type { User, CreateUserInput, EditUserInput } from './index';
+import {
+  getRecords,
+  createRecord,
+  editRecord,
+  deleteRecord,
+} from "@peppermint/api-client";
+import { MODULE_API } from "./module.config";
+import type { User, CreateUserInput, EditUserInput } from "./index";
 
 export const userApi = {
   list: (params?: Record<string, unknown>) =>
     getRecords<User>(MODULE_API, params),
 
-  create: (data: CreateUserInput) =>
-    createRecord<User>(MODULE_API, data),
+  create: (data: CreateUserInput) => createRecord<User>(MODULE_API, data),
 
   edit: (id: string | number, data: EditUserInput) =>
     editRecord<User>(MODULE_API, id, data),
 
-  delete: (id: string | number) =>
-    deleteRecord(MODULE_API, id),
+  delete: (id: string | number) => deleteRecord(MODULE_API, id),
 };
 ```
 
 ### 3. `list/list.columns.tsx`
 
 ```tsx
-import type { ColumnDef } from '@peppermint/admin';
-import type { User } from '../../index';
+import type { ColumnDef } from "@peppermint/admin";
+import type { User } from "../../index";
 
 export const userColumns: ColumnDef<User>[] = [
-  { key: 'name', label: 'Name', sortable: true },
-  { key: 'email', label: 'Email' },
+  { key: "name", label: "Name", sortable: true },
+  { key: "email", label: "Email" },
   {
-    key: 'status',
-    label: 'Status',
+    key: "status",
+    label: "Status",
     render: (val: unknown) => (
-      <Badge color={val === 'active' ? 'green' : 'gray'}>{String(val)}</Badge>
+      <Badge color={val === "active" ? "green" : "gray"}>{String(val)}</Badge>
     ),
   },
 ];
@@ -92,20 +96,28 @@ IMPORTANT: When building any form, always design it with a clear structure, logi
 Fields only — no submit button. Rendered inside modals by `DataTableModalShell`.
 
 ```tsx
-import { Stack, TextInput, Select } from '@peppermint/ui';
-import { useFormInstance } from '@peppermint/admin';
-import type { CreateUserInput } from '../../index';
+import { Stack, TextInput, Select } from "@peppermint/ui";
+import { useFormInstance } from "@peppermint/admin";
+import type { CreateUserInput } from "../../index";
 
 export function UserForm() {
   const { form } = useFormInstance<CreateUserInput>();
   return (
     <Stack gap="md">
-      <TextInput label="Name" required {...form.getInputProps('name')} />
-      <TextInput label="Email" required type="email" {...form.getInputProps('email')} />
+      <TextInput label="Name" required {...form.getInputProps("name")} />
+      <TextInput
+        label="Email"
+        required
+        type="email"
+        {...form.getInputProps("email")}
+      />
       <Select
         label="Role"
-        data={[{ value: 'admin', label: 'Admin' }, { value: 'user', label: 'User' }]}
-        {...form.getInputProps('role')}
+        data={[
+          { value: "admin", label: "Admin" },
+          { value: "user", label: "User" },
+        ]}
+        {...form.getInputProps("role")}
       />
     </Stack>
   );
@@ -119,8 +131,10 @@ export function UserEditForm({ record }: { record: User }) {
   const { form } = useFormInstance<EditUserInput>();
   return (
     <Stack gap="md">
-      <Text size="sm" c="dimmed">Editing: {record.email}</Text>
-      <TextInput label="Name" required {...form.getInputProps('name')} />
+      <Text size="sm" c="dimmed">
+        Editing: {record.email}
+      </Text>
+      <TextInput label="Name" required {...form.getInputProps("name")} />
     </Stack>
   );
 }
@@ -129,14 +143,14 @@ export function UserEditForm({ record }: { record: User }) {
 ### 5. `pages/list/page.tsx`
 
 ```tsx
-import { DataTableModalShell } from '@peppermint/admin';
-import { MODULE_KEY, MODULE_TITLE } from '../../module.config';
-import { userApi } from '../../module.api';
-import { userColumns } from './list.columns';
-import { UserForm } from '../../form/UserForm';
-import type { User, CreateUserInput, EditUserInput } from '../../index';
+import { DataTableModalShell } from "@peppermint/admin";
+import { MODULE_KEY, MODULE_TITLE } from "../../module.config";
+import { userApi } from "../../module.api";
+import { userColumns } from "./list.columns";
+import { UserForm } from "../../form/UserForm";
+import type { User, CreateUserInput, EditUserInput } from "../../index";
 
-const CREATE_INITIAL: CreateUserInput = { name: '', email: '', role: 'user' };
+const CREATE_INITIAL: CreateUserInput = { name: "", email: "", role: "user" };
 
 export function UserListPage() {
   return (
@@ -161,7 +175,7 @@ export function UserListPage() {
 ### 6. `app/admin/[module-name]/page.tsx`
 
 ```tsx
-import { UserListPage } from '../../../modules/admin/users/pages/list/page';
+import { UserListPage } from "../../../modules/admin/users/pages/list/page";
 export default UserListPage;
 ```
 
@@ -169,12 +183,12 @@ export default UserListPage;
 
 ```ts
 // Types
-export type { User } from './user.types';
-export type { CreateUserInput, EditUserInput } from './user.types';
+export type { User } from "./user.types";
+export type { CreateUserInput, EditUserInput } from "./user.types";
 
 // Public API (optional — expose if other modules need these)
-export { userApi } from './module.api';
-export { userColumns } from './pages/list/list.columns';
+export { userApi } from "./module.api";
+export { userColumns } from "./pages/list/list.columns";
 ```
 
 ---
@@ -184,14 +198,17 @@ export { userColumns } from './pages/list/list.columns';
 Define `FilterDef[]` in `list.columns.tsx` alongside the column definitions and pass to `filterList`:
 
 ```tsx
-import type { FilterDef } from '@peppermint/admin';
+import type { FilterDef } from "@peppermint/admin";
 
 export const userFilters: FilterDef[] = [
   {
-    key: 'role',
-    label: 'Role',
-    type: 'select',
-    options: [{ value: 'admin', label: 'Admin' }, { value: 'user', label: 'User' }],
+    key: "role",
+    label: "Role",
+    type: "select",
+    options: [
+      { value: "admin", label: "Admin" },
+      { value: "user", label: "User" },
+    ],
   },
 ];
 ```
@@ -211,19 +228,24 @@ Pass schemas via the `FormWrapper` — but `DataTableModalShell` doesn't expose 
 
 ```ts
 // module.api.ts
-import { z } from 'zod';
+import { z } from "zod";
 
 const createSchema = z.object({
-  name: z.string().min(1, 'Required'),
+  name: z.string().min(1, "Required"),
   email: z.string().email(),
-  role: z.string().min(1, 'Required'),
+  role: z.string().min(1, "Required"),
 });
 
 export const userApi = {
   create: (data: CreateUserInput) => {
     const parsed = createSchema.safeParse(data);
     if (!parsed.success) {
-      return Promise.resolve({ ok: false, status: 422, data: null, message: parsed.error.issues[0].message });
+      return Promise.resolve({
+        ok: false,
+        status: 422,
+        data: null,
+        message: parsed.error.issues[0].message,
+      });
     }
     return createRecord<User>(MODULE_API, parsed.data);
   },

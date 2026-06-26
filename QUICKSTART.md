@@ -11,6 +11,7 @@ redis-server
 ```
 
 Keep this terminal open. You should see:
+
 ```
 Ready to accept connections
 ```
@@ -23,6 +24,7 @@ pnpm dev
 ```
 
 Wait for:
+
 ```
 API running on port 3000
 ```
@@ -35,6 +37,7 @@ pnpm dev
 ```
 
 Wait for:
+
 ```
 ▲ Next.js X.X.X
 - Local: http://localhost:3001
@@ -56,12 +59,12 @@ That's it! 🎉
 
 ## If Something Goes Wrong
 
-| Problem | Solution |
-|---------|----------|
-| "connect ECONNREFUSED" in mint-ai | Redis isn't running. Check the Redis terminal. |
-| "Cannot reach api" | Make sure mint-ai terminal shows "port 3000" |
-| Chat shows "Sorry, something went wrong" | Check browser DevTools (F12) Network tab for errors |
-| Port already in use | Kill the process: `lsof -i :3000` then `kill -9 <PID>` |
+| Problem                                  | Solution                                               |
+| ---------------------------------------- | ------------------------------------------------------ |
+| "connect ECONNREFUSED" in mint-ai        | Redis isn't running. Check the Redis terminal.         |
+| "Cannot reach api"                       | Make sure mint-ai terminal shows "port 3000"           |
+| Chat shows "Sorry, something went wrong" | Check browser DevTools (F12) Network tab for errors    |
+| Port already in use                      | Kill the process: `lsof -i :3000` then `kill -9 <PID>` |
 
 ---
 

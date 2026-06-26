@@ -35,7 +35,9 @@ export function ScheduledPopover({ entry, children }: ScheduledPopoverProps) {
           <Button
             size="xs"
             variant="subtle"
-            onClick={() => router.push(`/admin/automation/workflows/${entry.automationId}`)}
+            onClick={() =>
+              router.push(`/admin/automation/workflows/${entry.automationId}`)
+            }
           >
             Open Automation
           </Button>

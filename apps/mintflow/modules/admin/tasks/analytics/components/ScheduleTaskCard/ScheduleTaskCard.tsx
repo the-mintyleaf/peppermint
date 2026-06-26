@@ -1,10 +1,22 @@
 "use client";
 
-import { Avatar, Badge, Box, Button, Group, Progress, Stack, Text } from "@peppermint/ui";
+import {
+  Avatar,
+  Badge,
+  Box,
+  Button,
+  Group,
+  Progress,
+  Stack,
+  Text,
+} from "@peppermint/ui";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { VideoCameraIcon } from "@phosphor-icons/react/dist/csr/VideoCamera";
 import { ANALYTICS_COLORS } from "../../taskAnalytics.styles";
-import type { AddTaskPlaceholderProps, ScheduleTaskCardProps } from "./ScheduleTaskCard.types";
+import type {
+  AddTaskPlaceholderProps,
+  ScheduleTaskCardProps,
+} from "./ScheduleTaskCard.types";
 
 const HOUR_HEIGHT = 80;
 const SCHEDULE_START = 10;
@@ -109,7 +121,11 @@ export function ScheduleTaskCard({ task, onClick }: ScheduleTaskCardProps) {
   );
 }
 
-export function AddTaskPlaceholder({ dayIndex: _dayIndex, startHour, endHour }: AddTaskPlaceholderProps) {
+export function AddTaskPlaceholder({
+  dayIndex: _dayIndex,
+  startHour,
+  endHour,
+}: AddTaskPlaceholderProps) {
   const top = hourToTop(startHour);
   const height = hourToHeight(startHour, endHour);
 
@@ -132,7 +148,11 @@ export function AddTaskPlaceholder({ dayIndex: _dayIndex, startHour, endHour }: 
       }}
     >
       <Stack align="center" gap={4}>
-        <PlusIcon size={24} color={ANALYTICS_COLORS.accentGreen} aria-label="Add task" />
+        <PlusIcon
+          size={24}
+          color={ANALYTICS_COLORS.accentGreen}
+          aria-label="Add task"
+        />
         <Text size="xs" c={ANALYTICS_COLORS.accentGreen} fw={600}>
           Add new task
         </Text>

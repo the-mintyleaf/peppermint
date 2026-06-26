@@ -1,12 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Box,
-  Skeleton,
-  Stack,
-  useDebouncedValue,
-} from "@peppermint/ui";
+import { Box, Skeleton, Stack, useDebouncedValue } from "@peppermint/ui";
 import { TaskDetailModal } from "../kanban/components/TaskDetailModal";
 import type { Task } from "../kanban/module.api";
 import { ArchiveProjects } from "./components/ArchiveProjects";
@@ -17,7 +12,11 @@ import { TaskCategories } from "./components/TaskCategories";
 import { WeeklyProductivity } from "./components/WeeklyProductivity";
 import { useTaskAnalyticsDashboard } from "./TaskAnalyticsDashboard.hooks";
 import { scheduledTaskToTask } from "./taskAnalytics.utils";
-import type { DashboardView, ScheduledTask, TaskCategoryFilter } from "./taskAnalytics.types";
+import type {
+  DashboardView,
+  ScheduledTask,
+  TaskCategoryFilter,
+} from "./taskAnalytics.types";
 
 function formatMonthKey(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
@@ -29,7 +28,9 @@ export function TaskAnalyticsDashboard() {
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch] = useDebouncedValue(searchInput, 300);
   const [calendarFilter, setCalendarFilter] = useState("Yours");
-  const [activeCategories, setActiveCategories] = useState<Set<TaskCategoryFilter>>(new Set());
+  const [activeCategories, setActiveCategories] = useState<
+    Set<TaskCategoryFilter>
+  >(new Set());
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const monthKey = formatMonthKey(selectedMonth);
@@ -37,7 +38,9 @@ export function TaskAnalyticsDashboard() {
 
   useEffect(() => {
     if (data) {
-      const defaults = data.categories.filter((c) => c.defaultChecked).map((c) => c.id);
+      const defaults = data.categories
+        .filter((c) => c.defaultChecked)
+        .map((c) => c.id);
       setActiveCategories(new Set(defaults));
     }
   }, [data]);
@@ -69,7 +72,8 @@ export function TaskAnalyticsDashboard() {
         task.title.toLowerCase().includes(q) ||
         task.category.toLowerCase().includes(q);
       const matchesCategory =
-        activeCategories.size === 0 || activeCategories.has(task.categoryFilter);
+        activeCategories.size === 0 ||
+        activeCategories.has(task.categoryFilter);
       return matchesSearch && matchesCategory;
     });
   }, [data, debouncedSearch, activeCategories]);
@@ -84,7 +88,6 @@ export function TaskAnalyticsDashboard() {
           </Box>
         ) : (
           <Box
-
             style={{
               flex: 1,
               minHeight: 0,
@@ -105,7 +108,10 @@ export function TaskAnalyticsDashboard() {
                 alignContent: "start",
               }}
             >
-              <Stack gap={8} style={{ gridArea: "sidebar", alignSelf: "start" }}>
+              <Stack
+                gap={8}
+                style={{ gridArea: "sidebar", alignSelf: "start" }}
+              >
                 <MiniCalendar
                   activeFilter={calendarFilter}
                   onFilterChange={setCalendarFilter}

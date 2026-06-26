@@ -7,8 +7,6 @@ export function DataTableEmptyState() {
   return (
     <Center>
       <Stack>
-    
-
         <div>
           <Text size="lg" c="gray.4" ta="center">
             Seems like you have not added any record yet.

@@ -7,8 +7,17 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlayIcon } from "@phosphor-icons/react/dist/csr/Play";
 import { PauseIcon } from "@phosphor-icons/react/dist/csr/Pause";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
-import type { DataTableShellTab, DataTableShellColumn } from "@peppermint/admin";
-import { fetchAutomations, runAutomation, pauseAutomation, type Automation, type AutomationStatus } from "../../module.api";
+import type {
+  DataTableShellTab,
+  DataTableShellColumn,
+} from "@peppermint/admin";
+import {
+  fetchAutomations,
+  runAutomation,
+  pauseAutomation,
+  type Automation,
+  type AutomationStatus,
+} from "../../module.api";
 import type { QueryParams } from "@peppermint/admin";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -62,12 +71,15 @@ export function AutomationsList() {
 
   const { mutate: triggerRun } = useMutation({
     mutationFn: (id: string) => runAutomation(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["automations"] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["automations"] }),
   });
 
   const { mutate: togglePause } = useMutation({
-    mutationFn: ({ id, pause }: { id: string; pause: boolean }) => pauseAutomation(id, pause),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["automations"] }),
+    mutationFn: ({ id, pause }: { id: string; pause: boolean }) =>
+      pauseAutomation(id, pause),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["automations"] }),
   });
 
   const columns: DataTableShellColumn<Automation>[] = [
@@ -94,7 +106,11 @@ export function AutomationsList() {
       key: "status",
       width: 110,
       render: (row) => (
-        <Badge size="xs" color={STATUS_COLORS[row.status] ?? "gray"} tt="capitalize">
+        <Badge
+          size="xs"
+          color={STATUS_COLORS[row.status] ?? "gray"}
+          tt="capitalize"
+        >
           {row.status}
         </Badge>
       ),
@@ -110,7 +126,16 @@ export function AutomationsList() {
             {relativeTime(row.lastRunAt)}
           </Text>
           {row.lastRunStatus && (
-            <Text size="xs" c={row.lastRunStatus === "success" ? "green" : row.lastRunStatus === "failed" ? "red" : "yellow"}>
+            <Text
+              size="xs"
+              c={
+                row.lastRunStatus === "success"
+                  ? "green"
+                  : row.lastRunStatus === "failed"
+                    ? "red"
+                    : "yellow"
+              }
+            >
               {LAST_RUN_ICONS[row.lastRunStatus]}
             </Text>
           )}
@@ -146,7 +171,10 @@ export function AutomationsList() {
               <PlayIcon size={13} />
             </ActionIcon>
           </Tooltip>
-          <Tooltip label={row.status === "paused" ? "Resume" : "Pause"} withArrow>
+          <Tooltip
+            label={row.status === "paused" ? "Resume" : "Pause"}
+            withArrow
+          >
             <ActionIcon
               size="sm"
               variant="subtle"
@@ -154,7 +182,11 @@ export function AutomationsList() {
               onClick={() =>
                 togglePause({ id: row.id, pause: row.status !== "paused" })
               }
-              aria-label={row.status === "paused" ? "Resume automation" : "Pause automation"}
+              aria-label={
+                row.status === "paused"
+                  ? "Resume automation"
+                  : "Pause automation"
+              }
             >
               {row.status === "paused" ? (
                 <ArrowCounterClockwiseIcon size={13} />
@@ -173,7 +205,9 @@ export function AutomationsList() {
       <DataTableShell<Automation>
         queryKey="automations.list"
         queryGetFn={(params?: QueryParams) =>
-          fetchAutomations({ status: params?.filters?.status as string | undefined }).then((r) => ({
+          fetchAutomations({
+            status: params?.filters?.status as string | undefined,
+          }).then((r) => ({
             data: r.data,
             meta: r.meta,
           }))

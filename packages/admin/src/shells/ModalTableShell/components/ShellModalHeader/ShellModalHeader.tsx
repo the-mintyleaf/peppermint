@@ -3,10 +3,17 @@
 import { ActionIcon, Divider, Group, Text } from "@peppermint/ui";
 import { ArrowsOutSimpleIcon } from "@phosphor-icons/react/dist/csr/ArrowsOutSimple";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
-import { SHELL_MODAL_HEADER, shellModalHeaderActionStyle } from "./shellModalHeader.styles";
+import {
+  SHELL_MODAL_HEADER,
+  shellModalHeaderActionStyle,
+} from "./shellModalHeader.styles";
 import type { ShellModalHeaderProps } from "./ShellModalHeader.types";
 
-export function ShellModalHeader({ parentLabel, currentLabel, onClose }: ShellModalHeaderProps) {
+export function ShellModalHeader({
+  parentLabel,
+  currentLabel,
+  onClose,
+}: ShellModalHeaderProps) {
   return (
     <>
       <Group
@@ -16,7 +23,6 @@ export function ShellModalHeader({ parentLabel, currentLabel, onClose }: ShellMo
         wrap="nowrap"
       >
         <Group gap={8} wrap="nowrap">
-
           <Text size="xs" c="dimmed">
             {parentLabel}
             <Text span c="dimmed" mx={6}>

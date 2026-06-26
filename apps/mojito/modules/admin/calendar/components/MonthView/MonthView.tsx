@@ -14,7 +14,11 @@ interface MonthViewProps {
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MAX_VISIBLE = 2;
 
-export function MonthView({ monthStart, entries, onEntryClick }: MonthViewProps) {
+export function MonthView({
+  monthStart,
+  entries,
+  onEntryClick,
+}: MonthViewProps) {
   const year = monthStart.getFullYear();
   const month = monthStart.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -22,27 +26,46 @@ export function MonthView({ monthStart, entries, onEntryClick }: MonthViewProps)
 
   const cells: (Date | null)[] = [
     ...Array(firstDayOfWeek).fill(null),
-    ...Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1)),
+    ...Array.from(
+      { length: daysInMonth },
+      (_, i) => new Date(year, month, i + 1),
+    ),
   ];
 
   const entriesForDay = (day: Date) =>
     entries.filter((e) => {
       const d = new Date(e.scheduledAt);
-      return d.getFullYear() === year && d.getMonth() === month && d.getDate() === day.getDate();
+      return (
+        d.getFullYear() === year &&
+        d.getMonth() === month &&
+        d.getDate() === day.getDate()
+      );
     });
 
   const today = new Date();
 
   return (
     <Stack gap={4}>
-      <Box style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+      <Box
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(7, 1fr)",
+          gap: 4,
+        }}
+      >
         {DAY_NAMES.map((d) => (
           <Text key={d} size="xs" c="dimmed" ta="center" fw={500}>
             {d}
           </Text>
         ))}
       </Box>
-      <Box style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+      <Box
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(7, 1fr)",
+          gap: 4,
+        }}
+      >
         {cells.map((day, i) => {
           if (!day) return <Box key={`empty-${i}`} style={{ minHeight: 80 }} />;
 
@@ -82,8 +105,12 @@ export function MonthView({ monthStart, entries, onEntryClick }: MonthViewProps)
                       </div>
                     </ScheduledPopover>
                   ) : (
-                    <CalendarEntry key={entry.id} entry={entry} onClick={onEntryClick} />
-                  )
+                    <CalendarEntry
+                      key={entry.id}
+                      entry={entry}
+                      onClick={onEntryClick}
+                    />
+                  ),
                 )}
                 {overflow > 0 && (
                   <Text size="xs" c="dimmed">

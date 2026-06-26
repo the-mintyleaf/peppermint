@@ -4,7 +4,9 @@ import { Group, Stack, Text } from "@peppermint/ui";
 import { useTableData } from "../../../../wrappers/DataTableWrapper";
 import type { DataTableShellHeaderProps } from "../../DataTableShell.types";
 
-export function DataTableShellHeader({ moduleInfo }: DataTableShellHeaderProps) {
+export function DataTableShellHeader({
+  moduleInfo,
+}: DataTableShellHeaderProps) {
   const displayLabel = moduleInfo.label ?? moduleInfo.name;
   const { total } = useTableData();
 
@@ -18,7 +20,7 @@ export function DataTableShellHeader({ moduleInfo }: DataTableShellHeaderProps) 
           {total}
         </Text>
       </Group>
-      <Text size="xs" opacity={.5}>
+      <Text size="xs" opacity={0.5}>
         {moduleInfo.description}
       </Text>
     </Stack>

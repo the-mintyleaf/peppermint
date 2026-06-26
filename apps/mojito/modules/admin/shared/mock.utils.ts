@@ -16,7 +16,7 @@ export interface PaginatedResponse<T> {
 export function paginate<T>(
   items: T[],
   page: number = 1,
-  pageSize: number = 10
+  pageSize: number = 10,
 ): PaginatedResponse<T> {
   const startIndex = (page - 1) * pageSize;
   const endIndex = startIndex + pageSize;

@@ -13,7 +13,12 @@ import {
 } from "@peppermint/ui";
 import { useForm } from "@peppermint/ui";
 import type { NodeFormModalProps } from "./NodeFormModal.types";
-import type { OrgNodeData, OrgOfficeData, DepartmentData, PersonData } from "../../../../organization.types";
+import type {
+  OrgNodeData,
+  OrgOfficeData,
+  DepartmentData,
+  PersonData,
+} from "../../../../organization.types";
 
 const ORG_TYPE_OPTIONS = [
   { value: "ministry", label: "Ministry" },
@@ -63,7 +68,10 @@ export function NodeFormModal({
   initialData,
   onSubmit,
 }: NodeFormModalProps) {
-  const resolvedType = nodeType ?? (initialData as OrgNodeData | undefined)?.nodeType ?? "department";
+  const resolvedType =
+    nodeType ??
+    (initialData as OrgNodeData | undefined)?.nodeType ??
+    "department";
   const title = TITLE_MAP[resolvedType]?.[mode] ?? "Add Node";
 
   interface OrgFormValues {
@@ -110,7 +118,9 @@ export function NodeFormModal({
       status: "active",
       headCount: undefined,
       activeTasks: undefined,
-      ...(initialData?.nodeType === "org" ? (initialData as Partial<OrgOfficeData>) : {}),
+      ...(initialData?.nodeType === "org"
+        ? (initialData as Partial<OrgOfficeData>)
+        : {}),
     },
     validate: {
       name: (v) => (!v?.trim() ? "Name is required" : null),
@@ -131,7 +141,9 @@ export function NodeFormModal({
       pendingTasks: 0,
       status: "active",
       color: undefined,
-      ...(initialData?.nodeType === "department" ? (initialData as Partial<DepartmentData>) : {}),
+      ...(initialData?.nodeType === "department"
+        ? (initialData as Partial<DepartmentData>)
+        : {}),
     },
     validate: {
       name: (v) => (!v?.trim() ? "Name is required" : null),
@@ -149,7 +161,9 @@ export function NodeFormModal({
       phone: "",
       status: "active",
       reportingManager: "",
-      ...(initialData?.nodeType === "person" ? (initialData as Partial<PersonData>) : {}),
+      ...(initialData?.nodeType === "person"
+        ? (initialData as Partial<PersonData>)
+        : {}),
     },
     validate: {
       fullName: (v) => (!v?.trim() ? "Full name is required" : null),
@@ -165,7 +179,10 @@ export function NodeFormModal({
     } else if (resolvedType === "department") {
       const result = deptForm.validate();
       if (result.hasErrors) return;
-      onSubmit({ nodeType: "department", ...deptForm.values } as DepartmentData);
+      onSubmit({
+        nodeType: "department",
+        ...deptForm.values,
+      } as DepartmentData);
     } else {
       const result = personForm.validate();
       if (result.hasErrors) return;

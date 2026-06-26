@@ -102,8 +102,11 @@ export function FormWrapper<T extends FormValues>({
 
   const [stepStatus, setStepStatus] = useState<Record<number, StepStatus>>(() =>
     Object.fromEntries(
-      Array.from({ length: totalSteps }, (_, i) => [i, "pending" as StepStatus])
-    )
+      Array.from({ length: totalSteps }, (_, i) => [
+        i,
+        "pending" as StepStatus,
+      ]),
+    ),
   );
 
   // IDs returned by per-step API calls, keyed by step index.
@@ -112,7 +115,9 @@ export function FormWrapper<T extends FormValues>({
   // without re-closing over state (state reads inside callbacks are stale).
   const stepIdsRef = useRef<Record<number, string>>({});
 
-  const setStepIdsSync = (updater: (prev: Record<number, string>) => Record<number, string>) => {
+  const setStepIdsSync = (
+    updater: (prev: Record<number, string>) => Record<number, string>,
+  ) => {
     setStepIds((prev) => {
       const next = updater(prev);
       stepIdsRef.current = next;
@@ -123,7 +128,9 @@ export function FormWrapper<T extends FormValues>({
   // Derived once per stepStatus change — not recomputed inline inside controlsValue memo.
   const completionPct = useMemo(() => {
     if (totalSteps <= 1) return 0;
-    const completed = Object.values(stepStatus).filter((s) => s === "complete").length;
+    const completed = Object.values(stepStatus).filter(
+      (s) => s === "complete",
+    ).length;
     return Math.round((completed / totalSteps) * 100);
   }, [stepStatus, totalSteps]);
 
@@ -134,7 +141,7 @@ export function FormWrapper<T extends FormValues>({
     if (!fields?.length) return formRef.current.values as T;
     const values = formRef.current.values;
     return Object.fromEntries(
-      fields.map((key) => [key, values[key]])
+      fields.map((key) => [key, values[key]]),
     ) as Partial<T>;
   };
 
@@ -148,9 +155,10 @@ export function FormWrapper<T extends FormValues>({
     const ids = stepIdsRef.current;
     const existingId = ids[stepIndex];
 
-    const response = existingId && config.patchFn
-      ? await config.patchFn(existingId, data, ids)
-      : await config.createFn(data, ids);
+    const response =
+      existingId && config.patchFn
+        ? await config.patchFn(existingId, data, ids)
+        : await config.createFn(data, ids);
 
     if (!response.ok) {
       notifications.show({
@@ -184,7 +192,7 @@ export function FormWrapper<T extends FormValues>({
       const valid = validateStep(
         formRef.current as unknown as ReturnType<typeof useForm<FormValues>>,
         fields,
-        schema
+        schema,
       );
       if (!valid) {
         setStepStatus((prev) => ({ ...prev, [cur]: "error" }));
@@ -277,7 +285,7 @@ export function FormWrapper<T extends FormValues>({
   // (those live in FormControlsContext only).
   const instanceValue = useMemo(
     () => ({ form }) as FormInstanceContextValue<FormValues>,
-    [form] // eslint-disable-line react-hooks/exhaustive-deps
+    [form], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   // isDirty: when hasDirtCheck is active, form.isDirty() re-evaluates on every
@@ -298,7 +306,18 @@ export function FormWrapper<T extends FormValues>({
       handleStepBack,
       handleStepGo,
     }),
-    [current, isLoading, stepStatus, stepIds, completionPct, isDirty, handleSubmit, handleStepNext, handleStepBack, handleStepGo]
+    [
+      current,
+      isLoading,
+      stepStatus,
+      stepIds,
+      completionPct,
+      isDirty,
+      handleSubmit,
+      handleStepNext,
+      handleStepBack,
+      handleStepGo,
+    ],
   );
 
   return (

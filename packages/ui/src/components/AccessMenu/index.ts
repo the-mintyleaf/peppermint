@@ -1,5 +1,5 @@
-export { AccessMenu } from './AccessMenu';
-export { ACCESS_LEVEL_OPTIONS, accessLevelLabel } from './accessMenu.utils';
+export { AccessMenu } from "./AccessMenu";
+export { ACCESS_LEVEL_OPTIONS, accessLevelLabel } from "./accessMenu.utils";
 export type {
   AccessMenuProps,
   AccessMenuData,
@@ -7,4 +7,4 @@ export type {
   AccessLevel,
   AccessAccount,
   AccessRole,
-} from './AccessMenu.types';
+} from "./AccessMenu.types";

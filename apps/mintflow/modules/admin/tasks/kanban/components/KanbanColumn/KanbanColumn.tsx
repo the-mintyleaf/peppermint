@@ -11,7 +11,10 @@ import {
   Text,
 } from "@peppermint/ui";
 import { useDndContext, useDroppable } from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { DotsThreeVerticalIcon } from "@phosphor-icons/react/dist/csr/DotsThreeVertical";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { KanbanCard } from "../KanbanCard";
@@ -19,10 +22,10 @@ import type { ColumnConfig, KanbanColumnProps } from "./KanbanColumn.types";
 import type { TaskStatus } from "../../module.api";
 
 const COLUMN_CONFIG: Record<TaskStatus, ColumnConfig> = {
-  inbox:    { label: "Task Inbox",              dotColor: "gray"   },
-  ongoing:  { label: "Ongoing",                 dotColor: "blue"   },
-  hold:     { label: "Hold / Pending Approval", dotColor: "orange" },
-  rejected: { label: "Rejected",                dotColor: "red"    },
+  inbox: { label: "Task Inbox", dotColor: "gray" },
+  ongoing: { label: "Ongoing", dotColor: "blue" },
+  hold: { label: "Hold / Pending Approval", dotColor: "orange" },
+  rejected: { label: "Rejected", dotColor: "red" },
 };
 
 export const KanbanColumn = memo(function KanbanColumn({
@@ -53,18 +56,25 @@ export const KanbanColumn = memo(function KanbanColumn({
         flexDirection: "column",
         minHeight: "100%",
         backgroundColor: "var(--mantine-color-gray-0)",
-        border: isDragging && isOver
-          ? "1px solid var(--mantine-color-gray-4)"
-          : "1px solid var(--mantine-color-gray-2)",
-        boxShadow: isDragging && isOver
-          ? "inset 0 0 0 1px var(--mantine-color-gray-3)"
-          : undefined,
+        border:
+          isDragging && isOver
+            ? "1px solid var(--mantine-color-gray-4)"
+            : "1px solid var(--mantine-color-gray-2)",
+        boxShadow:
+          isDragging && isOver
+            ? "inset 0 0 0 1px var(--mantine-color-gray-3)"
+            : undefined,
         transition: "border-color 0.2s ease, box-shadow 0.2s ease",
       }}
     >
       <Box px="sm" pt="sm" pb={6}>
         <Group justify="space-between" align="center" wrap="nowrap" gap="xs">
-          <Group gap={8} align="center" wrap="nowrap" style={{ minWidth: 0, flex: 1 }}>
+          <Group
+            gap={8}
+            align="center"
+            wrap="nowrap"
+            style={{ minWidth: 0, flex: 1 }}
+          >
             <Box
               w={8}
               h={8}
@@ -113,12 +123,25 @@ export const KanbanColumn = memo(function KanbanColumn({
         </Group>
       </Box>
 
-      <Box px="sm" pb="xs" style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+      <Box
+        px="sm"
+        pb="xs"
+        style={{
+          flex: 1,
+          minHeight: 0,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           {tasks.length > 0 ? (
             <Stack gap={8}>
               {tasks.map((task) => (
-                <KanbanCard key={task.id} task={task} onCardClick={onCardClick} />
+                <KanbanCard
+                  key={task.id}
+                  task={task}
+                  onCardClick={onCardClick}
+                />
               ))}
             </Stack>
           ) : (
@@ -134,7 +157,9 @@ export const KanbanColumn = memo(function KanbanColumn({
                 justifyContent: "center",
               }}
             >
-              <Text size="xs" c="dimmed">No tasks</Text>
+              <Text size="xs" c="dimmed">
+                No tasks
+              </Text>
             </Box>
           )}
         </SortableContext>

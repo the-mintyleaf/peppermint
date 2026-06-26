@@ -11,8 +11,8 @@ export async function routeRunsTest(app: FastifyInstance) {
         // Get queue info
         const runsCount = await runsQueue.count();
         const nodesCount = await nodesQueue.count();
-        const runsActive = await runsQueue.getActiveCount?.() || 0;
-        const nodesActive = await nodesQueue.getActiveCount?.() || 0;
+        const runsActive = (await runsQueue.getActiveCount?.()) || 0;
+        const nodesActive = (await nodesQueue.getActiveCount?.()) || 0;
 
         const metrics = {
           runsQueueDepth: runsCount || 0,

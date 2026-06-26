@@ -61,7 +61,8 @@ export function DataTableShellToolbar({
 
   const [svalue, setSValue] = useState<string>("");
   const [debouncedSearch] = useDebouncedValue(svalue, 200);
-  const [drawerOpened, { open: openDrawer, close: closeDrawer }] = useDisclosure();
+  const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
+    useDisclosure();
 
   // * EFFECT
 
@@ -78,20 +79,15 @@ export function DataTableShellToolbar({
       <Paper
         px="md"
         w="100%"
-        hiddenFrom="lg" pos="fixed"
+        hiddenFrom="lg"
+        pos="fixed"
         bottom={0}
         left="50%"
-        style={{ transform: "translateX(-50%)", zIndex: 100 }}>
-
-        <Group
-          justify="space-between"
-          gap="xs"
-        >
+        style={{ transform: "translateX(-50%)", zIndex: 100 }}
+      >
+        <Group justify="space-between" gap="xs">
           <Group gap="xs">
-            <Button
-              variant="light"
-              leftSection={<ArrowLeftIcon />}
-            >
+            <Button variant="light" leftSection={<ArrowLeftIcon />}>
               Back to Home
             </Button>
           </Group>
@@ -105,7 +101,6 @@ export function DataTableShellToolbar({
             {sustained && handleNewClick ? (
               <ActionIcon
                 size="lg"
-             
                 onClick={handleNewClick}
                 disabled={disableCreateButton}
               >
@@ -114,7 +109,6 @@ export function DataTableShellToolbar({
             ) : (
               <ActionIcon
                 size="lg"
-             
                 component="a"
                 href={disableCreateButton ? undefined : finalHref}
                 disabled={disableCreateButton}
@@ -122,8 +116,6 @@ export function DataTableShellToolbar({
                 <PlusIcon size={20} />
               </ActionIcon>
             )}
-
-
           </Group>
         </Group>
       </Paper>
@@ -158,7 +150,11 @@ export function DataTableShellToolbar({
                       onTabChange(index);
                       closeDrawer();
                     }}
-                    bg={activeTab === index ? "var(--mantine-color-blue-light)" : undefined}
+                    bg={
+                      activeTab === index
+                        ? "var(--mantine-color-blue-light)"
+                        : undefined
+                    }
                   >
                     {tab.label}
                   </Menu.Item>
@@ -268,7 +264,11 @@ export function DataTableShellToolbar({
                   Columns
                 </Button>
               </Popover.Target>
-              <Popover.Dropdown p={0} w={200} style={{ backgroundColor: "var(--mantine-color-body)" }}>
+              <Popover.Dropdown
+                p={0}
+                w={200}
+                style={{ backgroundColor: "var(--mantine-color-body)" }}
+              >
                 <Stack gap={0}>
                   <Text px="sm" py="xs" size="xs" opacity={0.5}>
                     Select columns to view

@@ -1,14 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { Paper, Stack, Group, Text, SegmentedControl, Divider } from "@peppermint/ui";
+import {
+  Paper,
+  Stack,
+  Group,
+  Text,
+  SegmentedControl,
+  Divider,
+} from "@peppermint/ui";
 import { useQuery } from "@tanstack/react-query";
 import { StatCards } from "./components/StatCards";
 import { ContentVolumeChart } from "./components/ContentVolumeChart";
 import { AutomationPerformanceChart } from "./components/AutomationPerformanceChart";
 import { PlatformDonutChart } from "./components/PlatformDonutChart";
 import { AutomationStatsTable } from "./components/AutomationStatsTable";
-import { fetchSummary, fetchAutomationStats, fetchContentVolume } from "./analytics.api";
+import {
+  fetchSummary,
+  fetchAutomationStats,
+  fetchContentVolume,
+} from "./analytics.api";
 import { analyticsQueryKeys } from "./analytics.queryKeys";
 import type { AnalyticsPeriod } from "./Analytics.types";
 
@@ -41,7 +52,9 @@ export function Analytics() {
       <Paper p="lg" radius="md" withBorder>
         <Group justify="space-between" align="center">
           <Stack gap={2}>
-            <Text size="lg" fw={600}>Post Analysis</Text>
+            <Text size="lg" fw={600}>
+              Post Analysis
+            </Text>
             <Text size="sm" c="dimmed">
               Aggregate performance across all automations and content
             </Text>
@@ -59,7 +72,9 @@ export function Analytics() {
 
       <Paper p="lg" radius="md" withBorder>
         <Stack gap="xs">
-          <Text size="sm" fw={500}>Content Volume Over Time</Text>
+          <Text size="sm" fw={500}>
+            Content Volume Over Time
+          </Text>
           {contentData && <ContentVolumeChart series={contentData.series} />}
         </Stack>
       </Paper>
@@ -67,7 +82,9 @@ export function Analytics() {
       <Group align="flex-start" grow>
         <Paper p="lg" radius="md" withBorder style={{ flex: 1 }}>
           <Stack gap="xs">
-            <Text size="sm" fw={500}>Automation Performance (Top 10)</Text>
+            <Text size="sm" fw={500}>
+              Automation Performance (Top 10)
+            </Text>
             {automationsData && (
               <AutomationPerformanceChart rows={automationsData.automations} />
             )}
@@ -75,15 +92,21 @@ export function Analytics() {
         </Paper>
         <Paper p="lg" radius="md" withBorder style={{ flex: 1 }}>
           <Stack gap="xs">
-            <Text size="sm" fw={500}>Content by Platform</Text>
-            {contentData && <PlatformDonutChart byPlatform={contentData.byPlatform} />}
+            <Text size="sm" fw={500}>
+              Content by Platform
+            </Text>
+            {contentData && (
+              <PlatformDonutChart byPlatform={contentData.byPlatform} />
+            )}
           </Stack>
         </Paper>
       </Group>
 
       <Paper p="lg" radius="md" withBorder>
         <Stack gap="xs">
-          <Text size="sm" fw={500}>Automation Stats</Text>
+          <Text size="sm" fw={500}>
+            Automation Stats
+          </Text>
           {automationsData && (
             <AutomationStatsTable rows={automationsData.automations} />
           )}

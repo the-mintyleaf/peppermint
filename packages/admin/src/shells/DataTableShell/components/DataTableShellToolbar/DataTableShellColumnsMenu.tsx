@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { ColumnsIcon } from '@phosphor-icons/react/dist/csr/Columns';
-import { useTableStore } from '../../../../wrappers/DataTableWrapper';
-import type { DataTableShellColumn } from '../../DataTableShell.types';
-import { ColumnToggleList } from './ColumnToggleList';
-import { ToolbarIconButton } from './ToolbarIconButton';
-import { getColumnKey, getColumnLabel } from './toolbar.utils';
+import { useState } from "react";
+import { ColumnsIcon } from "@phosphor-icons/react/dist/csr/Columns";
+import { useTableStore } from "../../../../wrappers/DataTableWrapper";
+import type { DataTableShellColumn } from "../../DataTableShell.types";
+import { ColumnToggleList } from "./ColumnToggleList";
+import { ToolbarIconButton } from "./ToolbarIconButton";
+import { getColumnKey, getColumnLabel } from "./toolbar.utils";
 
 interface DataTableShellColumnsMenuProps<T extends Record<string, unknown>> {
   columns: DataTableShellColumn<T>[];

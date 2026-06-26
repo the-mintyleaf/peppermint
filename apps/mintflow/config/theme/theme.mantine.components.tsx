@@ -67,7 +67,6 @@ export const configThemeMantineComponents: any = {
       },
     },
   }),
- 
 
   TextInput: TextInput.extend({
     defaultProps: {

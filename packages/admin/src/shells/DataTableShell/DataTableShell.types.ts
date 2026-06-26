@@ -1,14 +1,20 @@
-import type { ReactNode } from 'react';
-import type { Icon } from '@phosphor-icons/react';
-import type { DataTableColumn, DataTableRowExpansionProps } from 'mantine-datatable';
+import type { ReactNode } from "react";
+import type { Icon } from "@phosphor-icons/react";
+import type {
+  DataTableColumn,
+  DataTableRowExpansionProps,
+} from "mantine-datatable";
 import type {
   AccessAccount,
   AccessLevel,
   AccessMenuChange,
   AccessMenuData,
   AccessRole,
-} from '@peppermint/ui';
-import type { FilterState, DataTableWrapperProps } from '../../wrappers/DataTableWrapper';
+} from "@peppermint/ui";
+import type {
+  FilterState,
+  DataTableWrapperProps,
+} from "../../wrappers/DataTableWrapper";
 
 export type ModuleAccessLevel = AccessLevel;
 export type ModuleAccessAccount = AccessAccount;
@@ -26,7 +32,7 @@ export interface DataTableShellTab {
   forceFilter?: <T>(rows: T[]) => T[];
 }
 
-export type DataTableColumnFilterType = 'text' | 'select' | 'number' | 'date';
+export type DataTableColumnFilterType = "text" | "select" | "number" | "date";
 
 export type DataTableShellColumnIcon = Icon | ReactNode;
 
@@ -37,17 +43,18 @@ export interface DataTableColumnFilter {
   placeholder?: string;
 }
 
-export type DataTableShellColumn<T extends Record<string, unknown> = Record<string, unknown>> =
-  Omit<DataTableColumn<T>, 'filter'> & {
-    /** Key used in columnVisibility map. Defaults to String(accessor). */
-    key?: string;
-    /** Initial visibility before any user preference. Defaults to true. */
-    defaultVisible?: boolean;
-    /** When set, column appears in the filter picker. */
-    filter?: DataTableColumnFilter;
-    /** Icon rendered beside the column title in the table header. */
-    icon?: DataTableShellColumnIcon;
-  };
+export type DataTableShellColumn<
+  T extends Record<string, unknown> = Record<string, unknown>,
+> = Omit<DataTableColumn<T>, "filter"> & {
+  /** Key used in columnVisibility map. Defaults to String(accessor). */
+  key?: string;
+  /** Initial visibility before any user preference. Defaults to true. */
+  defaultVisible?: boolean;
+  /** When set, column appears in the filter picker. */
+  filter?: DataTableColumnFilter;
+  /** Icon rendered beside the column title in the table header. */
+  icon?: DataTableShellColumnIcon;
+};
 
 export interface DataTableShellModuleInfo {
   /** Used as the persistence storageKey and the "New X" button label. */
@@ -59,8 +66,9 @@ export interface DataTableShellModuleInfo {
   updatedAt?: string | Date;
 }
 
-export interface DataTableShellProps<T extends Record<string, unknown> = Record<string, unknown>>
-  extends Omit<DataTableWrapperProps<T>, 'children' | 'persistence'> {
+export interface DataTableShellProps<
+  T extends Record<string, unknown> = Record<string, unknown>,
+> extends Omit<DataTableWrapperProps<T>, "children" | "persistence"> {
   columns: DataTableShellColumn<T>[];
   moduleInfo: DataTableShellModuleInfo;
   /** Row unique id field. Defaults to 'id'. */
@@ -168,7 +176,9 @@ export interface DataTableShellTableProps<T extends Record<string, unknown>> {
   disableActions?: boolean;
 }
 
-export interface DataTableShellTableActionsProps<T extends Record<string, unknown>> {
+export interface DataTableShellTableActionsProps<
+  T extends Record<string, unknown>,
+> {
   idAccessor: string;
   basePath?: string;
   sustained?: boolean;

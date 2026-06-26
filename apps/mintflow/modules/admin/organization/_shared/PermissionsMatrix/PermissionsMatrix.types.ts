@@ -1,4 +1,10 @@
-export type PermissionAction = "view" | "create" | "edit" | "delete" | "approve" | "manage";
+export type PermissionAction =
+  | "view"
+  | "create"
+  | "edit"
+  | "delete"
+  | "approve"
+  | "manage";
 export type PermissionArea =
   | "tickets"
   | "users"

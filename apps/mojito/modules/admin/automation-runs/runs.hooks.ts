@@ -3,7 +3,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { notifications } from "@mantine/notifications";
 import { runsKeys } from "./runs.queryKeys";
-import { fetchRuns, fetchRun, approveGate, retryRun, cancelRun, RunsFilter } from "./runs.api";
+import {
+  fetchRuns,
+  fetchRun,
+  approveGate,
+  retryRun,
+  cancelRun,
+  RunsFilter,
+} from "./runs.api";
 import type { AutomationRun } from "../shared/entities.types";
 
 export function useRuns(filters?: RunsFilter) {
@@ -32,7 +39,7 @@ export function useRun(id: string) {
 
 function useRunMutation(
   mutateFn: (id: string) => Promise<AutomationRun>,
-  successMessage: string
+  successMessage: string,
 ) {
   const qc = useQueryClient();
   return useMutation({
@@ -42,7 +49,8 @@ function useRunMutation(
       qc.invalidateQueries({ queryKey: runsKeys.detail(id) });
       notifications.show({ message: successMessage, color: "green" });
     },
-    onError: () => notifications.show({ message: "Action failed", color: "red" }),
+    onError: () =>
+      notifications.show({ message: "Action failed", color: "red" }),
   });
 }
 

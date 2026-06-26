@@ -3,8 +3,12 @@
 Form state engine for `@peppermint/admin`. Handles multi-step navigation, per-step field validation, per-step API calls (create on first visit, patch on re-visit), entity ID storage across steps, and dirty tracking — no prop drilling required.
 
 ```ts
-import { FormWrapper, useFormInstance, useFormControls } from '@peppermint/admin';
-import type { StepApiConfig } from '@peppermint/admin';
+import {
+  FormWrapper,
+  useFormInstance,
+  useFormControls,
+} from "@peppermint/admin";
+import type { StepApiConfig } from "@peppermint/admin";
 ```
 
 ---
@@ -24,14 +28,18 @@ import type { StepApiConfig } from '@peppermint/admin';
 For simple forms that submit everything at once, pass only `finalSubmitFn`:
 
 ```tsx
-'use client';
-import { TextInput, Button } from '@peppermint/ui';
-import { FormWrapper, useFormInstance, useFormControls } from '@peppermint/admin';
-import { z } from 'zod';
+"use client";
+import { TextInput, Button } from "@peppermint/ui";
+import {
+  FormWrapper,
+  useFormInstance,
+  useFormControls,
+} from "@peppermint/admin";
+import { z } from "zod";
 
 const schema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email'),
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email"),
 });
 
 type ContactForm = z.infer<typeof schema>;
@@ -39,10 +47,13 @@ type ContactForm = z.infer<typeof schema>;
 export function ContactFormExample() {
   return (
     <FormWrapper<ContactForm>
-      initial={{ name: '', email: '' }}
+      initial={{ name: "", email: "" }}
       validation={[schema]}
       finalSubmitFn={async (data) => {
-        const res = await fetch('/api/contact', { method: 'POST', body: JSON.stringify(data) });
+        const res = await fetch("/api/contact", {
+          method: "POST",
+          body: JSON.stringify(data),
+        });
         return { ok: res.ok };
       }}
       formClearOnSuccess
@@ -57,15 +68,19 @@ function ContactFields() {
   const { form } = useFormInstance<ContactForm>();
   return (
     <>
-      <TextInput label="Name" {...form.getInputProps('name')} />
-      <TextInput label="Email" {...form.getInputProps('email')} />
+      <TextInput label="Name" {...form.getInputProps("name")} />
+      <TextInput label="Email" {...form.getInputProps("email")} />
     </>
   );
 }
 
 function SubmitButton() {
   const { isLoading, handleSubmit } = useFormControls();
-  return <Button loading={isLoading} onClick={handleSubmit}>Save</Button>;
+  return (
+    <Button loading={isLoading} onClick={handleSubmit}>
+      Save
+    </Button>
+  );
 }
 ```
 
@@ -76,10 +91,14 @@ function SubmitButton() {
 The key pattern: each step declares a `StepApiConfig` that fires either `on-next` (when the user advances) or `on-submit` (when the final submit button is clicked). Steps without a config are validation-only.
 
 ```tsx
-'use client';
-import { FormWrapper, useFormInstance, useFormControls } from '@peppermint/admin';
-import type { StepApiConfig } from '@peppermint/admin';
-import { z } from 'zod';
+"use client";
+import {
+  FormWrapper,
+  useFormInstance,
+  useFormControls,
+} from "@peppermint/admin";
+import type { StepApiConfig } from "@peppermint/admin";
+import { z } from "zod";
 
 // --- Types ---
 interface CampaignForm extends Record<string, unknown> {
@@ -90,22 +109,26 @@ interface CampaignForm extends Record<string, unknown> {
 }
 
 // --- Schemas (one per step, sparse array) ---
-const step0Schema = z.object({ name: z.string().min(1), goal: z.string().min(1) });
-const step1Schema = z.object({ budget: z.number().min(1, 'Budget required') });
+const step0Schema = z.object({
+  name: z.string().min(1),
+  goal: z.string().min(1),
+});
+const step1Schema = z.object({ budget: z.number().min(1, "Budget required") });
 // step 2 has no schema — review only
 
 // --- Per-step API configs ---
 const STEP_CONFIGS: (StepApiConfig<CampaignForm> | undefined)[] = [
   {
     // Step 0 — creates the campaign on first Next, patches on re-visit
-    mode: 'on-next',
+    mode: "on-next",
     createFn: async (data) => campaignApi.create(data),
     patchFn: async (id, data) => campaignApi.patch(id, data),
   },
   {
     // Step 1 — patches budget using the ID from step 0
-    mode: 'on-next',
-    createFn: async (data, stepIds) => campaignApi.patchBudget(stepIds[0], data),
+    mode: "on-next",
+    createFn: async (data, stepIds) =>
+      campaignApi.patchBudget(stepIds[0], data),
     patchFn: async (id, data) => campaignApi.patchBudget(id, data),
   },
   // Step 2 — review only, no API call
@@ -115,7 +138,7 @@ const STEP_CONFIGS: (StepApiConfig<CampaignForm> | undefined)[] = [
 export function CampaignWizard() {
   return (
     <FormWrapper<CampaignForm>
-      initial={{ name: '', goal: '', budget: 0, audience: '' }}
+      initial={{ name: "", goal: "", budget: 0, audience: "" }}
       stepApiConfigs={STEP_CONFIGS}
       finalSubmitFn={async (data, stepIds) => {
         // stepIds[0] = campaign ID from step 0
@@ -126,11 +149,7 @@ export function CampaignWizard() {
         if (stepIndex === 0 && id) router.replace(`/campaigns/${id}/edit`);
       }}
       validation={[step0Schema, step1Schema]}
-      stepFields={[
-        ['name', 'goal'],
-        ['budget'],
-        ['audience'],
-      ]}
+      stepFields={[["name", "goal"], ["budget"], ["audience"]]}
       hasDirtCheck
     >
       <CampaignFormBody />
@@ -144,6 +163,7 @@ export function CampaignWizard() {
 `FormWrapper` keeps a `stepIds` map (`Record<number, string>`) internally. When a step's API call succeeds and returns `{ data: { id: '...' } }`, that ID is stored at `stepIds[stepIndex]`.
 
 On every subsequent `handleStepNext` for that step:
+
 - If `stepIds[stepIndex]` exists → calls `patchFn(id, data, stepIds)`
 - If not → calls `createFn(data, stepIds)`
 
@@ -163,10 +183,10 @@ function Step1() {
 
 ## `on-next` vs `on-submit`
 
-| Mode | When the API fires | Use for |
-|---|---|---|
-| `'on-next'` | When the user clicks Next on that step | Creating/patching a resource progressively (user can see the URL update, partial saves) |
-| `'on-submit'` | When the user clicks the final Submit button | Data that only makes sense to write after all earlier steps are done |
+| Mode          | When the API fires                           | Use for                                                                                 |
+| ------------- | -------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `'on-next'`   | When the user clicks Next on that step       | Creating/patching a resource progressively (user can see the URL update, partial saves) |
+| `'on-submit'` | When the user clicks the final Submit button | Data that only makes sense to write after all earlier steps are done                    |
 
 Steps with `mode: 'on-submit'` fire in array order before `finalSubmitFn`. If any fails, the sequence stops and `finalSubmitFn` does not run.
 
@@ -176,12 +196,12 @@ Steps with `mode: 'on-submit'` fire in array order before `finalSubmitFn`. If an
 
 ```ts
 interface StepApiConfig<T> {
-  mode: 'on-next' | 'on-submit';
+  mode: "on-next" | "on-submit";
 
   // Create path — called when stepIds[stepIndex] is not set yet
   createFn: (
     data: Partial<T>,
-    stepIds: Record<number, string>
+    stepIds: Record<number, string>,
   ) => Promise<ApiResponse<{ id?: string } | undefined>>;
 
   // Patch path — called when stepIds[stepIndex] already exists
@@ -189,7 +209,7 @@ interface StepApiConfig<T> {
   patchFn?: (
     id: string,
     data: Partial<T>,
-    stepIds: Record<number, string>
+    stepIds: Record<number, string>,
   ) => Promise<ApiResponse>;
 }
 ```
@@ -234,17 +254,17 @@ onStepSuccess={(stepIndex, id) => {
 
 ## Props reference
 
-| Prop | Type | Required | Notes |
-|---|---|---|---|
-| `initial` | `T` | Yes | Read once at mount — changing after mount has no effect |
-| `stepApiConfigs` | `(StepApiConfig<T> \| undefined)[]` | No | Sparse — index matches step. Omit a slot for validation-only steps |
-| `finalSubmitFn` | `(data: T, stepIds: Record<number, string>) => Promise<ApiResponse>` | No | Fires on Submit after all `on-submit` configs complete |
-| `onStepSuccess` | `(stepIndex, id, responseData) => void` | No | Called after any step API succeeds |
-| `validation` | `ZodSchema[]` | No | Sparse — `validation[i]` applies to step `i` |
-| `stepFields` | `string[][]` | No | Field dot-paths validated on `handleStepNext` at each step. Also scopes what `data` is sent to step API functions |
-| `disabledSteps` | `number[]` | No | Step indices skipped during Next/Back navigation |
-| `formClearOnSuccess` | `boolean` | No | Calls `form.reset()` after final submit succeeds |
-| `hasDirtCheck` | `boolean` | No | Exposes live `isDirty` in `useFormControls()`. Adds re-renders on keystrokes — only enable when needed |
+| Prop                 | Type                                                                 | Required | Notes                                                                                                             |
+| -------------------- | -------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------- |
+| `initial`            | `T`                                                                  | Yes      | Read once at mount — changing after mount has no effect                                                           |
+| `stepApiConfigs`     | `(StepApiConfig<T> \| undefined)[]`                                  | No       | Sparse — index matches step. Omit a slot for validation-only steps                                                |
+| `finalSubmitFn`      | `(data: T, stepIds: Record<number, string>) => Promise<ApiResponse>` | No       | Fires on Submit after all `on-submit` configs complete                                                            |
+| `onStepSuccess`      | `(stepIndex, id, responseData) => void`                              | No       | Called after any step API succeeds                                                                                |
+| `validation`         | `ZodSchema[]`                                                        | No       | Sparse — `validation[i]` applies to step `i`                                                                      |
+| `stepFields`         | `string[][]`                                                         | No       | Field dot-paths validated on `handleStepNext` at each step. Also scopes what `data` is sent to step API functions |
+| `disabledSteps`      | `number[]`                                                           | No       | Step indices skipped during Next/Back navigation                                                                  |
+| `formClearOnSuccess` | `boolean`                                                            | No       | Calls `form.reset()` after final submit succeeds                                                                  |
+| `hasDirtCheck`       | `boolean`                                                            | No       | Exposes live `isDirty` in `useFormControls()`. Adds re-renders on keystrokes — only enable when needed            |
 
 ---
 
@@ -255,12 +275,12 @@ Returns the stable Mantine form instance. Use inside any component that renders 
 ```tsx
 const { form } = useFormInstance<MyFormValues>();
 
-form.getInputProps('fieldName')
-form.values
-form.errors
-form.setFieldValue('fieldName', value)
-form.insertListItem('tags', '')
-form.removeListItem('tags', 2)
+form.getInputProps("fieldName");
+form.values;
+form.errors;
+form.setFieldValue("fieldName", value);
+form.insertListItem("tags", "");
+form.removeListItem("tags", 2);
 ```
 
 Re-renders only when field values change. Never re-renders on step navigation or submit state changes.
@@ -273,16 +293,16 @@ Returns navigation, submission, and step ID state.
 
 ```tsx
 const {
-  current,        // current step index (0-based)
-  isLoading,      // true while any API call is in flight
-  stepStatus,     // Record<number, 'pending' | 'complete' | 'error'>
-  stepIds,        // Record<number, string> — IDs returned by per-step APIs
-  completionPct,  // 0–100; always 0 for single-step forms
-  isDirty,        // true when any field differs from initial (only when hasDirtCheck={true})
-  handleSubmit,   // validates all fields, runs on-submit configs, then calls finalSubmitFn
+  current, // current step index (0-based)
+  isLoading, // true while any API call is in flight
+  stepStatus, // Record<number, 'pending' | 'complete' | 'error'>
+  stepIds, // Record<number, string> — IDs returned by per-step APIs
+  completionPct, // 0–100; always 0 for single-step forms
+  isDirty, // true when any field differs from initial (only when hasDirtCheck={true})
+  handleSubmit, // validates all fields, runs on-submit configs, then calls finalSubmitFn
   handleStepNext, // validates stepFields[current], runs on-next config if present, then advances
   handleStepBack, // goes back one step (skips disabledSteps)
-  handleStepGo,   // jumps to a specific step index
+  handleStepGo, // jumps to a specific step index
 } = useFormControls();
 ```
 
@@ -299,6 +319,7 @@ Re-renders only when navigation, loading, or `stepIds` changes. Never re-renders
 5. If API succeeds (or no config) → step marked `'complete'`, advances
 
 On **Submit**:
+
 1. Full form validation runs across all fields
 2. All `on-submit` step configs fire in sequence
 3. `finalSubmitFn` is called with full values + `stepIds`
@@ -335,9 +356,11 @@ All API functions must return `{ ok: boolean; message?: string; data?: T }`. On 
 
 ```ts
 // module.api.ts
-export async function createProduct(data: Partial<ProductForm>): Promise<ApiResponse<{ id: string }>> {
+export async function createProduct(
+  data: Partial<ProductForm>,
+): Promise<ApiResponse<{ id: string }>> {
   try {
-    const res = await api.post<{ id: string }>('/products', data);
+    const res = await api.post<{ id: string }>("/products", data);
     return { ok: true, data: res.data };
   } catch (err) {
     return { ok: false, message: extractErrorMessage(err) };

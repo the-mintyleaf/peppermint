@@ -8,6 +8,7 @@
 ## Prerequisites
 
 ### Install Node.js
+
 ```bash
 # Check version (should be 20+)
 node --version  # v20.10.0 or higher
@@ -16,6 +17,7 @@ node --version  # v20.10.0 or higher
 [Download Node.js](https://nodejs.org/)
 
 ### Install Redis
+
 ```bash
 # macOS (Homebrew)
 brew install redis
@@ -33,6 +35,7 @@ redis-cli ping  # Should return PONG
 ```
 
 ### Get DeepSeek API Key
+
 Sign up at [https://deepseek.com/](https://deepseek.com/) and get your API key.
 
 ---
@@ -57,6 +60,7 @@ nano .env
 ```
 
 Required variables:
+
 ```env
 # LLM
 DEEPSEEK_API_KEY=sk-...          # Your DeepSeek API key
@@ -98,6 +102,7 @@ npm run dev-worker   # Worker processes
 ```
 
 You should see:
+
 ```
 [INFO] Fastify listening on 0.0.0.0:3000
 [INFO] BullMQ workers started
@@ -114,6 +119,7 @@ curl http://localhost:3000/health
 ```
 
 Response:
+
 ```json
 { "status": "ok" }
 ```
@@ -131,6 +137,7 @@ curl -X POST http://localhost:3000/v1/runs \
 ```
 
 Response:
+
 ```json
 {
   "runId": "run-abc-123",
@@ -149,6 +156,7 @@ curl -N http://localhost:3000/v1/runs/run-abc-123/stream
 ```
 
 You'll see events:
+
 ```
 event: run.started
 data: {"runId":"run-abc-123","timestamp":"..."}
@@ -177,6 +185,7 @@ curl -X POST http://localhost:3000/v1/runs/chat \
 ```
 
 Response (waits up to 30 seconds):
+
 ```json
 {
   "reply": "Based on your interests, I'd recommend...",
@@ -237,6 +246,7 @@ LOG_LEVEL=warn npm run dev
 ```
 
 Log format (structured JSON):
+
 ```json
 {
   "level": "info",
@@ -275,6 +285,7 @@ redis-cli
 **Problem:** Redis not running
 
 **Solution:**
+
 ```bash
 # Check Redis status
 redis-cli ping
@@ -290,6 +301,7 @@ docker run -d -p 6379:6379 redis:7
 **Problem:** Environment variable not set
 
 **Solution:**
+
 ```bash
 # Edit .env
 echo "DEEPSEEK_API_KEY=sk-..." >> .env
@@ -310,6 +322,7 @@ Check `src/workflows/registry.ts` to ensure the workflow is exported.
 **Problem:** Worker crashed or node errored
 
 **Solution:**
+
 ```bash
 # Check logs
 LOG_LEVEL=debug npm run dev

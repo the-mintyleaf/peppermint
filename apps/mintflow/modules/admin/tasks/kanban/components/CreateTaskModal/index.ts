@@ -1,2 +1,5 @@
 export { CreateTaskModal } from "./CreateTaskModal";
-export type { CreateTaskModalProps, CreateTaskFormValues } from "./CreateTaskModal.types";
+export type {
+  CreateTaskModalProps,
+  CreateTaskFormValues,
+} from "./CreateTaskModal.types";

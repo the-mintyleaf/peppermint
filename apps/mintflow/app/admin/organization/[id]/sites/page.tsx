@@ -1,5 +1,6 @@
-import { SiteList } from "../../../../../modules/admin/organization/sites";
+// Phase 4 — Sites module (not yet built)
+import { notFound } from "next/navigation";
 
-export default function SitesPage({ params }: { params: { id: string } }) {
-  return <SiteList orgId={params.id} />;
+export default function SitesPage() {
+  notFound();
 }

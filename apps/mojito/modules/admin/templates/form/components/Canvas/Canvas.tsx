@@ -59,17 +59,22 @@ function hasVisibleStroke(el: CanvasElement): boolean {
 function builderOutline(
   el: CanvasElement,
   selected: boolean,
-  editMode: boolean
+  editMode: boolean,
 ): string | undefined {
   if (!editMode || selected) return undefined;
-  if (el.type === "text" || el.type === "staticText" || el.type === "dynamicText") return undefined;
+  if (
+    el.type === "text" ||
+    el.type === "staticText" ||
+    el.type === "dynamicText"
+  )
+    return undefined;
   if (hasVisibleStroke(el)) return undefined;
   return BUILDER_ELEMENT_OUTLINE;
 }
 
 function getElementStyle(
   el: CanvasElement,
-  options: { selected: boolean; editMode: boolean }
+  options: { selected: boolean; editMode: boolean },
 ): React.CSSProperties {
   const { selected, editMode } = options;
   const scale = CANVAS_BASE_SCALE;
@@ -153,7 +158,7 @@ function getElementStyle(
 
 function getDrawPreviewStyle(
   type: ElementType,
-  rect: { x: number; y: number; width: number; height: number }
+  rect: { x: number; y: number; width: number; height: number },
 ): React.CSSProperties {
   const scale = CANVAS_BASE_SCALE;
   const base: React.CSSProperties = {
@@ -201,7 +206,13 @@ function BuilderPlaceholderLabel({
   );
 }
 
-function ElementContent({ el, preview }: { el: CanvasElement; preview: boolean }) {
+function ElementContent({
+  el,
+  preview,
+}: {
+  el: CanvasElement;
+  preview: boolean;
+}) {
   if (el.type === "image") {
     if (el.props.imageUrl) {
       return (
@@ -217,16 +228,24 @@ function ElementContent({ el, preview }: { el: CanvasElement; preview: boolean }
     if (!preview) {
       const iconSize = Math.min(
         48,
-        Math.max(20, Math.min(el.width, el.height) * CANVAS_BASE_SCALE * 0.4)
+        Math.max(20, Math.min(el.width, el.height) * CANVAS_BASE_SCALE * 0.4),
       );
-      return <ImageIcon size={iconSize} weight="duotone" color="rgba(255,255,255,0.9)" />;
+      return (
+        <ImageIcon
+          size={iconSize}
+          weight="duotone"
+          color="rgba(255,255,255,0.9)"
+        />
+      );
     }
     return null;
   }
 
   if (el.type === "dynamicText") {
     if (preview) {
-      return <span>{el.props.text ?? `{{${el.props.dataKey ?? "slot"}}}`}</span>;
+      return (
+        <span>{el.props.text ?? `{{${el.props.dataKey ?? "slot"}}}`}</span>
+      );
     }
     return (
       <BuilderPlaceholderLabel
@@ -248,7 +267,7 @@ function canvasCoords(
   clientX: number,
   clientY: number,
   logicalWidth: number,
-  logicalHeight: number
+  logicalHeight: number,
 ) {
   const rect = canvas.getBoundingClientRect();
   return {
@@ -274,7 +293,11 @@ export function Canvas() {
   } = useBuilderStore();
 
   const canvasRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ id: string; offsetX: number; offsetY: number } | null>(null);
+  const dragRef = useRef<{
+    id: string;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
   const resizeRef = useRef<{
     id: string;
     handle: ResizeHandle;
@@ -305,13 +328,19 @@ export function Canvas() {
 
   const selectedElement = useMemo(
     () => elements.find((el) => el.id === selectedElementId) ?? null,
-    [elements, selectedElementId]
+    [elements, selectedElementId],
   );
 
   const getCoords = useCallback(
     (canvas: HTMLDivElement, clientX: number, clientY: number) =>
-      canvasCoords(canvas, clientX, clientY, templateMeta.width, templateMeta.height),
-    [templateMeta.width, templateMeta.height]
+      canvasCoords(
+        canvas,
+        clientX,
+        clientY,
+        templateMeta.width,
+        templateMeta.height,
+      ),
+    [templateMeta.width, templateMeta.height],
   );
 
   const handleMovePointerMove = useCallback(
@@ -324,10 +353,10 @@ export function Canvas() {
       updateElement(
         drag.id,
         { x: Math.round(x - drag.offsetX), y: Math.round(y - drag.offsetY) },
-        { recordHistory: false }
+        { recordHistory: false },
       );
     },
-    [updateElement, getCoords]
+    [updateElement, getCoords],
   );
 
   const handleMovePointerUp = useCallback(
@@ -346,7 +375,7 @@ export function Canvas() {
       window.removeEventListener("pointermove", handleMovePointerMove);
       window.removeEventListener("pointerup", handleMovePointerUp);
     },
-    [commitElementUpdate, handleMovePointerMove, getCoords]
+    [commitElementUpdate, handleMovePointerMove, getCoords],
   );
 
   const handleResizePointerMove = useCallback(
@@ -364,12 +393,12 @@ export function Canvas() {
         x,
         y,
         getMinElementSize(resize.type),
-        constrainSquare
+        constrainSquare,
       );
 
       updateElement(resize.id, rect, { recordHistory: false });
     },
-    [updateElement, getCoords]
+    [updateElement, getCoords],
   );
 
   const handleResizePointerUp = useCallback(
@@ -387,7 +416,7 @@ export function Canvas() {
         x,
         y,
         getMinElementSize(resize.type),
-        constrainSquare
+        constrainSquare,
       );
 
       commitElementUpdate(resize.id, rect);
@@ -396,7 +425,7 @@ export function Canvas() {
       window.removeEventListener("pointermove", handleResizePointerMove);
       window.removeEventListener("pointerup", handleResizePointerUp);
     },
-    [commitElementUpdate, handleResizePointerMove, getCoords]
+    [commitElementUpdate, handleResizePointerMove, getCoords],
   );
 
   const handleDrawPointerMove = useCallback(
@@ -407,10 +436,17 @@ export function Canvas() {
 
       const { x, y } = getCoords(canvas, e.clientX, e.clientY);
       const constrainSquare = e.shiftKey && draw.type === "image";
-      const rect = resolveElementRect(draw.type, draw.anchorX, draw.anchorY, x, y, constrainSquare);
+      const rect = resolveElementRect(
+        draw.type,
+        draw.anchorX,
+        draw.anchorY,
+        x,
+        y,
+        constrainSquare,
+      );
       setDrawPreview({ type: draw.type, ...rect });
     },
-    [getCoords]
+    [getCoords],
   );
 
   const handleDrawPointerUp = useCallback(
@@ -421,7 +457,14 @@ export function Canvas() {
 
       const { x, y } = getCoords(canvas, e.clientX, e.clientY);
       const constrainSquare = e.shiftKey && draw.type === "image";
-      const rect = resolveElementRect(draw.type, draw.anchorX, draw.anchorY, x, y, constrainSquare);
+      const rect = resolveElementRect(
+        draw.type,
+        draw.anchorX,
+        draw.anchorY,
+        x,
+        y,
+        constrainSquare,
+      );
 
       addElementAtRect(draw.type, rect.x, rect.y, rect.width, rect.height);
 
@@ -431,7 +474,7 @@ export function Canvas() {
       window.removeEventListener("pointermove", handleDrawPointerMove);
       window.removeEventListener("pointerup", handleDrawPointerUp);
     },
-    [addElementAtRect, handleDrawPointerMove, getCoords]
+    [addElementAtRect, handleDrawPointerMove, getCoords],
   );
 
   const handleWorkspaceWheel = useCallback(
@@ -441,11 +484,12 @@ export function Canvas() {
       if (e.deltaY < 0) zoomIn();
       else zoomOut();
     },
-    [zoomIn, zoomOut]
+    [zoomIn, zoomOut],
   );
 
   function handleCanvasPointerDown(e: React.PointerEvent) {
-    if (previewMode || activeTool === "select" || !isCreateTool(activeTool)) return;
+    if (previewMode || activeTool === "select" || !isCreateTool(activeTool))
+      return;
     if (e.button !== 0) return;
 
     e.preventDefault();
@@ -469,7 +513,11 @@ export function Canvas() {
     window.addEventListener("pointerup", handleDrawPointerUp);
   }
 
-  function handleResizeStart(el: CanvasElement, handle: ResizeHandle, e: React.PointerEvent) {
+  function handleResizeStart(
+    el: CanvasElement,
+    handle: ResizeHandle,
+    e: React.PointerEvent,
+  ) {
     if (el.locked || activeTool !== "select" || previewMode) return;
 
     e.stopPropagation();
@@ -578,12 +626,17 @@ export function Canvas() {
             selectedElement.visible && (
               <ResizeHandles
                 el={selectedElement}
-                onResizeStart={(handle, e) => handleResizeStart(selectedElement, handle, e)}
+                onResizeStart={(handle, e) =>
+                  handleResizeStart(selectedElement, handle, e)
+                }
               />
             )}
 
           {drawPreview && (
-            <div style={getDrawPreviewStyle(drawPreview.type, drawPreview)} aria-hidden />
+            <div
+              style={getDrawPreviewStyle(drawPreview.type, drawPreview)}
+              aria-hidden
+            />
           )}
 
           {elements.length === 0 && !drawPreview && (

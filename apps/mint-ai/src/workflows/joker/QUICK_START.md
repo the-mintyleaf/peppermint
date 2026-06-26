@@ -7,6 +7,7 @@
 ## 🚀 What is Joker?
 
 Joker is a witty, intelligent chatbot that:
+
 1. **Listens** to user questions
 2. **Fetches** relevant data from APIs
 3. **Analyzes** that data
@@ -30,19 +31,20 @@ Response with Data & Humor
 
 ## 🛠️ Available Tools
 
-| Tool | Fetches | Use When |
-|------|---------|----------|
-| **fetchUserInfo** | User profile, metrics | "Tell me about myself" |
-| **fetchProductData** | Product catalog, pricing | "Show me products" |
-| **fetchCategoryData** | Product categories | "What categories exist?" |
-| **fetchOrderData** | Order history, cart | "Show my orders" |
-| **fetchPostData** | Posts, engagement | "How are my posts?" |
+| Tool                  | Fetches                  | Use When                 |
+| --------------------- | ------------------------ | ------------------------ |
+| **fetchUserInfo**     | User profile, metrics    | "Tell me about myself"   |
+| **fetchProductData**  | Product catalog, pricing | "Show me products"       |
+| **fetchCategoryData** | Product categories       | "What categories exist?" |
+| **fetchOrderData**    | Order history, cart      | "Show my orders"         |
+| **fetchPostData**     | Posts, engagement        | "How are my posts?"      |
 
 ---
 
 ## 💬 Example Conversations
 
 ### Example 1: Product Question
+
 ```
 User: "What's your best-selling product?"
 
@@ -56,6 +58,7 @@ Want specs or pricing?"
 ```
 
 ### Example 2: Analytics
+
 ```
 User: "How am I performing?"
 
@@ -70,6 +73,7 @@ You're crushing it!"
 ```
 
 ### Example 3: Recommendations
+
 ```
 User: "What should I buy?"
 
@@ -111,21 +115,25 @@ src/workflows/joker/
 ## ⚡ Key Features
 
 ✨ **Smart Tool Usage**
+
 - Automatically picks tools based on question
 - Fetches relevant data
 - Analyzes for insights
 
 🎭 **Witty Persona**
+
 - Never mean-spirited
 - Masters of wordplay
 - Includes emojis & humor
 
 🔒 **Safe & Secure**
+
 - Validates input (guardPolicy)
 - Respects privacy
 - Only shares necessary info
 
 📚 **Context Aware**
+
 - Remembers conversation (1500 tokens)
 - Adapts tone to user
 - Provides relevant follow-ups
@@ -135,25 +143,33 @@ src/workflows/joker/
 ## 🔧 Configuration Tweaks
 
 ### Make it More Creative
+
 Edit `index.ts`:
+
 ```typescript
-temperature: 0.9  // (was 0.7)
+temperature: 0.9; // (was 0.7)
 ```
 
 ### Add More Memory
+
 Edit `index.ts`:
+
 ```typescript
-memoryLimit: 2500  // (was 1500)
+memoryLimit: 2500; // (was 1500)
 ```
 
 ### Change Model
+
 Edit `index.ts`:
+
 ```typescript
 chatModel: "claude",  // (was deepseek.chat)
 ```
 
 ### Adjust Personality
+
 Edit `prompt.ts`:
+
 - More serious? → Remove emojis, tone down jokes
 - More casual? → Add more personality
 - Different domain? → Update persona section

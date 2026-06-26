@@ -129,7 +129,11 @@ export interface GroupData extends Record<string, unknown> {
   status: OrgStatus;
 }
 
-export type OrgNodeData = OrgOfficeData | DepartmentData | PersonData | GroupData;
+export type OrgNodeData =
+  | OrgOfficeData
+  | DepartmentData
+  | PersonData
+  | GroupData;
 
 export interface PersonRef {
   id: string;

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { Button, Stack, Text, TextInput } from '@peppermint/ui';
-import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/csr/MagnifyingGlass';
-import { useTableStore } from '../../../../wrappers/DataTableWrapper';
-import { ToolbarIconButton } from './ToolbarIconButton';
+import { useEffect, useRef, useState } from "react";
+import { Button, Stack, Text, TextInput } from "@peppermint/ui";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
+import { useTableStore } from "../../../../wrappers/DataTableWrapper";
+import { ToolbarIconButton } from "./ToolbarIconButton";
 
 interface DataTableShellSearchMenuProps {
   /** When true, renders inline content without the icon popover wrapper. */
@@ -45,7 +45,7 @@ export function DataTableShellSearchMenu({
         onChange={(e) => setSearch(e.currentTarget.value)}
       />
       {search.trim().length > 0 && (
-        <Button size="xs" variant="subtle" onClick={() => setSearch('')}>
+        <Button size="xs" variant="subtle" onClick={() => setSearch("")}>
           Clear search
         </Button>
       )}

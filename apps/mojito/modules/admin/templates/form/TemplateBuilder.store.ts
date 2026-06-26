@@ -1,10 +1,25 @@
 import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
-import type { BuilderTool, CanvasElement, CanvasElementInput, ElementType, TemplateMeta } from "./templateForm.types";
+import type {
+  BuilderTool,
+  CanvasElement,
+  CanvasElementInput,
+  ElementType,
+  TemplateMeta,
+} from "./templateForm.types";
 import type { PlatformFormat } from "../module.api";
 import { PLATFORM_DIMENSIONS } from "../module.api";
-import { createElementDefaults, createElementAtRect, generateElementPurpose } from "./elementDefaults";
-import { DEFAULT_CANVAS_ZOOM, clampCanvasZoom, nextZoomIn, nextZoomOut } from "./canvas.constants";
+import {
+  createElementDefaults,
+  createElementAtRect,
+  generateElementPurpose,
+} from "./elementDefaults";
+import {
+  DEFAULT_CANVAS_ZOOM,
+  clampCanvasZoom,
+  nextZoomIn,
+  nextZoomOut,
+} from "./canvas.constants";
 
 const MAX_HISTORY = 50;
 
@@ -25,9 +40,19 @@ interface BuilderState {
 
   initStore: (meta: TemplateMeta, elements: CanvasElement[]) => void;
   addElement: (element: CanvasElementInput) => void;
-  addElementAtRect: (type: ElementType, x: number, y: number, width: number, height: number) => void;
+  addElementAtRect: (
+    type: ElementType,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ) => void;
   addElementAtCenter: (type: ElementType) => void;
-  updateElement: (id: string, patch: Partial<CanvasElement>, options?: UpdateOptions) => void;
+  updateElement: (
+    id: string,
+    patch: Partial<CanvasElement>,
+    options?: UpdateOptions,
+  ) => void;
   commitElementUpdate: (id: string, patch: Partial<CanvasElement>) => void;
   removeElement: (id: string) => void;
   selectElement: (id: string | null) => void;
@@ -47,7 +72,11 @@ interface BuilderState {
   clearDirty: () => void;
 }
 
-function pushHistory(history: CanvasElement[][], index: number, snapshot: CanvasElement[]): {
+function pushHistory(
+  history: CanvasElement[][],
+  index: number,
+  snapshot: CanvasElement[],
+): {
   history: CanvasElement[][];
   historyIndex: number;
 } {
@@ -61,7 +90,10 @@ function getNextZIndex(elements: CanvasElement[]): number {
   return Math.max(...elements.map((el) => el.zIndex)) + 1;
 }
 
-function applyLayerOrder(elements: CanvasElement[], orderedIds: string[]): CanvasElement[] {
+function applyLayerOrder(
+  elements: CanvasElement[],
+  orderedIds: string[],
+): CanvasElement[] {
   const byId = new Map(elements.map((el) => [el.id, el]));
   const count = orderedIds.length;
   const reordered = orderedIds.map((id, index) => {
@@ -109,7 +141,12 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     set((s) => {
       const next = [...s.elements, newEl];
       const h = pushHistory(s.history, s.historyIndex, next);
-      return { elements: next, ...h, isDirty: true, selectedElementId: newEl.id };
+      return {
+        elements: next,
+        ...h,
+        isDirty: true,
+        selectedElementId: newEl.id,
+      };
     });
   },
 
@@ -125,7 +162,12 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
   addElementAtCenter(type) {
     const { templateMeta, elements } = get();
     const zIndex = getNextZIndex(elements);
-    const defaults = createElementDefaults(type, templateMeta.width, templateMeta.height, zIndex);
+    const defaults = createElementDefaults(
+      type,
+      templateMeta.width,
+      templateMeta.height,
+      zIndex,
+    );
     defaults.purpose = generateElementPurpose(type, elements);
     get().addElement(defaults);
     set({ activeTool: "select" });
@@ -175,7 +217,8 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
         elements: next,
         ...h,
         isDirty: true,
-        selectedElementId: s.selectedElementId === id ? null : s.selectedElementId,
+        selectedElementId:
+          s.selectedElementId === id ? null : s.selectedElementId,
       };
     });
   },
@@ -198,7 +241,9 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
 
   toggleVisible(id) {
     set((s) => {
-      const next = s.elements.map((el) => (el.id === id ? { ...el, visible: !el.visible } : el));
+      const next = s.elements.map((el) =>
+        el.id === id ? { ...el, visible: !el.visible } : el,
+      );
       const h = pushHistory(s.history, s.historyIndex, next);
       return { elements: next, ...h, isDirty: true };
     });
@@ -206,7 +251,9 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
 
   toggleLocked(id) {
     set((s) => {
-      const next = s.elements.map((el) => (el.id === id ? { ...el, locked: !el.locked } : el));
+      const next = s.elements.map((el) =>
+        el.id === id ? { ...el, locked: !el.locked } : el,
+      );
       const h = pushHistory(s.history, s.historyIndex, next);
       return { elements: next, ...h, isDirty: true };
     });
@@ -216,7 +263,11 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     set((s) => {
       if (s.historyIndex <= 0) return s;
       const newIndex = s.historyIndex - 1;
-      return { elements: s.history[newIndex], historyIndex: newIndex, isDirty: true };
+      return {
+        elements: s.history[newIndex],
+        historyIndex: newIndex,
+        isDirty: true,
+      };
     });
   },
 
@@ -224,12 +275,19 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     set((s) => {
       if (s.historyIndex >= s.history.length - 1) return s;
       const newIndex = s.historyIndex + 1;
-      return { elements: s.history[newIndex], historyIndex: newIndex, isDirty: true };
+      return {
+        elements: s.history[newIndex],
+        historyIndex: newIndex,
+        isDirty: true,
+      };
     });
   },
 
   setTemplateMeta(patch) {
-    set((s) => ({ templateMeta: { ...s.templateMeta, ...patch }, isDirty: true }));
+    set((s) => ({
+      templateMeta: { ...s.templateMeta, ...patch },
+      isDirty: true,
+    }));
   },
 
   setPlatform(platform) {

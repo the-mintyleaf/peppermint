@@ -16,7 +16,12 @@ import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
 import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { useState } from "react";
-import { useQueueSlots, useQueuedContent, useDeleteQueueSlot, useAddQueueSlot } from "../queue.hooks";
+import {
+  useQueueSlots,
+  useQueuedContent,
+  useDeleteQueueSlot,
+  useAddQueueSlot,
+} from "../queue.hooks";
 import { CHANNEL_LABELS } from "../queue.api";
 import type { QueueSlot } from "../../shared/entities.types";
 import { ModulePageShell } from "@/modules/admin/shared/ModulePageShell";
@@ -44,7 +49,9 @@ function QueueColumn({ channelId }: { channelId: string }) {
   if (isLoading) {
     return (
       <Stack gap="xs" w={260}>
-        {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} h={60} radius="sm" />)}
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} h={60} radius="sm" />
+        ))}
       </Stack>
     );
   }
@@ -52,7 +59,9 @@ function QueueColumn({ channelId }: { channelId: string }) {
   return (
     <Paper withBorder radius="md" p="md" w={260} style={{ flexShrink: 0 }}>
       <Stack gap="sm">
-        <Text fw={600} size="sm" lineClamp={1}>{CHANNEL_LABELS[channelId] ?? channelId}</Text>
+        <Text fw={600} size="sm" lineClamp={1}>
+          {CHANNEL_LABELS[channelId] ?? channelId}
+        </Text>
         <Divider />
         {sortedSlots.map((slot) => {
           const queuedItem = content[0];
@@ -61,7 +70,9 @@ function QueueColumn({ channelId }: { channelId: string }) {
               <Group justify="space-between" wrap="nowrap">
                 <Group gap="xs">
                   <ClockIcon size={12} />
-                  <Text size="xs">{DAY_LABELS[slot.dayOfWeek]} {slot.time}</Text>
+                  <Text size="xs">
+                    {DAY_LABELS[slot.dayOfWeek]} {slot.time}
+                  </Text>
                 </Group>
                 <ActionIcon
                   size="xs"
@@ -74,7 +85,9 @@ function QueueColumn({ channelId }: { channelId: string }) {
                 </ActionIcon>
               </Group>
               {queuedItem && (
-                <Text size="xs" c="dimmed" lineClamp={1} mt={4}>{queuedItem.title}</Text>
+                <Text size="xs" c="dimmed" lineClamp={1} mt={4}>
+                  {queuedItem.title}
+                </Text>
               )}
             </Paper>
           );
@@ -138,7 +151,10 @@ export function QueuePage() {
           clearable
           value={selectedChannel}
           onChange={setSelectedChannel}
-          data={CHANNEL_IDS.map((id) => ({ value: id, label: CHANNEL_LABELS[id] ?? id }))}
+          data={CHANNEL_IDS.map((id) => ({
+            value: id,
+            label: CHANNEL_LABELS[id] ?? id,
+          }))}
           size="xs"
           style={{ width: 220 }}
         />

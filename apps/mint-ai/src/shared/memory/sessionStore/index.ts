@@ -22,7 +22,7 @@ export async function pushMessage(
   sessionId: string,
   message: PropMemorySessionMessage,
   maxLen = 20,
-  ttlSec = 3600
+  ttlSec = 3600,
 ): Promise<void> {
   const parsed = schemaMemorySessionMessage.parse(message);
   const key = sessionKey(sessionId);
@@ -37,7 +37,7 @@ export async function pushMessage(
  */
 export async function getLastMessages(
   sessionId: string,
-  n = 20
+  n = 20,
 ): Promise<PropMemorySessionMessage[]> {
   const raw = await redis.lrange(sessionKey(sessionId), 0, n - 1);
   return raw.map((m) => schemaMemorySessionMessage.parse(JSON.parse(m)));
@@ -50,7 +50,7 @@ export async function getLastMessages(
 export async function replaceMessage(
   sessionId: string,
   msg: PropMemorySessionMessage,
-  opts: { tag: string }
+  opts: { tag: string },
 ): Promise<void> {
   const key = sessionKey(sessionId);
   const all = await redis.lrange(key, 0, -1);

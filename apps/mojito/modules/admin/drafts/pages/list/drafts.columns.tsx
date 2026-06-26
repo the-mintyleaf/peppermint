@@ -7,7 +7,10 @@ import { CopySimpleIcon } from "@phosphor-icons/react/dist/csr/CopySimple";
 import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteContentItem, duplicateContentItem } from "../../../content/content.api";
+import {
+  deleteContentItem,
+  duplicateContentItem,
+} from "../../../content/content.api";
 import { draftQueryKeys } from "../../drafts.queryKeys";
 import type { DraftRow } from "../../drafts.types";
 
@@ -17,12 +20,14 @@ function DraftActions({ item }: { item: DraftRow }) {
 
   const duplicate = useMutation({
     mutationFn: () => duplicateContentItem(item.id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: [draftQueryKeys.list()] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: [draftQueryKeys.list()] }),
   });
 
   const remove = useMutation({
     mutationFn: () => deleteContentItem(item.id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: [draftQueryKeys.list()] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: [draftQueryKeys.list()] }),
   });
 
   return (
@@ -64,14 +69,20 @@ export const draftsColumns: DataTableShellColumn<DraftRow>[] = [
     title: "Title",
     sortable: true,
     render: (item) => (
-      <Text size="xs" fw={500} lineClamp={1}>{item.title}</Text>
+      <Text size="xs" fw={500} lineClamp={1}>
+        {item.title}
+      </Text>
     ),
   },
   {
     accessor: "source",
     title: "Source",
     render: (item) => (
-      <Badge size="xs" variant="light" color={item.source === "agent" ? "violet" : "gray"}>
+      <Badge
+        size="xs"
+        variant="light"
+        color={item.source === "agent" ? "violet" : "gray"}
+      >
         {item.source}
       </Badge>
     ),
@@ -83,10 +94,14 @@ export const draftsColumns: DataTableShellColumn<DraftRow>[] = [
     render: (item) => (
       <Group gap={4}>
         {item.variants.slice(0, 3).map((v) => (
-          <Badge key={v.platform} size="xs" variant="dot">{v.platform}</Badge>
+          <Badge key={v.platform} size="xs" variant="dot">
+            {v.platform}
+          </Badge>
         ))}
         {item.variants.length > 3 && (
-          <Text size="xs" c="dimmed">+{item.variants.length - 3}</Text>
+          <Text size="xs" c="dimmed">
+            +{item.variants.length - 3}
+          </Text>
         )}
       </Group>
     ),

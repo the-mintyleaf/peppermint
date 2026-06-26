@@ -43,7 +43,8 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
   const displayLabel = moduleInfo.label ?? moduleInfo.name;
   const finalHref = newButtonHref ?? (basePath ? `${basePath}/new` : undefined);
   const showAddButton =
-    !disableCreateButton && (sustained ? !!onNewClick : !!(basePath || newButtonHref));
+    !disableCreateButton &&
+    (sustained ? !!onNewClick : !!(basePath || newButtonHref));
 
   const useTable = useTableStore();
   const columnVisibility = useTable((s) => s.columnVisibility);
@@ -205,7 +206,11 @@ export function DataTableShellToolbar<T extends Record<string, unknown>>({
           )}
 
           <DataTableShellSearchMenu inline />
-          <DataTableShellFilterMenu columns={columns} inline onApplied={closeDrawer} />
+          <DataTableShellFilterMenu
+            columns={columns}
+            inline
+            onApplied={closeDrawer}
+          />
 
           <ColumnToggleList
             columnToggles={columnToggles}

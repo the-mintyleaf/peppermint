@@ -1,8 +1,18 @@
 "use client";
 
 import { create } from "zustand";
-import type { Platform, ChannelVariant, ScheduleInfo, MediaRef } from "../shared/domain.types";
-import type { ComposeDraft, ComposeState, VariantEditorState, AiPanelState } from "./compose.types";
+import type {
+  Platform,
+  ChannelVariant,
+  ScheduleInfo,
+  MediaRef,
+} from "../shared/domain.types";
+import type {
+  ComposeDraft,
+  ComposeState,
+  VariantEditorState,
+  AiPanelState,
+} from "./compose.types";
 import { PLATFORM_CHAR_LIMITS } from "./compose.types";
 
 function defaultVariantState(platform: Platform): VariantEditorState {
@@ -51,8 +61,7 @@ export const useComposeStore = create<ComposeState & ComposeActions>((set) => ({
   previewPlatform: "instagram",
   variantEditorStates: {} as Record<Platform, VariantEditorState>,
 
-  setTitle: (title) =>
-    set((s) => ({ draft: { ...s.draft, title } })),
+  setTitle: (title) => set((s) => ({ draft: { ...s.draft, title } })),
 
   setGlobalCaption: (text) =>
     set((s) => ({ draft: { ...s.draft, globalCaption: text } })),
@@ -60,7 +69,8 @@ export const useComposeStore = create<ComposeState & ComposeActions>((set) => ({
   setCaption: (platform, text) =>
     set((s) => {
       const limit = PLATFORM_CHAR_LIMITS[platform];
-      const prev = s.variantEditorStates[platform] ?? defaultVariantState(platform);
+      const prev =
+        s.variantEditorStates[platform] ?? defaultVariantState(platform);
       return {
         variantEditorStates: {
           ...s.variantEditorStates,
@@ -68,7 +78,10 @@ export const useComposeStore = create<ComposeState & ComposeActions>((set) => ({
             ...prev,
             caption: text,
             characterCount: text.length,
-            errors: text.length > limit ? [`Exceeds ${platform} limit of ${limit} characters`] : [],
+            errors:
+              text.length > limit
+                ? [`Exceeds ${platform} limit of ${limit} characters`]
+                : [],
             isValid: text.length <= limit,
           },
         },
@@ -76,7 +89,10 @@ export const useComposeStore = create<ComposeState & ComposeActions>((set) => ({
           ...s.draft,
           variants: {
             ...s.draft.variants,
-            [platform]: { ...(s.draft.variants[platform] ?? {}), caption: text },
+            [platform]: {
+              ...(s.draft.variants[platform] ?? {}),
+              caption: text,
+            },
           },
         },
       };
@@ -94,11 +110,16 @@ export const useComposeStore = create<ComposeState & ComposeActions>((set) => ({
         variantEditorStates[platform] = defaultVariantState(platform);
       }
 
-      return { draft: { ...s.draft, selectedChannelIds: selected }, variantEditorStates };
+      return {
+        draft: { ...s.draft, selectedChannelIds: selected },
+        variantEditorStates,
+      };
     }),
 
   toggleCustomize: () =>
-    set((s) => ({ draft: { ...s.draft, perVariantCustomize: !s.draft.perVariantCustomize } })),
+    set((s) => ({
+      draft: { ...s.draft, perVariantCustomize: !s.draft.perVariantCustomize },
+    })),
 
   setFormat: (platform, format) =>
     set((s) => ({
@@ -111,7 +132,10 @@ export const useComposeStore = create<ComposeState & ComposeActions>((set) => ({
       },
       variantEditorStates: {
         ...s.variantEditorStates,
-        [platform]: { ...(s.variantEditorStates[platform] ?? defaultVariantState(platform)), format },
+        [platform]: {
+          ...(s.variantEditorStates[platform] ?? defaultVariantState(platform)),
+          format,
+        },
       },
     })),
 
@@ -121,10 +145,17 @@ export const useComposeStore = create<ComposeState & ComposeActions>((set) => ({
     })),
 
   addMedia: (ref) =>
-    set((s) => ({ draft: { ...s.draft, mediaRefs: [...s.draft.mediaRefs, ref] } })),
+    set((s) => ({
+      draft: { ...s.draft, mediaRefs: [...s.draft.mediaRefs, ref] },
+    })),
 
   removeMedia: (id) =>
-    set((s) => ({ draft: { ...s.draft, mediaRefs: s.draft.mediaRefs.filter((m) => m.id !== id) } })),
+    set((s) => ({
+      draft: {
+        ...s.draft,
+        mediaRefs: s.draft.mediaRefs.filter((m) => m.id !== id),
+      },
+    })),
 
   openAiPanel: () => set({ aiPanel: { open: true, loading: false } }),
   closeAiPanel: () => set({ aiPanel: { open: false, loading: false } }),

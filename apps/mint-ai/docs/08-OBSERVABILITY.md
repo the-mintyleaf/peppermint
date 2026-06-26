@@ -43,6 +43,7 @@ LOG_LEVEL=warn npm run dev
 ### Key Fields Automatically Included
 
 Every log includes:
+
 - `runId` – Workflow run ID
 - `nodeId` – Node being executed
 - `sessionId` – Session ID
@@ -70,7 +71,7 @@ npm run dev | grep run-abc-123
 
 ```typescript
 // Record success
-ctx.metrics.recordExecutorSuccess("agents.reasoning", 1234);  // duration in ms
+ctx.metrics.recordExecutorSuccess("agents.reasoning", 1234); // duration in ms
 
 // Record error
 ctx.metrics.recordExecutorError("agents.reasoning", "LLM_ERROR", 1234);
@@ -79,7 +80,7 @@ ctx.metrics.recordExecutorError("agents.reasoning", "LLM_ERROR", 1234);
 ctx.metrics.recordTokens(ctx.runId, {
   input: 100,
   output: 50,
-  total: 150
+  total: 150,
 });
 
 // Record custom metric
@@ -222,6 +223,7 @@ curl -N http://localhost:3000/v1/runs/run-abc-123/stream | \
 **Symptoms:** Worker seems stuck, no new logs
 
 **Debugging:**
+
 ```bash
 # 1. Check active jobs
 redis-cli LLEN bull:nodes:active
@@ -237,6 +239,7 @@ npm run dev
 ```
 
 **Fixes:**
+
 - Check for infinite loops in executor
 - Ensure tool-calling loop has max iterations
 - Verify no promise is never resolved
@@ -248,6 +251,7 @@ npm run dev
 **Symptoms:** Redis memory keeps increasing
 
 **Debugging:**
+
 ```bash
 redis-cli
 > INFO memory
@@ -256,6 +260,7 @@ redis-cli
 ```
 
 **Fixes:**
+
 - Reduce `memoryLimit` in executor config
 - Reduce session TTL
 - Ensure summaries are effective (not duplicate messages)
@@ -279,27 +284,29 @@ redis-cli
 **Symptoms:** Job fails once and stops
 
 **Debugging:**
+
 ```typescript
 // Check error type
 if (result.isErr()) {
-  console.log(result.error.retryable);  // Should be true for retryable
+  console.log(result.error.retryable); // Should be true for retryable
 }
 ```
 
 **Fix:**
+
 ```typescript
 // Mark transient errors as retryable
 return err({
   code: "LLM_ERROR",
   message: "Rate limit",
-  retryable: true  // ✓ Will retry
+  retryable: true, // ✓ Will retry
 });
 
 // Mark permanent errors as non-retryable
 return err({
   code: "INVALID_INPUT",
   message: "Message too long",
-  retryable: false  // ✓ Won't retry
+  retryable: false, // ✓ Won't retry
 });
 ```
 
@@ -310,6 +317,7 @@ return err({
 **Symptoms:** Workflows slow or timing out
 
 **Debugging:**
+
 ```bash
 # Check LLM response times
 LOG_LEVEL=debug npm run dev | grep "LLM call"
@@ -319,6 +327,7 @@ curl http://localhost:3000/config
 ```
 
 **Fixes:**
+
 ```typescript
 // Increase timeout in executor config
 {
@@ -338,6 +347,7 @@ curl http://localhost:3000/config
 **Symptoms:** "ECONNREFUSED", "Connection timeout"
 
 **Debugging:**
+
 ```bash
 redis-cli ping
 
@@ -346,6 +356,7 @@ redis-cli ping
 ```
 
 **Fix:**
+
 ```bash
 # Check Redis is running
 redis-cli ping  # Should return PONG
@@ -392,13 +403,13 @@ cat profile.txt | grep "agents.reasoning"
 
 ### Key Metrics to Alert On
 
-| Metric | Threshold | Action |
-|--------|-----------|--------|
-| Executor error rate | > 5% | Page on-call |
-| Job queue depth | > 1000 | Scale workers |
-| Redis memory | > 80% | Investigate leak |
-| LLM latency | > 10s | Check provider |
-| Failed jobs (permanent) | > 10/min | Investigate |
+| Metric                  | Threshold | Action           |
+| ----------------------- | --------- | ---------------- |
+| Executor error rate     | > 5%      | Page on-call     |
+| Job queue depth         | > 1000    | Scale workers    |
+| Redis memory            | > 80%     | Investigate leak |
+| LLM latency             | > 10s     | Check provider   |
+| Failed jobs (permanent) | > 10/min  | Investigate      |
 
 ### Export Metrics
 

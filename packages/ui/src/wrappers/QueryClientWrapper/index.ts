@@ -1,2 +1,2 @@
-export { QueryClientWrapper } from './QueryClientWrapper';
-export type { QueryClientWrapperProps } from './QueryClientWrapper.types';
+export { QueryClientWrapper } from "./QueryClientWrapper";
+export type { QueryClientWrapperProps } from "./QueryClientWrapper.types";

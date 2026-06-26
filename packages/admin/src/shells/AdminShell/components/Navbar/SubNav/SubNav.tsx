@@ -1,6 +1,13 @@
 "use client";
 
-import { ActionIcon, Anchor, Divider, Group, Stack, Text } from "@peppermint/ui";
+import {
+  ActionIcon,
+  Anchor,
+  Divider,
+  Group,
+  Stack,
+  Text,
+} from "@peppermint/ui";
 import { ArrowLineLeftIcon } from "@phosphor-icons/react/dist/csr/ArrowLineLeft";
 import { SubNavLinks } from "./SubNavLinks";
 import type { AdminShellMainNavModule } from "../../../AdminShell.types";
@@ -58,18 +65,8 @@ export function SubNav({ module, pathname, onCollapse, visible }: SubNavProps) {
         </ActionIcon>
       </Group>
 
-      
-
-      <Stack
-        gap={0}
-        p={0}
-        style={{ flex: 1, overflowY: "auto" }}
-      >
-        {module.subNav.widget && (
-          <Stack px="md">
-            {module.subNav.widget}
-          </Stack>
-        )}
+      <Stack gap={0} p={0} style={{ flex: 1, overflowY: "auto" }}>
+        {module.subNav.widget && <Stack px="md">{module.subNav.widget}</Stack>}
 
         <SubNavLinks groups={module.subNav.groups} pathname={pathname} />
       </Stack>

@@ -25,8 +25,12 @@ export const teamColumns: DataTableShellColumn<TeamMemberRow>[] = [
           {record.name.charAt(0)}
         </Avatar>
         <Stack gap={0}>
-          <Text size="xs" fw={500}>{record.name}</Text>
-          <Text size="xs" c="dimmed">{record.email}</Text>
+          <Text size="xs" fw={500}>
+            {record.name}
+          </Text>
+          <Text size="xs" c="dimmed">
+            {record.email}
+          </Text>
         </Stack>
       </Group>
     ),

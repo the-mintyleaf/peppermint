@@ -52,7 +52,8 @@ async function main() {
   });
 
   app.addHook("onSend", (req, reply, payload, next) => {
-    const corsOrigins = process.env.VAGENT_CORS_ORIGINS || "http://localhost:3000";
+    const corsOrigins =
+      process.env.VAGENT_CORS_ORIGINS || "http://localhost:3000";
 
     if (corsOrigins === "*") {
       reply.header("Access-Control-Allow-Origin", "*");

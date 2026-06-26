@@ -3,6 +3,7 @@
 A **RouteModule** is a CRUD admin module where each operation lives on its **own route**. The list is at `/[module]`, create at `/[module]/new`, edit at `/[module]/[id]/edit`, and the detail view at `/[module]/[id]`.
 
 Use this when:
+
 - The record form is complex (many fields, multi-step, file uploads)
 - You want a dedicated detail/profile view for a record
 - Deep-linking to a specific record or form state matters
@@ -52,47 +53,50 @@ apps/<app-name>/
 ### 1. `module.config.ts`
 
 ```ts
-export const MODULE_KEY = 'users';
-export const MODULE_API = '/api/users';
-export const MODULE_TITLE = 'Users';
-export const MODULE_ROOT = '/admin/users';
+export const MODULE_KEY = "users";
+export const MODULE_API = "/api/users";
+export const MODULE_TITLE = "Users";
+export const MODULE_ROOT = "/admin/users";
 ```
 
 ### 2. `module.api.ts`
 
 ```ts
-import { getRecords, getSingleRecord, createRecord, editRecord, deleteRecord } from '@peppermint/api-client';
-import { MODULE_API } from './module.config';
-import type { User, CreateUserInput, EditUserInput } from './index';
+import {
+  getRecords,
+  getSingleRecord,
+  createRecord,
+  editRecord,
+  deleteRecord,
+} from "@peppermint/api-client";
+import { MODULE_API } from "./module.config";
+import type { User, CreateUserInput, EditUserInput } from "./index";
 
 export const userApi = {
   list: (params?: Record<string, unknown>) =>
     getRecords<User>(MODULE_API, params),
 
-  get: (id: string | number) =>
-    getSingleRecord<User>(MODULE_API, id),
+  get: (id: string | number) => getSingleRecord<User>(MODULE_API, id),
 
-  create: (data: CreateUserInput) =>
-    createRecord<User>(MODULE_API, data),
+  create: (data: CreateUserInput) => createRecord<User>(MODULE_API, data),
 
   edit: (id: string | number, data: EditUserInput) =>
     editRecord<User>(MODULE_API, id, data),
 
-  delete: (id: string | number) =>
-    deleteRecord(MODULE_API, id),
+  delete: (id: string | number) => deleteRecord(MODULE_API, id),
 };
 ```
 
 ### 3. `list/list.columns.tsx`
 
 ```tsx
-import type { ColumnDef } from '@peppermint/admin';
-import type { User } from '../../index';
+import type { ColumnDef } from "@peppermint/admin";
+import type { User } from "../../index";
 
 export const userColumns: ColumnDef<User>[] = [
-  { key: 'name', label: 'Name', sortable: true },
-  { key: 'email', label: 'Email' },
-  { key: 'role', label: 'Role' },
+  { key: "name", label: "Name", sortable: true },
+  { key: "email", label: "Email" },
+  { key: "role", label: "Role" },
 ];
 ```
 
@@ -101,22 +105,30 @@ export const userColumns: ColumnDef<User>[] = [
 Shared between the new and edit pages. Fields only — `FormShell` provides the submit button.
 
 ```tsx
-import { Stack, TextInput, Select, Textarea } from '@peppermint/ui';
-import { useFormInstance } from '@peppermint/admin';
-import type { CreateUserInput } from '../../index';
+import { Stack, TextInput, Select, Textarea } from "@peppermint/ui";
+import { useFormInstance } from "@peppermint/admin";
+import type { CreateUserInput } from "../../index";
 
 export function UserForm() {
   const { form } = useFormInstance<CreateUserInput>();
   return (
     <Stack gap="md">
-      <TextInput label="Name" required {...form.getInputProps('name')} />
-      <TextInput label="Email" required type="email" {...form.getInputProps('email')} />
+      <TextInput label="Name" required {...form.getInputProps("name")} />
+      <TextInput
+        label="Email"
+        required
+        type="email"
+        {...form.getInputProps("email")}
+      />
       <Select
         label="Role"
-        data={[{ value: 'admin', label: 'Admin' }, { value: 'user', label: 'User' }]}
-        {...form.getInputProps('role')}
+        data={[
+          { value: "admin", label: "Admin" },
+          { value: "user", label: "User" },
+        ]}
+        {...form.getInputProps("role")}
       />
-      <Textarea label="Bio" {...form.getInputProps('bio')} />
+      <Textarea label="Bio" {...form.getInputProps("bio")} />
     </Stack>
   );
 }
@@ -125,24 +137,31 @@ export function UserForm() {
 ### 5. `pages/list/page.tsx`
 
 ```tsx
-'use client';
-import { useRouter } from 'next/navigation';
-import { DataTableShell } from '@peppermint/admin';
-import { triggerNotification } from '@peppermint/admin';
-import { deleteRecord } from '@peppermint/api-client';
-import { MODULE_KEY, MODULE_TITLE, MODULE_API, MODULE_ROOT } from '../../module.config';
-import { userApi } from '../../module.api';
-import { userColumns } from './list.columns';
-import type { User } from '../../index';
+"use client";
+import { useRouter } from "next/navigation";
+import { DataTableShell } from "@peppermint/admin";
+import { triggerNotification } from "@peppermint/admin";
+import { deleteRecord } from "@peppermint/api-client";
+import {
+  MODULE_KEY,
+  MODULE_TITLE,
+  MODULE_API,
+  MODULE_ROOT,
+} from "../../module.config";
+import { userApi } from "../../module.api";
+import { userColumns } from "./list.columns";
+import type { User } from "../../index";
 
 export function UserListPage() {
   const router = useRouter();
 
   async function handleDelete(ids: Array<string | number>) {
-    const results = await Promise.all(ids.map((id) => deleteRecord(MODULE_API, id)));
+    const results = await Promise.all(
+      ids.map((id) => deleteRecord(MODULE_API, id)),
+    );
     const failed = results.filter((r) => !r.ok);
     if (failed.length > 0) {
-      triggerNotification.error(failed[0].message || 'Delete failed');
+      triggerNotification.error(failed[0].message || "Delete failed");
     } else {
       triggerNotification.success(`${ids.length} record(s) deleted`);
     }
@@ -166,22 +185,22 @@ export function UserListPage() {
 ### 6. `pages/new/page.tsx`
 
 ```tsx
-'use client';
-import { useRouter } from 'next/navigation';
-import { FormShell } from '@peppermint/admin';
-import { MODULE_TITLE, MODULE_ROOT } from '../../module.config';
-import { userApi } from '../../module.api';
-import { UserForm } from '../../form/UserForm';
-import type { CreateUserInput } from '../../index';
+"use client";
+import { useRouter } from "next/navigation";
+import { FormShell } from "@peppermint/admin";
+import { MODULE_TITLE, MODULE_ROOT } from "../../module.config";
+import { userApi } from "../../module.api";
+import { UserForm } from "../../form/UserForm";
+import type { CreateUserInput } from "../../index";
 
-const INITIAL: CreateUserInput = { name: '', email: '', role: 'user', bio: '' };
+const INITIAL: CreateUserInput = { name: "", email: "", role: "user", bio: "" };
 
 export function UserNewPage() {
   const router = useRouter();
   return (
     <FormShell<CreateUserInput>
       title={`New ${MODULE_TITLE.slice(0, -1)}`}
-      bread={[{ label: MODULE_TITLE, href: MODULE_ROOT }, { label: 'New' }]}
+      bread={[{ label: MODULE_TITLE, href: MODULE_ROOT }, { label: "New" }]}
       initial={INITIAL}
       apiSubmitFn={userApi.create}
       submitSuccessFn={() => router.push(MODULE_ROOT)}
@@ -199,14 +218,14 @@ export function UserNewPage() {
 Fetch the record server-side (or via `useQuery`) to seed `initial`:
 
 ```tsx
-'use client';
-import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { FormShell } from '@peppermint/admin';
-import { MODULE_KEY, MODULE_TITLE, MODULE_ROOT } from '../../module.config';
-import { userApi } from '../../module.api';
-import { UserForm } from '../../form/UserForm';
-import type { EditUserInput } from '../../index';
+"use client";
+import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { FormShell } from "@peppermint/admin";
+import { MODULE_KEY, MODULE_TITLE, MODULE_ROOT } from "../../module.config";
+import { userApi } from "../../module.api";
+import { UserForm } from "../../form/UserForm";
+import type { EditUserInput } from "../../index";
 
 export function UserEditPage({ id }: { id: string }) {
   const router = useRouter();
@@ -219,7 +238,12 @@ export function UserEditPage({ id }: { id: string }) {
   if (isPending || !data?.data) return null;
 
   const record = data.data;
-  const initial: EditUserInput = { name: record.name, email: record.email, role: record.role, bio: record.bio };
+  const initial: EditUserInput = {
+    name: record.name,
+    email: record.email,
+    role: record.role,
+    bio: record.bio,
+  };
 
   return (
     <FormShell<EditUserInput>
@@ -227,7 +251,7 @@ export function UserEditPage({ id }: { id: string }) {
       bread={[
         { label: MODULE_TITLE, href: MODULE_ROOT },
         { label: record.name, href: `${MODULE_ROOT}/${id}` },
-        { label: 'Edit' },
+        { label: "Edit" },
       ]}
       initial={initial}
       apiSubmitFn={(data) => userApi.edit(id, data)}
@@ -246,12 +270,12 @@ export function UserEditPage({ id }: { id: string }) {
 Read-only detail view — no shell, build with standard Mantine layout:
 
 ```tsx
-'use client';
-import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { Button, Group, Stack, Text, Title } from '@peppermint/ui';
-import { MODULE_KEY, MODULE_ROOT } from '../../module.config';
-import { userApi } from '../../module.api';
+"use client";
+import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { Button, Group, Stack, Text, Title } from "@peppermint/ui";
+import { MODULE_KEY, MODULE_ROOT } from "../../module.config";
+import { userApi } from "../../module.api";
 
 export function UserViewPage({ id }: { id: string }) {
   const router = useRouter();
@@ -268,7 +292,9 @@ export function UserViewPage({ id }: { id: string }) {
     <Stack gap="lg" p="md">
       <Group justify="space-between">
         <Title order={3}>{record.name}</Title>
-        <Button onClick={() => router.push(`${MODULE_ROOT}/${id}/edit`)}>Edit</Button>
+        <Button onClick={() => router.push(`${MODULE_ROOT}/${id}/edit`)}>
+          Edit
+        </Button>
       </Group>
       <Text>{record.email}</Text>
       <Text c="dimmed">{record.bio}</Text>
@@ -283,21 +309,21 @@ Each is a one-liner:
 
 ```tsx
 // app/admin/users/page.tsx
-import { UserListPage } from '../../../modules/admin/users/pages/list/page';
+import { UserListPage } from "../../../modules/admin/users/pages/list/page";
 export default UserListPage;
 
 // app/admin/users/new/page.tsx
-import { UserNewPage } from '../../../modules/admin/users/pages/new/page';
+import { UserNewPage } from "../../../modules/admin/users/pages/new/page";
 export default UserNewPage;
 
 // app/admin/users/[id]/edit/page.tsx
-import { UserEditPage } from '../../../../modules/admin/users/pages/edit/page';
+import { UserEditPage } from "../../../../modules/admin/users/pages/edit/page";
 export default function Page({ params }: { params: { id: string } }) {
   return <UserEditPage id={params.id} />;
 }
 
 // app/admin/users/[id]/page.tsx
-import { UserViewPage } from '../../../../modules/admin/users/pages/view/page';
+import { UserViewPage } from "../../../../modules/admin/users/pages/view/page";
 export default function Page({ params }: { params: { id: string } }) {
   return <UserViewPage id={params.id} />;
 }
@@ -306,9 +332,9 @@ export default function Page({ params }: { params: { id: string } }) {
 ### 10. `index.ts`
 
 ```ts
-export type { User, CreateUserInput, EditUserInput } from './user.types';
-export { userApi } from './module.api';
-export { userColumns } from './pages/list/list.columns';
+export type { User, CreateUserInput, EditUserInput } from "./user.types";
+export { userApi } from "./module.api";
+export { userColumns } from "./pages/list/list.columns";
 ```
 
 ---

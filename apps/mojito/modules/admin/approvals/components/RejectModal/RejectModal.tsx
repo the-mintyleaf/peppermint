@@ -10,7 +10,12 @@ interface RejectModalProps {
   loading?: boolean;
 }
 
-export function RejectModal({ opened, onClose, onConfirm, loading }: RejectModalProps) {
+export function RejectModal({
+  opened,
+  onClose,
+  onConfirm,
+  loading,
+}: RejectModalProps) {
   const [notes, setNotes] = useState("");
 
   function handleConfirm() {
@@ -23,7 +28,8 @@ export function RejectModal({ opened, onClose, onConfirm, loading }: RejectModal
     <Modal opened={opened} onClose={onClose} title="Reject Content" size="sm">
       <Stack gap="md">
         <Text size="sm" c="dimmed">
-          Provide a reason for rejection. This will be visible to the content creator.
+          Provide a reason for rejection. This will be visible to the content
+          creator.
         </Text>
         <Textarea
           label="Notes"
@@ -35,7 +41,9 @@ export function RejectModal({ opened, onClose, onConfirm, loading }: RejectModal
           minRows={3}
         />
         <Group justify="flex-end">
-          <Button variant="subtle" onClick={onClose}>Cancel</Button>
+          <Button variant="subtle" onClick={onClose}>
+            Cancel
+          </Button>
           <Button
             color="red"
             disabled={!notes.trim()}

@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import type { ReactNode } from 'react';
-import { AccessMenu, BookmarkButton, Group, Text } from '@peppermint/ui';
+import type { ReactNode } from "react";
+import { AccessMenu, BookmarkButton, Group, Text } from "@peppermint/ui";
 import type {
   DataTableShellModuleAccess,
   DataTableShellModuleAccessChange,
   DataTableShellModuleInfo,
-} from '../../DataTableShell.types';
-import { DataTableShellHeaderActions } from '../DataTableShellHeaderActions';
-import { DataTableShellEditedLabel } from './DataTableShellEditedLabel';
+} from "../../DataTableShell.types";
+import { DataTableShellHeaderActions } from "../DataTableShellHeaderActions";
+import { DataTableShellEditedLabel } from "./DataTableShellEditedLabel";
 
 function HeaderSeparator() {
   return (

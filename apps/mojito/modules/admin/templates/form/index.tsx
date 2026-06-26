@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useCallback, useState } from "react";
-import { Box, Group, Button, ActionIcon, Tooltip, Text, Divider } from "@peppermint/ui";
+import {
+  Box,
+  Group,
+  Button,
+  ActionIcon,
+  Tooltip,
+  Text,
+  Divider,
+} from "@peppermint/ui";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
 import { ArrowClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowClockwise";
 import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
@@ -90,12 +98,19 @@ export function TemplateBuilder({ templateId }: TemplateBuilderProps) {
   const handleDiscard = useCallback(() => {
     if (isDirty) {
       if (!confirm("Discard unsaved changes?")) return;
-      }
+    }
     router.push("/admin/automation/templates");
   }, [isDirty, router]);
 
   return (
-    <Box style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+    <Box
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        overflow: "hidden",
+      }}
+    >
       <Group
         gap={4}
         justify="space-between"
@@ -121,47 +136,61 @@ export function TemplateBuilder({ templateId }: TemplateBuilderProps) {
         </Text>
 
         <Group gap={4} wrap="nowrap" align="center">
-        <Tooltip label="Undo (⌘Z)" withArrow>
-          <ActionIcon size="sm" variant="subtle" onClick={undo} disabled={!canUndo} aria-label="Undo">
-            <ArrowCounterClockwiseIcon size={14} />
-          </ActionIcon>
-        </Tooltip>
-        <Tooltip label="Redo (⌘⇧Z)" withArrow>
-          <ActionIcon size="sm" variant="subtle" onClick={redo} disabled={!canRedo} aria-label="Redo">
-            <ArrowClockwiseIcon size={14} />
-          </ActionIcon>
-        </Tooltip>
+          <Tooltip label="Undo (⌘Z)" withArrow>
+            <ActionIcon
+              size="sm"
+              variant="subtle"
+              onClick={undo}
+              disabled={!canUndo}
+              aria-label="Undo"
+            >
+              <ArrowCounterClockwiseIcon size={14} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="Redo (⌘⇧Z)" withArrow>
+            <ActionIcon
+              size="sm"
+              variant="subtle"
+              onClick={redo}
+              disabled={!canRedo}
+              aria-label="Redo"
+            >
+              <ArrowClockwiseIcon size={14} />
+            </ActionIcon>
+          </Tooltip>
 
-        <Divider orientation="vertical" />
+          <Divider orientation="vertical" />
 
-        <Button
-          size="xs"
-          variant="subtle"
-          leftSection={previewMode ? <EyeSlashIcon size={14} /> : <EyeIcon size={14} />}
-          onClick={() => setPreviewMode(!previewMode)}
-        >
-          {previewMode ? "Edit" : "Preview"}
-        </Button>
+          <Button
+            size="xs"
+            variant="subtle"
+            leftSection={
+              previewMode ? <EyeSlashIcon size={14} /> : <EyeIcon size={14} />
+            }
+            onClick={() => setPreviewMode(!previewMode)}
+          >
+            {previewMode ? "Edit" : "Preview"}
+          </Button>
 
-        <Button
-          size="xs"
-          leftSection={<FloppyDiskIcon size={14} />}
-          onClick={() => save()}
-          loading={isSaving}
-          disabled={!isDirty}
-        >
-          Save
-        </Button>
+          <Button
+            size="xs"
+            leftSection={<FloppyDiskIcon size={14} />}
+            onClick={() => save()}
+            loading={isSaving}
+            disabled={!isDirty}
+          >
+            Save
+          </Button>
 
-        <Button
-          size="xs"
-          variant="subtle"
-          color="gray"
-          leftSection={<XIcon size={14} />}
-          onClick={handleDiscard}
-        >
-          Discard
-        </Button>
+          <Button
+            size="xs"
+            variant="subtle"
+            color="gray"
+            leftSection={<XIcon size={14} />}
+            onClick={handleDiscard}
+          >
+            Discard
+          </Button>
         </Group>
       </Group>
 
@@ -194,7 +223,13 @@ export function TemplateBuilder({ templateId }: TemplateBuilderProps) {
               side="left"
               width={LAYERS_PANEL_WIDTH}
               label="Layers"
-              icon={<StackIcon size={14} weight="fill" color="var(--mantine-color-brand-6)" />}
+              icon={
+                <StackIcon
+                  size={14}
+                  weight="fill"
+                  color="var(--mantine-color-brand-6)"
+                />
+              }
               onExpand={() => setShowLayersPanel(true)}
               expandLabel="Show layers"
             />
@@ -205,7 +240,11 @@ export function TemplateBuilder({ templateId }: TemplateBuilderProps) {
               width={INSPECTOR_PANEL_WIDTH}
               label="Properties"
               icon={
-                <SlidersHorizontalIcon size={14} weight="fill" color="var(--mantine-color-dimmed)" />
+                <SlidersHorizontalIcon
+                  size={14}
+                  weight="fill"
+                  color="var(--mantine-color-dimmed)"
+                />
               }
               onExpand={() => setShowInspectorPanel(true)}
               expandLabel="Show properties"

@@ -1,4 +1,7 @@
-import { ExecutorContext, createExecutorError } from "@/shared/executor-context";
+import {
+  ExecutorContext,
+  createExecutorError,
+} from "@/shared/executor-context";
 import { Result, ok, err } from "@/shared/result";
 import {
   schemaNodeSessionFetchInput,
@@ -20,7 +23,7 @@ import { getLastMessages } from "@/shared/memory/sessionStore";
 export async function nodeSessionFetch(
   input: unknown,
   ctx: ExecutorContext,
-  config?: any
+  config?: any,
 ): Promise<Result<PropNodeSessionFetchOutput, any>> {
   try {
     // 1. Validate input schema
@@ -31,7 +34,7 @@ export async function nodeSessionFetch(
           errors: parseResult.error.issues,
           nodeId: ctx.nodeId,
         },
-        "Invalid input to nodeSessionFetch"
+        "Invalid input to nodeSessionFetch",
       );
       return err(
         createExecutorError(
@@ -40,8 +43,8 @@ export async function nodeSessionFetch(
           {
             nodeId: ctx.nodeId,
             retryable: false,
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -54,7 +57,7 @@ export async function nodeSessionFetch(
         sessionId: parsed.sessionId,
         limit: parsed.limit,
       },
-      "Fetching session messages"
+      "Fetching session messages",
     );
 
     // 2. Fetch messages from session store
@@ -69,7 +72,7 @@ export async function nodeSessionFetch(
           sessionId: parsed.sessionId,
           error: fetchErr,
         },
-        "Failed to fetch session messages"
+        "Failed to fetch session messages",
       );
       return err(
         createExecutorError(
@@ -79,8 +82,8 @@ export async function nodeSessionFetch(
             nodeId: ctx.nodeId,
             cause: fetchErr,
             retryable: true, // Storage errors may be transient
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -94,7 +97,7 @@ export async function nodeSessionFetch(
         sessionId: parsed.sessionId,
         messageCount: messages.length,
       },
-      "Session messages fetched"
+      "Session messages fetched",
     );
 
     return ok(output);
@@ -106,7 +109,7 @@ export async function nodeSessionFetch(
         nodeId: ctx.nodeId,
         cause: error,
         retryable: false,
-      }
+      },
     );
 
     ctx.logger.error(
@@ -114,7 +117,7 @@ export async function nodeSessionFetch(
         error: executorError,
         nodeId: ctx.nodeId,
       },
-      "Unexpected error in nodeSessionFetch"
+      "Unexpected error in nodeSessionFetch",
     );
 
     return err(executorError);

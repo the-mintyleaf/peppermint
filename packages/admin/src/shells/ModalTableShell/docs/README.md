@@ -5,7 +5,11 @@ A shell component that wraps `DataTableShell` and adds full CRUD modal managemen
 ## Usage
 
 ```tsx
-import { ModalTableShell, type ModalTableShellProps, type ModalFormComponentProps } from '@peppermint/admin';
+import {
+  ModalTableShell,
+  type ModalTableShellProps,
+  type ModalFormComponentProps,
+} from "@peppermint/admin";
 
 interface User {
   id: string;
@@ -15,12 +19,14 @@ interface User {
 
 function UserFormModal(props: ModalFormComponentProps<User>) {
   const { initialValues, onSubmit, isLoading } = props;
-  
+
   return (
-    <form onSubmit={(e) => {
-      e.preventDefault();
-      onSubmit({ id: initialValues?.id ?? '', name: '', email: '' });
-    }}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit({ id: initialValues?.id ?? "", name: "", email: "" });
+      }}
+    >
       {/* form fields */}
       <button disabled={isLoading}>Save</button>
     </form>
@@ -32,22 +38,21 @@ export function UsersModule() {
     <ModalTableShell<User>
       queryKey="users"
       queryGetFn={async (params) => {
-        const res = await api.get('/users', { params });
+        const res = await api.get("/users", { params });
         return res.data;
       }}
-      moduleInfo={{ name: 'User', label: 'Users' }}
+      moduleInfo={{ name: "User", label: "Users" }}
       columns={[
-        { accessor: 'id', title: 'ID', hidden: true },
-        { accessor: 'name', title: 'Name' },
-        { accessor: 'email', title: 'Email' },
+        { accessor: "id", title: "ID", hidden: true },
+        { accessor: "name", title: "Name" },
+        { accessor: "email", title: "Email" },
       ]}
       idAccessor="id"
-      
       // CRUD handlers
       createFormComponent={UserFormModal}
       editFormComponent={UserFormModal}
       onCreateApi={async (values) => {
-        await api.post('/users', values);
+        await api.post("/users", values);
       }}
       onEditApi={async (values, record) => {
         await api.put(`/users/${record.id}`, values);
@@ -55,7 +60,6 @@ export function UsersModule() {
       onDeleteApi={async (id) => {
         await api.delete(`/users/${id}`);
       }}
-      
       // Success callbacks
       onCreateSuccess={() => {
         // optional: run custom logic after create
@@ -139,14 +143,18 @@ interface ModalFormComponentProps<T extends Record<string, unknown>> {
 ### Example Form
 
 ```tsx
-import { Stack, TextInput, Button } from '@peppermint/ui';
-import { useForm } from '@peppermint/ui';
+import { Stack, TextInput, Button } from "@peppermint/ui";
+import { useForm } from "@peppermint/ui";
 
 interface UserFormProps extends ModalFormComponentProps<User> {}
 
-export function UserForm({ initialValues, onSubmit, isLoading }: UserFormProps) {
+export function UserForm({
+  initialValues,
+  onSubmit,
+  isLoading,
+}: UserFormProps) {
   const form = useForm({
-    initialValues: initialValues ?? { name: '', email: '' },
+    initialValues: initialValues ?? { name: "", email: "" },
     onSubmit,
   });
 
@@ -155,12 +163,12 @@ export function UserForm({ initialValues, onSubmit, isLoading }: UserFormProps) 
       <Stack gap="md">
         <TextInput
           label="Name"
-          {...form.getInputProps('name')}
+          {...form.getInputProps("name")}
           disabled={isLoading}
         />
         <TextInput
           label="Email"
-          {...form.getInputProps('email')}
+          {...form.getInputProps("email")}
           disabled={isLoading}
         />
         <Button type="submit" loading={isLoading}>
@@ -203,7 +211,7 @@ import { useModalTableShellContext } from '@peppermint/admin';
 function MyNestedComponent() {
   const { isCreateModalOpen, openCreateModal, activeEditRecord } =
     useModalTableShellContext<User>();
-  
+
   return (
     // use context values
   );

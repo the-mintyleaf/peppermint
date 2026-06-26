@@ -1,14 +1,30 @@
 "use client";
 
 import {
-  Avatar, Badge, Divider, Drawer, Group, ScrollArea, SimpleGrid, Stack, Text, ThemeIcon,
+  Avatar,
+  Badge,
+  Divider,
+  Drawer,
+  Group,
+  ScrollArea,
+  SimpleGrid,
+  Stack,
+  Text,
+  ThemeIcon,
 } from "@peppermint/ui";
 import { FolderIcon } from "@phosphor-icons/react/dist/csr/Folder";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
 import { TreeStructureIcon } from "@phosphor-icons/react/dist/csr/TreeStructure";
 import {
-  KpiCard, StatRow, StackedBar, MiniBarChart, RingChart, ProgressBar, ActivityHeatmap, makeSeededRng,
+  KpiCard,
+  StatRow,
+  StackedBar,
+  MiniBarChart,
+  RingChart,
+  ProgressBar,
+  ActivityHeatmap,
+  makeSeededRng,
 } from "../InspectorPanel/charts";
 import type { DepartmentDrawerProps } from "./DepartmentDrawer.types";
 import type { NodeHealthIssue } from "../../OrganizationTree.types";
@@ -22,9 +38,25 @@ const HEALTH_LABELS: Record<NodeHealthIssue, string> = {
   inactive_head: "Department head account is inactive",
 };
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
-type DepartmentDrawerContentProps = Omit<DepartmentDrawerProps, "opened" | "onClose">;
+type DepartmentDrawerContentProps = Omit<
+  DepartmentDrawerProps,
+  "opened" | "onClose"
+>;
 
 export function DepartmentDrawerContent({
   nodeId,
@@ -40,18 +72,24 @@ export function DepartmentDrawerContent({
 }: DepartmentDrawerContentProps) {
   const rng = makeSeededRng(nodeId);
 
-  const activeTasks    = data.activeTasks    ?? Math.floor(rng() * 30 + 5);
-  const pendingTasks   = data.pendingTasks   ?? Math.floor(rng() * 20 + 3);
+  const activeTasks = data.activeTasks ?? Math.floor(rng() * 30 + 5);
+  const pendingTasks = data.pendingTasks ?? Math.floor(rng() * 20 + 3);
   const completedTasks = data.completedTasks ?? Math.floor(rng() * 120 + 20);
-  const peopleCount    = data.peopleCount ?? totalPeople ?? 0;
-  const tasksDelta     = Math.floor(rng() * 25 + 5);
-  const peopleDelta    = Math.floor(rng() * 5 + 1);
-  const capacityPct    = Math.floor(rng() * 35 + 55);
-  const deliveryPct    = Math.floor(rng() * 30 + 60);
+  const peopleCount = data.peopleCount ?? totalPeople ?? 0;
+  const tasksDelta = Math.floor(rng() * 25 + 5);
+  const peopleDelta = Math.floor(rng() * 5 + 1);
+  const capacityPct = Math.floor(rng() * 35 + 55);
+  const deliveryPct = Math.floor(rng() * 30 + 60);
 
-  const peopleSparkData = Array.from({ length: 8 }, () => Math.floor(rng() * 40 + 5));
-  const tasksSparkData  = Array.from({ length: 8 }, () => Math.floor(rng() * 80 + 10));
-  const activeSparkData = Array.from({ length: 8 }, () => Math.floor(rng() * 30 + 3));
+  const peopleSparkData = Array.from({ length: 8 }, () =>
+    Math.floor(rng() * 40 + 5),
+  );
+  const tasksSparkData = Array.from({ length: 8 }, () =>
+    Math.floor(rng() * 80 + 10),
+  );
+  const activeSparkData = Array.from({ length: 8 }, () =>
+    Math.floor(rng() * 30 + 3),
+  );
 
   const now = new Date();
   const barData = Array.from({ length: 6 }, (_, i) => {
@@ -71,12 +109,21 @@ export function DepartmentDrawerContent({
       {/* ── Info section — no cards ───────────────────────────────────────── */}
       <div style={{ padding: "18px 20px 20px" }}>
         <Group gap={6} mb={10}>
-          <Badge size="sm" color={STATUS_COLORS[data.status]} variant="light">{data.status}</Badge>
-          <Badge size="sm" color="violet" variant="dot">{data.deptType}</Badge>
+          <Badge size="sm" color={STATUS_COLORS[data.status]} variant="light">
+            {data.status}
+          </Badge>
+          <Badge size="sm" color="violet" variant="dot">
+            {data.deptType}
+          </Badge>
         </Group>
 
         {data.description && (
-          <Text size="sm" c="dimmed" lineClamp={3} style={{ lineHeight: 1.6, marginBottom: 12 }}>
+          <Text
+            size="sm"
+            c="dimmed"
+            lineClamp={3}
+            style={{ lineHeight: 1.6, marginBottom: 12 }}
+          >
             {data.description}
           </Text>
         )}
@@ -84,22 +131,47 @@ export function DepartmentDrawerContent({
         <Stack gap={7}>
           {data.head && (
             <Group gap={7}>
-              <UserIcon size={13} color="var(--mantine-color-dimmed)" aria-label="Head" />
-              <Text size="xs" c="dimmed">Head: <Text span fw={600} c="dark" size="xs">{data.head}</Text></Text>
+              <UserIcon
+                size={13}
+                color="var(--mantine-color-dimmed)"
+                aria-label="Head"
+              />
+              <Text size="xs" c="dimmed">
+                Head:{" "}
+                <Text span fw={600} c="dark" size="xs">
+                  {data.head}
+                </Text>
+              </Text>
             </Group>
           )}
           {data.parentName && (
             <Group gap={7}>
-              <TreeStructureIcon size={13} color="var(--mantine-color-dimmed)" aria-label="Parent" />
-              <Text size="xs" c="dimmed">Under: <Text span fw={600} c="dark" size="xs">{data.parentName}</Text></Text>
+              <TreeStructureIcon
+                size={13}
+                color="var(--mantine-color-dimmed)"
+                aria-label="Parent"
+              />
+              <Text size="xs" c="dimmed">
+                Under:{" "}
+                <Text span fw={600} c="dark" size="xs">
+                  {data.parentName}
+                </Text>
+              </Text>
             </Group>
           )}
           {data.childDeptNames && data.childDeptNames.length > 0 && (
             <Group gap={7} align="flex-start" wrap="nowrap">
-              <FolderIcon size={13} color="var(--mantine-color-dimmed)" aria-label="Sub-units" style={{ flexShrink: 0, marginTop: 1 }} />
+              <FolderIcon
+                size={13}
+                color="var(--mantine-color-dimmed)"
+                aria-label="Sub-units"
+                style={{ flexShrink: 0, marginTop: 1 }}
+              />
               <Group gap={4} wrap="wrap">
                 {data.childDeptNames.map((name) => (
-                  <Badge key={name} variant="outline" size="xs" color="violet">{name}</Badge>
+                  <Badge key={name} variant="outline" size="xs" color="violet">
+                    {name}
+                  </Badge>
                 ))}
               </Group>
             </Group>
@@ -111,7 +183,6 @@ export function DepartmentDrawerContent({
 
       {/* ── Stat cards ───────────────────────────────────────────────────── */}
       <Stack gap={14} style={{ padding: "20px 16px" }}>
-
         {/* People + Tasks done */}
         <SimpleGrid cols={2} spacing={12}>
           <KpiCard title="PEOPLE">
@@ -174,7 +245,13 @@ export function DepartmentDrawerContent({
             description="vs last month"
           />
           <div style={{ marginTop: 16 }}>
-            <MiniBarChart data={barData.map((b) => b.value)} labels={barData.map((b) => b.label)} height={96} color="#ddd6fe" activeColor="#7c3aed" />
+            <MiniBarChart
+              data={barData.map((b) => b.value)}
+              labels={barData.map((b) => b.label)}
+              height={96}
+              color="#ddd6fe"
+              activeColor="#7c3aed"
+            />
           </div>
         </KpiCard>
 
@@ -184,8 +261,8 @@ export function DepartmentDrawerContent({
             <RingChart
               segments={[
                 { value: completedTasks, color: "#059669", label: "Done" },
-                { value: activeTasks,    color: "#f59e0b", label: "Active" },
-                { value: pendingTasks,   color: "#e5e7eb", label: "Pending" },
+                { value: activeTasks, color: "#f59e0b", label: "Active" },
+                { value: pendingTasks, color: "#e5e7eb", label: "Pending" },
               ]}
               size={84}
               thickness={9}
@@ -194,16 +271,43 @@ export function DepartmentDrawerContent({
             />
             <Stack gap={8} style={{ flex: 1 }}>
               {[
-                { label: "Completed", value: completedTasks, color: "#059669", textColor: "teal"   as const },
-                { label: "Active",    value: activeTasks,    color: "#f59e0b", textColor: "orange" as const },
-                { label: "Pending",   value: pendingTasks,   color: "#e5e7eb", textColor: "dimmed" as const },
+                {
+                  label: "Completed",
+                  value: completedTasks,
+                  color: "#059669",
+                  textColor: "teal" as const,
+                },
+                {
+                  label: "Active",
+                  value: activeTasks,
+                  color: "#f59e0b",
+                  textColor: "orange" as const,
+                },
+                {
+                  label: "Pending",
+                  value: pendingTasks,
+                  color: "#e5e7eb",
+                  textColor: "dimmed" as const,
+                },
               ].map((item) => (
                 <Group key={item.label} gap={6} justify="space-between">
                   <Group gap={6}>
-                    <div style={{ width: 8, height: 8, borderRadius: 2, background: item.color, flexShrink: 0 }} />
-                    <Text size="xs" c="dimmed">{item.label}</Text>
+                    <div
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 2,
+                        background: item.color,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <Text size="xs" c="dimmed">
+                      {item.label}
+                    </Text>
                   </Group>
-                  <Text size="xs" fw={700} c={item.textColor}>{item.value}</Text>
+                  <Text size="xs" fw={700} c={item.textColor}>
+                    {item.value}
+                  </Text>
                 </Group>
               ))}
             </Stack>
@@ -215,9 +319,29 @@ export function DepartmentDrawerContent({
           <KpiCard title="STRUCTURE">
             <StackedBar
               segments={[
-                ...(totalPeople !== undefined ? [{ label: "People", value: totalPeople, color: "#7c3aed", delta: `+${peopleDelta}`, deltaPositive: true }] : []),
-                ...(totalDepts  !== undefined ? [{ label: "Units",  value: totalDepts,  color: "#06b6d4" }] : []),
-                ...((hiddenLevels ?? 0) > 0   ? [{ label: "Hidden", value: hiddenLevels ?? 0, color: "#e5e7eb" }] : []),
+                ...(totalPeople !== undefined
+                  ? [
+                      {
+                        label: "People",
+                        value: totalPeople,
+                        color: "#7c3aed",
+                        delta: `+${peopleDelta}`,
+                        deltaPositive: true,
+                      },
+                    ]
+                  : []),
+                ...(totalDepts !== undefined
+                  ? [{ label: "Units", value: totalDepts, color: "#06b6d4" }]
+                  : []),
+                ...((hiddenLevels ?? 0) > 0
+                  ? [
+                      {
+                        label: "Hidden",
+                        value: hiddenLevels ?? 0,
+                        color: "#e5e7eb",
+                      },
+                    ]
+                  : []),
               ]}
             />
           </KpiCard>
@@ -226,17 +350,34 @@ export function DepartmentDrawerContent({
         {/* Performance */}
         <KpiCard title="PERFORMANCE">
           <Stack gap={12}>
-            <ProgressBar label="Task completion" value={completedTasks} max={totalTasks || 1} color="#7c3aed" />
-            <ProgressBar label="Staff capacity"  value={capacityPct}   color="#06b6d4" />
-            <ProgressBar label="Delivery rate"   value={deliveryPct}   color="#059669" />
+            <ProgressBar
+              label="Task completion"
+              value={completedTasks}
+              max={totalTasks || 1}
+              color="#7c3aed"
+            />
+            <ProgressBar
+              label="Staff capacity"
+              value={capacityPct}
+              color="#06b6d4"
+            />
+            <ProgressBar
+              label="Delivery rate"
+              value={deliveryPct}
+              color="#059669"
+            />
           </Stack>
         </KpiCard>
 
         {/* Work overview */}
         <KpiCard title="WORK OVERVIEW">
           <Group justify="space-between" mb={10}>
-            <Text size="xs" c="dimmed" style={{ fontSize: 10 }}>Activity · last 6 months</Text>
-            <Text size="xs" fw={600} c="violet" style={{ fontSize: 10 }}>{completedTasks} total</Text>
+            <Text size="xs" c="dimmed" style={{ fontSize: 10 }}>
+              Activity · last 6 months
+            </Text>
+            <Text size="xs" fw={600} c="violet" style={{ fontSize: 10 }}>
+              {completedTasks} total
+            </Text>
           </Group>
           <ActivityHeatmap data={heatmapData} color="violet" />
         </KpiCard>
@@ -247,10 +388,18 @@ export function DepartmentDrawerContent({
             <Stack gap={10}>
               {data.assignedPeople.map((p) => (
                 <Group key={p.id} gap={10}>
-                  <Avatar size="sm" color="violet" radius="xl">{p.name[0]}</Avatar>
+                  <Avatar size="sm" color="violet" radius="xl">
+                    {p.name[0]}
+                  </Avatar>
                   <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
-                    <Text size="xs" fw={600} lineClamp={1}>{p.name}</Text>
-                    {p.designation && <Text size="xs" c="dimmed" lineClamp={1}>{p.designation}</Text>}
+                    <Text size="xs" fw={600} lineClamp={1}>
+                      {p.name}
+                    </Text>
+                    {p.designation && (
+                      <Text size="xs" c="dimmed" lineClamp={1}>
+                        {p.designation}
+                      </Text>
+                    )}
                   </Stack>
                 </Group>
               ))}
@@ -264,10 +413,23 @@ export function DepartmentDrawerContent({
             <Stack gap={10}>
               {data.recentActivity.slice(0, 4).map((item) => (
                 <Group key={item.id} gap={10} align="flex-start" wrap="nowrap">
-                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--mantine-color-violet-5)", marginTop: 5, flexShrink: 0 }} />
+                  <div
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      background: "var(--mantine-color-violet-5)",
+                      marginTop: 5,
+                      flexShrink: 0,
+                    }}
+                  />
                   <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
-                    <Text size="xs" lineClamp={1}>{item.action}</Text>
-                    <Text size="xs" c="dimmed">{item.timestamp}</Text>
+                    <Text size="xs" lineClamp={1}>
+                      {item.action}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {item.timestamp}
+                    </Text>
                   </Stack>
                 </Group>
               ))}
@@ -277,28 +439,55 @@ export function DepartmentDrawerContent({
 
         {/* Health issues */}
         {healthIssues.length > 0 && (
-          <KpiCard style={{ background: "var(--mantine-color-orange-0)", borderColor: "var(--mantine-color-orange-2)" }}>
+          <KpiCard
+            style={{
+              background: "var(--mantine-color-orange-0)",
+              borderColor: "var(--mantine-color-orange-2)",
+            }}
+          >
             <Group gap={6} mb={10}>
-              <WarningIcon size={13} color="var(--mantine-color-orange-6)" aria-label="Warning" />
-              <Text size="xs" fw={700} tt="uppercase" c="orange" style={{ letterSpacing: "0.06em", fontSize: 10 }}>Structure Health</Text>
+              <WarningIcon
+                size={13}
+                color="var(--mantine-color-orange-6)"
+                aria-label="Warning"
+              />
+              <Text
+                size="xs"
+                fw={700}
+                tt="uppercase"
+                c="orange"
+                style={{ letterSpacing: "0.06em", fontSize: 10 }}
+              >
+                Structure Health
+              </Text>
             </Group>
             <Stack gap={6}>
               {healthIssues.map((issue) => (
                 <Group key={issue} gap={7} align="flex-start" wrap="nowrap">
-                  <Text c="orange" style={{ fontSize: 11, lineHeight: 1.5, flexShrink: 0 }}>•</Text>
-                  <Text size="xs" c="dimmed" style={{ lineHeight: 1.5 }}>{HEALTH_LABELS[issue as NodeHealthIssue] ?? issue}</Text>
+                  <Text
+                    c="orange"
+                    style={{ fontSize: 11, lineHeight: 1.5, flexShrink: 0 }}
+                  >
+                    •
+                  </Text>
+                  <Text size="xs" c="dimmed" style={{ lineHeight: 1.5 }}>
+                    {HEALTH_LABELS[issue as NodeHealthIssue] ?? issue}
+                  </Text>
                 </Group>
               ))}
             </Stack>
           </KpiCard>
         )}
-
       </Stack>
     </Stack>
   );
 }
 
-export function DepartmentDrawer({ opened, onClose, ...rest }: DepartmentDrawerProps) {
+export function DepartmentDrawer({
+  opened,
+  onClose,
+  ...rest
+}: DepartmentDrawerProps) {
   return (
     <Drawer
       opened={opened}
@@ -311,12 +500,22 @@ export function DepartmentDrawer({ opened, onClose, ...rest }: DepartmentDrawerP
             <FolderIcon size={18} weight="fill" aria-label="Department" />
           </ThemeIcon>
           <Stack gap={0}>
-            <Text fw={700} size="sm">{rest.data.name}</Text>
-            <Text size="xs" c="dimmed" tt="capitalize">{rest.data.deptType}</Text>
+            <Text fw={700} size="sm">
+              {rest.data.name}
+            </Text>
+            <Text size="xs" c="dimmed" tt="capitalize">
+              {rest.data.deptType}
+            </Text>
           </Stack>
         </Group>
       }
-      styles={{ body: { padding: 0 }, header: { padding: "16px 20px 12px", borderBottom: "1px solid var(--mantine-color-default-border)" } }}
+      styles={{
+        body: { padding: 0 },
+        header: {
+          padding: "16px 20px 12px",
+          borderBottom: "1px solid var(--mantine-color-default-border)",
+        },
+      }}
     >
       <ScrollArea h="calc(100vh - 80px)" p="md">
         <DepartmentDrawerContent {...rest} />

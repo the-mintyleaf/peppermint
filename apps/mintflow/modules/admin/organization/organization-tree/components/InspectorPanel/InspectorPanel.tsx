@@ -1,6 +1,13 @@
 "use client";
 
-import { ActionIcon, Divider, Menu, ScrollArea, Text, ThemeIcon } from "@peppermint/ui";
+import {
+  ActionIcon,
+  Divider,
+  Menu,
+  ScrollArea,
+  Text,
+  ThemeIcon,
+} from "@peppermint/ui";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { DotsThreeVerticalIcon } from "@phosphor-icons/react/dist/csr/DotsThreeVertical";
 import { BuildingsIcon } from "@phosphor-icons/react/dist/csr/Buildings";
@@ -16,13 +23,37 @@ import { DepartmentDrawerContent } from "../DepartmentDrawer/DepartmentDrawer";
 import { PersonDrawerContent } from "../PersonDrawer/PersonDrawer";
 import { GroupListContent } from "../GroupListDrawer/GroupListDrawer";
 import type { InspectorPanelProps } from "./InspectorPanel.types";
-import type { OrgOfficeData, DepartmentData, PersonData, GroupData } from "../../OrganizationTree.types";
+import type {
+  OrgOfficeData,
+  DepartmentData,
+  PersonData,
+  GroupData,
+} from "../../OrganizationTree.types";
 
-const NODE_TYPE_META: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  org:        { label: "Organization", color: "blue",  icon: <BuildingsIcon size={13} aria-label="Organization" /> },
-  department: { label: "Department",   color: "violet", icon: <FolderIcon size={13} aria-label="Department" /> },
-  person:     { label: "Person",       color: "teal",  icon: <UserIcon size={13} aria-label="Person" /> },
-  group:      { label: "Group",        color: "grape", icon: <StackIcon size={13} aria-label="Group" /> },
+const NODE_TYPE_META: Record<
+  string,
+  { label: string; color: string; icon: React.ReactNode }
+> = {
+  org: {
+    label: "Organization",
+    color: "blue",
+    icon: <BuildingsIcon size={13} aria-label="Organization" />,
+  },
+  department: {
+    label: "Department",
+    color: "violet",
+    icon: <FolderIcon size={13} aria-label="Department" />,
+  },
+  person: {
+    label: "Person",
+    color: "teal",
+    icon: <UserIcon size={13} aria-label="Person" />,
+  },
+  group: {
+    label: "Group",
+    color: "grape",
+    icon: <StackIcon size={13} aria-label="Group" />,
+  },
 };
 
 export function InspectorPanel({
@@ -45,14 +76,18 @@ export function InspectorPanel({
 }: InspectorPanelProps) {
   if (!opened || !selectedNode) return null;
 
-  const meta = NODE_TYPE_META[selectedNode.type] ?? { label: selectedNode.type, color: "gray", icon: null };
+  const meta = NODE_TYPE_META[selectedNode.type] ?? {
+    label: selectedNode.type,
+    color: "gray",
+    icon: null,
+  };
 
   const nodeName =
     selectedNode.type === "person"
       ? (selectedNode.data as PersonData).fullName
       : selectedNode.type === "group"
-      ? (selectedNode.data as GroupData).name
-      : (selectedNode.data as OrgOfficeData | DepartmentData).name;
+        ? (selectedNode.data as GroupData).name
+        : (selectedNode.data as OrgOfficeData | DepartmentData).name;
 
   return (
     <div
@@ -81,55 +116,160 @@ export function InspectorPanel({
           gap: 8,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            flex: 1,
+            minWidth: 0,
+          }}
+        >
           <ThemeIcon size="sm" variant="light" color={meta.color} radius="sm">
             {meta.icon}
           </ThemeIcon>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <Text size="xs" c="dimmed" fw={500} tt="uppercase" style={{ letterSpacing: "0.05em", fontSize: 10, lineHeight: 1.2 }}>
+            <Text
+              size="xs"
+              c="dimmed"
+              fw={500}
+              tt="uppercase"
+              style={{ letterSpacing: "0.05em", fontSize: 10, lineHeight: 1.2 }}
+            >
               {meta.label}
             </Text>
-            <Text size="sm" fw={700} lineClamp={1}>{nodeName}</Text>
+            <Text size="sm" fw={700} lineClamp={1}>
+              {nodeName}
+            </Text>
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            flexShrink: 0,
+          }}
+        >
           {/* 3-dot actions menu */}
           <Menu shadow="md" width={200} position="bottom-end">
             <Menu.Target>
-              <ActionIcon size="sm" variant="subtle" color="gray" aria-label="Actions">
+              <ActionIcon
+                size="sm"
+                variant="subtle"
+                color="gray"
+                aria-label="Actions"
+              >
                 <DotsThreeVerticalIcon size={16} />
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
-              {selectedNode.type === "org" && (<>
-                <Menu.Item leftSection={<PencilSimpleIcon size={13} aria-label="Edit" />} onClick={() => onEdit(selectedNode.id)}>Edit</Menu.Item>
-                <Menu.Item leftSection={<PlusIcon size={13} aria-label="Add division" />} onClick={onAddDivision}>Add Division</Menu.Item>
-                <Menu.Divider />
-                <Menu.Item color="red" leftSection={<TrashIcon size={13} aria-label="Delete" />} onClick={() => onDelete(selectedNode.id)}>Delete</Menu.Item>
-              </>)}
+              {selectedNode.type === "org" && (
+                <>
+                  <Menu.Item
+                    leftSection={
+                      <PencilSimpleIcon size={13} aria-label="Edit" />
+                    }
+                    onClick={() => onEdit(selectedNode.id)}
+                  >
+                    Edit
+                  </Menu.Item>
+                  <Menu.Item
+                    leftSection={
+                      <PlusIcon size={13} aria-label="Add division" />
+                    }
+                    onClick={onAddDivision}
+                  >
+                    Add Division
+                  </Menu.Item>
+                  <Menu.Divider />
+                  <Menu.Item
+                    color="red"
+                    leftSection={<TrashIcon size={13} aria-label="Delete" />}
+                    onClick={() => onDelete(selectedNode.id)}
+                  >
+                    Delete
+                  </Menu.Item>
+                </>
+              )}
 
-              {selectedNode.type === "department" && (<>
-                <Menu.Item leftSection={<PencilSimpleIcon size={13} aria-label="Edit" />} onClick={() => onEdit(selectedNode.id)}>Edit</Menu.Item>
-                <Menu.Item leftSection={<UserPlusIcon size={13} aria-label="Add person" />} onClick={onAddPerson}>Add Person</Menu.Item>
-                <Menu.Item leftSection={<PlusIcon size={13} aria-label="Add sub-unit" />} onClick={onAddChild}>Add Sub-unit</Menu.Item>
-                <Menu.Divider />
-                <Menu.Item color="red" leftSection={<TrashIcon size={13} aria-label="Delete" />} onClick={() => onDelete(selectedNode.id)}>Delete</Menu.Item>
-              </>)}
+              {selectedNode.type === "department" && (
+                <>
+                  <Menu.Item
+                    leftSection={
+                      <PencilSimpleIcon size={13} aria-label="Edit" />
+                    }
+                    onClick={() => onEdit(selectedNode.id)}
+                  >
+                    Edit
+                  </Menu.Item>
+                  <Menu.Item
+                    leftSection={
+                      <UserPlusIcon size={13} aria-label="Add person" />
+                    }
+                    onClick={onAddPerson}
+                  >
+                    Add Person
+                  </Menu.Item>
+                  <Menu.Item
+                    leftSection={
+                      <PlusIcon size={13} aria-label="Add sub-unit" />
+                    }
+                    onClick={onAddChild}
+                  >
+                    Add Sub-unit
+                  </Menu.Item>
+                  <Menu.Divider />
+                  <Menu.Item
+                    color="red"
+                    leftSection={<TrashIcon size={13} aria-label="Delete" />}
+                    onClick={() => onDelete(selectedNode.id)}
+                  >
+                    Delete
+                  </Menu.Item>
+                </>
+              )}
 
-              {selectedNode.type === "person" && (<>
-                <Menu.Item leftSection={<PencilSimpleIcon size={13} aria-label="Edit" />} onClick={() => onEdit(selectedNode.id)}>Edit</Menu.Item>
-                <Menu.Divider />
-                <Menu.Item color="red" leftSection={<TrashIcon size={13} aria-label="Remove" />} onClick={() => onDelete(selectedNode.id)}>Remove</Menu.Item>
-              </>)}
+              {selectedNode.type === "person" && (
+                <>
+                  <Menu.Item
+                    leftSection={
+                      <PencilSimpleIcon size={13} aria-label="Edit" />
+                    }
+                    onClick={() => onEdit(selectedNode.id)}
+                  >
+                    Edit
+                  </Menu.Item>
+                  <Menu.Divider />
+                  <Menu.Item
+                    color="red"
+                    leftSection={<TrashIcon size={13} aria-label="Remove" />}
+                    onClick={() => onDelete(selectedNode.id)}
+                  >
+                    Remove
+                  </Menu.Item>
+                </>
+              )}
 
               {selectedNode.type === "group" && (
-                <Menu.Item leftSection={<PencilSimpleIcon size={13} aria-label="Edit" />} onClick={() => onEdit(selectedNode.id)}>Edit</Menu.Item>
+                <Menu.Item
+                  leftSection={<PencilSimpleIcon size={13} aria-label="Edit" />}
+                  onClick={() => onEdit(selectedNode.id)}
+                >
+                  Edit
+                </Menu.Item>
               )}
             </Menu.Dropdown>
           </Menu>
 
-          <ActionIcon size="sm" variant="subtle" color="gray" onClick={onClose} aria-label="Close inspector">
+          <ActionIcon
+            size="sm"
+            variant="subtle"
+            color="gray"
+            onClick={onClose}
+            aria-label="Close inspector"
+          >
             <XIcon size={14} />
           </ActionIcon>
         </div>

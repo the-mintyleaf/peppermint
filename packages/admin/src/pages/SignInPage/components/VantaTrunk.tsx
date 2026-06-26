@@ -26,10 +26,10 @@ export function VantaTrunk() {
 
     const init = async () => {
       await loadScript(
-        "https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.7/p5.min.js"
+        "https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.7/p5.min.js",
       );
       await loadScript(
-        "https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.trunk.min.js"
+        "https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.trunk.min.js",
       );
 
       if (!ref.current) return;

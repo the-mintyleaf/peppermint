@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react';
-import type { StoreApi } from 'zustand/vanilla';
+import type { ReactNode } from "react";
+import type { StoreApi } from "zustand/vanilla";
 
-export type SortDirection = 'asc' | 'desc';
+export type SortDirection = "asc" | "desc";
 
 export interface SortState {
   field: string;
@@ -10,7 +10,7 @@ export interface SortState {
 
 export type FilterState = Record<string, unknown>;
 
-export type DensitySize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type DensitySize = "xs" | "sm" | "md" | "lg" | "xl";
 
 export interface PaginationMeta {
   page: number;
@@ -77,7 +77,7 @@ export interface TablePersistenceOptions {
   /** localStorage key prefix. Defaults to the table's queryKey. */
   storageKey?: string;
   /** Which slices to persist. Defaults to all three. */
-  persist?: Array<'columnVisibility' | 'columnOrder' | 'density'>;
+  persist?: Array<"columnVisibility" | "columnOrder" | "density">;
 }
 
 export interface DataTableWrapperProps<T = unknown> {

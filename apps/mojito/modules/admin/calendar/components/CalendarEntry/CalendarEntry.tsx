@@ -23,7 +23,12 @@ export function CalendarEntry({ entry, onClick }: CalendarEntryProps) {
       color={TYPE_COLORS[entry.type] ?? "gray"}
       variant="light"
       size="sm"
-      style={{ cursor: "pointer", width: "100%", justifyContent: "flex-start", maxWidth: "100%" }}
+      style={{
+        cursor: "pointer",
+        width: "100%",
+        justifyContent: "flex-start",
+        maxWidth: "100%",
+      }}
       onClick={() => onClick(entry)}
     >
       <Text size="xs" truncate style={{ maxWidth: "100%" }}>

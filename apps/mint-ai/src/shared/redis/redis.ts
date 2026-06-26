@@ -17,10 +17,16 @@ export function getRedisSubscriber(): Redis {
     redisSubscriber = new Redis(url);
 
     redisSubscriber.on("connect", () =>
-      logger.info({ event: "redis.subscriber.connected" }, "Redis subscriber connected")
+      logger.info(
+        { event: "redis.subscriber.connected" },
+        "Redis subscriber connected",
+      ),
     );
     redisSubscriber.on("error", (err) =>
-      logger.error({ event: "redis.subscriber.error", err }, "Redis subscriber error")
+      logger.error(
+        { event: "redis.subscriber.error", err },
+        "Redis subscriber error",
+      ),
     );
   }
   return redisSubscriber;
@@ -46,8 +52,8 @@ export function getRedisClient(): Redis {
           event: "redis.connected",
           url,
         },
-        "Redis connected and ready to process jobs"
-      )
+        "Redis connected and ready to process jobs",
+      ),
     );
 
     redisClient.on("error", (err) =>
@@ -57,8 +63,8 @@ export function getRedisClient(): Redis {
           url,
           err,
         },
-        "Redis connection error"
-      )
+        "Redis connection error",
+      ),
     );
 
     redisClient.on("close", () =>
@@ -67,8 +73,8 @@ export function getRedisClient(): Redis {
           event: "redis.closed",
           url,
         },
-        "Redis connection closed"
-      )
+        "Redis connection closed",
+      ),
     );
   }
 

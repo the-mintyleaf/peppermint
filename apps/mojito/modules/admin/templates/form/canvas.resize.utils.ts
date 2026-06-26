@@ -16,7 +16,7 @@ export function resizeRectFromHandle(
   pointerX: number,
   pointerY: number,
   minSize: number,
-  constrainSquare: boolean
+  constrainSquare: boolean,
 ): NormalizedRect {
   const right = anchor.x + anchor.width;
   const bottom = anchor.y + anchor.height;

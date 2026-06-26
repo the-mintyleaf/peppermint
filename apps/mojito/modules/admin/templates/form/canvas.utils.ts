@@ -39,7 +39,9 @@ function elementToHtml(el: CanvasElement, preview: boolean): string {
       const content = preview
         ? (el.props.text ?? `{{${dataKey}}}`)
         : `{{${dataKey}}}`;
-      const radius = el.props.borderRadius ? `border-radius:${el.props.borderRadius}px;` : "";
+      const radius = el.props.borderRadius
+        ? `border-radius:${el.props.borderRadius}px;`
+        : "";
       return `<div data-slot="${dataKey}" style="${textStyle(el)}${radius}">${content}</div>`;
     }
     case "text":
@@ -48,7 +50,9 @@ function elementToHtml(el: CanvasElement, preview: boolean): string {
     }
     case "image": {
       const src = el.props.imageUrl || "";
-      const radius = el.props.borderRadius ? `border-radius:${el.props.borderRadius}px;` : "";
+      const radius = el.props.borderRadius
+        ? `border-radius:${el.props.borderRadius}px;`
+        : "";
       return `<img src="${src}" style="${baseStyle(el)}object-fit:cover;${strokeCss(el)}${radius}" alt="${el.purpose}" />`;
     }
     case "rectangle": {
@@ -69,13 +73,19 @@ function elementToHtml(el: CanvasElement, preview: boolean): string {
   }
 }
 
-export function serializeCanvas(meta: TemplateMeta, elements: CanvasElement[]): string {
+export function serializeCanvas(
+  meta: TemplateMeta,
+  elements: CanvasElement[],
+): string {
   const sorted = [...elements].sort((a, b) => a.zIndex - b.zIndex);
   const children = sorted.map((el) => elementToHtml(el, false)).join("\n  ");
   return `<div style="position:relative;width:${meta.width}px;height:${meta.height}px;">\n  ${children}\n</div>`;
 }
 
-export function serializeCanvasPreview(meta: TemplateMeta, elements: CanvasElement[]): string {
+export function serializeCanvasPreview(
+  meta: TemplateMeta,
+  elements: CanvasElement[],
+): string {
   const sorted = [...elements].sort((a, b) => a.zIndex - b.zIndex);
   const children = sorted.map((el) => elementToHtml(el, true)).join("\n  ");
   return `<!DOCTYPE html><html><body style="margin:0;padding:0;"><div style="position:relative;width:${meta.width}px;height:${meta.height}px;">\n  ${children}\n</div></body></html>`;

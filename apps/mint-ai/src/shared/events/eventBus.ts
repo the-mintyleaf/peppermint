@@ -48,7 +48,10 @@ class EventBus {
   }
 
   emitEvent(event: RunEvent) {
-    getRedisClient().publish(`run:${event.runId}:events`, JSON.stringify(event));
+    getRedisClient().publish(
+      `run:${event.runId}:events`,
+      JSON.stringify(event),
+    );
   }
 }
 

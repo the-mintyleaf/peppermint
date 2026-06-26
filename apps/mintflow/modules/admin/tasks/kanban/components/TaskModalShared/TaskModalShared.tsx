@@ -24,11 +24,13 @@ import { MonitorIcon } from "@phosphor-icons/react/dist/csr/Monitor";
 import { PaperclipIcon } from "@phosphor-icons/react/dist/csr/Paperclip";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
-import {
-  SUBTASK_STATUS_COLORS,
-  SUBTASK_STATUS_LABELS,
+import { SUBTASK_STATUS_COLORS, SUBTASK_STATUS_LABELS } from "../../module.api";
+import type {
+  Task,
+  TaskAttachment,
+  TaskSubtask,
+  TaskTag,
 } from "../../module.api";
-import type { Task, TaskAttachment, TaskSubtask, TaskTag } from "../../module.api";
 import {
   TASK_MODAL,
   addAttachmentStyle,
@@ -68,7 +70,11 @@ export function TaskModalHeader({
 }) {
   return (
     <>
-      <Group justify="space-between" px={TASK_MODAL.headerPaddingX} py={TASK_MODAL.headerPaddingY}>
+      <Group
+        justify="space-between"
+        px={TASK_MODAL.headerPaddingX}
+        py={TASK_MODAL.headerPaddingY}
+      >
         <Group gap={8} wrap="nowrap">
           <ActionIcon
             variant="default"
@@ -90,7 +96,12 @@ export function TaskModalHeader({
         </Group>
         {showActions && (
           <Group gap={6}>
-            <ActionIcon variant="default" size="md" aria-label="Share" style={headerActionStyle}>
+            <ActionIcon
+              variant="default"
+              size="md"
+              aria-label="Share"
+              style={headerActionStyle}
+            >
               <ExportIcon size={14} />
             </ActionIcon>
             <ActionIcon
@@ -132,10 +143,19 @@ export function TaskModalFieldRow({
 }) {
   return (
     <Group gap={8} align={align} wrap="nowrap">
-      <Box w={16} mt={align === "flex-start" ? 2 : 0} style={{ color: "var(--mantine-color-gray-5)", flexShrink: 0 }}>
+      <Box
+        w={16}
+        mt={align === "flex-start" ? 2 : 0}
+        style={{ color: "var(--mantine-color-gray-5)", flexShrink: 0 }}
+      >
         {icon}
       </Box>
-      <Text size="xs" c="dimmed" w={TASK_MODAL.fieldLabelWidth} style={{ flexShrink: 0 }}>
+      <Text
+        size="xs"
+        c="dimmed"
+        w={TASK_MODAL.fieldLabelWidth}
+        style={{ flexShrink: 0 }}
+      >
         {label}
       </Text>
       <Box style={{ flex: 1, minWidth: 0 }}>{children}</Box>
@@ -143,7 +163,13 @@ export function TaskModalFieldRow({
   );
 }
 
-export function TaskStatusBadge({ label, color }: { label: string; color: string }) {
+export function TaskStatusBadge({
+  label,
+  color,
+}: {
+  label: string;
+  color: string;
+}) {
   return (
     <Badge
       color={color}
@@ -166,7 +192,13 @@ export function TaskStatusBadge({ label, color }: { label: string; color: string
   );
 }
 
-export function TaskAssigneePills({ assignees, fallback }: { assignees?: Task["assignees"]; fallback?: string }) {
+export function TaskAssigneePills({
+  assignees,
+  fallback,
+}: {
+  assignees?: Task["assignees"];
+  fallback?: string;
+}) {
   if (assignees?.length) {
     return (
       <Group gap={8}>
@@ -184,7 +216,11 @@ export function TaskAssigneePills({ assignees, fallback }: { assignees?: Task["a
     );
   }
 
-  return <Text size="xs" c="dimmed">{fallback ?? "Unassigned"}</Text>;
+  return (
+    <Text size="xs" c="dimmed">
+      {fallback ?? "Unassigned"}
+    </Text>
+  );
 }
 
 export function TaskTagBadges({ tags }: { tags: TaskTag[] }) {
@@ -294,7 +330,11 @@ export function TaskAttachmentsSection({
           )}
         </Group>
         {attachments.length > 0 && (
-          <Anchor size="xs" c="violet.6" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <Anchor
+            size="xs"
+            c="violet.6"
+            style={{ display: "flex", alignItems: "center", gap: 4 }}
+          >
             <DownloadSimpleIcon size={12} aria-label="Download all" />
             Download All
           </Anchor>

@@ -1,11 +1,22 @@
 "use client";
 
-import { Stack, TextInput, Select, Textarea, NumberInput, Button } from "@peppermint/ui";
+import {
+  Stack,
+  TextInput,
+  Select,
+  Textarea,
+  NumberInput,
+  Button,
+} from "@peppermint/ui";
 import { useForm } from "@mantine/form";
 import type { ChannelFormProps } from "./ChannelForm.types";
 import type { Channel } from "../channels.types";
 
-export function ChannelForm({ initialValues, onSubmit, isLoading }: ChannelFormProps) {
+export function ChannelForm({
+  initialValues,
+  onSubmit,
+  isLoading,
+}: ChannelFormProps) {
   const form = useForm<Channel>({
     initialValues: initialValues ?? {
       id: "",
@@ -22,7 +33,12 @@ export function ChannelForm({ initialValues, onSubmit, isLoading }: ChannelFormP
       platform: (v) => (!v ? "Required" : null),
       handle: (v) => (!v ? "Required" : null),
       displayName: (v) => (!v ? "Required" : null),
-      url: (v) => (!v ? "Required" : !/^https?:\/\/.+/.test(v) ? "Must be a valid URL" : null),
+      url: (v) =>
+        !v
+          ? "Required"
+          : !/^https?:\/\/.+/.test(v)
+            ? "Must be a valid URL"
+            : null,
     },
   });
 

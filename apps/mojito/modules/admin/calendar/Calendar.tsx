@@ -1,7 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Paper, Stack, Group, Text, Button, SegmentedControl, ScrollArea, Select, Badge } from "@peppermint/ui";
+import {
+  Paper,
+  Stack,
+  Group,
+  Text,
+  Button,
+  SegmentedControl,
+  ScrollArea,
+  Select,
+  Badge,
+} from "@peppermint/ui";
 import { CaretLeftIcon } from "@phosphor-icons/react/dist/csr/CaretLeft";
 import { CaretRightIcon } from "@phosphor-icons/react/dist/csr/CaretRight";
 import { useQuery } from "@tanstack/react-query";
@@ -12,7 +22,10 @@ import { ContentPreviewDrawer } from "@/components/ContentPreviewDrawer";
 import { fetchCalendarEntries, STATUS_COLORS } from "./calendar.api";
 import { calendarQueryKeys } from "./calendar.queryKeys";
 import type { CalendarEntry, CalendarViewMode } from "./Calendar.types";
-import type { ContentStatus, Platform } from "@/modules/admin/shared/domain.types";
+import type {
+  ContentStatus,
+  Platform,
+} from "@/modules/admin/shared/domain.types";
 
 function getWeekStart(date: Date): Date {
   const d = new Date(date);
@@ -60,11 +73,15 @@ export function Calendar() {
   const to = periodEnd.toISOString().split("T")[0];
 
   const { data: entries = [] } = useQuery({
-    queryKey: calendarQueryKeys.entries(from, to, { status: filterStatus, platform: filterPlatform }),
-    queryFn: () => fetchCalendarEntries(from, to, {
-      status: filterStatus ?? undefined,
-      platform: filterPlatform ?? undefined,
+    queryKey: calendarQueryKeys.entries(from, to, {
+      status: filterStatus,
+      platform: filterPlatform,
     }),
+    queryFn: () =>
+      fetchCalendarEntries(from, to, {
+        status: filterStatus ?? undefined,
+        platform: filterPlatform ?? undefined,
+      }),
   });
 
   function navigate(dir: 1 | -1) {
@@ -83,10 +100,18 @@ export function Calendar() {
   }
 
   const periodLabel =
-    view === "week" ? formatWeekLabel(periodStart) : formatMonthLabel(periodStart);
+    view === "week"
+      ? formatWeekLabel(periodStart)
+      : formatMonthLabel(periodStart);
 
   return (
-    <Paper p={0} withBorder radius="lg" h="calc(100vh - 16px)" style={{ overflow: "hidden" }}>
+    <Paper
+      p={0}
+      withBorder
+      radius="lg"
+      h="calc(100vh - 16px)"
+      style={{ overflow: "hidden" }}
+    >
       <ScrollArea h="100%">
         <Stack gap="lg" p="lg">
           <Group justify="space-between" align="center">
@@ -170,7 +195,14 @@ export function Calendar() {
               style={{ width: 160 }}
             />
             {(filterStatus || filterPlatform) && (
-              <Button size="xs" variant="subtle" onClick={() => { setFilterStatus(null); setFilterPlatform(null); }}>
+              <Button
+                size="xs"
+                variant="subtle"
+                onClick={() => {
+                  setFilterStatus(null);
+                  setFilterPlatform(null);
+                }}
+              >
                 Clear
               </Button>
             )}
@@ -182,9 +214,10 @@ export function Calendar() {
                 No automation runs scheduled for this period
               </Text>
               <Text size="xs" c="dimmed" ta="center" maw={400}>
-                The calendar shows when your automations are scheduled to run and what content they
-                generate. It does not control when individual posts go to social networks — that is
-                managed by each automation&apos;s schedule.
+                The calendar shows when your automations are scheduled to run
+                and what content they generate. It does not control when
+                individual posts go to social networks — that is managed by each
+                automation&apos;s schedule.
               </Text>
             </Stack>
           )}

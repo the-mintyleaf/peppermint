@@ -34,7 +34,10 @@ const SENTIMENT_COLOR: Record<Mention["sentiment"], string> = {
 };
 
 export function MentionsFeed() {
-  const [filters, setFilters] = useState<MentionFilters>({ page: 1, pageSize: 15 });
+  const [filters, setFilters] = useState<MentionFilters>({
+    page: 1,
+    pageSize: 15,
+  });
   const { data, isLoading } = useMentions(filters);
 
   const mentions = data?.data ?? [];
@@ -50,7 +53,13 @@ export function MentionsFeed() {
       basePath={BASE_PATH}
       moduleInfo={MODULE_INFO}
       disableCreateButton
-      actions={total > 0 ? <Badge size="sm" color="blue">{total}</Badge> : undefined}
+      actions={
+        total > 0 ? (
+          <Badge size="sm" color="blue">
+            {total}
+          </Badge>
+        ) : undefined
+      }
     >
       <Stack gap={0} style={{ height: "calc(100vh - 160px)" }}>
         <Group gap="sm" py="sm">
@@ -60,7 +69,9 @@ export function MentionsFeed() {
             placeholder="Search mentions…"
             leftSection={<MagnifyingGlassIcon size={14} />}
             value={filters.search ?? ""}
-            onChange={(e) => update({ search: e.currentTarget.value || undefined })}
+            onChange={(e) =>
+              update({ search: e.currentTarget.value || undefined })
+            }
           />
           <Select
             size="xs"
@@ -73,17 +84,21 @@ export function MentionsFeed() {
               { label: "Negative", value: "negative" },
             ]}
             value={filters.sentiment ?? null}
-            onChange={(v) => update({ sentiment: (v as Mention["sentiment"]) ?? undefined })}
+            onChange={(v) =>
+              update({ sentiment: (v as Mention["sentiment"]) ?? undefined })
+            }
           />
           <Select
             size="xs"
             w={130}
             placeholder="Platform"
             clearable
-            data={["instagram", "x", "linkedin", "tiktok", "facebook"].map((p) => ({
-              label: p.charAt(0).toUpperCase() + p.slice(1),
-              value: p,
-            }))}
+            data={["instagram", "x", "linkedin", "tiktok", "facebook"].map(
+              (p) => ({
+                label: p.charAt(0).toUpperCase() + p.slice(1),
+                value: p,
+              }),
+            )}
             value={filters.platform ?? null}
             onChange={(v) => update({ platform: v ?? undefined })}
           />
@@ -93,11 +108,15 @@ export function MentionsFeed() {
         <Box style={{ flex: 1, overflow: "auto" }}>
           {isLoading ? (
             <Stack gap="sm">
-              {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} h={80} radius="md" />)}
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} h={80} radius="md" />
+              ))}
             </Stack>
           ) : mentions.length === 0 ? (
             <Center py="xl">
-              <Text c="dimmed" size="sm">No mentions found</Text>
+              <Text c="dimmed" size="sm">
+                No mentions found
+              </Text>
             </Center>
           ) : (
             <Stack gap="sm">
@@ -110,21 +129,39 @@ export function MentionsFeed() {
                     <Stack gap="xs" style={{ flex: 1 }}>
                       <Group justify="space-between" wrap="nowrap">
                         <Group gap="xs">
-                          <Text size="sm" fw={600}>{m.author}</Text>
-                          <Badge size="xs" variant="light">{m.platform}</Badge>
-                          <Badge size="xs" color={SENTIMENT_COLOR[m.sentiment]} variant="light">
+                          <Text size="sm" fw={600}>
+                            {m.author}
+                          </Text>
+                          <Badge size="xs" variant="light">
+                            {m.platform}
+                          </Badge>
+                          <Badge
+                            size="xs"
+                            color={SENTIMENT_COLOR[m.sentiment]}
+                            variant="light"
+                          >
                             {m.sentiment}
                           </Badge>
                         </Group>
                         <Group gap="xs">
-                          <Text size="xs" c="dimmed">{m.reach.toLocaleString()} reach</Text>
-                          <Anchor href={m.url} target="_blank" size="xs" c="dimmed" aria-label="Open mention">
+                          <Text size="xs" c="dimmed">
+                            {m.reach.toLocaleString()} reach
+                          </Text>
+                          <Anchor
+                            href={m.url}
+                            target="_blank"
+                            size="xs"
+                            c="dimmed"
+                            aria-label="Open mention"
+                          >
                             <ArrowSquareOutIcon size={12} />
                           </Anchor>
                         </Group>
                       </Group>
                       <Text size="sm">{m.text}</Text>
-                      <Text size="xs" c="dimmed">{m.createdAt.toLocaleString()}</Text>
+                      <Text size="xs" c="dimmed">
+                        {m.createdAt.toLocaleString()}
+                      </Text>
                     </Stack>
                   </Group>
                 </Paper>

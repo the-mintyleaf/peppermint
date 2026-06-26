@@ -27,9 +27,15 @@ import {
   TaskModalHeader,
   TASK_MODAL,
 } from "../TaskModalShared";
-import type { CreateTaskModalProps, CreateTaskFormValues } from "./CreateTaskModal.types";
+import type {
+  CreateTaskModalProps,
+  CreateTaskFormValues,
+} from "./CreateTaskModal.types";
 
-const STATUS_OPTIONS = Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }));
+const STATUS_OPTIONS = Object.entries(STATUS_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}));
 
 const ASSIGNEE_OPTIONS = [
   { value: "achmad_hakim", label: "Achmad Hakim" },
@@ -51,12 +57,36 @@ const PLACEHOLDER_ATTACHMENTS = [
 ];
 
 const PLACEHOLDER_SUBTASKS = [
-  { id: "new-1", title: "Schedule kickoff meeting", category: "Discovery", status: "completed" as const, dueDate: "June 3, 2025" },
-  { id: "new-2", title: "Gather requirements", category: "Discovery", status: "completed" as const, dueDate: "June 4, 2025" },
-  { id: "new-3", title: "Create wireframes", category: "Discovery", status: "in_progress" as const, dueDate: "June 5, 2025" },
+  {
+    id: "new-1",
+    title: "Schedule kickoff meeting",
+    category: "Discovery",
+    status: "completed" as const,
+    dueDate: "June 3, 2025",
+  },
+  {
+    id: "new-2",
+    title: "Gather requirements",
+    category: "Discovery",
+    status: "completed" as const,
+    dueDate: "June 4, 2025",
+  },
+  {
+    id: "new-3",
+    title: "Create wireframes",
+    category: "Discovery",
+    status: "in_progress" as const,
+    dueDate: "June 5, 2025",
+  },
 ];
 
-export function CreateTaskModal({ opened, onClose, onSubmit, editTask, initialStatus }: CreateTaskModalProps) {
+export function CreateTaskModal({
+  opened,
+  onClose,
+  onSubmit,
+  editTask,
+  initialStatus,
+}: CreateTaskModalProps) {
   const isEdit = !!editTask;
 
   const form = useForm<CreateTaskFormValues>({
@@ -84,7 +114,9 @@ export function CreateTaskModal({ opened, onClose, onSubmit, editTask, initialSt
         assignees: editTask.assignees?.map((a) => a.name) ?? [],
         startDate: null,
         endDate: null,
-        tags: editTask.tags?.map((t) => t.label.toLowerCase().replace(" ", "_")) ?? [],
+        tags:
+          editTask.tags?.map((t) => t.label.toLowerCase().replace(" ", "_")) ??
+          [],
         description: editTask.description ?? "",
       });
       return;
@@ -125,7 +157,9 @@ export function CreateTaskModal({ opened, onClose, onSubmit, editTask, initialSt
         <Stack gap={0}>
           <TaskModalHeader
             parentLabel="Client Projects"
-            currentLabel={isEdit ? (editTask?.title ?? "Edit Task") : "New Task"}
+            currentLabel={
+              isEdit ? (editTask?.title ?? "Edit Task") : "New Task"
+            }
             onClose={handleClose}
           />
 
@@ -146,7 +180,10 @@ export function CreateTaskModal({ opened, onClose, onSubmit, editTask, initialSt
             />
 
             <Stack gap={TASK_MODAL.fieldGap}>
-              <TaskModalFieldRow icon={<SparkleIcon size={14} />} label="Status">
+              <TaskModalFieldRow
+                icon={<SparkleIcon size={14} />}
+                label="Status"
+              >
                 <Select
                   size="xs"
                   data={STATUS_OPTIONS}
@@ -172,21 +209,32 @@ export function CreateTaskModal({ opened, onClose, onSubmit, editTask, initialSt
                 />
               </TaskModalFieldRow>
 
-              <TaskModalFieldRow icon={<CalendarBlankIcon size={14} />} label="Date">
+              <TaskModalFieldRow
+                icon={<CalendarBlankIcon size={14} />}
+                label="Date"
+              >
                 <Group gap={8} wrap="nowrap" align="center">
                   <DatePickerInput
                     size="xs"
                     placeholder="June 3, 2025"
                     style={{ flex: 1 }}
-                    styles={{ input: { fontSize: "var(--mantine-font-size-xs)" } }}
+                    styles={{
+                      input: { fontSize: "var(--mantine-font-size-xs)" },
+                    }}
                     {...form.getInputProps("startDate")}
                   />
-                  <ArrowRightIcon size={12} color="var(--mantine-color-gray-5)" aria-label="to" />
+                  <ArrowRightIcon
+                    size={12}
+                    color="var(--mantine-color-gray-5)"
+                    aria-label="to"
+                  />
                   <DatePickerInput
                     size="xs"
                     placeholder="June 28, 2025"
                     style={{ flex: 1 }}
-                    styles={{ input: { fontSize: "var(--mantine-font-size-xs)" } }}
+                    styles={{
+                      input: { fontSize: "var(--mantine-font-size-xs)" },
+                    }}
                     {...form.getInputProps("endDate")}
                   />
                 </Group>

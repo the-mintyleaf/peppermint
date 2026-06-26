@@ -53,7 +53,9 @@ export function CompetitorsList() {
         moduleInfo={MODULE_INFO}
         idAccessor="id"
         createFormComponent={CompetitorForm}
-        onCreateApi={(values) => createCompetitor(values as Partial<CompetitorRow>)}
+        onCreateApi={(values) =>
+          createCompetitor(values as Partial<CompetitorRow>)
+        }
         onDeleteApi={(id) => deleteCompetitorById(String(id))}
         pageSizes={[10, 20, 50]}
         defaultPageSize={20}

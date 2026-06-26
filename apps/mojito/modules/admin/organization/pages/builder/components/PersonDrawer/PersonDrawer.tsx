@@ -71,14 +71,21 @@ export function PersonDrawer({
             {getInitials(data.fullName)}
           </Avatar>
           <Stack gap={0}>
-            <Text fw={700} size="sm">{data.fullName}</Text>
-            <Text size="xs" c="dimmed">{data.designation}</Text>
+            <Text fw={700} size="sm">
+              {data.fullName}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {data.designation}
+            </Text>
           </Stack>
         </Group>
       }
       styles={{
         body: { padding: 0 },
-        header: { padding: "16px 20px 12px", borderBottom: "1px solid var(--mantine-color-default-border)" },
+        header: {
+          padding: "16px 20px 12px",
+          borderBottom: "1px solid var(--mantine-color-default-border)",
+        },
       }}
     >
       <ScrollArea h="calc(100vh - 80px)" p="md">
@@ -89,7 +96,11 @@ export function PersonDrawer({
               {data.status}
             </Badge>
             {data.role && (
-              <Badge color={ROLE_COLORS[data.role] ?? "gray"} variant="light" size="sm">
+              <Badge
+                color={ROLE_COLORS[data.role] ?? "gray"}
+                variant="light"
+                size="sm"
+              >
                 {data.role}
               </Badge>
             )}
@@ -97,20 +108,35 @@ export function PersonDrawer({
 
           {/* Info */}
           <div className={styles.drawerSection}>
-            <Text size="xs" fw={600} c="dimmed" mb={8} tt="uppercase" style={{ letterSpacing: "0.05em" }}>
+            <Text
+              size="xs"
+              fw={600}
+              c="dimmed"
+              mb={8}
+              tt="uppercase"
+              style={{ letterSpacing: "0.05em" }}
+            >
               Profile
             </Text>
             <Stack gap="xs">
               {data.department && (
                 <Group gap="xs" justify="space-between">
-                  <Text size="xs" c="dimmed">Department</Text>
-                  <Text size="xs" fw={600}>{data.department}</Text>
+                  <Text size="xs" c="dimmed">
+                    Department
+                  </Text>
+                  <Text size="xs" fw={600}>
+                    {data.department}
+                  </Text>
                 </Group>
               )}
               {data.reportingManager && (
                 <Group gap="xs" justify="space-between">
-                  <Text size="xs" c="dimmed">Reports to</Text>
-                  <Text size="xs" fw={600}>{data.reportingManager}</Text>
+                  <Text size="xs" c="dimmed">
+                    Reports to
+                  </Text>
+                  <Text size="xs" fw={600}>
+                    {data.reportingManager}
+                  </Text>
                 </Group>
               )}
             </Stack>
@@ -119,7 +145,14 @@ export function PersonDrawer({
           {/* Contact */}
           {(data.email || data.phone) && (
             <div className={styles.drawerSection}>
-              <Text size="xs" fw={600} c="dimmed" mb={8} tt="uppercase" style={{ letterSpacing: "0.05em" }}>
+              <Text
+                size="xs"
+                fw={600}
+                c="dimmed"
+                mb={8}
+                tt="uppercase"
+                style={{ letterSpacing: "0.05em" }}
+              >
                 Contact
               </Text>
               <Stack gap="xs">
@@ -142,7 +175,14 @@ export function PersonDrawer({
           {/* Responsibilities */}
           {data.responsibilities && data.responsibilities.length > 0 && (
             <div className={styles.drawerSection}>
-              <Text size="xs" fw={600} c="dimmed" mb={8} tt="uppercase" style={{ letterSpacing: "0.05em" }}>
+              <Text
+                size="xs"
+                fw={600}
+                c="dimmed"
+                mb={8}
+                tt="uppercase"
+                style={{ letterSpacing: "0.05em" }}
+              >
                 Responsibilities
               </Text>
               <Stack gap={4}>
@@ -168,15 +208,26 @@ export function PersonDrawer({
           {/* Tasks */}
           {data.activeTasks !== undefined && (
             <div className={styles.statBadge} style={{ textAlign: "center" }}>
-              <Text size="xl" fw={700} c="teal">{data.activeTasks}</Text>
-              <Text size="xs" c="dimmed">Active Tasks</Text>
+              <Text size="xl" fw={700} c="teal">
+                {data.activeTasks}
+              </Text>
+              <Text size="xs" c="dimmed">
+                Active Tasks
+              </Text>
             </div>
           )}
 
           {/* Recent activity */}
           {data.recentActivity && data.recentActivity.length > 0 && (
             <div className={styles.drawerSection}>
-              <Text size="xs" fw={600} c="dimmed" mb={8} tt="uppercase" style={{ letterSpacing: "0.05em" }}>
+              <Text
+                size="xs"
+                fw={600}
+                c="dimmed"
+                mb={8}
+                tt="uppercase"
+                style={{ letterSpacing: "0.05em" }}
+              >
                 Recent Activity
               </Text>
               <Stack gap="xs">
@@ -194,7 +245,9 @@ export function PersonDrawer({
                     />
                     <Stack gap={0}>
                       <Text size="xs">{item.action}</Text>
-                      <Text size="xs" c="dimmed">{item.timestamp}</Text>
+                      <Text size="xs" c="dimmed">
+                        {item.timestamp}
+                      </Text>
                     </Stack>
                   </Group>
                 ))}
@@ -220,7 +273,10 @@ export function PersonDrawer({
               variant="light"
               color="red"
               leftSection={<TrashIcon size={12} aria-label="Remove" />}
-              onClick={() => { onDelete(nodeId); onClose(); }}
+              onClick={() => {
+                onDelete(nodeId);
+                onClose();
+              }}
             >
               Remove
             </Button>
@@ -230,7 +286,9 @@ export function PersonDrawer({
             fullWidth
             variant="light"
             color="teal"
-            rightSection={<ArrowSquareOutIcon size={14} aria-label="View profile" />}
+            rightSection={
+              <ArrowSquareOutIcon size={14} aria-label="View profile" />
+            }
           >
             View Full Profile
           </Button>

@@ -54,12 +54,7 @@ export function MainNav({
       style={{ flexShrink: 0, ...shellCardStyle }}
     >
       <Stack gap={0} align="center" w="100%">
-        <Stack
-          h={NAV_HEADER_HEIGHT}
-          align="center"
-          justify="center"
-          w="100%"
-        >
+        <Stack h={NAV_HEADER_HEIGHT} align="center" justify="center" w="100%">
           <ActionIcon size="lg">
             <LeafIcon weight="fill" />
           </ActionIcon>
@@ -134,7 +129,11 @@ export function MainNav({
         userMenu={userMenu}
       />
 
-      <MainNavSpotlight mainNav={mainNav} additional={additional} onNavigate={onNavigate} />
+      <MainNavSpotlight
+        mainNav={mainNav}
+        additional={additional}
+        onNavigate={onNavigate}
+      />
     </Stack>
   );
 }

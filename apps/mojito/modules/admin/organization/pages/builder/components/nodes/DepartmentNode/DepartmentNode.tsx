@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import { Badge, Text, ActionIcon, Group, Stack, Tooltip, Divider } from "@peppermint/ui";
+import {
+  Badge,
+  Text,
+  ActionIcon,
+  Group,
+  Stack,
+  Tooltip,
+  Divider,
+} from "@peppermint/ui";
 import { FolderIcon } from "@phosphor-icons/react/dist/csr/Folder";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
@@ -29,7 +37,11 @@ const STATUS_COLORS: Record<string, string> = {
   archived: "red",
 };
 
-export function DepartmentNode({ data, selected, id }: NodeProps<DepartmentFlowNodeType>) {
+export function DepartmentNode({
+  data,
+  selected,
+  id,
+}: NodeProps<DepartmentFlowNodeType>) {
   const [hovered, setHovered] = useState(false);
   const { openEditModal, openAddModal, selectNode } = useOrgBuilderStore();
   const accent = data.color ?? DEPT_TYPE_COLORS[data.deptType] ?? "#2563eb";
@@ -42,15 +54,29 @@ export function DepartmentNode({ data, selected, id }: NodeProps<DepartmentFlowN
       style={{ "--node-accent": accent } as React.CSSProperties}
     >
       <Handle type="target" position={Position.Top} className={styles.handle} />
-      <Handle type="target" position={Position.Left} id="left-target" className={styles.handle} />
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left-target"
+        className={styles.handle}
+      />
 
       <div className={styles.nodeHeader}>
         <Group gap="xs" wrap="nowrap">
-          <div className={styles.nodeIcon} style={{ background: accent + "18", color: accent }}>
+          <div
+            className={styles.nodeIcon}
+            style={{ background: accent + "18", color: accent }}
+          >
             <FolderIcon size={16} weight="fill" aria-label="Department" />
           </div>
           <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
-            <Text size="xs" fw={500} c="dimmed" tt="uppercase" style={{ letterSpacing: "0.05em", fontSize: 10 }}>
+            <Text
+              size="xs"
+              fw={500}
+              c="dimmed"
+              tt="uppercase"
+              style={{ letterSpacing: "0.05em", fontSize: 10 }}
+            >
               {data.deptType}
             </Text>
             <Text size="sm" fw={700} lineClamp={1}>
@@ -66,14 +92,22 @@ export function DepartmentNode({ data, selected, id }: NodeProps<DepartmentFlowN
       <div className={styles.nodeBody}>
         {data.head && (
           <Group gap="xs" mb={6}>
-            <Text size="xs" c="dimmed">Head:</Text>
-            <Text size="xs" fw={500}>{data.head}</Text>
+            <Text size="xs" c="dimmed">
+              Head:
+            </Text>
+            <Text size="xs" fw={500}>
+              {data.head}
+            </Text>
           </Group>
         )}
         {data.parentName && (
           <Group gap="xs" mb={6}>
-            <Text size="xs" c="dimmed">Under:</Text>
-            <Text size="xs" fw={500} lineClamp={1}>{data.parentName}</Text>
+            <Text size="xs" c="dimmed">
+              Under:
+            </Text>
+            <Text size="xs" fw={500} lineClamp={1}>
+              {data.parentName}
+            </Text>
           </Group>
         )}
 
@@ -81,16 +115,28 @@ export function DepartmentNode({ data, selected, id }: NodeProps<DepartmentFlowN
 
         <Group gap="md" justify="space-between">
           <Stack gap={2} align="center">
-            <Text size="xs" fw={700} c={accent}>{data.peopleCount ?? 0}</Text>
-            <Text size="xs" c="dimmed">People</Text>
+            <Text size="xs" fw={700} c={accent}>
+              {data.peopleCount ?? 0}
+            </Text>
+            <Text size="xs" c="dimmed">
+              People
+            </Text>
           </Stack>
           <Stack gap={2} align="center">
-            <Text size="xs" fw={700} c="orange">{data.activeTasks ?? 0}</Text>
-            <Text size="xs" c="dimmed">Active</Text>
+            <Text size="xs" fw={700} c="orange">
+              {data.activeTasks ?? 0}
+            </Text>
+            <Text size="xs" c="dimmed">
+              Active
+            </Text>
           </Stack>
           <Stack gap={2} align="center">
-            <Text size="xs" fw={700} c="teal">{data.completedTasks ?? 0}</Text>
-            <Text size="xs" c="dimmed">Done</Text>
+            <Text size="xs" fw={700} c="teal">
+              {data.completedTasks ?? 0}
+            </Text>
+            <Text size="xs" c="dimmed">
+              Done
+            </Text>
           </Stack>
         </Group>
       </div>
@@ -102,7 +148,10 @@ export function DepartmentNode({ data, selected, id }: NodeProps<DepartmentFlowN
               size="xs"
               variant="light"
               color="blue"
-              onClick={(e) => { e.stopPropagation(); selectNode(id); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                selectNode(id);
+              }}
               aria-label="Open details"
             >
               <ArrowSquareOutIcon size={12} />
@@ -113,7 +162,10 @@ export function DepartmentNode({ data, selected, id }: NodeProps<DepartmentFlowN
               size="xs"
               variant="light"
               color="violet"
-              onClick={(e) => { e.stopPropagation(); openAddModal("department"); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                openAddModal("department");
+              }}
               aria-label="Add child department"
             >
               <PlusIcon size={12} />
@@ -124,7 +176,10 @@ export function DepartmentNode({ data, selected, id }: NodeProps<DepartmentFlowN
               size="xs"
               variant="light"
               color="teal"
-              onClick={(e) => { e.stopPropagation(); openAddModal("person"); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                openAddModal("person");
+              }}
               aria-label="Add person"
             >
               <UserPlusIcon size={12} />
@@ -135,7 +190,10 @@ export function DepartmentNode({ data, selected, id }: NodeProps<DepartmentFlowN
               size="xs"
               variant="light"
               color="gray"
-              onClick={(e) => { e.stopPropagation(); openEditModal(id); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                openEditModal(id);
+              }}
               aria-label="Edit department"
             >
               <PencilSimpleIcon size={12} />
@@ -146,7 +204,9 @@ export function DepartmentNode({ data, selected, id }: NodeProps<DepartmentFlowN
               size="xs"
               variant="light"
               color="red"
-              onClick={(e) => { e.stopPropagation(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
               aria-label="Delete department"
             >
               <TrashIcon size={12} />
@@ -155,8 +215,17 @@ export function DepartmentNode({ data, selected, id }: NodeProps<DepartmentFlowN
         </div>
       )}
 
-      <Handle type="source" position={Position.Bottom} className={styles.handle} />
-      <Handle type="source" position={Position.Right} id="right-source" className={styles.handle} />
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        className={styles.handle}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right-source"
+        className={styles.handle}
+      />
     </div>
   );
 }

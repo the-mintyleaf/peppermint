@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { Button, Divider, Group, Paper, Text } from '@peppermint/ui';
-import { EyeIcon } from '@phosphor-icons/react/dist/csr/Eye';
-import { PencilIcon } from '@phosphor-icons/react/dist/csr/Pencil';
-import { TrashIcon } from '@phosphor-icons/react/dist/csr/Trash';
-import { XIcon } from '@phosphor-icons/react/dist/csr/X';
-import { useTableStore } from '../../../../wrappers/DataTableWrapper';
-import { useDataTableShellContext } from '../../DataTableShell.context';
-import type { DataTableShellTableActionsProps } from '../../DataTableShell.types';
+import { useState, useCallback } from "react";
+import { Button, Divider, Group, Paper, Text } from "@peppermint/ui";
+import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
+import { PencilIcon } from "@phosphor-icons/react/dist/csr/Pencil";
+import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
+import { XIcon } from "@phosphor-icons/react/dist/csr/X";
+import { useTableStore } from "../../../../wrappers/DataTableWrapper";
+import { useDataTableShellContext } from "../../DataTableShell.context";
+import type { DataTableShellTableActionsProps } from "../../DataTableShell.types";
 
 export function DataTableShellTableActions<T extends Record<string, unknown>>({
   idAccessor,
@@ -28,7 +28,10 @@ export function DataTableShellTableActions<T extends Record<string, unknown>>({
   const useTable = useTableStore();
   const setSelection = useTable((s) => s.setSelection);
 
-  const clearSelection = useCallback(() => setSelection(new Set()), [setSelection]);
+  const clearSelection = useCallback(
+    () => setSelection(new Set()),
+    [setSelection],
+  );
 
   const handleDelete = useCallback(async () => {
     if (!onDeleteClick) return;
@@ -79,12 +82,18 @@ export function DataTableShellTableActions<T extends Record<string, unknown>>({
         pos="absolute"
         bottom={12}
         left="50%"
-        style={{ transform: 'translateX(-50%)', zIndex: 10 }}
-         withBorder
+        style={{ transform: "translateX(-50%)", zIndex: 10 }}
+        withBorder
         shadow="md"
       >
         <Group gap={0} wrap="nowrap">
-          <Text py="xs" pl="md" c="white" size="xs" style={{ whiteSpace: 'nowrap' }}>
+          <Text
+            py="xs"
+            pl="md"
+            c="white"
+            size="xs"
+            style={{ whiteSpace: "nowrap" }}
+          >
             {selectedRecords.length} selected
           </Text>
 
@@ -98,9 +107,15 @@ export function DataTableShellTableActions<T extends Record<string, unknown>>({
               color="gray"
               c="gray.3"
               opacity={isSingle && !deleting ? 1 : 0.45}
-              style={{ pointerEvents: isSingle && !deleting ? undefined : 'none' }}
+              style={{
+                pointerEvents: isSingle && !deleting ? undefined : "none",
+              }}
               aria-disabled={!isSingle || deleting}
-              title={isSingle ? 'Review selected record' : 'Select only one record to review'}
+              title={
+                isSingle
+                  ? "Review selected record"
+                  : "Select only one record to review"
+              }
               onClick={handleReview}
             >
               Review

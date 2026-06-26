@@ -9,7 +9,11 @@ export function OrganizationBuilderPage() {
       p={0}
       withBorder
       radius="md"
-      style={{ height: "calc(100vh - 16px)", overflow: "hidden", position: "relative" }}
+      style={{
+        height: "calc(100vh - 16px)",
+        overflow: "hidden",
+        position: "relative",
+      }}
     >
       <OrganizationBuilder />
     </Paper>

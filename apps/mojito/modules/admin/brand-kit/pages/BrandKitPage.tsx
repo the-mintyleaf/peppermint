@@ -61,12 +61,19 @@ export function BrandKitPage() {
     >
       {isLoading ? (
         <Stack gap="md">
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} h={120} radius="md" />)}
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} h={120} radius="md" />
+          ))}
         </Stack>
       ) : (
-        <Stack gap="xl" style={{ overflow: "auto", height: "calc(100vh - 160px)" }}>
+        <Stack
+          gap="xl"
+          style={{ overflow: "auto", height: "calc(100vh - 160px)" }}
+        >
           <Box>
-            <Text fw={600} size="sm" mb="md">Logos</Text>
+            <Text fw={600} size="sm" mb="md">
+              Logos
+            </Text>
             <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
               {[
                 { key: "primaryLogoUrl", label: "Primary Logo" },
@@ -74,7 +81,9 @@ export function BrandKitPage() {
                 { key: "darkLogoUrl", label: "Dark Mode Logo" },
               ].map(({ key, label }) => (
                 <Stack key={key} gap="xs">
-                  <Text size="sm" fw={500}>{label}</Text>
+                  <Text size="sm" fw={500}>
+                    {label}
+                  </Text>
                   {draft[key as keyof BrandKit] ? (
                     <Image
                       src={draft[key as keyof BrandKit] as string}
@@ -82,11 +91,20 @@ export function BrandKitPage() {
                       h={80}
                       fit="contain"
                       radius="md"
-                      style={{ border: "1px solid var(--mantine-color-default-border)" }}
+                      style={{
+                        border: "1px solid var(--mantine-color-default-border)",
+                      }}
                     />
                   ) : (
-                    <Paper withBorder p="xl" radius="md" style={{ textAlign: "center" }}>
-                      <Text size="xs" c="dimmed">No logo</Text>
+                    <Paper
+                      withBorder
+                      p="xl"
+                      radius="md"
+                      style={{ textAlign: "center" }}
+                    >
+                      <Text size="xs" c="dimmed">
+                        No logo
+                      </Text>
                     </Paper>
                   )}
                   <TextInput
@@ -94,7 +112,10 @@ export function BrandKitPage() {
                     placeholder="Paste logo URL…"
                     value={(draft[key as keyof BrandKit] as string) ?? ""}
                     onChange={(e) =>
-                      setDraft((d) => ({ ...d, [key]: e.currentTarget.value || undefined }))
+                      setDraft((d) => ({
+                        ...d,
+                        [key]: e.currentTarget.value || undefined,
+                      }))
                     }
                   />
                 </Stack>
@@ -106,12 +127,17 @@ export function BrandKitPage() {
 
           <Box>
             <Group justify="space-between" mb="md">
-              <Text fw={600} size="sm">Brand Colors</Text>
+              <Text fw={600} size="sm">
+                Brand Colors
+              </Text>
               <ActionIcon
                 size="sm"
                 variant="light"
                 onClick={() =>
-                  setColors([...(draft.colors ?? []), { name: "New Color", hex: "#000000" }])
+                  setColors([
+                    ...(draft.colors ?? []),
+                    { name: "New Color", hex: "#000000" },
+                  ])
                 }
                 aria-label="Add color"
               >
@@ -148,7 +174,9 @@ export function BrandKitPage() {
                     size="sm"
                     variant="subtle"
                     color="red"
-                    onClick={() => setColors((draft.colors ?? []).filter((_, j) => j !== i))}
+                    onClick={() =>
+                      setColors((draft.colors ?? []).filter((_, j) => j !== i))
+                    }
                     aria-label="Remove color"
                   >
                     <TrashIcon size={12} />
@@ -162,11 +190,18 @@ export function BrandKitPage() {
 
           <Box>
             <Group justify="space-between" mb="md">
-              <Text fw={600} size="sm">Fonts</Text>
+              <Text fw={600} size="sm">
+                Fonts
+              </Text>
               <ActionIcon
                 size="sm"
                 variant="light"
-                onClick={() => setFonts([...(draft.fonts ?? []), { name: "", weight: "400" }])}
+                onClick={() =>
+                  setFonts([
+                    ...(draft.fonts ?? []),
+                    { name: "", weight: "400" },
+                  ])
+                }
                 aria-label="Add font"
               >
                 <PlusIcon size={14} />
@@ -201,7 +236,9 @@ export function BrandKitPage() {
                     size="sm"
                     variant="subtle"
                     color="red"
-                    onClick={() => setFonts((draft.fonts ?? []).filter((_, j) => j !== i))}
+                    onClick={() =>
+                      setFonts((draft.fonts ?? []).filter((_, j) => j !== i))
+                    }
                     aria-label="Remove font"
                   >
                     <TrashIcon size={12} />
@@ -214,13 +251,17 @@ export function BrandKitPage() {
           <Divider />
 
           <Box>
-            <Text fw={600} size="sm" mb="md">Brand Details</Text>
+            <Text fw={600} size="sm" mb="md">
+              Brand Details
+            </Text>
             <Stack gap="sm" maw={600}>
               <TextInput
                 label="Brand Name"
                 size="sm"
                 value={draft.name ?? ""}
-                onChange={(e) => setDraft((d) => ({ ...d, name: e.currentTarget.value }))}
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, name: e.currentTarget.value }))
+                }
               />
               <TextInput
                 label="Tagline"
@@ -228,7 +269,10 @@ export function BrandKitPage() {
                 placeholder="Your brand's tagline…"
                 value={draft.tagline ?? ""}
                 onChange={(e) =>
-                  setDraft((d) => ({ ...d, tagline: e.currentTarget.value || undefined }))
+                  setDraft((d) => ({
+                    ...d,
+                    tagline: e.currentTarget.value || undefined,
+                  }))
                 }
               />
               <TextInput
@@ -237,7 +281,10 @@ export function BrandKitPage() {
                 placeholder="© Your Brand"
                 value={draft.watermarkText ?? ""}
                 onChange={(e) =>
-                  setDraft((d) => ({ ...d, watermarkText: e.currentTarget.value || undefined }))
+                  setDraft((d) => ({
+                    ...d,
+                    watermarkText: e.currentTarget.value || undefined,
+                  }))
                 }
               />
             </Stack>

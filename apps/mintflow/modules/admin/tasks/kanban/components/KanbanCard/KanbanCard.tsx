@@ -30,7 +30,11 @@ function formatDisplayDate(dateStr?: string): string | null {
   if (!dateStr) return null;
   const date = new Date(dateStr);
   if (Number.isNaN(date.getTime())) return dateStr;
-  return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 function getRemainingDays(endDate?: string): number | null {
@@ -51,14 +55,28 @@ function getSubtaskProgress(subtasks?: { status: string }[]): number | null {
 
 function resolveAssignees(task: KanbanCardProps["task"]): TaskAssignee[] {
   if (task.assignees?.length) return task.assignees;
-  return [{ name: task.assignee, initials: toInitials(task.assignee), color: "gray" }];
+  return [
+    { name: task.assignee, initials: toInitials(task.assignee), color: "gray" },
+  ];
 }
 
-export const KanbanCard = memo(function KanbanCard({ task, overlay = false, onCardClick }: KanbanCardProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: task.id });
+export const KanbanCard = memo(function KanbanCard({
+  task,
+  overlay = false,
+  onCardClick,
+}: KanbanCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
 
-  const dragProps = overlay ? {} : { ref: setNodeRef, ...attributes, ...listeners };
+  const dragProps = overlay
+    ? {}
+    : { ref: setNodeRef, ...attributes, ...listeners };
 
   const style = overlay
     ? {
@@ -87,7 +105,11 @@ export const KanbanCard = memo(function KanbanCard({ task, overlay = false, onCa
       radius="md"
       p="sm"
       bg="white"
-      onClick={!overlay && onCardClick && !isDragging ? () => onCardClick(task) : undefined}
+      onClick={
+        !overlay && onCardClick && !isDragging
+          ? () => onCardClick(task)
+          : undefined
+      }
     >
       <Text size="sm" fw={600} lh={1.4} mb={10}>
         {task.title}
@@ -99,7 +121,12 @@ export const KanbanCard = memo(function KanbanCard({ task, overlay = false, onCa
         </Text>
         <Avatar.Group>
           {assignees.slice(0, 3).map((assignee) => (
-            <Avatar key={assignee.name} size="sm" color={assignee.color} radius="xl">
+            <Avatar
+              key={assignee.name}
+              size="sm"
+              color={assignee.color}
+              radius="xl"
+            >
               {assignee.initials}
             </Avatar>
           ))}
@@ -114,7 +141,9 @@ export const KanbanCard = memo(function KanbanCard({ task, overlay = false, onCa
       <Group justify="space-between" align="center" mb={10} wrap="nowrap">
         <Group gap={6} align="center" wrap="nowrap">
           <CalendarBlankIcon size={14} color="var(--mantine-color-gray-5)" />
-          <Text size="xs" c="dimmed">{displayDate}</Text>
+          <Text size="xs" c="dimmed">
+            {displayDate}
+          </Text>
         </Group>
         <Badge variant="light" color="gray" size="xs" radius="sm">
           {PRIORITY_LABELS[task.priority]}
@@ -125,13 +154,20 @@ export const KanbanCard = memo(function KanbanCard({ task, overlay = false, onCa
         <Group gap={12} align="center" wrap="nowrap">
           <Group gap={4} align="center" wrap="nowrap">
             <PaperclipIcon size={14} color="var(--mantine-color-gray-5)" />
-            <Text size="xs" c="dimmed">{attachmentCount}</Text>
+            <Text size="xs" c="dimmed">
+              {attachmentCount}
+            </Text>
           </Group>
 
           {progress !== null && (
             <Group gap={4} align="center" wrap="nowrap">
-              <ChartPieSliceIcon size={14} color="var(--mantine-color-gray-5)" />
-              <Text size="xs" c="dimmed">{progress}%</Text>
+              <ChartPieSliceIcon
+                size={14}
+                color="var(--mantine-color-gray-5)"
+              />
+              <Text size="xs" c="dimmed">
+                {progress}%
+              </Text>
             </Group>
           )}
         </Group>
@@ -147,7 +183,11 @@ export const KanbanCard = memo(function KanbanCard({ task, overlay = false, onCa
       </Group>
 
       {(task.requestStatus || task.approvalStatus) && (
-        <Box mt={8} pt={8} style={{ borderTop: "1px solid var(--mantine-color-gray-2)" }}>
+        <Box
+          mt={8}
+          pt={8}
+          style={{ borderTop: "1px solid var(--mantine-color-gray-2)" }}
+        >
           <Group justify="space-between" wrap="nowrap">
             {task.requestStatus && (
               <Text size="xs" c="dimmed" truncate>

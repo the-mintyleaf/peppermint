@@ -26,7 +26,7 @@ function resolveExecutor(kind: string) {
       event: "executor.resolve",
       kind,
     },
-    "Resolving executor"
+    "Resolving executor",
   );
 
   const parts = ["nodes", ...kind.split(".")];
@@ -46,7 +46,7 @@ async function executeWithPatternDetection(
   input: any,
   ctx: any,
   kind: string,
-  config?: any
+  config?: any,
 ) {
   // 1. Detect the executor pattern
   const pattern = detectExecutorPattern(executor);
@@ -57,7 +57,7 @@ async function executeWithPatternDetection(
       kind,
       pattern,
     },
-    `Executor pattern detected: ${pattern}`
+    `Executor pattern detected: ${pattern}`,
   );
 
   // 2. Adapt old executors to new pattern
@@ -70,7 +70,7 @@ async function executeWithPatternDetection(
         from: "old",
         to: "new",
       },
-      "Adapting old-pattern executor to new pattern"
+      "Adapting old-pattern executor to new pattern",
     );
     executableFunc = adaptOldExecutorToNew(executor);
   }
@@ -93,7 +93,7 @@ async function executeWithPatternDetection(
         pattern,
         error,
       },
-      "Executor execution threw error"
+      "Executor execution threw error",
     );
     throw error;
   }
@@ -108,7 +108,7 @@ async function executeWithPatternDetection(
       pattern,
       isError: normalized.isErr?.(),
     },
-    `Executor result normalized to Result type`
+    `Executor result normalized to Result type`,
   );
 
   return normalized;
@@ -125,11 +125,25 @@ function createModelsRegistry() {
 // ? Helper: Create metrics collector
 function createMetricsCollector() {
   return {
-    recordExecutorSuccess: (nodeId: string, durationMs: number, metadata?: any) => {},
-    recordExecutorError: (nodeId: string, errorCode: string, durationMs: number, metadata?: any) => {},
+    recordExecutorSuccess: (
+      nodeId: string,
+      durationMs: number,
+      metadata?: any,
+    ) => {},
+    recordExecutorError: (
+      nodeId: string,
+      errorCode: string,
+      durationMs: number,
+      metadata?: any,
+    ) => {},
     recordTokens: (runId: string, tokens: any) => {},
     getRunTokenCount: async (runId: string) => 0,
-    recordToolCall: (toolName: string, durationMs: number, success: boolean, metadata?: any) => {},
+    recordToolCall: (
+      toolName: string,
+      durationMs: number,
+      success: boolean,
+      metadata?: any,
+    ) => {},
     getQueueDepth: async (queueName: string) => 0,
   };
 }
@@ -137,7 +151,10 @@ function createMetricsCollector() {
 // ? Helper: Create runtime config
 function createRuntimeConfig() {
   return {
-    nodeEnv: (process.env.NODE_ENV ?? "development") as "development" | "staging" | "production",
+    nodeEnv: (process.env.NODE_ENV ?? "development") as
+      | "development"
+      | "staging"
+      | "production",
     maxTokensPerRun: Number(process.env.VAGENT_MAX_TOKENS_PER_RUN ?? 4000),
     maxToolIterations: Number(process.env.VAGENT_MAX_TOOL_ITERATIONS ?? 3),
     defaultTemperature: Number(process.env.VAGENT_DEFAULT_TEMPERATURE ?? 0.7),
@@ -150,7 +167,10 @@ function createMemoryStore(redis: any) {
     getSessionMessages: async (sessionId: string) => [],
     addSessionMessage: async (sessionId: string, message: any) => {},
     getSessionSummary: async (sessionId: string) => null,
-    updateSessionSummary: async (sessionId: string, summary: Record<string, string>) => {},
+    updateSessionSummary: async (
+      sessionId: string,
+      summary: Record<string, string>,
+    ) => {},
     clearSession: async (sessionId: string) => {},
   };
 }
@@ -168,7 +188,7 @@ const runsWorker = new Worker(
         workflowId,
         sessionId,
       },
-      "Workflow initiated"
+      "Workflow initiated",
     );
 
     const wf = getWorkflow(workflowId);
@@ -189,7 +209,7 @@ const runsWorker = new Worker(
         nodeId: entryNode.id,
         kind: entryNode.kind,
       },
-      "Enqueued entry node"
+      "Enqueued entry node",
     );
 
     await nodesQueue.add("node", {
@@ -205,7 +225,7 @@ const runsWorker = new Worker(
   {
     connection,
     concurrency: Number(process.env.VAGENT_WORKER_CONCURRENCY ?? 5),
-  }
+  },
 );
 
 // ? Worker for "nodes" queue (individual node execution jobs)
@@ -252,7 +272,7 @@ const nodesWorker = new Worker(
         input,
         ctx,
         kind,
-        config
+        config,
       );
 
       // Handle Result type - check if error or success
@@ -267,7 +287,7 @@ const nodesWorker = new Worker(
             kind,
             error: result.error,
           },
-          "Node execution failed with error result"
+          "Node execution failed with error result",
         );
         throw result.error; // let BullMQ retry
       }
@@ -289,7 +309,7 @@ const nodesWorker = new Worker(
           nodeId,
           kind,
         },
-        "Node execution completed"
+        "Node execution completed",
       );
 
       await advanceWorkflow({
@@ -311,7 +331,7 @@ const nodesWorker = new Worker(
           kind,
           err,
         },
-        "Node execution failed"
+        "Node execution failed",
       );
       throw err; // let BullMQ retry
     }
@@ -319,7 +339,7 @@ const nodesWorker = new Worker(
   {
     connection,
     concurrency: Number(process.env.VAGENT_WORKER_CONCURRENCY ?? 10),
-  }
+  },
 );
 
 // ? Graceful shutdown

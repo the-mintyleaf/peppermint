@@ -99,7 +99,14 @@ function ColorIndicator({
             value={value}
             onChange={onChange}
             format="hex"
-            swatches={["#000000", "#ffffff", "#9ca3af", "#3b82f6", "#ef4444", "#22c55e"]}
+            swatches={[
+              "#000000",
+              "#ffffff",
+              "#9ca3af",
+              "#3b82f6",
+              "#ef4444",
+              "#22c55e",
+            ]}
           />
         </Popover.Dropdown>
       </Popover>
@@ -115,7 +122,13 @@ function isTextType(type: CanvasElement["type"]): boolean {
 }
 
 function supportsFill(type: CanvasElement["type"]): boolean {
-  return type === "rectangle" || type === "circle" || type === "line" || type === "image" || isTextType(type);
+  return (
+    type === "rectangle" ||
+    type === "circle" ||
+    type === "line" ||
+    type === "image" ||
+    isTextType(type)
+  );
 }
 
 function supportsStroke(type: CanvasElement["type"]): boolean {
@@ -135,7 +148,9 @@ function ElementPropertiesPanel({ el }: { el: CanvasElement }) {
     .filter(Boolean);
 
   const dataKeyError =
-    el.type === "dynamicText" && el.props.dataKey && existingDataKeys.includes(el.props.dataKey)
+    el.type === "dynamicText" &&
+    el.props.dataKey &&
+    existingDataKeys.includes(el.props.dataKey)
       ? "Data key must be unique"
       : undefined;
 
@@ -156,10 +171,18 @@ function ElementPropertiesPanel({ el }: { el: CanvasElement }) {
       <SectionLabel>Layout</SectionLabel>
       <Group gap={6} grow wrap="nowrap">
         <Box style={{ flex: 1, minWidth: 0 }}>
-          <DimInput label="W" value={el.width} onChange={(width) => updateElement(el.id, { width })} />
+          <DimInput
+            label="W"
+            value={el.width}
+            onChange={(width) => updateElement(el.id, { width })}
+          />
         </Box>
         <Box style={{ flex: 1, minWidth: 0 }}>
-          <DimInput label="H" value={el.height} onChange={(height) => updateElement(el.id, { height })} />
+          <DimInput
+            label="H"
+            value={el.height}
+            onChange={(height) => updateElement(el.id, { height })}
+          />
         </Box>
       </Group>
 
@@ -176,7 +199,12 @@ function ElementPropertiesPanel({ el }: { el: CanvasElement }) {
             suffix="%"
             styles={{ input: { textAlign: "right" } }}
             leftSection={
-              <Text size="xs" c="dimmed" pl={4} style={{ whiteSpace: "nowrap" }}>
+              <Text
+                size="xs"
+                c="dimmed"
+                pl={4}
+                style={{ whiteSpace: "nowrap" }}
+              >
                 ◐
               </Text>
             }
@@ -193,7 +221,12 @@ function ElementPropertiesPanel({ el }: { el: CanvasElement }) {
               min={0}
               styles={{ input: { paddingLeft: 28, textAlign: "right" } }}
               leftSection={
-                <Text size="xs" c="dimmed" pl={4} style={{ whiteSpace: "nowrap" }}>
+                <Text
+                  size="xs"
+                  c="dimmed"
+                  pl={4}
+                  style={{ whiteSpace: "nowrap" }}
+                >
                   ◻
                 </Text>
               }
@@ -207,7 +240,10 @@ function ElementPropertiesPanel({ el }: { el: CanvasElement }) {
         <>
           <SectionLabel>Fill</SectionLabel>
           <ColorIndicator
-            value={el.props.fill ?? (isTextType(el.type) ? "#000000" : DEFAULT_SHAPE_FILL)}
+            value={
+              el.props.fill ??
+              (isTextType(el.type) ? "#000000" : DEFAULT_SHAPE_FILL)
+            }
             onChange={(fill) => updateProps({ fill })}
           />
         </>
@@ -216,7 +252,10 @@ function ElementPropertiesPanel({ el }: { el: CanvasElement }) {
       {supportsStroke(el.type) && (
         <>
           <SectionLabel>Stroke</SectionLabel>
-          <ColorIndicator value={el.props.stroke ?? "#000000"} onChange={(stroke) => updateProps({ stroke })} />
+          <ColorIndicator
+            value={el.props.stroke ?? "#000000"}
+            onChange={(stroke) => updateProps({ stroke })}
+          />
           <Group gap={6} grow>
             <NumberInput
               size="xs"
@@ -323,7 +362,10 @@ function TemplateSettingsPanel() {
       <Select
         value={templateMeta.platform}
         onChange={(v) => setPlatform(v as PlatformFormat)}
-        data={Object.entries(PLATFORM_LABELS).map(([value, label]) => ({ value, label }))}
+        data={Object.entries(PLATFORM_LABELS).map(([value, label]) => ({
+          value,
+          label,
+        }))}
         size="xs"
       />
 
@@ -355,7 +397,9 @@ interface InspectorProps {
 export function Inspector({ onCollapse }: InspectorProps) {
   const { elements, selectedElementId, removeElement } = useBuilderStore();
   const selected = elements.find((el) => el.id === selectedElementId);
-  const headerTitle = selected ? getElementTypeLabel(selected.type) : "Template Settings";
+  const headerTitle = selected
+    ? getElementTypeLabel(selected.type)
+    : "Template Settings";
 
   return (
     <Box
@@ -366,7 +410,14 @@ export function Inspector({ onCollapse }: InspectorProps) {
         flexDirection: "column",
       }}
     >
-      <Group justify="space-between" wrap="nowrap" align="center" px="sm" pt="sm" pb="xs">
+      <Group
+        justify="space-between"
+        wrap="nowrap"
+        align="center"
+        px="sm"
+        pt="sm"
+        pb="xs"
+      >
         <Text
           size="xs"
           fw={600}
@@ -385,13 +436,20 @@ export function Inspector({ onCollapse }: InspectorProps) {
               onClick={onCollapse}
               aria-label="Hide properties panel"
             >
-              <SidebarSimpleIcon size={14} style={{ transform: "scaleX(-1)" }} />
+              <SidebarSimpleIcon
+                size={14}
+                style={{ transform: "scaleX(-1)" }}
+              />
             </ActionIcon>
           </Tooltip>
         )}
       </Group>
 
-      <Box px="sm" pb="sm" style={{ flex: 1, overflowY: "auto", overflowX: "hidden", minWidth: 0 }}>
+      <Box
+        px="sm"
+        pb="sm"
+        style={{ flex: 1, overflowY: "auto", overflowX: "hidden", minWidth: 0 }}
+      >
         <Stack gap="xs" style={{ minWidth: 0 }}>
           {!selected && <TemplateSettingsPanel />}
 

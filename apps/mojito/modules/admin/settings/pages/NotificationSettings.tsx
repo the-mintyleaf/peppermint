@@ -11,7 +11,10 @@ import {
 } from "@peppermint/ui";
 import { useState, useEffect } from "react";
 import { notifications } from "@mantine/notifications";
-import { useNotificationPrefs, useUpdateNotificationPrefs } from "../settings.hooks";
+import {
+  useNotificationPrefs,
+  useUpdateNotificationPrefs,
+} from "../settings.hooks";
 import type { NotificationPrefs } from "../settings.api";
 import { ModulePageShell } from "@/modules/admin/shared/ModulePageShell";
 
@@ -31,13 +34,19 @@ function PrefSection({
 }) {
   return (
     <Paper withBorder radius="md" p="md">
-      <Text fw={600} size="sm" mb="sm">{title}</Text>
+      <Text fw={600} size="sm" mb="sm">
+        {title}
+      </Text>
       <Stack gap="sm">
         {items.map(({ key, label, description }) => (
           <Group key={key} justify="space-between">
             <Stack gap={0}>
               <Text size="sm">{label}</Text>
-              {description && <Text size="xs" c="dimmed">{description}</Text>}
+              {description && (
+                <Text size="xs" c="dimmed">
+                  {description}
+                </Text>
+              )}
             </Stack>
             <Switch
               checked={values[key] ?? false}
@@ -76,9 +85,15 @@ export function NotificationSettings() {
 
   if (isLoading || !draft) {
     return (
-      <ModulePageShell basePath={BASE_PATH} moduleInfo={MODULE_INFO} disableCreateButton>
+      <ModulePageShell
+        basePath={BASE_PATH}
+        moduleInfo={MODULE_INFO}
+        disableCreateButton
+      >
         <Stack gap="md">
-          {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} h={160} radius="md" />)}
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Skeleton key={i} h={160} radius="md" />
+          ))}
         </Stack>
       </ModulePageShell>
     );
@@ -90,18 +105,43 @@ export function NotificationSettings() {
       moduleInfo={MODULE_INFO}
       disableCreateButton
       actions={
-        <Button size="xs" loading={update.isPending} onClick={handleSave}>Save</Button>
+        <Button size="xs" loading={update.isPending} onClick={handleSave}>
+          Save
+        </Button>
       }
     >
-      <Stack gap="md" style={{ overflow: "auto", height: "calc(100vh - 160px)" }}>
+      <Stack
+        gap="md"
+        style={{ overflow: "auto", height: "calc(100vh - 160px)" }}
+      >
         <PrefSection
           title="Email Notifications"
           items={[
-            { key: "approvals", label: "Content approvals", description: "When content is approved or rejected" },
-            { key: "mentions", label: "Brand mentions", description: "When your brand is mentioned" },
-            { key: "weeklyReport", label: "Weekly report", description: "Summary of your week's performance" },
-            { key: "teamActivity", label: "Team activity", description: "When team members take actions" },
-            { key: "billing", label: "Billing & invoices", description: "Payment receipts and renewal reminders" },
+            {
+              key: "approvals",
+              label: "Content approvals",
+              description: "When content is approved or rejected",
+            },
+            {
+              key: "mentions",
+              label: "Brand mentions",
+              description: "When your brand is mentioned",
+            },
+            {
+              key: "weeklyReport",
+              label: "Weekly report",
+              description: "Summary of your week's performance",
+            },
+            {
+              key: "teamActivity",
+              label: "Team activity",
+              description: "When team members take actions",
+            },
+            {
+              key: "billing",
+              label: "Billing & invoices",
+              description: "Payment receipts and renewal reminders",
+            },
           ]}
           values={draft.email as unknown as Record<string, boolean>}
           onChange={updateEmail}

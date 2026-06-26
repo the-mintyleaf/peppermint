@@ -84,7 +84,7 @@ export function createExecutorError(
     context?: Record<string, any>;
     retryable?: boolean;
     retryDelayMs?: number;
-  }
+  },
 ): ExecutorError {
   return {
     code,
@@ -138,10 +138,7 @@ export function getDefaultRetryDelay(code: ExecutorErrorCode): number {
 /**
  * Convert error to ExecutorError
  */
-export function toExecutorError(
-  err: any,
-  nodeId?: string
-): ExecutorError {
+export function toExecutorError(err: any, nodeId?: string): ExecutorError {
   // Already an ExecutorError
   if (err && typeof err === "object" && "code" in err) {
     return err as ExecutorError;

@@ -1,6 +1,18 @@
 "use client";
 
-import { Drawer, Stack, Group, Text, Badge, Tabs, Image, Table, Button, Loader, Center } from "@peppermint/ui";
+import {
+  Drawer,
+  Stack,
+  Group,
+  Text,
+  Badge,
+  Tabs,
+  Image,
+  Table,
+  Button,
+  Loader,
+  Center,
+} from "@peppermint/ui";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import type { ContentPreviewDrawerProps } from "./ContentPreviewDrawer.types";
@@ -40,7 +52,10 @@ const STATUS_COLORS: Record<string, string> = {
   failed: "red",
 };
 
-export function ContentPreviewDrawer({ contentId, onClose }: ContentPreviewDrawerProps) {
+export function ContentPreviewDrawer({
+  contentId,
+  onClose,
+}: ContentPreviewDrawerProps) {
   const queryClient = useQueryClient();
 
   const { data: item, isLoading } = useQuery({
@@ -109,18 +124,20 @@ export function ContentPreviewDrawer({ contentId, onClose }: ContentPreviewDrawe
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
-                {Object.entries(item.slotValues as Record<string, string>).map(([key, val]) => (
-                  <Table.Tr key={key}>
-                    <Table.Td>
-                      <Text size="xs" c="dimmed" ff="monospace">
-                        {key}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="xs">{val}</Text>
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
+                {Object.entries(item.slotValues as Record<string, string>).map(
+                  ([key, val]) => (
+                    <Table.Tr key={key}>
+                      <Table.Td>
+                        <Text size="xs" c="dimmed" ff="monospace">
+                          {key}
+                        </Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="xs">{val}</Text>
+                      </Table.Td>
+                    </Table.Tr>
+                  ),
+                )}
               </Table.Tbody>
             </Table>
           </Stack>

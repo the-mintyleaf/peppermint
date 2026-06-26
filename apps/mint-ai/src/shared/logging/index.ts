@@ -36,5 +36,5 @@ export const logger = pino(
       censor: "[REDACTED]",
     },
   },
-  transport
+  transport,
 );

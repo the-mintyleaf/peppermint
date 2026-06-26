@@ -14,7 +14,11 @@ import {
 } from "@peppermint/ui";
 import { useState } from "react";
 import { notifications } from "@mantine/notifications";
-import { useIntegrations, useConnectIntegration, useDisconnectIntegration } from "../settings.hooks";
+import {
+  useIntegrations,
+  useConnectIntegration,
+  useDisconnectIntegration,
+} from "../settings.hooks";
 import type { Integration } from "../settings.api";
 import { ModulePageShell } from "@/modules/admin/shared/ModulePageShell";
 
@@ -48,13 +52,20 @@ export function IntegrationsList() {
       disableCreateButton
       actions={
         <Group gap="sm">
-          {connectedCount > 0 && <Badge size="sm" color="green">{connectedCount} connected</Badge>}
+          {connectedCount > 0 && (
+            <Badge size="sm" color="green">
+              {connectedCount} connected
+            </Badge>
+          )}
           <Select
             size="xs"
             w={140}
             placeholder="All categories"
             clearable
-            data={Object.entries(CATEGORY_LABELS).map(([v, l]) => ({ label: l, value: v }))}
+            data={Object.entries(CATEGORY_LABELS).map(([v, l]) => ({
+              label: l,
+              value: v,
+            }))}
             value={category}
             onChange={setCategory}
           />
@@ -63,7 +74,9 @@ export function IntegrationsList() {
     >
       {isLoading ? (
         <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} h={100} radius="md" />)}
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} h={100} radius="md" />
+          ))}
         </SimpleGrid>
       ) : (
         <SimpleGrid
@@ -84,10 +97,16 @@ export function IntegrationsList() {
                   />
                   <Stack gap={2}>
                     <Group gap="xs">
-                      <Text fw={600} size="sm">{integration.name}</Text>
-                      <Badge size="xs" variant="light">{CATEGORY_LABELS[integration.category]}</Badge>
+                      <Text fw={600} size="sm">
+                        {integration.name}
+                      </Text>
+                      <Badge size="xs" variant="light">
+                        {CATEGORY_LABELS[integration.category]}
+                      </Badge>
                     </Group>
-                    <Text size="xs" c="dimmed">{integration.description}</Text>
+                    <Text size="xs" c="dimmed">
+                      {integration.description}
+                    </Text>
                     {integration.connected && integration.connectedAt && (
                       <Text size="xs" c="dimmed">
                         Connected {integration.connectedAt.toLocaleDateString()}
@@ -103,7 +122,10 @@ export function IntegrationsList() {
                     loading={disconnect.isPending}
                     onClick={async () => {
                       await disconnect.mutateAsync(integration.id);
-                      notifications.show({ message: `${integration.name} disconnected`, color: "orange" });
+                      notifications.show({
+                        message: `${integration.name} disconnected`,
+                        color: "orange",
+                      });
                     }}
                   >
                     Disconnect
@@ -114,7 +136,10 @@ export function IntegrationsList() {
                     loading={connect.isPending}
                     onClick={async () => {
                       await connect.mutateAsync(integration.id);
-                      notifications.show({ message: `${integration.name} connected`, color: "green" });
+                      notifications.show({
+                        message: `${integration.name} connected`,
+                        color: "green",
+                      });
                     }}
                   >
                     Connect

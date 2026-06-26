@@ -29,10 +29,23 @@ const CAPTION_TEMPLATES: Record<string, string[]> = {
 };
 
 const PLATFORM_HASHTAGS: Record<Platform, string[]> = {
-  instagram: ["#instagood", "#photooftheday", "#instagram", "#trending", "#viral", "#explore"],
+  instagram: [
+    "#instagood",
+    "#photooftheday",
+    "#instagram",
+    "#trending",
+    "#viral",
+    "#explore",
+  ],
   facebook: ["#facebook", "#socialmedia", "#community", "#share"],
   x: ["#trending", "#tech", "#startup", "#buildinginpublic"],
-  linkedin: ["#professional", "#leadership", "#innovation", "#career", "#networking"],
+  linkedin: [
+    "#professional",
+    "#leadership",
+    "#innovation",
+    "#career",
+    "#networking",
+  ],
   tiktok: ["#fyp", "#foryoupage", "#viral", "#trending", "#tiktok"],
   youtube: ["#youtube", "#subscribe", "#video", "#content"],
   threads: ["#threads", "#community", "#conversation"],
@@ -40,14 +53,18 @@ const PLATFORM_HASHTAGS: Record<Platform, string[]> = {
 };
 
 const PLATFORM_ADAPTATIONS: Record<Platform, (caption: string) => string> = {
-  instagram: (c) => `${c}\n\n📸 Double tap if you love this!\n\n${PLATFORM_HASHTAGS.instagram.slice(0, 5).join(" ")}`,
+  instagram: (c) =>
+    `${c}\n\n📸 Double tap if you love this!\n\n${PLATFORM_HASHTAGS.instagram.slice(0, 5).join(" ")}`,
   facebook: (c) => `${c}\n\nLet us know your thoughts in the comments! 👇`,
-  x: (c) => c.length > 280 ? c.substring(0, 277) + "..." : c,
-  linkedin: (c) => `${c}\n\nWhat's your take on this? I'd love to hear from professionals in the space.\n\n${PLATFORM_HASHTAGS.linkedin.slice(0, 3).join(" ")}`,
+  x: (c) => (c.length > 280 ? c.substring(0, 277) + "..." : c),
+  linkedin: (c) =>
+    `${c}\n\nWhat's your take on this? I'd love to hear from professionals in the space.\n\n${PLATFORM_HASHTAGS.linkedin.slice(0, 3).join(" ")}`,
   tiktok: (c) => `${c} ${PLATFORM_HASHTAGS.tiktok.slice(0, 4).join(" ")}`,
-  youtube: (c) => `${c}\n\n🔔 Subscribe for more content like this!\n👍 Like if this was helpful\n💬 Comment your questions below`,
+  youtube: (c) =>
+    `${c}\n\n🔔 Subscribe for more content like this!\n👍 Like if this was helpful\n💬 Comment your questions below`,
   threads: (c) => `${c}\n\nLet's start a conversation 💬`,
-  pinterest: (c) => `${c}\n\n✨ Save this for later! ${PLATFORM_HASHTAGS.pinterest.slice(0, 3).join(" ")}`,
+  pinterest: (c) =>
+    `${c}\n\n✨ Save this for later! ${PLATFORM_HASHTAGS.pinterest.slice(0, 3).join(" ")}`,
 };
 
 export async function generateCaption(params: {
@@ -64,7 +81,7 @@ export async function generateCaption(params: {
 
 export async function generateVariations(
   caption: string,
-  count: number = 3
+  count: number = 3,
 ): Promise<string[]> {
   await delay(1500);
 
@@ -76,26 +93,36 @@ export async function generateVariations(
     "\n\n💬 Tell us your thoughts",
   ];
 
-  return Array.from({ length: count }, (_, i) => `${caption}${suffixes[i % suffixes.length]}`);
+  return Array.from(
+    { length: count },
+    (_, i) => `${caption}${suffixes[i % suffixes.length]}`,
+  );
 }
 
 export async function repurposeToAllPlatforms(
-  caption: string
+  caption: string,
 ): Promise<Record<Platform, string>> {
   await delay(1800);
 
   const platforms: Platform[] = [
-    "instagram", "facebook", "x", "linkedin", "tiktok", "youtube", "threads", "pinterest",
+    "instagram",
+    "facebook",
+    "x",
+    "linkedin",
+    "tiktok",
+    "youtube",
+    "threads",
+    "pinterest",
   ];
 
   return Object.fromEntries(
-    platforms.map((p) => [p, PLATFORM_ADAPTATIONS[p](caption)])
+    platforms.map((p) => [p, PLATFORM_ADAPTATIONS[p](caption)]),
   ) as Record<Platform, string>;
 }
 
 export async function suggestHashtags(
   caption: string,
-  platform: Platform
+  platform: Platform,
 ): Promise<string[]> {
   await delay(800);
 
@@ -107,7 +134,7 @@ export async function suggestHashtags(
 
 export async function adjustTone(
   caption: string,
-  tone: "casual" | "professional" | "playful" | "educational"
+  tone: "casual" | "professional" | "playful" | "educational",
 ): Promise<string> {
   await delay(1000);
 
@@ -123,7 +150,7 @@ export async function adjustTone(
 
 export async function adjustLength(
   caption: string,
-  direction: "shorter" | "longer"
+  direction: "shorter" | "longer",
 ): Promise<string> {
   await delay(800);
 

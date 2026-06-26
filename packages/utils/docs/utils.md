@@ -10,9 +10,9 @@ Pure hooks and utility functions. No monorepo dependencies. React is a peer depe
 
 Debounces any value. Updates the returned value only after `delay` milliseconds of inactivity.
 
-| Param | Type | Description |
-|---|---|---|
-| `value` | `T` | Value to debounce |
+| Param   | Type     | Description                    |
+| ------- | -------- | ------------------------------ |
+| `value` | `T`      | Value to debounce              |
 | `delay` | `number` | Debounce delay in milliseconds |
 
 ---
@@ -21,10 +21,10 @@ Debounces any value. Updates the returned value only after `delay` milliseconds 
 
 Persistent state backed by `localStorage`. Syncs across tabs via the `storage` event.
 
-| Param | Type | Description |
-|---|---|---|
-| `key` | `string` | localStorage key |
-| `initial` | `T` | Initial value if key is absent |
+| Param     | Type     | Description                    |
+| --------- | -------- | ------------------------------ |
+| `key`     | `string` | localStorage key               |
+| `initial` | `T`      | Initial value if key is absent |
 
 **Returns:** `[storedValue, setValue]` — `setValue` accepts either a new value or an updater function `(prev: T) => T`.
 

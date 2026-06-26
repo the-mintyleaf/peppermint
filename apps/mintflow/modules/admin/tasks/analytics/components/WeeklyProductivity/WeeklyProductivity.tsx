@@ -6,7 +6,10 @@ import { ChartBarIcon } from "@phosphor-icons/react/dist/csr/ChartBar";
 import { ANALYTICS_COLORS, darkCardStyle } from "../../taskAnalytics.styles";
 import type { WeeklyProductivityProps } from "./WeeklyProductivity.types";
 
-export function WeeklyProductivity({ data, taskCount }: WeeklyProductivityProps) {
+export function WeeklyProductivity({
+  data,
+  taskCount,
+}: WeeklyProductivityProps) {
   const [hoveredDay, setHoveredDay] = useState<string | null>("Thu");
 
   const hoveredData = data.find((d) => d.day === hoveredDay);
@@ -15,7 +18,11 @@ export function WeeklyProductivity({ data, taskCount }: WeeklyProductivityProps)
     <Box style={darkCardStyle()}>
       <Group justify="space-between" mb="xs">
         <Group gap="sm">
-          <ChartBarIcon size={18} color={ANALYTICS_COLORS.accentOrange} aria-label="Chart" />
+          <ChartBarIcon
+            size={18}
+            color={ANALYTICS_COLORS.accentOrange}
+            aria-label="Chart"
+          />
           <Text c={ANALYTICS_COLORS.textPrimary} fw={700} size="md">
             Weekly Productivity Overview
           </Text>
@@ -30,7 +37,13 @@ export function WeeklyProductivity({ data, taskCount }: WeeklyProductivityProps)
           h={180}
           data={data}
           dataKey="day"
-          series={[{ name: "hours", color: ANALYTICS_COLORS.accentOrange, label: "Hours" }]}
+          series={[
+            {
+              name: "hours",
+              color: ANALYTICS_COLORS.accentOrange,
+              label: "Hours",
+            },
+          ]}
           tickLine="none"
           gridAxis="y"
           withXAxis
@@ -67,7 +80,8 @@ export function WeeklyProductivity({ data, taskCount }: WeeklyProductivityProps)
           >
             <Stack gap={4}>
               <Text size="xs" c={ANALYTICS_COLORS.textPrimary} fw={600}>
-                On this day: {Math.floor(hoveredData.hours)}hr {Math.round((hoveredData.hours % 1) * 60)}min
+                On this day: {Math.floor(hoveredData.hours)}hr{" "}
+                {Math.round((hoveredData.hours % 1) * 60)}min
               </Text>
               <Text size="10px" c={ANALYTICS_COLORS.textMuted}>
                 Assigned Task: {hoveredData.assigned}

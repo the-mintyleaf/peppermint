@@ -72,16 +72,24 @@ export function ChannelSelector() {
               radius="sm"
               style={{
                 cursor: "pointer",
-                borderColor: isSelected ? "var(--mantine-color-blue-5)" : undefined,
-                background: isSelected ? "var(--mantine-color-blue-0)" : undefined,
+                borderColor: isSelected
+                  ? "var(--mantine-color-blue-5)"
+                  : undefined,
+                background: isSelected
+                  ? "var(--mantine-color-blue-0)"
+                  : undefined,
               }}
-              onClick={() => toggleChannel(channel.id, channel.platform as Platform)}
+              onClick={() =>
+                toggleChannel(channel.id, channel.platform as Platform)
+              }
             >
               <Group justify="space-between">
                 <Group gap="sm">
                   <Checkbox
                     checked={isSelected}
-                    onChange={() => toggleChannel(channel.id, channel.platform as Platform)}
+                    onChange={() =>
+                      toggleChannel(channel.id, channel.platform as Platform)
+                    }
                     onClick={(e) => e.stopPropagation()}
                   />
                   <Stack gap={0}>
@@ -98,7 +106,8 @@ export function ChannelSelector() {
                   color={PLATFORM_COLORS[channel.platform] ?? "gray"}
                   variant="light"
                 >
-                  {PLATFORM_LABELS[channel.platform as Platform] ?? channel.platform}
+                  {PLATFORM_LABELS[channel.platform as Platform] ??
+                    channel.platform}
                 </Badge>
               </Group>
             </Paper>

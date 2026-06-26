@@ -69,7 +69,9 @@ export function ContentCard({ item }: ContentCardProps) {
           href={`/admin/automation/templates/${item.templateId}/preview`}
           onClick={(e) => {
             e.stopPropagation();
-            router.push(`/admin/automation/templates/${item.templateId}/preview`);
+            router.push(
+              `/admin/automation/templates/${item.templateId}/preview`,
+            );
           }}
         >
           {item.templateName}

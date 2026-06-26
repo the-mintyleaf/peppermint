@@ -64,8 +64,13 @@ export function useDeleteQueueSlot() {
 export function usePlaceInQueue() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ contentId, slotId }: { contentId: string; slotId: string }) =>
-      placeInQueue(contentId, slotId),
+    mutationFn: ({
+      contentId,
+      slotId,
+    }: {
+      contentId: string;
+      slotId: string;
+    }) => placeInQueue(contentId, slotId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queueKeys.content() });
     },

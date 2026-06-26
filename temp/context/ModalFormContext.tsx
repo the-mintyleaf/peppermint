@@ -8,7 +8,9 @@ type ModalFormContextType = {
   closeModal: () => void;
 };
 
-const ModalFormContext = createContext<ModalFormContextType | undefined>(undefined);
+const ModalFormContext = createContext<ModalFormContextType | undefined>(
+  undefined,
+);
 
 export function ModalFormProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);

@@ -1,4 +1,7 @@
-import type { CategoryFilterItem, TaskCategoryFilter } from "../../taskAnalytics.types";
+import type {
+  CategoryFilterItem,
+  TaskCategoryFilter,
+} from "../../taskAnalytics.types";
 
 export interface TaskCategoriesProps {
   categories: CategoryFilterItem[];

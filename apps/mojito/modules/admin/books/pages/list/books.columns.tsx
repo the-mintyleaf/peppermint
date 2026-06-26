@@ -9,11 +9,11 @@ const statusColor: Record<BookStatus, string> = {
 };
 
 export const booksColumns: DataTableShellColumn<Book>[] = [
-  { accessor: "title",         title: "Title",          sortable: true },
-  { accessor: "author",        title: "Author",         sortable: true },
-  { accessor: "genre",         title: "Genre",          sortable: true },
-  { accessor: "isbn",          title: "ISBN" },
-  { accessor: "publishedYear", title: "Published",      sortable: true },
+  { accessor: "title", title: "Title", sortable: true },
+  { accessor: "author", title: "Author", sortable: true },
+  { accessor: "genre", title: "Genre", sortable: true },
+  { accessor: "isbn", title: "ISBN" },
+  { accessor: "publishedYear", title: "Published", sortable: true },
   {
     accessor: "status",
     title: "Status",

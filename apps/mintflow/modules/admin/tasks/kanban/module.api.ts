@@ -1,6 +1,10 @@
 export type TaskStatus = "inbox" | "ongoing" | "hold" | "rejected";
 export type TaskPriority = "urgent" | "important" | "normal";
-export type TaskCategory = "document_review" | "review" | "approval" | "general";
+export type TaskCategory =
+  | "document_review"
+  | "review"
+  | "approval"
+  | "general";
 export type TaskBoardFilter = "all" | "mine" | "team" | "department";
 export type SubtaskStatus = "completed" | "in_progress" | "pending";
 
@@ -101,11 +105,46 @@ export interface TeamMember {
 }
 
 export const TEAM_MEMBERS: TeamMember[] = [
-  { id: "tm1", name: "Achmad Hakim",     initials: "AH", color: "blue",   role: "Designer",         online: true  },
-  { id: "tm2", name: "Samantha Emanuel", initials: "SE", color: "violet", role: "Project Manager",  online: true  },
-  { id: "tm3", name: "Sudhan Grg.",      initials: "SG", color: "teal",   role: "Developer",        online: false },
-  { id: "tm4", name: "Rafi Andika",      initials: "RA", color: "orange", role: "QA Engineer",      online: true  },
-  { id: "tm5", name: "Priya Sharma",     initials: "PS", color: "pink",   role: "Business Analyst", online: false },
+  {
+    id: "tm1",
+    name: "Achmad Hakim",
+    initials: "AH",
+    color: "blue",
+    role: "Designer",
+    online: true,
+  },
+  {
+    id: "tm2",
+    name: "Samantha Emanuel",
+    initials: "SE",
+    color: "violet",
+    role: "Project Manager",
+    online: true,
+  },
+  {
+    id: "tm3",
+    name: "Sudhan Grg.",
+    initials: "SG",
+    color: "teal",
+    role: "Developer",
+    online: false,
+  },
+  {
+    id: "tm4",
+    name: "Rafi Andika",
+    initials: "RA",
+    color: "orange",
+    role: "QA Engineer",
+    online: true,
+  },
+  {
+    id: "tm5",
+    name: "Priya Sharma",
+    initials: "PS",
+    color: "pink",
+    role: "Business Analyst",
+    online: false,
+  },
 ];
 
 export const MOCK_TASKS: Task[] = [
@@ -136,9 +175,27 @@ export const MOCK_TASKS: Task[] = [
       { name: "Workflow.fig", size: "12.4 Mb", fileType: "fig" },
     ],
     subtasks: [
-      { id: "s1", title: "Schedule kickoff meeting", category: "Discovery", status: "completed", dueDate: "June 3, 2026" },
-      { id: "s2", title: "Gather requirements", category: "Discovery", status: "completed", dueDate: "June 4, 2026" },
-      { id: "s3", title: "Create wireframes", category: "Discovery", status: "in_progress", dueDate: "June 5, 2026" },
+      {
+        id: "s1",
+        title: "Schedule kickoff meeting",
+        category: "Discovery",
+        status: "completed",
+        dueDate: "June 3, 2026",
+      },
+      {
+        id: "s2",
+        title: "Gather requirements",
+        category: "Discovery",
+        status: "completed",
+        dueDate: "June 4, 2026",
+      },
+      {
+        id: "s3",
+        title: "Create wireframes",
+        category: "Discovery",
+        status: "in_progress",
+        dueDate: "June 5, 2026",
+      },
     ],
   },
   {
@@ -156,9 +213,27 @@ export const MOCK_TASKS: Task[] = [
     endDate: "2026-07-05",
     tags: [{ label: "Internal", color: "gray" }],
     subtasks: [
-      { id: "s4", title: "Draft audit checklist", category: "Preparation", status: "completed", dueDate: "June 12, 2026" },
-      { id: "s5", title: "Interview department heads", category: "Execution", status: "pending", dueDate: "June 20, 2026" },
-      { id: "s6", title: "Compile findings report", category: "Reporting", status: "pending", dueDate: "July 1, 2026" },
+      {
+        id: "s4",
+        title: "Draft audit checklist",
+        category: "Preparation",
+        status: "completed",
+        dueDate: "June 12, 2026",
+      },
+      {
+        id: "s5",
+        title: "Interview department heads",
+        category: "Execution",
+        status: "pending",
+        dueDate: "June 20, 2026",
+      },
+      {
+        id: "s6",
+        title: "Compile findings report",
+        category: "Reporting",
+        status: "pending",
+        dueDate: "July 1, 2026",
+      },
     ],
   },
   {
@@ -182,10 +257,34 @@ export const MOCK_TASKS: Task[] = [
       { label: "Urgent", color: "red" },
     ],
     subtasks: [
-      { id: "s7", title: "Collect department budgets", category: "Collection", status: "completed", dueDate: "June 5, 2026" },
-      { id: "s8", title: "Consolidate into master sheet", category: "Analysis", status: "completed", dueDate: "June 10, 2026" },
-      { id: "s9", title: "Present to board", category: "Approval", status: "completed", dueDate: "June 20, 2026" },
-      { id: "s10", title: "Receive sign-off", category: "Approval", status: "in_progress", dueDate: "June 24, 2026" },
+      {
+        id: "s7",
+        title: "Collect department budgets",
+        category: "Collection",
+        status: "completed",
+        dueDate: "June 5, 2026",
+      },
+      {
+        id: "s8",
+        title: "Consolidate into master sheet",
+        category: "Analysis",
+        status: "completed",
+        dueDate: "June 10, 2026",
+      },
+      {
+        id: "s9",
+        title: "Present to board",
+        category: "Approval",
+        status: "completed",
+        dueDate: "June 20, 2026",
+      },
+      {
+        id: "s10",
+        title: "Receive sign-off",
+        category: "Approval",
+        status: "in_progress",
+        dueDate: "June 24, 2026",
+      },
     ],
     requestStatus: "Request Seen.",
     approvalStatus: "Awaiting final approval",
@@ -211,9 +310,27 @@ export const MOCK_TASKS: Task[] = [
       { label: "Legal", color: "grape" },
     ],
     subtasks: [
-      { id: "s11", title: "Review SLA terms", category: "Legal", status: "completed", dueDate: "June 18, 2026" },
-      { id: "s12", title: "Validate pricing structure", category: "Finance", status: "in_progress", dueDate: "June 25, 2026" },
-      { id: "s13", title: "Legal team sign-off", category: "Legal", status: "pending", dueDate: "July 5, 2026" },
+      {
+        id: "s11",
+        title: "Review SLA terms",
+        category: "Legal",
+        status: "completed",
+        dueDate: "June 18, 2026",
+      },
+      {
+        id: "s12",
+        title: "Validate pricing structure",
+        category: "Finance",
+        status: "in_progress",
+        dueDate: "June 25, 2026",
+      },
+      {
+        id: "s13",
+        title: "Legal team sign-off",
+        category: "Legal",
+        status: "pending",
+        dueDate: "July 5, 2026",
+      },
     ],
   },
   {
@@ -238,10 +355,34 @@ export const MOCK_TASKS: Task[] = [
       { label: "Internal", color: "gray" },
     ],
     subtasks: [
-      { id: "s14", title: "Draft slides outline", category: "Content", status: "completed", dueDate: "June 19, 2026" },
-      { id: "s15", title: "Add company values section", category: "Content", status: "completed", dueDate: "June 21, 2026" },
-      { id: "s16", title: "Review with HR manager", category: "Review", status: "completed", dueDate: "June 23, 2026" },
-      { id: "s17", title: "Finalize and export PDF", category: "Production", status: "pending", dueDate: "June 27, 2026" },
+      {
+        id: "s14",
+        title: "Draft slides outline",
+        category: "Content",
+        status: "completed",
+        dueDate: "June 19, 2026",
+      },
+      {
+        id: "s15",
+        title: "Add company values section",
+        category: "Content",
+        status: "completed",
+        dueDate: "June 21, 2026",
+      },
+      {
+        id: "s16",
+        title: "Review with HR manager",
+        category: "Review",
+        status: "completed",
+        dueDate: "June 23, 2026",
+      },
+      {
+        id: "s17",
+        title: "Finalize and export PDF",
+        category: "Production",
+        status: "pending",
+        dueDate: "June 27, 2026",
+      },
     ],
   },
   {
@@ -262,9 +403,27 @@ export const MOCK_TASKS: Task[] = [
       { label: "Legal", color: "grape" },
     ],
     subtasks: [
-      { id: "s18", title: "Identify outdated clauses", category: "Analysis", status: "completed", dueDate: "May 25, 2026" },
-      { id: "s19", title: "Draft revised policy", category: "Drafting", status: "in_progress", dueDate: "June 10, 2026" },
-      { id: "s20", title: "Legal review", category: "Review", status: "pending", dueDate: "June 18, 2026" },
+      {
+        id: "s18",
+        title: "Identify outdated clauses",
+        category: "Analysis",
+        status: "completed",
+        dueDate: "May 25, 2026",
+      },
+      {
+        id: "s19",
+        title: "Draft revised policy",
+        category: "Drafting",
+        status: "in_progress",
+        dueDate: "June 10, 2026",
+      },
+      {
+        id: "s20",
+        title: "Legal review",
+        category: "Review",
+        status: "pending",
+        dueDate: "June 18, 2026",
+      },
     ],
     requestStatus: "Request Unseen.",
     approvalStatus: "Awaiting approval",
@@ -287,9 +446,27 @@ export const MOCK_TASKS: Task[] = [
     endDate: "2026-07-15",
     tags: [{ label: "Marketing", color: "orange" }],
     subtasks: [
-      { id: "s21", title: "Pull analytics data", category: "Data", status: "pending", dueDate: "June 25, 2026" },
-      { id: "s22", title: "Prepare summary report", category: "Reporting", status: "pending", dueDate: "July 5, 2026" },
-      { id: "s23", title: "Present to stakeholders", category: "Presentation", status: "pending", dueDate: "July 15, 2026" },
+      {
+        id: "s21",
+        title: "Pull analytics data",
+        category: "Data",
+        status: "pending",
+        dueDate: "June 25, 2026",
+      },
+      {
+        id: "s22",
+        title: "Prepare summary report",
+        category: "Reporting",
+        status: "pending",
+        dueDate: "July 5, 2026",
+      },
+      {
+        id: "s23",
+        title: "Present to stakeholders",
+        category: "Presentation",
+        status: "pending",
+        dueDate: "July 15, 2026",
+      },
     ],
   },
 ];

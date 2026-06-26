@@ -13,7 +13,10 @@ export function useTasks(filter: TaskBoardFilter) {
   });
 }
 
-export function useKanbanBoard(tasks: Task[] | undefined, activeTab: TaskBoardFilter) {
+export function useKanbanBoard(
+  tasks: Task[] | undefined,
+  activeTab: TaskBoardFilter,
+) {
   const [localTasks, setLocalTasks] = useState<Task[]>(tasks ?? []);
 
   useEffect(() => {
@@ -22,11 +25,16 @@ export function useKanbanBoard(tasks: Task[] | undefined, activeTab: TaskBoardFi
 
   const tasksByStatus = useMemo(() => groupByStatus(localTasks), [localTasks]);
 
-  const moveTask = useCallback((taskId: string, _from: string, toStatus: string) => {
-    setLocalTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, status: toStatus as TaskStatus } : t))
-    );
-  }, []);
+  const moveTask = useCallback(
+    (taskId: string, _from: string, toStatus: string) => {
+      setLocalTasks((prev) =>
+        prev.map((t) =>
+          t.id === taskId ? { ...t, status: toStatus as TaskStatus } : t,
+        ),
+      );
+    },
+    [],
+  );
 
   const reorderTask = useCallback((activeId: string, overId: string) => {
     setLocalTasks((prev) => {
@@ -41,7 +49,12 @@ export function useKanbanBoard(tasks: Task[] | undefined, activeTab: TaskBoardFi
 }
 
 function groupByStatus(tasks: Task[]): Record<TaskStatus, Task[]> {
-  const result: Record<TaskStatus, Task[]> = { inbox: [], ongoing: [], hold: [], rejected: [] };
+  const result: Record<TaskStatus, Task[]> = {
+    inbox: [],
+    ongoing: [],
+    hold: [],
+    rejected: [],
+  };
   for (const task of tasks) {
     result[task.status].push(task);
   }

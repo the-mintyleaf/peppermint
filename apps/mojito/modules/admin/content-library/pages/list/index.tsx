@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { SimpleGrid, Stack, Group, Text, Pagination, Center, Loader } from "@peppermint/ui";
+import {
+  SimpleGrid,
+  Stack,
+  Group,
+  Text,
+  Pagination,
+  Center,
+  Loader,
+} from "@peppermint/ui";
 import { useQuery } from "@tanstack/react-query";
 import { ContentCard } from "./components/ContentCard";
 import { ContentFilters } from "./components/ContentFilters";
@@ -37,7 +45,7 @@ export function ContentLibraryList() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [filter, setFilter] = useState<ContentFilter>(() =>
-    filterFromParams(searchParams)
+    filterFromParams(searchParams),
   );
 
   useEffect(() => {
@@ -54,7 +62,11 @@ export function ContentLibraryList() {
   const totalPages = data ? Math.ceil(data.meta.total / PAGE_SIZE) : 1;
   const hasData = !!data && data.meta.total > 0;
   const hasResults = !!data && data.data.length > 0;
-  const isFiltered = !!(filter.platform || filter.status || filter.automationId);
+  const isFiltered = !!(
+    filter.platform ||
+    filter.status ||
+    filter.automationId
+  );
 
   return (
     <ModulePageShell
@@ -62,10 +74,17 @@ export function ContentLibraryList() {
       moduleInfo={MODULE_INFO}
       disableCreateButton
       actions={
-        data ? <Text size="sm" c="dimmed">{data.meta.total} items</Text> : undefined
+        data ? (
+          <Text size="sm" c="dimmed">
+            {data.meta.total} items
+          </Text>
+        ) : undefined
       }
     >
-      <Stack gap="md" style={{ height: "calc(100vh - 160px)", overflow: "auto" }}>
+      <Stack
+        gap="md"
+        style={{ height: "calc(100vh - 160px)", overflow: "auto" }}
+      >
         <ContentFilters filter={filter} onChange={setFilter} />
         <Stack gap="lg">
           {isLoading && (
@@ -81,7 +100,8 @@ export function ContentLibraryList() {
                   Nothing generated yet
                 </Text>
                 <Text size="xs" c="dimmed" ta="center" maw={360}>
-                  Once your automations run, generated content will appear here for review.
+                  Once your automations run, generated content will appear here
+                  for review.
                 </Text>
               </Stack>
             </Center>

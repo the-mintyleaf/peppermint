@@ -17,7 +17,9 @@ export const ANALYTICS_COLORS = {
   cardYellow: "#F5B942",
 } as const;
 
-export const darkCardStyle = (bg: string = ANALYTICS_COLORS.surface): CSSProperties => ({
+export const darkCardStyle = (
+  bg: string = ANALYTICS_COLORS.surface,
+): CSSProperties => ({
   background: bg,
   borderRadius: 24,
   padding: 20,

@@ -1,4 +1,7 @@
-import { ExecutorContext, createExecutorError } from "@/shared/executor-context";
+import {
+  ExecutorContext,
+  createExecutorError,
+} from "@/shared/executor-context";
 import { Result, ok, err } from "@/shared/result";
 import {
   schemaNodeSessionUpdateInput,
@@ -20,7 +23,7 @@ import { pushMessage } from "@/shared/memory/sessionStore";
 export async function nodeSessionUpdate(
   input: unknown,
   ctx: ExecutorContext,
-  config?: any
+  config?: any,
 ): Promise<Result<PropNodeSessionUpdateOutput, any>> {
   try {
     // 1. Validate input schema
@@ -31,7 +34,7 @@ export async function nodeSessionUpdate(
           errors: parseResult.error.issues,
           nodeId: ctx.nodeId,
         },
-        "Invalid input to nodeSessionUpdate"
+        "Invalid input to nodeSessionUpdate",
       );
       return err(
         createExecutorError(
@@ -40,8 +43,8 @@ export async function nodeSessionUpdate(
           {
             nodeId: ctx.nodeId,
             retryable: false,
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -56,7 +59,7 @@ export async function nodeSessionUpdate(
         maxLen: parsed.maxLen,
         ttlSec: parsed.ttlSec,
       },
-      "Updating session messages"
+      "Updating session messages",
     );
 
     // 2. Push message to session store
@@ -65,7 +68,7 @@ export async function nodeSessionUpdate(
         parsed.sessionId,
         parsed.message,
         parsed.maxLen,
-        parsed.ttlSec
+        parsed.ttlSec,
       );
     } catch (pushErr) {
       ctx.logger.error(
@@ -75,7 +78,7 @@ export async function nodeSessionUpdate(
           sessionId: parsed.sessionId,
           error: pushErr,
         },
-        "Failed to update session messages"
+        "Failed to update session messages",
       );
       return err(
         createExecutorError(
@@ -85,8 +88,8 @@ export async function nodeSessionUpdate(
             nodeId: ctx.nodeId,
             cause: pushErr,
             retryable: true, // Storage errors may be transient
-          }
-        )
+          },
+        ),
       );
     }
 
@@ -96,7 +99,7 @@ export async function nodeSessionUpdate(
         nodeId: ctx.nodeId,
         sessionId: parsed.sessionId,
       },
-      "Session messages updated"
+      "Session messages updated",
     );
 
     // 3. Return success
@@ -109,7 +112,7 @@ export async function nodeSessionUpdate(
         nodeId: ctx.nodeId,
         cause: error,
         retryable: false,
-      }
+      },
     );
 
     ctx.logger.error(
@@ -117,7 +120,7 @@ export async function nodeSessionUpdate(
         error: executorError,
         nodeId: ctx.nodeId,
       },
-      "Unexpected error in nodeSessionUpdate"
+      "Unexpected error in nodeSessionUpdate",
     );
 
     return err(executorError);

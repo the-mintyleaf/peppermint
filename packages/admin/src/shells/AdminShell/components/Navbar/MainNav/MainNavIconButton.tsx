@@ -13,7 +13,10 @@ type MainNavIconButtonProps = {
   active?: boolean;
   iconColor?: string;
   iconWeight?: "fill" | "regular" | "bold" | "thin" | "light" | "duotone";
-} & Pick<BoxProps, "m" | "mx" | "my" | "mt" | "mb" | "p" | "px" | "py" | "pt" | "pb">;
+} & Pick<
+  BoxProps,
+  "m" | "mx" | "my" | "mt" | "mb" | "p" | "px" | "py" | "pt" | "pb"
+>;
 
 export function MainNavIconButton({
   icon: IconComponent,
@@ -42,13 +45,18 @@ export function MainNavIconButton({
             backgroundColor: active
               ? "var(--mantine-color-dark-6)"
               : "transparent",
-            color: iconColor ?? (active
-              ? "var(--mantine-color-gray-0)"
-              : "var(--mantine-color-dark-2)"),
+            color:
+              iconColor ??
+              (active
+                ? "var(--mantine-color-gray-0)"
+                : "var(--mantine-color-dark-2)"),
             transition: "background-color 150ms ease, color 150ms ease",
           }}
         >
-          <IconComponent size={16} weight={iconWeight ?? (active ? "fill" : "duotone")} />
+          <IconComponent
+            size={16}
+            weight={iconWeight ?? (active ? "fill" : "duotone")}
+          />
         </UnstyledButton>
       </Tooltip>
     </Box>

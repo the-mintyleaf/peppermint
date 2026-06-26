@@ -87,16 +87,24 @@ function CalendarCard({ scheduledDates }: { scheduledDates: Set<number> }) {
         <Group gap="sm">
           <Box
             style={{
-              width: 32, height: 32, borderRadius: "50%",
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
               background: HOME_COLORS.cream,
-              display: "flex", alignItems: "center", justifyContent: "center",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             <LightningIcon size={16} color={HOME_COLORS.forest} weight="fill" />
           </Box>
           <div>
-            <Text c={HOME_COLORS.cream} fw={600} size="sm">Calendar</Text>
-            <Text c="rgba(244,245,240,0.6)" size="xs">Scheduled posts</Text>
+            <Text c={HOME_COLORS.cream} fw={600} size="sm">
+              Calendar
+            </Text>
+            <Text c="rgba(244,245,240,0.6)" size="xs">
+              Scheduled posts
+            </Text>
           </div>
         </Group>
         <ArrowUpRightIcon size={16} color={HOME_COLORS.cream} />
@@ -104,7 +112,12 @@ function CalendarCard({ scheduledDates }: { scheduledDates: Set<number> }) {
 
       <Group gap={4} mb="xs" px={4}>
         {CALENDAR_DAYS.map((day) => (
-          <Text key={day.key} size="10px" c="rgba(244,245,240,0.5)" style={{ width: 28, textAlign: "center" }}>
+          <Text
+            key={day.key}
+            size="10px"
+            c="rgba(244,245,240,0.5)"
+            style={{ width: 28, textAlign: "center" }}
+          >
             {day.label}
           </Text>
         ))}
@@ -124,23 +137,39 @@ function CalendarCard({ scheduledDates }: { scheduledDates: Set<number> }) {
                 <Box
                   key={`${weekIndex}-${dayIndex}`}
                   style={{
-                    width: 28, height: 28, borderRadius: "50%",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    background: isToday ? HOME_COLORS.pink : hasPost ? "rgba(244,245,240,0.2)" : "transparent",
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: isToday
+                      ? HOME_COLORS.pink
+                      : hasPost
+                        ? "rgba(244,245,240,0.2)"
+                        : "transparent",
                     opacity: date ? 1 : 0,
                     position: "relative",
                   }}
                 >
                   {date && (
                     <>
-                      <Text size="10px" fw={600} c={HOME_COLORS.cream}>{date}</Text>
+                      <Text size="10px" fw={600} c={HOME_COLORS.cream}>
+                        {date}
+                      </Text>
                       {hasPost && !isToday && (
-                        <Box style={{
-                          position: "absolute", bottom: 2, left: "50%",
-                          transform: "translateX(-50%)",
-                          width: 4, height: 4, borderRadius: "50%",
-                          background: HOME_COLORS.yellow,
-                        }} />
+                        <Box
+                          style={{
+                            position: "absolute",
+                            bottom: 2,
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            width: 4,
+                            height: 4,
+                            borderRadius: "50%",
+                            background: HOME_COLORS.yellow,
+                          }}
+                        />
                       )}
                     </>
                   )}
@@ -156,7 +185,10 @@ function CalendarCard({ scheduledDates }: { scheduledDates: Set<number> }) {
           <CaretLeftIcon size={14} color={HOME_COLORS.cream} />
         </Box>
         <Text size="xs" c={HOME_COLORS.cream}>
-          {viewDate.toLocaleString("default", { month: "long", year: "numeric" })}
+          {viewDate.toLocaleString("default", {
+            month: "long",
+            year: "numeric",
+          })}
         </Text>
         <Box style={{ cursor: "pointer" }} onClick={nextMonth}>
           <CaretRightIcon size={14} color={HOME_COLORS.cream} />
@@ -173,33 +205,55 @@ interface ScheduleItem {
   status: string;
 }
 
-function ScheduleCard({ items, isLoading }: { items: ScheduleItem[]; isLoading: boolean }) {
+function ScheduleCard({
+  items,
+  isLoading,
+}: {
+  items: ScheduleItem[];
+  isLoading: boolean;
+}) {
   return (
     <Box style={bentoCardStyle(HOME_COLORS.cream)}>
       <Text fw={700} size="lg" c={HOME_COLORS.forest} mb="lg">
         Upcoming Schedule
       </Text>
       {isLoading ? (
-        <Stack gap="sm">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} h={80} radius="md" />)}</Stack>
+        <Stack gap="sm">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} h={80} radius="md" />
+          ))}
+        </Stack>
       ) : items.length === 0 ? (
-        <Text size="sm" c="dimmed">No upcoming posts</Text>
+        <Text size="sm" c="dimmed">
+          No upcoming posts
+        </Text>
       ) : (
         <Stack gap="md">
           {items.map((item, i) => (
             <Group key={i} align="flex-start" gap="md" wrap="nowrap">
-              <Text size="xs" c="dimmed" w={40} pt={4}>{item.time}</Text>
+              <Text size="xs" c="dimmed" w={40} pt={4}>
+                {item.time}
+              </Text>
               <Box
                 flex={1}
                 p="md"
                 style={{
                   borderRadius: 16,
-                  background: [HOME_COLORS.orange, HOME_COLORS.purple, HOME_COLORS.pink][i % 3],
+                  background: [
+                    HOME_COLORS.orange,
+                    HOME_COLORS.purple,
+                    HOME_COLORS.pink,
+                  ][i % 3],
                   color: "white",
                   minHeight: 80,
                 }}
               >
-                <Badge size="xs" variant="white" mb={6}>{item.platform}</Badge>
-                <Text fw={600} size="sm" lineClamp={2}>{item.title}</Text>
+                <Badge size="xs" variant="white" mb={6}>
+                  {item.platform}
+                </Badge>
+                <Text fw={600} size="sm" lineClamp={2}>
+                  {item.title}
+                </Text>
               </Box>
             </Group>
           ))}
@@ -221,21 +275,42 @@ function KpiCard({ label, value, color, icon, isLoading }: KpiCardProps) {
   return (
     <Box style={{ ...bentoCardStyle(HOME_COLORS.cream), flex: 1 }}>
       <Group justify="space-between" mb="sm">
-        <Text size="xs" c="dimmed" fw={600} tt="uppercase">{label}</Text>
+        <Text size="xs" c="dimmed" fw={600} tt="uppercase">
+          {label}
+        </Text>
         {icon}
       </Group>
-      {isLoading ? <Skeleton h={36} /> : (
-        <Text fw={700} size="xl" c={color}>{value}</Text>
+      {isLoading ? (
+        <Skeleton h={36} />
+      ) : (
+        <Text fw={700} size="xl" c={color}>
+          {value}
+        </Text>
       )}
     </Box>
   );
 }
 
-function VolumeCard({ data, isLoading }: { data: Array<{ day: string; published: number; draft: number; failed: number }>; isLoading: boolean }) {
+function VolumeCard({
+  data,
+  isLoading,
+}: {
+  data: Array<{
+    day: string;
+    published: number;
+    draft: number;
+    failed: number;
+  }>;
+  isLoading: boolean;
+}) {
   return (
     <Box style={bentoCardStyle(HOME_COLORS.forest)}>
-      <Text c={HOME_COLORS.cream} fw={700} size="lg">Content Volume</Text>
-      <Text c="rgba(244,245,240,0.6)" size="xs" mb="lg">Last 14 days by status</Text>
+      <Text c={HOME_COLORS.cream} fw={700} size="lg">
+        Content Volume
+      </Text>
+      <Text c="rgba(244,245,240,0.6)" size="xs" mb="lg">
+        Last 14 days by status
+      </Text>
       {isLoading ? (
         <Skeleton h={180} />
       ) : (
@@ -244,7 +319,11 @@ function VolumeCard({ data, isLoading }: { data: Array<{ day: string; published:
           data={data}
           dataKey="day"
           series={[
-            { name: "published", color: HOME_COLORS.yellow, label: "Published" },
+            {
+              name: "published",
+              color: HOME_COLORS.yellow,
+              label: "Published",
+            },
             { name: "draft", color: "rgba(244,245,240,0.4)", label: "Draft" },
             { name: "failed", color: HOME_COLORS.pink, label: "Failed" },
           ]}
@@ -268,7 +347,9 @@ function ActionBar() {
   return (
     <Box style={bentoCardStyle(HOME_COLORS.cream)}>
       <Group justify="space-between" wrap="wrap" gap="md">
-        <Text fw={600} c={HOME_COLORS.forest}>Quick Actions</Text>
+        <Text fw={600} c={HOME_COLORS.forest}>
+          Quick Actions
+        </Text>
         <Group gap="sm">
           <Button
             size="xs"
@@ -314,12 +395,20 @@ export function ModuleHome() {
 
   const scheduledItems = allContent
     .filter((c) => c.status === "scheduled" && c.schedule?.scheduledAt)
-    .sort((a, b) => new Date(a.schedule!.scheduledAt!).getTime() - new Date(b.schedule!.scheduledAt!).getTime())
+    .sort(
+      (a, b) =>
+        new Date(a.schedule!.scheduledAt!).getTime() -
+        new Date(b.schedule!.scheduledAt!).getTime(),
+    )
     .slice(0, 4);
 
   const scheduleItems: ScheduleItem[] = scheduledItems.map((c) => ({
     time: c.schedule?.scheduledAt
-      ? new Date(c.schedule.scheduledAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+      ? new Date(c.schedule.scheduledAt).toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
       : "—",
     title: c.title,
     platform: c.variants[0]?.platform ?? "—",
@@ -336,8 +425,12 @@ export function ModuleHome() {
     return set;
   }, [allContent]);
 
-  const publishedCount = allContent.filter((c) => c.status === "published").length;
-  const pendingCount = allContent.filter((c) => c.status === "pending_review").length;
+  const publishedCount = allContent.filter(
+    (c) => c.status === "published",
+  ).length;
+  const pendingCount = allContent.filter(
+    (c) => c.status === "pending_review",
+  ).length;
   const failedCount = allContent.filter((c) => c.status === "failed").length;
   const activeRuns = runs.filter((r) => r.status === "running").length;
   const unreadAlerts = alerts.filter((a) => !a.read).length;
@@ -349,7 +442,10 @@ export function ModuleHome() {
       return d;
     });
     return days.map((d) => {
-      const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const dateStr = d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
       const dayContent = allContent.filter((c) => {
         const created = new Date(c.createdAt ?? 0);
         return created.toDateString() === d.toDateString();

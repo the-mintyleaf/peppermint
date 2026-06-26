@@ -1,1 +1,1 @@
-export { ModalHandler } from './ModalHandler';
+export { ModalHandler } from "./ModalHandler";

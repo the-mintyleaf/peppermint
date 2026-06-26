@@ -20,14 +20,53 @@ interface ToolDef {
 }
 
 const TOOLS: ToolDef[] = [
-  { tool: "select", label: "Select / Move", icon: <CursorIcon size={16} weight="bold" /> },
-  { tool: "text", label: "Text", icon: <TextTIcon size={16} weight="bold" />, isCreate: true },
-  { tool: "image", label: "Image", icon: <ImageIcon size={16} weight="bold" />, isCreate: true },
-  { tool: "rectangle", label: "Rectangle", icon: <SquareIcon size={16} weight="bold" />, isCreate: true },
-  { tool: "circle", label: "Circle", icon: <CircleIcon size={16} weight="bold" />, isCreate: true },
-  { tool: "line", label: "Line", icon: <MinusIcon size={16} weight="bold" />, isCreate: true },
-  { tool: "dynamicText", label: "Dynamic Text", icon: <BracketsCurlyIcon size={16} weight="bold" />, isCreate: true },
-  { tool: "staticText", label: "Static Text", icon: <TextAaIcon size={16} weight="bold" />, isCreate: true },
+  {
+    tool: "select",
+    label: "Select / Move",
+    icon: <CursorIcon size={16} weight="bold" />,
+  },
+  {
+    tool: "text",
+    label: "Text",
+    icon: <TextTIcon size={16} weight="bold" />,
+    isCreate: true,
+  },
+  {
+    tool: "image",
+    label: "Image",
+    icon: <ImageIcon size={16} weight="bold" />,
+    isCreate: true,
+  },
+  {
+    tool: "rectangle",
+    label: "Rectangle",
+    icon: <SquareIcon size={16} weight="bold" />,
+    isCreate: true,
+  },
+  {
+    tool: "circle",
+    label: "Circle",
+    icon: <CircleIcon size={16} weight="bold" />,
+    isCreate: true,
+  },
+  {
+    tool: "line",
+    label: "Line",
+    icon: <MinusIcon size={16} weight="bold" />,
+    isCreate: true,
+  },
+  {
+    tool: "dynamicText",
+    label: "Dynamic Text",
+    icon: <BracketsCurlyIcon size={16} weight="bold" />,
+    isCreate: true,
+  },
+  {
+    tool: "staticText",
+    label: "Static Text",
+    icon: <TextAaIcon size={16} weight="bold" />,
+    isCreate: true,
+  },
 ];
 
 function ToolButton({ def }: { def: ToolDef }) {

@@ -615,8 +615,16 @@ export const DUMMY_NODES: OrgFlowNode[] = [
       groupCategory: "dept",
       memberCount: 77,
       memberIds: [
-        "dao-kathmandu", "dao-lalitpur", "dao-bhaktapur", "dao-kaski", "dao-chitwan",
-        "dao-rupandehi", "dao-morang", "dao-sunsari", "dao-jhapa", "dao-bara",
+        "dao-kathmandu",
+        "dao-lalitpur",
+        "dao-bhaktapur",
+        "dao-kaski",
+        "dao-chitwan",
+        "dao-rupandehi",
+        "dao-morang",
+        "dao-sunsari",
+        "dao-jhapa",
+        "dao-bara",
       ],
       status: "active",
     },
@@ -1050,108 +1058,408 @@ export const DUMMY_NODES: OrgFlowNode[] = [
 
 export const DUMMY_EDGES: OrgFlowEdge[] = [
   // ── MOHA → L2 Persons ────────────────────────────────────────────────────
-  { id: "e-moha-minister", source: "moha", target: "p-minister", data: { relationshipType: "heads" } },
-  { id: "e-moha-secretary", source: "moha", target: "p-secretary", data: { relationshipType: "heads" } },
+  {
+    id: "e-moha-minister",
+    source: "moha",
+    target: "p-minister",
+    data: { relationshipType: "heads" },
+  },
+  {
+    id: "e-moha-secretary",
+    source: "moha",
+    target: "p-secretary",
+    data: { relationshipType: "heads" },
+  },
 
   // ── MOHA → L2 Divisions ──────────────────────────────────────────────────
-  { id: "e-moha-security", source: "moha", target: "div-security", data: { relationshipType: "contains" } },
-  { id: "e-moha-admin", source: "moha", target: "div-admin", data: { relationshipType: "contains" } },
-  { id: "e-moha-policy", source: "moha", target: "div-policy", data: { relationshipType: "contains" } },
-  { id: "e-moha-disaster", source: "moha", target: "div-disaster", data: { relationshipType: "contains" } },
+  {
+    id: "e-moha-security",
+    source: "moha",
+    target: "div-security",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-moha-admin",
+    source: "moha",
+    target: "div-admin",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-moha-policy",
+    source: "moha",
+    target: "div-policy",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-moha-disaster",
+    source: "moha",
+    target: "div-disaster",
+    data: { relationshipType: "contains" },
+  },
 
   // ── MOHA → L2 Departments ────────────────────────────────────────────────
-  { id: "e-moha-immigration", source: "moha", target: "dept-immigration", data: { relationshipType: "contains" } },
-  { id: "e-moha-natid", source: "moha", target: "dept-national-id", data: { relationshipType: "contains" } },
+  {
+    id: "e-moha-immigration",
+    source: "moha",
+    target: "dept-immigration",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-moha-natid",
+    source: "moha",
+    target: "dept-national-id",
+    data: { relationshipType: "contains" },
+  },
 
   // ── MOHA → L5 Provincial Offices ─────────────────────────────────────────
-  { id: "e-moha-pao-bagmati", source: "moha", target: "pao-bagmati", data: { relationshipType: "contains" } },
-  { id: "e-moha-pao-gandaki", source: "moha", target: "pao-gandaki", data: { relationshipType: "contains" } },
-  { id: "e-moha-pao-lumbini", source: "moha", target: "pao-lumbini", data: { relationshipType: "contains" } },
+  {
+    id: "e-moha-pao-bagmati",
+    source: "moha",
+    target: "pao-bagmati",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-moha-pao-gandaki",
+    source: "moha",
+    target: "pao-gandaki",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-moha-pao-lumbini",
+    source: "moha",
+    target: "pao-lumbini",
+    data: { relationshipType: "contains" },
+  },
 
   // ── MOHA → L6 Group: District Offices ────────────────────────────────────
-  { id: "e-moha-group-dao", source: "moha", target: "group-district-offices", data: { relationshipType: "contains" } },
+  {
+    id: "e-moha-group-dao",
+    source: "moha",
+    target: "group-district-offices",
+    data: { relationshipType: "contains" },
+  },
 
   // ── Person chain: Secretary → Joint Secretary → Under Secretary → ... ─────
-  { id: "e-sec-joint", source: "p-secretary", target: "p-joint-sec", data: { relationshipType: "supervises" } },
-  { id: "e-joint-under", source: "p-joint-sec", target: "p-under-sec", data: { relationshipType: "supervises" } },
-  { id: "e-under-section", source: "p-under-sec", target: "p-section-officer", data: { relationshipType: "supervises" } },
-  { id: "e-section-asst", source: "p-section-officer", target: "p-asst-officer", data: { relationshipType: "supervises" } },
-  { id: "e-asst-operator", source: "p-asst-officer", target: "p-computer-operator", data: { relationshipType: "supervises" } },
+  {
+    id: "e-sec-joint",
+    source: "p-secretary",
+    target: "p-joint-sec",
+    data: { relationshipType: "supervises" },
+  },
+  {
+    id: "e-joint-under",
+    source: "p-joint-sec",
+    target: "p-under-sec",
+    data: { relationshipType: "supervises" },
+  },
+  {
+    id: "e-under-section",
+    source: "p-under-sec",
+    target: "p-section-officer",
+    data: { relationshipType: "supervises" },
+  },
+  {
+    id: "e-section-asst",
+    source: "p-section-officer",
+    target: "p-asst-officer",
+    data: { relationshipType: "supervises" },
+  },
+  {
+    id: "e-asst-operator",
+    source: "p-asst-officer",
+    target: "p-computer-operator",
+    data: { relationshipType: "supervises" },
+  },
 
   // ── Security Division → L3 Sections ──────────────────────────────────────
-  { id: "e-security-peace", source: "div-security", target: "sec-peace", data: { relationshipType: "contains" } },
-  { id: "e-security-crime", source: "div-security", target: "sec-crime", data: { relationshipType: "contains" } },
-  { id: "e-security-intel", source: "div-security", target: "sec-intelligence", data: { relationshipType: "contains" } },
+  {
+    id: "e-security-peace",
+    source: "div-security",
+    target: "sec-peace",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-security-crime",
+    source: "div-security",
+    target: "sec-crime",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-security-intel",
+    source: "div-security",
+    target: "sec-intelligence",
+    data: { relationshipType: "contains" },
+  },
 
   // ── Admin Division → L3 Sections ─────────────────────────────────────────
-  { id: "e-admin-general", source: "div-admin", target: "sec-general-admin", data: { relationshipType: "contains" } },
-  { id: "e-admin-finance", source: "div-admin", target: "sec-finance", data: { relationshipType: "contains" } },
-  { id: "e-admin-legal", source: "div-admin", target: "sec-legal", data: { relationshipType: "contains" } },
+  {
+    id: "e-admin-general",
+    source: "div-admin",
+    target: "sec-general-admin",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-admin-finance",
+    source: "div-admin",
+    target: "sec-finance",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-admin-legal",
+    source: "div-admin",
+    target: "sec-legal",
+    data: { relationshipType: "contains" },
+  },
 
   // ── Policy Division → L3 Sections ────────────────────────────────────────
-  { id: "e-policy-research", source: "div-policy", target: "sec-research", data: { relationshipType: "contains" } },
-  { id: "e-policy-planning", source: "div-policy", target: "sec-planning", data: { relationshipType: "contains" } },
+  {
+    id: "e-policy-research",
+    source: "div-policy",
+    target: "sec-research",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-policy-planning",
+    source: "div-policy",
+    target: "sec-planning",
+    data: { relationshipType: "contains" },
+  },
 
   // ── Disaster Division → L3 Sections ──────────────────────────────────────
-  { id: "e-disaster-response", source: "div-disaster", target: "sec-response", data: { relationshipType: "contains" } },
-  { id: "e-disaster-relief", source: "div-disaster", target: "sec-relief", data: { relationshipType: "contains" } },
+  {
+    id: "e-disaster-response",
+    source: "div-disaster",
+    target: "sec-response",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-disaster-relief",
+    source: "div-disaster",
+    target: "sec-relief",
+    data: { relationshipType: "contains" },
+  },
 
   // ── Immigration Dept → L3 Sections ───────────────────────────────────────
-  { id: "e-immigration-visa", source: "dept-immigration", target: "sec-visa", data: { relationshipType: "contains" } },
-  { id: "e-immigration-border", source: "dept-immigration", target: "sec-border", data: { relationshipType: "contains" } },
-  { id: "e-immigration-foreign", source: "dept-immigration", target: "sec-foreign-nationals", data: { relationshipType: "contains" } },
+  {
+    id: "e-immigration-visa",
+    source: "dept-immigration",
+    target: "sec-visa",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-immigration-border",
+    source: "dept-immigration",
+    target: "sec-border",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-immigration-foreign",
+    source: "dept-immigration",
+    target: "sec-foreign-nationals",
+    data: { relationshipType: "contains" },
+  },
 
   // ── National ID Dept → L3 Sections ───────────────────────────────────────
-  { id: "e-natid-registration", source: "dept-national-id", target: "sec-registration", data: { relationshipType: "contains" } },
-  { id: "e-natid-idcard", source: "dept-national-id", target: "sec-identity-card", data: { relationshipType: "contains" } },
+  {
+    id: "e-natid-registration",
+    source: "dept-national-id",
+    target: "sec-registration",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-natid-idcard",
+    source: "dept-national-id",
+    target: "sec-identity-card",
+    data: { relationshipType: "contains" },
+  },
 
   // ── General Admin Section → L4 Units ─────────────────────────────────────
-  { id: "e-general-records", source: "sec-general-admin", target: "unit-records", data: { relationshipType: "contains" } },
-  { id: "e-general-procurement", source: "sec-general-admin", target: "unit-procurement", data: { relationshipType: "contains" } },
-  { id: "e-general-vacant", source: "sec-general-admin", target: "unit-vacant", data: { relationshipType: "contains" } },
+  {
+    id: "e-general-records",
+    source: "sec-general-admin",
+    target: "unit-records",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-general-procurement",
+    source: "sec-general-admin",
+    target: "unit-procurement",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-general-vacant",
+    source: "sec-general-admin",
+    target: "unit-vacant",
+    data: { relationshipType: "contains" },
+  },
 
   // ── Visa Section → L4 Units ───────────────────────────────────────────────
-  { id: "e-visa-tourist", source: "sec-visa", target: "unit-tourist-visa", data: { relationshipType: "contains" } },
-  { id: "e-visa-business", source: "sec-visa", target: "unit-business-visa", data: { relationshipType: "contains" } },
+  {
+    id: "e-visa-tourist",
+    source: "sec-visa",
+    target: "unit-tourist-visa",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-visa-business",
+    source: "sec-visa",
+    target: "unit-business-visa",
+    data: { relationshipType: "contains" },
+  },
 
   // ── Border Section → L4 Units ─────────────────────────────────────────────
-  { id: "e-border-checkpoint", source: "sec-border", target: "unit-border-checkpoint", data: { relationshipType: "contains" } },
-  { id: "e-border-intel", source: "sec-border", target: "unit-border-intel", data: { relationshipType: "contains" } },
+  {
+    id: "e-border-checkpoint",
+    source: "sec-border",
+    target: "unit-border-checkpoint",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-border-intel",
+    source: "sec-border",
+    target: "unit-border-intel",
+    data: { relationshipType: "contains" },
+  },
 
   // ── Group: District Offices → member DAOs ─────────────────────────────────
-  { id: "e-dao-ktm", source: "group-district-offices", target: "dao-kathmandu", data: { relationshipType: "contains" } },
-  { id: "e-dao-ltp", source: "group-district-offices", target: "dao-lalitpur", data: { relationshipType: "contains" } },
-  { id: "e-dao-bkt", source: "group-district-offices", target: "dao-bhaktapur", data: { relationshipType: "contains" } },
-  { id: "e-dao-kaski", source: "group-district-offices", target: "dao-kaski", data: { relationshipType: "contains" } },
-  { id: "e-dao-chitwan", source: "group-district-offices", target: "dao-chitwan", data: { relationshipType: "contains" } },
-  { id: "e-dao-rupandehi", source: "group-district-offices", target: "dao-rupandehi", data: { relationshipType: "contains" } },
-  { id: "e-dao-morang", source: "group-district-offices", target: "dao-morang", data: { relationshipType: "contains" } },
-  { id: "e-dao-sunsari", source: "group-district-offices", target: "dao-sunsari", data: { relationshipType: "contains" } },
-  { id: "e-dao-jhapa", source: "group-district-offices", target: "dao-jhapa", data: { relationshipType: "contains" } },
-  { id: "e-dao-bara", source: "group-district-offices", target: "dao-bara", data: { relationshipType: "contains" } },
+  {
+    id: "e-dao-ktm",
+    source: "group-district-offices",
+    target: "dao-kathmandu",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-dao-ltp",
+    source: "group-district-offices",
+    target: "dao-lalitpur",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-dao-bkt",
+    source: "group-district-offices",
+    target: "dao-bhaktapur",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-dao-kaski",
+    source: "group-district-offices",
+    target: "dao-kaski",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-dao-chitwan",
+    source: "group-district-offices",
+    target: "dao-chitwan",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-dao-rupandehi",
+    source: "group-district-offices",
+    target: "dao-rupandehi",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-dao-morang",
+    source: "group-district-offices",
+    target: "dao-morang",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-dao-sunsari",
+    source: "group-district-offices",
+    target: "dao-sunsari",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-dao-jhapa",
+    source: "group-district-offices",
+    target: "dao-jhapa",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-dao-bara",
+    source: "group-district-offices",
+    target: "dao-bara",
+    data: { relationshipType: "contains" },
+  },
 
   // ── Bagmati Province → Group: Area Admin Offices ─────────────────────────
-  { id: "e-bagmati-area", source: "pao-bagmati", target: "group-area-offices", data: { relationshipType: "contains" } },
+  {
+    id: "e-bagmati-area",
+    source: "pao-bagmati",
+    target: "group-area-offices",
+    data: { relationshipType: "contains" },
+  },
 
   // ── Group: Area Offices → member AAOs ────────────────────────────────────
-  { id: "e-aao-thamel", source: "group-area-offices", target: "aao-thamel", data: { relationshipType: "contains" } },
-  { id: "e-aao-patan", source: "group-area-offices", target: "aao-patan", data: { relationshipType: "contains" } },
-  { id: "e-aao-banepa", source: "group-area-offices", target: "aao-banepa", data: { relationshipType: "contains" } },
-  { id: "e-aao-pokhara", source: "group-area-offices", target: "aao-pokhara", data: { relationshipType: "contains" } },
+  {
+    id: "e-aao-thamel",
+    source: "group-area-offices",
+    target: "aao-thamel",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-aao-patan",
+    source: "group-area-offices",
+    target: "aao-patan",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-aao-banepa",
+    source: "group-area-offices",
+    target: "aao-banepa",
+    data: { relationshipType: "contains" },
+  },
+  {
+    id: "e-aao-pokhara",
+    source: "group-area-offices",
+    target: "aao-pokhara",
+    data: { relationshipType: "contains" },
+  },
 
   // ── Health test: sec-legal → inactive head ────────────────────────────────
-  { id: "e-legal-inactive-head", source: "sec-legal", target: "p-inactive-head", data: { relationshipType: "heads" } },
+  {
+    id: "e-legal-inactive-head",
+    source: "sec-legal",
+    target: "p-inactive-head",
+    data: { relationshipType: "heads" },
+  },
 
   // ── Person chain: Admin Division → Secretary ──────────────────────────────
-  { id: "e-admin-sec", source: "div-admin", target: "p-secretary", data: { relationshipType: "reports_to" } },
+  {
+    id: "e-admin-sec",
+    source: "div-admin",
+    target: "p-secretary",
+    data: { relationshipType: "reports_to" },
+  },
 
   // ── People under Visa section ─────────────────────────────────────────────
-  { id: "e-visa-officer-1", source: "sec-visa", target: "p-visa-officer-1", data: { relationshipType: "member_of" } },
-  { id: "e-visa-officer-2", source: "sec-visa", target: "p-visa-officer-2", data: { relationshipType: "member_of" } },
+  {
+    id: "e-visa-officer-1",
+    source: "sec-visa",
+    target: "p-visa-officer-1",
+    data: { relationshipType: "member_of" },
+  },
+  {
+    id: "e-visa-officer-2",
+    source: "sec-visa",
+    target: "p-visa-officer-2",
+    data: { relationshipType: "member_of" },
+  },
 
   // ── People under Border section ───────────────────────────────────────────
-  { id: "e-border-officer", source: "sec-border", target: "p-border-officer", data: { relationshipType: "member_of" } },
+  {
+    id: "e-border-officer",
+    source: "sec-border",
+    target: "p-border-officer",
+    data: { relationshipType: "member_of" },
+  },
 
   // ── People under Emergency Response section ───────────────────────────────
-  { id: "e-disaster-coordinator", source: "sec-response", target: "p-disaster-coordinator", data: { relationshipType: "member_of" } },
+  {
+    id: "e-disaster-coordinator",
+    source: "sec-response",
+    target: "p-disaster-coordinator",
+    data: { relationshipType: "member_of" },
+  },
 ];

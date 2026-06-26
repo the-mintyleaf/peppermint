@@ -1,7 +1,10 @@
 "use client";
 
 import { Box, Divider, Group, Stack, Text } from "@peppermint/ui";
-import { ANALYTICS_COLORS, workspaceCardStyle } from "../../taskAnalytics.styles";
+import {
+  ANALYTICS_COLORS,
+  workspaceCardStyle,
+} from "../../taskAnalytics.styles";
 import { DashboardHeader } from "../DashboardHeader";
 import { AddTaskPlaceholder, ScheduleTaskCard } from "../ScheduleTaskCard";
 import type { PlanningScheduleProps } from "./PlanningSchedule.types";
@@ -39,7 +42,14 @@ export function PlanningSchedule({
           teamMembers={teamMembers}
         />
         <Divider my="md" />
-        <Box style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: 320 }}>
+        <Box
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: 320,
+          }}
+        >
           <Stack align="center" gap="xs">
             <Text fw={600} c={ANALYTICS_COLORS.textDark}>
               {view === "block" ? "Block" : "Table"} view
@@ -65,7 +75,13 @@ export function PlanningSchedule({
         teamMembers={teamMembers}
       />
       <Divider my="md" />
-      <Box style={{ display: "grid", gridTemplateColumns: "48px repeat(5, 1fr)", gap: 0 }}>
+      <Box
+        style={{
+          display: "grid",
+          gridTemplateColumns: "48px repeat(5, 1fr)",
+          gap: 0,
+        }}
+      >
         <Box />
         {days.map((day) => (
           <Box key={day.date} py="xs" style={{ textAlign: "center" }}>
@@ -122,7 +138,11 @@ export function PlanningSchedule({
             {tasks
               .filter((t) => t.dayIndex === dayIndex)
               .map((task) => (
-                <ScheduleTaskCard key={task.id} task={task} onClick={onTaskClick} />
+                <ScheduleTaskCard
+                  key={task.id}
+                  task={task}
+                  onClick={onTaskClick}
+                />
               ))}
             {dayIndex === 4 && (
               <AddTaskPlaceholder dayIndex={4} startHour={14} endHour={15} />

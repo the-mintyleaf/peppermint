@@ -8,7 +8,12 @@ import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { MinusCircleIcon } from "@phosphor-icons/react/dist/csr/MinusCircle";
 import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
 import { WarningCircleIcon } from "@phosphor-icons/react/dist/csr/WarningCircle";
-import { fetchChannels, createChannel, updateChannel, deleteChannel } from "../../channels.api";
+import {
+  fetchChannels,
+  createChannel,
+  updateChannel,
+  deleteChannel,
+} from "../../channels.api";
 import { channelsColumns } from "./channels.columns";
 import { channelQueryKeys } from "../../channels.queryKeys";
 import { ChannelForm } from "../../form/ChannelForm";
@@ -16,8 +21,16 @@ import type { Channel } from "../../channels.types";
 
 const tabs: DataTableShellTab[] = [
   { label: "All Channels", icon: ShareNetworkIcon },
-  { label: "Connected", icon: CheckCircleIcon, filter: { status: "connected" } },
-  { label: "Disconnected", icon: MinusCircleIcon, filter: { status: "disconnected" } },
+  {
+    label: "Connected",
+    icon: CheckCircleIcon,
+    filter: { status: "connected" },
+  },
+  {
+    label: "Disconnected",
+    icon: MinusCircleIcon,
+    filter: { status: "disconnected" },
+  },
   { label: "Expired", icon: ClockIcon, filter: { status: "expired" } },
   { label: "Error", icon: WarningCircleIcon, filter: { status: "error" } },
 ];

@@ -1,6 +1,15 @@
 "use client";
 
-import { Stack, Group, Title, Text, Paper, SegmentedControl, Skeleton, SimpleGrid } from "@peppermint/ui";
+import {
+  Stack,
+  Group,
+  Title,
+  Text,
+  Paper,
+  SegmentedControl,
+  Skeleton,
+  SimpleGrid,
+} from "@peppermint/ui";
 import { DonutChart, BarChart } from "@peppermint/ui";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -20,9 +29,16 @@ export function Audience() {
         <Group justify="space-between">
           <Stack gap={4}>
             <Title order={3}>Audience</Title>
-            <Text c="dimmed" size="sm">Demographics, geography, and active hours</Text>
+            <Text c="dimmed" size="sm">
+              Demographics, geography, and active hours
+            </Text>
           </Stack>
-          <SegmentedControl size="xs" value={period} onChange={setPeriod} data={["7d", "30d", "90d"].map((v) => ({ label: v, value: v }))} />
+          <SegmentedControl
+            size="xs"
+            value={period}
+            onChange={setPeriod}
+            data={["7d", "30d", "90d"].map((v) => ({ label: v, value: v }))}
+          />
         </Group>
       </Paper>
 
@@ -36,18 +52,29 @@ export function Audience() {
         <>
           <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
             <Paper withBorder radius="md" p="md">
-              <Text fw={500} size="sm" mb="sm">Age & Gender</Text>
+              <Text fw={500} size="sm" mb="sm">
+                Age & Gender
+              </Text>
               <DonutChart
                 h={220}
-                data={data.ageGender.map((g) => ({ name: g.group, value: g.pct, color: "blue" }))}
+                data={data.ageGender.map((g) => ({
+                  name: g.group,
+                  value: g.pct,
+                  color: "blue",
+                }))}
                 withLabels
               />
             </Paper>
             <Paper withBorder radius="md" p="md">
-              <Text fw={500} size="sm" mb="sm">Top Countries</Text>
+              <Text fw={500} size="sm" mb="sm">
+                Top Countries
+              </Text>
               <BarChart
                 h={220}
-                data={data.geo.map((g) => ({ country: g.country, value: g.pct }))}
+                data={data.geo.map((g) => ({
+                  country: g.country,
+                  value: g.pct,
+                }))}
                 dataKey="country"
                 series={[{ name: "value", color: "indigo", label: "%" }]}
               />
@@ -55,10 +82,15 @@ export function Audience() {
           </SimpleGrid>
 
           <Paper withBorder radius="md" p="md">
-            <Text fw={500} size="sm" mb="sm">Active Hours (UTC)</Text>
+            <Text fw={500} size="sm" mb="sm">
+              Active Hours (UTC)
+            </Text>
             <BarChart
               h={160}
-              data={data.activeHours.map((h) => ({ hour: String(h.hour), value: h.value }))}
+              data={data.activeHours.map((h) => ({
+                hour: String(h.hour),
+                value: h.value,
+              }))}
               dataKey="hour"
               series={[{ name: "value", color: "teal", label: "Activity" }]}
             />

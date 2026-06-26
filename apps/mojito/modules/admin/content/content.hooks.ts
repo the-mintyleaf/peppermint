@@ -36,7 +36,7 @@ export function useContentItem(id: string) {
 function useContentMutation<TVariables>(
   mutateFn: (vars: TVariables) => Promise<ContentItem | void>,
   successMessage: string,
-  invalidateKeys?: unknown[][]
+  invalidateKeys?: unknown[][],
 ) {
   const queryClient = useQueryClient();
 
@@ -59,7 +59,7 @@ function useContentMutation<TVariables>(
 export function useCreateContent() {
   return useContentMutation(
     (data: Parameters<typeof createContentItem>[0]) => createContentItem(data),
-    "Content created successfully"
+    "Content created successfully",
   );
 }
 
@@ -67,14 +67,14 @@ export function useUpdateContent() {
   return useContentMutation(
     ({ id, data }: { id: string; data: Partial<ContentItem> }) =>
       updateContentItem(id, data),
-    "Content updated successfully"
+    "Content updated successfully",
   );
 }
 
 export function useDeleteContent() {
   return useContentMutation(
     (id: string) => deleteContentItem(id),
-    "Content deleted"
+    "Content deleted",
   );
 }
 
@@ -89,14 +89,14 @@ export function useScheduleContent() {
       scheduledAt: Date;
       timezone: string;
     }) => scheduleContentItem(id, scheduledAt, timezone),
-    "Content scheduled"
+    "Content scheduled",
   );
 }
 
 export function usePublishNow() {
   return useContentMutation(
     (id: string) => publishNowContentItem(id),
-    "Publishing content…"
+    "Publishing content…",
   );
 }
 
@@ -104,7 +104,7 @@ export function useApproveContent() {
   return useContentMutation(
     ({ id, notes }: { id: string; notes?: string }) =>
       approveContentItem(id, notes),
-    "Content approved"
+    "Content approved",
   );
 }
 
@@ -112,13 +112,13 @@ export function useRejectContent() {
   return useContentMutation(
     ({ id, notes }: { id: string; notes: string }) =>
       rejectContentItem(id, notes),
-    "Content rejected"
+    "Content rejected",
   );
 }
 
 export function useDuplicateContent() {
   return useContentMutation(
     (id: string) => duplicateContentItem(id),
-    "Content duplicated"
+    "Content duplicated",
   );
 }

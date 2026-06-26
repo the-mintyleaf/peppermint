@@ -1,13 +1,13 @@
 function createMockToken(payload: Record<string, unknown>) {
-  const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString(
-    "base64url"
-  );
+  const header = Buffer.from(
+    JSON.stringify({ alg: "HS256", typ: "JWT" }),
+  ).toString("base64url");
   const body = Buffer.from(
     JSON.stringify({
       ...payload,
       exp: Math.floor(Date.now() / 1000) + 86400,
       iat: Math.floor(Date.now() / 1000),
-    })
+    }),
   ).toString("base64url");
 
   return `${header}.${body}.mock-signature`;

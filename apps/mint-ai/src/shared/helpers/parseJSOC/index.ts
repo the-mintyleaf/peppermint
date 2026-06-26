@@ -72,7 +72,7 @@ export function parseJsoc(raw: string): JSOC1 {
 
 /** Tolerant version that doesn't throw */
 export function tryParseJsoc(
-  raw: string
+  raw: string,
 ): { ok: true; data: JSOC1 } | { ok: false; error: string } {
   try {
     return { ok: true, data: parseJsoc(raw) };
