@@ -72,6 +72,7 @@ apps/mintflow/
 | State type                            | Location                                                                                  |
 | ------------------------------------- | ----------------------------------------------------------------------------------------- |
 | Server data, cache                    | React Query — query functions in module `.api.ts` or `.hooks.ts`, keys in `.queryKeys.ts` |
+| Currently selected organisation       | `stores/selectedOrg.store.ts` (Zustand + `persist`; survives page reload)                 |
 | Organization tree interaction         | `modules/admin/organization/organization-tree/OrganizationTree.store.ts`                  |
 | Kanban board state                    | `modules/admin/tasks/kanban/` (check for `.store.ts`)                                     |
 | Shareable filters / pagination / tabs | URL search params                                                                         |
@@ -95,6 +96,8 @@ apps/mintflow/
 | General View task row                  | `modules/admin/tasks/general-view/components/TaskListRow/`               |
 | Task shared types + mock data          | `modules/admin/tasks/kanban/module.api.ts`                               |
 | Admin layout shell                     | `layouts/admin/Admin.tsx`                                                |
+| Admin sidebar config (dynamic)         | `config/nav/admin-nav.ts` → `buildAdminConfig(org)`                      |
+| Selected org store (sidebar context)   | `stores/selectedOrg.store.ts`                                            |
 | Route re-export                        | `app/admin/<route>/page.tsx`                                             |
 
 ---
@@ -103,6 +106,8 @@ apps/mintflow/
 
 - Do not scan the full `modules/` tree to find something — read the module AI map first.
 - Do not create sibling sub-modules (`organization-roles/` next to `organization/`) — always nest inside the parent (`organization/roles/`).
+- Do not write to `useSelectedOrgStore` outside of `OrganizationsList.tsx` — it is the single writer.
+- Do not add `"use client"` to `app/` files — they are re-export stubs only.
 - Do not import from `@mantine/*` directly — always use `@peppermint/ui`.
 - Do not add `"use client"` to `app/` pages or layouts — they are re-export files only.
 - Do not fetch data in `useEffect` — use `useQuery`.

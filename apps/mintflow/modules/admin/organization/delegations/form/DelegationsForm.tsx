@@ -24,7 +24,7 @@ const DELEGATION_TYPE_OPTIONS: { value: DelegationType; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
-const EMPTY_UNIT_OPTIONS = async (_: string) => [];
+const EMPTY_UNIT_OPTIONS = async (_query: string) => [];
 
 export function DelegationsForm({
   initialValues,

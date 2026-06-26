@@ -1,6 +1,3 @@
-// Phase 4 — Sites module (not yet built)
-import { notFound } from "next/navigation";
+import { ModuleSites } from "@/modules/admin";
 
-export default function SitesPage() {
-  notFound();
-}
+export default ModuleSites;

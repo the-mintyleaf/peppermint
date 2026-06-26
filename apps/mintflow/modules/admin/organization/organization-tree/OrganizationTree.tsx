@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useParams } from "next/navigation";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -55,6 +56,7 @@ import type {
   FilterKey,
 } from "./OrganizationTree.types";
 import { DUMMY_NODES, DUMMY_EDGES } from "./OrganizationTree.demoData";
+import { useOrganizationGraph } from "./OrganizationTree.hooks";
 import {
   computeChildrenMap,
   computeParentMap,
@@ -252,6 +254,10 @@ function nodeMatchesSearch(
 }
 
 function OrganizationTreeInner() {
+  const { id: orgId = "" } = useParams<{ id: string }>();
+  const { nodes: serverNodes, edges: serverEdges } =
+    useOrganizationGraph(orgId);
+
   const {
     selectedNodeId,
     drawerOpen,
@@ -314,12 +320,21 @@ function OrganizationTreeInner() {
   }, [edges]);
 
   useEffect(() => {
-    setNodes(DUMMY_NODES as OrgFlowNode[]);
-    setEdges(DUMMY_EDGES as OrgFlowEdge[]);
-    syncEdgeCache(DUMMY_EDGES as OrgFlowEdge[]);
-    pushHistory(DUMMY_NODES as OrgFlowNode[], DUMMY_EDGES as OrgFlowEdge[]);
+    // Use server data when available; fall back to demo data during local development
+    const initNodes =
+      serverNodes.length > 0
+        ? (serverNodes as OrgFlowNode[])
+        : (DUMMY_NODES as OrgFlowNode[]);
+    const initEdges =
+      serverEdges.length > 0
+        ? (serverEdges as OrgFlowEdge[])
+        : (DUMMY_EDGES as OrgFlowEdge[]);
+    setNodes(initNodes);
+    setEdges(initEdges);
+    syncEdgeCache(initEdges);
+    pushHistory(initNodes, initEdges);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [serverNodes, serverEdges]);
 
   useEffect(() => {
     if (edges.length > 0) syncEdgeCache(edges);

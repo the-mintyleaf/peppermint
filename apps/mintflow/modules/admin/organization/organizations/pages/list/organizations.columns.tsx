@@ -1,12 +1,13 @@
 "use client";
 
 import type { DataTableShellColumn } from "@peppermint/admin";
-import { ActionIcon, Group, Menu } from "@peppermint/ui";
+import { ActionIcon, Button, Group, Menu } from "@peppermint/ui";
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
 import { BuildingsIcon } from "@phosphor-icons/react/dist/csr/Buildings";
 import { CalendarBlankIcon } from "@phosphor-icons/react/dist/csr/CalendarBlank";
 import { DotsThreeVerticalIcon } from "@phosphor-icons/react/dist/csr/DotsThreeVertical";
 import { FingerprintIcon } from "@phosphor-icons/react/dist/csr/Fingerprint";
+import { GearIcon } from "@phosphor-icons/react/dist/csr/Gear";
 import { GlobeIcon } from "@phosphor-icons/react/dist/csr/Globe";
 import { PulseIcon } from "@phosphor-icons/react/dist/csr/Pulse";
 import { TagIcon } from "@phosphor-icons/react/dist/csr/Tag";
@@ -32,9 +33,11 @@ type OnStatusChange = (
   org: Organization,
   newStatus: OrganizationStatus,
 ) => void;
+type OnManage = (org: Organization) => void;
 
 export function getOrganizationsColumns(
   onStatusChange: OnStatusChange,
+  onManage: OnManage,
 ): DataTableShellColumn<Organization>[] {
   return [
     {
@@ -128,6 +131,25 @@ export function getOrganizationsColumns(
           month: "short",
           day: "numeric",
         }),
+    },
+    {
+      accessor: "id",
+      title: "Actions",
+      icon: GearIcon,
+      width: 140,
+      render: (record) => (
+        <Button
+          size="xs"
+          variant="light"
+          leftSection={<BuildingsIcon size={12} />}
+          onClick={(e) => {
+            e.stopPropagation();
+            onManage(record);
+          }}
+        >
+          Manage
+        </Button>
+      ),
     },
   ];
 }

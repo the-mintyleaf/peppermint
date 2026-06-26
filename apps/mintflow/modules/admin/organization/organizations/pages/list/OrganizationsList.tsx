@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ModalTableShell } from "@peppermint/admin";
 import type { DataTableShellTab } from "@peppermint/admin";
 import { Paper } from "@peppermint/ui";
@@ -25,6 +26,7 @@ import type {
   OrganizationStatus,
 } from "../../organizations.types";
 import { OrganizationsForm } from "../../form/OrganizationsForm";
+import { useSelectedOrgStore } from "@/stores/selectedOrg.store";
 import { getOrganizationsColumns } from "./organizations.columns";
 
 const TABS: DataTableShellTab[] = [
@@ -43,6 +45,8 @@ const TABS: DataTableShellTab[] = [
 type StatusChangeTarget = { org: Organization; newStatus: OrganizationStatus };
 
 export function OrganizationsList() {
+  const router = useRouter();
+  const setOrg = useSelectedOrgStore((s) => s.setOrg);
   const [statusTarget, setStatusTarget] = useState<StatusChangeTarget | null>(
     null,
   );
@@ -51,10 +55,20 @@ export function OrganizationsList() {
 
   const columns = useMemo(
     () =>
-      getOrganizationsColumns((org, newStatus) =>
-        setStatusTarget({ org, newStatus }),
+      getOrganizationsColumns(
+        (org, newStatus) => setStatusTarget({ org, newStatus }),
+        (org) => {
+          setOrg({
+            id: org.id,
+            name: org.name,
+            code: org.code,
+            status: org.status,
+            country_code: org.country_code,
+          });
+          router.push(`/admin/organization/${org.id}/structure`);
+        },
       ),
-    [],
+    [router, setOrg],
   );
 
   function handleStatusConfirm(reason: string) {

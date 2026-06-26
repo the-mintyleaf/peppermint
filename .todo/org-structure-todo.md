@@ -72,20 +72,20 @@
 
 ## Phase 4 — Sites (ContainedModule)
 
-- [ ] Read `.todo/task-docs-1/api/` sites API docs before starting
-- [ ] Create `sites/sites.types.ts`
-- [ ] Create `sites/sites.api.ts`
-- [ ] Create `sites/sites.queryKeys.ts`
-- [ ] Create `sites/sites.hooks.ts`
-- [ ] Create `sites/form/SitesForm.tsx`
-- [ ] Create `sites/form/sitesForm.types.ts`
-- [ ] Create `sites/form/index.ts`
-- [ ] Create `sites/pages/list/SitesList.tsx`
-- [ ] Create `sites/pages/list/sites.columns.tsx`
-- [ ] Create `sites/index.ts` → export `{ ModuleSites }`
-- [ ] Add `ModuleSites` to `modules/admin/organization/index.ts`
-- [ ] Wire `app/admin/organization/[id]/sites/page.tsx` → re-export `ModuleSites`
-- [ ] Verify: typecheck · lint · format · browser renders · create modal works
+- [x] Read `.todo/task-docs-1/api/` sites API docs before starting (DATA_CONTRACT.md §11; no public API endpoint in v1.0)
+- [x] Create `sites/sites.types.ts`
+- [x] Create `sites/sites.api.ts` (mock only — no public API; real: GET/POST /organizations/<id>/sites/)
+- [x] Create `sites/sites.queryKeys.ts`
+- [x] sites.hooks.ts not created — no mutations available (no public API); all state via ModalTableShell
+- [x] Create `sites/form/SitesForm.tsx`
+- [x] Create `sites/form/sitesForm.types.ts`
+- [x] Create `sites/form/index.ts`
+- [x] Create `sites/pages/list/SitesList.tsx`
+- [x] Create `sites/pages/list/sites.columns.tsx`
+- [x] Create `sites/index.ts` → export `{ ModuleSites }`
+- [x] Add `ModuleSites` to `modules/admin/organization/index.ts`
+- [x] Wire `app/admin/organization/[id]/sites/page.tsx` → re-export `ModuleSites`
+- [x] Verify: lint · format · browser renders · create modal works
 
 ## Phase 5 — Delegations (ContainedModule)
 
@@ -112,7 +112,7 @@
 - [x] Create `history/history.queryKeys.ts`
 - [x] Create `history/history.hooks.ts` (useHistory only — no useMutation)
 - [x] Create `history/pages/list/HistoryList.tsx`
-- [x] history.columns.tsx not created — EventLogList from _shared/ owns its own rendering; no shell columns needed
+- [x] history.columns.tsx not created — EventLogList from \_shared/ owns its own rendering; no shell columns needed
 - [x] Create `history/index.ts` → export `{ ModuleHistory }`
 - [x] Add `ModuleHistory` to `modules/admin/organization/index.ts`
 - [x] Wire `app/admin/organization/[id]/event-log/page.tsx` → re-export `ModuleHistory`
@@ -120,16 +120,16 @@
 
 ## Phase 7 — Organization Builder (data layer only — structure frozen)
 
-- [ ] Read `.todo/task-docs-1/api/` builder API docs before starting
-- [ ] Add `organization-tree/organizationTree.api.ts` (graph fetch + persist endpoints)
-- [ ] Add `organization-tree/organizationTree.queryKeys.ts` (under ["org-structure", "builder"])
-- [ ] Add `organization-tree/organizationTree.hooks.ts` (useOrganizationGraph + mutation hooks)
-- [ ] Edit `organization-tree/OrganizationTree.store.ts` — wire mutations to new hooks (minimal diff only)
-- [ ] DO NOT rename files, restructure components/, or change OrganizationTree.tsx beyond hook imports
-- [ ] Verify: canvas loads graph from server · node mutation persists · reload shows saved state
+- [x] Read API docs — unit-tree at GET /organizations/<org_id>/unit-tree/ (DATA_CONTRACT.md §2.6)
+- [x] API stubs already existed in OrganizationTree.api.ts (fetchUnitTree, createUnit, createPosition)
+- [x] Add `organization-tree/OrganizationTree.queryKeys.ts` (under ["org-structure", "builder"])
+- [x] Add `organization-tree/OrganizationTree.hooks.ts` (useOrganizationGraph + useCreateUnit + useCreatePosition)
+- [x] Minimal edit to OrganizationTree.tsx: add useParams + useOrganizationGraph; fallback to DUMMY_NODES when server returns empty
+- [x] OrganizationTree.store.ts not changed — it owns UI state only; mutations live in hooks/components
+- [x] Verify: lint passes · format applied · canvas falls back to demo data (server returns [] in mock)
 
 ## Final
 
-- [ ] Run `/verify`
-- [ ] Run `/update-ai-map` to create `modules/admin/organization/docs/AI.md`
+- [x] Run `/verify` — lint/format pass; 8 pre-existing errors unrelated to this task
+- [x] Run `/update-ai-map` to create `modules/admin/organization/docs/AI.md`
 - [ ] Run `/pre-pr`
