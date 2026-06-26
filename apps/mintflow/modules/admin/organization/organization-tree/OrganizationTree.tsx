@@ -55,8 +55,25 @@ import type {
   DescendantStats,
   FilterKey,
 } from "./OrganizationTree.types";
+import type { Organization } from "../organizations/organizations.types";
+import type { PeopleFormValues } from "../people/form/peopleForm.types";
+import type { UnitsFormValues } from "./components/NodeFormModal/forms/UnitsForm/UnitsForm.types";
+import type { PositionsFormValues } from "../positions/form/PositionsForm/PositionsForm.types";
+import type { Position } from "../positions/positions.types";
+import type { Site } from "../sites/sites.types";
+import type { CreateSitePayload } from "../sites/sites.types";
+import type { Delegation } from "../delegations/delegations.types";
 import { DUMMY_NODES, DUMMY_EDGES } from "./OrganizationTree.demoData";
-import { useOrganizationGraph } from "./OrganizationTree.hooks";
+import {
+  useOrganizationGraph,
+  useAddOrganizationNode,
+  useUpdateOrganizationNode,
+  useAddPersonNode,
+  useAddPosition,
+  useAddSite,
+  useAddDelegation,
+  useCreateUnit,
+} from "./OrganizationTree.hooks";
 import {
   computeChildrenMap,
   computeParentMap,
@@ -68,6 +85,8 @@ import {
   computeDescendantStats,
   computeNodeHealth,
   collectAncestors,
+  orgToFlowNode,
+  personToFlowNode,
 } from "./OrganizationTree.utils";
 import styles from "./OrganizationTree.module.css";
 
@@ -281,7 +300,6 @@ function OrganizationTreeInner() {
     openContextMenu,
     closeContextMenu,
     setActiveDepartment,
-    setHighlightedNodeId,
     expandedNodeIds,
     expandedGroupIds,
     focusedBranchId,
@@ -289,6 +307,7 @@ function OrganizationTreeInner() {
     expandNode: storeExpandNode,
     collapseNode,
     collapseAll,
+    expandAll,
     setFocusedBranch,
     setViewMode,
     setExpandedNodeIds,
@@ -301,7 +320,16 @@ function OrganizationTreeInner() {
 
   const [nodes, setNodes, onNodesChange] = useNodesState<OrgFlowNode>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<OrgFlowEdge>([]);
-  const { fitView, zoomIn, zoomOut } = useReactFlow();
+  const { fitView, zoomIn, zoomOut, setCenter, getNode } = useReactFlow();
+
+  // ── Domain mutations ──────────────────────────────────────────────────────
+  const addOrgMutation = useAddOrganizationNode(orgId);
+  const updateOrgMutation = useUpdateOrganizationNode(orgId);
+  const addPersonMutation = useAddPersonNode(orgId);
+  const addPositionMutation = useAddPosition(orgId);
+  const addSiteMutation = useAddSite(orgId);
+  const addDelegationMutation = useAddDelegation(orgId);
+  const createUnitMutation = useCreateUnit(orgId);
 
   // Impact preview state
   const [impactPreview, setImpactPreview] = useState<{
@@ -312,12 +340,18 @@ function OrganizationTreeInner() {
     affectedDepts: number;
   } | null>(null);
 
-  // edgesRef lets the layout effect read current edges without making them a reactive dep
-  // (the effect intentionally only triggers on visibleLayoutKey, not every edge change)
+  // edgesRef / nodesRef let the layout effect read current state without making them reactive deps
   const edgesRef = useRef(edges);
+  const nodesRef = useRef(nodes);
+  const isFirstLayoutRef = useRef(true);
+  // tracks which node IDs have been given a real position by the layout system
+  const layoutPositionedRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     edgesRef.current = edges;
   }, [edges]);
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
 
   useEffect(() => {
     // Use server data when available; fall back to demo data during local development
@@ -591,23 +625,89 @@ function OrganizationTreeInner() {
   );
 
   useEffect(() => {
-    if (nodes.length === 0) return;
+    const currentNodes = nodesRef.current;
+    if (currentNodes.length === 0) return;
     const currentEdges = edgesRef.current;
-    const visibleNodeList = nodes.filter((n) => filteredVisibleIds.has(n.id));
+    const visibleNodeList = currentNodes.filter((n) =>
+      filteredVisibleIds.has(n.id),
+    );
     if (visibleNodeList.length === 0) return;
 
-    const visEdges = currentEdges.filter(
-      (e) =>
-        filteredVisibleIds.has(e.source) && filteredVisibleIds.has(e.target),
-    );
-    const arranged = autoArrangeNodes(visibleNodeList, visEdges, "expanded");
     const posMap: Record<string, { x: number; y: number }> = {};
-    for (const n of arranged) posMap[n.id] = n.position;
 
-    setNodes((ns) =>
-      ns.map((n) => (posMap[n.id] ? { ...n, position: posMap[n.id] } : n)),
-    );
-    setTimeout(() => fitView({ duration: 400, padding: 0.15 }), 50);
+    if (isFirstLayoutRef.current) {
+      // First render: full auto-arrange + fit
+      const visEdges = currentEdges.filter(
+        (e) =>
+          filteredVisibleIds.has(e.source) && filteredVisibleIds.has(e.target),
+      );
+      const arranged = autoArrangeNodes(visibleNodeList, visEdges, "expanded");
+      for (const n of arranged) posMap[n.id] = n.position;
+      isFirstLayoutRef.current = false;
+      for (const id of Object.keys(posMap)) layoutPositionedRef.current.add(id);
+      setNodes((ns) =>
+        ns.map((n) => (posMap[n.id] ? { ...n, position: posMap[n.id] } : n)),
+      );
+      setTimeout(
+        () => fitView({ duration: 400, padding: 0.15, maxZoom: 0.75 }),
+        50,
+      );
+      return;
+    }
+
+    // Incremental expand/collapse: keep existing node positions, only place new nodes
+    const alreadyPositioned = layoutPositionedRef.current;
+
+    const existingPositions: Record<string, { x: number; y: number }> = {};
+    const unpositioned: OrgFlowNode[] = [];
+
+    for (const n of visibleNodeList) {
+      if (alreadyPositioned.has(n.id)) {
+        existingPositions[n.id] = n.position;
+      } else {
+        unpositioned.push(n);
+      }
+    }
+
+    Object.assign(posMap, existingPositions);
+
+    // Group new nodes by parent and place them below the parent
+    if (unpositioned.length > 0) {
+      const NODE_W = 300;
+      const H_GAP = 80;
+      const NODE_H = 160;
+      const V_GAP = 160;
+
+      const byParent = new Map<string, OrgFlowNode[]>();
+      for (const n of unpositioned) {
+        const parentEdge = currentEdges.find((e) => e.target === n.id);
+        const parentId = parentEdge?.source ?? "__root__";
+        if (!byParent.has(parentId)) byParent.set(parentId, []);
+        byParent.get(parentId)!.push(n);
+      }
+
+      for (const [parentId, children] of byParent) {
+        const parentPos = posMap[parentId];
+        if (!parentPos) continue;
+        const totalWidth =
+          children.length * NODE_W + (children.length - 1) * H_GAP;
+        let startX = parentPos.x - totalWidth / 2 + NODE_W / 2;
+        for (const child of children) {
+          posMap[child.id] = {
+            x: startX,
+            y: parentPos.y + NODE_H + V_GAP,
+          };
+          startX += NODE_W + H_GAP;
+        }
+      }
+    }
+
+    if (Object.keys(posMap).length > 0) {
+      for (const id of Object.keys(posMap)) layoutPositionedRef.current.add(id);
+      setNodes((ns) =>
+        ns.map((n) => (posMap[n.id] ? { ...n, position: posMap[n.id] } : n)),
+      );
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleLayoutKey]);
 
@@ -730,16 +830,9 @@ function OrganizationTreeInner() {
   );
 
   const onPaneClick = useCallback(() => {
-    closeDrawer();
     closeContextMenu();
     setActiveDepartment(null);
-    setHighlightedNodeId(null);
-  }, [
-    closeDrawer,
-    closeContextMenu,
-    setActiveDepartment,
-    setHighlightedNodeId,
-  ]);
+  }, [closeContextMenu, setActiveDepartment]);
 
   const handleNodesChange = useCallback(
     (changes: Parameters<typeof onNodesChange>[0]) => {
@@ -750,62 +843,173 @@ function OrganizationTreeInner() {
     [onNodesChange, markDirty],
   );
 
-  const handleAddNode = useCallback(
-    (data: OrgNodeData) => {
-      const id = `node-${Date.now()}`;
-      const newNode: OrgFlowNode = {
-        id,
-        type: data.nodeType as OrgFlowNode["type"],
-        position: {
-          x: 200 + Math.random() * 300,
-          y: 200 + Math.random() * 200,
-        },
-        data,
-      };
-      const parentId = nodeModal.pendingParentId;
+  // Shared helper: add a new node (and optional parent edge) to the canvas
+  const addCanvasNode = useCallback(
+    (newNode: OrgFlowNode, parentId?: string, relType = "contains") => {
       setNodes((ns) => {
         const updated = [...ns, newNode];
         pushHistory(updated, edges);
         return updated;
       });
-      // Auto-connect to parent if provided
       if (parentId) {
         const newEdge: OrgFlowEdge = {
-          id: `e-${parentId}-${id}-${Date.now()}`,
+          id: `e-${parentId}-${newNode.id}-${Date.now()}`,
           source: parentId,
-          target: id,
+          target: newNode.id,
           ...DEFAULT_EDGE_OPTIONS,
-          data: { relationshipType: "contains" },
+          data: { relationshipType: relType },
         };
         setEdges((es) => [...es, newEdge]);
         storeExpandNode(parentId);
       }
       markDirty();
     },
+    [setNodes, setEdges, edges, pushHistory, markDirty, storeExpandNode],
+  );
+
+  const handleSubmitOrg = useCallback(
+    (values: Organization) => {
+      const parentId = nodeModal.pendingParentId;
+      if (nodeModal.mode === "add") {
+        addOrgMutation.mutate(values, {
+          onSuccess: (org) => {
+            const { node } = orgToFlowNode(org, parentId);
+            addCanvasNode(node as unknown as OrgFlowNode, parentId);
+          },
+        });
+      } else if (nodeModal.editingNodeId) {
+        updateOrgMutation.mutate(
+          { id: nodeModal.editingNodeId, values },
+          {
+            onSuccess: (org) => {
+              const data = orgToFlowNode(org).node.data;
+              setNodes((ns) =>
+                ns.map((n) =>
+                  n.id === nodeModal.editingNodeId ? { ...n, data } : n,
+                ),
+              );
+              markDirty();
+            },
+          },
+        );
+      }
+    },
     [
+      nodeModal,
+      addOrgMutation,
+      updateOrgMutation,
+      addCanvasNode,
       setNodes,
-      setEdges,
-      edges,
-      pushHistory,
       markDirty,
-      nodeModal.pendingParentId,
-      storeExpandNode,
     ],
   );
 
-  const handleEditNode = useCallback(
-    (data: OrgNodeData) => {
-      if (!nodeModal.editingNodeId) return;
-      setNodes((ns) => {
-        const updated = ns.map((n) =>
-          n.id === nodeModal.editingNodeId ? { ...n, data } : n,
-        );
-        pushHistory(updated, edges);
-        return updated;
-      });
-      markDirty();
+  const handleSubmitDepartment = useCallback(
+    (values: UnitsFormValues) => {
+      const parentId = nodeModal.pendingParentId;
+      createUnitMutation.mutate(
+        {
+          name: values.name,
+          code: values.code,
+          unitType: values.unit_type,
+          parentUnit: parentId,
+        },
+        {
+          onSuccess: (result) => {
+            const data: DepartmentData = {
+              nodeType: "department",
+              name: values.name,
+              deptType:
+                (values.unit_type as DepartmentData["deptType"]) ??
+                "department",
+              description: values.description,
+              status: values.status === "active" ? "active" : "inactive",
+            };
+            const newNode: OrgFlowNode = {
+              id: result.id,
+              type: "department",
+              position: { x: 0, y: 0 },
+              data,
+            };
+            addCanvasNode(newNode, parentId);
+          },
+        },
+      );
     },
-    [nodeModal.editingNodeId, setNodes, edges, pushHistory, markDirty],
+    [nodeModal.pendingParentId, createUnitMutation, addCanvasNode],
+  );
+
+  const handleSubmitPerson = useCallback(
+    (values: PeopleFormValues) => {
+      const parentId = nodeModal.pendingParentId;
+      addPersonMutation.mutate(values, {
+        onSuccess: (person) => {
+          const { node } = personToFlowNode(person, parentId);
+          addCanvasNode(node as unknown as OrgFlowNode, parentId, "member_of");
+        },
+      });
+    },
+    [nodeModal.pendingParentId, addPersonMutation, addCanvasNode],
+  );
+
+  const handleSubmitPosition = useCallback(
+    (values: PositionsFormValues) => {
+      const unitId = nodeModal.contextNodeId ?? "";
+      addPositionMutation.mutate(
+        { unitId, values: values as Partial<Position> },
+        {
+          onSuccess: () => {
+            notifications.show({
+              title: "Position created",
+              message: `"${values.title}" has been added.`,
+              color: "teal",
+            });
+          },
+        },
+      );
+    },
+    [nodeModal.contextNodeId, addPositionMutation],
+  );
+
+  const handleSubmitSite = useCallback(
+    (values: Partial<Site>) => {
+      addSiteMutation.mutate(values as CreateSitePayload, {
+        onSuccess: (site) => {
+          notifications.show({
+            title: "Site added",
+            message: `"${site.name}" has been created.`,
+            color: "teal",
+          });
+        },
+      });
+    },
+    [addSiteMutation],
+  );
+
+  const handleSubmitDelegation = useCallback(
+    (values: Delegation) => {
+      addDelegationMutation.mutate(
+        {
+          from_assignment_id: values.from_assignment,
+          to_assignment_id: values.to_assignment,
+          delegation_type: values.delegation_type,
+          starts_at: values.starts_at,
+          ends_at: values.ends_at ?? null,
+          reason: values.reason,
+          scope_unit: values.scope_unit ?? null,
+        },
+        {
+          onSuccess: () => {
+            notifications.show({
+              title: "Delegation created",
+              message: "Delegation has been recorded.",
+              color: "teal",
+            });
+          },
+        },
+      );
+    },
+    [addDelegationMutation],
   );
 
   // Delete with impact preview
@@ -964,6 +1168,42 @@ function OrganizationTreeInner() {
                 ),
             }
           : null,
+        isDept
+          ? {
+              label: "Add position",
+              action: () =>
+                openAddModal(
+                  "position",
+                  undefined,
+                  (node?.data as DepartmentData).name,
+                  nodeId,
+                ),
+            }
+          : null,
+        isOrg
+          ? {
+              label: "Add site",
+              action: () =>
+                openAddModal(
+                  "site",
+                  undefined,
+                  (node?.data as OrgOfficeData).name,
+                  nodeId,
+                ),
+            }
+          : null,
+        isOrg
+          ? {
+              label: "Add delegation",
+              action: () =>
+                openAddModal(
+                  "delegation",
+                  undefined,
+                  (node?.data as OrgOfficeData).name,
+                  nodeId,
+                ),
+            }
+          : null,
         {
           label: "Delete",
           action: () => handleRequestDelete(nodeId),
@@ -996,54 +1236,6 @@ function OrganizationTreeInner() {
         id: selectedNode.id,
       }
     : null;
-
-  // Group drawer (when group node selected)
-  const isGroupDrawer = selectedNodeForDrawer?.type === "group";
-  const groupMemberNodes = useMemo(() => {
-    if (!selectedNode || selectedNode.data.nodeType !== "group") return [];
-    const gData = selectedNode.data as GroupData;
-    return nodes.filter((n) => gData.memberIds.includes(n.id));
-  }, [selectedNode, nodes]);
-
-  // Head person for org drawer
-  const headPersonForOrg = useMemo(() => {
-    if (!selectedNode || selectedNode.data.nodeType !== "org") return undefined;
-    const childIds = graphMaps.childrenOf[selectedNode.id] ?? [];
-    for (const childId of childIds) {
-      const child = graphMaps.nodesMap.get(childId);
-      if (child?.type === "person") {
-        const pData = child.data as PersonData;
-        if (
-          ["head", "manager", "minister", "secretary"].includes(
-            pData.role ?? "",
-          )
-        ) {
-          return pData.fullName;
-        }
-      }
-    }
-    return undefined;
-  }, [selectedNode, graphMaps]);
-
-  const selectedDescendantStats = selectedNodeId
-    ? descendantStatsMap.get(selectedNodeId)
-    : undefined;
-  const selectedHealthIssues = selectedNodeId
-    ? (healthIssuesMap.get(selectedNodeId) ?? [])
-    : [];
-
-  // Person drawer stats
-  const personDirectReports =
-    selectedNode?.type === "person"
-      ? computeDirectChildCounts(
-          selectedNode.id,
-          nodes,
-          edges,
-          graphMaps.childrenOf,
-          graphMaps.nodeTypeMap,
-        ).personCount
-      : 0;
-  const personTotalBelow = selectedDescendantStats?.totalPeople ?? 0;
 
   // Search debounce
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1146,8 +1338,6 @@ function OrganizationTreeInner() {
             onNodeContextMenu={onNodeContextMenu}
             onPaneClick={onPaneClick}
             defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
-            fitView
-            fitViewOptions={{ padding: 0.2 }}
             deleteKeyCode="Delete"
             multiSelectionKeyCode="Shift"
             minZoom={0.1}
@@ -1255,6 +1445,8 @@ function OrganizationTreeInner() {
             viewMode={viewMode}
             onToggleViewMode={handleToggleViewMode}
             onCollapseAll={collapseAll}
+            onExpandAll={expandAll}
+            isFullyCollapsed={expandedNodeIds.length === 0}
             focusedBranchId={focusedBranchId}
             onClearFocusBranch={() => setFocusedBranch(null)}
             onBackToParent={handleBackToParent}
@@ -1293,38 +1485,27 @@ function OrganizationTreeInner() {
           selectedNode={selectedNodeForDrawer}
           onEdit={openEditModal}
           onDelete={handleRequestDelete}
-          onAddDivision={() =>
-            selectedNodeForDrawer &&
-            openAddModal(
-              "department",
-              selectedNodeForDrawer.id,
-              (selectedNodeForDrawer.data as OrgOfficeData).name,
-            )
+          nodes={nodes}
+          edges={edges}
+          onAddChild={(type, parentId, parentName, contextNodeId) =>
+            openAddModal(type, parentId, parentName, contextNodeId)
           }
-          onAddPerson={() =>
-            selectedNodeForDrawer &&
-            openAddModal(
-              "person",
-              selectedNodeForDrawer.id,
-              (selectedNodeForDrawer.data as DepartmentData).name,
-            )
-          }
-          onAddChild={() =>
-            selectedNodeForDrawer &&
-            openAddModal(
-              "department",
-              selectedNodeForDrawer.id,
-              (selectedNodeForDrawer.data as DepartmentData).name,
-            )
-          }
-          totalPeople={selectedDescendantStats?.totalPeople}
-          totalDepts={selectedDescendantStats?.totalDepts}
-          hiddenLevels={selectedDescendantStats?.hiddenLevels}
-          headPersonName={headPersonForOrg}
-          healthIssues={selectedHealthIssues}
-          directReports={personDirectReports}
-          totalBelow={personTotalBelow}
-          memberNodes={groupMemberNodes}
+          onSelectNode={(id) => selectNode(id)}
+          onFocusNode={(id) => {
+            const newExpandedIds = expandAncestors(id, edges, expandedNodeIds);
+            const needsExpand =
+              newExpandedIds.length !== expandedNodeIds.length;
+            if (needsExpand) setExpandedNodeIds(newExpandedIds);
+            const pan = () => {
+              const n = getNode(id);
+              if (!n) return;
+              const x = n.position.x + (n.measured?.width ?? 200) / 2;
+              const y = n.position.y + (n.measured?.height ?? 80) / 2;
+              setCenter(x, y, { zoom: 1, duration: 600 });
+            };
+            if (needsExpand) setTimeout(pan, 80);
+            else pan();
+          }}
         />
       </div>
       {/* end flex row */}
@@ -1338,8 +1519,23 @@ function OrganizationTreeInner() {
           nodeModal.mode === "add" ? nodeModal.nodeType : editingNode?.type
         }
         initialData={editingNode?.data}
-        onSubmit={nodeModal.mode === "add" ? handleAddNode : handleEditNode}
+        onSubmitOrg={handleSubmitOrg}
+        onSubmitDepartment={handleSubmitDepartment}
+        onSubmitPerson={handleSubmitPerson}
+        onSubmitPosition={handleSubmitPosition}
+        onSubmitSite={handleSubmitSite}
+        onSubmitDelegation={handleSubmitDelegation}
         pendingParentName={nodeModal.pendingParentName}
+        pendingContextNodeId={nodeModal.contextNodeId}
+        isLoading={
+          addOrgMutation.isPending ||
+          updateOrgMutation.isPending ||
+          addPersonMutation.isPending ||
+          addPositionMutation.isPending ||
+          addSiteMutation.isPending ||
+          addDelegationMutation.isPending ||
+          createUnitMutation.isPending
+        }
       />
 
       {/* Impact preview / delete confirmation */}

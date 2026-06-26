@@ -13,6 +13,8 @@ export interface ToolbarProps {
   viewMode: "explorer" | "fullmap";
   onToggleViewMode: () => void;
   onCollapseAll: () => void;
+  onExpandAll: () => void;
+  isFullyCollapsed: boolean;
   focusedBranchId: string | null;
   onClearFocusBranch: () => void;
   onBackToParent: () => void;

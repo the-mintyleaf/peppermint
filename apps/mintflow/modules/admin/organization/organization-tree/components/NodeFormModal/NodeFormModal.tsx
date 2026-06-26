@@ -1,95 +1,32 @@
 "use client";
 
-import {
-  Modal,
-  Stack,
-  TextInput,
-  Textarea,
-  Select,
-  Button,
-  Group,
-  Text,
-  NumberInput,
-} from "@peppermint/ui";
-import { useForm } from "@peppermint/ui";
-import type { NodeFormModalProps } from "./NodeFormModal.types";
+import { Modal, Text } from "@peppermint/ui";
+import { OrganizationsForm } from "../../../organizations/form";
+import { PeopleForm } from "../../../people/form";
+import { PositionsForm } from "../../../positions/form/PositionsForm";
+import { SitesForm } from "../../../sites/form";
+import { DelegationsForm } from "../../../delegations/form";
+import { UnitsForm } from "./forms/UnitsForm";
 import type {
-  OrgNodeData,
   OrgOfficeData,
   DepartmentData,
-  PersonData,
 } from "../../OrganizationTree.types";
+import type { NodeFormModalProps } from "./NodeFormModal.types";
+import type { Organization } from "../../../organizations/organizations.types";
+import type { UnitsFormValues } from "./forms/UnitsForm/UnitsForm.types";
+import type { PeopleFormValues } from "../../../people/form/peopleForm.types";
+import type { PositionsFormValues } from "../../../positions/form/PositionsForm/PositionsForm.types";
+import type { Site } from "../../../sites/sites.types";
+import type { Delegation } from "../../../delegations/delegations.types";
 
-const ORG_TYPE_OPTIONS = [
-  { value: "ministry", label: "Ministry" },
-  { value: "office", label: "Office" },
-  { value: "department", label: "Department" },
-  { value: "organization", label: "Organization" },
-  { value: "branch", label: "Branch" },
-  { value: "district", label: "District Administration" },
-];
-
-const DEPT_TYPE_OPTIONS = [
-  { value: "department", label: "Department" },
-  { value: "division", label: "Division" },
-  { value: "section", label: "Section" },
-  { value: "unit", label: "Unit" },
-  { value: "team", label: "Team" },
-  { value: "branch", label: "Branch" },
-  { value: "committee", label: "Committee" },
-];
-
-const PERSON_ROLE_OPTIONS = [
-  { value: "head", label: "Head / Director" },
-  { value: "manager", label: "Manager" },
-  { value: "coordinator", label: "Coordinator" },
-  { value: "officer", label: "Officer" },
-  { value: "member", label: "Member" },
-  { value: "advisor", label: "Advisor" },
-];
-
-const STATUS_OPTIONS = [
-  { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
-  { value: "archived", label: "Archived" },
-];
-
-const TITLE_MAP = {
-  org: { add: "Add Organization / Office", edit: "Edit Organization" },
-  department: { add: "Add Department", edit: "Edit Department" },
+const TITLE_MAP: Record<string, Record<"add" | "edit", string>> = {
+  org: { add: "Add Organization", edit: "Edit Organization" },
+  department: { add: "Add Unit / Department", edit: "Edit Unit" },
   person: { add: "Add Person", edit: "Edit Person" },
+  position: { add: "Add Position", edit: "Edit Position" },
+  site: { add: "Add Site", edit: "Edit Site" },
+  delegation: { add: "Add Delegation", edit: "Edit Delegation" },
 };
-
-interface OrgFormValues {
-  name: string;
-  orgType: string;
-  description: string;
-  location: string;
-  status: string;
-  headCount?: number;
-}
-interface DeptFormValues {
-  name: string;
-  deptType: string;
-  description: string;
-  head: string;
-  parentName: string;
-  peopleCount: number;
-  activeTasks: number;
-  completedTasks: number;
-  pendingTasks: number;
-  status: string;
-}
-interface PersonFormValues {
-  fullName: string;
-  designation: string;
-  department: string;
-  role: string;
-  email: string;
-  phone: string;
-  status: string;
-  reportingManager: string;
-}
 
 export function NodeFormModal({
   opened,
@@ -97,85 +34,19 @@ export function NodeFormModal({
   mode,
   nodeType,
   initialData,
-  onSubmit,
+  onSubmitOrg,
+  onSubmitDepartment,
+  onSubmitPerson,
+  onSubmitPosition,
+  onSubmitSite,
+  onSubmitDelegation,
   pendingParentName,
+  pendingContextNodeId,
+  isLoading = false,
 }: NodeFormModalProps) {
-  const resolvedType =
-    nodeType ??
-    (initialData as OrgNodeData | undefined)?.nodeType ??
-    "department";
+  const resolvedType = nodeType ?? initialData?.nodeType ?? "department";
   const title =
-    TITLE_MAP[resolvedType as keyof typeof TITLE_MAP]?.[mode] ?? "Add Node";
-
-  const orgForm = useForm<OrgFormValues>({
-    initialValues: {
-      name: "",
-      orgType: "organization",
-      description: "",
-      location: "",
-      status: "active",
-      ...(initialData?.nodeType === "org"
-        ? (initialData as Partial<OrgOfficeData>)
-        : {}),
-    },
-    validate: { name: (v) => (!v?.trim() ? "Name is required" : null) },
-  });
-
-  const deptForm = useForm<DeptFormValues>({
-    initialValues: {
-      name: "",
-      deptType: "department",
-      description: "",
-      head: "",
-      parentName: "",
-      peopleCount: 0,
-      activeTasks: 0,
-      completedTasks: 0,
-      pendingTasks: 0,
-      status: "active",
-      ...(initialData?.nodeType === "department"
-        ? (initialData as Partial<DepartmentData>)
-        : {}),
-    },
-    validate: { name: (v) => (!v?.trim() ? "Name is required" : null) },
-  });
-
-  const personForm = useForm<PersonFormValues>({
-    initialValues: {
-      fullName: "",
-      designation: "",
-      department: "",
-      role: "member",
-      email: "",
-      phone: "",
-      status: "active",
-      reportingManager: "",
-      ...(initialData?.nodeType === "person"
-        ? (initialData as Partial<PersonData>)
-        : {}),
-    },
-    validate: {
-      fullName: (v) => (!v?.trim() ? "Full name is required" : null),
-      designation: (v) => (!v?.trim() ? "Designation is required" : null),
-    },
-  });
-
-  const handleSubmit = () => {
-    if (resolvedType === "org") {
-      if (orgForm.validate().hasErrors) return;
-      onSubmit({ nodeType: "org", ...orgForm.values } as OrgOfficeData);
-    } else if (resolvedType === "department") {
-      if (deptForm.validate().hasErrors) return;
-      onSubmit({
-        nodeType: "department",
-        ...deptForm.values,
-      } as DepartmentData);
-    } else {
-      if (personForm.validate().hasErrors) return;
-      onSubmit({ nodeType: "person", ...personForm.values } as PersonData);
-    }
-    onClose();
-  };
+    TITLE_MAP[resolvedType]?.[mode] ?? (mode === "add" ? "Add" : "Edit");
 
   return (
     <Modal
@@ -185,168 +56,106 @@ export function NodeFormModal({
       size="md"
       centered
     >
-      <Stack gap="md" px="md">
-        {/* Parent context banner */}
-        {mode === "add" && pendingParentName && (
-          <div
-            style={{
-              background: "var(--mantine-color-blue-0)",
-              borderRadius: 6,
-              padding: "8px 12px",
-              border: "1px solid var(--mantine-color-blue-2)",
-            }}
-          >
-            <Text size="xs" c="dimmed">
-              Adding under:
-            </Text>
-            <Text size="xs" fw={600} c="blue">
-              {pendingParentName}
-            </Text>
-          </div>
-        )}
+      {/* Parent context banner */}
+      {mode === "add" && pendingParentName && (
+        <div
+          style={{
+            background: "var(--mantine-color-blue-0)",
+            borderRadius: 6,
+            padding: "8px 12px",
+            margin: "0 0 4px",
+            border: "1px solid var(--mantine-color-blue-2)",
+          }}
+        >
+          <Text size="xs" c="dimmed">
+            Adding under:
+          </Text>
+          <Text size="xs" fw={600} c="blue">
+            {pendingParentName}
+          </Text>
+        </div>
+      )}
 
-        {resolvedType === "org" && (
-          <>
-            <TextInput
-              label="Name"
-              placeholder="e.g. Ministry of Home Affairs"
-              required
-              {...orgForm.getInputProps("name")}
-            />
-            <Select
-              label="Organization Type"
-              data={ORG_TYPE_OPTIONS}
-              required
-              {...orgForm.getInputProps("orgType")}
-            />
-            <Textarea
-              label="Description"
-              placeholder="Brief description…"
-              rows={3}
-              {...orgForm.getInputProps("description")}
-            />
-            <TextInput
-              label="Location"
-              placeholder="City or address"
-              {...orgForm.getInputProps("location")}
-            />
-            <Group grow>
-              <NumberInput
-                label="Head count"
-                placeholder="0"
-                min={0}
-                {...orgForm.getInputProps("headCount")}
-              />
-              <Select
-                label="Status"
-                data={STATUS_OPTIONS}
-                {...orgForm.getInputProps("status")}
-              />
-            </Group>
-          </>
-        )}
+      {resolvedType === "org" && (
+        <OrganizationsForm
+          initialValues={
+            initialData?.nodeType === "org"
+              ? {
+                  name: (initialData as OrgOfficeData).name,
+                  description: (initialData as OrgOfficeData).description ?? "",
+                }
+              : undefined
+          }
+          onSubmit={(values: Organization) => {
+            onSubmitOrg(values);
+            onClose();
+          }}
+          isLoading={isLoading}
+        />
+      )}
 
-        {resolvedType === "department" && (
-          <>
-            <TextInput
-              label="Department Name"
-              placeholder="e.g. Human Resources"
-              required
-              {...deptForm.getInputProps("name")}
-            />
-            <Select
-              label="Department Type"
-              data={DEPT_TYPE_OPTIONS}
-              required
-              {...deptForm.getInputProps("deptType")}
-            />
-            <TextInput
-              label="Department Head"
-              placeholder="Name of the head"
-              {...deptForm.getInputProps("head")}
-            />
-            <Textarea
-              label="Description"
-              placeholder="What does this department do?"
-              rows={3}
-              {...deptForm.getInputProps("description")}
-            />
-            <Group grow>
-              <NumberInput
-                label="People count"
-                min={0}
-                {...deptForm.getInputProps("peopleCount")}
-              />
-              <Select
-                label="Status"
-                data={STATUS_OPTIONS}
-                {...deptForm.getInputProps("status")}
-              />
-            </Group>
-          </>
-        )}
+      {resolvedType === "department" && (
+        <UnitsForm
+          initialValues={
+            initialData?.nodeType === "department"
+              ? {
+                  name: (initialData as DepartmentData).name,
+                  description:
+                    (initialData as DepartmentData).description ?? "",
+                }
+              : undefined
+          }
+          onSubmit={(values) => {
+            onSubmitDepartment(values);
+            onClose();
+          }}
+          isLoading={isLoading}
+          isEditing={mode === "edit"}
+        />
+      )}
 
-        {resolvedType === "person" && (
-          <>
-            <TextInput
-              label="Full Name"
-              placeholder="e.g. Ramesh Sharma"
-              required
-              {...personForm.getInputProps("fullName")}
-            />
-            <TextInput
-              label="Designation"
-              placeholder="e.g. Senior Officer"
-              required
-              {...personForm.getInputProps("designation")}
-            />
-            <Group grow>
-              <Select
-                label="Role"
-                data={PERSON_ROLE_OPTIONS}
-                {...personForm.getInputProps("role")}
-              />
-              <Select
-                label="Status"
-                data={STATUS_OPTIONS}
-                {...personForm.getInputProps("status")}
-              />
-            </Group>
-            <TextInput
-              label="Department"
-              placeholder="Department name"
-              {...personForm.getInputProps("department")}
-            />
-            <TextInput
-              label="Reporting Manager"
-              placeholder="Manager's name"
-              {...personForm.getInputProps("reportingManager")}
-            />
-            <Group grow>
-              <TextInput
-                label="Email"
-                type="email"
-                placeholder="name@example.com"
-                {...personForm.getInputProps("email")}
-              />
-              <TextInput
-                label="Phone"
-                placeholder="+977 …"
-                {...personForm.getInputProps("phone")}
-              />
-            </Group>
-          </>
-        )}
+      {resolvedType === "person" && (
+        <PeopleForm
+          onSubmit={(values) => {
+            onSubmitPerson(values);
+            onClose();
+          }}
+          isLoading={isLoading}
+        />
+      )}
 
-        <Group justify="flex-end" mt="xs">
-          <Button variant="subtle" color="gray" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit}>
-            {mode === "add" ? "Add to canvas" : "Save changes"}
-          </Button>
-        </Group>
-      </Stack>
+      {resolvedType === "position" && (
+        <PositionsForm
+          onSubmit={(values) => {
+            onSubmitPosition(values);
+            onClose();
+          }}
+          isLoading={isLoading}
+          isEditing={mode === "edit"}
+        />
+      )}
+
+      {resolvedType === "site" && (
+        <SitesForm
+          onSubmit={(values) => {
+            onSubmitSite(values);
+            onClose();
+          }}
+          isLoading={isLoading}
+        />
+      )}
+
+      {resolvedType === "delegation" && (
+        <DelegationsForm
+          onSubmit={(values) => {
+            onSubmitDelegation(values);
+            onClose();
+          }}
+          isLoading={isLoading}
+          lockedFromNodeId={pendingContextNodeId}
+          lockedFromName={pendingParentName}
+        />
+      )}
     </Modal>
   );
 }

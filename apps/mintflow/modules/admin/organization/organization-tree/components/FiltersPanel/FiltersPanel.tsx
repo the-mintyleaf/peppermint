@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
 import {
-  Badge,
   Button,
   Chip,
   Divider,
@@ -11,7 +9,6 @@ import {
   Stack,
   Text,
 } from "@peppermint/ui";
-import { FunnelIcon } from "@phosphor-icons/react/dist/csr/Funnel";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
 import type { FilterKey, ExpandStrategy } from "../../OrganizationTree.types";
@@ -61,8 +58,8 @@ const STRATEGY_OPTIONS: Array<{
 ];
 
 export function FiltersPanel() {
-  const [open, setOpen] = useState(false);
   const {
+    filterPanelOpen,
     activeFilters,
     expandStrategy,
     expandedNodeIds,
@@ -72,134 +69,112 @@ export function FiltersPanel() {
     reapplyExpandStrategy,
   } = useOrgTreeStore();
 
+  if (!filterPanelOpen) return null;
+
   const activeCount = activeFilters.length;
 
   return (
     <div
       style={{
         position: "absolute",
-        top: 12,
-        right: 12,
+        bottom: 70,
+        left: "50%",
+        transform: "translateX(-50%)",
         zIndex: 10,
       }}
     >
-      <Button
-        size="xs"
-        variant={activeCount > 0 ? "filled" : "light"}
-        color="indigo"
-        leftSection={<FunnelIcon size={13} aria-label="Filters" />}
-        rightSection={
-          activeCount > 0 ? (
-            <Badge size="xs" color="white" c="indigo" circle>
-              {activeCount}
-            </Badge>
-          ) : null
-        }
-        onClick={() => setOpen((v) => !v)}
+      <Paper
+        withBorder
+        shadow="md"
+        radius="md"
+        p="md"
+        style={{ width: 260 }}
       >
-        Filters
-      </Button>
+        <Stack gap="sm">
+          <Group justify="space-between" align="center">
+            <Text size="xs" fw={600} tt="uppercase" c="dimmed">
+              Filters
+            </Text>
+            {activeCount > 0 && (
+              <Button
+                size="compact-xs"
+                variant="subtle"
+                color="red"
+                leftSection={<XIcon size={11} aria-label="Clear" />}
+                onClick={clearFilters}
+              >
+                Clear all
+              </Button>
+            )}
+          </Group>
 
-      {open && (
-        <Paper
-          withBorder
-          shadow="md"
-          radius="md"
-          p="md"
-          style={{
-            position: "absolute",
-            top: 36,
-            right: 0,
-            width: 260,
-            zIndex: 20,
-          }}
-        >
-          <Stack gap="sm">
+          <Stack gap={6}>
+            {FILTER_OPTIONS.map(({ key, label }) => (
+              <Chip
+                key={key}
+                size="xs"
+                checked={activeFilters.includes(key)}
+                onChange={(checked) => setFilter(key, checked)}
+              >
+                {label}
+              </Chip>
+            ))}
+          </Stack>
+
+          <Divider />
+
+          <Stack gap={6}>
             <Group justify="space-between" align="center">
               <Text size="xs" fw={600} tt="uppercase" c="dimmed">
-                Filters
+                Expand Strategy
               </Text>
-              {activeCount > 0 && (
+              {expandedNodeIds.length > 0 && (
                 <Button
                   size="compact-xs"
-                  variant="subtle"
-                  color="red"
-                  leftSection={<XIcon size={11} aria-label="Clear" />}
-                  onClick={clearFilters}
+                  variant="light"
+                  color="indigo"
+                  leftSection={
+                    <ArrowsClockwiseIcon size={11} aria-label="Re-apply" />
+                  }
+                  onClick={reapplyExpandStrategy}
                 >
-                  Clear all
+                  Re-apply
                 </Button>
               )}
             </Group>
-
-            <Stack gap={6}>
-              {FILTER_OPTIONS.map(({ key, label }) => (
-                <Chip
-                  key={key}
+            {STRATEGY_OPTIONS.map(({ key, label, description }) => (
+              <div
+                key={key}
+                style={{
+                  padding: "6px 8px",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  background:
+                    expandStrategy === key
+                      ? "var(--mantine-color-indigo-0)"
+                      : "transparent",
+                  border:
+                    expandStrategy === key
+                      ? "1px solid var(--mantine-color-indigo-3)"
+                      : "1px solid transparent",
+                }}
+                onClick={() => setExpandStrategy(key)}
+              >
+                <Text
                   size="xs"
-                  checked={activeFilters.includes(key)}
-                  onChange={(checked) => setFilter(key, checked)}
+                  fw={expandStrategy === key ? 600 : 400}
+                  c={expandStrategy === key ? "indigo" : "dark"}
                 >
                   {label}
-                </Chip>
-              ))}
-            </Stack>
-
-            <Divider />
-
-            <Stack gap={6}>
-              <Group justify="space-between" align="center">
-                <Text size="xs" fw={600} tt="uppercase" c="dimmed">
-                  Expand Strategy
                 </Text>
-                {expandedNodeIds.length > 0 && (
-                  <Button
-                    size="compact-xs"
-                    variant="light"
-                    color="indigo"
-                    leftSection={
-                      <ArrowsClockwiseIcon size={11} aria-label="Re-apply" />
-                    }
-                    onClick={reapplyExpandStrategy}
-                  >
-                    Re-apply
-                  </Button>
-                )}
-              </Group>
-              {STRATEGY_OPTIONS.map(({ key, label, description }) => (
-                <div
-                  key={key}
-                  style={{
-                    padding: "6px 8px",
-                    borderRadius: 6,
-                    cursor: "pointer",
-                    background:
-                      expandStrategy === key
-                        ? "var(--mantine-color-indigo-0)"
-                        : "transparent",
-                    border:
-                      expandStrategy === key
-                        ? "1px solid var(--mantine-color-indigo-3)"
-                        : "1px solid transparent",
-                  }}
-                  onClick={() => setExpandStrategy(key)}
-                >
-                  <Text
-                    size="xs"
-                    fw={expandStrategy === key ? 600 : 400}
-                    c={expandStrategy === key ? "indigo" : "dark"}
-                  >
-                    {label}
-                  </Text>
-                  <Text size="xs" c="dimmed" style={{ fontSize: 10 }}>
-                    {description}
-                  </Text>
-                </div>
-              ))}
-            </Stack>
+                <Text size="xs" c="dimmed" style={{ fontSize: 10 }}>
+                  {description}
+                </Text>
+              </div>
+            ))}
           </Stack>
-        </Paper>
-      )}
+        </Stack>
+      </Paper>
     </div>
   );
 }

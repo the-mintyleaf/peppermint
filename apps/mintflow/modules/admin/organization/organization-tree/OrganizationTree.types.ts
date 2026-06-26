@@ -148,11 +148,14 @@ export interface ActivityItem {
   user?: string;
 }
 
+export type ExtendedNodeType = OrgNodeType | "position" | "site" | "delegation";
+
 export interface NodeModalConfig {
   open: boolean;
   mode: "add" | "edit";
-  nodeType?: OrgNodeType;
+  nodeType?: ExtendedNodeType;
   editingNodeId?: string;
   pendingParentId?: string;
   pendingParentName?: string;
+  contextNodeId?: string;
 }

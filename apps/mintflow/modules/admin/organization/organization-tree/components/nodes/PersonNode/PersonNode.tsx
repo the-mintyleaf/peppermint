@@ -14,6 +14,7 @@ import {
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react/dist/csr/ArrowSquareOut";
+import { UserSwitchIcon } from "@phosphor-icons/react/dist/csr/UserSwitch";
 import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
 import { CaretUpIcon } from "@phosphor-icons/react/dist/csr/CaretUp";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
@@ -47,7 +48,7 @@ export function PersonNode({
   id,
 }: NodeProps<PersonFlowNodeType>) {
   const [hovered, setHovered] = useState(false);
-  const { openEditModal, selectNode, expandNode, collapseNode } =
+  const { openEditModal, openAddModal, selectNode, expandNode, collapseNode } =
     useOrgTreeStore();
 
   const isExpanded = data._expanded as boolean | undefined;
@@ -195,6 +196,20 @@ export function PersonNode({
               aria-label="View profile"
             >
               <ArrowSquareOutIcon size={12} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="Delegate" position="top" withArrow>
+            <ActionIcon
+              size="xs"
+              variant="light"
+              color="violet"
+              onClick={(e) => {
+                e.stopPropagation();
+                openAddModal("delegation", undefined, data.fullName, id);
+              }}
+              aria-label="Delegate person"
+            >
+              <UserSwitchIcon size={12} />
             </ActionIcon>
           </Tooltip>
           <Tooltip label="Edit" position="top" withArrow>

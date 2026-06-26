@@ -30,10 +30,12 @@ export function DelegationsForm({
   initialValues,
   onSubmit,
   isLoading,
+  lockedFromNodeId,
+  lockedFromName,
 }: DelegationsFormProps) {
   const form = useForm<Partial<Delegation>>({
     initialValues: {
-      from_assignment: initialValues?.from_assignment ?? "",
+      from_assignment: lockedFromNodeId ?? initialValues?.from_assignment ?? "",
       to_assignment: initialValues?.to_assignment ?? "",
       delegation_type: initialValues?.delegation_type ?? "acting_authority",
       scope_unit: initialValues?.scope_unit ?? null,
@@ -70,15 +72,24 @@ export function DelegationsForm({
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="md" p="md">
-        <PositionPicker
-          label="From (delegating)"
-          required
-          fetchOptions={fetchAssignmentOptions}
-          value={(form.values.from_assignment as string) || null}
-          onChange={(id) => form.setFieldValue("from_assignment", id ?? "")}
-          error={form.errors.from_assignment as string | undefined}
-          disabled={isLoading}
-        />
+        {lockedFromNodeId ? (
+          <TextInput
+            label="From (delegating)"
+            value={lockedFromName ?? lockedFromNodeId}
+            disabled
+            required
+          />
+        ) : (
+          <PositionPicker
+            label="From (delegating)"
+            required
+            fetchOptions={fetchAssignmentOptions}
+            value={(form.values.from_assignment as string) || null}
+            onChange={(id) => form.setFieldValue("from_assignment", id ?? "")}
+            error={form.errors.from_assignment as string | undefined}
+            disabled={isLoading}
+          />
+        )}
         <PositionPicker
           label="To (receiving)"
           required

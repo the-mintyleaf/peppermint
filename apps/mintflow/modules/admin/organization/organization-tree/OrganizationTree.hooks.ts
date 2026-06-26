@@ -3,14 +3,25 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Node, Edge } from "@xyflow/react";
 import { MarkerType } from "@xyflow/react";
 import {
-  createPosition,
   createUnit,
   fetchUnitTree,
-  type CreatePositionInput,
   type CreateUnitInput,
 } from "./OrganizationTree.api";
 import { orgTreeQueryKeys } from "./OrganizationTree.queryKeys";
 import type { DepartmentData, OrgNodeData } from "./OrganizationTree.types";
+import {
+  createOrganization,
+  updateOrganization,
+} from "../organizations/organizations.api";
+import type { Organization } from "../organizations/organizations.types";
+import { createPerson } from "../people/people.api";
+import type { CreatePersonPayload } from "../people/people.types";
+import { createPosition as createPositionApi } from "../positions/positions.api";
+import type { Position } from "../positions/positions.types";
+import { createSite } from "../sites/sites.api";
+import type { CreateSitePayload } from "../sites/sites.types";
+import { createDelegation } from "../delegations/delegations.api";
+import type { DelegationCreatePayload } from "../delegations/delegations.types";
 
 export type OrgFlowNode = Node<OrgNodeData, string>;
 export type OrgFlowEdge = Edge & { data?: { relationshipType?: string } };
@@ -105,15 +116,75 @@ export function useCreateUnit(orgId: string) {
   });
 }
 
-export function useCreatePosition(orgId: string) {
+export function useAddOrganizationNode(orgId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: Omit<CreatePositionInput, "organization">) =>
-      createPosition({ ...input, organization: orgId }),
+    mutationFn: (values: Partial<Organization>) => createOrganization(values),
     onSuccess: () => {
-      void qc.invalidateQueries({
-        queryKey: orgTreeQueryKeys.graph(orgId),
-      });
+      void qc.invalidateQueries({ queryKey: orgTreeQueryKeys.graph(orgId) });
+    },
+  });
+}
+
+export function useUpdateOrganizationNode(orgId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      values,
+    }: {
+      id: string;
+      values: Partial<Organization>;
+    }) => updateOrganization(id, values),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: orgTreeQueryKeys.graph(orgId) });
+    },
+  });
+}
+
+export function useAddPersonNode(orgId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (values: CreatePersonPayload) => createPerson(orgId, values),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: orgTreeQueryKeys.graph(orgId) });
+    },
+  });
+}
+
+export function useAddPosition(orgId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      unitId,
+      values,
+    }: {
+      unitId: string;
+      values: Partial<Position>;
+    }) => createPositionApi(unitId, { ...values, organization: orgId }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: orgTreeQueryKeys.graph(orgId) });
+    },
+  });
+}
+
+export function useAddSite(orgId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (values: CreateSitePayload) => createSite(orgId, values),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: orgTreeQueryKeys.graph(orgId) });
+    },
+  });
+}
+
+export function useAddDelegation(orgId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (values: DelegationCreatePayload) =>
+      createDelegation(orgId, values),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: orgTreeQueryKeys.graph(orgId) });
     },
   });
 }

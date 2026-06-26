@@ -1,8 +1,18 @@
+import { MarkerType } from "@xyflow/react";
+import type { Node, Edge } from "@xyflow/react";
 import type {
   NodeHealthIssue,
   DescendantStats,
   PersonRole,
+  OrgOfficeData,
+  PersonData,
+  OrgNodeData,
 } from "./OrganizationTree.types";
+import type { Organization } from "../organizations/organizations.types";
+import type { Person } from "../people/people.types";
+
+type OrgFlowNode = Node<OrgNodeData, string>;
+type OrgFlowEdge = Edge & { data?: { relationshipType?: string } };
 
 type MinNode = { id: string; type?: string; data?: Record<string, unknown> };
 type MinEdge = { source: string; target: string };
@@ -314,4 +324,67 @@ export function computeNodeHealth(
 
   // Deduplicate
   return [...new Set(issues)];
+}
+
+export function orgToFlowNode(
+  org: Organization,
+  parentId?: string,
+): { node: OrgFlowNode; edge: OrgFlowEdge | null } {
+  const data: OrgOfficeData = {
+    nodeType: "org",
+    name: org.name,
+    orgType:
+      (org.organization_type as OrgOfficeData["orgType"]) ?? "organization",
+    description: org.description,
+    status: org.status === "active" ? "active" : "inactive",
+  };
+  const node: OrgFlowNode = {
+    id: org.id,
+    type: "org",
+    position: { x: 0, y: 0 },
+    data,
+  };
+  const edge: OrgFlowEdge | null = parentId
+    ? {
+        id: `e-${parentId}-${org.id}`,
+        source: parentId,
+        target: org.id,
+        type: "smoothstep",
+        markerEnd: { type: MarkerType.ArrowClosed, color: "#94a3b8" },
+        style: { strokeWidth: 2, stroke: "#94a3b8" },
+        data: { relationshipType: "contains" },
+      }
+    : null;
+  return { node, edge };
+}
+
+export function personToFlowNode(
+  person: Person,
+  parentId?: string,
+): { node: OrgFlowNode; edge: OrgFlowEdge | null } {
+  const data: PersonData = {
+    nodeType: "person",
+    fullName: person.user_display_name,
+    designation: person.employee_code || "Member",
+    email: person.user_email,
+    status: person.membership_status === "active" ? "active" : "inactive",
+  };
+  const node: OrgFlowNode = {
+    id: person.id,
+    type: "person",
+    position: { x: 0, y: 0 },
+    data,
+  };
+  const edge: OrgFlowEdge | null = parentId
+    ? {
+        id: `e-${parentId}-${person.id}`,
+        source: parentId,
+        target: person.id,
+        type: "smoothstep",
+        markerEnd: { type: MarkerType.ArrowClosed, color: "#94a3b8" },
+        style: { strokeWidth: 2, stroke: "#94a3b8" },
+        data: { relationshipType: "member_of" },
+      }
+    : null;
+  return { node, edge };
 }

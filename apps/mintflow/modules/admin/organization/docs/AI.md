@@ -10,15 +10,15 @@ Composite — contains multiple ContainedModules (one route each) and one specia
 
 ## Routes
 
-| Route | Module | Description |
-|---|---|---|
-| `/admin/organization` | `ModuleOrganizations` | Org list — create/edit/status-change |
-| `/admin/organization/[id]/structure` | `ModuleOrganizationTree` | Org tree canvas builder |
-| `/admin/organization/[id]/positions` | `ModulePositions` | Position list — deactivate action |
-| `/admin/organization/[id]/members` | `ModulePeople` | Membership list — create/status-change/profile drawer |
-| `/admin/organization/[id]/sites` | `ModuleSites` | Site list — create (no public API yet; mock only) |
-| `/admin/organization/[id]/delegations` | `ModuleDelegations` | Delegation list — create/revoke |
-| `/admin/organization/[id]/event-log` | `ModuleHistory` | Event log — read-only |
+| Route                                  | Module                   | Description                                           |
+| -------------------------------------- | ------------------------ | ----------------------------------------------------- |
+| `/admin/organization`                  | `ModuleOrganizations`    | Org list — create/edit/status-change                  |
+| `/admin/organization/[id]/structure`   | `ModuleOrganizationTree` | Org tree canvas builder                               |
+| `/admin/organization/[id]/positions`   | `ModulePositions`        | Position list — deactivate action                     |
+| `/admin/organization/[id]/members`     | `ModulePeople`           | Membership list — create/status-change/profile drawer |
+| `/admin/organization/[id]/sites`       | `ModuleSites`            | Site list — create (no public API yet; mock only)     |
+| `/admin/organization/[id]/delegations` | `ModuleDelegations`      | Delegation list — create/revoke                       |
+| `/admin/organization/[id]/event-log`   | `ModuleHistory`          | Event log — read-only                                 |
 
 ## Sidebar navigation
 
@@ -31,49 +31,49 @@ Sidebar is dynamic — driven by `useSelectedOrgStore` (at `apps/mintflow/stores
 
 ## Sub-module index
 
-| Sub-module | Path | Entry export |
-|---|---|---|
-| Shared primitives | `_shared/` | `StatusBadge`, `ReasonConfirmDialog`, `PositionPicker`, `UnitPicker`, `EventLogList`, `UserPicker` |
-| Organizations list | `organizations/` | `ModuleOrganizations` |
-| Org tree canvas | `organization-tree/` | `ModuleOrganizationTree` |
-| Positions | `positions/` | `ModulePositions` |
-| People / Members | `people/` | `ModulePeople` |
-| Sites | `sites/` | `ModuleSites` |
-| Delegations | `delegations/` | `ModuleDelegations` |
-| Event log | `history/` | `ModuleHistory` |
+| Sub-module         | Path                 | Entry export                                                                                       |
+| ------------------ | -------------------- | -------------------------------------------------------------------------------------------------- |
+| Shared primitives  | `_shared/`           | `StatusBadge`, `ReasonConfirmDialog`, `PositionPicker`, `UnitPicker`, `EventLogList`, `UserPicker` |
+| Organizations list | `organizations/`     | `ModuleOrganizations`                                                                              |
+| Org tree canvas    | `organization-tree/` | `ModuleOrganizationTree`                                                                           |
+| Positions          | `positions/`         | `ModulePositions`                                                                                  |
+| People / Members   | `people/`            | `ModulePeople`                                                                                     |
+| Sites              | `sites/`             | `ModuleSites`                                                                                      |
+| Delegations        | `delegations/`       | `ModuleDelegations`                                                                                |
+| Event log          | `history/`           | `ModuleHistory`                                                                                    |
 
 ## Common edit targets
 
-| Task | Files |
-|---|---|
-| Org list UI | `organizations/pages/list/OrganizationsList.tsx` |
-| Org list columns | `organizations/pages/list/organizations.columns.tsx` |
-| Org form | `organizations/form/OrganizationsForm.tsx` |
-| Org queries | `organizations/organizations.queryKeys.ts`, `organizations/organizations.api.ts` |
-| Org tree canvas | `organization-tree/OrganizationTree.tsx` |
-| Org tree state | `organization-tree/OrganizationTree.store.ts` |
-| Org tree data layer | `organization-tree/OrganizationTree.hooks.ts`, `organization-tree/OrganizationTree.api.ts` |
-| Positions list | `positions/pages/list/PositionsList.tsx` |
-| Members list | `people/pages/list/PeopleList.tsx` |
-| Member profile drawer | `people/components/PeopleProfileDrawer/` |
-| Sites list | `sites/pages/list/SitesList.tsx` |
-| Delegations list | `delegations/pages/list/DelegationsList.tsx` |
-| Event log | `history/pages/list/HistoryList.tsx` |
-| Status/type labels | `organization.constants.ts` |
-| Shared status badge | `_shared/StatusBadge/StatusBadge.tsx` |
-| Sidebar config | `apps/mintflow/config/nav/admin-nav.ts` |
-| Selected org store | `apps/mintflow/stores/selectedOrg.store.ts` |
+| Task                  | Files                                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------------ |
+| Org list UI           | `organizations/pages/list/OrganizationsList.tsx`                                           |
+| Org list columns      | `organizations/pages/list/organizations.columns.tsx`                                       |
+| Org form              | `organizations/form/OrganizationsForm.tsx`                                                 |
+| Org queries           | `organizations/organizations.queryKeys.ts`, `organizations/organizations.api.ts`           |
+| Org tree canvas       | `organization-tree/OrganizationTree.tsx`                                                   |
+| Org tree state        | `organization-tree/OrganizationTree.store.ts`                                              |
+| Org tree data layer   | `organization-tree/OrganizationTree.hooks.ts`, `organization-tree/OrganizationTree.api.ts` |
+| Positions list        | `positions/pages/list/PositionsList.tsx`                                                   |
+| Members list          | `people/pages/list/PeopleList.tsx`                                                         |
+| Member profile drawer | `people/components/PeopleProfileDrawer/`                                                   |
+| Sites list            | `sites/pages/list/SitesList.tsx`                                                           |
+| Delegations list      | `delegations/pages/list/DelegationsList.tsx`                                               |
+| Event log             | `history/pages/list/HistoryList.tsx`                                                       |
+| Status/type labels    | `organization.constants.ts`                                                                |
+| Shared status badge   | `_shared/StatusBadge/StatusBadge.tsx`                                                      |
+| Sidebar config        | `apps/mintflow/config/nav/admin-nav.ts`                                                    |
+| Selected org store    | `apps/mintflow/stores/selectedOrg.store.ts`                                                |
 
 ## State ownership
 
-| State | Location |
-|---|---|
-| Org list / detail server data | React Query, keys in each sub-module's `.queryKeys.ts` |
+| State                                    | Location                                                          |
+| ---------------------------------------- | ----------------------------------------------------------------- |
+| Org list / detail server data            | React Query, keys in each sub-module's `.queryKeys.ts`            |
 | Currently selected org (sidebar context) | `apps/mintflow/stores/selectedOrg.store.ts` (Zustand + `persist`) |
-| Org tree canvas interaction | `organization-tree/OrganizationTree.store.ts` (Zustand) |
-| People profile drawer open | `useState` in `PeopleList.tsx` |
-| Status-change confirm dialog | `useState` in each list component |
-| Event log page + filter state | `useState` in `HistoryList.tsx` |
+| Org tree canvas interaction              | `organization-tree/OrganizationTree.store.ts` (Zustand)           |
+| People profile drawer open               | `useState` in `PeopleList.tsx`                                    |
+| Status-change confirm dialog             | `useState` in each list component                                 |
+| Event log page + filter state            | `useState` in `HistoryList.tsx`                                   |
 
 ## Query key namespace
 
@@ -93,26 +93,26 @@ All keys begin with `["org-structure", ...]`:
 
 Always use these — do not re-implement per sub-module.
 
-| Primitive | Use for |
-|---|---|
-| `StatusBadge` | Any status field — auto-resolves label/color from internal maps; no custom props |
-| `ReasonConfirmDialog` | Any destructive or status-change action requiring a reason string |
-| `PositionPicker` | Position assignment selects in forms |
-| `UnitPicker` | Org unit selects in forms |
-| `UserPicker` | User search selects in forms (people module) |
-| `EventLogList` | Read-only event feed — used by history module |
+| Primitive             | Use for                                                                          |
+| --------------------- | -------------------------------------------------------------------------------- |
+| `StatusBadge`         | Any status field — auto-resolves label/color from internal maps; no custom props |
+| `ReasonConfirmDialog` | Any destructive or status-change action requiring a reason string                |
+| `PositionPicker`      | Position assignment selects in forms                                             |
+| `UnitPicker`          | Org unit selects in forms                                                        |
+| `UserPicker`          | User search selects in forms (people module)                                     |
+| `EventLogList`        | Read-only event feed — used by history module                                    |
 
 ## API status
 
-| Sub-module | API status |
-|---|---|
-| Organizations | Real endpoints — mock in dev |
-| Positions | Real endpoints — mock in dev |
-| People / Members | Real endpoints — mock in dev |
-| Delegations | Real endpoints — mock in dev |
-| Event log | Real endpoints — mock in dev |
-| Sites | **No public API in v1.0** — mock only; endpoints planned |
-| Org tree | Stubs in `OrganizationTree.api.ts`; real: `GET /organizations/<id>/unit-tree/` |
+| Sub-module       | API status                                                                     |
+| ---------------- | ------------------------------------------------------------------------------ |
+| Organizations    | Real endpoints — mock in dev                                                   |
+| Positions        | Real endpoints — mock in dev                                                   |
+| People / Members | Real endpoints — mock in dev                                                   |
+| Delegations      | Real endpoints — mock in dev                                                   |
+| Event log        | Real endpoints — mock in dev                                                   |
+| Sites            | **No public API in v1.0** — mock only; endpoints planned                       |
+| Org tree         | Stubs in `OrganizationTree.api.ts`; real: `GET /organizations/<id>/unit-tree/` |
 
 ## Do not do
 

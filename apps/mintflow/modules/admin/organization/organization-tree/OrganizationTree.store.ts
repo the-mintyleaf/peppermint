@@ -3,6 +3,7 @@ import type { Node, Edge } from "@xyflow/react";
 import type {
   OrgNodeData,
   OrgNodeType,
+  ExtendedNodeType,
   NodeModalConfig,
   FilterKey,
   ExpandStrategy,
@@ -38,15 +39,17 @@ interface OrgBuilderState {
 
   activeFilters: FilterKey[];
   expandStrategy: ExpandStrategy;
+  filterPanelOpen: boolean;
 
   selectNode: (id: string | null) => void;
   closeDrawer: () => void;
   setActiveDepartment: (id: string | null) => void;
   setHighlightedNodeId: (id: string | null) => void;
   openAddModal: (
-    nodeType: OrgNodeType,
+    nodeType: ExtendedNodeType,
     parentId?: string,
     parentName?: string,
+    contextNodeId?: string,
   ) => void;
   openEditModal: (nodeId: string) => void;
   closeModal: () => void;
@@ -71,6 +74,7 @@ interface OrgBuilderState {
   expandNode: (id: string) => void;
   collapseNode: (id: string) => void;
   collapseAll: () => void;
+  expandAll: () => void;
   setFocusedBranch: (id: string | null) => void;
   setViewMode: (mode: "explorer" | "fullmap") => void;
   setExpandedNodeIds: (ids: string[]) => void;
@@ -80,6 +84,7 @@ interface OrgBuilderState {
   clearFilters: () => void;
   setExpandStrategy: (strategy: ExpandStrategy) => void;
   reapplyExpandStrategy: () => void;
+  toggleFilterPanel: () => void;
 
   expandGroup: (groupNodeId: string, nodes: OrgFlowNode[]) => void;
 }
@@ -104,13 +109,14 @@ export const useOrgTreeStore = create<OrgBuilderState>((set, get) => ({
 
   activeFilters: [],
   expandStrategy: "direct",
+  filterPanelOpen: false,
 
   selectNode: (id) => set({ selectedNodeId: id, drawerOpen: id !== null }),
   closeDrawer: () => set({ selectedNodeId: null, drawerOpen: false }),
   setActiveDepartment: (id) => set({ activeDepartmentId: id }),
   setHighlightedNodeId: (id) => set({ selectedNodeId: id }),
 
-  openAddModal: (nodeType, parentId, parentName) =>
+  openAddModal: (nodeType, parentId, parentName, contextNodeId) =>
     set({
       nodeModal: {
         open: true,
@@ -119,6 +125,7 @@ export const useOrgTreeStore = create<OrgBuilderState>((set, get) => ({
         editingNodeId: undefined,
         pendingParentId: parentId,
         pendingParentName: parentName,
+        contextNodeId,
       },
     }),
 
@@ -134,6 +141,7 @@ export const useOrgTreeStore = create<OrgBuilderState>((set, get) => ({
         editingNodeId: undefined,
         pendingParentId: undefined,
         pendingParentName: undefined,
+        contextNodeId: undefined,
       },
     }),
 
@@ -212,6 +220,16 @@ export const useOrgTreeStore = create<OrgBuilderState>((set, get) => ({
   collapseAll: () =>
     set({ expandedNodeIds: [], expandedGroupIds: [], focusedBranchId: null }),
 
+  expandAll: () => {
+    const { edgeCache } = get();
+    const ids = new Set<string>();
+    for (const e of edgeCache) {
+      ids.add(e.source);
+      ids.add(e.target);
+    }
+    set({ expandedNodeIds: [...ids] });
+  },
+
   setFocusedBranch: (id) => set({ focusedBranchId: id }),
 
   setViewMode: (mode) => set({ viewMode: mode }),
@@ -233,6 +251,9 @@ export const useOrgTreeStore = create<OrgBuilderState>((set, get) => ({
   clearFilters: () => set({ activeFilters: [] }),
 
   setExpandStrategy: (strategy) => set({ expandStrategy: strategy }),
+
+  toggleFilterPanel: () =>
+    set((s) => ({ filterPanelOpen: !s.filterPanelOpen })),
 
   reapplyExpandStrategy: () => {
     const { expandedNodeIds, expandStrategy, edgeCache } = get();

@@ -4,4 +4,6 @@ export interface DelegationsFormProps {
   initialValues?: Partial<Delegation>;
   onSubmit: (values: Delegation) => void;
   isLoading?: boolean;
+  lockedFromNodeId?: string;
+  lockedFromName?: string;
 }

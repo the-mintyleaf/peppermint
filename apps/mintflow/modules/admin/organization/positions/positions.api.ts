@@ -1,8 +1,9 @@
 // Mock API — replace with real Axios calls when backend is wired.
 // Real endpoints:
-//   GET  /api/v1/organization/units/<unit_id>/positions/   (unit-scoped)
-//   GET  /api/v1/organization/positions/<id>/
-//   POST /api/v1/organization/positions/<id>/deactivate/   { reason?: "" }
+//   GET   /api/v1/organization/units/<unit_id>/positions/   (unit-scoped)
+//   POST  /api/v1/organization/units/<unit_id>/positions/
+//   GET   /api/v1/organization/positions/<id>/
+//   POST  /api/v1/organization/positions/<id>/deactivate/   { reason?: "" }
 // Note: No org-level list endpoint exists in this API version.
 //   Real implementation: aggregate across unit endpoints or request
 //   a ?organization_id= filter on a future /positions/ root endpoint.
@@ -130,6 +131,33 @@ export async function fetchPosition(id: string): Promise<Position> {
   const pos = MOCK_POSITIONS.find((p) => p.id === id);
   if (!pos) throw new Error("Position not found");
   return pos;
+}
+
+export async function createPosition(
+  unitId: string,
+  values: Partial<Position>,
+): Promise<Position> {
+  await delay(300);
+  return {
+    title: "",
+    code: "",
+    position_type: "officer",
+    status: "draft",
+    description: "",
+    is_leadership: false,
+    is_supervisory: false,
+    is_single_occupant: true,
+    max_occupants: 1,
+    effective_from: null,
+    effective_to: null,
+    ...values,
+    id: crypto.randomUUID(),
+    unit: unitId,
+    organization: values.organization ?? "",
+    is_active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  } as Position;
 }
 
 export async function deactivatePosition(

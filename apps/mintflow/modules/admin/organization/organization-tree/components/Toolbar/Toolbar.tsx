@@ -12,11 +12,13 @@ import { MagnifyingGlassPlusIcon } from "@phosphor-icons/react/dist/csr/Magnifyi
 import { MagnifyingGlassMinusIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlassMinus";
 import { FrameCornersIcon } from "@phosphor-icons/react/dist/csr/FrameCorners";
 import { ArrowsInIcon } from "@phosphor-icons/react/dist/csr/ArrowsIn";
+import { ArrowsOutIcon } from "@phosphor-icons/react/dist/csr/ArrowsOut";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
 import { ArrowClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowClockwise";
 import { GraphIcon } from "@phosphor-icons/react/dist/csr/Graph";
 import { GridFourIcon } from "@phosphor-icons/react/dist/csr/GridFour";
 import { ArrowUpIcon } from "@phosphor-icons/react/dist/csr/ArrowUp";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { useOrgTreeStore } from "../../OrganizationTree.store";
 import styles from "../../OrganizationTree.module.css";
 import type { ToolbarProps } from "./Toolbar.types";
@@ -36,12 +38,15 @@ export function Toolbar({
   viewMode,
   onToggleViewMode,
   onCollapseAll,
+  onExpandAll,
+  isFullyCollapsed,
   focusedBranchId,
   onClearFocusBranch,
   onBackToParent,
   onFitVisible,
 }: ToolbarProps) {
-  const { openAddModal } = useOrgTreeStore();
+  const { openAddModal, toggleFilterPanel, filterPanelOpen, activeFilters } =
+    useOrgTreeStore();
 
   return (
     <div className={styles.toolbar}>
@@ -78,6 +83,32 @@ export function Toolbar({
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>
+
+      <div className={styles.toolbarDivider} />
+
+      <Tooltip label="Filters" withArrow>
+        <ActionIcon
+          size="sm"
+          variant={filterPanelOpen || activeFilters.length > 0 ? "filled" : "subtle"}
+          color="indigo"
+          onClick={toggleFilterPanel}
+          aria-label="Toggle filters"
+          style={{ position: "relative" }}
+        >
+          <MagnifyingGlassIcon size={16} />
+          {activeFilters.length > 0 && (
+            <Badge
+              size="xs"
+              color="white"
+              c="indigo"
+              circle
+              style={{ position: "absolute", top: -4, right: -4 }}
+            >
+              {activeFilters.length}
+            </Badge>
+          )}
+        </ActionIcon>
+      </Tooltip>
 
       {activeDepartmentId && (
         <>
@@ -179,17 +210,31 @@ export function Toolbar({
       </Tooltip>
 
       {viewMode === "explorer" && (
-        <Tooltip label="Collapse all" withArrow>
-          <ActionIcon
-            size="sm"
-            variant="subtle"
-            color="gray"
-            onClick={onCollapseAll}
-            aria-label="Collapse all"
-          >
-            <ArrowsInIcon size={16} />
-          </ActionIcon>
-        </Tooltip>
+        isFullyCollapsed ? (
+          <Tooltip label="Expand all" withArrow>
+            <ActionIcon
+              size="sm"
+              variant="subtle"
+              color="gray"
+              onClick={onExpandAll}
+              aria-label="Expand all"
+            >
+              <ArrowsOutIcon size={16} />
+            </ActionIcon>
+          </Tooltip>
+        ) : (
+          <Tooltip label="Collapse all" withArrow>
+            <ActionIcon
+              size="sm"
+              variant="subtle"
+              color="gray"
+              onClick={onCollapseAll}
+              aria-label="Collapse all"
+            >
+              <ArrowsInIcon size={16} />
+            </ActionIcon>
+          </Tooltip>
+        )
       )}
 
       <div className={styles.toolbarDivider} />

@@ -1,12 +1,5 @@
-import type {
-  OrgNodeData,
-  OrgOfficeData,
-  DepartmentData,
-  PersonData,
-  GroupData,
-  NodeHealthIssue,
-} from "../../OrganizationTree.types";
-import type { OrgFlowNode } from "../../OrganizationTree.store";
+import type { OrgNodeData, ExtendedNodeType } from "../../OrganizationTree.types";
+import type { OrgFlowNode, OrgFlowEdge } from "../../OrganizationTree.store";
 
 export interface InspectorPanelProps {
   opened: boolean;
@@ -14,15 +7,14 @@ export interface InspectorPanelProps {
   selectedNode: { id: string; type: string; data: OrgNodeData } | null;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
-  onAddDivision: () => void;
-  onAddPerson: () => void;
-  onAddChild: () => void;
-  totalPeople?: number;
-  totalDepts?: number;
-  hiddenLevels?: number;
-  headPersonName?: string;
-  healthIssues: NodeHealthIssue[];
-  directReports?: number;
-  totalBelow?: number;
-  memberNodes?: OrgFlowNode[];
+  onAddChild: (
+    type: ExtendedNodeType,
+    parentId: string,
+    parentName: string,
+    contextNodeId?: string,
+  ) => void;
+  onSelectNode: (id: string) => void;
+  onFocusNode: (id: string) => void;
+  nodes: OrgFlowNode[];
+  edges: OrgFlowEdge[];
 }
