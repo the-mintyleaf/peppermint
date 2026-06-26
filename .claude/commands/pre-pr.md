@@ -23,6 +23,7 @@ If Greptile is not available, skip this step and note it in the PR description.
 ## Step 4 — Prepare PR description
 
 Gather:
+
 - Branch name and base branch
 - `git log main..HEAD --oneline` for the commit list
 - `git diff main..HEAD --name-only` for changed files
@@ -62,11 +63,13 @@ Compose the PR description following the format in `.claude/STANDARDS.md > Agent
 ## Step 5 — Push and create PR
 
 Push the branch:
+
 ```bash
 git push -u origin <branch-name>
 ```
 
 Create the PR using gh CLI:
+
 ```bash
 gh pr create --title "<title>" --body "<body>"
 ```

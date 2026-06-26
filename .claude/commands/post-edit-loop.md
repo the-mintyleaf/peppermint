@@ -41,6 +41,7 @@ If any AI map entries are stale or missing, run `/update-ai-map` to fix them.
 ## Step 6 — Final report
 
 Respond with a concise summary:
+
 - What was simplified (files and changes)
 - Type check: PASS or FAIL (errors fixed)
 - Lint: PASS or FAIL (errors fixed)

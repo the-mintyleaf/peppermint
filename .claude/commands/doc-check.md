@@ -20,6 +20,7 @@ If $ARGUMENTS is `--fix`, apply repairs automatically after reporting.
 For each file path or folder reference in the AI maps, check whether it exists on the filesystem.
 
 Classify each entry as:
+
 - **Accurate** — path exists and content is correct
 - **Stale** — path was listed but file/folder no longer exists or was renamed
 - **Missing** — something exists in the code that should be in the AI map but is not
@@ -28,11 +29,11 @@ Classify each entry as:
 
 Output a table:
 
-| Entry | Status | Notes |
-|---|---|---|
-| `organization-tree/OrganizationTree.tsx` | Accurate | — |
-| `organization-tree/OrganizationTree.hooks.ts` | Stale | File does not exist |
-| `organization-tree/components/NewPanel/` | Missing | Not yet listed in AI map |
+| Entry                                         | Status   | Notes                    |
+| --------------------------------------------- | -------- | ------------------------ |
+| `organization-tree/OrganizationTree.tsx`      | Accurate | —                        |
+| `organization-tree/OrganizationTree.hooks.ts` | Stale    | File does not exist      |
+| `organization-tree/components/NewPanel/`      | Missing  | Not yet listed in AI map |
 
 ## Step 5 — Fix (if --fix)
 

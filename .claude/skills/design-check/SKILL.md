@@ -37,14 +37,14 @@ Read `.claude/DESIGN.md` in full before proceeding. Every finding must cite a pr
 
 For each file in scope, determine which page pattern it most closely maps to:
 
-| Pattern | Signals |
-|---|---|
-| **List** | Table, DataTable, grid of records, search + filters, bulk actions |
-| **Detail** | Single entity view, header + summary + timeline, status + actions |
-| **Dashboard** | Health indicators, exception cards, trend charts, work queues |
-| **Settings** | Form groups, current value display, save/cancel, change history |
+| Pattern             | Signals                                                               |
+| ------------------- | --------------------------------------------------------------------- |
+| **List**            | Table, DataTable, grid of records, search + filters, bulk actions     |
+| **Detail**          | Single entity view, header + summary + timeline, status + actions     |
+| **Dashboard**       | Health indicators, exception cards, trend charts, work queues         |
+| **Settings**        | Form groups, current value display, save/cancel, change history       |
 | **Review/Approval** | Evidence display, risk indicator, approve/reject actions, audit trail |
-| **Component** | Reusable UI piece used by other modules — no standalone page pattern |
+| **Component**       | Reusable UI piece used by other modules — no standalone page pattern  |
 
 Note the pattern for each file — it determines which output contract states are required vs. N/A.
 
@@ -53,6 +53,7 @@ Note the pattern for each file — it determines which output contract states ar
 ## 2. Run the Part 8 pre-flight self-check (10 questions)
 
 For each file in scope, answer all 10 questions. For each:
+
 - State PASS or FAIL
 - If FAIL: cite the file, the approximate line range, the principle violated, and an actionable fix
 
@@ -85,6 +86,7 @@ Look for: `onClick` on badge/tag elements, action buttons styled as status pills
 Frequent+safe: large, close, low-friction. Rare+destructive: small, separated, behind a step. (DESIGN.md §1.5/1.10)
 
 Read the action list. For each:
+
 - Is delete/suspend/revoke/ban visually separated from approve/save/create?
 - Is a destructive action ever the most prominent element on the page?
 - Are safe frequent actions easy to reach?
@@ -115,21 +117,22 @@ Look for: animation that runs for > 300ms without a `useReducedMotion()` check, 
 
 For each file, check which of the 11 required states are present. Map to the detected pattern to determine required vs. N/A.
 
-| State | Required for | How to detect |
-|---|---|---|
-| Empty (no data yet) | List, Detail, Dashboard | `data?.length === 0` or `!data` conditional with empty-state UI |
-| No-results (filtered) | List | `data.length === 0` after search/filter, distinct from empty |
-| Loading | All | `isLoading` or `isPending` conditional with skeleton/spinner |
-| Partial loading | Dashboard, Detail | Skeleton for partial sections while others load |
-| Request-failed | All | `isError` conditional with error UI and retry option |
-| Permission-denied | Any with auth | `403` handling or role-check resulting in denied-state UI |
-| Read-only | Form, Detail | `disabled` props on all inputs, or explicit read-only layout |
-| Archived/deleted record | Detail | State for when the record no longer exists or is archived |
-| Conflicting edits | Form (multi-user) | Stale data warning when concurrent edits detected |
-| Unsaved changes | Form, Settings | Warning before navigation away with pending changes |
-| Long-running / background job | Dashboard, Action flows | Progress feedback for async operations that take > 1s |
+| State                         | Required for            | How to detect                                                   |
+| ----------------------------- | ----------------------- | --------------------------------------------------------------- |
+| Empty (no data yet)           | List, Detail, Dashboard | `data?.length === 0` or `!data` conditional with empty-state UI |
+| No-results (filtered)         | List                    | `data.length === 0` after search/filter, distinct from empty    |
+| Loading                       | All                     | `isLoading` or `isPending` conditional with skeleton/spinner    |
+| Partial loading               | Dashboard, Detail       | Skeleton for partial sections while others load                 |
+| Request-failed                | All                     | `isError` conditional with error UI and retry option            |
+| Permission-denied             | Any with auth           | `403` handling or role-check resulting in denied-state UI       |
+| Read-only                     | Form, Detail            | `disabled` props on all inputs, or explicit read-only layout    |
+| Archived/deleted record       | Detail                  | State for when the record no longer exists or is archived       |
+| Conflicting edits             | Form (multi-user)       | Stale data warning when concurrent edits detected               |
+| Unsaved changes               | Form, Settings          | Warning before navigation away with pending changes             |
+| Long-running / background job | Dashboard, Action flows | Progress feedback for async operations that take > 1s           |
 
 For each state:
+
 - PRESENT: state is clearly handled in the component
 - ABSENT: state is not handled (flag as FAIL with file:line of the related data fetch or form)
 - N/A: state is architecturally impossible for this component type (state the reason)
@@ -212,6 +215,7 @@ Do not inflate the report with passing checks that need no action. Keep findings
 If the verdict is PASS: tell the user the work is design-sound and ready for `/pre-pr`.
 
 If the verdict is FAIL:
+
 - List only the actionable items
 - Offer to fix BLOCK items immediately if the user confirms
 - Do not mark the task complete until BLOCK items are resolved or dismissed with documented reasoning (log to `.todo/design-dismissals.md`)

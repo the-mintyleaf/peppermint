@@ -30,15 +30,15 @@ packages must never import from apps/
 
 **Framework versions (updated 2026-06-22):**
 
-| Package | Version |
-|---|---|
-| Next.js | 16.2.7 (App Router) |
-| React | 19.2.4 |
-| Mantine | 9.2.0 |
-| @tanstack/react-query | 5.100.9 |
-| Zustand | 5.0.13 |
-| Framer Motion | 12.38.0 |
-| TypeScript | 5.9.2 |
+| Package               | Version             |
+| --------------------- | ------------------- |
+| Next.js               | 16.2.7 (App Router) |
+| React                 | 19.2.4              |
+| Mantine               | 9.2.0               |
+| @tanstack/react-query | 5.100.9             |
+| Zustand               | 5.0.13              |
+| Framer Motion         | 12.38.0             |
+| TypeScript            | 5.9.2               |
 
 Check these before assuming an API signature. Use `next/navigation` not `next/router`. Check Mantine 9 docs for prop names — they differ from v7.
 
@@ -62,6 +62,7 @@ Check these before assuming an API signature. Use `next/navigation` not `next/ro
 **Routing** — Next.js App Router. `app/` pages and layouts are re-export files only — no logic lives there. Special files (`loading.tsx`, `error.tsx`, `not-found.tsx`) may contain minimal markup but must import their visual content from `layouts/` or `modules/`. No client-side router libraries.
 
 **Styling** — pick in this order:
+
 1. Mantine component props (`color`, `size`, `p`, `m`, etc.) — use these first.
 2. Mantine `style` prop — for one-off values not covered by props.
 3. CSS Modules (`.module.css`) — for complex selectors, pseudo-elements, or animations that can't be expressed inline.
@@ -121,25 +122,25 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 
 **When to extract optional files — concrete thresholds:**
 
-| File | Extract when… |
-|---|---|
-| `.hooks.ts` | A hook is used in more than one place, or the hook body exceeds ~30 lines |
-| `.store.ts` | State has more than 2 fields, or needs actions beyond simple setters |
-| `.context.ts` | More than 2 child components need the same value without prop drilling |
-| `.utils.ts` | A helper is called from more than one place in the component |
+| File                    | Extract when…                                                                    |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| `.hooks.ts`             | A hook is used in more than one place, or the hook body exceeds ~30 lines        |
+| `.store.ts`             | State has more than 2 fields, or needs actions beyond simple setters             |
+| `.context.ts`           | More than 2 child components need the same value without prop drilling           |
+| `.utils.ts`             | A helper is called from more than one place in the component                     |
 | `components/` subfolder | Parent component file exceeds ~200 lines, or a sub-component is reused elsewhere |
 
 ## Lifecycle Rules
 
 ### Packages vs Apps — key distinction
 
-| | Packages (`/packages/*`) | Apps (`/apps/*`) |
-|---|---|---|
-| Barrel chain | 3 levels: component → group → `src/index.ts` | 2 levels: component → module or layout group |
-| Public API | Yes — consumed by other packages and apps | No — internal to the app only |
-| Breaking changes | High stakes — grep all consumers first | Low stakes — only affects the one app |
-| Docs required | `packages/<pkg>/docs/<Name>.md` + `usage-doc/<pkg>/<Name>.md` | None required (optional inline README for complex modules) |
-| App Router wiring | N/A | `app/` page must re-export from `modules/` or `layouts/` |
+|                   | Packages (`/packages/*`)                                      | Apps (`/apps/*`)                                           |
+| ----------------- | ------------------------------------------------------------- | ---------------------------------------------------------- |
+| Barrel chain      | 3 levels: component → group → `src/index.ts`                  | 2 levels: component → module or layout group               |
+| Public API        | Yes — consumed by other packages and apps                     | No — internal to the app only                              |
+| Breaking changes  | High stakes — grep all consumers first                        | Low stakes — only affects the one app                      |
+| Docs required     | `packages/<pkg>/docs/<Name>.md` + `usage-doc/<pkg>/<Name>.md` | None required (optional inline README for complex modules) |
+| App Router wiring | N/A                                                           | `app/` page must re-export from `modules/` or `layouts/`   |
 
 ---
 
@@ -166,15 +167,15 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 
 #### Editing a package component
 
-| What changed | Files that must also change |
-|---|---|
+| What changed                        | Files that must also change                                                 |
+| ----------------------------------- | --------------------------------------------------------------------------- |
 | Prop added / removed / type changed | `.types.ts` · `packages/<pkg>/docs/<Name>.md` · `usage-doc/<pkg>/<Name>.md` |
-| Sub-component added | `components/index.ts` · parent `index.ts` if now publicly exported |
-| Sub-component removed | Remove from `components/index.ts` · check package root barrel |
-| Hook extracted to `.hooks.ts` | Add `.hooks.ts` · export from component `index.ts` |
-| Context extracted to `.context.ts` | Add `.context.ts` · export from component `index.ts` |
-| Component renamed | Rename folder + all files + update all 3 barrel levels + both doc files |
-| Internal refactor (no API change) | No doc or barrel changes needed |
+| Sub-component added                 | `components/index.ts` · parent `index.ts` if now publicly exported          |
+| Sub-component removed               | Remove from `components/index.ts` · check package root barrel               |
+| Hook extracted to `.hooks.ts`       | Add `.hooks.ts` · export from component `index.ts`                          |
+| Context extracted to `.context.ts`  | Add `.context.ts` · export from component `index.ts`                        |
+| Component renamed                   | Rename folder + all files + update all 3 barrel levels + both doc files     |
+| Internal refactor (no API change)   | No doc or barrel changes needed                                             |
 
 #### Deleting a package component
 
@@ -200,6 +201,7 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 **Sub-modules** belong inside their parent module folder, not as siblings. If `organization` has sub-modules like `accounts` or `roles`, they live at `modules/<group>/organization/accounts/` and `modules/<group>/organization/roles/` — never at `modules/<group>/organization-accounts/`. The group barrel exports all of them, and their internal imports resolve relative to the parent module folder.
 
 **Sub-module routing rule:**
+
 - If a parent module already has sub-modules, do not create or edit files at the parent level.
 - Place all new work inside the appropriate sub-module folder (`modules/<group>/<module>/<sub-module>/`).
 - If the user hasn't specified a sub-module, ask for its name before writing any code.
@@ -207,13 +209,13 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 
 #### Editing an app module or layout
 
-| What changed | Files that must also change |
-|---|---|
-| Module moved to a different group | Update `app/` re-export path + old group barrel |
-| Sub-component added under a layout | Add to `layouts/<name>/components/index.ts` |
-| Sub-component removed | Remove from `layouts/<name>/components/index.ts` |
-| Module or layout renamed | Rename folder + files + `app/` re-export + group barrel |
-| Internal refactor | No structural changes needed |
+| What changed                       | Files that must also change                             |
+| ---------------------------------- | ------------------------------------------------------- |
+| Module moved to a different group  | Update `app/` re-export path + old group barrel         |
+| Sub-component added under a layout | Add to `layouts/<name>/components/index.ts`             |
+| Sub-component removed              | Remove from `layouts/<name>/components/index.ts`        |
+| Module or layout renamed           | Rename folder + files + `app/` re-export + group barrel |
+| Internal refactor                  | No structural changes needed                            |
 
 #### Deleting an app module or layout
 
@@ -228,12 +230,12 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 
 **Packages — both doc files move together:**
 
-| Event | `packages/<pkg>/docs/<Name>.md` | `usage-doc/<pkg>/<Name>.md` |
-|---|---|---|
-| Component created | Create (implementation notes) | Create (props, usage examples) |
-| Public API changed | Update | Update |
-| Internal refactor only | No change needed | No change needed |
-| Component deleted | Delete | Delete |
+| Event                  | `packages/<pkg>/docs/<Name>.md` | `usage-doc/<pkg>/<Name>.md`    |
+| ---------------------- | ------------------------------- | ------------------------------ |
+| Component created      | Create (implementation notes)   | Create (props, usage examples) |
+| Public API changed     | Update                          | Update                         |
+| Internal refactor only | No change needed                | No change needed               |
+| Component deleted      | Delete                          | Delete                         |
 
 **Apps:**
 
@@ -276,6 +278,7 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 **Formatting** — run `pnpm format` before committing. The repo has no Prettier config file; it uses all Prettier v3 defaults (80-char print width, 2-space indent, double quotes, trailing commas). Never commit unformatted code.
 
 **Import order** (top to bottom, each group separated by a blank line):
+
 1. React / Next.js
 2. Third-party packages
 3. `@peppermint/*` packages
@@ -291,6 +294,7 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 ## Bug Finding & Fixing
 
 **Before writing any fix:**
+
 1. Reproduce the bug with a minimal case. If you can't reproduce it, don't fix it.
 2. Classify the bug type before touching code:
    - **Render bug** — wrong output for given props/state → check component logic and conditional rendering
@@ -362,12 +366,12 @@ export default ModuleDashboard;
 
 Every module belongs to one of four types. Pick before writing any code.
 
-| Type | Use when… | Lives in |
-|---|---|---|
-| `ContainedModule` | Single view, no nested routes, self-contained | `modules/<group>/<name>/` |
-| `MultiPageModule` | Multiple sub-pages with their own routes | `modules/<group>/<name>/` with `pages/` subfolder |
-| `ModalModule` | Triggered from another module, overlays the page | `modules/<group>/<name>/` — opened via state, not a route |
-| `RouteModule` | Top-level route that needs its own layout shell | `modules/<group>/<name>/` + own layout wired in `app/` |
+| Type              | Use when…                                        | Lives in                                                  |
+| ----------------- | ------------------------------------------------ | --------------------------------------------------------- |
+| `ContainedModule` | Single view, no nested routes, self-contained    | `modules/<group>/<name>/`                                 |
+| `MultiPageModule` | Multiple sub-pages with their own routes         | `modules/<group>/<name>/` with `pages/` subfolder         |
+| `ModalModule`     | Triggered from another module, overlays the page | `modules/<group>/<name>/` — opened via state, not a route |
+| `RouteModule`     | Top-level route that needs its own layout shell  | `modules/<group>/<name>/` + own layout wired in `app/`    |
 
 **Decision flow:**
 
@@ -436,7 +440,9 @@ Examples:
 When creating or updating `docs/AI.md` files (app-level or module-level), read `.claude/AI-AUTHORING.md` for required structure, content rules, style guide, and examples.
 
 **Navigation pattern:**
+
 ```
 CLAUDE.md → apps/<app>/docs/AI.md → module docs/AI.md → source files
 ```
+
 Read docs first. Only open source files when docs identify them as relevant or are missing/stale.

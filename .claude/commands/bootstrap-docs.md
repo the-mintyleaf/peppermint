@@ -34,13 +34,21 @@ For `design-system.md`, create with this structure:
 > Fill this in as design decisions are made. Do not invent tokens — document what is actually used.
 
 ## Color tokens
+
 ## Typography
+
 ## Spacing scale
+
 ## Border radius
+
 ## Shadows
+
 ## Z-index scale
+
 ## Layout and breakpoints
+
 ## Component rules
+
 ## Usage constraints
 ```
 
@@ -52,10 +60,15 @@ For `motion-system.md`:
 > Fill this in as motion decisions are made.
 
 ## Philosophy
+
 ## Durations
+
 ## Easings
+
 ## Reusable motion helpers
+
 ## Reduced-motion behavior
+
 ## Anti-patterns
 ```
 
@@ -67,9 +80,13 @@ For `DESIGN.md`:
 > Fill this in before starting visual work on the app.
 
 ## Visual personality
+
 ## Component mood
+
 ## Interaction principles
+
 ## Layout guidance
+
 ## References and examples
 ```
 

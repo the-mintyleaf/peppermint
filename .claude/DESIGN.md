@@ -8,7 +8,7 @@ Written to be derived from, not copied._
 ## Part 0 — How to use this guide (read first)
 
 You are building UI. Most UI you have seen was made by imitation, so your instinct is to reproduce
-the *appearance* of good interfaces. That instinct is the problem. Appearance is a side effect; it
+the _appearance_ of good interfaces. That instinct is the problem. Appearance is a side effect; it
 is not the cause of a good interface. This guide gives you the causes, then the patterns that
 follow from them.
 
@@ -19,7 +19,7 @@ Three operating rules:
    When you hit a case this guide doesn't name, return to the mechanism and derive the answer. Do
    not reach for the closest-looking reference.
 
-2. **When principles conflict, use the decision ladder in Part 3.** They *will* conflict — density
+2. **When principles conflict, use the decision ladder in Part 3.** They _will_ conflict — density
    fights calm, disclosure fights reach, consistency fights role-fit. A framework that pretends
    they don't is useless at exactly the moment you need it. The ladder is the tiebreak.
 
@@ -31,9 +31,9 @@ Scope: tuned for **interfaces used repeatedly by trained users to make consequen
 Part 1 is universal; Parts 2–8 are domain-specific. Consumer/marketing UI optimizes for first-touch
 persuasion and inverts several of these priorities.
 
-How the parts fit together: Part 1 is the *why*. Part 2 is the *job*. Part 3 is how to *choose*
-when goals collide. Part 4 is the *design layers*. Part 5 is concrete *page patterns*. Part 6 is the
-*definition of done*. Part 7 is the *routine* you run before building. Part 8 is the *gate* before
+How the parts fit together: Part 1 is the _why_. Part 2 is the _job_. Part 3 is how to _choose_
+when goals collide. Part 4 is the _design layers_. Part 5 is concrete _page patterns_. Part 6 is the
+_definition of done_. Part 7 is the _routine_ you run before building. Part 8 is the _gate_ before
 you ship.
 
 ---
@@ -47,13 +47,13 @@ can rebuild the rest yourself.
 
 The eye is pulled pre-attentively — before reading — to whatever differs most from its surroundings
 in **size, weight, color, or isolation (whitespace)**. You cannot make something prominent by
-making it big. You make it prominent by making *everything else quieter*. Emphasis is relative; it
+making it big. You make it prominent by making _everything else quieter_. Emphasis is relative; it
 is borrowed from what you suppress.
 
 > Consequence: the screen has one **dominant, page-level anchor** — the first thing the eye lands
 > on (the leverage point). Complex pages also carry **local anchors**, one per working region. On a
-> fraud-review screen, identity/status anchors the *page*, risk evidence anchors the *decision*
-> region, and approve/reject anchors the *action* region. The rule is a *hierarchy of attention*,
+> fraud-review screen, identity/status anchors the _page_, risk evidence anchors the _decision_
+> region, and approve/reject anchors the _action_ region. The rule is a _hierarchy of attention_,
 > not a single point: regions may each own a local leverage point, but they must not compete with
 > the page-level anchor or with each other. If everything is bold, nothing is.
 
@@ -63,7 +63,7 @@ The brain decides "these belong together" using proximity, shared region (a comm
 border), alignment, and similarity — automatically, faster than it reads. Grouping is therefore
 done with **space and alignment first; borders and color last.**
 
-> Consequence: most "cluttered" admin UIs are *over-bordered*. They draw boxes around things that
+> Consequence: most "cluttered" admin UIs are _over-bordered_. They draw boxes around things that
 > proximity alone would have grouped, spending the attention budget on chrome. Remove a border
 > before you add one. White space is not empty; it is the primary grouping tool.
 
@@ -72,7 +72,7 @@ done with **space and alignment first; borders and color last.**
 Anything the admin must hold in their head while moving between screens is a leak, and leaks cause
 errors. The interface's job is to hold context so the human doesn't have to.
 
-> Consequence: keep decision-relevant context visible *at the moment of decision* — sticky summary
+> Consequence: keep decision-relevant context visible _at the moment of decision_ — sticky summary
 > headers, drawers instead of full-page jumps, consequences shown inside the confirmation rather
 > than on a page you just left. **Cognitive switching is the dominant tax on admin work.** Design to
 > reduce it before you design anything else.
@@ -93,13 +93,13 @@ taste.
 
 > Consequence: action placement is physics. Frequent safe actions get large, close, low-friction
 > targets. Rare destructive actions get small, separated targets behind a deliberate step — you
-> make them *physically harder to hit* on purpose, because friction is protective exactly where
+> make them _physically harder to hit_ on purpose, because friction is protective exactly where
 > being wrong is expensive.
 
 ### 1.6 Hick's law — choice cost rises with the number of options
 
-Every additional always-visible option (column, button, filter) slows *every* decision, for *every*
-user, *every* time.
+Every additional always-visible option (column, button, filter) slows _every_ decision, for _every_
+user, _every_ time.
 
 > Consequence: default to the minimum set that serves the **common** decision; push the rest behind
 > disclosure. An extra column isn't free because it's "just one more" — its cost is paid on every
@@ -113,16 +113,16 @@ breaks and the interface must explicitly account for the wait. This clock is the
 
 > Consequence: optimistic updates, skeleton/loading states, and progress feedback are not polish —
 > they are how you stay under the perceptual thresholds when the network won't. A correct action
-> that *feels* slow is, in the user's body, a slow action.
+> that _feels_ slow is, in the user's body, a slow action.
 
 ### 1.8 Repetition builds automaticity; novelty destroys it
 
 When a control sits in the same place and behaves identically every time, expert users stop
-*looking* and start *reaching* — it becomes motor memory. Every inconsistency drags them back into
+_looking_ and start _reaching_ — it becomes motor memory. Every inconsistency drags them back into
 conscious attention.
 
 > Consequence: consistency beats novelty in daily tools for a mechanical reason, not an aesthetic
-> one — novelty levies a recurring tax on your most valuable users. Reserve novelty for *meaningful*
+> one — novelty levies a recurring tax on your most valuable users. Reserve novelty for _meaningful_
 > emphasis; make every page operationally predictable.
 
 ### 1.9 Affordance, and the hard line between state and action
@@ -139,7 +139,7 @@ world: "Suspend," "Retry," "Verify") must never look like the same kind of objec
 
 **Slips** = right intent, wrong execution (clicked the wrong row). Prevented by constraints and
 confirmation. **Mistakes** = wrong intent (didn't understand the consequence). Prevented by
-*information shown before the act*. Prevention is never complete, so both also need **recovery**.
+_information shown before the act_. Prevention is never complete, so both also need **recovery**.
 
 > Consequence: every consequential flow does three things — constrain the slip, inform against the
 > mistake, and leave a way back (undo, audit, restore). "Are you sure?" defends against neither; it
@@ -161,27 +161,27 @@ end. A beautiful portal that hides risk or slows the expert is a failure.
 Find  →  Understand  →  Decide  →  Act  →  Confirm  →  Recover
 ```
 
-| Step | What the UI owes the admin |
-|---|---|
-| Find | Search by real-world identifiers, filters that match the workflow, saved views, sane default sort |
-| Understand | Current state, summary, ownership, what changed and by whom — at a glance, no tab-hunting |
-| Decide | The specific details, warnings, dependencies, and consequences relevant to *this* decision |
-| Act | One obvious primary action; secondary actions present but quiet; dangerous actions separated |
-| Confirm | Feedback fast enough to feel instant; a clear record of what just happened |
-| Recover | Undo, audit trail, retry, restore, and a path to help |
+| Step       | What the UI owes the admin                                                                        |
+| ---------- | ------------------------------------------------------------------------------------------------- |
+| Find       | Search by real-world identifiers, filters that match the workflow, saved views, sane default sort |
+| Understand | Current state, summary, ownership, what changed and by whom — at a glance, no tab-hunting         |
+| Decide     | The specific details, warnings, dependencies, and consequences relevant to _this_ decision        |
+| Act        | One obvious primary action; secondary actions present but quiet; dangerous actions separated      |
+| Confirm    | Feedback fast enough to feel instant; a clear record of what just happened                        |
+| Recover    | Undo, audit trail, retry, restore, and a path to help                                             |
 
 **One question per page.** Before laying out anything, name the single operational question the page
 answers — "Which orders are stuck, risky, or urgent?" not "Orders." A page without a question
 becomes a data dump, because nothing tells you what to make prominent (1.1) or what to cut (1.6).
 
-| Page | Weak framing | The admin question |
-|---|---|---|
-| Users | User management | Who needs attention? |
-| Orders | Order list | Which orders are stuck, risky, or urgent? |
-| Dashboard | Overview | Is the system healthy right now? |
-| Detail | User details | What happened, what is the state, what can I do next? |
-| Settings | Configuration | What am I changing, and what will it affect? |
-| Review | Approvals | What's the evidence, what's risky, what decision is needed? |
+| Page      | Weak framing    | The admin question                                          |
+| --------- | --------------- | ----------------------------------------------------------- |
+| Users     | User management | Who needs attention?                                        |
+| Orders    | Order list      | Which orders are stuck, risky, or urgent?                   |
+| Dashboard | Overview        | Is the system healthy right now?                            |
+| Detail    | User details    | What happened, what is the state, what can I do next?       |
+| Settings  | Configuration   | What am I changing, and what will it affect?                |
+| Review    | Approvals       | What's the evidence, what's risky, what decision is needed? |
 
 ---
 
@@ -203,17 +203,17 @@ When two principles pull in opposite directions, resolve in this order — top w
 Clarity — you do not re-explain the thing an expert does 200 times a day. Friction is a resource;
 spend it only where a mistake is expensive (1.5/1.10). This single rule resolves most real disputes:
 
-- **Density vs. Calm.** Density wins *within* a group; calm wins *between* groups. Pack related
+- **Density vs. Calm.** Density wins _within_ a group; calm wins _between_ groups. Pack related
   fields tightly (proximity, 1.2), then put real air between groups. "Calm" is not low density; it's
   high density with clear seams.
-- **Disclosure vs. Reach.** Hide only what isn't needed for the *current* decision (1.3/1.6). If a
+- **Disclosure vs. Reach.** Hide only what isn't needed for the _current_ decision (1.3/1.6). If a
   detail is load-bearing for the common case, it stays on the surface even if it's labeled
   "advanced." The test is the decision, not the label.
-- **Consistency vs. Role-fit.** Keep *patterns* consistent (badge style, save placement, danger
-  treatment); vary *content and defaults* by role. A finance admin and a support agent see the same
+- **Consistency vs. Role-fit.** Keep _patterns_ consistent (badge style, save placement, danger
+  treatment); vary _content and defaults_ by role. A finance admin and a support agent see the same
   table component with different default columns — not two different table components.
 - **Repeat-user speed vs. First-timer clarity.** Default to the expert (daily efficiency compounds),
-  but make the expert path *discoverable*, not hidden — shortcuts shown next to the slow path, not
+  but make the expert path _discoverable_, not hidden — shortcuts shown next to the slow path, not
   instead of it. Exception: high-turnover teams and rarely-touched destructive flows tilt back
   toward first-timer clarity. Decide per flow, not globally.
 
@@ -229,21 +229,21 @@ resolves.
 - **Group by the admin's mental model, not the schema** (1.4). Operators think in tasks ("Identity,
   Access, Billing, Risk, Activity"), not tables (`users`, `profiles`, `roles`). Caveat: the schema
   is still the source of truth, and UI groupings that drift from it breed bugs. The real rule is
-  *group by task* — and sometimes the schema already reflects the task. Diverge deliberately, not
+  _group by task_ — and sometimes the schema already reflects the task. Diverge deliberately, not
   reflexively.
 - **Hierarchy = operational importance, not visual taste** (1.1). The most prominent thing is the
   thing needed for the next decision: state and risk above metadata, next-action above history. A
   user detail page reads identity → account status → risk/verification → open issues → primary
-  actions → history; *not* avatar → name → random fields → buttons.
+  actions → history; _not_ avatar → name → random fields → buttons.
 - **Separate navigation levels so they stop competing** (1.3): global (product areas) → page header
   (this entity, its status, its primary action) → local tabs (sections of this entity) →
-  filters/search (this view) → work area → context drawer. The admin should always know *where they
-  are, what object they're on, and what level they're affecting.*
+  filters/search (this view) → work area → context drawer. The admin should always know _where they
+  are, what object they're on, and what level they're affecting._
 
 ### Layer 2 — The working surfaces
 
 **Tables are decision surfaces, not data dumps.** A table lets an operator find, compare, spot the
-exception, read status, and act. Derive columns from the *common decision* (1.6), not the row's full
+exception, read status, and act. Derive columns from the _common decision_ (1.6), not the row's full
 schema. For orders: `Order · Customer · Order status · Payment status · Risk · Total · Created ·
 Owner · Next action` — not every timestamp and foreign key. Push technical fields to expandable rows,
 a detail drawer, column customization, or export. Non-negotiables: meaningful default sort, visible
@@ -266,12 +266,12 @@ time range and data freshness (Truth, Part 3).
 
 **Forms scale deliberation to risk and reversibility** (1.5/1.10):
 
-| Risk | Form behavior |
-|---|---|
-| Low (display name) | Inline edit, optimistic save, light validation |
-| Medium (billing) | Sectioned, validated, save confirmation |
-| High (permissions) | Explanation, warnings, explicit review step |
-| Critical (delete) | Consequence summary, reason field, possible second approver |
+| Risk               | Form behavior                                               |
+| ------------------ | ----------------------------------------------------------- |
+| Low (display name) | Inline edit, optimistic save, light validation              |
+| Medium (billing)   | Sectioned, validated, save confirmation                     |
+| High (permissions) | Explanation, warnings, explicit review step                 |
+| Critical (delete)  | Consequence summary, reason field, possible second approver |
 
 Group fields by meaning, validate early, never ship one giant undifferentiated form, and protect
 unsaved changes.
@@ -282,7 +282,7 @@ unsaved changes.
 operator's flow.**
 
 - **Latency budget.** Local UI feedback under ~100ms, always. If a server round-trip will take
-  longer, respond *optimistically* — apply the change in the UI immediately, reconcile when the
+  longer, respond _optimistically_ — apply the change in the UI immediately, reconcile when the
   server answers, roll back visibly on failure. The interface should feel like direct manipulation
   of the data, not submit-and-wait.
 - **Preserve state across navigation** (1.3). Back-to-list keeps scroll position, filters, and
@@ -317,19 +317,19 @@ operator's flow.**
   low-friction. Frequent+important: clear, prominent. Rare+dangerous: deliberate, protected.
   Secondary: available but quiet.
 - **Confirmations explain consequences; they don't ask for certainty** (1.10). Not "Are you sure?"
-  but: *who* is affected, *what* happens, whether it's reversible, whether the user is notified,
+  but: _who_ is affected, _what_ happens, whether it's reversible, whether the user is notified,
   whether it's audited. Put the information at the point of no return, not on a page the admin
   already left.
 - **Bulk actions: speed without hidden blast radius.** Show the selected count, make selection
   obvious, warn when it spans pages, preview the breakdown ("32 pending, 12 failed, 4 under review
   will be skipped"), show progress, give a success/failure summary with a recovery path.
-- **Permissions explain themselves** (1.4). A disabled control states *why* ("Only workspace owners
+- **Permissions explain themselves** (1.4). A disabled control states _why_ ("Only workspace owners
   can change billing") and who can. Hidden-by-permission data says it's hidden, not just absent.
 - **Auditability is first-class.** Who, when, previous value, why, manual-vs-automated, source. For
   important entities the activity timeline is primary content, not a buried tab.
 - **Design for recovery, not just prevention** (1.10). Undo, drafts, autosave, version history,
   reopen/restore, retry, cancel-job, clear failure explanations, partial-success summaries. A system
-  that tries to prevent every mistake becomes slow; one that makes recovery cheap stays fast *and*
+  that tries to prevent every mistake becomes slow; one that makes recovery cheap stays fast _and_
   safe.
 
 ### Layer 6 — The humane layer
@@ -390,6 +390,7 @@ Main          core details grouped by task, related records, internal notes
 Side panel    metadata, secondary actions, tags, permissions, quick links
 Timeline      activity log, audit history, before/after changes
 ```
+
 The admin should not need five tabs to decide whether an action is safe.
 
 ### C. Dashboard — _system, operations, workload, finance, compliance_
@@ -405,6 +406,7 @@ Work queues                  (tasks requiring attention)
 Recent activity
 Shortcuts to common actions
 ```
+
 A dashboard is an operational signal board, not a wall of charts.
 
 ### D. Settings page — _billing, permissions, feature flags, config, notifications_
@@ -437,6 +439,7 @@ Reason / comment field
 Confirmation (consequences)
 Audit trail
 ```
+
 Note the three non-competing anchors (1.1): status anchors the page, evidence anchors the decision,
 the decision buttons anchor the action.
 
@@ -475,7 +478,7 @@ a layout. Do not start placing elements until you can answer all ten.
    confirm they don't compete (1.1).
 4. **The load-bearing statuses.** Which states drive the decision here?
 5. **The workflow.** Walk Find → Understand → Decide → Act → Confirm → Recover and note what each
-   step needs *on this page*.
+   step needs _on this page_.
 6. **The actions.** Enumerate them; tag each safe / important / risky / destructive and reversible /
    irreversible (Layer 5).
 7. **The data hierarchy.** Order information by operational importance, not schema or aesthetics

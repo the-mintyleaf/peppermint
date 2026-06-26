@@ -39,17 +39,17 @@ It must be short, skimmable, and path-heavy.
 
 It should include:
 
-* app purpose
-* main routes
-* major modules
-* shared component locations
-* design docs location
-* API/query locations
-* state management locations
-* common edit targets
-* task-type reading guide
-* forbidden patterns
-* files or folders the agent should not touch casually
+- app purpose
+- main routes
+- major modules
+- shared component locations
+- design docs location
+- API/query locations
+- state management locations
+- common edit targets
+- task-type reading guide
+- forbidden patterns
+- files or folders the agent should not touch casually
 
 Example:
 
@@ -62,19 +62,19 @@ Short explanation of the app.
 
 ## Read by task type
 
-| Task | Read first | Then inspect |
-|---|---|---|
-| Edit visual design | docs/design/DESIGN.md, docs/design/design-system.md | target component only |
-| Add component | docs/components/, @peppermint/ui exports | target component folder |
-| Edit module | module docs/AI.md | target module files |
-| Add query/mutation | module docs/AI.md, docs/api-contracts/ | module queries/hooks |
-| Edit state | module docs/AI.md | relevant store/context/hook |
-| Edit route | route section below | app route re-export + target module |
+| Task               | Read first                                          | Then inspect                        |
+| ------------------ | --------------------------------------------------- | ----------------------------------- |
+| Edit visual design | docs/design/DESIGN.md, docs/design/design-system.md | target component only               |
+| Add component      | docs/components/, @peppermint/ui exports            | target component folder             |
+| Edit module        | module docs/AI.md                                   | target module files                 |
+| Add query/mutation | module docs/AI.md, docs/api-contracts/              | module queries/hooks                |
+| Edit state         | module docs/AI.md                                   | relevant store/context/hook         |
+| Edit route         | route section below                                 | app route re-export + target module |
 
 ## Major modules
 
-| Module | Path | Route | Module AI map |
-|---|---|---|---|
+| Module       | Path                       | Route               | Module AI map                         |
+| ------------ | -------------------------- | ------------------- | ------------------------------------- |
 | Organization | modules/admin/organization | /admin/organization | modules/admin/organization/docs/AI.md |
 
 ## Do not do
@@ -100,20 +100,20 @@ This is the first file an agent reads before changing that module.
 
 It should include:
 
-* module purpose
-* module type
-* route, if any
-* entry component
-* important child components
-* stores
-* contexts
-* hooks
-* queries
-* utilities
-* docs
-* common edit targets
-* known risks
-* what not to touch
+- module purpose
+- module type
+- route, if any
+- entry component
+- important child components
+- stores
+- contexts
+- hooks
+- queries
+- utilities
+- docs
+- common edit targets
+- known risks
+- what not to touch
 
 Example:
 
@@ -139,15 +139,15 @@ MultiPageModule
 
 ## Common edit targets
 
-| Task | Files |
-|---|---|
-| Organization tree UI | organization-tree/OrganizationTree.tsx |
-| Organization tree state | organization-tree/OrganizationTree.store.ts |
+| Task                       | Files                                       |
+| -------------------------- | ------------------------------------------- |
+| Organization tree UI       | organization-tree/OrganizationTree.tsx      |
+| Organization tree state    | organization-tree/OrganizationTree.store.ts |
 | Organization tree behavior | organization-tree/OrganizationTree.hooks.ts |
-| Roles UI | roles/ |
-| Accounts UI | accounts/ |
-| Shared queries | queries/ |
-| Shared types | organization.types.ts |
+| Roles UI                   | roles/                                      |
+| Accounts UI                | accounts/                                   |
+| Shared queries             | queries/                                    |
+| Shared types               | organization.types.ts                       |
 
 ## State ownership
 
@@ -170,10 +170,10 @@ MultiPageModule
 
 For small tasks, the agent should usually read:
 
-* `CLAUDE.md`
-* one app AI map
-* one module AI map
-* 2–5 directly relevant source files
+- `CLAUDE.md`
+- one app AI map
+- one module AI map
+- 2–5 directly relevant source files
 
 Reading more is allowed only when the task genuinely requires it.
 
@@ -187,20 +187,20 @@ Whenever code changes, tactical docs must stay accurate.
 
 Update `apps/<app>/docs/AI.md` when:
 
-* a new major module is added
-* a route changes
-* shared component locations change
-* API/state/design conventions change
-* a new repeated workflow appears
+- a new major module is added
+- a route changes
+- shared component locations change
+- API/state/design conventions change
+- a new repeated workflow appears
 
 Update `apps/<app>/modules/<group>/<module>/docs/AI.md` when:
 
-* module structure changes
-* entry files change
-* important components are added or removed
-* stores, contexts, hooks, or queries change
-* common edit targets change
-* module-specific rules change
+- module structure changes
+- entry files change
+- important components are added or removed
+- stores, contexts, hooks, or queries change
+- common edit targets change
+- module-specific rules change
 
 Also maintain `apps/<app>/CLAUDE.md` with a short, current summary of the app's purpose, routes, key modules, and any app-specific conventions — Claude reads this file automatically on every session, so keeping it accurate eliminates the need to re-derive app context from source each time.
 
@@ -212,29 +212,29 @@ A change is not complete if the code changes but the AI maps become stale.
 
 AI maps must be:
 
-* short
-* practical
-* skimmable
-* path-heavy
-* decision-focused
-* continuously updated
+- short
+- practical
+- skimmable
+- path-heavy
+- decision-focused
+- continuously updated
 
 Prefer:
 
-* tables
-* bullets
-* file paths
-* import paths
-* ownership notes
-* "use this / do not use this" rules
+- tables
+- bullets
+- file paths
+- import paths
+- ownership notes
+- "use this / do not use this" rules
 
 Avoid:
 
-* long prose
-* duplicated implementation details
-* documenting every tiny internal function
-* creating multiple sources of truth
-* making agents read five docs when one map would do
+- long prose
+- duplicated implementation details
+- documenting every tiny internal function
+- creating multiple sources of truth
+- making agents read five docs when one map would do
 
 Bad AI docs explain everything.
 

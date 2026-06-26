@@ -33,18 +33,19 @@ Orchestration Layer (Actions)          Service Layer (Shared Mechanics)
 ```
 
 **Rule of thumb:**
+
 - "What this product flow means" → keep in actions
 - "How to do this operation reliably" → move to service layer
 
 ## Quick Reference
 
-| Design Principle | Do | Don't |
-|---|---|---|
-| API shape | Composable capability blocks | One giant "do everything" method |
-| Inputs/outputs | Explicit params, structured returns | Hidden global state, reaching into DB |
-| Migration | Extract one block, replace one caller, verify, then migrate rest | Refactor everything at once |
-| Domain logic | Keep auth, policy, error classification in actions | Let service mutate domain state directly |
-| Extraction trigger | Logic repeated across 2+ callers | Logic used once (over-abstraction) |
+| Design Principle   | Do                                                               | Don't                                    |
+| ------------------ | ---------------------------------------------------------------- | ---------------------------------------- |
+| API shape          | Composable capability blocks                                     | One giant "do everything" method         |
+| Inputs/outputs     | Explicit params, structured returns                              | Hidden global state, reaching into DB    |
+| Migration          | Extract one block, replace one caller, verify, then migrate rest | Refactor everything at once              |
+| Domain logic       | Keep auth, policy, error classification in actions               | Let service mutate domain state directly |
+| Extraction trigger | Logic repeated across 2+ callers                                 | Logic used once (over-abstraction)       |
 
 ## Designing Service Functions
 
@@ -61,6 +62,7 @@ startSandboxRuntime(...)
 ```
 
 Each function should:
+
 - Accept all required data as **explicit parameters**
 - Return **structured outputs** (e.g., `{ ready, previewUrl, proxyPort }`)
 - Never reach into database/state directly
@@ -81,12 +83,12 @@ When extracting shared logic:
 
 ## Anti-Patterns
 
-| Anti-Pattern | Problem |
-|---|---|
-| **God service** | One huge function hides all control flow |
-| **Leaky service** | Service mutates database tables directly |
+| Anti-Pattern         | Problem                                                          |
+| -------------------- | ---------------------------------------------------------------- |
+| **God service**      | One huge function hides all control flow                         |
+| **Leaky service**    | Service mutates database tables directly                         |
 | **Inconsistent API** | Each function uses different argument styles and error semantics |
-| **Over-abstraction** | Extracting logic used by only one caller |
+| **Over-abstraction** | Extracting logic used by only one caller                         |
 
 ## Example: Email Service (Simple)
 

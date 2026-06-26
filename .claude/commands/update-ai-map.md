@@ -7,9 +7,11 @@ Arguments: $ARGUMENTS (app name, module path, or empty to auto-detect from recen
 If $ARGUMENTS is provided, use it to identify the app and module.
 
 If $ARGUMENTS is empty, run:
+
 ```bash
 git diff --name-only HEAD
 ```
+
 Identify which app and module was touched from the changed file paths.
 
 ## Step 2 — Read the current AI maps
@@ -22,6 +24,7 @@ Identify which app and module was touched from the changed file paths.
 For every file path or folder listed in the AI maps, verify it still exists.
 
 Check for:
+
 - New entry files (index.tsx, module entry point changes)
 - New or removed sub-modules
 - New or removed stores, contexts, hooks, queries
@@ -32,6 +35,7 @@ Check for:
 ## Step 4 — Update only what changed
 
 Do not rewrite the full AI map. Update only the stale sections:
+
 - Add new modules to Major Modules table
 - Update Common Edit Targets table
 - Update State Ownership if new stores or contexts were added
@@ -47,6 +51,7 @@ Follow the module AI map template from `## Tactical Programming for AI Agents` i
 ## Step 6 — Report
 
 Respond with:
+
 - Which AI maps were updated
 - What sections changed
 - Any file paths that were stale and corrected

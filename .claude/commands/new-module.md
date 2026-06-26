@@ -7,6 +7,7 @@ Follow this sequence exactly:
 ## Step 1 — Read context first
 
 Before writing any code, read:
+
 - `.claude/CLAUDE.md` (architecture rules)
 - `usage-doc/module-patterns/README.md` (module pattern decision matrix)
 - `apps/<app>/docs/AI.md` for the target app
@@ -14,6 +15,7 @@ Before writing any code, read:
 ## Step 2 — Structure requirements
 
 If $ARGUMENTS points to an unstructured requirements doc, or if no structured requirements exist yet:
+
 - Invoke the `/mint-requirements-tuner` skill to turn raw requirements into a structured document
 - Do not proceed to Step 3 until the requirements document is complete and confirmed
 
@@ -28,6 +30,7 @@ Follow every step in the build guide for the assigned module type (ContainedModu
 After scaffolding, create `apps/<app>/modules/<group>/<module>/docs/AI.md` for the new module.
 
 The AI map must include:
+
 - Module purpose
 - Module type
 - Route (if any)
@@ -47,6 +50,7 @@ Run `/verify` to confirm no type errors or lint failures were introduced.
 ## Step 7 — Report
 
 Respond with:
+
 - What was scaffolded (module type, files created)
 - Docs created or updated
 - Verification results

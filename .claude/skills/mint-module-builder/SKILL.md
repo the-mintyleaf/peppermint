@@ -17,19 +17,19 @@ Reading this replaces the need to re-scan the repository before building a modul
 
 ## 1. Stack at a Glance
 
-| Concern | Tool | Rule |
-|---|---|---|
-| UI components | `@peppermint/ui` | Always import from here — never from `@mantine/*` directly |
-| Forms | `@mantine/form` via `@peppermint/ui` | Never React Hook Form or any other form library |
-| Server state | React Query (`useQuery` / `useMutation`) | No fetching in `useEffect`; no direct Axios in event handlers |
-| Global client state | Zustand | Colocate in `<Component>.store.ts` |
-| Scoped subtree state | React Context | |
-| Local component state | `useState` | |
-| Routing | Next.js App Router | `app/` directory only; no client-side router libraries |
-| Icons | Phosphor Icons | Default weight `regular`; always `aria-label` on meaningful icons |
-| Animations | Framer Motion | Duration > 300ms or layout-shifting → check `useReducedMotion()` |
-| Admin shells | `@peppermint/admin` | `ModalTableShell`, `DataTableShell`, `FormWrapper`, `FormShell` |
-| HTTP client | `@peppermint/api-client` or the app's `src/lib/api.ts` | Never instantiate Axios inline |
+| Concern               | Tool                                                   | Rule                                                              |
+| --------------------- | ------------------------------------------------------ | ----------------------------------------------------------------- |
+| UI components         | `@peppermint/ui`                                       | Always import from here — never from `@mantine/*` directly        |
+| Forms                 | `@mantine/form` via `@peppermint/ui`                   | Never React Hook Form or any other form library                   |
+| Server state          | React Query (`useQuery` / `useMutation`)               | No fetching in `useEffect`; no direct Axios in event handlers     |
+| Global client state   | Zustand                                                | Colocate in `<Component>.store.ts`                                |
+| Scoped subtree state  | React Context                                          |                                                                   |
+| Local component state | `useState`                                             |                                                                   |
+| Routing               | Next.js App Router                                     | `app/` directory only; no client-side router libraries            |
+| Icons                 | Phosphor Icons                                         | Default weight `regular`; always `aria-label` on meaningful icons |
+| Animations            | Framer Motion                                          | Duration > 300ms or layout-shifting → check `useReducedMotion()`  |
+| Admin shells          | `@peppermint/admin`                                    | `ModalTableShell`, `DataTableShell`, `FormWrapper`, `FormShell`   |
+| HTTP client           | `@peppermint/api-client` or the app's `src/lib/api.ts` | Never instantiate Axios inline                                    |
 
 **TypeScript:** strict mode. No `any`. No `@ts-ignore` without an explanatory comment.
 Functional components only. Props typed as `[Name]Props` in `<Name>.types.ts`.
@@ -41,14 +41,17 @@ Functional components only. Props typed as `[Name]Props` in `<Name>.types.ts`.
 Before building any module or page, decide:
 
 ### Contained
+
 A module is **Contained** when it maps to one of the admin framework patterns — it manages a list of records with create / edit / delete functionality. This is the default for most feature modules.
 
-> A *list of cards* is still **Contained**. Being a list means the normal module rules apply. The "cards" exception does **not** extend to lists of cards.
+> A _list of cards_ is still **Contained**. Being a list means the normal module rules apply. The "cards" exception does **not** extend to lists of cards.
 
 Use `ModalTableShell` (ContainedModule) or `DataTableShell` + `FormWrapper` + `FormShell` (MultiPageModule) as appropriate.
 
 ### Not Contained
+
 A module is **Not Contained** ONLY when it is:
+
 - A **reporting page** (charts, KPIs, analytics dashboards with no CRUD)
 - A **page composed of information cards** (a status overview, a settings summary page made entirely of info panels)
 
@@ -60,10 +63,10 @@ Not Contained pages do not use the admin shells. Build them as regular Next.js p
 
 Once you know a module is **Contained**, pick the shape by route count:
 
-| Pattern | Route count | Shell | Use when |
-|---|---|---|---|
-| **ContainedModule** | 1 | `ModalTableShell` | Single list page; create & edit open in modals/drawers; form has ≤ ~8 fields |
-| **MultiPageModule** | 2–4 | `DataTableShell` + `FormWrapper` + `FormShell` | Complex form, multi-step wizard, file uploads, or a dedicated detail/view page |
+| Pattern             | Route count | Shell                                          | Use when                                                                       |
+| ------------------- | ----------- | ---------------------------------------------- | ------------------------------------------------------------------------------ |
+| **ContainedModule** | 1           | `ModalTableShell`                              | Single list page; create & edit open in modals/drawers; form has ≤ ~8 fields   |
+| **MultiPageModule** | 2–4         | `DataTableShell` + `FormWrapper` + `FormShell` | Complex form, multi-step wizard, file uploads, or a dedicated detail/view page |
 
 The CRUD strategies (`ModalModule`, `RouteModule`) documented elsewhere refer to the same two options under different terminology. `ModalModule` = ContainedModule; `RouteModule` = MultiPageModule.
 
@@ -72,6 +75,7 @@ The CRUD strategies (`ModalModule`, `RouteModule`) documented elsewhere refer to
 ## 4. ContainedModule — Build Guide
 
 ### When to use
+
 - One URL owns the entire lifecycle (e.g. `/admin/channels`)
 - Form is self-contained (no multi-step, no file uploads, no detail view)
 
@@ -131,14 +135,27 @@ Use `QueryParams` from `@peppermint/admin` — matches what the shell passes aut
 import type { QueryParams } from "@peppermint/admin";
 import type { Student, StudentsFetchResponse } from "./students.types";
 
-export async function fetchStudents(params?: QueryParams): Promise<StudentsFetchResponse> {
+export async function fetchStudents(
+  params?: QueryParams,
+): Promise<StudentsFetchResponse> {
   // params.filters.status — set by the active tab
   // params.search, params.page, params.pageSize, params.sort — standard pagination
 }
 
-export async function createStudent(values: Partial<Student>): Promise<Student> { /* ... */ }
-export async function updateStudent(id: string, values: Partial<Student>): Promise<Student> { /* ... */ }
-export async function deleteStudent(id: string): Promise<void> { /* ... */ }
+export async function createStudent(
+  values: Partial<Student>,
+): Promise<Student> {
+  /* ... */
+}
+export async function updateStudent(
+  id: string,
+  values: Partial<Student>,
+): Promise<Student> {
+  /* ... */
+}
+export async function deleteStudent(id: string): Promise<void> {
+  /* ... */
+}
 ```
 
 ### Step 4 — `pages/list/<name>.columns.tsx`
@@ -156,12 +173,16 @@ import type { Student } from "../../students.types";
 
 export const studentsColumns: DataTableShellColumn<Student>[] = [
   { accessor: "fullName", title: "Full Name", icon: UserIcon, sortable: true },
-  { accessor: "email",    title: "Email",     icon: EnvelopeIcon, sortable: true },
+  { accessor: "email", title: "Email", icon: EnvelopeIcon, sortable: true },
   {
     accessor: "status",
     title: "Status",
     icon: PulseIcon,
-    render: (record) => <Badge size="xs" color={colorMap[record.status]}>{record.status}</Badge>,
+    render: (record) => (
+      <Badge size="xs" color={colorMap[record.status]}>
+        {record.status}
+      </Badge>
+    ),
   },
 ];
 ```
@@ -175,26 +196,51 @@ import { Stack, TextInput, Select, Button, useForm } from "@peppermint/ui";
 import type { StudentFormProps } from "./StudentForm.types";
 import type { Student } from "../students.types";
 
-export function StudentForm({ initialValues, onSubmit, isLoading }: StudentFormProps) {
+export function StudentForm({
+  initialValues,
+  onSubmit,
+  isLoading,
+}: StudentFormProps) {
   const form = useForm<Student>({
-    initialValues: initialValues ?? { fullName: "", email: "", status: "active" },
+    initialValues: initialValues ?? {
+      fullName: "",
+      email: "",
+      status: "active",
+    },
     validate: {
       fullName: (v) => (!v ? "Required" : null),
-      email:    (v) => (!v ? "Required" : !/^\S+@\S+$/.test(v) ? "Invalid email" : null),
+      email: (v) =>
+        !v ? "Required" : !/^\S+@\S+$/.test(v) ? "Invalid email" : null,
     },
   });
 
   return (
     <form onSubmit={form.onSubmit(onSubmit)}>
       <Stack gap="md" p="md">
-        <TextInput label="Full Name" required disabled={isLoading} {...form.getInputProps("fullName")} />
-        <TextInput label="Email" type="email" required disabled={isLoading} {...form.getInputProps("email")} />
-        <Select label="Status" data={[
-          { value: "active",     label: "Active" },
-          { value: "on-leave",   label: "On Leave" },
-          { value: "graduated",  label: "Graduated" },
-          { value: "dropped",    label: "Dropped" },
-        ]} disabled={isLoading} {...form.getInputProps("status")} />
+        <TextInput
+          label="Full Name"
+          required
+          disabled={isLoading}
+          {...form.getInputProps("fullName")}
+        />
+        <TextInput
+          label="Email"
+          type="email"
+          required
+          disabled={isLoading}
+          {...form.getInputProps("email")}
+        />
+        <Select
+          label="Status"
+          data={[
+            { value: "active", label: "Active" },
+            { value: "on-leave", label: "On Leave" },
+            { value: "graduated", label: "Graduated" },
+            { value: "dropped", label: "Dropped" },
+          ]}
+          disabled={isLoading}
+          {...form.getInputProps("status")}
+        />
         <Button type="submit" loading={isLoading} fullWidth>
           {initialValues?.id ? "Update Student" : "Create Student"}
         </Button>
@@ -228,9 +274,14 @@ Tabs must be typed as `DataTableShellTab[]`. Use `filter` (not `forceFilter`) �
 import { ModalTableShell } from "@peppermint/admin";
 import { Paper } from "@peppermint/ui";
 import type { DataTableShellTab } from "@peppermint/admin";
-import { UsersIcon }       from "@phosphor-icons/react/dist/csr/Users";
+import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
-import { fetchStudents, createStudent, updateStudent, deleteStudent } from "../../students.api";
+import {
+  fetchStudents,
+  createStudent,
+  updateStudent,
+  deleteStudent,
+} from "../../students.api";
 import { studentsColumns } from "./students.columns";
 import { studentQueryKeys } from "../../students.queryKeys";
 import { StudentForm } from "../../form/StudentForm";
@@ -238,19 +289,28 @@ import type { Student } from "../../students.types";
 
 const tabs: DataTableShellTab[] = [
   { label: "All Students", icon: UsersIcon },
-  { label: "Active",       icon: CheckCircleIcon, filter: { status: "active" } },
+  { label: "Active", icon: CheckCircleIcon, filter: { status: "active" } },
 ];
 
 export function StudentsList() {
   return (
-    <Paper p={0} withBorder radius="var(--mantine-radius-default)" h="calc(100vh - 16px)">
+    <Paper
+      p={0}
+      withBorder
+      radius="var(--mantine-radius-default)"
+      h="calc(100vh - 16px)"
+    >
       <ModalTableShell<Student>
         queryKey={studentQueryKeys.list()}
         queryGetFn={fetchStudents}
         dataKey="data"
         paginationKey="meta"
         columns={studentsColumns}
-        moduleInfo={{ name: "students", label: "Students", description: "Manage students" }}
+        moduleInfo={{
+          name: "students",
+          label: "Students",
+          description: "Manage students",
+        }}
         idAccessor="id"
         createFormComponent={StudentForm}
         editFormComponent={StudentForm}
@@ -294,31 +354,38 @@ Minimum required content:
 # <Name> Module — AI Navigation Map
 
 ## Purpose
+
 <one sentence>
 
 ## Module type
+
 ContainedModule
 
 ## Route
+
 /admin/<name>
 
 ## Entry files
+
 - Module<Name>.tsx
 - index.ts
 
 ## Common edit targets
-| Task | Files |
-|---|---|
-| List UI | pages/list/<Name>List.tsx |
-| Form UI | <Name>Form.tsx |
+
+| Task    | Files                              |
+| ------- | ---------------------------------- |
+| List UI | pages/list/<Name>List.tsx          |
+| Form UI | <Name>Form.tsx                     |
 | Queries | <name>.queryKeys.ts, module.api.ts |
-| Types | <name>.types.ts |
+| Types   | <name>.types.ts                    |
 
 ## State ownership
+
 - Server data: React Query
 - Local UI state: useState
 
 ## Do not do
+
 - Do not fetch data in useEffect.
 - Do not import Mantine directly.
 ```
@@ -330,6 +397,7 @@ After creating, run `/update-ai-map` to add the module to the app's `docs/AI.md`
 ## 5. MultiPageModule — Build Guide
 
 ### When to use
+
 - Module needs distinct URLs: `/products`, `/products/new`, `/products/:id/edit`, `/products/:id`
 - Form is complex: multi-step, file uploads, or a dedicated detail/view page
 
@@ -383,11 +451,26 @@ export interface ProductsResponse {
   meta: { total: number };
 }
 
-export async function fetchProducts(params?: QueryParams): Promise<ProductsResponse> { /* ... */ }
-export async function fetchProduct(id: number): Promise<Product> { /* ... */ }
-export async function createProduct(data: Partial<Product>): Promise<Product> { /* ... */ }
-export async function updateProduct(id: number, data: Partial<Product>): Promise<Product> { /* ... */ }
-export async function deleteProduct(id: number): Promise<void> { /* ... */ }
+export async function fetchProducts(
+  params?: QueryParams,
+): Promise<ProductsResponse> {
+  /* ... */
+}
+export async function fetchProduct(id: number): Promise<Product> {
+  /* ... */
+}
+export async function createProduct(data: Partial<Product>): Promise<Product> {
+  /* ... */
+}
+export async function updateProduct(
+  id: number,
+  data: Partial<Product>,
+): Promise<Product> {
+  /* ... */
+}
+export async function deleteProduct(id: number): Promise<void> {
+  /* ... */
+}
 ```
 
 ### Step 2 — `form/<name>Form.types.ts`
@@ -408,7 +491,11 @@ export interface ProductFormValues {
 import type { ProductFormValues } from "./productForm.types";
 
 export const PRODUCT_FORM_INITIAL: ProductFormValues = {
-  title: "", brand: "", category: "", price: 0, stock: 0,
+  title: "",
+  brand: "",
+  category: "",
+  price: 0,
+  stock: 0,
 };
 ```
 
@@ -420,8 +507,8 @@ One Zod schema per step. `STEP_FIELDS` maps each step index to its field names �
 import { z } from "zod";
 
 export const identitySchema = z.object({
-  title:    z.string().min(1, "Required"),
-  brand:    z.string().min(1, "Required"),
+  title: z.string().min(1, "Required"),
+  brand: z.string().min(1, "Required"),
   category: z.string().min(1, "Required"),
 });
 
@@ -431,8 +518,8 @@ export const pricingSchema = z.object({
 });
 
 export const PRODUCT_STEP_FIELDS: string[][] = [
-  ["title", "brand", "category"],  // step 0
-  ["price", "stock"],               // step 1
+  ["title", "brand", "category"], // step 0
+  ["price", "stock"], // step 1
 ];
 ```
 
@@ -449,9 +536,13 @@ export function StepIdentity() {
   const { form } = useFormControls<ProductFormValues>();
   return (
     <Stack gap="md">
-      <TextInput label="Title"    required {...form.getInputProps("title")} />
-      <TextInput label="Brand"    required {...form.getInputProps("brand")} />
-      <TextInput label="Category" required {...form.getInputProps("category")} />
+      <TextInput label="Title" required {...form.getInputProps("title")} />
+      <TextInput label="Brand" required {...form.getInputProps("brand")} />
+      <TextInput
+        label="Category"
+        required
+        {...form.getInputProps("category")}
+      />
     </Stack>
   );
 }
@@ -467,19 +558,23 @@ export function StepIdentity() {
 import { useFormControls, FormShell, FormWrapper } from "@peppermint/admin";
 import { createProduct } from "../module.api";
 import { PRODUCT_FORM_INITIAL } from "./productForm.initial";
-import { identitySchema, pricingSchema, PRODUCT_STEP_FIELDS } from "./productForm.schemas";
+import {
+  identitySchema,
+  pricingSchema,
+  PRODUCT_STEP_FIELDS,
+} from "./productForm.schemas";
 import { StepIdentity } from "./steps/StepIdentity";
-import { StepPricing }  from "./steps/StepPricing";
+import { StepPricing } from "./steps/StepPricing";
 import type { ProductFormValues } from "./productForm.types";
 
 const STEPS = [
   { label: "Identity", description: "Name, brand & category" },
-  { label: "Pricing",  description: "Price & stock" },
+  { label: "Pricing", description: "Price & stock" },
 ];
 
 const STEP_COMPONENTS = [
   <StepIdentity key="identity" />,
-  <StepPricing  key="pricing"  />,
+  <StepPricing key="pricing" />,
 ];
 
 function ProductFormBody({ onBack }: { onBack: () => void }) {
@@ -542,12 +637,46 @@ import { Text } from "@peppermint/ui";
 import type { Product } from "../../module.api";
 
 export const PRODUCT_COLUMNS: DataTableShellColumn<Product>[] = [
-  { accessor: "title",    title: "Product",  icon: PackageIcon, key: "title",    sortable: true, width: 260 },
-  { accessor: "brand",    title: "Brand",    icon: TagIcon,     key: "brand",    sortable: true, width: 140 },
-  { accessor: "category", title: "Category", icon: TagIcon,     key: "category", sortable: true, width: 140 },
-  { accessor: "price",    title: "Price",    icon: CurrencyDollarIcon, key: "price", sortable: true, width: 100,
-    render: (row) => <Text size="xs">${row.price.toFixed(2)}</Text> },
-  { accessor: "availabilityStatus", title: "Status", icon: PulseIcon, key: "status", width: 130 },
+  {
+    accessor: "title",
+    title: "Product",
+    icon: PackageIcon,
+    key: "title",
+    sortable: true,
+    width: 260,
+  },
+  {
+    accessor: "brand",
+    title: "Brand",
+    icon: TagIcon,
+    key: "brand",
+    sortable: true,
+    width: 140,
+  },
+  {
+    accessor: "category",
+    title: "Category",
+    icon: TagIcon,
+    key: "category",
+    sortable: true,
+    width: 140,
+  },
+  {
+    accessor: "price",
+    title: "Price",
+    icon: CurrencyDollarIcon,
+    key: "price",
+    sortable: true,
+    width: 100,
+    render: (row) => <Text size="xs">${row.price.toFixed(2)}</Text>,
+  },
+  {
+    accessor: "availabilityStatus",
+    title: "Status",
+    icon: PulseIcon,
+    key: "status",
+    width: 130,
+  },
 ];
 ```
 
@@ -561,7 +690,7 @@ Wrap in Paper. Tabs typed as `DataTableShellTab[]`. Use `filter`, not `forceFilt
 import { DataTableShell } from "@peppermint/admin";
 import { Paper } from "@peppermint/ui";
 import type { DataTableShellTab } from "@peppermint/admin";
-import { PackageIcon }    from "@phosphor-icons/react/dist/csr/Package";
+import { PackageIcon } from "@phosphor-icons/react/dist/csr/Package";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { fetchProducts } from "../../module.api";
 import { PRODUCT_COLUMNS } from "./list.columns";
@@ -569,12 +698,21 @@ import type { Product } from "../../module.api";
 
 const STATUS_TABS: DataTableShellTab[] = [
   { label: "All Products", icon: PackageIcon },
-  { label: "In Stock",     icon: CheckCircleIcon, filter: { availabilityStatus: "In Stock" } },
+  {
+    label: "In Stock",
+    icon: CheckCircleIcon,
+    filter: { availabilityStatus: "In Stock" },
+  },
 ];
 
 export function ProductsList() {
   return (
-    <Paper p={0} withBorder radius="var(--mantine-radius-default)" h="calc(100vh - 16px)">
+    <Paper
+      p={0}
+      withBorder
+      radius="var(--mantine-radius-default)"
+      h="calc(100vh - 16px)"
+    >
       <DataTableShell<Product>
         queryKey="products.list"
         queryGetFn={(params) => fetchProducts(params)}
@@ -582,7 +720,11 @@ export function ProductsList() {
         paginationKey="meta"
         enableServerQuery
         columns={PRODUCT_COLUMNS}
-        moduleInfo={{ name: "Product", label: "Products", description: "Manage your product catalogue" }}
+        moduleInfo={{
+          name: "Product",
+          label: "Products",
+          description: "Manage your product catalogue",
+        }}
         basePath="/admin/product-management/products"
         tabs={STATUS_TABS}
         pageSizes={[10, 20, 50, 100]}
@@ -606,7 +748,12 @@ import { ProductForm } from "../../form";
 
 export function ProductsNew() {
   return (
-    <Paper p={0} withBorder radius="var(--mantine-radius-default)" h="calc(100vh - 16px)">
+    <Paper
+      p={0}
+      withBorder
+      radius="var(--mantine-radius-default)"
+      h="calc(100vh - 16px)"
+    >
       <ProductForm onBack={() => history.back()} />
     </Paper>
   );
@@ -624,7 +771,12 @@ import { ProductView } from "./ProductView";
 export function ProductsView() {
   const { id } = useParams<{ id: string }>();
   return (
-    <Paper p={0} withBorder radius="var(--mantine-radius-default)" h="calc(100vh - 16px)">
+    <Paper
+      p={0}
+      withBorder
+      radius="var(--mantine-radius-default)"
+      h="calc(100vh - 16px)"
+    >
       <ProductView productId={id} />
     </Paper>
   );
@@ -637,13 +789,13 @@ Export an object — consumers pick the page they need; no deep imports into mod
 
 ```ts
 import { ProductsList } from "./pages/list";
-import { ProductsNew }  from "./pages/new";
+import { ProductsNew } from "./pages/new";
 import { ProductsEdit } from "./pages/edit";
 import { ProductsView } from "./pages/view";
 
 export const ModuleProducts = {
   main: ProductsList,
-  new:  ProductsNew,
+  new: ProductsNew,
   edit: ProductsEdit,
   view: ProductsView,
 };
@@ -679,37 +831,44 @@ Create the module AI navigation map. Mandatory — a module without an AI map is
 # <Name> Module — AI Navigation Map
 
 ## Purpose
+
 <one sentence>
 
 ## Module type
+
 MultiPageModule
 
 ## Routes
-| Route | File |
-|---|---|
-| /admin/<name> | pages/list/ |
-| /admin/<name>/new | pages/new/ |
-| /admin/<name>/[id] | pages/view/ |
+
+| Route                   | File        |
+| ----------------------- | ----------- |
+| /admin/<name>           | pages/list/ |
+| /admin/<name>/new       | pages/new/  |
+| /admin/<name>/[id]      | pages/view/ |
 | /admin/<name>/[id]/edit | pages/edit/ |
 
 ## Entry files
+
 - index.ts (exports Module<Name>)
 
 ## Common edit targets
-| Task | Files |
-|---|---|
-| List page | pages/list/ |
-| Form steps | form/steps/ |
-| View page | pages/view/ |
-| Queries | <name>.queryKeys.ts, <name>.api.ts |
-| Types | <name>.types.ts |
+
+| Task       | Files                              |
+| ---------- | ---------------------------------- |
+| List page  | pages/list/                        |
+| Form steps | form/steps/                        |
+| View page  | pages/view/                        |
+| Queries    | <name>.queryKeys.ts, <name>.api.ts |
+| Types      | <name>.types.ts                    |
 
 ## State ownership
+
 - Server data: React Query
 - Form state: @mantine/form via FormWrapper
 - Shareable filters: URL search params
 
 ## Do not do
+
 - Do not fetch data in useEffect.
 - Do not import Mantine directly.
 ```
@@ -720,16 +879,16 @@ After creating, run `/update-ai-map` to add the module to the app's `docs/AI.md`
 
 ## 6. Naming Conventions
 
-| Thing | Convention | Example |
-|---|---|---|
-| Folders | `kebab-case` | `user-profile/`, `channels/` |
-| Component files | `PascalCase` | `UserCard.tsx`, `ChannelForm.tsx` |
-| Non-component files | `camelCase` | `queryKeys.ts`, `channels.api.ts` |
-| Layout exports | `Layout<Name>` | `LayoutRoot`, `LayoutAdmin` |
-| Module exports | `Module<Name>` | `ModuleChannels`, `ModuleProducts` |
-| Module object pages | `main`, `new`, `edit`, `view` | `ModuleProducts.main` |
-| Layout folders | `kebab-case` matching the export | `root-layout` → `LayoutRoot` |
-| Module folders | `kebab-case` matching the export | `product` → `ModuleProducts` |
+| Thing               | Convention                       | Example                            |
+| ------------------- | -------------------------------- | ---------------------------------- |
+| Folders             | `kebab-case`                     | `user-profile/`, `channels/`       |
+| Component files     | `PascalCase`                     | `UserCard.tsx`, `ChannelForm.tsx`  |
+| Non-component files | `camelCase`                      | `queryKeys.ts`, `channels.api.ts`  |
+| Layout exports      | `Layout<Name>`                   | `LayoutRoot`, `LayoutAdmin`        |
+| Module exports      | `Module<Name>`                   | `ModuleChannels`, `ModuleProducts` |
+| Module object pages | `main`, `new`, `edit`, `view`    | `ModuleProducts.main`              |
+| Layout folders      | `kebab-case` matching the export | `root-layout` → `LayoutRoot`       |
+| Module folders      | `kebab-case` matching the export | `product` → `ModuleProducts`       |
 
 ---
 
@@ -755,12 +914,12 @@ apps/<app-name>/
 
 ## 8. State Ownership Quick Reference
 
-| Data type | Where it lives |
-|---|---|
-| Server / async data | React Query (`useQuery` / `useMutation`) |
+| Data type                                      | Where it lives                                 |
+| ---------------------------------------------- | ---------------------------------------------- |
+| Server / async data                            | React Query (`useQuery` / `useMutation`)       |
 | Global client state (shared across components) | Zustand in `<Component>.store.ts` or `stores/` |
-| Scoped subtree state | React Context |
-| Local component state | `useState` |
+| Scoped subtree state                           | React Context                                  |
+| Local component state                          | `useState`                                     |
 
 Never fetch in `useEffect`. Never call Axios directly in event handlers.
 
@@ -769,6 +928,7 @@ Never fetch in `useEffect`. Never call Axios directly in event handlers.
 ## 9. Common Mistakes — Do Not Make These
 
 ### `forceFilter` vs `filter` in tabs
+
 ```tsx
 // ❌ fetches all rows from the server, then discards non-matching ones client-side
 { label: "Active", forceFilter: (rows) => rows.filter(r => r.status === "active") }
@@ -778,15 +938,23 @@ Never fetch in `useEffect`. Never call Axios directly in event handlers.
 ```
 
 ### Not extending `Record<string, unknown>` on the entity
+
 ```ts
 // ❌ causes a generic constraint error in DataTableShellColumn<T> and ModalTableShell<T>
-export interface Student { id: string; name: string; }
+export interface Student {
+  id: string;
+  name: string;
+}
 
 // ✅
-export interface Student extends Record<string, unknown> { id: string; name: string; }
+export interface Student extends Record<string, unknown> {
+  id: string;
+  name: string;
+}
 ```
 
 ### Not wrapping shells in Paper
+
 ```tsx
 // ❌ shell floats with no visual container
 export function StudentsList() {
@@ -804,6 +972,7 @@ export function StudentsList() {
 ```
 
 ### Logic in `app/page.tsx`
+
 ```tsx
 // ❌ logic leaks out of the module
 export default function Page() {
@@ -855,15 +1024,19 @@ import { EnvelopeIcon } from "@phosphor-icons/react/dist/csr/Envelope";
 ```
 
 ### Untyped tabs array
+
 ```tsx
 // ❌ TypeScript won't catch prop name mistakes
 const tabs = [{ label: "Active", filter: { status: "active" } }];
 
 // ✅
-const tabs: DataTableShellTab[] = [{ label: "Active", icon: CheckCircleIcon, filter: { status: "active" } }];
+const tabs: DataTableShellTab[] = [
+  { label: "Active", icon: CheckCircleIcon, filter: { status: "active" } },
+];
 ```
 
 ### Importing from inside a module (MultiPage)
+
 ```tsx
 // ❌ bypasses the module's public API
 import { ProductsList } from "@/modules/admin/product/pages/list";
@@ -874,12 +1047,16 @@ export default ModuleProducts.main;
 ```
 
 ### Missing `key` on step components (MultiPage)
+
 ```tsx
 // ❌ React cannot key step transitions
 const STEP_COMPONENTS = [<StepIdentity />, <StepPricing />];
 
 // ✅
-const STEP_COMPONENTS = [<StepIdentity key="identity" />, <StepPricing key="pricing" />];
+const STEP_COMPONENTS = [
+  <StepIdentity key="identity" />,
+  <StepPricing key="pricing" />,
+];
 ```
 
 ---
@@ -895,6 +1072,7 @@ Square brackets are literal — they are part of the commit message.
 **Update types:** `add` · `fix` · `update` · `remove` · `docs`
 
 Examples:
+
 ```
 [mojito/channels] add: ContainedModule for channel management
 [@peppermint/admin/DataTableShell] fix: server filter not sent on tab change
@@ -907,7 +1085,15 @@ Examples:
 
 ```ts
 // UI components (Mantine wrappers — always use this)
-import { Paper, Stack, TextInput, Select, Button, Badge, Text } from "@peppermint/ui";
+import {
+  Paper,
+  Stack,
+  TextInput,
+  Select,
+  Button,
+  Badge,
+  Text,
+} from "@peppermint/ui";
 import { useForm } from "@peppermint/ui";
 
 // Admin shells
@@ -918,10 +1104,14 @@ import {
   FormShell,
   useFormControls,
 } from "@peppermint/admin";
-import type { DataTableShellColumn, DataTableShellTab, QueryParams } from "@peppermint/admin";
+import type {
+  DataTableShellColumn,
+  DataTableShellTab,
+  QueryParams,
+} from "@peppermint/admin";
 
 // Icons — always from the CSR path
-import { UsersIcon }       from "@phosphor-icons/react/dist/csr/Users";
+import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 
 // Routing (Next.js only)

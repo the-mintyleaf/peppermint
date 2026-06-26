@@ -8,20 +8,20 @@ This document explains what to re-study and what to keep in sync when updating `
 
 Update `SKILL.md` when any of the following change:
 
-| Trigger | What changes in SKILL.md |
-|---|---|
-| A new shell is added to `@peppermint/admin` | Section 3 (pattern picker), package import reference (Section 11) |
-| `ModalTableShell` or `DataTableShell` props change | Sections 4 and 5 (build guides) |
-| `FormWrapper` or `FormShell` API changes | Section 5 (MultiPageModule form steps) |
-| A new CRUD strategy or module shape is introduced | Section 3 decision table |
-| The Contained/Not Contained rule is revised | Section 2 |
-| New naming conventions are adopted | Section 6 |
-| App folder structure changes | Section 7 |
-| State management tools change | Sections 1 and 8 |
-| New packages are added to the monorepo | Section 1 (stack table), Section 11 (imports) |
-| New common mistakes are identified from real builds | Section 9 |
-| Git commit format changes | Section 10 |
-| `CLAUDE.md` is updated with new rules | Sections 1, 6, 7, 8 |
+| Trigger                                             | What changes in SKILL.md                                          |
+| --------------------------------------------------- | ----------------------------------------------------------------- |
+| A new shell is added to `@peppermint/admin`         | Section 3 (pattern picker), package import reference (Section 11) |
+| `ModalTableShell` or `DataTableShell` props change  | Sections 4 and 5 (build guides)                                   |
+| `FormWrapper` or `FormShell` API changes            | Section 5 (MultiPageModule form steps)                            |
+| A new CRUD strategy or module shape is introduced   | Section 3 decision table                                          |
+| The Contained/Not Contained rule is revised         | Section 2                                                         |
+| New naming conventions are adopted                  | Section 6                                                         |
+| App folder structure changes                        | Section 7                                                         |
+| State management tools change                       | Sections 1 and 8                                                  |
+| New packages are added to the monorepo              | Section 1 (stack table), Section 11 (imports)                     |
+| New common mistakes are identified from real builds | Section 9                                                         |
+| Git commit format changes                           | Section 10                                                        |
+| `CLAUDE.md` is updated with new rules               | Sections 1, 6, 7, 8                                               |
 
 ---
 
@@ -30,6 +30,7 @@ Update `SKILL.md` when any of the following change:
 Run through these files/locations every time you update the skill:
 
 ### 1. The reference usage-docs
+
 ```
 usage-doc/module-patterns/README.md          # decision table
 usage-doc/module-patterns/ContainedModule.md # ContainedModule step-by-step
@@ -44,28 +45,37 @@ usage-doc/admin/DataTableShell.md            # DataTableShell API
 These are the **source of truth** for correct patterns. If they conflict with what exists in the app, the usage-docs win — the app may contain inconsistencies from older builds.
 
 ### 2. The admin package exports
+
 ```
 packages/admin/src/index.ts
 ```
+
 Check for new exports, renamed props, or removed APIs.
 
 ### 3. A real module example in the Mojito app
+
 The channels module is the canonical ContainedModule reference:
+
 ```
 apps/mojito/modules/admin/channels/
 ```
+
 Read the whole folder to verify the skill examples still match the real implementation. If they diverge, update the skill to match the usage-doc pattern (not the inconsistent app code).
 
 ### 4. `CLAUDE.md`
+
 ```
 .claude/CLAUDE.md
 ```
+
 Re-read every time — it is the root of all conventions. Any new rule there must propagate into this skill.
 
 ### 5. `rules.md`
+
 ```
 .claude/rules.md
 ```
+
 Check for any supplementary rules added since the last update.
 
 ---

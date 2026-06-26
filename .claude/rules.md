@@ -6,36 +6,36 @@ Fast lookup for agents. Full context lives in CLAUDE.md and the relevant skills.
 
 ## Imports
 
-| Need | Import from |
-|---|---|
-| Any UI component | `@peppermint/ui` (never `@mantine/*` directly) |
-| Forms | `@mantine/form` via `@peppermint/ui` |
-| HTTP client | app's `src/lib/api.ts` (never `@peppermint/api-client` directly) |
-| Icons | `@phosphor-icons/react` — default weight `regular`, always `aria-label` |
-| React Query | `@peppermint/ui` re-exports `@tanstack/react-query` |
+| Need             | Import from                                                             |
+| ---------------- | ----------------------------------------------------------------------- |
+| Any UI component | `@peppermint/ui` (never `@mantine/*` directly)                          |
+| Forms            | `@mantine/form` via `@peppermint/ui`                                    |
+| HTTP client      | app's `src/lib/api.ts` (never `@peppermint/api-client` directly)        |
+| Icons            | `@phosphor-icons/react` — default weight `regular`, always `aria-label` |
+| React Query      | `@peppermint/ui` re-exports `@tanstack/react-query`                     |
 
 ---
 
 ## State owner
 
-| Data type | Owner |
-|---|---|
-| Server data, async, mutations | React Query (`useQuery` / `useMutation`) |
-| Shareable UI state (filters, tabs, pagination, selected ID) | URL search params |
-| Global interactive client state | Zustand (check existing stores first) |
-| Temporary local UI state | `useState` |
-| Derived values | Compute inline — never duplicate into state |
+| Data type                                                   | Owner                                       |
+| ----------------------------------------------------------- | ------------------------------------------- |
+| Server data, async, mutations                               | React Query (`useQuery` / `useMutation`)    |
+| Shareable UI state (filters, tabs, pagination, selected ID) | URL search params                           |
+| Global interactive client state                             | Zustand (check existing stores first)       |
+| Temporary local UI state                                    | `useState`                                  |
+| Derived values                                              | Compute inline — never duplicate into state |
 
 ---
 
 ## Module type
 
-| Type | When | Shell |
-|---|---|---|
-| `ContainedModule` | Single view, no nested routes | `ModalTableShell` |
-| `MultiPageModule` | 2–4 routes (list/new/edit/view) | `DataTableShell` + `FormWrapper` + `FormShell` |
-| `ModalModule` | Opened by another module, no route | — |
-| `RouteModule` | Needs its own layout shell | custom layout |
+| Type              | When                               | Shell                                          |
+| ----------------- | ---------------------------------- | ---------------------------------------------- |
+| `ContainedModule` | Single view, no nested routes      | `ModalTableShell`                              |
+| `MultiPageModule` | 2–4 routes (list/new/edit/view)    | `DataTableShell` + `FormWrapper` + `FormShell` |
+| `ModalModule`     | Opened by another module, no route | —                                              |
+| `RouteModule`     | Needs its own layout shell         | custom layout                                  |
 
 Decision: route? → no → triggered by another module? → yes → ModalModule. Multiple routes? → MultiPageModule. Else → ContainedModule.
 
@@ -43,12 +43,12 @@ Decision: route? → no → triggered by another module? → yes → ModalModule
 
 ## Extract thresholds
 
-| File | Extract when |
-|---|---|
-| `.hooks.ts` | Used in >1 place, or hook body >30 lines |
-| `.store.ts` | >2 state fields, or actions beyond simple setters |
-| `.context.ts` | >2 child components need the same value |
-| `.utils.ts` | Helper called from >1 place in the component |
+| File                    | Extract when                                         |
+| ----------------------- | ---------------------------------------------------- |
+| `.hooks.ts`             | Used in >1 place, or hook body >30 lines             |
+| `.store.ts`             | >2 state fields, or actions beyond simple setters    |
+| `.context.ts`           | >2 child components need the same value              |
+| `.utils.ts`             | Helper called from >1 place in the component         |
 | `components/` subfolder | Parent >200 lines, or sub-component reused elsewhere |
 
 ---

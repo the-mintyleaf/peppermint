@@ -11,14 +11,14 @@ Before creating or editing frontend code, always inspect the relevant existing c
 Required reading order:
 
 1. App-level design docs:
+   - `apps/<app>/docs/design/design-system.md`
+   - `apps/<app>/docs/design/motion-system.md`
+   - `apps/<app>/docs/design/DESIGN.md`
 
-   * `apps/<app>/docs/design/design-system.md`
-   * `apps/<app>/docs/design/motion-system.md`
-   * `apps/<app>/docs/design/DESIGN.md`
 2. Relevant module docs under:
+   - `apps/<app>/docs/modules/`
+   - `apps/<app>/modules/<group>/<module>/docs/` if present
 
-   * `apps/<app>/docs/modules/`
-   * `apps/<app>/modules/<group>/<module>/docs/` if present
 3. Existing components, hooks, stores, utils, and query patterns in the same module.
 4. Shared package exports, especially `@peppermint/ui`, before creating new UI.
 5. Similar existing implementations elsewhere in the repo.
@@ -49,15 +49,15 @@ apps/<app-name>/docs/
 
 Required docs:
 
-* `design-system.md` — design tokens, typography, spacing, color, radius, shadow, layout, breakpoints, component rules, and usage constraints.
-* `motion-system.md` — animation philosophy, reusable motion functions, durations, easings, reduced-motion behavior, and motion anti-patterns.
-* `DESIGN.md` — full product design direction, visual personality, component mood, interaction principles, layout guidance, and examples of how the app should feel.
-* `components/` — one doc per meaningful reusable component.
-* `modules/` — one doc per major module.
-* `utils/` — utility behavior, examples, and edge cases.
-* `patterns/` — repeated app patterns such as filters, tables, drawers, forms, command menus, empty states, and page shells.
-* `decisions/` — architecture and product decisions that should not be repeatedly re-decided.
-* `api-contracts/` — frontend assumptions about backend DTOs, mock data, pending APIs, and response shapes.
+- `design-system.md` — design tokens, typography, spacing, color, radius, shadow, layout, breakpoints, component rules, and usage constraints.
+- `motion-system.md` — animation philosophy, reusable motion functions, durations, easings, reduced-motion behavior, and motion anti-patterns.
+- `DESIGN.md` — full product design direction, visual personality, component mood, interaction principles, layout guidance, and examples of how the app should feel.
+- `components/` — one doc per meaningful reusable component.
+- `modules/` — one doc per major module.
+- `utils/` — utility behavior, examples, and edge cases.
+- `patterns/` — repeated app patterns such as filters, tables, drawers, forms, command menus, empty states, and page shells.
+- `decisions/` — architecture and product decisions that should not be repeatedly re-decided.
+- `api-contracts/` — frontend assumptions about backend DTOs, mock data, pending APIs, and response shapes.
 
 Creating and updating docs is mandatory. Code is not complete until the related docs are updated.
 
@@ -73,16 +73,16 @@ Never introduce one-off visual values unless they are documented and justified.
 
 Avoid:
 
-* raw hex colors
-* arbitrary spacing values
-* arbitrary border radii
-* arbitrary shadows
-* arbitrary z-index values
-* one-off gradients
-* one-off font sizes
-* one-off animation durations
-* inconsistent icon sizes
-* custom layout patterns that duplicate existing ones
+- raw hex colors
+- arbitrary spacing values
+- arbitrary border radii
+- arbitrary shadows
+- arbitrary z-index values
+- one-off gradients
+- one-off font sizes
+- one-off animation durations
+- inconsistent icon sizes
+- custom layout patterns that duplicate existing ones
 
 Use design tokens, Mantine theme values, and documented app patterns first.
 
@@ -105,14 +105,14 @@ apps/<app>/docs/design/motion-system.md
 
 A finished component must be:
 
-* typed with a dedicated `.types.ts` file
-* accessible by default
-* responsive or explicitly documented as desktop-only
-* visually aligned with the design system
-* efficient in rendering and state ownership
-* documented if reusable or non-trivial
-* exported through the correct barrel file
-* free of duplicated logic that already exists elsewhere
+- typed with a dedicated `.types.ts` file
+- accessible by default
+- responsive or explicitly documented as desktop-only
+- visually aligned with the design system
+- efficient in rendering and state ownership
+- documented if reusable or non-trivial
+- exported through the correct barrel file
+- free of duplicated logic that already exists elsewhere
 
 Components should be composable, not overly abstract.
 
@@ -124,9 +124,9 @@ Do not create reusable components prematurely. Create a reusable component only 
 
 For form-like components, clearly define whether the component is:
 
-* controlled
-* uncontrolled
-* internally managed
+- controlled
+- uncontrolled
+- internally managed
 
 Do not mix these patterns without documenting why.
 
@@ -138,15 +138,15 @@ Every data-driven module or component must handle the full UI lifecycle.
 
 Required states:
 
-* loading
-* empty
-* error
-* success
-* disabled
-* pending mutation
-* permission denied, when applicable
-* no search results, when applicable
-* offline or failed network state, when applicable
+- loading
+- empty
+- error
+- success
+- disabled
+- pending mutation
+- permission denied, when applicable
+- no search results, when applicable
+- offline or failed network state, when applicable
 
 Never build only the happy path.
 
@@ -164,10 +164,10 @@ Every module must be checked against desktop, tablet, and mobile widths.
 
 At minimum, consider:
 
-* wide desktop
-* standard laptop
-* tablet
-* mobile
+- wide desktop
+- standard laptop
+- tablet
+- mobile
 
 If a feature cannot reasonably support small screens, document the minimum supported width and provide a graceful fallback.
 
@@ -183,17 +183,17 @@ Target WCAG 2.1 AA.
 
 Required accessibility rules:
 
-* Use semantic HTML first.
-* Do not use clickable `div`s.
-* Icon-only buttons must have accessible labels.
-* All interactive elements must be keyboard reachable.
-* Focus states must be visible.
-* Modals, drawers, popovers, and command menus must handle focus correctly.
-* Forms must have labels, descriptions where needed, and field-level error messages.
-* Tables must use proper table semantics.
-* Color must not be the only way to communicate meaning.
-* Motion must respect reduced-motion preferences.
-* Destructive actions must be clearly identified and confirm when needed.
+- Use semantic HTML first.
+- Do not use clickable `div`s.
+- Icon-only buttons must have accessible labels.
+- All interactive elements must be keyboard reachable.
+- Focus states must be visible.
+- Modals, drawers, popovers, and command menus must handle focus correctly.
+- Forms must have labels, descriptions where needed, and field-level error messages.
+- Tables must use proper table semantics.
+- Color must not be the only way to communicate meaning.
+- Motion must respect reduced-motion preferences.
+- Destructive actions must be clearly identified and confirm when needed.
 
 Do not add ARIA as a replacement for correct HTML.
 
@@ -205,22 +205,22 @@ Motion should improve clarity, not decorate randomly.
 
 Allowed uses:
 
-* entering and exiting overlays
-* revealing nested content
-* drag/drop feedback
-* state transitions
-* focus or selection feedback
-* subtle page/module transitions
-* skeleton shimmer only when appropriate
+- entering and exiting overlays
+- revealing nested content
+- drag/drop feedback
+- state transitions
+- focus or selection feedback
+- subtle page/module transitions
+- skeleton shimmer only when appropriate
 
 Avoid:
 
-* slow animations
-* layout-shifting animations
-* repeated decorative motion
-* animations that block interaction
-* different easing styles in the same module
-* motion that ignores reduced-motion settings
+- slow animations
+- layout-shifting animations
+- repeated decorative motion
+- animations that block interaction
+- different easing styles in the same module
+- motion that ignores reduced-motion settings
 
 Any animation longer than 300ms must be justified and must respect reduced motion.
 
@@ -234,17 +234,17 @@ Frontend code must be efficient by default.
 
 Required rules:
 
-* Keep `"use client"` boundaries as small as possible.
-* Do not convert full pages or layouts into client components unless necessary.
-* Avoid unnecessary global state.
-* Avoid storing derived data in state.
-* Avoid expensive computation inside render.
-* Memoize only when it solves a real render problem.
-* Virtualize long lists, large tables, and large search results.
-* Lazy-load heavy modules, charts, editors, canvas tools, and rarely used dialogs.
-* Avoid wrapping large trees in Framer Motion unless needed.
-* Avoid unnecessary context updates across large subtrees.
-* Do not create new Zustand stores for state that belongs locally, in URL params, or in React Query.
+- Keep `"use client"` boundaries as small as possible.
+- Do not convert full pages or layouts into client components unless necessary.
+- Avoid unnecessary global state.
+- Avoid storing derived data in state.
+- Avoid expensive computation inside render.
+- Memoize only when it solves a real render problem.
+- Virtualize long lists, large tables, and large search results.
+- Lazy-load heavy modules, charts, editors, canvas tools, and rarely used dialogs.
+- Avoid wrapping large trees in Framer Motion unless needed.
+- Avoid unnecessary context updates across large subtrees.
+- Do not create new Zustand stores for state that belongs locally, in URL params, or in React Query.
 
 For canvas, organization-tree, kanban, analytics, and dashboard modules, explicitly consider render cost before adding state or animation.
 
@@ -256,20 +256,20 @@ Use the smallest correct state owner.
 
 State ownership rules:
 
-* Server data, cache, async status, mutations → React Query
-* Shareable route state such as filters, tabs, pagination, selected entity IDs → URL search params
-* Global interactive client state → Zustand
-* Scoped subtree dependencies → React Context
-* Temporary UI state → local `useState`
-* Derived values → compute from source state, do not duplicate in state
+- Server data, cache, async status, mutations → React Query
+- Shareable route state such as filters, tabs, pagination, selected entity IDs → URL search params
+- Global interactive client state → Zustand
+- Scoped subtree dependencies → React Context
+- Temporary UI state → local `useState`
+- Derived values → compute from source state, do not duplicate in state
 
 Before creating a Zustand store, check whether the state should instead live in:
 
-* local component state
-* parent props
-* React Query cache
-* URL search params
-* React Context
+- local component state
+- parent props
+- React Query cache
+- URL search params
+- React Context
 
 React Context should not be used for frequently changing high-volume state unless the subtree is small and intentional.
 
@@ -281,14 +281,14 @@ Use URL state when the state should be shareable, restorable, bookmarkable, or b
 
 Common URL-owned state:
 
-* active tab
-* search query
-* filters
-* sort
-* pagination
-* selected entity
-* view mode
-* date range
+- active tab
+- search query
+- filters
+- sort
+- pagination
+- selected entity
+- view mode
+- date range
 
 Do not hide important navigation state only in local state when users would expect refresh/back/share to preserve it.
 
@@ -300,14 +300,14 @@ Forms must use `@mantine/form` through `@peppermint/ui`.
 
 Every form must define:
 
-* initial values
-* validation rules
-* submit behavior
-* pending state
-* disabled state
-* field-level error display
-* server-error handling
-* reset/cancel behavior when applicable
+- initial values
+- validation rules
+- submit behavior
+- pending state
+- disabled state
+- field-level error display
+- server-error handling
+- reset/cancel behavior when applicable
 
 Submit buttons must prevent duplicate submissions.
 
@@ -325,17 +325,17 @@ Do not guess backend contracts silently.
 
 When API contracts are available:
 
-* use the real DTO shape
-* keep mapping logic outside visual components
-* document query keys and mutation behavior
+- use the real DTO shape
+- keep mapping logic outside visual components
+- document query keys and mutation behavior
 
 When API contracts are missing:
 
-* create explicit local mock types
-* mark mock data clearly
-* document assumptions in `docs/api-contracts/`
-* avoid spreading invented fields across components
-* isolate mock data so it can be replaced cleanly
+- create explicit local mock types
+- mark mock data clearly
+- document assumptions in `docs/api-contracts/`
+- avoid spreading invented fields across components
+- isolate mock data so it can be replaced cleanly
 
 Components should not directly depend on unstable backend response shapes when a mapper or adapter would make the UI safer.
 
@@ -347,13 +347,13 @@ All server state must use React Query.
 
 Required rules:
 
-* No data fetching in `useEffect`.
-* No Axios calls inside event handlers.
-* Query keys live next to query functions.
-* Mutations use `useMutation`.
-* Invalidation must be explicit and scoped.
-* Optimistic updates must include rollback behavior.
-* Query loading, empty, and error states must be represented in the UI.
+- No data fetching in `useEffect`.
+- No Axios calls inside event handlers.
+- Query keys live next to query functions.
+- Mutations use `useMutation`.
+- Invalidation must be explicit and scoped.
+- Optimistic updates must include rollback behavior.
+- Query loading, empty, and error states must be represented in the UI.
 
 Use React Query cache intentionally. Do not duplicate server data into Zustand unless there is a documented reason.
 
@@ -369,15 +369,15 @@ apps/<app>/docs/components/<component-name>.md
 
 Component docs should include:
 
-* purpose
-* when to use
-* when not to use
-* props summary
-* states
-* accessibility notes
-* responsive behavior
-* design-system notes
-* examples if useful
+- purpose
+- when to use
+- when not to use
+- props summary
+- states
+- accessibility notes
+- responsive behavior
+- design-system notes
+- examples if useful
 
 When creating or significantly updating a major module, add or update:
 
@@ -387,17 +387,17 @@ apps/<app>/docs/modules/<module-name>.md
 
 Module docs should include:
 
-* purpose
-* module type
-* routes, if any
-* major components
-* state ownership
-* data dependencies
-* user flows
-* loading/error/empty states
-* permissions, if any
-* design and motion notes
-* known assumptions
+- purpose
+- module type
+- routes, if any
+- major components
+- state ownership
+- data dependencies
+- user flows
+- loading/error/empty states
+- permissions, if any
+- design and motion notes
+- known assumptions
 
 When creating or significantly updating a utility, add or update:
 
@@ -407,11 +407,11 @@ apps/<app>/docs/utils/<utility-name>.md
 
 Utility docs should include:
 
-* purpose
-* input/output
-* examples
-* edge cases
-* where it is used
+- purpose
+- input/output
+- examples
+- edge cases
+- where it is used
 
 ---
 
@@ -891,14 +891,14 @@ When Storybook exists, reusable visual components should include stories.
 
 Stories should cover:
 
-* default
-* loading
-* empty
-* error
-* disabled
-* selected/active
-* responsive or constrained-width examples
-* dark mode, if supported
+- default
+- loading
+- empty
+- error
+- disabled
+- selected/active
+- responsive or constrained-width examples
+- dark mode, if supported
 
 If Storybook does not exist, do not add it unless explicitly asked. For complex visual work, create an app-local preview only if the existing app has a preview pattern.
 
@@ -929,13 +929,13 @@ Preferred commit style:
 
 PR description must include:
 
-* summary
-* changed files/areas
-* screenshots or visual notes for UI work
-* docs updated
-* checks run
-* known risks
-* follow-up tasks, if any
+- summary
+- changed files/areas
+- screenshots or visual notes for UI work
+- docs updated
+- checks run
+- known risks
+- follow-up tasks, if any
 
 If the environment cannot create a PR directly, prepare the PR title and body in the final response.
 
@@ -962,13 +962,13 @@ Frontend code must avoid unsafe patterns.
 
 Rules:
 
-* Never expose secrets in frontend code.
-* Never hardcode private tokens, API keys, or credentials.
-* Never log sensitive user data.
-* Sanitize or safely render user-generated HTML.
-* Avoid `dangerouslySetInnerHTML`; if needed, document why and sanitize input.
-* Validate file uploads on the client where applicable, but do not rely on client validation alone.
-* Do not store sensitive auth data in Zustand or localStorage unless the architecture explicitly allows it.
+- Never expose secrets in frontend code.
+- Never hardcode private tokens, API keys, or credentials.
+- Never log sensitive user data.
+- Sanitize or safely render user-generated HTML.
+- Avoid `dangerouslySetInnerHTML`; if needed, document why and sanitize input.
+- Validate file uploads on the client where applicable, but do not rely on client validation alone.
+- Do not store sensitive auth data in Zustand or localStorage unless the architecture explicitly allows it.
 
 ---
 
@@ -976,12 +976,12 @@ Rules:
 
 When finishing a task, respond with:
 
-* what changed
-* docs updated
-* checks run
-* files touched at a high level
-* any assumptions
-* any follow-up needed
+- what changed
+- docs updated
+- checks run
+- files touched at a high level
+- any assumptions
+- any follow-up needed
 
 Do not write long explanations unless asked.
 
