@@ -1,0 +1,1742 @@
+# MintFlow Permission App — Enterprise Authorization Concept
+
+**Document status:** Concept and requirement direction  
+**Owner app:** `permissions`  
+**Current build stage:** After `core.policy_engine`, `authenticate`, and `organization` apps  
+**Purpose:** Define the permission app as MintFlow's centralized, scalable, explainable, auditable authorization and permission-assignment module.  
+**Important boundary:** Workflow execution, event ledger, and audit interpretation will be designed later. This app must focus on permission modeling, assignment, evaluation, explanation, and scalable access-control infrastructure.
+
+---
+
+## 1. Why this module exists
+
+MintFlow now has the first three governance foundations:
+
+```text
+core.policy_engine  → defines the action universe
+authenticate        → defines actor identity and authentication state
+organization        → defines organization, units, positions, memberships, and hierarchy
+```
+
+The permission app is the fourth governance foundation.
+
+It answers the central authorization question:
+
+```text
+Can this subject perform this action on this resource under this scope and context, right now?
+```
+
+Where:
+
+```text
+subject  = authenticated user / actor / system actor
+action   = policy_engine.permission_key
+resource = case, work item, document, organization unit, report, future model instance, etc.
+scope    = organization, unit, unit subtree, position, membership, resource instance, self, assigned item, etc.
+context  = time, request source, sensitivity, workflow stage, delegation, emergency mode, reason, etc.
+```
+
+The permission app must not be a small role table. It must be a long-term authorization platform for serious organizations, including ministries and privacy-sensitive institutions.
+
+---
+
+## 2. Core design principle
+
+The central principle is:
+
+```text
+No access decision should be mysterious.
+```
+
+Every permission decision should eventually be explainable:
+
+```text
+Allowed or denied?
+Which permission key?
+For which resource?
+Under which organization scope?
+Because of which role, grant, denial, delegation, rule, condition, or emergency session?
+At what time?
+With what risk level?
+Was the decision logged?
+Can an auditor reconstruct it later?
+```
+
+This module should be deterministic, default-deny, scope-aware, time-aware, and safe under scale.
+
+---
+
+## 3. Module boundary
+
+### 3.1 The permission app owns
+
+The permission app owns:
+
+```text
+roles
+role permissions
+role bindings
+scoped permission grants
+scoped permission denials
+delegations
+permission conditions
+permission rules
+row-level/resource-level access grants
+permission decision service
+permission explanation service
+permission simulation service
+access review metadata
+break-glass permission sessions
+separation-of-duty rules
+permission decision logs or decision log stubs
+permission snapshots / effective permission projections
+permission cache version stamps
+```
+
+### 3.2 The permission app depends on
+
+The permission app depends on:
+
+```text
+core.policy_engine  → for permission keys, endpoint metadata, action category, risk level, dependencies
+authenticate        → for user / actor identity, active state, system actor state
+organization        → for organization, units, unit hierarchy, positions, memberships, assignment state, reporting lines
+```
+
+### 3.3 The permission app must not own
+
+The permission app must not own:
+
+```text
+passwords
+login / logout / token issuance
+user registration
+organization unit hierarchy
+position hierarchy
+membership lifecycle
+workflow execution
+case state transitions
+work item state transitions
+document storage
+OCR
+final audit interpretation
+AI-generated permission grants without human approval
+```
+
+### 3.4 Important future boundary
+
+The permission app may produce permission decisions and decision logs, but it should not replace the future event ledger or audit app.
+
+Future flow:
+
+```text
+Permission app  → decides whether action is allowed
+Workflow app    → executes state transition
+Event ledger    → records what happened
+Audit app       → interprets whether it was proper, risky, delayed, suspicious, or compliant
+```
+
+For this phase, implement permission concepts only. Do not implement workflow/event/audit systems inside this app.
+
+---
+
+## 4. Access-control models supported
+
+The permission app should support a hybrid authorization model.
+
+### 4.1 RBAC — Role-Based Access Control
+
+Roles group permissions.
+
+Example:
+
+```text
+Role: Department Head
+Permissions:
+- cases.case.read
+- work.work_item.assign
+- organization.org_unit.read
+```
+
+### 4.2 Scoped RBAC
+
+Roles must be scoped. Global roles should be exceptional.
+
+Bad:
+
+```text
+User has Manager role.
+```
+
+Correct:
+
+```text
+User has Manager role within OrganizationUnit X and its child units from date A to date B.
+```
+
+### 4.3 ABAC — Attribute-Based Access Control
+
+Rules may depend on actor, resource, and context attributes.
+
+Examples:
+
+```text
+case.sensitivity_level <= actor.clearance_level
+resource.organization_id == context.organization_id
+context.request_ip is inside trusted network
+context.reason is required for high-risk action
+```
+
+**Context source note:** `authenticate` currently has no `active_organization_id` field on
+`User`, no custom JWT claims, and no "selected organization" concept. `check_permission(subject,
+permission_key, resource, context)` must receive `organization_id` (and any other ABAC inputs)
+explicitly inside the `context` dict, supplied by the calling view/service — never assumed from a
+JWT claim or a `User` field that doesn't exist. Do not add an `active_organization_id`-style field
+to `authenticate.User` to support this; that would be a cross-app schema change requiring approval
+under CLAUDE.md §28 and isn't needed.
+
+### 4.4 HBAC — Hierarchy-Based Access Control
+
+Authority can flow through organization or position hierarchy.
+
+Examples:
+
+```text
+Department Head can view cases in their department subtree.
+Supervisor can assign work to subordinate memberships.
+Acting Director can approve items under delegated unit scope.
+```
+
+### 4.5 ReBAC — Relationship-Based Access Control
+
+Access can depend on relationship to the resource.
+
+Examples:
+
+```text
+User is assignee.
+User is creator.
+User is reviewer.
+User is supervisor of assignee.
+User belongs to owning unit.
+```
+
+### 4.6 PBAC — Policy-Based Access Control
+
+Policies combine roles, grants, denials, hierarchy, resource attributes, and context.
+
+Example:
+
+```text
+Allow document read if:
+- actor has document.read permission through scoped role, and
+- document belongs to actor's unit subtree, and
+- document sensitivity is within actor clearance, and
+- no explicit denial exists.
+```
+
+### 4.7 DAC-style controlled direct grants
+
+Direct grants are allowed, but they must be controlled, scoped, time-bound where appropriate, and explainable.
+
+Example:
+
+```text
+Grant User B read access to Case X until 2026-07-01 for investigation review.
+```
+
+### 4.8 Explicit denials
+
+Explicit denial must override allow.
+
+Examples:
+
+```text
+User C cannot approve Case Y because of conflict of interest.
+User D cannot view Document Z because of legal restriction.
+```
+
+### 4.9 Separation of duty
+
+The app must support rules preventing dangerous combinations.
+
+Examples:
+
+```text
+Creator cannot approve own request.
+Requester cannot verify own document.
+Reviewer cannot be the same actor as final approver.
+User cannot both initiate and close a procurement workflow.
+```
+
+### 4.10 Break-glass access
+
+Emergency access can exist, but it must be exceptional, time-limited, justified, visible, and heavily logged.
+
+Rules:
+
+```text
+No permanent break-glass.
+No silent break-glass.
+No break-glass without reason.
+No unlimited resource scope.
+No break-glass without expiration.
+```
+
+---
+
+## 5. Decision model
+
+### 5.1 Central service
+
+The permission app should expose one central authorization service:
+
+```python
+check_permission(
+    subject,
+    permission_key: str,
+    resource=None,
+    context: dict | None = None,
+) -> PermissionDecision
+```
+
+### 5.2 PermissionDecision output
+
+The decision object must not be a bare boolean.
+
+Recommended shape:
+
+```json
+{
+  "allowed": true,
+  "decision": "allow",
+  "permission_key": "cases.case.read",
+  "subject_id": "uuid",
+  "resource_type": "cases.case",
+  "resource_id": "uuid",
+  "scope_type": "organization_unit_tree",
+  "scope_id": "uuid",
+  "reason": "Allowed by Department Head role scoped to IT Department subtree.",
+  "matched_roles": [],
+  "matched_grants": [],
+  "matched_denials": [],
+  "matched_delegations": [],
+  "matched_rules": [],
+  "failed_conditions": [],
+  "risk_level": "medium",
+  "requires_audit": true,
+  "cache_status": "miss"
+}
+```
+
+For denial:
+
+```json
+{
+  "allowed": false,
+  "decision": "deny",
+  "permission_key": "cases.case.approve",
+  "reason": "Denied because actor created the resource and self-approval is blocked by separation-of-duty rule.",
+  "matched_denials": [],
+  "failed_conditions": ["self_approval_blocked"],
+  "requires_escalation": false
+}
+```
+
+### 5.3 Decision precedence
+
+The engine must follow this order:
+
+```text
+1. Superuser bypass: if actor.is_superuser is true, allow immediately. This mirrors
+   the existing platform-wide bypass contract already documented in
+   authenticate/docs/SECURITY.md §12 ("is_superuser is the platform-wide
+   bypass-all-permission-checks flag... every future authorization system
+   must honor it"). A decision log entry must still be written for traceability.
+2. Default deny.
+3. Invalid/inactive actor denies.
+4. Inactive/suspended organization membership denies scoped authority.
+5. Permission key must exist in policy engine.
+6. Explicit denial beats all normal allows.
+7. Separation-of-duty violation denies unless break-glass explicitly permits emergency override.
+8. Expired grants, bindings, delegations, and sessions are ignored.
+9. Scope must match.
+10. Policy dependencies must be considered.
+11. ABAC/context conditions must pass.
+12. Break-glass can allow only under controlled emergency rules.
+13. High-risk/critical actions require stronger explanation and logging.
+```
+
+---
+
+## 6. Scope model
+
+The permission app must support many scope types from day one.
+
+Recommended `ScopeType` enum:
+
+```text
+global
+organization
+organization_unit
+organization_unit_tree
+position
+position_tree
+membership
+membership_tree
+resource_type
+resource_instance
+self
+created_by_me
+assigned_to_me
+supervised_by_me
+custom
+```
+
+**Important — `position_tree` redefinition:** positions do not nest in the `organization` app
+(there is no position closure table, and none is planned — positions are flat within a unit).
+`position_tree` therefore does not mean "descendants of a position." It must be implemented as
+"all positions within a given organization unit's subtree," derived from
+`OrganizationUnitClosure`/`get_unit_descendants()`, not from any position-level hierarchy.
+
+### 6.1 Examples
+
+Global:
+
+```text
+System admin can manage all organizations.
+```
+
+Organization:
+
+```text
+Organization admin can manage settings inside Organization A.
+```
+
+Organization unit:
+
+```text
+Unit officer can update records owned by Unit X only.
+```
+
+Organization unit tree:
+
+```text
+Department Head can read all cases in Department X and child units.
+```
+
+Resource instance:
+
+```text
+User B can view Case X only.
+```
+
+Self:
+
+```text
+User can view own profile.
+```
+
+Assigned to me:
+
+```text
+User can update work items assigned to them.
+```
+
+Supervised by me:
+
+```text
+Supervisor can review work created by subordinate memberships.
+```
+
+### 6.2 Scope resolution cost — read before treating any scope as hot-path
+
+Not all scope types resolve at the same cost, and the `organization` app's own data contract
+already settles which ones are O(1) today:
+
+```text
+O(1), closure-table backed (safe for the check_permission hot path):
+  organization_unit_tree   -> OrganizationUnitClosure / get_unit_descendants()
+  position_tree            -> derived from the same unit closure (see §6.1 redefinition above)
+
+Bounded but not O(1) (cold path only — explain/simulate, never the hot check_permission path):
+  membership_tree           -> walks ReportingLine via get_chain_of_command(), bounded at 100 hops
+  supervised_by_me          -> same bounded walk
+
+Not backed by organization at all (must be built and maintained inside the permissions app):
+  any "subordinate membership closure" used for fast repeated checks
+```
+
+The `organization` app deliberately does not provide a closure table for `ReportingLine`
+(its own DATA_CONTRACT §9 states the multi-type/matrix design means it is not a single tree, so a
+closure table would be incorrect, not just unbuilt). This is a permanent constraint, not a gap to
+ask the `organization` app to fill. If `membership_tree`/`supervised_by_me` scope needs to be fast,
+the `permissions` app must build its own derived/cached closure for it — which is exactly what the
+`PermissionSnapshot` mechanism in §8.12/§13.6 is for. Treat reporting-based scopes as
+snapshot-backed, not live-organization-backed.
+
+---
+
+## 7. Row-level permissions
+
+The permission app must support row-level permissions for future apps.
+
+A row-level permission means:
+
+```text
+Actor can perform permission_key on one specific model row.
+```
+
+Examples:
+
+```text
+User A can read Case X.
+User B can update WorkItem Y.
+User C can review Document Z.
+User D can approve only Request R.
+```
+
+### 7.1 Generic resource reference
+
+Do not add direct foreign keys for every future app model.
+
+Bad:
+
+```text
+PermissionGrant.case_id
+PermissionGrant.work_item_id
+PermissionGrant.document_id
+PermissionGrant.audit_record_id
+```
+
+Correct:
+
+```text
+resource_app_label
+resource_model
+resource_type
+resource_id
+```
+
+Example:
+
+```text
+resource_type = "cases.case"
+resource_id = "uuid"
+```
+
+### 7.2 Resource adapter pattern
+
+Future apps should expose resource metadata to the permission engine.
+
+Example resource metadata:
+
+```json
+{
+  "resource_type": "cases.case",
+  "resource_id": "uuid",
+  "organization_id": "uuid",
+  "owning_unit_id": "uuid",
+  "created_by_id": "uuid",
+  "assigned_user_ids": [],
+  "sensitivity_level": "restricted",
+  "status": "under_review"
+}
+```
+
+The permission engine can then evaluate:
+
+```text
+direct resource grant
+owning organization match
+owning unit subtree match
+creator/assignee/reviewer relationship
+sensitivity clearance
+separation-of-duty conflict
+explicit denial
+```
+
+### 7.3 Future model integration requirement
+
+Every future app that needs row-level access must define:
+
+```text
+resource_type string
+resource_id UUID
+organization scope fields
+owner/creator fields if relevant
+unit ownership if relevant
+sensitivity/classification if relevant
+adapter/selector function to expose permission metadata
+policy_engine permission_key metadata
+```
+
+---
+
+## 8. Recommended model set
+
+This is the conceptual model set. Claude Code should still write `permissions/docs/DATA_CONTRACT.md` before model implementation.
+
+**Naming note:** `core.policy_engine` already has a model literally named `PermissionCategory`
+(plus `EndpointCategoryMap`) — these are UI taxonomy for organizing endpoints in a permission tree
+display, unrelated to authorization. They live in a different `app_label` so there is no technical
+collision with the `Permission*`-prefixed models below, but when searching the codebase for
+"Permission" remember `policy_engine.PermissionCategory` is not part of this app.
+
+### 8.1 PermissionRole
+
+Represents a named authority package.
+
+Fields should include:
+
+```text
+key
+display_name
+description
+role_type
+is_system_role
+is_assignable
+is_active
+is_deprecated
+version
+```
+
+Examples:
+
+```text
+system_admin
+organization_admin
+department_head
+unit_supervisor
+case_reviewer
+document_controller
+auditor
+```
+
+### 8.2 PermissionRolePermission
+
+Connects a role to a policy engine permission key.
+
+Fields should include:
+
+```text
+role
+permission_key
+operation_type_snapshot
+risk_level_snapshot
+is_active
+valid_from
+valid_until
+condition_group
+```
+
+The permission key must exist in `core.policy_engine.PolicyEndpoint` or another approved policy action registry object.
+
+### 8.3 PermissionRoleBinding
+
+Assigns a role to a subject under scope.
+
+Fields should include:
+
+```text
+subject_user
+subject_membership
+subject_position_assignment
+role
+scope_type
+organization
+organization_unit
+position
+resource_type
+resource_id
+valid_from
+valid_until
+status
+assigned_by
+assignment_reason
+revoked_at
+revoked_by
+revocation_reason
+```
+
+### 8.4 PermissionGrant
+
+Direct allow grant independent of role.
+
+Fields should include:
+
+```text
+subject_user / membership / position_assignment
+permission_key
+scope_type
+organization
+organization_unit
+resource_type
+resource_id
+valid_from
+valid_until
+reason
+approved_by
+created_by
+status
+```
+
+### 8.5 PermissionDeny
+
+Direct denial. Overrides role permissions and normal grants.
+
+Fields should include:
+
+```text
+subject_user / membership / position_assignment
+permission_key
+scope_type
+organization
+organization_unit
+resource_type
+resource_id
+reason
+severity
+valid_from
+valid_until
+created_by
+status
+```
+
+### 8.6 PermissionDelegation
+
+Temporary authority transferred from one actor/position/membership to another.
+
+Fields should include:
+
+```text
+delegator_user
+delegatee_user
+delegator_membership
+delegatee_membership
+delegated_role
+permission_keys
+scope_type
+organization
+organization_unit
+resource_type
+resource_id
+valid_from
+valid_until
+reason
+approved_by
+status
+revoked_at
+revoked_by
+```
+
+Delegation must not silently exceed the delegator's authority.
+
+### 8.7 PermissionCondition
+
+Controlled reusable condition definition.
+
+Fields should include:
+
+```text
+key
+display_name
+description
+condition_type
+attribute_path
+operator
+expected_value
+is_active
+```
+
+Allowed operators should be enum-controlled.
+
+Examples:
+
+```text
+equals
+not_equals
+in
+not_in
+less_than_or_equal
+greater_than_or_equal
+within_organization_unit_tree
+is_creator
+is_assignee
+is_supervisor
+has_clearance
+requires_reason
+requires_mfa
+```
+
+### 8.8 PermissionRule
+
+Policy rule that combines permission key, scope, conditions, and effect.
+
+Fields should include:
+
+```text
+key
+display_name
+description
+permission_key
+effect
+scope_type
+priority
+condition_logic
+is_active
+valid_from
+valid_until
+```
+
+Effect:
+
+```text
+allow
+deny
+require_review
+require_mfa
+require_reason
+```
+
+### 8.9 SeparationOfDutyRule
+
+Prevents unsafe action combinations.
+
+Fields should include:
+
+```text
+key
+display_name
+description
+primary_permission_key
+conflicting_permission_key
+resource_type
+conflict_window
+rule_type
+severity
+is_active
+```
+
+Rule types:
+
+```text
+same_actor_block
+same_membership_block
+same_position_block
+same_unit_block
+creator_cannot_approve
+requester_cannot_verify
+assignee_cannot_final_review
+```
+
+### 8.10 BreakGlassSession
+
+Emergency permission session.
+
+Fields should include:
+
+```text
+subject_user
+scope_type
+permission_keys
+resource_type
+resource_id
+organization
+organization_unit
+reason
+approved_by
+started_at
+expires_at
+ended_at
+status
+risk_level
+```
+
+### 8.11 PermissionDecisionLog
+
+Records important authorization decisions.
+
+Fields should include:
+
+```text
+subject_user
+permission_key
+resource_type
+resource_id
+scope_type
+scope_id
+decision
+reason
+matched_role_bindings
+matched_grants
+matched_denials
+matched_delegations
+matched_rules
+context_snapshot
+risk_level
+cache_status
+created_at
+```
+
+This table can become high-volume. Scaling strategy is mandatory.
+
+### 8.12 PermissionSnapshot
+
+Optional but recommended for scale.
+
+Stores derived effective permission snapshots for fast reads and admin views.
+
+Fields should include:
+
+```text
+subject_user
+organization
+organization_unit
+snapshot_version
+valid_at
+effective_permissions
+source_version_stamp
+expires_at
+```
+
+Snapshots are derived and rebuildable. They are not the legal source of truth.
+
+### 8.13 PermissionVersionStamp
+
+Tracks version changes that invalidate caches/snapshots.
+
+Fields should include:
+
+```text
+scope_type
+scope_id
+version
+changed_reason
+changed_at
+changed_by
+```
+
+Any change to role permissions, bindings, grants, denials, delegations, organization memberships, reporting hierarchy, or policy metadata should eventually update relevant version stamps.
+
+### 8.14 PermissionAccessReviewCampaign
+
+A scheduled or ad-hoc access recertification campaign (e.g. "Q3 2026 IT Department review").
+Referenced by §3.1 ("access review metadata"), the API group in §11.7, and Phase 4 in §21, but not
+previously specified here — added for internal consistency.
+
+Fields should include:
+
+```text
+key
+display_name
+description
+scope_type
+organization
+organization_unit
+status
+started_at
+due_at
+completed_at
+created_by
+total_items
+completed_items
+```
+
+Status values: `draft`, `in_progress`, `completed`, `cancelled`, `overdue`.
+
+### 8.15 PermissionAccessReviewItem
+
+One reviewable unit within a campaign: a specific subject's role binding, grant, or delegation for
+a permission_key under a scope, awaiting a reviewer decision.
+
+Fields should include:
+
+```text
+campaign
+subject_user
+subject_membership
+subject_position_assignment
+permission_key
+source_type
+source_id
+scope_type
+scope_id
+reviewer
+decision
+decision_reason
+decided_at
+status
+```
+
+`source_type` values: `role_binding`, `grant`, `delegation`. `decision` values: `pending`, `keep`,
+`revoke`, `modify`, `escalate`. Exactly one subject reference must be populated, per the same
+`validate_exactly_one_subject_reference` rule defined in §15.
+
+---
+
+## 9. Services
+
+All write and decision logic must live in `permissions/services.py` or dedicated service modules under the permission app.
+
+Required services:
+
+```python
+create_role(...)
+update_role(...)
+deprecate_role(...)
+attach_permission_to_role(...)
+remove_permission_from_role(...)
+bind_role_to_subject(...)
+revoke_role_binding(...)
+create_permission_grant(...)
+revoke_permission_grant(...)
+create_permission_deny(...)
+revoke_permission_deny(...)
+create_delegation(...)
+revoke_delegation(...)
+create_permission_rule(...)
+create_separation_of_duty_rule(...)
+open_break_glass_session(...)
+close_break_glass_session(...)
+check_permission(...)
+explain_permission(...)
+simulate_permission(...)
+build_effective_permission_snapshot(...)
+invalidate_permission_cache_scope(...)
+create_access_review_campaign(...)
+close_access_review_campaign(...)
+record_access_review_decision(...)
+```
+
+All multi-table writes must use `transaction.atomic()`.
+
+---
+
+## 10. Selectors
+
+All database read/query logic must live in `permissions/selectors.py` or selector modules.
+
+Required selectors:
+
+```python
+get_active_role_bindings_for_subject(...)
+get_active_grants_for_subject(...)
+get_active_denials_for_subject(...)
+get_active_delegations_for_subject(...)
+get_permission_rules_for_key(...)
+get_separation_of_duty_rules(...)
+get_effective_permissions_for_subject(...)
+get_resource_accessors(...)
+get_subject_permission_sources(...)
+get_permission_decision_history(...)
+get_expiring_grants(...)
+get_overprivileged_subjects(...)
+get_access_review_campaign(...)
+get_access_review_items_for_campaign(...)
+get_pending_access_review_items_for_reviewer(...)
+```
+
+Selectors must use `select_related`, `prefetch_related`, and documented indexes to avoid N+1 query patterns.
+
+---
+
+## 11. API concept
+
+The permission app should expose administrative and evaluation APIs, but actual implementation should follow the final `API.md` contract.
+
+Recommended endpoint groups:
+
+### 11.1 Role APIs
+
+```text
+GET    /api/v1/permissions/roles/
+POST   /api/v1/permissions/roles/
+GET    /api/v1/permissions/roles/<id>/
+PATCH  /api/v1/permissions/roles/<id>/
+POST   /api/v1/permissions/roles/<id>/permissions/
+DELETE /api/v1/permissions/roles/<id>/permissions/<permission_key>/
+```
+
+### 11.2 Role binding APIs
+
+```text
+GET    /api/v1/permissions/role-bindings/
+POST   /api/v1/permissions/role-bindings/
+POST   /api/v1/permissions/role-bindings/<id>/revoke/
+```
+
+### 11.3 Direct grant/deny APIs
+
+```text
+GET    /api/v1/permissions/grants/
+POST   /api/v1/permissions/grants/
+POST   /api/v1/permissions/grants/<id>/revoke/
+
+GET    /api/v1/permissions/denials/
+POST   /api/v1/permissions/denials/
+POST   /api/v1/permissions/denials/<id>/revoke/
+```
+
+### 11.4 Delegation APIs
+
+```text
+GET    /api/v1/permissions/delegations/
+POST   /api/v1/permissions/delegations/
+POST   /api/v1/permissions/delegations/<id>/revoke/
+```
+
+### 11.5 Decision APIs
+
+```text
+POST   /api/v1/permissions/check/
+POST   /api/v1/permissions/explain/
+POST   /api/v1/permissions/simulate/
+GET    /api/v1/permissions/effective/<subject_id>/
+GET    /api/v1/permissions/resources/accessors/
+```
+
+### 11.6 Break-glass APIs
+
+```text
+POST   /api/v1/permissions/break-glass/start/
+POST   /api/v1/permissions/break-glass/<id>/end/
+GET    /api/v1/permissions/break-glass/
+```
+
+### 11.7 Access review APIs
+
+```text
+GET    /api/v1/permissions/access-reviews/
+POST   /api/v1/permissions/access-reviews/
+GET    /api/v1/permissions/access-reviews/<id>/items/
+POST   /api/v1/permissions/access-reviews/<id>/items/<item_id>/decision/
+```
+
+All endpoints must be registered in the Core Policy Engine through `permissions/registry.py`.
+
+---
+
+## 12. Policy engine integration
+
+The permission app must not invent action strings independently.
+
+Every permission assignment must reference a stable `permission_key` from the policy engine.
+
+Example:
+
+```text
+organization.org_unit.read
+organization.org_unit.update
+permissions.role.create
+permissions.role_binding.create
+cases.case.read
+work.work_item.assign
+```
+
+### 12.1 Required validation
+
+When assigning a permission key to a role, grant, denial, rule, or delegation:
+
+```text
+1. Validate that permission_key exists in policy engine.
+2. Validate that endpoint/action is active and not deprecated unless explicitly allowed.
+3. Store operation/risk metadata snapshot where needed.
+4. Validate policy dependencies where required.
+5. Refuse unknown permission keys.
+```
+
+Permission-key format validation (the `app.model.action` regex) must call `core.policy_engine`'s
+existing validator rather than re-implementing the pattern — `core/policy_engine/validators.py`
+already owns this rule. Duplicating it in `permissions` would violate the project's
+no-duplicate-logic-across-apps rule and risks the two regexes drifting apart.
+
+### 12.2 Permission app endpoints must register themselves
+
+The permission app also has protected endpoints. Therefore it must declare `POLICY_ENDPOINTS` in `permissions/registry.py`.
+
+Examples:
+
+```text
+permissions.role.create
+permissions.role.read
+permissions.role.update
+permissions.role.deprecate
+permissions.role_permission.create
+permissions.role_binding.create
+permissions.role_binding.revoke
+permissions.grant.create
+permissions.grant.revoke
+permissions.deny.create
+permissions.deny.revoke
+permissions.delegation.create
+permissions.delegation.revoke
+permissions.decision.check
+permissions.decision.explain
+permissions.decision.simulate
+permissions.break_glass.start
+permissions.break_glass.end
+permissions.access_review.create
+```
+
+---
+
+## 13. Scaling strategy
+
+Scaling is not optional. This module may sit on the hot path of almost every protected API request.
+
+### 13.1 Runtime permission checks must be fast
+
+Common permission checks should avoid heavy scans.
+
+Target runtime pattern:
+
+```text
+1. Load active actor context.
+2. Load active organization memberships/positions from optimized selectors or cache.
+3. Load active role bindings/grants/denials for actor and scope.
+4. Validate permission_key against policy metadata/cache.
+5. Resolve scope with indexed organization/position closure tables.
+6. Check explicit denials.
+7. Check allows/grants/delegations.
+8. Evaluate necessary conditions.
+9. Return explainable decision.
+```
+
+### 13.2 Index strategy
+
+Indexes must be designed around actual access patterns.
+
+Recommended indexes:
+
+```text
+PermissionRole.key unique
+PermissionRolePermission(role_id, permission_key, is_active)
+PermissionRolePermission(permission_key, is_active)
+PermissionRoleBinding(subject_user_id, status, valid_from, valid_until)
+PermissionRoleBinding(subject_membership_id, status, valid_from, valid_until)
+PermissionRoleBinding(role_id, scope_type, organization_id, organization_unit_id)
+PermissionRoleBinding(scope_type, resource_type, resource_id)
+PermissionGrant(subject_user_id, permission_key, status, valid_from, valid_until)
+PermissionGrant(scope_type, organization_id, organization_unit_id)
+PermissionGrant(resource_type, resource_id, permission_key)
+PermissionDeny(subject_user_id, permission_key, status, valid_from, valid_until)
+PermissionDeny(resource_type, resource_id, permission_key)
+PermissionDelegation(delegatee_user_id, status, valid_from, valid_until)
+PermissionRule(permission_key, effect, priority, is_active)
+BreakGlassSession(subject_user_id, status, expires_at)
+PermissionDecisionLog(subject_user_id, created_at)
+PermissionDecisionLog(permission_key, created_at)
+PermissionDecisionLog(resource_type, resource_id, created_at)
+PermissionVersionStamp(scope_type, scope_id)
+```
+
+Use composite indexes for high-frequency selectors. Every index must be documented in `DATA_CONTRACT.md` with the query it supports.
+
+### 13.3 Organization hierarchy scaling
+
+Do not recursively traverse organization trees during every permission check.
+
+The organization app should provide closure-table or precomputed hierarchy selectors, such as:
+
+```text
+unit subtree IDs
+position subtree IDs
+membership reporting subtree IDs
+```
+
+The permission engine should consume these optimized selectors instead of walking parent pointers repeatedly.
+
+### 13.4 Caching strategy
+
+The permission app should support cache-ready architecture even if Redis/Valkey integration comes later.
+
+Cacheable items:
+
+```text
+policy permission metadata by permission_key
+active role permissions by role
+active role bindings by subject
+active grants/denials by subject
+organization unit subtree IDs
+position/membership authority context
+effective permission snapshots
+permission decision results for safe low-risk checks
+```
+
+Cache key must include version stamps:
+
+```text
+subject_id
+permission_key
+resource_type
+resource_id
+scope_hash
+context_hash
+policy_version
+organization_version
+permission_version
+```
+
+### 13.5 Cache invalidation
+
+Permission cache must be invalidated or version-bumped when any of these changes:
+
+```text
+role definition
+role permission
+role binding
+permission grant
+permission denial
+delegation
+break-glass session
+permission rule
+separation-of-duty rule
+organization membership
+position assignment
+reporting line
+organization unit hierarchy
+policy engine endpoint metadata
+```
+
+Version-based invalidation is preferred over trying to delete every possible cache key.
+
+### 13.6 Permission snapshots
+
+For large organizations, calculating effective permissions repeatedly can be expensive.
+
+Use derived snapshots for:
+
+```text
+admin effective-permission screens
+access review campaigns
+large reporting queries
+bulk permission analysis
+simulation baseline
+```
+
+Snapshots must be treated as derived and rebuildable.
+
+Never use stale snapshots for critical write/approve/delete decisions unless freshness is verified.
+
+### 13.7 Decision log scaling
+
+`PermissionDecisionLog` can become very large.
+
+Recommended approach:
+
+```text
+Log all critical/high-risk decisions.
+Log all administrative permission changes.
+Log all explicit denials.
+Log all break-glass activity.
+Log all delegation changes.
+Log sampled or summarized low-risk reads if needed.
+Use partitioning by time when volume grows.
+Use retention policy for low-risk logs.
+Keep critical/security logs longer.
+```
+
+Do not block normal API performance on heavy log writes if volume becomes high. Later, event/outbox patterns may be used, but that is outside the first permission module scope.
+
+### 13.8 Query separation
+
+Separate hot-path queries from heavy administrative queries.
+
+Hot path:
+
+```text
+check_permission
+```
+
+Should be optimized, narrow, indexed, and cache-aware.
+
+Heavy path:
+
+```text
+explain_permission
+simulate_permission
+list_resource_accessors
+access_review_campaign
+permission_audit_report
+```
+
+Can use more joins, snapshots, background rebuilds, or pagination.
+
+### 13.9 Database growth planning
+
+The permission app should be designed for:
+
+```text
+many organizations
+many departments/units
+thousands to millions of users
+many role bindings
+many temporary grants
+a large number of future resource types
+high-frequency permission checks
+large historical decision logs
+periodic access review campaigns
+```
+
+Use PostgreSQL as the source of truth. Do not introduce a new database engine for this module without explicit approval and documented governance.
+
+---
+
+## 14. Security requirements
+
+The permission app is security-critical.
+
+### 14.1 Default-deny
+
+Missing data, inactive data, invalid scope, unknown permission key, expired binding, or failed condition must deny access.
+
+### 14.2 Explicit deny wins
+
+Explicit deny must override role permissions, grants, delegation, and normal allow rules.
+
+### 14.3 No silent privilege escalation
+
+The app must prevent:
+
+```text
+delegating more authority than delegator owns
+creating global role bindings accidentally
+granting deprecated permission keys without explicit override
+assigning role outside admin's own manageable scope
+using expired membership for authority
+using inactive organization position for authority
+```
+
+### 14.4 Human approval for dangerous changes
+
+High-risk administrative actions should support approval metadata.
+
+Examples:
+
+```text
+critical role creation
+global admin binding
+break-glass session
+critical permission grant
+high-risk denial removal
+separation-of-duty override
+```
+
+### 14.5 Sensitive logging
+
+Never log:
+
+```text
+passwords
+tokens
+OTP values
+private keys
+raw secret values
+```
+
+Decision logs may store context snapshots, but sensitive fields must be redacted.
+
+---
+
+## 15. Validation requirements
+
+Validators should include:
+
+```python
+validate_permission_key_exists(...)
+validate_permission_key_active(...)
+validate_scope_is_valid(...)
+validate_scope_fields_match_scope_type(...)
+validate_exactly_one_subject_reference(...)
+validate_resource_reference(...)
+validate_role_binding_dates(...)
+validate_no_duplicate_active_binding(...)
+validate_delegation_within_delegator_authority(...)
+validate_no_self_approval_if_sod_rule_applies(...)
+validate_break_glass_expiration(...)
+validate_deny_precedence(...)
+validate_admin_can_manage_scope(...)
+validate_access_review_decision_allowed(...)
+```
+
+`PermissionRoleBinding`, `PermissionGrant`, `PermissionDeny`, and `PermissionDelegation` each carry
+multiple nullable subject references (`subject_user` / `subject_membership` /
+`subject_position_assignment`) and multiple nullable scope dimensions (`organization` /
+`organization_unit` / `resource_type`+`resource_id`). `validate_exactly_one_subject_reference`
+must enforce that exactly one subject field is populated per record, and
+`validate_scope_fields_match_scope_type` must enforce that only the fields matching the declared
+`scope_type` are populated. Do not leave this implicit — model-level `CheckConstraint`s alone are
+not enough since the rule spans multiple optional FKs.
+
+---
+
+## 16. Management commands
+
+Recommended commands:
+
+```text
+validate_permissions
+rebuild_permission_snapshots
+expire_permission_grants
+expire_delegations
+expire_break_glass_sessions
+find_permission_anomalies
+list_overprivileged_subjects
+sync_permission_policy_metadata
+flag_overdue_access_review_campaigns
+```
+
+`validate_permissions` should check:
+
+```text
+unknown permission keys
+bindings to inactive roles
+expired active records not marked expired
+duplicate active role bindings
+orphaned resource references where detectable
+dangerous global bindings
+break-glass sessions without expiration
+delegations exceeding delegator scope
+missing policy-engine endpoint registrations
+stale snapshots
+```
+
+---
+
+## 17. Admin requirements
+
+Django admin should support operational inspection.
+
+Admin must expose:
+
+```text
+PermissionRole
+PermissionRolePermission
+PermissionRoleBinding
+PermissionGrant
+PermissionDeny
+PermissionDelegation
+PermissionRule
+PermissionCondition
+SeparationOfDutyRule
+BreakGlassSession
+PermissionDecisionLog
+PermissionSnapshot
+PermissionVersionStamp
+PermissionAccessReviewCampaign
+PermissionAccessReviewItem
+```
+
+Admin should include:
+
+```text
+list_display
+search_fields
+list_filter
+readonly audit fields
+created_by / revoked_by visibility
+valid_from / valid_until visibility
+risk level filters
+status filters
+permission_key filters
+scope filters
+```
+
+Critical historical records should be append-friendly and not casually editable.
+
+---
+
+## 18. Test requirements
+
+Tests must cover:
+
+```text
+role creation
+role permission assignment
+role binding with scope
+duplicate active binding prevention
+expired binding ignored
+permission grant allow
+direct deny override
+resource-level grant
+organization-unit-tree scope
+position/membership scope
+delegation allow
+delegation expiration
+separation-of-duty denial
+break-glass allow with reason and expiration
+break-glass expiration
+unknown permission key denial
+inactive/deprecated permission key handling
+condition pass/fail
+default deny
+explanation output
+simulation output
+cache/version stamp behavior
+standard API response envelope
+auth failure
+permission failure
+not-found cases
+N+1 prevention for list selectors
+management command validation
+policy engine registry sync
+access review campaign creation
+access review item decision (keep/revoke/modify/escalate)
+overdue access review campaign detection
+superuser bypass allow (with decision log entry still written)
+```
+
+---
+
+## 19. Documentation requirements
+
+Before implementation, Claude Code must create:
+
+```text
+permissions/docs/DATA_CONTRACT.md
+permissions/docs/API.md
+permissions/docs/SCALING_STRATEGY.md
+permissions/docs/SECURITY_MODEL.md
+```
+
+Optional but recommended:
+
+```text
+permissions/docs/DECISION_ENGINE.md
+permissions/docs/ROW_LEVEL_PERMISSIONS.md
+permissions/docs/BREAK_GLASS.md
+permissions/docs/ACCESS_REVIEW.md
+```
+
+No schema should be implemented before `DATA_CONTRACT.md` is written.
+
+---
+
+## 20. Implementation rules for Claude Code
+
+Claude Code must follow these rules:
+
+```text
+1. Create a new branch before coding.
+2. Do not code without reading this requirement and existing project rules.
+3. Create permissions/docs/DATA_CONTRACT.md before models.
+4. Keep views thin.
+5. Put writes and decision logic in services.py.
+6. Put read/query logic in selectors.py.
+7. Use enums in constants.py, not scattered raw strings.
+8. Use validators.py for reusable validation.
+9. Use transaction.atomic() for multi-table writes.
+10. Register all permission app endpoints in permissions/registry.py for policy engine lifecycle.
+11. Do not add third-party dependencies without approval.
+12. Do not create per-app permissions.py files in other apps.
+13. Do not use Django default permissions as the primary authority model.
+14. Do not implement workflow, event ledger, audit app, or case/work modules here.
+15. Add migrations, tests, admin, API docs, scaling docs, and security docs.
+16. Run ruff, tests, migrations, policy validation, and permission validation before claiming completion.
+```
+
+---
+
+## 21. Recommended build phases
+
+To keep the module robust but manageable, implement in phases.
+
+### Phase 1 — Core permission foundation
+
+```text
+PermissionRole
+PermissionRolePermission
+PermissionRoleBinding
+PermissionGrant
+PermissionDeny
+check_permission
+explain_permission
+basic scoped role assignment
+policy engine validation
+API/admin/tests/docs
+```
+
+### Phase 2 — Enterprise scope and row-level permissions
+
+```text
+resource_type/resource_id scope
+resource adapter contract
+organization unit tree scope
+position/membership scope
+direct resource grants/denials
+simulation APIs
+effective permission listing
+```
+
+### Phase 3 — Delegation and separation of duty
+
+```text
+PermissionDelegation
+SeparationOfDutyRule
+delegation validation
+self-approval prevention
+conflict rule engine
+```
+
+### Phase 4 — Break-glass and access review
+
+```text
+BreakGlassSession
+PermissionAccessReviewCampaign
+PermissionAccessReviewItem
+access review decisions
+expiring access detection
+```
+
+### Phase 5 — Scale hardening
+
+```text
+PermissionSnapshot
+PermissionVersionStamp
+cache-ready selectors
+decision log partitioning strategy
+anomaly detection management commands
+bulk rebuild commands
+```
+
+---
+
+## 22. Final concept statement
+
+The MintFlow permission app should be engineered as:
+
+```text
+A centralized, scalable, explainable, scope-aware authorization engine that combines policy-engine actions, authenticated actors, organization hierarchy, scoped roles, direct grants, explicit denials, delegations, contextual rules, separation-of-duty constraints, row-level resource access, emergency break-glass control, and cache-aware decision evaluation to produce deterministic allow/deny decisions for all future protected modules.
+```
+
+This app should become the authority brain of MintFlow.
+
+It should not execute workflows, write case history, or perform audit interpretation. Those modules will come later.
+
+But this app must provide the foundation that allows those future modules to ask one reliable question:
+
+```text
+Is this actor authorized to perform this action here, now, and why?
+```
+
+---
+
+## 23. Non-negotiable principles
+
+```text
+Default deny.
+Explicit deny beats allow.
+No unknown permission keys.
+No global authority by accident.
+No unexplained high-risk access.
+No permanent emergency access.
+No silent delegation.
+No stale authority after organization change.
+No workflow logic inside permission app.
+No event ledger implementation inside permission app.
+No audit interpretation inside permission app.
+All permission-sensitive endpoints must be registered in the policy engine.
+All schema must be documented before coding.
+All scaling assumptions must be documented and tested where possible.
+```

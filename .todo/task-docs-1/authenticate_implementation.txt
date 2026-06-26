@@ -1,0 +1,1259 @@
+# MintFlow Authenticate App — Concept and Implementation Requirement
+
+**Document status:** Concept / Claude Code implementation handoff  
+**Target app:** `authenticate`  
+**System:** MintFlow backend  
+**Stack:** Django + Django REST Framework + PostgreSQL + JWT via SimpleJWT  
+**Security target:** Ministry-grade, local-first, privacy-first authentication foundation  
+**Date:** 2026-06-22
+
+---
+
+## 1. Purpose
+
+This document defines the first serious authentication module for MintFlow.
+
+The `authenticate` app is the entry point through which actors enter the software. It must be secure, auditable, efficient, and robust enough for sensitive deployments such as government ministries, legal institutions, investigation units, and large private organizations.
+
+This app must be **small in responsibility but strong in security**.
+
+It answers only:
+
+```text
+Who is this actor?
+Is this actor registered?
+Is this actor allowed to use the software login system?
+Can this actor authenticate safely?
+What authentication/security events happened?
+```
+
+It must not answer:
+
+```text
+Which organization unit does this actor belong to?
+Which department does this actor work in?
+What official position does this actor hold?
+What role grants does this actor have?
+What cases, work items, documents, or workflows can this actor access?
+```
+
+Those concerns belong to later modules:
+
+```text
+organization  → structure, membership, position, history
+permissions   → RBAC / ABAC / HBAC / scoped authority decisions
+events        → formal system event ledger
+audit         → accountability interpretation
+```
+
+---
+
+## 2. Architectural boundary
+
+The app name is:
+
+```text
+authenticate
+```
+
+Do not rename it to `accounts`, `users`, `identity`, or `auth` unless the human owner explicitly approves.
+
+The `authenticate` app owns:
+
+```text
+registered actors
+login eligibility
+credential state
+JWT/session state
+authentication security events
+password lifecycle
+MFA readiness / MFA implementation when approved
+authentication endpoint policy metadata
+```
+
+The `authenticate` app must not own:
+
+```text
+organization hierarchy
+departments
+positions
+roles
+permission assignment
+case authority
+work assignment authority
+policy-engine internals
+```
+
+The policy engine defines what actions exist. Authentication defines who the actor is and whether the actor can enter the system.
+
+---
+
+## 3. Core design principle
+
+Treat a user as an **actor / principal**, not merely as someone who can log in.
+
+An organization may have many registered people or system actors who exist in records but do not use the software directly. Therefore, the system needs a clear distinction between:
+
+```text
+actor exists in MintFlow
+actor is active as a record
+actor is allowed to log in
+actor is staff/admin
+actor is superuser/emergency root
+```
+
+This is critical for government and institutional systems because some actors may appear in case history, work history, organization records, audit trails, or external review workflows without having software login access.
+
+---
+
+## 4. Actor login flags
+
+The `User` model must distinguish these fields clearly:
+
+| Field | Meaning |
+|---|---|
+| `is_active` | Actor record is valid and not removed from operational use. |
+| `is_login_enabled` | Actor is allowed to authenticate into the software. |
+| `account_status` | Lifecycle state of the account/actor. |
+| `is_staff` | Temporary platform/staff access flag before the permissions app exists. |
+| `is_superuser` | Emergency/root platform authority only. Must be protected heavily. |
+
+Example:
+
+```text
+An employee exists in the system but does not use the software:
+
+is_active = true
+is_login_enabled = false
+account_status = active
+```
+
+This actor can later appear in organization records, work records, events, cases, or audit history, but login must be blocked.
+
+---
+
+## 5. Recommended account lifecycle states
+
+Use a `TextChoices` enum in `authenticate/constants.py`.
+
+```text
+pending
+active
+suspended
+deactivated
+archived
+```
+
+Meaning:
+
+| State | Login allowed? | Meaning |
+|---|---:|---|
+| `pending` | No | Actor created but not activated. |
+| `active` | Depends on `is_login_enabled` | Actor is valid and operational. |
+| `suspended` | No | Temporarily blocked. |
+| `deactivated` | No | No longer operational. |
+| `archived` | No | Historical actor only. |
+
+Login must require all of these:
+
+```text
+is_active = true
+is_login_enabled = true
+account_status = active
+not locked
+valid credentials
+MFA passed if MFA is required
+```
+
+---
+
+## 6. Security posture
+
+This module should target an **OWASP ASVS Level 2 style** authentication posture.
+
+This does not mean claiming formal certification. It means the design must be strong enough for serious institutional deployments and must include controls for common authentication failures:
+
+```text
+weak password handling
+credential stuffing
+brute-force login attempts
+account enumeration
+token theft
+token replay
+improper logout
+session fixation style mistakes
+insecure cookie flags
+missing audit logs
+sensitive data leakage in logs
+staff/admin account abuse
+```
+
+The module must use stable, maintained Django ecosystem libraries where appropriate. Do not invent custom cryptography, token signing, password hashing, OTP generation, or credential storage.
+
+---
+
+## 7. Dependency policy
+
+Claude Code must not install new dependencies silently.
+
+Before adding any new third-party library, Claude must follow the project dependency approval workflow:
+
+```text
+1. Present the dependency name.
+2. Explain purpose.
+3. Explain alternatives considered.
+4. Explain security concerns.
+5. Explain maintenance status.
+6. Ask for explicit human approval.
+7. Update THIRD_PARTY_LIBRARIES.md.
+8. Pin the exact version in the correct requirements file.
+9. Install through the approved requirements workflow.
+```
+
+Recommended dependency categories:
+
+| Dependency | Purpose | Status |
+|---|---|---|
+| Django auth primitives | Password hashing, user model foundations, auth backends | Required baseline |
+| Django REST Framework | API views, serializers, throttling | Required baseline |
+| `djangorestframework-simplejwt` | JWT access/refresh tokens | Required baseline if not already installed |
+| SimpleJWT blacklist app | Refresh token blacklist/logout support | Required for robust logout |
+| `django-axes` | Failed login tracking and lockout support | Recommended, requires approval if not installed |
+| `django-otp` | TOTP/MFA foundation | Recommended for MFA phase, requires approval if not installed |
+| `argon2-cffi` | Enables Django Argon2 password hasher | Recommended for ministry-grade password hashing, requires approval if not installed |
+
+Do not use unmaintained authentication libraries.
+
+---
+
+## 8. Password hashing documentation requirement
+
+The password hashing algorithm must be explicitly documented before implementation is considered complete.
+
+Create or update:
+
+```text
+authenticate/docs/SECURITY.md
+authenticate/docs/DATA_CONTRACT.md
+authenticate/docs/API.md
+backend/core/docs/THIRD_PARTY_LIBRARIES.md  # only if new dependency is added
+```
+
+The documentation must state:
+
+```text
+1. Which Django password hasher is used by default.
+2. Exact import path of the hasher.
+3. Algorithm name.
+4. Whether the algorithm is memory-hard or CPU-hard.
+5. Required third-party dependency, if any.
+6. PASSWORD_HASHERS order in settings.
+7. Whether older hashers are retained for legacy password verification.
+8. Password upgrade behavior after successful login.
+9. Why this hasher was chosen.
+10. How the configuration is verified in tests.
+11. Migration/rollback considerations.
+12. Operational notes for production hardware sizing.
+```
+
+Preferred high-security configuration:
+
+```python
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+]
+```
+
+Notes:
+
+```text
+- Argon2PasswordHasher is preferred for serious deployments if argon2-cffi is approved and installed.
+- PBKDF2PasswordHasher is acceptable as the baseline Django-compatible fallback.
+- Never write a custom password hashing function.
+- Never store raw passwords.
+- Never log passwords.
+- Never expose password hash values through API serializers.
+```
+
+If Argon2 is not approved yet, Claude must implement using Django's approved default hasher and document that Argon2 is a recommended future hardening step.
+
+---
+
+## 9. Recommended models
+
+Create these models in `authenticate/models.py`.
+
+All models must define `__str__`.
+All public-facing IDs must be UUIDs.
+All timestamps must be timezone-aware.
+All enums must live in `authenticate/constants.py`.
+All data contracts must be documented before model code is written.
+
+### 9.1 `User`
+
+Purpose:
+
+```text
+Represents a registered actor/principal in MintFlow.
+```
+
+Recommended fields:
+
+```text
+id                          UUID primary public identifier
+username                    unique login identifier
+email                       unique nullable/blank depending deployment policy
+display_name                required human-readable name
+actor_type                  human | system | ai | external
+account_status              pending | active | suspended | deactivated | archived
+is_login_enabled            boolean
+is_active                   boolean
+is_staff                    boolean
+is_superuser                boolean
+password                    Django-managed hash
+last_login                  nullable datetime
+created_at                  datetime
+updated_at                  datetime
+```
+
+Rules:
+
+```text
+- Use a custom Django user model from the start.
+- Do not expose password hash in serializers.
+- Do not place organization membership fields here.
+- Do not place role/permission fields here.
+- System and AI actors should use unusable passwords unless a service-account authentication design is later approved.
+```
+
+### 9.2 `UserSecurityState`
+
+Purpose:
+
+```text
+Tracks security posture and credential lifecycle state for a user.
+```
+
+Recommended fields:
+
+```text
+id
+user                        OneToOneField(User)
+password_changed_at         nullable datetime
+password_change_required    boolean
+failed_login_count          integer
+locked_until                nullable datetime
+lock_reason                 blank text/choice
+mfa_required                boolean
+mfa_enrolled                boolean
+last_failed_login_at        nullable datetime
+last_successful_login_at    nullable datetime
+last_password_reset_at      nullable datetime
+created_at
+updated_at
+```
+
+Rules:
+
+```text
+- Keep security state separate from core identity fields.
+- Lockout changes must create AuthEvent records.
+- Password reset/temporary password actions must force password change.
+```
+
+### 9.3 `UserSession`
+
+Purpose:
+
+```text
+Tracks issued refresh-token sessions and supports session review/revocation.
+```
+
+Recommended fields:
+
+```text
+id
+user
+refresh_token_jti           unique, indexed
+device_label                blank text
+device_fingerprint_hash     blank text
+ip_address                  GenericIPAddressField nullable
+user_agent_hash             hash only, never raw if avoidable
+issued_at
+last_seen_at
+expires_at
+revoked_at                  nullable datetime
+revoked_reason              blank text/choice
+is_active                   boolean
+created_at
+updated_at
+```
+
+Rules:
+
+```text
+- Never store raw refresh tokens.
+- Store only token JTI or cryptographic hash where needed.
+- Logout must revoke/blacklist refresh token where supported.
+- Session list endpoints must not expose sensitive token material.
+```
+
+### 9.4 `AuthEvent`
+
+Purpose:
+
+```text
+Append-friendly security event log for authentication activity.
+```
+
+Recommended fields:
+
+```text
+id
+user                        nullable FK(User)
+identifier_entered          blank; normalized or partially masked where appropriate
+event_type                  enum
+success                     boolean
+failure_reason              enum/blank
+ip_address                  GenericIPAddressField nullable
+user_agent_hash             hash only, never raw if avoidable
+request_id                  blank
+metadata                    JSONField default=dict
+created_at                  datetime
+```
+
+Rules:
+
+```text
+- AuthEvent must be append-friendly.
+- Do not update/delete AuthEvent in normal application flows.
+- Do not log passwords, JWTs, OTP codes, reset tokens, private keys, API keys, or Authorization headers.
+- Internal failure reason may be specific, but public API response must remain generic.
+```
+
+Recommended event types:
+
+```text
+login_success
+login_failed
+login_blocked_disabled
+login_blocked_inactive
+login_blocked_locked
+logout_success
+refresh_success
+refresh_failed
+password_changed
+password_reset_requested
+password_reset_completed
+account_locked
+account_unlocked
+mfa_challenge_created
+mfa_challenge_failed
+mfa_challenge_success
+session_revoked
+all_sessions_revoked
+```
+
+---
+
+## 10. Optional later models
+
+Do not implement these unless explicitly approved for the same sprint:
+
+```text
+UserPasswordHistory
+MFADevice
+MFARecoveryCode
+TrustedDevice
+ServiceAccountCredential
+```
+
+However, design the first version so these can be added without rewriting `User`.
+
+---
+
+## 11. Endpoint groups
+
+All endpoints must use the standard API response envelope.
+All endpoints must be documented in `authenticate/docs/API.md`.
+All endpoints must be registered in the Core Policy Engine lifecycle.
+All public endpoints must have throttling documented.
+All protected endpoints must deny by default.
+
+### 11.1 Public / unauthenticated authentication endpoints
+
+These endpoints may be called without an existing authenticated session, but they must be heavily throttled and must not leak account existence.
+
+| Method | Endpoint | Purpose | Policy key | Risk |
+|---|---|---|---|---|
+| `POST` | `/api/v1/auth/login/` | Login with username/password and possibly MFA | `authenticate.user.login` | high |
+| `POST` | `/api/v1/auth/refresh/` | Rotate refresh token and issue new access token | `authenticate.session.refresh` | high |
+| `POST` | `/api/v1/auth/logout/` | Revoke current refresh/session | `authenticate.session.logout` | medium |
+
+### 11.2 Authenticated self-service endpoints
+
+| Method | Endpoint | Purpose | Policy key | Risk |
+|---|---|---|---|---|
+| `GET` | `/api/v1/auth/me/` | Get current actor identity | `authenticate.user.read_self` | low |
+| `PATCH` | `/api/v1/auth/me/` | Update limited self profile fields | `authenticate.user.update_self` | medium |
+| `POST` | `/api/v1/auth/change-password/` | Change own password | `authenticate.user.change_password` | high |
+| `GET` | `/api/v1/auth/sessions/` | List own active sessions | `authenticate.session.list_self` | medium |
+| `POST` | `/api/v1/auth/sessions/<id>/revoke/` | Revoke one own session | `authenticate.session.revoke_self` | high |
+| `POST` | `/api/v1/auth/sessions/revoke-all/` | Revoke all own sessions except optionally current | `authenticate.session.revoke_all_self` | high |
+
+### 11.3 Staff/admin user-management endpoints
+
+Until the dedicated permissions app exists, these endpoints must use the interim pattern:
+
+```text
+is_authenticated + is_staff
+```
+
+For the most dangerous endpoints, require:
+
+```text
+is_authenticated + is_superuser
+```
+
+| Method | Endpoint | Purpose | Policy key | Risk |
+|---|---|---|---|---|
+| `POST` | `/api/v1/auth/users/` | Create registered actor | `authenticate.user.create` | critical |
+| `GET` | `/api/v1/auth/users/` | List registered actors | `authenticate.user.list` | high |
+| `GET` | `/api/v1/auth/users/<id>/` | Read actor | `authenticate.user.read` | high |
+| `PATCH` | `/api/v1/auth/users/<id>/` | Update actor identity/login flags | `authenticate.user.update` | critical |
+| `POST` | `/api/v1/auth/users/<id>/enable-login/` | Allow actor to use software | `authenticate.user.enable_login` | critical |
+| `POST` | `/api/v1/auth/users/<id>/disable-login/` | Prevent actor from logging in | `authenticate.user.disable_login` | critical |
+| `POST` | `/api/v1/auth/users/<id>/lock/` | Lock actor account | `authenticate.user.lock` | critical |
+| `POST` | `/api/v1/auth/users/<id>/unlock/` | Unlock actor account | `authenticate.user.unlock` | critical |
+| `POST` | `/api/v1/auth/users/<id>/force-password-change/` | Require password reset on next login | `authenticate.user.force_password_change` | critical |
+| `POST` | `/api/v1/auth/users/<id>/set-temporary-password/` | Staff sets temporary password | `authenticate.user.set_temporary_password` | critical |
+| `GET` | `/api/v1/auth/users/<id>/sessions/` | Staff views actor sessions | `authenticate.session.list_for_user` | critical |
+| `POST` | `/api/v1/auth/users/<id>/sessions/revoke-all/` | Staff revokes actor sessions | `authenticate.session.revoke_all_for_user` | critical |
+| `GET` | `/api/v1/auth/users/<id>/auth-events/` | Staff views actor authentication events | `authenticate.auth_event.list_for_user` | critical |
+
+### 11.4 MFA endpoints
+
+MFA should be part of the serious authentication design. It may be implemented in the first version if approved, or staged as the immediate next hardening step.
+
+| Method | Endpoint | Purpose | Policy key | Risk |
+|---|---|---|---|---|
+| `POST` | `/api/v1/auth/mfa/totp/setup/` | Begin TOTP setup | `authenticate.mfa.setup` | high |
+| `POST` | `/api/v1/auth/mfa/totp/confirm/` | Confirm TOTP setup | `authenticate.mfa.confirm` | high |
+| `POST` | `/api/v1/auth/mfa/totp/verify/` | Verify MFA challenge | `authenticate.mfa.verify` | high |
+| `POST` | `/api/v1/auth/mfa/disable/` | Disable MFA | `authenticate.mfa.disable` | critical |
+| `POST` | `/api/v1/auth/mfa/recovery-codes/regenerate/` | Regenerate recovery codes | `authenticate.mfa.regenerate_recovery_codes` | critical |
+
+If MFA is not implemented in the first sprint, Claude must document it as a blocked/future hardening item, not silently ignore it.
+
+---
+
+## 12. Login flow
+
+Login must follow this order:
+
+```text
+1. Normalize identifier.
+2. Apply IP + identifier throttling.
+3. Look up actor by username/email.
+4. If not found, return generic public failure.
+5. If actor exists but is_active=false, block with generic public failure.
+6. If is_login_enabled=false, block with generic public failure.
+7. If account_status is not active, block with generic public failure.
+8. If locked_until is in the future, block with generic public failure.
+9. Validate password using Django authentication/password hashers.
+10. On invalid password:
+    - record failed attempt
+    - update UserSecurityState
+    - allow django-axes to record/lock if installed
+    - create AuthEvent
+    - return generic public failure
+11. On valid password:
+    - reset failed_login_count
+    - update last_successful_login_at
+    - check password_change_required
+    - check MFA requirement
+    - issue tokens only after MFA succeeds when MFA is required
+    - create UserSession
+    - create AuthEvent
+12. Return standard response envelope.
+```
+
+Public response must not reveal whether:
+
+```text
+the user exists
+the password was wrong
+the account is inactive
+the login flag is disabled
+the account is locked
+MFA is enrolled for a specific account
+```
+
+Use a generic message such as:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTH_INVALID_CREDENTIALS",
+    "message": "Invalid credentials or account is not allowed to sign in.",
+    "details": {}
+  },
+  "meta": {}
+}
+```
+
+Internal `AuthEvent.failure_reason` may record the exact reason.
+
+---
+
+## 13. JWT and cookie strategy
+
+Use SimpleJWT.
+
+Recommended production strategy:
+
+```text
+access token lifetime: 5-10 minutes
+refresh token lifetime: strict deployment 8-12 hours; normal deployment 1-7 days
+refresh rotation: enabled
+refresh blacklist after rotation: enabled
+logout: blacklist refresh token and revoke UserSession
+```
+
+Browser storage strategy:
+
+```text
+refresh token: HttpOnly + Secure + SameSite cookie
+access token: memory only, or HttpOnly cookie if CSRF strategy is properly implemented
+```
+
+Production cookie requirements:
+
+```text
+HttpOnly = true
+Secure = true
+SameSite = Lax or Strict
+Path scoped as narrowly as practical
+CSRF protection enabled for cookie-authenticated refresh/logout flows
+```
+
+Development may return tokens in response body for local testing, but this must be documented as development-only behavior.
+
+---
+
+## 14. Throttling and brute-force defense
+
+Use layered protection:
+
+```text
+DRF throttling
+django-axes if approved
+failed_login_count in UserSecurityState
+locked_until
+AuthEvent logs
+admin alert hook later
+```
+
+Recommended starting policy:
+
+```text
+5 failed attempts → temporary lock for 15 minutes
+10 failed attempts within configured window → staff/admin review required
+login endpoint throttle → strict per IP and per identifier
+refresh endpoint throttle → strict per IP and per session/token family
+MFA verify endpoint throttle → very strict
+```
+
+The exact numbers must be settings-driven, not hardcoded deep in services.
+
+Document throttling in:
+
+```text
+authenticate/docs/API.md
+authenticate/docs/SECURITY.md
+settings documentation or comments
+```
+
+---
+
+## 15. Password policy
+
+Use Django password validators.
+
+Recommended baseline:
+
+```text
+minimum length: 12
+reject common passwords
+reject numeric-only passwords
+reject passwords similar to user attributes
+password_change_required on first login
+password_change_required after staff reset
+temporary passwords expire
+new password must not equal current password
+```
+
+Recommended future hardening:
+
+```text
+password history: block reuse of last 5 passwords
+MFA mandatory for staff/admin users
+MFA mandatory for high-risk organization roles later
+admin alert on suspicious login patterns
+```
+
+Do not force global frequent password expiry unless the deployment policy explicitly requires it. Prefer risk-based password resets after compromise, staff reset, incident response, or sensitive role assignment.
+
+---
+
+## 16. Public registration policy
+
+Do not implement public self-registration in the first version.
+
+For MintFlow ministry/private deployments, actors must be provisioned through controlled administrative flows.
+
+Public registration can be considered later only if a deployment mode explicitly requires it.
+
+---
+
+## 17. Standard API response
+
+All responses must use the project standard envelope.
+
+Success:
+
+```json
+{
+  "success": true,
+  "message": "...",
+  "data": {},
+  "meta": {}
+}
+```
+
+Error:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "...",
+    "details": {}
+  },
+  "meta": {}
+}
+```
+
+Never return raw DRF default errors from authentication endpoints.
+Never expose stack traces.
+Never expose internal authentication failure details to clients.
+
+---
+
+## 18. Error codes
+
+Create stable error codes in:
+
+```text
+authenticate/constants.py
+```
+
+Recommended codes:
+
+```text
+AUTH_INVALID_CREDENTIALS
+AUTH_ACCOUNT_INACTIVE
+AUTH_LOGIN_DISABLED
+AUTH_ACCOUNT_LOCKED
+AUTH_PASSWORD_CHANGE_REQUIRED
+AUTH_MFA_REQUIRED
+AUTH_MFA_INVALID_CODE
+AUTH_MFA_NOT_ENROLLED
+AUTH_TOKEN_INVALID
+AUTH_TOKEN_EXPIRED
+AUTH_TOKEN_REVOKED
+AUTH_REFRESH_REQUIRED
+AUTH_SESSION_NOT_FOUND
+AUTH_SESSION_REVOKED
+AUTH_PASSWORD_INVALID
+AUTH_PASSWORD_REUSE_BLOCKED
+AUTH_USER_NOT_FOUND
+AUTH_USER_ALREADY_EXISTS
+AUTH_USERNAME_ALREADY_EXISTS
+AUTH_EMAIL_ALREADY_EXISTS
+AUTH_STAFF_REQUIRED
+AUTH_SUPERUSER_REQUIRED
+AUTH_SUPERUSER_PROTECTED
+AUTH_CANNOT_DISABLE_SELF
+AUTH_CANNOT_DELETE_SELF
+AUTH_RATE_LIMITED
+AUTH_AUDIT_EVENT_NOT_FOUND
+```
+
+Each code must be documented in `authenticate/docs/API.md`.
+
+---
+
+## 19. Policy engine registration
+
+Every endpoint in `authenticate` must be registered in the Core Policy Engine.
+
+Use:
+
+```text
+app_key = authenticate
+model_key = user | session | mfa | auth_event
+```
+
+Examples:
+
+```text
+authenticate.user.login
+authenticate.user.read_self
+authenticate.user.change_password
+authenticate.user.create
+authenticate.user.enable_login
+authenticate.user.disable_login
+authenticate.session.refresh
+authenticate.session.logout
+authenticate.session.revoke_all_for_user
+authenticate.auth_event.list_for_user
+authenticate.mfa.verify
+```
+
+Claude must either:
+
+```text
+1. Add POLICY_ENDPOINTS in authenticate/registry.py and run sync_policy_registry.
+```
+
+or:
+
+```text
+2. Use run_endpoint_lifecycle() for each endpoint.
+```
+
+Each endpoint must include:
+
+```text
+permission_key
+http_method
+route_pattern
+operation_type
+display_name
+description
+risk_level
+version
+category_key
+category_display_name
+dependencies
+change log entry
+```
+
+Do not create authentication endpoints without policy metadata.
+
+---
+
+## 20. Recommended file structure
+
+```text
+backend/authenticate/
+  __init__.py
+  apps.py
+  models.py
+  managers.py
+  constants.py
+  exceptions.py
+  validators.py
+  selectors.py
+  services.py
+  serializers.py
+  views.py
+  urls.py
+  registry.py
+  admin.py
+  authentication.py          # only if custom JWT/cookie auth support is required
+  throttles.py               # only if endpoint-specific throttles are needed
+  cookies.py                 # only if cookie helpers are needed
+  tests/
+    __init__.py
+    test_models.py
+    test_services.py
+    test_selectors.py
+    test_serializers.py
+    test_views_login.py
+    test_views_sessions.py
+    test_views_user_admin.py
+    test_policy_registry.py
+  docs/
+    API.md
+    DATA_CONTRACT.md
+    SECURITY.md
+    THIRD_PARTY_LIBRARIES.md # app-level notes if useful; core doc still required for new deps
+```
+
+Do not create files that are not needed. If Claude proposes an extra file, it must explain why.
+
+---
+
+## 21. Data contract requirements
+
+Before writing model or serializer code, create:
+
+```text
+backend/authenticate/docs/DATA_CONTRACT.md
+```
+
+It must document:
+
+```text
+User model
+UserSecurityState model
+UserSession model
+AuthEvent model
+login request payload
+login response payload
+refresh request/response
+logout request/response
+me response
+change password request/response
+staff user creation request/response
+user update request/response
+session list/revoke response
+auth event list response
+error envelope examples
+```
+
+Each contract must include:
+
+```text
+owner app
+purpose
+schema
+required/optional/nullable/generated fields
+validation rules
+example payload
+version
+change history
+indexes/constraints
+security notes
+```
+
+---
+
+## 22. API documentation requirements
+
+Create:
+
+```text
+backend/authenticate/docs/API.md
+```
+
+For every endpoint, document:
+
+```text
+URI
+HTTP method
+auth requirement
+temporary access-control rule
+future policy-engine permission key
+throttle class / throttle scope
+request format
+response format
+validation rules
+error codes
+business rules
+query access pattern
+AI debugging notes
+change history
+```
+
+---
+
+## 23. Security documentation requirements
+
+Create:
+
+```text
+backend/authenticate/docs/SECURITY.md
+```
+
+It must document:
+
+```text
+password hasher algorithm and settings
+PASSWORD_HASHERS order
+password validators
+JWT settings
+refresh rotation / blacklist behavior
+cookie flags
+CSRF strategy
+throttle rules
+lockout rules
+account enumeration defense
+MFA status
+session revocation behavior
+sensitive logging policy
+AuthEvent retention notes
+admin/superuser protection rules
+production deployment warnings
+```
+
+This file is mandatory. Authentication is not complete without it.
+
+---
+
+## 24. Service-layer rules
+
+Business logic must live in `services.py`, not views.
+
+Recommended service functions:
+
+```python
+def create_user(...): ...
+def update_user(...): ...
+def enable_login(...): ...
+def disable_login(...): ...
+def lock_user(...): ...
+def unlock_user(...): ...
+def force_password_change(...): ...
+def set_temporary_password(...): ...
+def authenticate_login(...): ...
+def refresh_session(...): ...
+def logout_session(...): ...
+def change_password(...): ...
+def revoke_session(...): ...
+def revoke_all_sessions(...): ...
+def create_auth_event(...): ...
+```
+
+All service functions must be type-annotated.
+All multi-table writes must use `transaction.atomic()`.
+Services must receive validated data only.
+Services must not return HTTP responses.
+
+---
+
+## 25. Selector-layer rules
+
+Database read/query logic must live in `selectors.py`.
+
+Recommended selector functions:
+
+```python
+def get_user_by_id(...): ...
+def get_user_by_identifier(...): ...
+def list_users(...): ...
+def get_security_state_for_user(...): ...
+def list_user_sessions(...): ...
+def list_auth_events_for_user(...): ...
+```
+
+Selectors must:
+
+```text
+- be read-only
+- avoid side effects
+- use select_related/prefetch_related where needed
+- avoid N+1 queries
+- be type-annotated
+```
+
+---
+
+## 26. Serializer rules
+
+Serializers own validation and input/output shaping.
+
+Rules:
+
+```text
+- Password fields must be write_only=True.
+- Password hash must never be serialized.
+- Token values must only appear in allowed login/refresh responses.
+- Session serializers must not expose raw refresh tokens.
+- AuthEvent serializers must not expose sensitive metadata.
+- Public login errors must be generic.
+```
+
+---
+
+## 27. Admin rules
+
+Register operationally useful models in Django admin:
+
+```text
+User
+UserSecurityState
+UserSession
+AuthEvent
+```
+
+Admin must:
+
+```text
+- use list_display
+- use search_fields
+- use list_filter
+- set sensitive fields read-only where appropriate
+- never expose raw secrets
+- never bypass application validation for risky operations
+```
+
+Dangerous operations such as enabling login, disabling login, force password reset, or unlocking accounts should preferably go through services/actions that create AuthEvent records.
+
+---
+
+## 28. Tests required
+
+Authentication is not complete without tests.
+
+Minimum tests:
+
+```text
+User model creation
+UserSecurityState creation
+UserSession creation
+AuthEvent creation
+password hashing uses configured Django hasher
+password hash is not exposed through serializers
+login success
+login invalid password
+login unknown user uses generic response
+login disabled user uses generic response
+login inactive user uses generic response
+login locked user uses generic response
+failed login increments state / records AuthEvent
+successful login resets failed_login_count
+refresh success
+refresh invalid token
+logout blacklists/revokes session
+me endpoint requires auth
+change password success
+change password wrong old password
+staff create user
+non-staff blocked from staff endpoint
+enable_login creates AuthEvent
+disable_login creates AuthEvent
+cannot disable own superuser/staff account accidentally
+session list does not expose tokens
+session revoke works
+auth event list staff-only
+standard success envelope
+standard error envelope
+policy registry contains all auth endpoints
+```
+
+Run at minimum:
+
+```bash
+pytest backend/authenticate/tests/ -v
+python manage.py validate_policy_engine
+ruff check backend/authenticate/
+ruff format backend/authenticate/
+```
+
+If tests cannot run, Claude must explicitly say why.
+
+---
+
+## 29. Implementation order for Claude Code
+
+Claude must proceed in this order:
+
+```text
+1. Create git branch from latest main.
+2. Inspect existing backend structure and settings.
+3. Confirm whether authenticate app already exists.
+4. Confirm existing SimpleJWT/DRF dependencies.
+5. Present dependency approval request for any missing libraries.
+6. Create/update DATA_CONTRACT.md before model code.
+7. Create/update SECURITY.md before auth implementation is considered complete.
+8. Create models and migrations.
+9. Create constants/errors/enums.
+10. Create selectors.
+11. Create services.
+12. Create serializers.
+13. Create views and urls.
+14. Create policy registry metadata.
+15. Register app URLs under /api/v1/auth/.
+16. Update settings safely.
+17. Add admin registrations.
+18. Add tests.
+19. Run migrations/tests/ruff/policy validation.
+20. Report completion using the standard completion report.
+```
+
+---
+
+## 30. Human approval required before implementation choices
+
+Claude must pause and ask before:
+
+```text
+adding django-axes
+adding django-otp
+adding argon2-cffi
+changing AUTH_USER_MODEL if an existing user model already exists
+changing JWT behavior in a way that breaks existing clients
+adding MFA as mandatory
+adding public registration
+adding email/SMS password reset
+adding external identity provider / SSO
+adding Redis/Valkey for throttling/session storage
+adding Celery/background jobs
+creating destructive migrations
+```
+
+---
+
+## 31. Final expected result
+
+After implementation, MintFlow should have a robust `authenticate` app that provides:
+
+```text
+custom actor user model
+login eligibility flag
+account lifecycle states
+secure password hashing using documented Django hashers
+JWT login/refresh/logout
+refresh rotation and blacklist support
+session tracking and revocation
+authentication event audit trail
+failed login tracking and lockout
+admin-controlled actor provisioning
+standard response envelopes
+stable error codes
+policy engine metadata for every endpoint
+complete API, data contract, and security documentation
+tests for all critical authentication behavior
+```
+
+This module must be strong enough to become the trusted identity entry point for later organization, permissions, events, audit, work, case, and AI reasoning modules.
+
+---
+
+## 32. Claude Code instruction summary
+
+Use this summary as the direct instruction to Claude Code:
+
+```text
+Build the MintFlow authenticate app as the actor identity and authentication boundary.
+Do not build organization, roles, scoped permissions, departments, or authority decisions.
+Use Django auth, DRF, SimpleJWT, and approved security libraries only.
+Create the data contract before code.
+Document password hashing algorithm, hasher import path, PASSWORD_HASHERS order, token settings, cookie flags, throttling, lockout, and security behavior.
+Implement User, UserSecurityState, UserSession, and AuthEvent.
+Expose the defined /api/v1/auth/ endpoints.
+Use standard API response envelopes.
+Never leak account existence through login errors.
+Never log passwords, JWTs, OTPs, reset tokens, or secrets.
+Register every endpoint through the Core Policy Engine lifecycle.
+Add tests and run ruff, migrations, pytest, and validate_policy_engine before completion.
+Report exact files changed, tests run, docs updated, migrations created, dependencies added, and known limitations.
+```

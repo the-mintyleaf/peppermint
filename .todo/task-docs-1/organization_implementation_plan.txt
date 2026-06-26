@@ -1,0 +1,261 @@
+Ready for review
+Select text to add comments on the plan
+Organization App — Implementation Plan
+Context
+The user wants to build the `organization` Django app — the third governance-foundation module (after core.policy_engine and authenticate, both built), per .docs/mintflow_initial_architecture.md §9/§10.1/§27. It is the source of truth for organizational structure: organizations, internal unit hierarchy, positions, membership, position assignment, reporting lines, delegation, sites, and structural history. It owns structure only — no passwords, no RBAC/ABAC grants, no work/case ownership.
+
+This is a Major scope task (schema change, new app, 12 models, migrations, services, selectors, ~50 API endpoints, management commands, tests, docs, policy metadata).
+
+Prompted by: .docs/organization_prompt.md (derived from a 2,062-line draft, revised on two structural points before any code was written — see that doc's §3 and §10.12).
+
+Architecture Decision
+organization/ is a standard top-level Django app (not inside core/ — it is app-specific business logic, unlike the policy engine's approved core/ exception).
+
+INSTALLED_APPS entry: "organization"
+AppConfig: name = "organization", label = "organization"
+Migration dir: organization/migrations/
+URL prefix: /api/v1/organization/
+Auth on views: IsAuthenticated (DRF default) + inline _require_staff() interim check (per CLAUDE.md §9, mirrors authenticate/views.py verbatim)
+Hierarchy strategy: OrganizationUnit.parent (adjacency list) + OrganizationUnitClosure (closure table) — first use of a closure table in this codebase; existing hierarchies (PermissionCategory) use plain adjacency lists, insufficient at this app's stated scale (thousands of units per organization).
+Organization itself is flat (no authority-bearing nesting) — see organization_prompt.md §3 for why the original "nested Organization" draft was rejected (it broke ReportingLine's same-organization rule for cross-org authority chains).
+
+Files to Create
+backend/organization/
+    __init__.py
+    apps.py
+    models.py
+    constants.py
+    validators.py
+    exceptions.py
+    selectors.py
+    services.py
+    serializers.py
+    views.py
+    urls.py
+    registry.py              ← POLICY_ENDPOINTS declaration
+    admin.py
+    migrations/
+        __init__.py
+    management/
+        __init__.py
+        commands/
+            __init__.py
+            validate_organization_integrity.py
+            rebuild_organization_closure.py
+    tests/
+        __init__.py
+        test_models.py
+        test_validators.py
+        test_services_organization.py
+        test_services_units.py
+        test_services_positions.py
+        test_services_memberships.py
+        test_services_reporting.py
+        test_services_delegation.py
+        test_selectors.py
+        test_api_organizations.py
+        test_api_units.py
+        test_api_positions.py
+        test_api_memberships.py
+        test_api_reporting.py
+        test_api_delegation.py
+        test_management_commands.py
+        test_policy_registry.py
+    docs/
+        API.md
+        DATA_CONTRACT.md
+        DEBUG_HISTORY.md
+        THIRD_PARTY_LIBRARIES.md
+
+No filters.py — never specified beyond plain selector kwargs (organization_prompt.md §27).
+
+Files to Modify
+backend/core/settings/base.py — add "organization" to INSTALLED_APPS
+backend/core/api_urls.py — add path("organization/", include("organization.urls", namespace="organization"))
+requirements/README.md — add rows for validate_organization_integrity and rebuild_organization_closure
+
+Implementation Steps (in order)
+Step 1 — Git Branch
+This repo has no remote and main is stale (1 commit). Branch from the tip of the previous session's branch (add_authenticate_app_20260622_1901), per established project practice, not from main.
+git checkout add_authenticate_app_20260622_1901
+git checkout -b add_organization_app_20260623_HHMM
+
+Step 2 — .docs/organization_prompt.md + .docs/organization_implementation_plan.txt
+Already written (this document and its companion).
+
+Step 3 — organization/docs/DATA_CONTRACT.md
+Document all 12 model schemas, the two partial-unique-constraint fixes, the closure-rebuild algorithm, the per-reporting-line-type cycle check, and the §3/§10.12 deviations — before model code, required by CLAUDE.md §5.
+
+Step 4 — apps.py
+from django.apps import AppConfig
+
+class OrganizationConfig(AppConfig):
+    name = "organization"
+    label = "organization"
+    default_auto_field = "django.db.models.BigAutoField"
+    verbose_name = "Organization"
+
+Step 5 — constants.py
+13 TextChoices enums (OrganizationType, OrganizationStatus, UnitType, UnitStatus, PositionType,
+PositionStatus, MembershipStatus, AssignmentType, AssignmentStatus, ReportingLineType,
+DelegationType, DelegationStatus, OrganizationEventType — full value lists in organization_prompt.md §9)
+plus OrganizationErrorCode class (29 ORGANIZATION_* constants, organization_prompt.md §22).
+
+Step 6 — models.py
+All 12 models inherit core.models.BaseModel except OrganizationEventLog, which additionally
+defines a local AppendOnlyManager/AppendOnlyQuerySet (independent copy — see DATA_CONTRACT.md
+"Deliberate deviations", matches the existing authenticate.AuthEvent /
+core.policy_engine.PolicyChangeLog precedent of NOT sharing this pattern across apps).
+
+Key constraints to get right:
+- OrganizationMembership: UniqueConstraint(fields=["organization", "user"], condition=Q(ended_at__isnull=True))
+  — NOT a hard unique_together (contradicts the ended_at/rejoin requirement).
+- UnitMembership: UniqueConstraint(fields=["membership"], condition=Q(is_primary=True, status="active"))
+- ReportingLine: UniqueConstraint(fields=["source_position"], condition=Q(is_primary=True, status="active", reporting_line_type="administrative"))
+- PositionAssignment: UniqueConstraint(fields=["membership"], condition=Q(is_primary=True, status="active"))
+- OrganizationUnitClosure: UniqueConstraint(fields=["organization", "ancestor", "descendant"]); CheckConstraint(depth__gte=0)
+- OrganizationUnit: UniqueConstraint(fields=["organization", "code"])
+- Position: UniqueConstraint(fields=["organization", "code"])
+- OrganizationSite: UniqueConstraint(fields=["organization", "code"])
+- Organization: code = CharField(unique=True) — globally unique, no tenant strategy exists yet.
+
+Full field lists: organization_prompt.md §10.1–§10.12.
+
+Step 7 — Migration
+python manage.py makemigrations organization
+Review the generated migration (constraint names, index names) before proceeding.
+
+Step 8 — exceptions.py
+class OrganizationError(Exception): ...
+class OrganizationNotFoundError(OrganizationError): ...
+class OrganizationCodeExistsError(OrganizationError): ...
+class UnitNotFoundError(OrganizationError): ...
+class UnitCycleError(OrganizationError): ...
+class UnitHasActiveChildrenError(OrganizationError): ...
+class PositionNotFoundError(OrganizationError): ...
+class PositionCapacityExceededError(OrganizationError): ...
+class MembershipNotFoundError(OrganizationError): ...
+class MembershipExistsError(OrganizationError): ...
+class AssignmentNotFoundError(OrganizationError): ...
+class ReportingLineCycleError(OrganizationError): ...
+class DelegationInvalidError(OrganizationError): ...
+class CrossOrganizationReferenceError(OrganizationError): ...
+class EventLogImmutabilityError(OrganizationError): ...
+
+Step 9 — validators.py (8 functions, type-hinted)
+validate_code_format, validate_date_range, validate_no_unit_cycle (collapsed —
+handles both self-parent and descendant-cycle, single closure-table existence check),
+validate_same_organization, validate_position_capacity, validate_reporting_line_no_cycle
+(bounded BFS per reporting_line_type — no closure table for reporting lines),
+validate_assignment_belongs_to_membership_organization, validate_delegation_time_window.
+Full signatures: organization_prompt.md §14.
+
+Step 10 — services.py (~25 functions, all keyword-only args + type hints, transaction.atomic()
+for every multi-table write, select_for_update() before capacity/uniqueness re-checks in
+assign_position() and membership-creation services)
+Full signatures and the move_unit() closure-rebuild algorithm (4 fixed ORM queries — capture
+subtree via closure table, delete cross-boundary rows, bulk_create new cross-product, no raw
+SQL): organization_prompt.md §13 and §10.3.
+
+Step 11 — selectors.py (~20 read-only functions, select_related/prefetch_related throughout,
+no Python recursion for tree queries)
+Full signatures: organization_prompt.md §12.
+
+Step 12 — serializers.py
+Separate Read/Create/Update/action serializer per resource, explicit fields only.
+List: organization_prompt.md §16.
+
+Step 13 — views.py + urls.py
+Plain APIView per resource (no GenericAPIView/ViewSet/Router — matches authenticate's and
+policy_engine's actual style, not CLAUDE.md's broader "may use GenericAPIView for CRUD" option).
+Local _require_staff() helper, verbatim from authenticate/views.py.
+URL groups: organizations, units (+move/deactivate/ancestors/descendants/tree), positions
+(+deactivate/holders), memberships (+status, user-memberships), unit-memberships (+end),
+position-assignments (+end/transfer), reporting-lines (+end/chain-of-command/subordinates),
+delegations (+revoke), actor-context (read), events (list). Full table: organization_prompt.md §15.
+
+Step 14 — admin.py
+Register all 12 models. OrganizationEventLog: has_add/change/delete_permission → False
+(mirrors AuthEventAdmin). OrganizationUnitClosure: read-only except a documented maintenance path.
+
+Step 15 — registry.py
+POLICY_ENDPOINTS declared in dependency order, _BASE/_requires() helper pattern mirrored from
+authenticate/registry.py. Every high/critical-risk endpoint gets real forward/backward
+dependencies at authoring time (validate_policy_engine --strict hard-fails on empty
+dependencies for those tiers — never defer this, per CLAUDE.md §35 and project policy-engine
+conventions). Categories and risk levels: organization_prompt.md §17.
+
+Step 16 — management commands
+validate_organization_integrity — checks listed in organization_prompt.md §20, including the
+mechanically-checkable event-log-completeness rule (replaces the draft's unimplementable
+"missing event log where expected" wording).
+rebuild_organization_closure — flags --organization-code, --organization-id, --dry-run, --force.
+Add both to requirements/README.md's "Management commands" table in this same commit.
+
+Step 17 — tests
+16 modules per organization_prompt.md §23. TestCase for service/selector/validator unit tests,
+APITestCase for endpoint tests. Explicit test for the capacity/uniqueness race condition
+(concurrent assign_position() calls must not both succeed past max_occupants).
+Run: pytest organization/tests/ -v
+
+Step 18 — docs/API.md
+Document every endpoint per CLAUDE.md §19, once views/registry are stable.
+
+Step 19 — Modify settings/base.py
+Add "organization" to INSTALLED_APPS.
+
+Step 20 — Modify api_urls.py
+path("organization/", include("organization.urls", namespace="organization")),
+
+Step 21 — ruff check/format + migrate + tests + policy sync/validate
+ruff check organization/ && ruff format organization/
+python manage.py makemigrations --check
+python manage.py migrate
+pytest organization/tests/ -v
+python manage.py sync_policy_registry --by ai --identifier claude-sonnet
+python manage.py validate_policy_engine --strict
+python manage.py validate_organization_integrity --dry-run
+
+Data Contract Summary (from DATA_CONTRACT.md)
+Owner: organization Version: 1.0.0
+
+Model                       Purpose                          Key constraint
+Organization                 Institutional tenant container   code unique (global)
+OrganizationUnit              Internal structural hierarchy    (organization, code) unique
+OrganizationUnitClosure       Fast ancestor/descendant reads   (organization, ancestor, descendant) unique
+OrganizationUnitHistory       Typed structural change diff     append-friendly
+Position                      Institutional seat/role          (organization, code) unique
+OrganizationMembership        User-to-organization link        one active row per (organization, user)
+UnitMembership                User-to-unit link                one active primary per membership
+PositionAssignment            User-to-position link            one active primary per membership
+ReportingLine                 Position-to-position authority   one active primary admin line per source_position
+AuthorityDelegation            Temporary authority record       time-bounded, no self-delegation
+OrganizationSite               Physical/logical location        (organization, code) unique
+OrganizationEventLog           Append-only domain event feed    append-only; carries reason + acting_assignment
+
+Error Codes (owner: organization/constants.py)
+29 ORGANIZATION_* constants — full list: organization_prompt.md §22.
+
+Verification
+python manage.py makemigrations --check — no missing migrations
+python manage.py migrate — no errors
+pytest organization/tests/ -v — all tests pass
+ruff check organization/ — no errors
+python manage.py sync_policy_registry --by ai --identifier claude-sonnet — idempotent
+python manage.py validate_policy_engine --strict — passes
+python manage.py validate_organization_integrity --dry-run — passes
+Manual smoke test: create organization → 3+ level unit tree → move a unit → rebuild_organization_closure
+matches → assign position → reporting line → resolve actor-context → confirm OrganizationEventLog
+rows carry reason/acting_assignment.
+
+Open Questions (resolved, no user input needed)
+Organization nesting authority semantics? → Flattened; parent_organization is a non-authoritative
+label only. Confirmed with user (see organization_prompt.md §3).
+AppendOnlyManager shared across apps? → No — kept local to organization, matching the existing
+authenticate/core.policy_engine precedent of independent per-app copies. Confirmed with user.
+Commit granularity? → ~10 commits, one per implementation layer (not per file, not a single
+mega-commit), calibrated against authenticate's actual git history. Confirmed with user.
+filters.py? → Dropped from scope — never specified beyond plain selector kwargs.
+
+Branch Name
+add_organization_app_20260623_1511 (created at session start, before any code)
