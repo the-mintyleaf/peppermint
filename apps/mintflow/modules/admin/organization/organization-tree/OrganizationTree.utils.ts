@@ -5,6 +5,7 @@ import type {
   DescendantStats,
   PersonRole,
   OrgOfficeData,
+  DepartmentData,
   PersonData,
   OrgNodeData,
 } from "./OrganizationTree.types";
@@ -387,4 +388,176 @@ export function personToFlowNode(
       }
     : null;
   return { node, edge };
+}
+
+// ─── Pure helpers used by the main component and hooks ───────────────────────
+
+export const DEFAULT_EDGE_OPTIONS = {
+  type: "smoothstep",
+  style: { strokeWidth: 2, stroke: "#94a3b8" },
+  markerEnd: { type: MarkerType.ArrowClosed, color: "#94a3b8" },
+  animated: false,
+} as const;
+
+export function getEdgeStyleForRelationship(
+  relType: string | undefined,
+  isPath: boolean,
+  isDim: boolean,
+) {
+  if (isPath) {
+    return {
+      style: {
+        strokeWidth: 3,
+        stroke: "var(--mantine-color-orange-5, #f97316)",
+      },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: "var(--mantine-color-orange-5, #f97316)",
+      },
+    };
+  }
+  if (isDim) {
+    return {
+      style: { strokeWidth: 1.5, stroke: "#94a3b8", opacity: 0.2 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: "#94a3b8" },
+    };
+  }
+  switch (relType) {
+    case "reports_to":
+      return {
+        style: { strokeWidth: 1.5, stroke: "#94a3b8", strokeDasharray: "5,3" },
+        markerEnd: { type: MarkerType.ArrowClosed, color: "#94a3b8" },
+      };
+    case "heads":
+      return {
+        style: { strokeWidth: 2, stroke: "#7c3aed" },
+        markerEnd: { type: MarkerType.ArrowClosed, color: "#7c3aed" },
+      };
+    case "supervises":
+      return {
+        style: { strokeWidth: 2, stroke: "#0891b2" },
+        markerEnd: { type: MarkerType.ArrowClosed, color: "#0891b2" },
+      };
+    default:
+      return {
+        style: DEFAULT_EDGE_OPTIONS.style,
+        markerEnd: DEFAULT_EDGE_OPTIONS.markerEnd,
+      };
+  }
+}
+
+export function nodeMatchesSearch(
+  type: string,
+  data: OrgNodeData,
+  q: string,
+): boolean {
+  switch (type) {
+    case "person":
+      return (
+        (data as PersonData).fullName.toLowerCase().includes(q) ||
+        (data as PersonData).designation.toLowerCase().includes(q)
+      );
+    case "department":
+      return (data as DepartmentData).name.toLowerCase().includes(q);
+    case "org":
+      return (data as OrgOfficeData).name.toLowerCase().includes(q);
+    default:
+      return false;
+  }
+}
+
+export function autoArrangeNodes(
+  nodes: OrgFlowNode[],
+  edges: OrgFlowEdge[],
+  layoutMode: "compact" | "expanded" = "expanded",
+): OrgFlowNode[] {
+  if (nodes.length === 0) return nodes;
+
+  const NODE_W = 300;
+  const NODE_H = 160;
+  const BASE_H_GAP = layoutMode === "compact" ? 40 : 80;
+  const BASE_V_GAP = layoutMode === "compact" ? 100 : 160;
+
+  function hGapForCount(count: number): number {
+    if (count <= 2) return BASE_H_GAP;
+    if (count <= 4) return BASE_H_GAP * 1.25;
+    if (count <= 8) return BASE_H_GAP * 1.6;
+    return BASE_H_GAP * 2;
+  }
+
+  function vGapForCount(count: number): number {
+    if (count <= 3) return BASE_V_GAP;
+    if (count <= 6) return BASE_V_GAP * 1.2;
+    return BASE_V_GAP * 1.4;
+  }
+
+  const children: Record<string, string[]> = {};
+  const hasParent = new Set<string>();
+  for (const edge of edges) {
+    if (!children[edge.source]) children[edge.source] = [];
+    children[edge.source].push(edge.target);
+    hasParent.add(edge.target);
+  }
+
+  const roots = nodes.filter((n) => !hasParent.has(n.id)).map((n) => n.id);
+
+  if (roots.length === 0) {
+    return nodes.map((n, i) => ({
+      ...n,
+      position: {
+        x: (i % 4) * (NODE_W + BASE_H_GAP),
+        y: Math.floor(i / 4) * (NODE_H + BASE_V_GAP),
+      },
+    }));
+  }
+
+  const positions: Record<string, { x: number; y: number }> = {};
+  const visited = new Set<string>();
+
+  function subtreeWidth(id: string, parentChildCount = 1): number {
+    const kids = children[id] ?? [];
+    if (kids.length === 0) return NODE_W;
+    const hGap = hGapForCount(parentChildCount);
+    const childWidths = kids.map((k) => subtreeWidth(k, kids.length));
+    return Math.max(
+      NODE_W,
+      childWidths.reduce((acc, w) => acc + w + hGap, -hGap),
+    );
+  }
+
+  function layout(id: string, x: number, y: number) {
+    if (visited.has(id)) return;
+    visited.add(id);
+    positions[id] = { x, y };
+    const kids = children[id] ?? [];
+    if (kids.length === 0) return;
+    const hGap = hGapForCount(kids.length);
+    const vGap = vGapForCount(kids.length);
+    const totalWidth = kids
+      .map((k) => subtreeWidth(k, kids.length))
+      .reduce((a, w) => a + w + hGap, -hGap);
+    let cx = x - totalWidth / 2;
+    for (const kid of kids) {
+      const kw = subtreeWidth(kid, kids.length);
+      layout(kid, cx + kw / 2, y + NODE_H + vGap);
+      cx += kw + hGap;
+    }
+  }
+
+  let rootX = 0;
+  for (const root of roots) {
+    const rw = subtreeWidth(root, roots.length);
+    layout(root, rootX + rw / 2, 0);
+    rootX += rw + BASE_H_GAP * 2;
+  }
+
+  let fallbackX = rootX + BASE_H_GAP;
+  for (const n of nodes) {
+    if (!positions[n.id]) {
+      positions[n.id] = { x: fallbackX, y: 0 };
+      fallbackX += NODE_W + BASE_H_GAP;
+    }
+  }
+
+  return nodes.map((n) => ({ ...n, position: positions[n.id] ?? n.position }));
 }
