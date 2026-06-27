@@ -1,4 +1,5 @@
 import type { AdminShellConfig } from "@peppermint/admin";
+import type { ReactNode } from "react";
 import { KanbanIcon } from "@phosphor-icons/react/dist/csr/Kanban";
 import { HouseIcon } from "@phosphor-icons/react/dist/csr/House";
 import { BuildingsIcon } from "@phosphor-icons/react/dist/csr/Buildings";
@@ -15,6 +16,7 @@ import type { SelectedOrgInfo } from "../../stores/selectedOrg.store";
 
 export function buildAdminConfig(
   org: SelectedOrgInfo | null,
+  orgSwitcherWidget?: ReactNode,
 ): AdminShellConfig {
   return {
     brand: {
@@ -82,6 +84,7 @@ export function buildAdminConfig(
               ? [
                   {
                     label: org.name,
+                    headerWidget: orgSwitcherWidget,
                     items: [
                       {
                         label: "Structure Builder",

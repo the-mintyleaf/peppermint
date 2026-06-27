@@ -1,30 +1,40 @@
 "use client";
 
-import { Badge, Group, Stack, Text, UnstyledButton } from "@peppermint/ui";
+import type { ElementType } from "react";
+import { Badge, Divider, Group, Stack, Text, UnstyledButton } from "@peppermint/ui";
 import type { AdminShellNavGroup } from "../../../AdminShell.types";
 
 interface SubNavLinksProps {
   groups: AdminShellNavGroup[];
   pathname: string;
+  linkComponent?: ElementType;
 }
 
-export function SubNavLinks({ groups, pathname }: SubNavLinksProps) {
+export function SubNavLinks({ groups, pathname, linkComponent }: SubNavLinksProps) {
+  const LinkEl = linkComponent ?? "a";
   return (
     <>
       {groups.map((group) => (
         <Stack key={group.label} gap={0} mb={4}>
-          <Text
-            my="xs"
-            size="10px"
-            fw={300}
-            tt="uppercase"
-            c="dark.3"
-            px="md"
-            pb={4}
-            style={{ letterSpacing: "0.08em" }}
-          >
-            {group.label}
-          </Text>
+          {group.headerWidget ? (
+            <>
+              <Divider color="dark.6" mx="md" mt="md" mb={0} />
+              <div style={{ padding: "12px 12px 6px" }}>{group.headerWidget}</div>
+            </>
+          ) : (
+            <Text
+              my="xs"
+              size="10px"
+              fw={300}
+              tt="uppercase"
+              c="dark.3"
+              px="md"
+              pb={4}
+              style={{ letterSpacing: "0.08em" }}
+            >
+              {group.label}
+            </Text>
+          )}
 
           {group.items.map((item) => {
             const isActive =
@@ -34,7 +44,7 @@ export function SubNavLinks({ groups, pathname }: SubNavLinksProps) {
             return (
               <UnstyledButton
                 key={item.href}
-                component="a"
+                component={LinkEl}
                 href={item.href}
                 px="sm"
                 py={6}

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ElementType, ReactNode } from "react";
 import type { Icon } from "@phosphor-icons/react";
 import type { UserInfoPopoverProps } from "./components/Navbar/UserInfoPopover/UserInfoPopover.types";
 
@@ -11,6 +11,7 @@ export interface AdminShellNavItem {
 
 export interface AdminShellNavGroup {
   label: string;
+  headerWidget?: ReactNode;
   items: AdminShellNavItem[];
 }
 
@@ -69,4 +70,5 @@ export interface AdminShellConfig {
   additional?: AdminShellMainNavAdditional[];
   aiButton?: AdminShellAiButton;
   userMenu?: UserInfoPopoverProps;
+  linkComponent?: ElementType;
 }

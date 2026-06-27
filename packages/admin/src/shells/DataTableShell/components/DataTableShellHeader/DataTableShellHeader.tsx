@@ -1,6 +1,6 @@
 "use client";
 
-import { Group, Stack, Text } from "@peppermint/ui";
+import { ManageHeader } from "@peppermint/ui";
 import { useTableData } from "../../../../wrappers/DataTableWrapper";
 import type { DataTableShellHeaderProps } from "../../DataTableShell.types";
 
@@ -11,18 +11,10 @@ export function DataTableShellHeader({
   const { total } = useTableData();
 
   return (
-    <Stack gap={8} visibleFrom="lg" py="md">
-      <Group align="center" gap="xs">
-        <Text size="1.6rem" fw={500}>
-          Manage {displayLabel}
-        </Text>
-        <Text size="1.5rem" fw={400} opacity={0.3}>
-          {total}
-        </Text>
-      </Group>
-      <Text size="xs" opacity={0.5}>
-        {moduleInfo.description}
-      </Text>
-    </Stack>
+    <ManageHeader
+      title={`Manage ${displayLabel}`}
+      count={total}
+      description={moduleInfo.description}
+    />
   );
 }

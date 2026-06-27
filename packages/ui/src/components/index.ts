@@ -1,3 +1,4 @@
+export * from "./ManageHeader";
 export * from "./ModuleHeader";
 export * from "./PageBreadcrumb";
 export * from "./SubNavExpandButton";

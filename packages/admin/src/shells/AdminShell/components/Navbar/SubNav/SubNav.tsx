@@ -10,6 +10,7 @@ import {
 } from "@peppermint/ui";
 import { ArrowLineLeftIcon } from "@phosphor-icons/react/dist/csr/ArrowLineLeft";
 import { SubNavLinks } from "./SubNavLinks";
+import type { ElementType } from "react";
 import type { AdminShellMainNavModule } from "../../../AdminShell.types";
 import {
   NAV_HEADER_HEIGHT,
@@ -22,9 +23,10 @@ interface SubNavProps {
   pathname: string;
   onCollapse: () => void;
   visible: boolean;
+  linkComponent?: ElementType;
 }
 
-export function SubNav({ module, pathname, onCollapse, visible }: SubNavProps) {
+export function SubNav({ module, pathname, onCollapse, visible, linkComponent }: SubNavProps) {
   return (
     <Stack
       gap={0}
@@ -68,7 +70,7 @@ export function SubNav({ module, pathname, onCollapse, visible }: SubNavProps) {
       <Stack gap={0} p={0} style={{ flex: 1, overflowY: "auto" }}>
         {module.subNav.widget && <Stack px="md">{module.subNav.widget}</Stack>}
 
-        <SubNavLinks groups={module.subNav.groups} pathname={pathname} />
+        <SubNavLinks groups={module.subNav.groups} pathname={pathname} linkComponent={linkComponent} />
       </Stack>
     </Stack>
   );

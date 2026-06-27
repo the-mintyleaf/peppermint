@@ -67,6 +67,7 @@ export function AdminShellNavbar({
               pathname={pathname}
               onCollapse={onSubNavCollapse}
               visible={showSubNav}
+              linkComponent={config.linkComponent}
             />
           )}
         </Group>
