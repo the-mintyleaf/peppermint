@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useParams } from "next/navigation";
 import {
   ReactFlow,
@@ -18,14 +18,12 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import {
-  Badge,
   Button,
   ModuleHeader,
   notifications,
   Paper,
-  TextInput,
+  Select,
 } from "@peppermint/ui";
-import { FloppyDiskIcon } from "@phosphor-icons/react/dist/csr/FloppyDisk";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { OrgNode } from "./components/nodes/OrgNode";
 import { DepartmentNode } from "./components/nodes/DepartmentNode";
@@ -48,16 +46,17 @@ import type {
   DepartmentData,
   OrgOfficeData,
 } from "./OrganizationTree.types";
-import { DUMMY_NODES, DUMMY_EDGES } from "./OrganizationTree.demoData";
 import {
   useOrganizationGraph,
   useAddOrganizationNode,
   useUpdateOrganizationNode,
   useAddPersonNode,
   useAddPosition,
+  useUpdatePosition,
   useAddSite,
   useAddDelegation,
   useCreateUnit,
+  useUpdateUnit,
   useEnrichedGraph,
   useCanvasLayout,
   useNodeActions,
@@ -65,7 +64,7 @@ import {
 import {
   DEFAULT_EDGE_OPTIONS,
   expandAncestors,
-  nodeMatchesSearch,
+  getNodeSearchOptionLabel,
 } from "./OrganizationTree.utils";
 import styles from "./OrganizationTree.module.css";
 
@@ -78,27 +77,28 @@ const nodeTypes = {
 
 function OrganizationTreeInner() {
   const { id: orgId = "" } = useParams<{ id: string }>();
-  const { nodes: serverNodes, edges: serverEdges } =
-    useOrganizationGraph(orgId);
+  const {
+    nodes: serverNodes,
+    edges: serverEdges,
+    isLoading: isGraphLoading,
+  } = useOrganizationGraph(orgId);
 
   const {
     selectedNodeId,
     drawerOpen,
     activeDepartmentId,
-    searchQuery,
+    searchNodeId,
     nodeModal,
-    saved,
     closeDrawer,
     openAddModal,
     openEditModal,
     closeModal,
-    setSearchQuery,
+    setSearchNodeId,
     pushHistory,
     undo,
     redo,
     canUndo,
     canRedo,
-    markSaved,
     markDirty,
     contextMenu,
     openContextMenu,
@@ -129,9 +129,11 @@ function OrganizationTreeInner() {
   const updateOrgMutation = useUpdateOrganizationNode(orgId);
   const addPersonMutation = useAddPersonNode(orgId);
   const addPositionMutation = useAddPosition(orgId);
+  const updatePositionMutation = useUpdatePosition(orgId);
   const addSiteMutation = useAddSite(orgId);
   const addDelegationMutation = useAddDelegation(orgId);
   const createUnitMutation = useCreateUnit(orgId);
+  const updateUnitMutation = useUpdateUnit(orgId);
 
   // edgesRef / nodesRef let effects read current state without becoming reactive deps
   const edgesRef = useRef(edges);
@@ -144,20 +146,15 @@ function OrganizationTreeInner() {
   }, [nodes]);
 
   useEffect(() => {
-    const initNodes =
-      serverNodes.length > 0
-        ? (serverNodes as OrgFlowNode[])
-        : (DUMMY_NODES as OrgFlowNode[]);
-    const initEdges =
-      serverEdges.length > 0
-        ? (serverEdges as OrgFlowEdge[])
-        : (DUMMY_EDGES as OrgFlowEdge[]);
+    if (isGraphLoading) return;
+    const initNodes = serverNodes as OrgFlowNode[];
+    const initEdges = serverEdges as OrgFlowEdge[];
     setNodes(initNodes);
     setEdges(initEdges);
     syncEdgeCache(initEdges);
     pushHistory(initNodes, initEdges);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serverNodes, serverEdges]);
+  }, [serverNodes, serverEdges, isGraphLoading]);
 
   useEffect(() => {
     if (edges.length > 0) syncEdgeCache(edges);
@@ -201,9 +198,11 @@ function OrganizationTreeInner() {
     updateOrgMutation,
     addPersonMutation,
     addPositionMutation,
+    updatePositionMutation,
     addSiteMutation,
     addDelegationMutation,
     createUnitMutation,
+    updateUnitMutation,
     pushHistory,
     markDirty,
     storeExpandNode,
@@ -211,23 +210,18 @@ function OrganizationTreeInner() {
     fitView,
   });
 
-  // ── Smart search: auto-expand ancestors + highlight matches ───────────────
-  useEffect(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) {
-      setSearchMatchIds([]);
-      return;
-    }
-    const matchedIds = nodes
-      .filter((n) => nodeMatchesSearch(n.type ?? "", n.data, q))
-      .map((n) => n.id);
-    setSearchMatchIds(matchedIds);
-    if (viewMode !== "explorer" || matchedIds.length === 0) return;
-    let expanded = [...expandedNodeIds];
-    for (const id of matchedIds) expanded = expandAncestors(id, edges, expanded);
-    setExpandedNodeIds(expanded);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+  // ── Node picker options ───────────────────────────────────────────────────
+  const nodeSearchOptions = useMemo(
+    () =>
+      nodes
+        .filter((n) => n.type !== "group")
+        .map((n) => ({
+          value: n.id,
+          label: getNodeSearchOptionLabel(n.type ?? "", n.data),
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [nodes],
+  );
 
   // ── Derived display values ────────────────────────────────────────────────
   const selectedNode = graphMaps.nodesMap.get(selectedNodeId ?? "") ?? null;
@@ -296,15 +290,6 @@ function OrganizationTreeInner() {
   );
 
   // ── Feature handlers ──────────────────────────────────────────────────────
-  const handleSave = useCallback(() => {
-    notifications.show({
-      title: "Saved",
-      message: "Organization structure saved successfully.",
-      color: "teal",
-    });
-    markSaved();
-  }, [markSaved]);
-
   const handleToggleViewMode = useCallback(() => {
     if (viewMode === "explorer" && nodes.length > 50) {
       notifications.show({
@@ -341,13 +326,18 @@ function OrganizationTreeInner() {
     [edges, expandedNodeIds, setExpandedNodeIds, getNode, setCenter],
   );
 
-  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const handleSearchChange = useCallback(
-    (val: string) => {
-      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-      searchTimeoutRef.current = setTimeout(() => setSearchQuery(val), 150);
+  const handleSearchNodeChange = useCallback(
+    (nodeId: string | null) => {
+      setSearchNodeId(nodeId);
+      if (!nodeId) {
+        setSearchMatchIds([]);
+        return;
+      }
+      setSearchMatchIds([nodeId]);
+      selectNode(nodeId);
+      handleFocusNode(nodeId);
     },
-    [setSearchQuery],
+    [setSearchNodeId, setSearchMatchIds, selectNode, handleFocusNode],
   );
 
   const getContextMenuActions = useCallback(
@@ -474,36 +464,21 @@ function OrganizationTreeInner() {
               paddingRight: 12,
             }}
           >
-            <TextInput
+            <Select
               size="xs"
-              placeholder="Search nodes…"
+              placeholder="Find a node…"
+              searchable
+              clearable
+              data={nodeSearchOptions}
+              value={searchNodeId}
+              onChange={handleSearchNodeChange}
+              nothingFoundMessage="No nodes found"
               leftSection={
-                <MagnifyingGlassIcon size={13} aria-label="Search" />
+                <MagnifyingGlassIcon size={13} aria-label="Find node" />
               }
-              defaultValue={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              style={{ width: 200 }}
+              comboboxProps={{ withinPortal: true }}
+              style={{ width: 260 }}
             />
-            {activeFilters.length > 0 && (
-              <Badge size="sm" color="indigo" variant="light">
-                {activeFilters.length} filter
-                {activeFilters.length > 1 ? "s" : ""}
-              </Badge>
-            )}
-            {enrichedVisibleNodes.length > 0 && (
-              <Badge size="sm" color="gray" variant="light">
-                {enrichedVisibleNodes.length} visible
-              </Badge>
-            )}
-            <Button
-              size="xs"
-              variant={saved ? "subtle" : "filled"}
-              color="blue"
-              leftSection={<FloppyDiskIcon size={13} aria-label="Save" />}
-              onClick={handleSave}
-            >
-              {saved ? "Saved" : "Save"}
-            </Button>
           </div>
         }
       />
@@ -545,7 +520,7 @@ function OrganizationTreeInner() {
             maxZoom={3}
             proOptions={{ hideAttribution: true }}
             style={{
-              background: "var(--mantine-color-gray-0, #f8fafc)",
+              background: "var(--mantine-color-body)",
               width: "100%",
               height: "100%",
             }}
@@ -554,7 +529,7 @@ function OrganizationTreeInner() {
               variant={BackgroundVariant.Dots}
               gap={24}
               size={1.5}
-              color="var(--mantine-color-gray-3, #cbd5e1)"
+              color="var(--mantine-color-default-border)"
             />
             <Controls
               position="bottom-right"
@@ -580,7 +555,7 @@ function OrganizationTreeInner() {
                       ? "#6b21a8"
                       : "#059669"
               }
-              maskColor="rgba(0,0,0,0.04)"
+              maskColor="color-mix(in srgb, var(--mantine-color-text) 8%, transparent)"
             />
           </ReactFlow>
 
@@ -720,9 +695,11 @@ function OrganizationTreeInner() {
           updateOrgMutation.isPending ||
           addPersonMutation.isPending ||
           addPositionMutation.isPending ||
+          updatePositionMutation.isPending ||
           addSiteMutation.isPending ||
           addDelegationMutation.isPending ||
-          createUnitMutation.isPending
+          createUnitMutation.isPending ||
+          updateUnitMutation.isPending
         }
       />
 

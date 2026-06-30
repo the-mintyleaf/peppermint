@@ -1,6 +1,6 @@
 "use client";
 
-import { AppShell, Box, useDisclosure } from "@peppermint/ui";
+import { AppShell, Box, MantineProvider, useDisclosure } from "@peppermint/ui";
 import type { ReactNode } from "react";
 import type { Icon } from "@phosphor-icons/react";
 import { useMemo } from "react";
@@ -66,7 +66,7 @@ export function AdminShell({
         p={0}
         padding={0}
         withBorder={false}
-        bg="var(--mantine-color-dark-9)"
+        bg="dark.9"
         transitionDuration={SUB_NAV_TRANSITION_MS}
         navbar={{
           width: navbarWidth,
@@ -86,14 +86,17 @@ export function AdminShell({
           bg="transparent"
           style={{ minHeight: 0, overflow: "hidden", display: "flex" }}
         >
-          <Box
-            flex={1}
-            p={SHELL_INSET}
-            bg="transparent"
-            style={{ minHeight: 0, minWidth: 0, overflow: "auto" }}
-          >
-            {children}
-          </Box>
+          <MantineProvider forceColorScheme="light">
+            <Box
+              flex={1}
+              py={SHELL_INSET}
+              pr={SHELL_INSET}
+              bg="transparent"
+              style={{ minHeight: 0, minWidth: 0, overflow: "auto" }}
+            >
+              {children}
+            </Box>
+          </MantineProvider>
         </AppShell.Main>
       </AppShell>
     </>

@@ -10,12 +10,19 @@ import { PaperclipIcon } from "@phosphor-icons/react/dist/csr/Paperclip";
 import { ChartPieSliceIcon } from "@phosphor-icons/react/dist/csr/ChartPieSlice";
 import type { TaskAssignee } from "../../module.api";
 import type { KanbanCardProps } from "./KanbanCard.types";
+import classes from "./KanbanCard.module.css";
 
 const PRIORITY_LABELS = {
   urgent: "Urgent",
   important: "Important",
   normal: "Normal",
 } as const;
+
+const PRIORITY_COLORS: Record<keyof typeof PRIORITY_LABELS, string> = {
+  urgent: "red",
+  important: "orange",
+  normal: "blue",
+};
 
 function toInitials(name: string): string {
   return name
@@ -80,27 +87,27 @@ export const KanbanCard = memo(function KanbanCard({
 
   const style = overlay
     ? {
-        transform: "scale(1.03) rotate(0.8deg)",
-        boxShadow: "0 16px 40px rgba(0,0,0,0.18)",
-        cursor: "grabbing" as const,
-      }
+      transform: "scale(1.03) rotate(0.8deg)",
+      boxShadow: "0 16px 40px rgba(0,0,0,0.18)",
+      cursor: "grabbing" as const,
+    }
     : {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0 : 1,
-        cursor: "grab" as const,
-      };
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0 : 1,
+      cursor: "grab" as const,
+    };
 
   const assignees = useMemo(() => resolveAssignees(task), [task]);
   const displayDate = formatDisplayDate(task.endDate) ?? task.createdAt;
   const attachmentCount = task.attachments?.length ?? 0;
   const progress = getSubtaskProgress(task.subtasks);
   const remainingDays = getRemainingDays(task.endDate);
-
   return (
     <Paper
       {...dragProps}
       style={style}
+      className={overlay ? undefined : classes.card}
       withBorder
       radius="md"
       p="sm"
@@ -140,12 +147,12 @@ export const KanbanCard = memo(function KanbanCard({
 
       <Group justify="space-between" align="center" mb={10} wrap="nowrap">
         <Group gap={6} align="center" wrap="nowrap">
-          <CalendarBlankIcon size={14} color="var(--mantine-color-gray-5)" />
+          <CalendarBlankIcon size={14} weight="fill" color="var(--mantine-color-gray-5)" />
           <Text size="xs" c="dimmed">
             {displayDate}
           </Text>
         </Group>
-        <Badge variant="light" color="gray" size="xs" radius="sm">
+        <Badge variant="light" color={PRIORITY_COLORS[task.priority]} size="xs" radius="sm">
           {PRIORITY_LABELS[task.priority]}
         </Badge>
       </Group>
@@ -202,6 +209,7 @@ export const KanbanCard = memo(function KanbanCard({
           </Group>
         </Box>
       )}
+
     </Paper>
   );
 });

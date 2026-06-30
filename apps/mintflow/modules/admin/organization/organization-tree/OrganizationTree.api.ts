@@ -1,8 +1,4 @@
-// VERTICAL-SLICE: mock API — replaced in Phase 4 with real Axios calls
-// REQUIRED (Phase 4): add to backend URL table before Phase 4 starts:
-//   GET /api/v1/organization/units/tree/?organization={id}&depth={n}
-//   POST /api/v1/organization/units/
-//   POST /api/v1/organization/positions/
+import api from "@/lib/api";
 
 export interface CreateUnitInput {
   organization: string;
@@ -22,24 +18,59 @@ export interface CreatePositionInput {
 
 export async function fetchUnitTree(
   orgId: string,
-  opts?: { depth?: number; asOf?: string },
 ): Promise<{ units: unknown[]; positions: unknown[] }> {
-  void orgId;
-  void opts;
-  await new Promise((r) => setTimeout(r, 200));
-  return { units: [], positions: [] };
+  const res = await api.get(
+    `/api/v1/organization/organizations/${orgId}/unit-tree/`,
+  );
+  const d = res.data;
+  // API returns: data is a nested array of unit objects
+  const units = Array.isArray(d) ? d : (d.units ?? d.results ?? d ?? []);
+  return { units, positions: [] };
+}
+
+export interface UpdateUnitInput {
+  id: string;
+  name?: string;
+  unitType?: string;
+  description?: string;
+  status?: string;
+}
+
+export async function updateUnit(data: UpdateUnitInput): Promise<{ id: string }> {
+  const res = await api.patch(`/api/v1/organization/units/${data.id}/`, {
+    name: data.name,
+    unit_type: data.unitType,
+    description: data.description,
+    status: data.status,
+  });
+  return { id: res.data.id };
 }
 
 export async function createUnit(
   data: CreateUnitInput,
 ): Promise<{ id: string }> {
-  await new Promise((r) => setTimeout(r, 300));
-  return { id: `unit-${Date.now()}` };
+  const res = await api.post(
+    `/api/v1/organization/organizations/${data.organization}/units/`,
+    {
+      name: data.name,
+      code: data.code,
+      unit_type: data.unitType,
+      parent: data.parentUnit ?? null,
+    },
+  );
+  return { id: res.data.id };
 }
 
 export async function createPosition(
   data: CreatePositionInput,
 ): Promise<{ id: string }> {
-  await new Promise((r) => setTimeout(r, 300));
-  return { id: `pos-${Date.now()}` };
+  const res = await api.post(
+    `/api/v1/organization/units/${data.unit}/positions/`,
+    {
+      title: data.title,
+      code: data.code,
+      position_type: data.positionType,
+    },
+  );
+  return { id: res.data.id };
 }

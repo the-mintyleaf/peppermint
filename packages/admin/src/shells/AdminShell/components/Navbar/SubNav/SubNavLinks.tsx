@@ -3,6 +3,7 @@
 import type { ElementType } from "react";
 import { Badge, Divider, Group, Stack, Text, UnstyledButton } from "@peppermint/ui";
 import type { AdminShellNavGroup } from "../../../AdminShell.types";
+import styles from "./SubNavLinks.module.css";
 
 interface SubNavLinksProps {
   groups: AdminShellNavGroup[];
@@ -44,14 +45,14 @@ export function SubNavLinks({ groups, pathname, linkComponent }: SubNavLinksProp
             return (
               <UnstyledButton
                 key={item.href}
-                component={LinkEl}
+                component={LinkEl as any}
                 href={item.href}
                 px="sm"
                 py={6}
-                mx={4}
+                className={`${styles.navItem} ${isActive ? styles.active : ""}`}
                 style={{
                   backgroundColor: isActive
-                    ? "var(--mantine-color-dark-6)"
+                    ? "var(--mantine-color-brand-9)"
                     : "transparent",
                   display: "flex",
                   alignItems: "center",

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ActionIcon,
   Anchor,
   Button,
   Center,
@@ -13,6 +14,9 @@ import {
   TextInput,
   ThemeIcon,
   Title,
+  Tooltip,
+  useComputedColorScheme,
+  useMantineColorScheme,
 } from "@peppermint/ui";
 
 import { useState } from "react";
@@ -25,6 +29,8 @@ import {
   AppleLogoIcon,
   DiscordLogoIcon,
   LeafIcon,
+  MoonIcon,
+  SunIcon,
 } from "@phosphor-icons/react/dist/ssr";
 
 export function SignInPage({
@@ -52,6 +58,9 @@ export function SignInPage({
   const [showMagicLink, setShowMagicLink] = useState(false);
   const [magicLinkEmail, setMagicLinkEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { setColorScheme } = useMantineColorScheme();
+  const computedColorScheme = useComputedColorScheme("light");
+  const isDark = computedColorScheme === "dark";
 
   const handleSignIn = async (username: string, password: string) => {
     setIsLoading(true);
@@ -151,6 +160,7 @@ export function SignInPage({
   const hasAnySocial = socialProviders > 0;
 
   return (
+    <>
     <Center h="100vh">
       <Stack>
         <Center>
@@ -340,5 +350,21 @@ export function SignInPage({
         </Center>
       </Stack>
     </Center>
+
+    <Tooltip label={isDark ? "Light mode" : "Dark mode"} withArrow>
+      <ActionIcon
+        variant="default"
+        size="lg"
+        radius="xl"
+        pos="fixed"
+        bottom="1.25rem"
+        right="1.25rem"
+        aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+        onClick={() => setColorScheme(isDark ? "light" : "dark")}
+      >
+        {isDark ? <SunIcon size={18} /> : <MoonIcon size={18} />}
+      </ActionIcon>
+    </Tooltip>
+    </>
   );
 }

@@ -85,7 +85,7 @@ export function UnitPicker({
           onChange={(e) => handleSearchChange(e.currentTarget.value)}
           onClick={() => combobox.openDropdown()}
           onFocus={() => combobox.openDropdown()}
-          onBlur={() => combobox.closeDropdown()}
+          onBlur={() => setTimeout(() => combobox.closeDropdown(), 150)}
           rightSection={isFetching ? <Loader size="xs" /> : null}
         />
       </Combobox.Target>

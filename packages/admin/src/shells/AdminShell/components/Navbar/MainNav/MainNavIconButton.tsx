@@ -4,6 +4,7 @@ import type { MouseEvent } from "react";
 import { Box, Tooltip, UnstyledButton } from "@peppermint/ui";
 import type { BoxProps } from "@peppermint/ui";
 import type { Icon } from "@phosphor-icons/react";
+import { MAIN_NAV_WIDTH } from "../AdminShell.Navbar";
 
 type MainNavIconButtonProps = {
   icon: Icon;
@@ -36,15 +37,15 @@ export function MainNavIconButton({
           href={href}
           onClick={(event: MouseEvent) => onClick?.(event)}
           aria-label={label}
+
           style={{
+            borderRadius: "var(--mantine-radius-default)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            width: 32,
+            width: MAIN_NAV_WIDTH - 16,
             height: 32,
-            backgroundColor: active
-              ? "var(--mantine-color-dark-6)"
-              : "transparent",
+           
             color:
               iconColor ??
               (active

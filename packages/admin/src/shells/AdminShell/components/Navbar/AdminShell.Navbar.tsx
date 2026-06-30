@@ -1,7 +1,7 @@
 "use client";
 
 import type { Icon } from "@phosphor-icons/react";
-import { AppShell, Group, MantineProvider } from "@peppermint/ui";
+import { AppShell, Group } from "@peppermint/ui";
 import { MainNav } from "./MainNav/MainNav";
 import { SubNav } from "./SubNav/SubNav";
 import { resolveActiveMainNavItem } from "../../nav.utils";
@@ -32,46 +32,44 @@ export function AdminShellNavbar({
   const showSubNav = isModule && !subNavCollapsed;
 
   return (
-    <MantineProvider forceColorScheme="light">
-      <AppShell.Navbar
-        p={SHELL_INSET}
-        pl={SHELL_INSET}
-        pt={SHELL_INSET}
-        pb={SHELL_INSET}
-        pr={0}
-        bg="transparent"
-        style={{ border: "none", overflow: "hidden" }}
+    <AppShell.Navbar
+      p={SHELL_INSET}
+      pl={SHELL_INSET}
+      pt={SHELL_INSET}
+      pb={SHELL_INSET}
+      pr={0}
+      bg="transparent"
+      style={{ border: "none", overflow: "hidden" }}
+    >
+      <Group
+        gap={SHELL_GAP}
+        align="stretch"
+        h="100%"
+        wrap="nowrap"
+        style={{ overflow: "hidden" }}
       >
-        <Group
-          gap={SHELL_GAP}
-          align="stretch"
-          h="100%"
-          wrap="nowrap"
-          style={{ overflow: "hidden" }}
-        >
-          <MainNav
-            header={mainNavHeader}
-            mainNav={config.mainNav}
-            additional={config.additional}
-            aiButton={config.aiButton}
-            pathname={pathname}
-            activeItemId={activeItem?.id}
-            subNavCollapsed={subNavCollapsed}
-            onSubNavExpand={onSubNavExpand}
-            userMenu={config.userMenu}
-          />
+        <MainNav
+          header={mainNavHeader}
+          mainNav={config.mainNav}
+          additional={config.additional}
+          aiButton={config.aiButton}
+          pathname={pathname}
+          activeItemId={activeItem?.id}
+          subNavCollapsed={subNavCollapsed}
+          onSubNavExpand={onSubNavExpand}
+          userMenu={config.userMenu}
+        />
 
-          {isModule && activeItem.kind === "module" && (
-            <SubNav
-              module={activeItem}
-              pathname={pathname}
-              onCollapse={onSubNavCollapse}
-              visible={showSubNav}
-              linkComponent={config.linkComponent}
-            />
-          )}
-        </Group>
-      </AppShell.Navbar>
-    </MantineProvider>
+        {isModule && activeItem.kind === "module" && (
+          <SubNav
+            module={activeItem}
+            pathname={pathname}
+            onCollapse={onSubNavCollapse}
+            visible={showSubNav}
+            linkComponent={config.linkComponent}
+          />
+        )}
+      </Group>
+    </AppShell.Navbar>
   );
 }

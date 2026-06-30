@@ -1,14 +1,13 @@
 import type { CSSProperties } from "react";
 
-export const SHELL_INSET = 8;
-export const SHELL_GAP = 8;
+export const SHELL_INSET = 6;
+export const SHELL_GAP = 6;
 
-export const MAIN_NAV_WIDTH = 50;
-export const SUB_NAV_WIDTH = 260;
+export const MAIN_NAV_WIDTH = 64;
+export const SUB_NAV_WIDTH = 280;
 export const NAV_HEADER_HEIGHT = 48;
 
 export const shellCardStyle: CSSProperties = {
-  border: "1px solid var(--mantine-color-dark-6)",
   borderRadius: "var(--mantine-radius-default)",
   overflow: "hidden",
 };

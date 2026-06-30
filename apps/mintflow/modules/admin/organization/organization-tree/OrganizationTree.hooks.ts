@@ -14,7 +14,9 @@ import { notifications } from "@peppermint/ui";
 import {
   createUnit,
   fetchUnitTree,
+  updateUnit,
   type CreateUnitInput,
+  type UpdateUnitInput,
 } from "./OrganizationTree.api";
 import { orgTreeQueryKeys } from "./OrganizationTree.queryKeys";
 import type {
@@ -44,12 +46,12 @@ import {
   computePathFromRoot,
   computeVisibleNodeIds,
   getEdgeStyleForRelationship,
-  nodeMatchesSearch,
   orgToFlowNode,
   personToFlowNode,
 } from "./OrganizationTree.utils";
 import {
   createOrganization,
+  fetchOrganization,
   updateOrganization,
 } from "../organizations/organizations.api";
 import type { Organization } from "../organizations/organizations.types";
@@ -57,7 +59,10 @@ import { createPerson } from "../people/people.api";
 import type { CreatePersonPayload } from "../people/people.types";
 import type { PeopleFormValues } from "../people/form/peopleForm.types";
 import type { UnitsFormValues } from "./components/NodeFormModal/forms/UnitsForm/UnitsForm.types";
-import { createPosition as createPositionApi } from "../positions/positions.api";
+import {
+  createPosition as createPositionApi,
+  updatePosition as updatePositionApi,
+} from "../positions/positions.api";
 import type { Position } from "../positions/positions.types";
 import type { PositionsFormValues } from "../positions/form/PositionsForm/PositionsForm.types";
 import { createSite } from "../sites/sites.api";
@@ -119,30 +124,69 @@ function flattenTree(
   });
 }
 
-function buildFlowGraph(raw: { units: unknown[]; positions: unknown[] }): {
+function buildFlowGraph(
+  raw: { units: unknown[]; positions: unknown[] },
+  org: Organization | null,
+): {
   nodes: OrgFlowNode[];
   edges: OrgFlowEdge[];
 } {
   const units = flattenTree(raw.units as UnitTreeItem[]);
-  const nodes = units.map(unitToFlowNode);
-  const edges = units.map(unitToEdge).filter(Boolean) as OrgFlowEdge[];
-  return { nodes, edges };
+  const unitNodes = units.map(unitToFlowNode);
+  const unitEdges = units.map(unitToEdge).filter(Boolean) as OrgFlowEdge[];
+
+  if (!org) return { nodes: unitNodes, edges: unitEdges };
+
+  const { node: orgNode } = orgToFlowNode(org);
+
+  // Connect org node → root-level units (parent_id is null after flattenTree)
+  const rootEdges: OrgFlowEdge[] = units
+    .filter((u) => !u.parent_id)
+    .map((u) => ({
+      id: `e-${org.id}-${u.id}`,
+      source: org.id,
+      target: u.id,
+      type: "smoothstep" as const,
+      markerEnd: { type: MarkerType.ArrowClosed, color: "#94a3b8" },
+      style: { strokeWidth: 2, stroke: "#94a3b8" },
+      data: { relationshipType: "contains" },
+    }));
+
+  return {
+    nodes: [orgNode as OrgFlowNode, ...unitNodes],
+    edges: [...rootEdges, ...unitEdges],
+  };
 }
 
 export function useOrganizationGraph(orgId: string) {
-  const { data, isLoading, isError } = useQuery({
+  const treeQuery = useQuery({
     queryKey: orgTreeQueryKeys.graph(orgId),
     queryFn: () => fetchUnitTree(orgId),
     enabled: Boolean(orgId),
     staleTime: 60_000,
   });
 
+  const orgQuery = useQuery({
+    queryKey: ["org-detail", orgId],
+    queryFn: () => fetchOrganization(orgId),
+    enabled: Boolean(orgId),
+    staleTime: 60_000,
+  });
+
   const { nodes, edges } = useMemo(
-    () => (data ? buildFlowGraph(data) : { nodes: [], edges: [] }),
-    [data],
+    () =>
+      treeQuery.data
+        ? buildFlowGraph(treeQuery.data, orgQuery.data ?? null)
+        : { nodes: [], edges: [] },
+    [treeQuery.data, orgQuery.data],
   );
 
-  return { nodes, edges, isLoading, isError };
+  return {
+    nodes,
+    edges,
+    isLoading: treeQuery.isLoading || orgQuery.isLoading,
+    isError: treeQuery.isError || orgQuery.isError,
+  };
 }
 
 export function useCreateUnit(orgId: string) {
@@ -151,9 +195,33 @@ export function useCreateUnit(orgId: string) {
     mutationFn: (input: Omit<CreateUnitInput, "organization">) =>
       createUnit({ ...input, organization: orgId }),
     onSuccess: () => {
-      void qc.invalidateQueries({
-        queryKey: orgTreeQueryKeys.graph(orgId),
-      });
+      void qc.invalidateQueries({ queryKey: orgTreeQueryKeys.graph(orgId) });
+    },
+  });
+}
+
+export function useUpdateUnit(orgId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateUnitInput) => updateUnit(input),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: orgTreeQueryKeys.graph(orgId) });
+    },
+  });
+}
+
+export function useUpdatePosition(orgId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      values,
+    }: {
+      id: string;
+      values: Partial<Position>;
+    }) => updatePositionApi(id, values),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: orgTreeQueryKeys.graph(orgId) });
     },
   });
 }
@@ -241,7 +309,6 @@ export function useEnrichedGraph(nodes: OrgFlowNode[], edges: OrgFlowEdge[]) {
     viewMode,
     selectedNodeId,
     activeFilters,
-    searchQuery,
     searchMatchIds,
   } = useOrgTreeStore();
 
@@ -410,16 +477,9 @@ export function useEnrichedGraph(nodes: OrgFlowNode[], edges: OrgFlowEdge[]) {
   }, [visibleIdsWithGroups, activeFilters, graphMaps, healthIssuesMap]);
 
   const enrichedVisibleNodes = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
     const { childrenOf, nodeTypeMap } = graphMaps;
     return nodes
       .filter((n) => filteredVisibleIds.has(n.id))
-      .filter(
-        (n) =>
-          !q ||
-          nodeMatchesSearch(n.type ?? "", n.data, q) ||
-          n.type === "group",
-      )
       .map((n) => ({
         ...n,
         data: {
@@ -449,7 +509,6 @@ export function useEnrichedGraph(nodes: OrgFlowNode[], edges: OrgFlowEdge[]) {
     activeSearchMatchIds,
     descendantStatsMap,
     healthIssuesMap,
-    searchQuery,
     graphMaps,
   ]);
 
@@ -655,6 +714,31 @@ export function useCanvasLayout(
   }, [visibleLayoutKey]);
 }
 
+// ─── API error helper ─────────────────────────────────────────────────────────
+
+function showApiError(error: unknown, fallbackTitle: string) {
+  const resp = (error as { response?: { data?: Record<string, unknown> } })
+    ?.response?.data;
+  const apiError = resp?.error as
+    | { message?: string; details?: Record<string, string[]> }
+    | undefined;
+
+  let message = apiError?.message ?? "Something went wrong. Please try again.";
+
+  if (apiError?.details) {
+    const fieldErrors = Object.entries(apiError.details)
+      .map(([field, msgs]) => `${field}: ${msgs.join(", ")}`)
+      .join("\n");
+    if (fieldErrors) message = fieldErrors;
+  }
+
+  notifications.show({
+    title: fallbackTitle,
+    message,
+    color: "red",
+  });
+}
+
 // ─── Node actions hook ────────────────────────────────────────────────────────
 
 interface NodeActionsParams {
@@ -673,9 +757,11 @@ interface NodeActionsParams {
   updateOrgMutation: ReturnType<typeof useUpdateOrganizationNode>;
   addPersonMutation: ReturnType<typeof useAddPersonNode>;
   addPositionMutation: ReturnType<typeof useAddPosition>;
+  updatePositionMutation: ReturnType<typeof useUpdatePosition>;
   addSiteMutation: ReturnType<typeof useAddSite>;
   addDelegationMutation: ReturnType<typeof useAddDelegation>;
   createUnitMutation: ReturnType<typeof useCreateUnit>;
+  updateUnitMutation: ReturnType<typeof useUpdateUnit>;
   pushHistory: (nodes: OrgFlowNode[], edges: OrgFlowEdge[]) => void;
   markDirty: () => void;
   storeExpandNode: (id: string) => void;
@@ -695,9 +781,11 @@ export function useNodeActions({
   updateOrgMutation,
   addPersonMutation,
   addPositionMutation,
+  updatePositionMutation,
   addSiteMutation,
   addDelegationMutation,
   createUnitMutation,
+  updateUnitMutation,
   pushHistory,
   markDirty,
   storeExpandNode,
@@ -752,6 +840,7 @@ export function useNodeActions({
             const { node } = orgToFlowNode(org, parentId);
             addCanvasNode(node as unknown as OrgFlowNode, parentId);
           },
+          onError: (err) => showApiError(err, "Failed to create organization"),
         });
       } else if (nodeModal.editingNodeId) {
         updateOrgMutation.mutate(
@@ -766,6 +855,8 @@ export function useNodeActions({
               );
               markDirty();
             },
+            onError: (err) =>
+              showApiError(err, "Failed to update organization"),
           },
         );
       }
@@ -783,36 +874,80 @@ export function useNodeActions({
   const handleSubmitDepartment = useCallback(
     (values: UnitsFormValues) => {
       const parentId = nodeModal.pendingParentId;
-      createUnitMutation.mutate(
-        {
-          name: values.name,
-          code: values.code,
-          unitType: values.unit_type,
-          parentUnit: parentId,
-        },
-        {
-          onSuccess: (result) => {
-            const data: DepartmentData = {
-              nodeType: "department",
-              name: values.name,
-              deptType:
-                (values.unit_type as DepartmentData["deptType"]) ??
-                "department",
-              description: values.description,
-              status: values.status === "active" ? "active" : "inactive",
-            };
-            const newNode: OrgFlowNode = {
-              id: result.id,
-              type: "department",
-              position: { x: 0, y: 0 },
-              data,
-            };
-            addCanvasNode(newNode, parentId);
+      if (nodeModal.mode === "edit" && nodeModal.editingNodeId) {
+        updateUnitMutation.mutate(
+          {
+            id: nodeModal.editingNodeId,
+            name: values.name,
+            unitType: values.unit_type,
+            description: values.description,
+            status: values.status,
           },
-        },
-      );
+          {
+            onSuccess: () => {
+              setNodes((ns) =>
+                ns.map((n) =>
+                  n.id === nodeModal.editingNodeId
+                    ? ({
+                        ...n,
+                        data: {
+                          ...n.data,
+                          name: values.name,
+                          deptType: values.unit_type,
+                          description: values.description,
+                          status: values.status,
+                        },
+                      } as OrgFlowNode)
+                    : n,
+                ),
+              );
+              markDirty();
+            },
+            onError: (err) => showApiError(err, "Failed to update unit"),
+          },
+        );
+      } else {
+        createUnitMutation.mutate(
+          {
+            name: values.name,
+            code: values.code,
+            unitType: values.unit_type,
+            parentUnit: parentId,
+          },
+          {
+            onSuccess: (result) => {
+              const data: DepartmentData = {
+                nodeType: "department",
+                name: values.name,
+                deptType:
+                  (values.unit_type as DepartmentData["deptType"]) ??
+                  "department",
+                description: values.description,
+                status: values.status === "active" ? "active" : "inactive",
+              };
+              const newNode: OrgFlowNode = {
+                id: result.id,
+                type: "department",
+                position: { x: 0, y: 0 },
+                data,
+              };
+              addCanvasNode(newNode, parentId);
+            },
+            onError: (err) => showApiError(err, "Failed to create unit"),
+          },
+        );
+      }
     },
-    [nodeModal.pendingParentId, createUnitMutation, addCanvasNode],
+    [
+      nodeModal.pendingParentId,
+      nodeModal.mode,
+      nodeModal.editingNodeId,
+      createUnitMutation,
+      updateUnitMutation,
+      addCanvasNode,
+      setNodes,
+      markDirty,
+    ],
   );
 
   const handleSubmitPerson = useCallback(
@@ -823,6 +958,7 @@ export function useNodeActions({
           const { node } = personToFlowNode(person, parentId);
           addCanvasNode(node as unknown as OrgFlowNode, parentId, "member_of");
         },
+        onError: (err) => showApiError(err, "Failed to add member"),
       });
     },
     [nodeModal.pendingParentId, addPersonMutation, addCanvasNode],
@@ -830,21 +966,47 @@ export function useNodeActions({
 
   const handleSubmitPosition = useCallback(
     (values: PositionsFormValues) => {
-      const unitId = nodeModal.contextNodeId ?? "";
-      addPositionMutation.mutate(
-        { unitId, values: values as Partial<Position> },
-        {
-          onSuccess: () => {
-            notifications.show({
-              title: "Position created",
-              message: `"${values.title}" has been added.`,
-              color: "teal",
-            });
+      if (nodeModal.mode === "edit" && nodeModal.editingNodeId) {
+        updatePositionMutation.mutate(
+          {
+            id: nodeModal.editingNodeId,
+            values: values as Partial<Position>,
           },
-        },
-      );
+          {
+            onSuccess: () => {
+              notifications.show({
+                title: "Position updated",
+                message: `"${values.title}" has been updated.`,
+                color: "teal",
+              });
+            },
+            onError: (err) => showApiError(err, "Failed to update position"),
+          },
+        );
+      } else {
+        const unitId = nodeModal.contextNodeId ?? "";
+        addPositionMutation.mutate(
+          { unitId, values: values as Partial<Position> },
+          {
+            onSuccess: () => {
+              notifications.show({
+                title: "Position created",
+                message: `"${values.title}" has been added.`,
+                color: "teal",
+              });
+            },
+            onError: (err) => showApiError(err, "Failed to create position"),
+          },
+        );
+      }
     },
-    [nodeModal.contextNodeId, addPositionMutation],
+    [
+      nodeModal.mode,
+      nodeModal.editingNodeId,
+      nodeModal.contextNodeId,
+      addPositionMutation,
+      updatePositionMutation,
+    ],
   );
 
   const handleSubmitSite = useCallback(
@@ -857,6 +1019,7 @@ export function useNodeActions({
             color: "teal",
           });
         },
+        onError: (err) => showApiError(err, "Failed to add site"),
       });
     },
     [addSiteMutation],
@@ -882,6 +1045,7 @@ export function useNodeActions({
               color: "teal",
             });
           },
+          onError: (err) => showApiError(err, "Failed to create delegation"),
         },
       );
     },

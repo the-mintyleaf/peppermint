@@ -23,7 +23,7 @@ interface OrgBuilderState {
   selectedNodeId: string | null;
   drawerOpen: boolean;
   activeDepartmentId: string | null;
-  searchQuery: string;
+  searchNodeId: string | null;
   searchMatchIds: string[];
   nodeModal: NodeModalConfig;
   history: HistoryEntry[];
@@ -53,7 +53,7 @@ interface OrgBuilderState {
   ) => void;
   openEditModal: (nodeId: string) => void;
   closeModal: () => void;
-  setSearchQuery: (q: string) => void;
+  setSearchNodeId: (id: string | null) => void;
   setSearchMatchIds: (ids: string[]) => void;
   pushHistory: (nodes: OrgFlowNode[], edges: OrgFlowEdge[]) => void;
   undo: (
@@ -93,7 +93,7 @@ export const useOrgTreeStore = create<OrgBuilderState>((set, get) => ({
   selectedNodeId: null,
   drawerOpen: false,
   activeDepartmentId: null,
-  searchQuery: "",
+  searchNodeId: null,
   searchMatchIds: [],
   nodeModal: { open: false, mode: "add" },
   history: [],
@@ -145,7 +145,7 @@ export const useOrgTreeStore = create<OrgBuilderState>((set, get) => ({
       },
     }),
 
-  setSearchQuery: (q) => set({ searchQuery: q }),
+  setSearchNodeId: (id) => set({ searchNodeId: id }),
   setSearchMatchIds: (ids) => set({ searchMatchIds: ids }),
 
   pushHistory: (nodes, edges) => {

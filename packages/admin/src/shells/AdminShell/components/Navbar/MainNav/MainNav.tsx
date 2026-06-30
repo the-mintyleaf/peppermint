@@ -50,12 +50,12 @@ export function MainNav({
       justify="space-between"
       h="100%"
       w={MAIN_NAV_WIDTH}
-      bg="dark.9"
+      bg="dark.8"
       style={{ flexShrink: 0, ...shellCardStyle }}
     >
       <Stack gap={0} align="center" w="100%">
         <Stack h={NAV_HEADER_HEIGHT} align="center" justify="center" w="100%">
-          <ActionIcon size="lg">
+          <ActionIcon size="lg" radius="var(--mantine-radius-default)" w={MAIN_NAV_WIDTH - 16}>
             <LeafIcon weight="fill" />
           </ActionIcon>
         </Stack>

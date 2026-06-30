@@ -14,12 +14,6 @@ import {
   Stack,
   Text,
 } from "@peppermint/ui";
-import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
-import { MinusCircleIcon } from "@phosphor-icons/react/dist/csr/MinusCircle";
-import { BriefcaseIcon } from "@phosphor-icons/react/dist/csr/Briefcase";
-import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
-import { FileIcon } from "@phosphor-icons/react/dist/csr/File";
-import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
 import { ReasonConfirmDialog } from "../../../_shared/ReasonConfirmDialog";
 import { StatusBadge } from "../../../_shared/StatusBadge";
 import { POSITION_TYPE_LABELS } from "../../../organization.constants";
@@ -30,12 +24,12 @@ import type { Position } from "../../positions.types";
 import { getPositionsColumns } from "./positions.columns";
 
 const TABS: DataTableShellTab[] = [
-  { label: "All", icon: BriefcaseIcon },
-  { label: "Active", icon: CheckCircleIcon, filter: { status: "active" } },
-  { label: "Draft", icon: FileIcon, filter: { status: "draft" } },
-  { label: "Inactive", icon: MinusCircleIcon, filter: { status: "inactive" } },
-  { label: "Abolished", icon: ProhibitIcon, filter: { status: "abolished" } },
-  { label: "Archived", icon: ArchiveIcon, filter: { status: "archived" } },
+  { label: "All" },
+  { label: "Active", filter: { status: "active" } },
+  { label: "Draft", filter: { status: "draft" } },
+  { label: "Inactive", filter: { status: "inactive" } },
+  { label: "Abolished", filter: { status: "abolished" } },
+  { label: "Archived", filter: { status: "archived" } },
 ];
 
 const DEACTIVATABLE = new Set(["active", "draft"]);

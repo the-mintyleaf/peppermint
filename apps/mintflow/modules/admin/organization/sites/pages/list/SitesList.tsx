@@ -4,9 +4,6 @@ import { useParams } from "next/navigation";
 import { ModalTableShell } from "@peppermint/admin";
 import type { DataTableShellTab } from "@peppermint/admin";
 import { Paper } from "@peppermint/ui";
-import { BuildingIcon } from "@phosphor-icons/react/dist/csr/Building";
-import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
-import { MinusCircleIcon } from "@phosphor-icons/react/dist/csr/MinusCircle";
 import { SitesForm } from "../../form";
 import { createSite, fetchSites } from "../../sites.api";
 import { sitesQueryKeys } from "../../sites.queryKeys";
@@ -14,9 +11,9 @@ import type { CreateSitePayload, Site } from "../../sites.types";
 import { sitesColumns } from "./sites.columns";
 
 const TABS: DataTableShellTab[] = [
-  { label: "All", icon: BuildingIcon },
-  { label: "Active", icon: CheckCircleIcon, filter: { is_active: "true" } },
-  { label: "Inactive", icon: MinusCircleIcon, filter: { is_active: "false" } },
+  { label: "All" },
+  { label: "Active", filter: { is_active: "true" } },
+  { label: "Inactive", filter: { is_active: "false" } },
 ];
 
 export function SitesList() {

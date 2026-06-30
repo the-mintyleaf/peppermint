@@ -5,12 +5,6 @@ import { useParams } from "next/navigation";
 import { ModalTableShell } from "@peppermint/admin";
 import type { DataTableShellTab } from "@peppermint/admin";
 import { Paper } from "@peppermint/ui";
-import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
-import { EnvelopeSimpleIcon } from "@phosphor-icons/react/dist/csr/EnvelopeSimple";
-import { MinusCircleIcon } from "@phosphor-icons/react/dist/csr/MinusCircle";
-import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
-import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
-import { XCircleIcon } from "@phosphor-icons/react/dist/csr/XCircle";
 import { ReasonConfirmDialog } from "../../../_shared/ReasonConfirmDialog";
 import { PeopleProfileDrawer } from "../../components/PeopleProfileDrawer";
 import { PeopleCreateForm } from "../../form";
@@ -29,30 +23,25 @@ import type {
 import { getPeopleColumns } from "./people.columns";
 
 const TABS: DataTableShellTab[] = [
-  { label: "All", icon: UsersIcon },
+  { label: "All" },
   {
     label: "Active",
-    icon: CheckCircleIcon,
     filter: { membership_status: "active" },
   },
   {
     label: "Invited",
-    icon: EnvelopeSimpleIcon,
     filter: { membership_status: "invited" },
   },
   {
     label: "Inactive",
-    icon: MinusCircleIcon,
     filter: { membership_status: "inactive" },
   },
   {
     label: "Suspended",
-    icon: ProhibitIcon,
     filter: { membership_status: "suspended" },
   },
   {
     label: "Ended",
-    icon: XCircleIcon,
     filter: { membership_status: "ended" },
   },
 ];

@@ -446,6 +446,38 @@ export function getEdgeStyleForRelationship(
   }
 }
 
+const NODE_TYPE_LABELS: Record<string, string> = {
+  org: "Organization",
+  department: "Department",
+  person: "Person",
+};
+
+export function getNodeDisplayLabel(type: string, data: OrgNodeData): string {
+  switch (type) {
+    case "person": {
+      const person = data as PersonData;
+      const designation = person.designation?.trim();
+      return designation
+        ? `${person.fullName} (${designation})`
+        : person.fullName;
+    }
+    case "department":
+      return (data as DepartmentData).name;
+    case "org":
+      return (data as OrgOfficeData).name;
+    default:
+      return "Unknown node";
+  }
+}
+
+export function getNodeSearchOptionLabel(
+  type: string,
+  data: OrgNodeData,
+): string {
+  const typeLabel = NODE_TYPE_LABELS[type] ?? type;
+  return `${typeLabel} · ${getNodeDisplayLabel(type, data)}`;
+}
+
 export function nodeMatchesSearch(
   type: string,
   data: OrgNodeData,

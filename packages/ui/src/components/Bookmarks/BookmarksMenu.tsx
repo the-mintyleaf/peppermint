@@ -6,7 +6,6 @@ import {
   Indicator,
   Menu,
   Text,
-  Tooltip,
   UnstyledButton,
 } from "@mantine/core";
 import { BookmarkSimpleIcon } from "@phosphor-icons/react/dist/csr/BookmarkSimple";
@@ -95,15 +94,7 @@ export function BookmarksMenu({
       width={260}
       withinPortal
     >
-      <Menu.Target>
-        {isSidenav ? (
-          <Tooltip label={label} position="right" withArrow>
-            <Box>{trigger}</Box>
-          </Tooltip>
-        ) : (
-          trigger
-        )}
-      </Menu.Target>
+      <Menu.Target>{trigger}</Menu.Target>
 
       <Menu.Dropdown>
         <Menu.Label>Bookmarks</Menu.Label>

@@ -5,12 +5,6 @@ import { useRouter } from "next/navigation";
 import { ModalTableShell } from "@peppermint/admin";
 import type { DataTableShellTab } from "@peppermint/admin";
 import { Paper } from "@peppermint/ui";
-import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
-import { BuildingsIcon } from "@phosphor-icons/react/dist/csr/Buildings";
-import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
-import { FileIcon } from "@phosphor-icons/react/dist/csr/File";
-import { MinusCircleIcon } from "@phosphor-icons/react/dist/csr/MinusCircle";
-import { WarningCircleIcon } from "@phosphor-icons/react/dist/csr/WarningCircle";
 import { ReasonConfirmDialog } from "../../../_shared/ReasonConfirmDialog";
 import { ORGANIZATION_STATUS_LABELS } from "../../../organization.constants";
 import {
@@ -30,16 +24,15 @@ import { useSelectedOrgStore } from "@/stores/selectedOrg.store";
 import { getOrganizationsColumns } from "./organizations.columns";
 
 const TABS: DataTableShellTab[] = [
-  { label: "All", icon: BuildingsIcon },
-  { label: "Active", icon: CheckCircleIcon, filter: { status: "active" } },
-  { label: "Draft", icon: FileIcon, filter: { status: "draft" } },
-  { label: "Inactive", icon: MinusCircleIcon, filter: { status: "inactive" } },
+  { label: "All" },
+  { label: "Active", filter: { status: "active" } },
+  { label: "Draft", filter: { status: "draft" } },
+  { label: "Inactive", filter: { status: "inactive" } },
   {
     label: "Suspended",
-    icon: WarningCircleIcon,
     filter: { status: "suspended" },
   },
-  { label: "Archived", icon: ArchiveIcon, filter: { status: "archived" } },
+  { label: "Archived", filter: { status: "archived" } },
 ];
 
 type StatusChangeTarget = { org: Organization; newStatus: OrganizationStatus };

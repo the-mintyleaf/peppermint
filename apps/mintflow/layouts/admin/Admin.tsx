@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { AdminShell } from "@peppermint/admin";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { KanbanIcon } from "@phosphor-icons/react/dist/csr/Kanban";
@@ -12,7 +12,15 @@ import { OrgSwitcherWidget } from "./components/OrgSwitcherWidget";
 
 export function LayoutAdmin({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const org = useSelectedOrgStore((s) => s.org);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      router.replace("/");
+    }
+  }, [router]);
 
   const config = useMemo(
     () => ({

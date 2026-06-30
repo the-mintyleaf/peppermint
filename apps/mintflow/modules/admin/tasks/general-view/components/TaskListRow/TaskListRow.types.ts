@@ -5,9 +5,3 @@ export interface TaskListRowProps {
   task: Task;
   displayStatus: DisplayStatus;
 }
-
-export interface ProgressBarProps {
-  pct: number;
-  color: string;
-  striped?: boolean;
-}

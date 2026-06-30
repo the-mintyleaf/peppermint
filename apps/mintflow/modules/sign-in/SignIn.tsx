@@ -8,6 +8,7 @@ export function ModuleSignIn() {
       heading={["Sign into", "mintflow."]}
       subheading="Don't have an account? Ask your administrator to invite you."
       loginApi="/api/auth/login"
+      skipEmailValidation
       successRedirectUrl="/admin"
       disableForgotPassword={false}
       disableSignUp

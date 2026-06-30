@@ -13,12 +13,6 @@ import {
   Stack,
   Text,
 } from "@peppermint/ui";
-import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
-import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
-import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
-import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
-import { ShieldWarningIcon } from "@phosphor-icons/react/dist/csr/ShieldWarning";
-import { XCircleIcon } from "@phosphor-icons/react/dist/csr/XCircle";
 import { ReasonConfirmDialog } from "../../../_shared/ReasonConfirmDialog";
 import { StatusBadge } from "../../../_shared/StatusBadge";
 import { DELEGATION_TYPE_LABELS } from "../../../organization.constants";
@@ -30,12 +24,12 @@ import { DelegationsForm } from "../../form/DelegationsForm";
 import { getDelegationsColumns } from "./delegations.columns";
 
 const TABS: DataTableShellTab[] = [
-  { label: "All", icon: ShieldWarningIcon },
-  { label: "Active", icon: CheckCircleIcon, filter: { status: "active" } },
-  { label: "Planned", icon: ClockIcon, filter: { status: "planned" } },
-  { label: "Revoked", icon: ProhibitIcon, filter: { status: "revoked" } },
-  { label: "Expired", icon: XCircleIcon, filter: { status: "expired" } },
-  { label: "Archived", icon: ArchiveIcon, filter: { status: "archived" } },
+  { label: "All" },
+  { label: "Active", filter: { status: "active" } },
+  { label: "Planned", filter: { status: "planned" } },
+  { label: "Revoked", filter: { status: "revoked" } },
+  { label: "Expired", filter: { status: "expired" } },
+  { label: "Archived", filter: { status: "archived" } },
 ];
 
 function formatDate(iso: string | null) {

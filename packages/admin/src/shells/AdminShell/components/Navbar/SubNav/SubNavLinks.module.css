@@ -1,0 +1,7 @@
+.navItem {
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.navItem:hover:not(.active) {
+  color: var(--mantine-color-gray-0) !important;
+}

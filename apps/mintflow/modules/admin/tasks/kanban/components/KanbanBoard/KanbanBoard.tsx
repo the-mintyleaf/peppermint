@@ -181,7 +181,7 @@ export function KanbanBoard({
         <Box
           style={{
             display: "flex",
-            gap: 8,
+            gap: 4,
             overflowX: "auto",
             paddingBottom: 16,
             alignItems: "stretch",

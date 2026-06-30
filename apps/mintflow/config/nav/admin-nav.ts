@@ -48,7 +48,7 @@ export function buildAdminConfig(
                   icon: KanbanIcon,
                 },
                 {
-                  label: "General View",
+                  label: "Tasks",
                   href: "/admin/tasks/general-view",
                   icon: ListIcon,
                 },

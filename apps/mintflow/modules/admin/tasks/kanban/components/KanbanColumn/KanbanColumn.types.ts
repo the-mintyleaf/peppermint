@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Task, TaskStatus } from "../../module.api";
 
 export interface KanbanColumnProps {
@@ -9,5 +10,9 @@ export interface KanbanColumnProps {
 
 export interface ColumnConfig {
   label: string;
+  sublabel: string;
   dotColor: string;
+  headerBg: string;
+  headerBorder: string;
+  icon: ReactNode;
 }

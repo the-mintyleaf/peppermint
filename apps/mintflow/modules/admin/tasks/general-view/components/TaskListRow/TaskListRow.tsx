@@ -1,385 +1,355 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Text } from "@peppermint/ui";
+import {
+  Avatar,
+  Badge,
+  Box,
+  Collapse,
+  Menu,
+  Popover,
+  Text,
+} from "@peppermint/ui";
+import { DatePicker } from "@mantine/dates";
 import { CaretRightIcon } from "@phosphor-icons/react/dist/csr/CaretRight";
 import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
-import { CATEGORY_LABELS } from "../../../kanban/module.api";
-import type {
-  Task,
-  TaskCategory,
-  TaskSubtask,
-} from "../../../kanban/module.api";
+import { CalendarBlankIcon } from "@phosphor-icons/react/dist/csr/CalendarBlank";
+import { SquaresFourIcon } from "@phosphor-icons/react/dist/csr/SquaresFour";
+import { TreeStructureIcon } from "@phosphor-icons/react/dist/csr/TreeStructure";
+import { CaretUpDownIcon } from "@phosphor-icons/react/dist/csr/CaretUpDown";
+import type { Task, TaskAssignee, TaskPriority } from "../../../kanban/module.api";
 import type { DisplayStatus } from "../../GeneralViewDashboard.hooks";
-import type { ProgressBarProps, TaskListRowProps } from "./TaskListRow.types";
+import type { TaskListRowProps } from "./TaskListRow.types";
 import tableClasses from "../../TaskTable.module.css";
 
-const CATEGORY_SHORT: Record<TaskCategory, string> = {
-  document_review: "Doc Review",
-  review: "Review",
-  approval: "Approval",
-  general: "General",
+const PRIORITY_LABEL: Record<TaskPriority, string> = {
+  urgent: "Urgent",
+  important: "High",
+  normal: "Normal",
 };
 
-function ProgressBar({ pct, color, striped }: ProgressBarProps) {
-  return (
-    <Box className={tableClasses.bar}>
-      <Box
-        className={
-          striped
-            ? `${tableClasses.barFill} ${tableClasses.barFillStriped}`
-            : tableClasses.barFill
-        }
-        style={{
-          width: `${Math.max(0, Math.min(100, pct))}%`,
-          backgroundColor: striped ? undefined : color,
-        }}
-      />
-    </Box>
-  );
+const PRIORITY_COLOR: Record<TaskPriority, string> = {
+  urgent: "red",
+  important: "orange",
+  normal: "green",
+};
+
+const ALL_PRIORITIES: TaskPriority[] = ["urgent", "important", "normal"];
+
+const ALL_LISTS = [
+  "Client Projects",
+  "General Tasks",
+  "Finance",
+  "Operations",
+  "HR",
+  "Compliance",
+  "Marketing",
+];
+
+function toInitials(name: string): string {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
-function parseDate(value: string): Date | null {
-  const iso = new Date(value);
-  if (!isNaN(iso.getTime())) return iso;
-  const parsed = new Date(Date.parse(value));
-  return isNaN(parsed.getTime()) ? null : parsed;
+function resolveAssignees(task: Task): TaskAssignee[] {
+  if (task.assignees?.length) return task.assignees;
+  return [{ name: task.assignee, initials: toInitials(task.assignee), color: "gray" }];
 }
 
-function getStatusTracking(task: Task, displayStatus: DisplayStatus) {
-  const total = task.subtasks?.length ?? 0;
-  const completed =
-    task.subtasks?.filter((s) => s.status === "completed").length ?? 0;
-  const left = total - completed;
-  const pct = total > 0 ? (completed / total) * 100 : 0;
-
-  let barColor = "var(--mantine-color-blue-5)";
-  let striped = false;
-  if (displayStatus === "ready_for_review")
-    barColor = "var(--mantine-color-green-5)";
-  if (displayStatus === "in_review") {
-    barColor = "var(--mantine-color-green-5)";
-    striped = true;
-  }
-  if (displayStatus === "rejected") barColor = "var(--mantine-color-red-5)";
-
-  return { pct, barColor, striped, total, left };
-}
-
-function getStatusActionLabel(
-  task: Task,
-  displayStatus: DisplayStatus,
-  left: number,
-): string {
-  switch (displayStatus) {
-    case "in_progress":
-      return left > 0 ? `Continue (${left} left)` : "Continue";
-    case "ready_for_review":
-      return "Ready for review";
-    case "in_review": {
-      const reviewers = task.assignees?.length ?? 1;
-      const seen = task.requestStatus?.includes("Seen")
-        ? reviewers
-        : reviewers > 1
-          ? 1
-          : 0;
-      const unseen = reviewers - seen;
-      return `Review in progress (${seen} seen / ${unseen} unseen)`;
-    }
-    case "rejected":
-      return "View rejection";
-    default:
-      return left > 0 ? `Start (${left})` : "Start";
-  }
-}
-
-function getDeadline(task: Task) {
-  if (!task.endDate) return null;
-  const end = parseDate(task.endDate);
-  if (!end) return null;
-
-  const now = new Date();
-  const daysLeft = Math.ceil((end.getTime() - now.getTime()) / 86400000);
-  const formatted = end.toLocaleDateString("en-US", {
-    month: "short",
+function formatDisplayDate(date: Date): string {
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
     day: "numeric",
-  });
-
-  let totalDays = 30;
-  if (task.startDate) {
-    const start = parseDate(task.startDate);
-    if (start)
-      totalDays = Math.max(
-        1,
-        Math.ceil((end.getTime() - start.getTime()) / 86400000),
-      );
-  }
-
-  const remainingPct =
-    daysLeft < 0 ? 0 : Math.min(100, (daysLeft / totalDays) * 100);
-
-  let urgency: string;
-  let urgencyColor: string;
-  if (daysLeft < 0) {
-    urgency = "Overdue";
-    urgencyColor = "red";
-  } else if (daysLeft <= 7) {
-    urgency = "Due soon";
-    urgencyColor = "orange";
-  } else {
-    urgency = "On track";
-    urgencyColor = "dimmed";
-  }
-
-  const barColor =
-    daysLeft < 0
-      ? "var(--mantine-color-red-5)"
-      : daysLeft <= 7
-        ? "var(--mantine-color-orange-5)"
-        : "var(--mantine-color-teal-5)";
-
-  return { remainingPct, barColor, formatted, urgency, urgencyColor };
-}
-
-function getSubtaskDeadline(dueDate: string, parentStart?: string) {
-  const end = parseDate(dueDate);
-  if (!end) return null;
-
-  const now = new Date();
-  const daysLeft = Math.ceil((end.getTime() - now.getTime()) / 86400000);
-  const formatted = end.toLocaleDateString("en-US", {
     month: "short",
-    day: "numeric",
+    year: "numeric",
   });
-
-  let totalDays = 14;
-  if (parentStart) {
-    const start = parseDate(parentStart);
-    if (start)
-      totalDays = Math.max(
-        1,
-        Math.ceil((end.getTime() - start.getTime()) / 86400000),
-      );
-  }
-
-  const remainingPct =
-    daysLeft < 0 ? 0 : Math.min(100, (daysLeft / totalDays) * 100);
-  const barColor =
-    daysLeft < 0
-      ? "var(--mantine-color-red-5)"
-      : daysLeft <= 3
-        ? "var(--mantine-color-orange-5)"
-        : "var(--mantine-color-teal-5)";
-
-  const urgency =
-    daysLeft < 0 ? "Overdue" : daysLeft <= 3 ? "Due soon" : "On track";
-  const urgencyColor =
-    daysLeft < 0 ? "red" : daysLeft <= 3 ? "orange" : "dimmed";
-
-  return { remainingPct, barColor, formatted, urgency, urgencyColor };
 }
 
-function getSubtaskTracking(subtask: TaskSubtask) {
-  const pct =
-    subtask.status === "completed"
-      ? 100
-      : subtask.status === "in_progress"
-        ? 50
-        : 0;
-  const barColor =
-    subtask.status === "completed"
-      ? "var(--mantine-color-green-5)"
-      : subtask.status === "in_progress"
-        ? "var(--mantine-color-blue-5)"
-        : "var(--mantine-color-gray-4)";
-  const label =
-    subtask.status === "completed"
-      ? "Done"
-      : subtask.status === "in_progress"
-        ? "In progress"
-        : "Pending";
-  return { pct, barColor, label };
+function parseDateStr(dateStr?: string): Date | null {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? null : d;
 }
 
-function assigneeNames(task: Task): string {
-  const list = task.assignees ?? [
-    { name: task.assignee, initials: "", color: "" },
-  ];
-  if (list.length === 0) return "—";
-  return list.map((a) => a.name).join(", ");
-}
-
-function TrackingCell({
-  pct,
-  barColor,
-  striped,
-  label,
-  total,
-  active,
+function PriorityCell({
+  priority,
+  onChange,
 }: {
-  pct: number;
-  barColor: string;
-  striped?: boolean;
-  label: string;
-  total?: number;
-  active?: boolean;
+  priority: TaskPriority;
+  onChange: (p: TaskPriority) => void;
 }) {
   return (
-    <div className={tableClasses.trackingCell}>
-      <ProgressBar pct={pct} color={barColor} striped={striped} />
-      <div className={tableClasses.trackingMeta}>
-        <span
-          className={`${tableClasses.actionLabel} ${active ? tableClasses.actionLabelActive : tableClasses.actionLabelMuted}`}
+    <Menu shadow="sm" width={140} position="bottom-start" withinPortal>
+      <Menu.Target>
+        <div
+          className={tableClasses.inlineCell}
+          onClick={(e) => e.stopPropagation()}
         >
-          {label} ›
-        </span>
-        {total != null && total > 0 && (
-          <span className={tableClasses.count}>{total}</span>
-        )}
-      </div>
-    </div>
+          <Badge
+            variant="filled"
+            color={PRIORITY_COLOR[priority]}
+            size="xs"
+            radius="sm"
+            rightSection={<CaretUpDownIcon size={9} />}
+          >
+            {PRIORITY_LABEL[priority]}
+          </Badge>
+        </div>
+      </Menu.Target>
+      <Menu.Dropdown onClick={(e) => e.stopPropagation()}>
+        {ALL_PRIORITIES.map((p) => (
+          <Menu.Item
+            key={p}
+            onClick={() => onChange(p)}
+            leftSection={
+              <Badge
+                variant="filled"
+                color={PRIORITY_COLOR[p]}
+                size="xs"
+                radius="sm"
+              >
+                {PRIORITY_LABEL[p]}
+              </Badge>
+            }
+          />
+        ))}
+      </Menu.Dropdown>
+    </Menu>
   );
 }
 
-function DeadlineCell({
-  deadline,
-  fallback,
+function ListCell({
+  group,
+  onChange,
 }: {
-  deadline: ReturnType<typeof getDeadline>;
-  fallback?: string;
+  group: string;
+  onChange: (g: string) => void;
 }) {
-  if (!deadline) {
-    return <span className={tableClasses.cellText}>{fallback ?? "—"}</span>;
-  }
   return (
-    <div className={tableClasses.deadlineCell}>
-      <ProgressBar pct={deadline.remainingPct} color={deadline.barColor} />
-      <div className={tableClasses.deadlineMeta}>
-        <span className={tableClasses.cellText}>{deadline.formatted}</span>
-        <Text component="span" size="xs" c={deadline.urgencyColor}>
-          · {deadline.urgency}
-        </Text>
-      </div>
-    </div>
+    <Menu shadow="sm" width={160} position="bottom-start" withinPortal>
+      <Menu.Target>
+        <div
+          className={`${tableClasses.listCell} ${tableClasses.inlineCell}`}
+          style={{ margin: "-2px -4px", padding: "2px 4px" }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <SquaresFourIcon
+            size={11}
+            weight="fill"
+            color="var(--mantine-color-gray-5)"
+            aria-label="List"
+          />
+          <span className={tableClasses.listText}>{group}</span>
+          <CaretUpDownIcon
+            size={9}
+            color="var(--mantine-color-gray-4)"
+            style={{ flexShrink: 0 }}
+          />
+        </div>
+      </Menu.Target>
+      <Menu.Dropdown onClick={(e) => e.stopPropagation()}>
+        {ALL_LISTS.map((g) => (
+          <Menu.Item
+            key={g}
+            onClick={() => onChange(g)}
+            leftSection={
+              <SquaresFourIcon size={12} weight="fill" color="var(--mantine-color-gray-5)" />
+            }
+            fw={g === group ? 600 : 400}
+          >
+            <Text size="xs">{g}</Text>
+          </Menu.Item>
+        ))}
+      </Menu.Dropdown>
+    </Menu>
+  );
+}
+
+function DueDateCell({
+  date,
+  onChange,
+}: {
+  date: Date | null;
+  onChange: (d: Date | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover
+      opened={open}
+      onChange={setOpen}
+      position="bottom-start"
+      shadow="md"
+      withinPortal
+    >
+      <Popover.Target>
+        <div
+          className={tableClasses.inlineCell}
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen((v) => !v);
+          }}
+        >
+          {date ? (
+            <span className={tableClasses.dueText}>{formatDisplayDate(date)}</span>
+          ) : (
+            <span className={tableClasses.duePlaceholder}>
+              <CalendarBlankIcon size={11} weight="fill" />
+              Add date
+            </span>
+          )}
+        </div>
+      </Popover.Target>
+      <Popover.Dropdown onClick={(e) => e.stopPropagation()} p="xs">
+        <DatePicker
+          value={date}
+          onChange={(d) => {
+            onChange(d);
+            setOpen(false);
+          }}
+          size="xs"
+        />
+      </Popover.Dropdown>
+    </Popover>
   );
 }
 
 function SubtaskRow({
   subtask,
   index,
-  parentAssignees,
-  parentStart,
 }: {
-  subtask: TaskSubtask;
+  subtask: NonNullable<Task["subtasks"]>[number];
   index: number;
-  parentAssignees: string;
-  parentStart?: string;
 }) {
-  const tracking = getSubtaskTracking(subtask);
-  const deadline = getSubtaskDeadline(subtask.dueDate, parentStart);
+  const dueDate = parseDateStr(subtask.dueDate);
 
   return (
-    <Box
-      className={`${tableClasses.grid} ${tableClasses.row} ${tableClasses.subtaskRow}`}
-    >
-      <span />
-      <div className={tableClasses.caseCell}>
-        <span
-          className={tableClasses.cellText}
-          style={{ fontFamily: "monospace" }}
-        >
-          S-{index + 1}
-        </span>
-        <span className={tableClasses.categoryPill}>{subtask.category}</span>
+    <div className={`${tableClasses.grid} ${tableClasses.row} ${tableClasses.subtaskRow}`}>
+      <div className={tableClasses.leftCell}>
+        <span className={tableClasses.expandIcon} />
+        <span className={tableClasses.subtaskIdText}>S-{index + 1}</span>
       </div>
-      <span
-        className={tableClasses.titleText}
-        style={{ fontWeight: 400, fontSize: "var(--mantine-font-size-xs)" }}
-      >
-        {subtask.title}
-      </span>
-      <span className={tableClasses.cellText}>{parentAssignees}</span>
-      <TrackingCell
-        pct={tracking.pct}
-        barColor={tracking.barColor}
-        label={tracking.label}
-      />
-      <DeadlineCell deadline={deadline} fallback={subtask.dueDate} />
-    </Box>
+      <div className={tableClasses.nameCell}>
+        <span className={tableClasses.subtaskNameText}>{subtask.title}</span>
+      </div>
+      <div>
+        <Badge
+          variant="light"
+          color={
+            subtask.status === "completed"
+              ? "green"
+              : subtask.status === "in_progress"
+                ? "blue"
+                : "gray"
+          }
+          size="xs"
+          radius="sm"
+        >
+          {subtask.status === "completed"
+            ? "Done"
+            : subtask.status === "in_progress"
+              ? "In progress"
+              : "Pending"}
+        </Badge>
+      </div>
+      <div className={tableClasses.listCell}>
+        <Text size="xs" c="dimmed">
+          {subtask.category}
+        </Text>
+      </div>
+      <div>
+        {dueDate ? (
+          <span className={tableClasses.dueText}>{formatDisplayDate(dueDate)}</span>
+        ) : (
+          <span className={tableClasses.duePlaceholder}>
+            <CalendarBlankIcon size={10} weight="fill" />
+            Add date
+          </span>
+        )}
+      </div>
+      <div />
+    </div>
   );
 }
 
-export function TaskListRow({ task, displayStatus }: TaskListRowProps) {
+export function TaskListRow({ task }: TaskListRowProps) {
   const [expanded, setExpanded] = useState(false);
   const hasSubtasks = (task.subtasks?.length ?? 0) > 0;
 
-  const tracking = getStatusTracking(task, displayStatus);
-  const deadline = getDeadline(task);
-  const names = assigneeNames(task);
-  const actionLabel = getStatusActionLabel(task, displayStatus, tracking.left);
-  const categoryLabel = CATEGORY_SHORT[task.category];
+  const [priority, setPriority] = useState<TaskPriority>(task.priority);
+  const [group, setGroup] = useState(task.group);
+  const [dueDate, setDueDate] = useState<Date | null>(parseDateStr(task.endDate));
 
-  const handleRowClick = () => {
-    if (hasSubtasks) setExpanded((v) => !v);
-  };
+  const assignees = resolveAssignees(task);
 
   return (
     <>
-      <Box
+      <div
         className={`${tableClasses.grid} ${tableClasses.row} ${!hasSubtasks ? tableClasses.rowNoExpand : ""}`}
-        onClick={handleRowClick}
+        onClick={() => hasSubtasks && setExpanded((v) => !v)}
       >
-        <span className={tableClasses.expandIcon}>
-          {hasSubtasks &&
-            (expanded ? (
-              <CaretDownIcon size={12} aria-label="Collapse" />
-            ) : (
-              <CaretRightIcon size={12} aria-label="Expand" />
-            ))}
-        </span>
-
-        <div className={tableClasses.caseCell}>
-          <span
-            className={tableClasses.cellText}
-            style={{ fontFamily: "monospace" }}
-          >
-            {task.taskNumber}
+        {/* Col 1: caret + task number */}
+        <div className={tableClasses.leftCell}>
+          <span className={tableClasses.expandIcon}>
+            {hasSubtasks &&
+              (expanded ? (
+                <CaretDownIcon size={11} aria-label="Collapse" />
+              ) : (
+                <CaretRightIcon size={11} aria-label="Expand" />
+              ))}
           </span>
-          <span
-            className={tableClasses.categoryPill}
-            title={CATEGORY_LABELS[task.category]}
-          >
-            {categoryLabel}
-          </span>
+          <span className={tableClasses.idText}>{task.taskNumber}</span>
         </div>
 
-        <span className={tableClasses.titleText}>{task.title}</span>
-        <span className={tableClasses.cellText}>{names}</span>
+        {/* Col 2: name + subtask count chip */}
+        <div className={tableClasses.nameCell}>
+          <span className={tableClasses.nameText}>{task.title}</span>
+          {hasSubtasks && (
+            <span className={tableClasses.subtaskChip}>
+              <TreeStructureIcon size={9} weight="fill" />
+              {task.subtasks!.length}
+            </span>
+          )}
+        </div>
 
-        <TrackingCell
-          pct={tracking.pct}
-          barColor={tracking.barColor}
-          striped={tracking.striped}
-          label={actionLabel}
-          total={tracking.total}
-          active={displayStatus === "in_progress" || displayStatus === "new"}
-        />
+        {/* Col 3: priority — inline editable */}
+        <PriorityCell priority={priority} onChange={setPriority} />
 
-        <DeadlineCell deadline={deadline} />
-      </Box>
+        {/* Col 4: list — inline editable */}
+        <ListCell group={group} onChange={setGroup} />
 
-      {expanded && hasSubtasks && (
-        <Box className={tableClasses.subtaskBlock}>
-          {task.subtasks!.map((subtask, i) => (
-            <SubtaskRow
-              key={subtask.id}
-              subtask={subtask}
-              index={i}
-              parentAssignees={names}
-              parentStart={task.startDate}
-            />
-          ))}
-        </Box>
+        {/* Col 5: due date — inline editable */}
+        <DueDateCell date={dueDate} onChange={setDueDate} />
+
+        {/* Col 6: assignee avatars */}
+        <div className={tableClasses.assigneeCell}>
+          <Avatar.Group spacing="xs">
+            {assignees.slice(0, 4).map((a) => (
+              <Avatar key={a.name} size="xs" color={a.color} radius="xl">
+                {a.initials}
+              </Avatar>
+            ))}
+            {assignees.length > 4 && (
+              <Avatar size="xs" radius="xl" color="gray">
+                +{assignees.length - 4}
+              </Avatar>
+            )}
+          </Avatar.Group>
+        </div>
+      </div>
+
+      {hasSubtasks && (
+        <Collapse expanded={expanded}>
+          <Box className={tableClasses.subtaskBlock}>
+            {task.subtasks!.map((sub, i) => (
+              <SubtaskRow key={sub.id} subtask={sub} index={i} />
+            ))}
+          </Box>
+        </Collapse>
       )}
     </>
   );
