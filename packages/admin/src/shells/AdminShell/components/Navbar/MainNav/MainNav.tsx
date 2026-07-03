@@ -1,21 +1,22 @@
 "use client";
 
-import { ActionIcon, BookmarksMenu, Box, Divider, Stack } from "@peppermint/ui";
-import { MainNavIconButton } from "./MainNavIconButton";
-import { MainNavFooter } from "./MainNavFooter";
+import { ActionIcon, Box, Divider, Stack } from "@peppermint/ui";
+import { MagnifyingGlass, type Icon } from "@phosphor-icons/react";
+import { MinusIcon } from "@phosphor-icons/react/dist/ssr";
 import type {
   AdminShellAiButton,
   AdminShellMainNavAdditional,
   AdminShellMainNavItem,
+  AdminShellSettingsButton,
 } from "../../../AdminShell.types";
-import type { UserInfoPopoverProps } from "../UserInfoPopover/UserInfoPopover.types";
 import {
   MAIN_NAV_WIDTH,
   NAV_HEADER_HEIGHT,
   shellCardStyle,
 } from "../../../shell.constants";
-import { spotlight } from "@peppermint/ui";
-import { MagnifyingGlass, type Icon } from "@phosphor-icons/react";
+import type { UserInfoPopoverProps } from "../UserInfoPopover/UserInfoPopover.types";
+import { MainNavFooter } from "./MainNavFooter";
+import { MainNavIconButton } from "./MainNavIconButton";
 import { MainNavSpotlight } from "./MainNavSpotlight";
 
 interface MainNavProps {
@@ -23,6 +24,7 @@ interface MainNavProps {
   mainNav: AdminShellMainNavItem[];
   additional?: AdminShellMainNavAdditional[];
   aiButton?: AdminShellAiButton;
+  settingsButton?: AdminShellSettingsButton;
   pathname?: string;
   activeItemId?: string;
   subNavCollapsed?: boolean;
@@ -36,6 +38,7 @@ export function MainNav({
   mainNav,
   additional,
   aiButton,
+  settingsButton,
   pathname,
   activeItemId,
   subNavCollapsed = false,
@@ -50,31 +53,49 @@ export function MainNav({
       justify="space-between"
       h="100%"
       w={MAIN_NAV_WIDTH}
-      bg="dark.8"
       style={{ flexShrink: 0, ...shellCardStyle }}
     >
       <Stack gap={0} align="center" w="100%">
         <Stack h={NAV_HEADER_HEIGHT} align="center" justify="center" w="100%">
-          <ActionIcon size="lg" radius="var(--mantine-radius-default)" w={MAIN_NAV_WIDTH - 16}>
+          <ActionIcon
+            color="brand.5"
+            variant="subtle"
+            size="xl"
+            radius="var(--mantine-radius-default)"
+          >
             <LeafIcon weight="fill" />
           </ActionIcon>
         </Stack>
 
-        <Divider color="dark.7" w="60%" />
+        <MinusIcon
+          weight="fill"
+          size={6}
+          style={{
+            opacity: 0.5,
+            margin: "4px 0",
+          }}
+          color="var(--mantine-color-brand-6)"
+        />
 
         <Box py={4}>
-          <MainNavIconButton
-            icon={MagnifyingGlass}
-            label="Search modules"
-            onClick={() => spotlight.open()}
-          />
+          <ActionIcon variant="subtle">
+            <MagnifyingGlass
+              size={16}
+              weight="bold"
+              color="var(--mantine-color-gray-0)"
+            />
+          </ActionIcon>
         </Box>
 
-        <Box py={4}>
-          <BookmarksMenu variant="sidenav" onNavigate={onNavigate} />
-        </Box>
-
-        <Divider color="dark.7" w="60%" />
+        <MinusIcon
+          weight="fill"
+          size={6}
+          style={{
+            opacity: 0.5,
+            margin: "4px 0",
+          }}
+          color="var(--mantine-color-brand-6)"
+        />
 
         <Stack gap={4} align="center" py="sm" w="100%">
           {mainNav.map((item) => {
@@ -125,8 +146,10 @@ export function MainNav({
 
       <MainNavFooter
         aiButton={aiButton}
+        settingsButton={settingsButton}
         pathname={pathname}
         userMenu={userMenu}
+        onNavigate={onNavigate}
       />
 
       <MainNavSpotlight

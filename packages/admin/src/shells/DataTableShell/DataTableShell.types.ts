@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ElementType, ReactNode } from "react";
 import type { Icon } from "@phosphor-icons/react";
 import type {
   DataTableColumn,
@@ -111,6 +111,15 @@ export interface DataTableShellProps<
   lastEditedAt?: string | Date;
   shareUrl?: string;
   hideAccessMenu?: boolean;
+
+  /**
+   * Wraps everything below ModuleHeader (title, toolbar, table). Defaults to
+   * a Fragment — no extra DOM node. Pass e.g. `Paper` to give the whole body
+   * a shared surface.
+   */
+  mainComponent?: ElementType;
+  /** Props forwarded to `mainComponent`, e.g. `{ withBorder: true }` for Paper. */
+  mainComponentProps?: Record<string, unknown>;
 }
 
 // ── Internal props passed to DataTableShellInner ──────────────────────────────
@@ -146,6 +155,8 @@ export interface DataTableShellInnerProps<T extends Record<string, unknown>> {
   lastEditedAt?: string | Date;
   shareUrl?: string;
   hideAccessMenu?: boolean;
+  mainComponent?: ElementType;
+  mainComponentProps?: Record<string, unknown>;
 }
 
 // ── Sub-component prop types ──────────────────────────────────────────────────

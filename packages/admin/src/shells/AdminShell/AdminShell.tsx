@@ -54,7 +54,7 @@ export function AdminShell({
 
   const showSubNav = activeItem?.kind === "module" && !subNavCollapsed;
 
-  const navbarWidth = getNavbarWidth(showSubNav);
+  const navbarWidth = getNavbarWidth(false);
 
   return (
     <>
@@ -66,7 +66,7 @@ export function AdminShell({
         p={0}
         padding={0}
         withBorder={false}
-        bg="dark.9"
+        bg="linear-gradient(160deg, var(--mantine-color-dark-9) 0%, var(--mantine-color-brand-9) 100%)"
         transitionDuration={SUB_NAV_TRANSITION_MS}
         navbar={{
           width: navbarWidth,
@@ -89,8 +89,6 @@ export function AdminShell({
           <MantineProvider forceColorScheme="light">
             <Box
               flex={1}
-              py={SHELL_INSET}
-              pr={SHELL_INSET}
               bg="transparent"
               style={{ minHeight: 0, minWidth: 0, overflow: "auto" }}
             >

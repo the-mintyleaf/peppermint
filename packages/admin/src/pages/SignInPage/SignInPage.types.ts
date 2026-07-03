@@ -1,6 +1,9 @@
 export interface SignInPageProps {
   heading?: [string, string];
   subheading?: string;
+  brand?: [string, string];
+  panelTagline?: string;
+  panelHeading?: string;
   icon?: React.ReactNode;
   loginApi: string;
   skipEmailValidation?: boolean;

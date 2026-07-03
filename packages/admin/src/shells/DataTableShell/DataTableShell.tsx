@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { Fragment, useState, useMemo, useCallback, useEffect } from "react";
 import { Box, Divider, ModuleHeader, Paper } from "@peppermint/ui";
 import {
   DataTableWrapper,
@@ -84,6 +84,8 @@ function DataTableShellInner<T extends Record<string, unknown>>({
   lastEditedAt,
   shareUrl,
   hideAccessMenu,
+  mainComponent,
+  mainComponentProps,
 }: DataTableShellInnerProps<T>) {
   const { rows } = useTableData<T>();
   const useTable = useTableStore();
@@ -120,6 +122,9 @@ function DataTableShellInner<T extends Record<string, unknown>>({
     return latest;
   }, [rows]);
 
+  const MainComponent = mainComponent ?? Fragment;
+  const mainProps = mainComponent ? mainComponentProps : undefined;
+
   return (
     <DataTableShellContext.Provider value={contextValue}>
       <ModuleHeader
@@ -139,75 +144,77 @@ function DataTableShellInner<T extends Record<string, unknown>>({
         }
       />
 
-      {/* Header — title only (desktop) */}
+      <MainComponent {...mainProps}>
+        {/* Header — title only (desktop) */}
 
-      <Box px="md">
-        <DataTableShellHeader moduleInfo={moduleInfo} />
-      </Box>
-
-      {/* Toolbar — tabs, search, column toggle (+ mobile drawer) */}
-      {!hideToolbar && (
         <Box px="md">
-          <DataTableShellToolbar
-            moduleInfo={moduleInfo}
-            columns={columns}
-            tabs={tabs}
-            basePath={basePath}
-            newButtonHref={newButtonHref}
-            onNewClick={onNewClick}
-            disableCreateButton={disableCreateButton}
-            sustained={sustained}
-          />
+          <DataTableShellHeader moduleInfo={moduleInfo} />
         </Box>
-      )}
 
-      {/* Table paper — active filters bar + data table */}
-      <Box px="md" size="xl" mt="md" pos="relative">
-        <Paper
-          withBorder
-          style={{
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column",
-            height: "calc(100vh - 210px)",
-          }}
-        >
-          <DataTableShellActiveFilters columns={columns} />
-          <Box
-            style={{
-              flex: 1,
-              minHeight: 0,
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <DataTableShellTable
+        {/* Toolbar — tabs, search, column toggle (+ mobile drawer) */}
+        {!hideToolbar && (
+          <Box px="md">
+            <DataTableShellToolbar
+              moduleInfo={moduleInfo}
               columns={columns}
-              idAccessor={idAccessor}
-              pageSizes={pageSizes}
-              forceFilter={forceFilter}
-              activeTabForceFilter={activeTabForceFilter}
-              rowStyle={rowStyle}
-              rowExpansion={rowExpansion}
-              disableActions={disableActions}
+              tabs={tabs}
+              basePath={basePath}
+              newButtonHref={newButtonHref}
+              onNewClick={onNewClick}
+              disableCreateButton={disableCreateButton}
+              sustained={sustained}
             />
           </Box>
-        </Paper>
-
-        {!disableActions && (
-          <DataTableShellTableActions
-            idAccessor={idAccessor}
-            basePath={basePath}
-            sustained={sustained}
-            onEditClick={onEditClick}
-            onDeleteClick={onDeleteClick}
-            onReviewClick={onReviewClick}
-            disableEditButton={disableEditButton}
-            disableDeleteButton={disableDeleteButton}
-            disableReviewButton={disableReviewButton}
-          />
         )}
-      </Box>
+
+        {/* Table paper — active filters bar + data table */}
+        <Box px="md" size="xl" pos="relative">
+          <Paper
+            withBorder
+            style={{
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              height: "calc(100vh - 210px)",
+            }}
+          >
+            <DataTableShellActiveFilters columns={columns} />
+            <Box
+              style={{
+                flex: 1,
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <DataTableShellTable
+                columns={columns}
+                idAccessor={idAccessor}
+                pageSizes={pageSizes}
+                forceFilter={forceFilter}
+                activeTabForceFilter={activeTabForceFilter}
+                rowStyle={rowStyle}
+                rowExpansion={rowExpansion}
+                disableActions={disableActions}
+              />
+            </Box>
+          </Paper>
+
+          {!disableActions && (
+            <DataTableShellTableActions
+              idAccessor={idAccessor}
+              basePath={basePath}
+              sustained={sustained}
+              onEditClick={onEditClick}
+              onDeleteClick={onDeleteClick}
+              onReviewClick={onReviewClick}
+              disableEditButton={disableEditButton}
+              disableDeleteButton={disableDeleteButton}
+              disableReviewButton={disableReviewButton}
+            />
+          )}
+        </Box>
+      </MainComponent>
     </DataTableShellContext.Provider>
   );
 }
@@ -256,6 +263,8 @@ export function DataTableShell<
   lastEditedAt,
   shareUrl,
   hideAccessMenu,
+  mainComponent,
+  mainComponentProps,
 }: DataTableShellProps<T>) {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -313,6 +322,8 @@ export function DataTableShell<
         lastEditedAt={lastEditedAt}
         shareUrl={shareUrl}
         hideAccessMenu={hideAccessMenu}
+        mainComponent={mainComponent}
+        mainComponentProps={mainComponentProps}
       />
     </DataTableWrapper>
   );

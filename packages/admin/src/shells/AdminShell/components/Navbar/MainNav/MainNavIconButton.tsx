@@ -5,6 +5,7 @@ import { Box, Tooltip, UnstyledButton } from "@peppermint/ui";
 import type { BoxProps } from "@peppermint/ui";
 import type { Icon } from "@phosphor-icons/react";
 import { MAIN_NAV_WIDTH } from "../AdminShell.Navbar";
+import styles from "./MainNavIconButton.module.css";
 
 type MainNavIconButtonProps = {
   icon: Icon;
@@ -37,7 +38,7 @@ export function MainNavIconButton({
           href={href}
           onClick={(event: MouseEvent) => onClick?.(event)}
           aria-label={label}
-
+          className={`${styles.iconButton} ${active ? styles.active : ""}`}
           style={{
             borderRadius: "var(--mantine-radius-default)",
             display: "flex",
@@ -45,7 +46,7 @@ export function MainNavIconButton({
             justifyContent: "center",
             width: MAIN_NAV_WIDTH - 16,
             height: 32,
-           
+
             color:
               iconColor ??
               (active
@@ -56,7 +57,7 @@ export function MainNavIconButton({
         >
           <IconComponent
             size={16}
-            weight={iconWeight ?? (active ? "fill" : "duotone")}
+            weight={iconWeight ?? (active ? "fill" : "bold")}
           />
         </UnstyledButton>
       </Tooltip>

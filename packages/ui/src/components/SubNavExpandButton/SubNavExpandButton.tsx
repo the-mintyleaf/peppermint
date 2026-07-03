@@ -15,7 +15,7 @@ export function SubNavExpandButton() {
       <ActionIcon
         size="md"
         variant="subtle"
-        color="gray"
+        color="gray.0"
         onClick={expand}
         aria-label="Expand sub navigation"
       >

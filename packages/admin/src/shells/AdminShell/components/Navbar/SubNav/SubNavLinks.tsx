@@ -1,7 +1,14 @@
 "use client";
 
 import type { ElementType } from "react";
-import { Badge, Divider, Group, Stack, Text, UnstyledButton } from "@peppermint/ui";
+import {
+  Badge,
+  Divider,
+  Group,
+  Stack,
+  Text,
+  UnstyledButton,
+} from "@peppermint/ui";
 import type { AdminShellNavGroup } from "../../../AdminShell.types";
 import styles from "./SubNavLinks.module.css";
 
@@ -11,7 +18,11 @@ interface SubNavLinksProps {
   linkComponent?: ElementType;
 }
 
-export function SubNavLinks({ groups, pathname, linkComponent }: SubNavLinksProps) {
+export function SubNavLinks({
+  groups,
+  pathname,
+  linkComponent,
+}: SubNavLinksProps) {
   const LinkEl = linkComponent ?? "a";
   return (
     <>
@@ -20,7 +31,9 @@ export function SubNavLinks({ groups, pathname, linkComponent }: SubNavLinksProp
           {group.headerWidget ? (
             <>
               <Divider color="dark.6" mx="md" mt="md" mb={0} />
-              <div style={{ padding: "12px 12px 6px" }}>{group.headerWidget}</div>
+              <div style={{ padding: "12px 12px 6px" }}>
+                {group.headerWidget}
+              </div>
             </>
           ) : (
             <Text

@@ -5,12 +5,16 @@ import { PageBreadcrumb } from "../PageBreadcrumb";
 import { SubNavExpandButton } from "../SubNavExpandButton";
 import type { ModuleHeaderProps } from "./ModuleHeader.types";
 
+// Rendered height when `center` is not used — shared with ModalPaper's default height calc.
+export const MODULE_HEADER_HEIGHT = 55;
+const MODULE_HEADER_HEIGHT_WITH_CENTER = 55;
+
 export function ModuleHeader({
   breadcrumbItems = [],
   breadcrumbColor,
   center,
   right,
-  withDivider = true,
+  withDivider = false,
 }: ModuleHeaderProps) {
   const breadcrumb = (
     <PageBreadcrumb items={breadcrumbItems} color={breadcrumbColor} />
@@ -26,7 +30,7 @@ export function ModuleHeader({
   return (
     <>
       {center ? (
-        <Box pos="relative" h={38}>
+        <Box pos="relative" h={MODULE_HEADER_HEIGHT_WITH_CENTER}>
           <Group pl="md" h="100%" justify="space-between" wrap="nowrap">
             {leftContent}
             {right}
@@ -42,7 +46,12 @@ export function ModuleHeader({
           </Box>
         </Box>
       ) : (
-        <Group pl="md" h={38} justify="space-between" wrap="nowrap">
+        <Group
+          pl="md"
+          h={MODULE_HEADER_HEIGHT}
+          justify="space-between"
+          wrap="nowrap"
+        >
           {leftContent}
           {right}
         </Group>

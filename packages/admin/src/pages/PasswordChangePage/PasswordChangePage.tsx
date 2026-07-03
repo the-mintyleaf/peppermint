@@ -87,7 +87,9 @@ export function PasswordChangePage({
 
         const code = data?.error?.code as string | undefined;
         const message = code
-          ? (ERROR_MESSAGES[code] ?? data?.error?.message ?? "Failed to update password")
+          ? (ERROR_MESSAGES[code] ??
+            data?.error?.message ??
+            "Failed to update password")
           : "Failed to update password";
 
         if (code === "AUTH_PASSWORD_INVALID") {

@@ -6,7 +6,14 @@ const colorSchemeScript = `try{var c=window.localStorage.getItem("mantine-color-
 
 export function LayoutApp({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" {...mantineHtmlProps}>
+    <html
+      lang="en"
+      {...mantineHtmlProps}
+      style={{
+        background:
+          "linear-gradient(160deg, var(--mantine-color-dark-9) 0%, var(--mantine-color-brand-9) 100%)",
+      }}
+    >
       <head>
         <template
           data-mantine-script
@@ -23,10 +30,14 @@ export function LayoutApp({ children }: { children: React.ReactNode }) {
           href="https://fonts.googleapis.com/css2?family=Stack+Sans+Headline:wght@200..700&display=swap"
           rel="stylesheet"
         />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Single:wght@100..900&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body
         style={{
-          background: "var(--mantine-color-body)",
+          background: "none",
           color: "var(--mantine-color-text)",
         }}
       >

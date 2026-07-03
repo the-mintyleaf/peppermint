@@ -40,7 +40,7 @@ export function DataTableShellHeaderActions({
     <Menu shadow="md" width={180} position="bottom-end">
       <Menu.Target>
         <ActionIcon
-          color="gray"
+          color="gray.0"
           variant="subtle"
           size="md"
           aria-label="Table actions"

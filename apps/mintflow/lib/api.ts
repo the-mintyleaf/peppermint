@@ -27,7 +27,12 @@ function processQueue(newToken: string) {
 api.interceptors.response.use(
   (response) => {
     const raw = response.data;
-    if (raw && typeof raw === "object" && raw.success === true && "data" in raw) {
+    if (
+      raw &&
+      typeof raw === "object" &&
+      raw.success === true &&
+      "data" in raw
+    ) {
       if (raw.meta && typeof raw.meta.count === "number") {
         // Paginated list: keep { data: [...], meta: { count, page, ... } }
         // so consumers can read both items and total count

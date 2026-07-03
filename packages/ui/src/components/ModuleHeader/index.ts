@@ -1,4 +1,4 @@
-export { ModuleHeader } from "./ModuleHeader";
+export { ModuleHeader, MODULE_HEADER_HEIGHT } from "./ModuleHeader";
 export type {
   ModuleHeaderProps,
   ModuleHeaderBreadcrumbItem,

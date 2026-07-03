@@ -34,7 +34,7 @@ export function BookmarkButton({
     >
       <ActionIcon
         variant="subtle"
-        color={bookmarked ? "brand" : "gray"}
+        color={bookmarked ? "brand" : "gray.0"}
         size={size}
         aria-label={bookmarked ? removeTooltip : addTooltip}
         onClick={handleToggle}

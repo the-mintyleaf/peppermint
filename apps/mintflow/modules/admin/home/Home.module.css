@@ -1,0 +1,47 @@
+.page {
+  min-height: calc(100vh - 16px);
+  padding: var(--mantine-spacing-xs);
+}
+
+.bentoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto auto auto auto;
+  grid-template-areas:
+    "full full full"
+    "tall top top"
+    "tall bottom bottom"
+    "small1 small2 small3";
+  gap: var(--mantine-spacing-xs);
+}
+
+.glassCard {
+  height: 100%;
+  min-height: 500px;
+  background: #ffffff11;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid color-mix(in srgb, var(--mantine-color-white) 18%, transparent);
+  box-shadow:
+    0 8px 32px color-mix(in srgb, var(--mantine-color-black) 8%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--mantine-color-white) 12%, transparent);
+}
+
+@media (max-width: 768px) {
+  .bentoGrid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    grid-template-areas:
+      "full"
+      "tall"
+      "top"
+      "bottom"
+      "small1"
+      "small2"
+      "small3";
+  }
+
+  .glassCard {
+    min-height: 160px;
+  }
+}

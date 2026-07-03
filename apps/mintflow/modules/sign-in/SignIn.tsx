@@ -7,13 +7,14 @@ export function ModuleSignIn() {
     <SignInPage
       heading={["Sign into", "mintflow."]}
       subheading="Don't have an account? Ask your administrator to invite you."
+      brand={["mintyflow", "by mintyleaf.co"]}
+      panelTagline="Work done right."
+      panelHeading="Sketched from the ground up to make the work work."
       loginApi="/api/auth/login"
       skipEmailValidation
       successRedirectUrl="/admin"
-      disableForgotPassword={false}
+      disableForgotPassword={true}
       disableSignUp
-      hasGoogleLogin
-      hasAppleLogin
     />
   );
 }

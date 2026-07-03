@@ -1,1 +1,0 @@
-export { AutomationPerformanceChart } from "./AutomationPerformanceChart";

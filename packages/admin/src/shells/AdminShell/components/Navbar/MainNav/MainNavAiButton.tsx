@@ -6,9 +6,8 @@ import {
   UnstyledButton,
   useComputedColorScheme,
 } from "@peppermint/ui";
-import { OpenAIIcon } from "./OpenAIIcon";
 import type { AdminShellAiButton } from "../../../AdminShell.types";
-import { OpenAiLogoIcon as OpenAiLogo } from "@phosphor-icons/react/dist/csr/OpenAiLogo";
+import { StarFourIcon } from "@phosphor-icons/react/dist/csr/StarFour";
 
 export const DEFAULT_AI_BUTTON_HREF = "/admin/ai-chat";
 export const DEFAULT_AI_BUTTON_LABEL = "AI Assistant";
@@ -37,7 +36,6 @@ export function MainNavAiButton({
 
   const button = (
     <UnstyledButton
-      mb="sm"
       component={aiButton?.onClick ? "button" : "a"}
       href={aiButton?.onClick ? undefined : href}
       onClick={(event: MouseEvent) => {
@@ -55,9 +53,9 @@ export function MainNavAiButton({
         transition: "background-color 150ms ease",
       }}
     >
-      <OpenAiLogo
-        size={20}
-        weight="bold"
+      <StarFourIcon
+        size={16}
+        weight="fill"
         color="var(--mantine-color-brand-3)"
       />
     </UnstyledButton>

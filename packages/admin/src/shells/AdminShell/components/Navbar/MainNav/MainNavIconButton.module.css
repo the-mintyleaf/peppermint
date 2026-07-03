@@ -1,0 +1,3 @@
+.iconButton:hover:not(.active) {
+  color: var(--mantine-color-gray-0) !important;
+}

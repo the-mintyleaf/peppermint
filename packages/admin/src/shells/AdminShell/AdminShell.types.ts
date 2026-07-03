@@ -64,11 +64,20 @@ export interface AdminShellAiButton {
   hidden?: boolean;
 }
 
+export interface AdminShellSettingsButton {
+  href?: string;
+  icon?: Icon;
+  label?: string;
+  onClick?: () => void;
+  hidden?: boolean;
+}
+
 export interface AdminShellConfig {
   brand: AdminShellBrand;
   mainNav: AdminShellMainNavItem[];
   additional?: AdminShellMainNavAdditional[];
   aiButton?: AdminShellAiButton;
+  settingsButton?: AdminShellSettingsButton;
   userMenu?: UserInfoPopoverProps;
   linkComponent?: ElementType;
 }

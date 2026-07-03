@@ -33,9 +33,7 @@ export function AdminShellNavbar({
 
   return (
     <AppShell.Navbar
-      p={SHELL_INSET}
-      pl={SHELL_INSET}
-      pt={SHELL_INSET}
+      py={SHELL_INSET}
       pb={SHELL_INSET}
       pr={0}
       bg="transparent"
@@ -53,6 +51,7 @@ export function AdminShellNavbar({
           mainNav={config.mainNav}
           additional={config.additional}
           aiButton={config.aiButton}
+          settingsButton={config.settingsButton}
           pathname={pathname}
           activeItemId={activeItem?.id}
           subNavCollapsed={subNavCollapsed}
@@ -60,7 +59,7 @@ export function AdminShellNavbar({
           userMenu={config.userMenu}
         />
 
-        {isModule && activeItem.kind === "module" && (
+        {/* {isModule && activeItem.kind === "module" && (
           <SubNav
             module={activeItem}
             pathname={pathname}
@@ -68,7 +67,7 @@ export function AdminShellNavbar({
             visible={showSubNav}
             linkComponent={config.linkComponent}
           />
-        )}
+        )} */}
       </Group>
     </AppShell.Navbar>
   );

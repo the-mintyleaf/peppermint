@@ -5,7 +5,9 @@ import {
   Anchor,
   Button,
   Center,
+  Container,
   Divider,
+  Grid,
   Group,
   Paper,
   SimpleGrid,
@@ -36,6 +38,9 @@ import {
 export function SignInPage({
   heading = ["Sign into", "to your portal."],
   subheading = "Enter your credentials to access your account.",
+  brand = ["Portal", "by Peppermint"],
+  panelTagline = "Work done right.",
+  panelHeading = "Sketched from the ground up to make the work work.",
   icon,
   loginApi,
   skipEmailValidation = false,
@@ -161,210 +166,255 @@ export function SignInPage({
 
   return (
     <>
-    <Center h="100vh">
-      <Stack>
-        <Center>
-          <Group gap={4} px="md" py={4}>
-            <LeafIcon color="var(--mantine-color-brand-5)" weight="fill" />
-            <Title size="xs" c="brand.6">
-              mintyflow{" "}
-              <span style={{ color: "var(--mantine-color-gray-5)" }}>
-                by mintyleaf.co
-              </span>
-            </Title>
-          </Group>
-        </Center>
+      <Container h="100vh">
+        <Grid>
+          <Grid.Col span={{ base: 12, lg: 8 }}>
+            <Paper
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+              }}
+              px="4rem"
+              py="5rem"
+              bg="linear-gradient(120deg, var(--mantine-color-brand-9),var(--mantine-color-brand-7))"
+              h="calc(100vh - 2*var(--mantine-spacing-xl))"
+              my="xl"
+              radius="lg"
+            >
+              <Group gap={4}>
+                <LeafIcon color="var(--mantine-color-gray-0)" weight="fill" />
+                <Title size="md" c="gray.0">
+                  {brand[0]}{" "}
+                  <span style={{ color: "var(--mantine-color-brand-3)" }}>
+                    {brand[1]}
+                  </span>
+                </Title>
+              </Group>
 
-        <Paper w={{ base: "100%", sm: 440 }} p={{ base: "md", lg: "3rem" }}>
-          <Stack gap="md" w="100%">
-            <Stack gap="xs" align="center">
-              <Title size="2rem" order={2} ta="center" fw={500} lh="100%">
-                {heading[0]}{" "}
-                <span style={{ color: "var(--mantine-color-brand-5)" }}>
-                  {heading[1]}
-                </span>
-              </Title>
-              <Text c="dimmed" size="xs" ta="center" maw={400}>
-                {subheading}
-              </Text>
-            </Stack>
-
-            <Stack gap="xs" py="md">
-              {!showMagicLink ? (
-                <>
-                  <SignInForm
-                    onSubmit={handleSignIn}
-                    isLoading={isLoading}
-                    onForgotPassword={onForgotPassword}
-                    skipEmailValidation={skipEmailValidation}
-                    disableSignUp={disableSignUp}
-                    disableForgotPassword={disableForgotPassword}
-                  />
-
-                  {hasAnySocial && (
-                    <>
-                      <Divider
-                        label="or sign in with"
-                        labelPosition="center"
-                        my="xs"
-                      />
-
-                      <SimpleGrid
-                        cols={Math.min(socialProviders, 3)}
-                        spacing="xs"
+              <Stack style={{ fontFamily: "var(--font-special)" }}>
+                <Text size="xs" c="gray.0">
+                  {panelTagline}
+                </Text>
+                <Text size="3rem" c="gray.0">
+                  {panelHeading}
+                </Text>
+              </Stack>
+            </Paper>
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, lg: 4 }}>
+            <Center h="calc(100vh - 2*var(--mantine-spacing-xl))">
+              <Stack>
+                <Paper
+                  bg="none"
+                  w={{ base: "100%", sm: 440 }}
+                  p={{ base: "md", lg: "3rem" }}
+                >
+                  <Stack gap="md" w="100%">
+                    <Stack gap="xs" align="center">
+                      <Title
+                        c="gray.0"
+                        size="2rem"
+                        order={2}
+                        ta="center"
+                        fw={500}
+                        lh="100%"
                       >
-                        {hasGoogleLogin && (
-                          <Button
-                            variant="default"
-                            size="md"
-                            leftSection={<GoogleIcon />}
-                            onClick={() =>
-                              handleSocialLogin("google", onGoogleLogin)
-                            }
-                            fullWidth
-                            styles={{
-                              inner: { justifyContent: "center" },
-                              label: { fontWeight: 600 },
-                            }}
-                          >
-                            Google
-                          </Button>
-                        )}
-                        {hasAppleLogin && (
-                          <Button
-                            variant="default"
-                            size="md"
-                            leftSection={
-                              <AppleLogoIcon weight="fill" size={20} />
-                            }
-                            onClick={() =>
-                              handleSocialLogin("apple", onAppleLogin)
-                            }
-                            fullWidth
-                          >
-                            Apple
-                          </Button>
-                        )}
-                        {hasDiscordLogin && (
-                          <Button
-                            variant="default"
-                            size="md"
-                            leftSection={
-                              <DiscordLogoIcon
-                                color="var(--mantine-color-indigo-6)"
-                                weight="fill"
-                                size={20}
+                        {heading[0]}{" "}
+                        <span style={{ color: "var(--mantine-color-brand-5)" }}>
+                          {heading[1]}
+                        </span>
+                      </Title>
+                      <Text c="dimmed" size="xs" ta="center" maw={400}>
+                        {subheading}
+                      </Text>
+                    </Stack>
+
+                    <Stack gap="xs" py="md">
+                      {!showMagicLink ? (
+                        <>
+                          <SignInForm
+                            onSubmit={handleSignIn}
+                            isLoading={isLoading}
+                            onForgotPassword={onForgotPassword}
+                            skipEmailValidation={skipEmailValidation}
+                            disableSignUp={disableSignUp}
+                            disableForgotPassword={disableForgotPassword}
+                          />
+
+                          {hasAnySocial && (
+                            <>
+                              <Divider
+                                color="rgba(255,255,255,.1)"
+                                label="or sign in with"
+                                labelPosition="center"
+                                my="xs"
                               />
-                            }
-                            onClick={() =>
-                              handleSocialLogin("discord", onDiscordLogin)
-                            }
-                            fullWidth
-                          >
-                            Discord
-                          </Button>
-                        )}
-                        {hasMagicLinkLogin && (
-                          <Button
-                            variant="light"
+
+                              <SimpleGrid
+                                cols={Math.min(socialProviders, 3)}
+                                spacing="xs"
+                              >
+                                {hasGoogleLogin && (
+                                  <Button
+                                    variant="default"
+                                    size="md"
+                                    leftSection={<GoogleIcon />}
+                                    onClick={() =>
+                                      handleSocialLogin("google", onGoogleLogin)
+                                    }
+                                    fullWidth
+                                    styles={{
+                                      inner: { justifyContent: "center" },
+                                      label: { fontWeight: 600 },
+                                    }}
+                                  >
+                                    Google
+                                  </Button>
+                                )}
+                                {hasAppleLogin && (
+                                  <Button
+                                    variant="default"
+                                    size="md"
+                                    leftSection={
+                                      <AppleLogoIcon weight="fill" size={20} />
+                                    }
+                                    onClick={() =>
+                                      handleSocialLogin("apple", onAppleLogin)
+                                    }
+                                    fullWidth
+                                  >
+                                    Apple
+                                  </Button>
+                                )}
+                                {hasDiscordLogin && (
+                                  <Button
+                                    variant="default"
+                                    size="md"
+                                    leftSection={
+                                      <DiscordLogoIcon
+                                        color="var(--mantine-color-indigo-6)"
+                                        weight="fill"
+                                        size={20}
+                                      />
+                                    }
+                                    onClick={() =>
+                                      handleSocialLogin(
+                                        "discord",
+                                        onDiscordLogin,
+                                      )
+                                    }
+                                    fullWidth
+                                  >
+                                    Discord
+                                  </Button>
+                                )}
+                                {hasMagicLinkLogin && (
+                                  <Button
+                                    variant="light"
+                                    size="md"
+                                    h={50}
+                                    onClick={() => setShowMagicLink(true)}
+                                    fullWidth
+                                  >
+                                    Magic Link
+                                  </Button>
+                                )}
+                              </SimpleGrid>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <Stack gap="md">
+                          <Stack gap={0} mb="xs">
+                            <Text fw={600} size="lg" ta="center">
+                              Magic Link
+                            </Text>
+                            <Text c="dimmed" size="sm" ta="center">
+                              We'll email you a link to sign in instantly.
+                            </Text>
+                          </Stack>
+
+                          <TextInput
                             size="md"
+                            label="Email"
+                            placeholder="name@example.com"
+                            type="email"
+                            required
+                            value={magicLinkEmail}
+                            onChange={(e) =>
+                              setMagicLinkEmail(e.currentTarget.value)
+                            }
+                          />
+
+                          <Button
+                            size="md"
+                            color="black"
+                            onClick={handleMagicLinkSubmit}
+                            disabled={!magicLinkEmail.trim()}
+                            fullWidth
                             h={50}
-                            onClick={() => setShowMagicLink(true)}
+                          >
+                            Send Magic Link
+                          </Button>
+
+                          <Button
+                            variant="subtle"
+                            size="sm"
+                            c="dimmed"
+                            onClick={() => {
+                              setShowMagicLink(false);
+                              setMagicLinkEmail("");
+                            }}
                             fullWidth
                           >
-                            Magic Link
+                            Back to Sign In
                           </Button>
-                        )}
-                      </SimpleGrid>
-                    </>
-                  )}
-                </>
-              ) : (
-                <Stack gap="md">
-                  <Stack gap={0} mb="xs">
-                    <Text fw={600} size="lg" ta="center">
-                      Magic Link
+                        </Stack>
+                      )}
+                    </Stack>
+                  </Stack>
+                </Paper>
+
+                <Center>
+                  <Stack gap="xs">
+                    <Text ta="center" size="10px" c="gray.0">
+                      By signing in, you agree to our{" "}
+                      <Anchor href="/terms" c="brand.4">
+                        Terms of Service
+                      </Anchor>{" "}
+                      and{" "}
+                      <Anchor href="/privacy" c="brand.4">
+                        Privacy Policy
+                      </Anchor>
+                      .
                     </Text>
-                    <Text c="dimmed" size="sm" ta="center">
-                      We'll email you a link to sign in instantly.
+
+                    <Text ta="center" size="10px" c="gray.5">
+                      Versoin v1.0.1 @ Copyright 2026 mintyleaf.co
                     </Text>
                   </Stack>
+                </Center>
+              </Stack>
+            </Center>
+          </Grid.Col>
+        </Grid>
+      </Container>
 
-                  <TextInput
-                    size="md"
-                    label="Email"
-                    placeholder="name@example.com"
-                    type="email"
-                    required
-                    value={magicLinkEmail}
-                    onChange={(e) => setMagicLinkEmail(e.currentTarget.value)}
-                  />
-
-                  <Button
-                    size="md"
-                    color="black"
-                    onClick={handleMagicLinkSubmit}
-                    disabled={!magicLinkEmail.trim()}
-                    fullWidth
-                    h={50}
-                  >
-                    Send Magic Link
-                  </Button>
-
-                  <Button
-                    variant="subtle"
-                    size="sm"
-                    c="dimmed"
-                    onClick={() => {
-                      setShowMagicLink(false);
-                      setMagicLinkEmail("");
-                    }}
-                    fullWidth
-                  >
-                    Back to Sign In
-                  </Button>
-                </Stack>
-              )}
-            </Stack>
-          </Stack>
-        </Paper>
-
-        <Center>
-          <Stack gap="xs">
-            <Text ta="center" size="10px">
-              By signing in, you agree to our{" "}
-              <Anchor href="/terms" c="brand.4">
-                Terms of Service
-              </Anchor>{" "}
-              and{" "}
-              <Anchor href="/privacy" c="brand.4">
-                Privacy Policy
-              </Anchor>
-              .
-            </Text>
-
-            <Text ta="center" size="10px" c="gray.5">
-              Versoin v1.0.1 @ Copyright 2026 mintyleaf.co
-            </Text>
-          </Stack>
-        </Center>
-      </Stack>
-    </Center>
-
-    <Tooltip label={isDark ? "Light mode" : "Dark mode"} withArrow>
-      <ActionIcon
-        variant="default"
-        size="lg"
-        radius="xl"
-        pos="fixed"
-        bottom="1.25rem"
-        right="1.25rem"
-        aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-        onClick={() => setColorScheme(isDark ? "light" : "dark")}
-      >
-        {isDark ? <SunIcon size={18} /> : <MoonIcon size={18} />}
-      </ActionIcon>
-    </Tooltip>
+      <Tooltip label={isDark ? "Light mode" : "Dark mode"} withArrow>
+        <ActionIcon
+          variant="default"
+          size="lg"
+          radius="xl"
+          pos="fixed"
+          bottom="1.25rem"
+          right="1.25rem"
+          aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+          onClick={() => setColorScheme(isDark ? "light" : "dark")}
+        >
+          {isDark ? <SunIcon size={18} /> : <MoonIcon size={18} />}
+        </ActionIcon>
+      </Tooltip>
     </>
   );
 }

@@ -2,6 +2,7 @@
 
 import type { MouseEvent } from "react";
 import {
+  ActionIcon,
   Box,
   Indicator,
   Menu,
@@ -19,7 +20,7 @@ export function BookmarksMenu({
   onNavigate,
   variant = "default",
   emptyLabel = "No bookmarks yet",
-  label = "Bookmarks",
+  label = "Saved Bookmarks",
 }: BookmarksMenuProps) {
   const { bookmarks } = useBookmarks();
   const isSidenav = variant === "sidenav";
@@ -42,50 +43,30 @@ export function BookmarksMenu({
       processing={false}
     >
       {isSidenav ? (
-        <UnstyledButton
+        <ActionIcon
           aria-label={label}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 32,
-            height: 32,
-            borderRadius: 0,
-            color: "var(--mantine-color-dark-2)",
-            transition: "background-color 150ms ease, color 150ms ease",
-          }}
-          onMouseEnter={(event) => {
-            event.currentTarget.style.backgroundColor =
-              "var(--mantine-color-dark-6)";
-            event.currentTarget.style.color = "var(--mantine-color-gray-0)";
-          }}
-          onMouseLeave={(event) => {
-            event.currentTarget.style.backgroundColor = "transparent";
-            event.currentTarget.style.color = "var(--mantine-color-dark-2)";
-          }}
+          size="lg"
+          variant="subtle"
+          color="gray.0"
         >
-          <BookmarkSimpleIcon size={16} weight="duotone" />
-        </UnstyledButton>
+          <BookmarkSimpleIcon size={16} weight="fill" />
+        </ActionIcon>
       ) : (
-        <UnstyledButton
+        <ActionIcon
           aria-label={label}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 32,
-            height: 32,
-            borderRadius: 0,
-          }}
+          size="lg"
+          variant="subtle"
+          color="gray.0"
         >
           <BookmarkSimpleIcon size={18} />
-        </UnstyledButton>
+        </ActionIcon>
       )}
     </Indicator>
   );
 
   return (
     <Menu
+      withArrow
       trigger="hover"
       openDelay={120}
       closeDelay={160}
