@@ -1,0 +1,121 @@
+"use client";
+
+import {
+  Button,
+  Card,
+  Group,
+  Loader,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+  notifications,
+  useForm,
+  useMutation,
+  useQueryClient,
+} from "@peppermint/ui";
+import { UserCircleIcon } from "@phosphor-icons/react/dist/csr/UserCircle";
+import { getApiError, getApiErrorMessage } from "@/lib/authErrorMessages";
+import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
+import { updateProfile } from "../account-security.api";
+import type {
+  ProfileFormProps,
+  ProfileUpdateValues,
+} from "../account-security.types";
+
+function ProfileForm({ user }: ProfileFormProps) {
+  const queryClient = useQueryClient();
+
+  const form = useForm<ProfileUpdateValues>({
+    initialValues: {
+      display_name: user.display_name,
+      email: user.email ?? "",
+    },
+    validate: {
+      display_name: (value) => (!value.trim() ? "Required" : null),
+      email: (value) =>
+        value && !/^\S+@\S+$/.test(value) ? "Invalid email" : null,
+    },
+  });
+
+  const mutation = useMutation({
+    mutationFn: (values: ProfileUpdateValues) => updateProfile(values),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+      notifications.show({
+        color: "green",
+        title: "Profile updated",
+        message: "Your details have been saved.",
+      });
+      form.resetDirty();
+    },
+    onError: (error) => {
+      const apiError = getApiError(error);
+      if (apiError.code === "AUTH_EMAIL_ALREADY_EXISTS") {
+        form.setFieldError("email", getApiErrorMessage(error));
+        return;
+      }
+      notifications.show({
+        color: "red",
+        title: "Couldn't update profile",
+        message: getApiErrorMessage(error),
+      });
+    },
+  });
+
+  return (
+    <form onSubmit={form.onSubmit((values) => mutation.mutate(values))}>
+      <Stack gap="md">
+        <TextInput
+          label="Display name"
+          required
+          disabled={mutation.isPending}
+          {...form.getInputProps("display_name")}
+        />
+        <TextInput
+          label="Email"
+          type="email"
+          description="Used for account notifications."
+          disabled={mutation.isPending}
+          {...form.getInputProps("email")}
+        />
+        <Group justify="space-between" align="center">
+          <Text size="xs" c="dimmed">
+            Username <strong>{user.username}</strong> can&apos;t be changed
+            here.
+          </Text>
+          <Button
+            type="submit"
+            loading={mutation.isPending}
+            disabled={!form.isDirty()}
+          >
+            Save changes
+          </Button>
+        </Group>
+      </Stack>
+    </form>
+  );
+}
+
+export function ProfileCard() {
+  const { user, isLoading } = useCurrentUser();
+
+  return (
+    <Card withBorder radius="md" p="lg">
+      <Stack gap="md">
+        <Group gap="xs">
+          <UserCircleIcon size={20} aria-hidden />
+          <Title order={4}>Profile</Title>
+        </Group>
+
+        {isLoading || !user ? (
+          <Group justify="center" py="lg">
+            <Loader size="sm" />
+          </Group>
+        ) : (
+          <ProfileForm key={user.id} user={user} />
+        )}
+      </Stack>
+    </Card>
+  );
+}

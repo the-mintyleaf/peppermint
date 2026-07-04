@@ -71,15 +71,19 @@ api.interceptors.response.use(
 
       if (!refreshToken) throw new Error("No refresh token");
 
-      const res = await fetch("/api/auth/refresh", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ refresh: refreshToken }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/refresh/`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refresh: refreshToken }),
+        },
+      );
 
       if (!res.ok) throw new Error("Refresh failed");
 
-      const { access, refresh } = await res.json();
+      const { data } = await res.json();
+      const { access, refresh } = data;
 
       localStorage.setItem("access_token", access);
       if (refresh) localStorage.setItem("refresh_token", refresh);

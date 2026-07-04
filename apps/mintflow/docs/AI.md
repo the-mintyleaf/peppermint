@@ -35,22 +35,36 @@ apps/mintflow/
 │       ├── analytics/       # Task analytics dashboard
 │       ├── kanban/          # Kanban board
 │       └── general-view/    # General View (team panel + task list)
-├── modules/sign-in/         # Sign-in page
-└── lib/                     # App-level utilities
+│   └── authenticate/        # Identity & Access Management (ContainedModule group)
+│       ├── users/           # Staff user/actor management + sessions/events/MFA/service accounts
+│       ├── roles-bindings/  # Roles + Role Bindings (tabs)
+│       ├── direct-access/   # Direct Grants + Denials (tabs)
+│       ├── access-tools/    # Permission Catalog + Access Tester (tabs, Not-Contained)
+│       ├── account-security/ # Self-service profile/password/MFA/sessions (Not-Contained)
+│       └── _shared/         # UserPicker, PermissionKeyPicker, ScopeFields, OneTimeSecretModal, useCurrentUser, useLogout
+├── modules/sign-in/         # Sign-in page (login + MFA challenge)
+├── modules/password-change/ # Forced/voluntary password change
+└── lib/                     # App-level utilities (api.ts, authErrorMessages.ts)
 ```
 
 ---
 
 ## Major modules
 
-| Module         | Path                                | Route(s)                    | Module AI map                           |
-| -------------- | ----------------------------------- | --------------------------- | --------------------------------------- |
-| Organization   | `modules/admin/organization/`       | `/admin/organization/*`     | `modules/admin/organization/docs/AI.md` |
-| Task Analytics | `modules/admin/tasks/analytics/`    | `/admin/tasks/analytics`    | —                                       |
-| Kanban         | `modules/admin/tasks/kanban/`       | `/admin/tasks`              | —                                       |
-| General View   | `modules/admin/tasks/general-view/` | `/admin/tasks/general-view` | —                                       |
-| Admin Home     | `modules/admin/home/`               | `/admin`                    | —                                       |
-| Sign In        | `modules/sign-in/`                  | `/sign-in` (inferred)       | —                                       |
+| Module             | Path                                           | Route(s)                             | Module AI map                                            |
+| ------------------ | ---------------------------------------------- | ------------------------------------ | -------------------------------------------------------- |
+| Organization       | `modules/admin/organization/`                  | `/admin/organization/*`              | `modules/admin/organization/docs/AI.md`                  |
+| Task Analytics     | `modules/admin/tasks/analytics/`               | `/admin/tasks/analytics`             | —                                                        |
+| Kanban             | `modules/admin/tasks/kanban/`                  | `/admin/tasks`                       | —                                                        |
+| General View       | `modules/admin/tasks/general-view/`            | `/admin/tasks/general-view`          | —                                                        |
+| Admin Home         | `modules/admin/home/`                          | `/admin`                             | —                                                        |
+| Sign In            | `modules/sign-in/`                             | `/`                                  | `modules/sign-in/docs/AI.md`                             |
+| Password Change    | `modules/password-change/`                     | `/password-change`                   | `modules/password-change/docs/AI.md`                     |
+| Users              | `modules/admin/authenticate/users/`            | `/admin/authenticate/users`          | `modules/admin/authenticate/users/docs/AI.md`            |
+| Roles & Bindings   | `modules/admin/authenticate/roles-bindings/`   | `/admin/authenticate/roles-bindings` | `modules/admin/authenticate/roles-bindings/docs/AI.md`   |
+| Direct Access      | `modules/admin/authenticate/direct-access/`    | `/admin/authenticate/direct-access`  | `modules/admin/authenticate/direct-access/docs/AI.md`    |
+| Access Tools       | `modules/admin/authenticate/access-tools/`     | `/admin/authenticate/access-tools`   | `modules/admin/authenticate/access-tools/docs/AI.md`     |
+| Account & Security | `modules/admin/authenticate/account-security/` | `/admin/account/security`            | `modules/admin/authenticate/account-security/docs/AI.md` |
 
 ---
 
@@ -73,8 +87,9 @@ apps/mintflow/
 | ------------------------------------- | ----------------------------------------------------------------------------------------- |
 | Server data, cache                    | React Query — query functions in module `.api.ts` or `.hooks.ts`, keys in `.queryKeys.ts` |
 | Currently selected organisation       | `stores/selectedOrg.store.ts` (Zustand + `persist`; survives page reload)                 |
-| Organization tree interaction         | `modules/admin/organization/organization-tree/OrganizationTree.store.ts`                  |
+| Organization structure canvas         | `modules/admin/organization/structure/Structure.store.ts`                                 |
 | Kanban board state                    | `modules/admin/tasks/kanban/` (check for `.store.ts`)                                     |
+| Current authenticated user            | `modules/admin/authenticate/_shared/useCurrentUser.ts` (React Query, key `["auth","me"]`) |
 | Shareable filters / pagination / tabs | URL search params                                                                         |
 | Local UI state                        | `useState` in component                                                                   |
 
@@ -82,23 +97,28 @@ apps/mintflow/
 
 ## Common edit targets
 
-| Task                                   | Files to open                                                            |
-| -------------------------------------- | ------------------------------------------------------------------------ |
-| Org tree canvas                        | `modules/admin/organization/organization-tree/OrganizationTree.tsx`      |
-| Org tree state                         | `modules/admin/organization/organization-tree/OrganizationTree.store.ts` |
-| Org tree logic                         | `modules/admin/organization/organization-tree/OrganizationTree.utils.ts` |
-| Org sub-module (accounts, roles, etc.) | `modules/admin/organization/<sub-module>/`                               |
-| Task analytics UI                      | `modules/admin/tasks/analytics/TaskAnalyticsDashboard.tsx`               |
-| Task analytics queries                 | `modules/admin/tasks/analytics/taskAnalytics.api.ts`                     |
-| Kanban board                           | `modules/admin/tasks/kanban/KanbanDashboard.tsx`                         |
-| General View dashboard                 | `modules/admin/tasks/general-view/GeneralViewDashboard.tsx`              |
-| General View team panel                | `modules/admin/tasks/general-view/components/TeamMembersPanel/`          |
-| General View task row                  | `modules/admin/tasks/general-view/components/TaskListRow/`               |
-| Task shared types + mock data          | `modules/admin/tasks/kanban/module.api.ts`                               |
-| Admin layout shell                     | `layouts/admin/Admin.tsx`                                                |
-| Admin sidebar config (dynamic)         | `config/nav/admin-nav.ts` → `buildAdminConfig(org)`                      |
-| Selected org store (sidebar context)   | `stores/selectedOrg.store.ts`                                            |
-| Route re-export                        | `app/admin/<route>/page.tsx`                                             |
+| Task                                   | Files to open                                                                   |
+| -------------------------------------- | ------------------------------------------------------------------------------- |
+| Organization module (full map)         | `modules/admin/organization/docs/AI.md` (read first — 9 sub-modules)            |
+| Org structure canvas                   | `modules/admin/organization/structure/Structure.tsx`                            |
+| Org structure state                    | `modules/admin/organization/structure/Structure.store.ts`                       |
+| Org structure logic                    | `modules/admin/organization/structure/Structure.utils.ts`                       |
+| Org shared domain types                | `modules/admin/organization/_shared/organization.types.ts`                      |
+| Org sub-module (positions, members, reporting-lines, delegations, event-log, actor-context) | `modules/admin/organization/<sub-module>/` |
+| Task analytics UI                      | `modules/admin/tasks/analytics/TaskAnalyticsDashboard.tsx`                      |
+| Task analytics queries                 | `modules/admin/tasks/analytics/taskAnalytics.api.ts`                            |
+| Kanban board                           | `modules/admin/tasks/kanban/KanbanDashboard.tsx`                                |
+| General View dashboard                 | `modules/admin/tasks/general-view/GeneralViewDashboard.tsx`                     |
+| General View team panel                | `modules/admin/tasks/general-view/components/TeamMembersPanel/`                 |
+| General View task row                  | `modules/admin/tasks/general-view/components/TaskListRow/`                      |
+| Task shared types + mock data          | `modules/admin/tasks/kanban/module.api.ts`                                      |
+| Admin layout shell                     | `layouts/admin/Admin.tsx`                                                       |
+| Admin sidebar config (dynamic)         | `config/nav/admin-nav.ts` → `buildAdminConfig(org, orgSwitcherWidget, isStaff)` |
+| Selected org store (sidebar context)   | `stores/selectedOrg.store.ts`                                                   |
+| Route re-export                        | `app/admin/<route>/page.tsx`                                                    |
+| Identity & Access Management group     | `modules/admin/authenticate/docs/AI.md` (group index — read first)              |
+| Staff-only route gating                | `components/RequireStaff/RequireStaff.tsx`                                      |
+| API error → message mapping            | `lib/authErrorMessages.ts`                                                      |
 
 ---
 

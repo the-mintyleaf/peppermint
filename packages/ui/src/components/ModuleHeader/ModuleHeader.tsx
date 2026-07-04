@@ -31,7 +31,7 @@ export function ModuleHeader({
     <>
       {center ? (
         <Box pos="relative" h={MODULE_HEADER_HEIGHT_WITH_CENTER}>
-          <Group pl="md" h="100%" justify="space-between" wrap="nowrap">
+          <Group px="md" h="100%" justify="space-between" wrap="nowrap">
             {leftContent}
             {right}
           </Group>
@@ -47,7 +47,7 @@ export function ModuleHeader({
         </Box>
       ) : (
         <Group
-          pl="md"
+          px="md"
           h={MODULE_HEADER_HEIGHT}
           justify="space-between"
           wrap="nowrap"

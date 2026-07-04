@@ -59,7 +59,7 @@ export function AdminShellNavbar({
           userMenu={config.userMenu}
         />
 
-        {/* {isModule && activeItem.kind === "module" && (
+        {isModule && activeItem.kind === "module" && (
           <SubNav
             module={activeItem}
             pathname={pathname}
@@ -67,7 +67,7 @@ export function AdminShellNavbar({
             visible={showSubNav}
             linkComponent={config.linkComponent}
           />
-        )} */}
+        )}
       </Group>
     </AppShell.Navbar>
   );

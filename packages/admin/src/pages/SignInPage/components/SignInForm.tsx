@@ -10,12 +10,13 @@ import {
 import { EnvelopeIcon } from "@phosphor-icons/react/dist/csr/Envelope";
 import { KeyIcon } from "@phosphor-icons/react/dist/csr/Key";
 import { useForm } from "@mantine/form";
+import type { SignInIdentifierField } from "../SignInPage.types";
 
 interface SignInFormProps {
-  onSubmit: (username: string, password: string) => void;
+  onSubmit: (identifier: string, password: string) => void;
   isLoading: boolean;
   onForgotPassword?: () => void;
-  skipEmailValidation?: boolean;
+  identifierField: SignInIdentifierField;
   disableSignUp?: boolean;
   disableForgotPassword?: boolean;
 }
@@ -24,22 +25,23 @@ export function SignInForm({
   onSubmit,
   isLoading,
   onForgotPassword,
-  skipEmailValidation = false,
+  identifierField,
   disableSignUp = false,
   disableForgotPassword = false,
 }: SignInFormProps) {
+  const isEmail = identifierField === "email";
+
   const form = useForm({
     initialValues: {
-      username: "",
+      identifier: "",
       password: "",
     },
     validate: {
-      username: (value: string) => {
-        if (!value.trim())
-          return skipEmailValidation
-            ? "Username is required"
-            : "Email is required";
-        if (!skipEmailValidation) {
+      identifier: (value: string) => {
+        if (!value.trim()) {
+          return isEmail ? "Email is required" : "Username is required";
+        }
+        if (isEmail) {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(value))
             return "Please enter a valid email address";
@@ -54,18 +56,25 @@ export function SignInForm({
   });
 
   const handleSubmit = form.onSubmit((values) => {
-    onSubmit(values.username, values.password);
+    onSubmit(values.identifier, values.password);
   });
+
+  const placeholder =
+    identifierField === "email"
+      ? "email@example.com"
+      : identifierField === "identifier"
+        ? "Username or email"
+        : "Username";
 
   return (
     <form onSubmit={handleSubmit}>
       <Stack gap="md">
         <TextInput
           size="md"
-          placeholder={skipEmailValidation ? "Username" : "email@example.com"}
-          type={skipEmailValidation ? "text" : "email"}
+          placeholder={placeholder}
+          type={isEmail ? "email" : "text"}
           required
-          {...form.getInputProps("username")}
+          {...form.getInputProps("identifier")}
           disabled={isLoading}
           leftSection={
             <EnvelopeIcon size={16} weight="fill" style={{ opacity: 0.5 }} />
@@ -112,7 +121,7 @@ export function SignInForm({
           size="md"
           color="brand"
         >
-          Continue with email
+          {isEmail ? "Continue with email" : "Sign in"}
         </Button>
       </Stack>
     </form>

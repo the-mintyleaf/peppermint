@@ -2,6 +2,7 @@
 
 import {
   ActionIcon,
+  Alert,
   Anchor,
   Button,
   Center,
@@ -24,7 +25,11 @@ import {
 import { useState } from "react";
 import { GoogleIcon } from "./components/GoogleIcon";
 import { SignInForm } from "./components/SignInForm";
-import type { SignInPageProps } from "./SignInPage.types";
+import { MfaChallengeForm } from "./components/MfaChallengeForm";
+import type {
+  SignInIdentifierField,
+  SignInPageProps,
+} from "./SignInPage.types";
 import { AUTH_TOKEN_KEYS } from "./utils/authTokenKeys";
 import { decodeJWT } from "./utils/decodeJWT";
 import {
@@ -33,7 +38,10 @@ import {
   LeafIcon,
   MoonIcon,
   SunIcon,
+  WarningIcon,
 } from "@phosphor-icons/react/dist/ssr";
+
+type SignInPhase = "credentials" | "mfa";
 
 export function SignInPage({
   heading = ["Sign into", "to your portal."],
@@ -43,6 +51,7 @@ export function SignInPage({
   panelHeading = "Sketched from the ground up to make the work work.",
   icon,
   loginApi,
+  identifierField,
   skipEmailValidation = false,
   successRedirectUrl,
   forgotRedirectUrl,
@@ -59,62 +68,63 @@ export function SignInPage({
   onMagicLinkLogin,
   disableSignUp = false,
   disableForgotPassword = false,
+  mfaVerifyApi,
+  meApi,
+  onMfaSetupRecommended,
+  errorMessageMap,
 }: SignInPageProps) {
+  const resolvedIdentifierField: SignInIdentifierField =
+    identifierField ?? (skipEmailValidation ? "username" : "email");
+
   const [showMagicLink, setShowMagicLink] = useState(false);
   const [magicLinkEmail, setMagicLinkEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [phase, setPhase] = useState<SignInPhase>("credentials");
+  const [challengeId, setChallengeId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme("light");
   const isDark = computedColorScheme === "dark";
 
-  const handleSignIn = async (username: string, password: string) => {
-    setIsLoading(true);
+  const resolveErrorMessage = (data: any): string => {
+    const code = data?.error?.code;
+    if (code && errorMessageMap?.[code]) return errorMessageMap[code];
+    return (
+      data?.error?.message ??
+      data?.message ??
+      "Something went wrong. Please try again."
+    );
+  };
 
-    try {
-      const response = await fetch(loginApi, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(
-          skipEmailValidation
-            ? { username, password }
-            : { email: username, password },
-        ),
-      });
+  const completeSuccess = async (data: any) => {
+    const accessToken = data?.access || data?.accessToken;
+    const refreshToken = data?.refresh || data?.refreshToken;
 
-      const data = await response.json();
+    if (accessToken) {
+      sessionStorage.setItem(AUTH_TOKEN_KEYS.ACCESS_TOKEN, accessToken);
+      localStorage.setItem("access_token", accessToken);
 
-      if (!response.ok) {
-        onError?.(data);
-        return;
+      const decoded = decodeJWT(accessToken);
+      if (decoded) {
+        localStorage.setItem("token_payload", JSON.stringify(decoded));
       }
+    }
 
-      const accessToken = data?.access || data?.accessToken;
-      const refreshToken = data?.refresh || data?.refreshToken;
+    if (refreshToken) {
+      sessionStorage.setItem(AUTH_TOKEN_KEYS.REFRESH_TOKEN, refreshToken);
+      localStorage.setItem("refresh_token", refreshToken);
+    }
 
-      if (accessToken) {
-        sessionStorage.setItem(AUTH_TOKEN_KEYS.ACCESS_TOKEN, accessToken);
-        localStorage.setItem("access_token", accessToken);
+    onSuccess?.(data);
 
-        const decoded = decodeJWT(accessToken);
-        if (decoded) {
-          localStorage.setItem("token_payload", JSON.stringify(decoded));
-        }
-      }
+    if (data?.mfa_setup_recommended) {
+      onMfaSetupRecommended?.();
+    }
 
-      if (refreshToken) {
-        sessionStorage.setItem(AUTH_TOKEN_KEYS.REFRESH_TOKEN, refreshToken);
-        localStorage.setItem("refresh_token", refreshToken);
-      }
-
-      onSuccess?.(data);
-
+    if (meApi && accessToken) {
       try {
-        const userResponse = await fetch("/api/auth/users/me/", {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+        const userResponse = await fetch(meApi, {
+          headers: { Authorization: `Bearer ${accessToken}` },
         });
 
         if (userResponse.ok) {
@@ -124,15 +134,90 @@ export function SignInPage({
       } catch (userError) {
         console.error("Failed to fetch user data:", userError);
       }
+    }
 
-      setTimeout(() => {
-        window.location.href = successRedirectUrl;
-      }, 1000);
+    setTimeout(() => {
+      window.location.href = successRedirectUrl;
+    }, 1000);
+  };
+
+  const handleSignIn = async (identifier: string, password: string) => {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await fetch(loginApi, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          [resolvedIdentifierField]: identifier,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(resolveErrorMessage(data));
+        onError?.(data);
+        return;
+      }
+
+      if (data?.mfa_required) {
+        if (!mfaVerifyApi) {
+          setErrorMessage(
+            "Multi-factor authentication is required but not configured.",
+          );
+          onError?.(data);
+          return;
+        }
+        setChallengeId(data.challenge_id ?? null);
+        setPhase("mfa");
+        return;
+      }
+
+      await completeSuccess(data);
     } catch (error: unknown) {
+      setErrorMessage("Something went wrong. Please try again.");
       onError?.(error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleMfaSubmit = async (code: string) => {
+    if (!mfaVerifyApi) return;
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await fetch(mfaVerifyApi, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ challenge_id: challengeId, code }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(resolveErrorMessage(data));
+        onError?.(data);
+        return;
+      }
+
+      await completeSuccess(data);
+    } catch (error: unknown) {
+      setErrorMessage("Something went wrong. Please try again.");
+      onError?.(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBackToSignIn = () => {
+    setPhase("credentials");
+    setChallengeId(null);
+    setErrorMessage(null);
   };
 
   const handleSocialLogin = (
@@ -226,18 +311,37 @@ export function SignInPage({
                         </span>
                       </Title>
                       <Text c="dimmed" size="xs" ta="center" maw={400}>
-                        {subheading}
+                        {phase === "mfa"
+                          ? "Verify it's you to finish signing in."
+                          : subheading}
                       </Text>
                     </Stack>
 
                     <Stack gap="xs" py="md">
-                      {!showMagicLink ? (
+                      {errorMessage && (
+                        <Alert
+                          color="red"
+                          icon={
+                            <WarningIcon size={18} weight="fill" aria-hidden />
+                          }
+                        >
+                          {errorMessage}
+                        </Alert>
+                      )}
+
+                      {phase === "mfa" ? (
+                        <MfaChallengeForm
+                          onSubmit={handleMfaSubmit}
+                          isLoading={isLoading}
+                          onBackToSignIn={handleBackToSignIn}
+                        />
+                      ) : !showMagicLink ? (
                         <>
                           <SignInForm
                             onSubmit={handleSignIn}
                             isLoading={isLoading}
                             onForgotPassword={onForgotPassword}
-                            skipEmailValidation={skipEmailValidation}
+                            identifierField={resolvedIdentifierField}
                             disableSignUp={disableSignUp}
                             disableForgotPassword={disableForgotPassword}
                           />

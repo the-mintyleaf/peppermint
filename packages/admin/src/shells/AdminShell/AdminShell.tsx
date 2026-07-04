@@ -54,7 +54,7 @@ export function AdminShell({
 
   const showSubNav = activeItem?.kind === "module" && !subNavCollapsed;
 
-  const navbarWidth = getNavbarWidth(false);
+  const navbarWidth = getNavbarWidth(showSubNav);
 
   return (
     <>

@@ -9,6 +9,8 @@ import type { ReactNode } from "react";
 import { KanbanIcon } from "@phosphor-icons/react/dist/csr/Kanban";
 import { buildAdminConfig } from "@/config/nav/admin-nav";
 import { useSelectedOrgStore } from "@/stores/selectedOrg.store";
+import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
+import { useLogout } from "@/modules/admin/authenticate/_shared/useLogout";
 import { LeafIcon } from "@phosphor-icons/react";
 import styles from "./Admin.module.css";
 
@@ -16,6 +18,8 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const org = useSelectedOrgStore((s) => s.org);
+  const { user, isStaff } = useCurrentUser();
+  const { mutate: logoutMutate } = useLogout();
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -28,8 +32,21 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
     () => ({
       ...buildAdminConfig(org, undefined),
       linkComponent: Link,
+      userMenu: {
+        variant: "icon" as const,
+        user: user
+          ? {
+              first_name: user.display_name,
+              last_name: "",
+              username: user.username,
+              email: user.email ?? "",
+              roles: [isStaff ? "admin" : "member"],
+            }
+          : null,
+        onLogout: () => logoutMutate(),
+      },
     }),
-    [org],
+    [org, isStaff, user, logoutMutate],
   );
 
   return (

@@ -1,8 +1,19 @@
 "use client";
 
+import { useEffect } from "react";
 import { SignInPage } from "@peppermint/admin";
+import { notifications } from "@peppermint/ui";
+import { ERROR_MESSAGES } from "@/lib/authErrorMessages";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 export function ModuleSignIn() {
+  useEffect(() => {
+    if (localStorage.getItem("access_token")) {
+      window.location.href = "/admin";
+    }
+  }, []);
+
   return (
     <SignInPage
       heading={["Sign into", "mintflow."]}
@@ -10,11 +21,21 @@ export function ModuleSignIn() {
       brand={["mintyflow", "by mintyleaf.co"]}
       panelTagline="Work done right."
       panelHeading="Sketched from the ground up to make the work work."
-      loginApi="/api/auth/login"
-      skipEmailValidation
+      loginApi={`${API_URL}/api/v1/auth/login/`}
+      mfaVerifyApi={`${API_URL}/api/v1/auth/mfa/totp/verify/`}
+      identifierField="identifier"
       successRedirectUrl="/admin"
-      disableForgotPassword={true}
+      disableForgotPassword
       disableSignUp
+      errorMessageMap={ERROR_MESSAGES}
+      onMfaSetupRecommended={() =>
+        notifications.show({
+          color: "blue",
+          title: "Consider enabling MFA",
+          message:
+            "You can set up multi-factor authentication under Account & Security.",
+        })
+      }
     />
   );
 }
