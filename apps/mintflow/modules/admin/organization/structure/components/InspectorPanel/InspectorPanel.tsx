@@ -1,5 +1,7 @@
 "use client";
 
+import { useParams } from "next/navigation";
+import Link from "next/link";
 import {
   Badge,
   Button,
@@ -13,6 +15,7 @@ import {
   Title,
 } from "@peppermint/ui";
 import { ArrowsOutCardinalIcon } from "@phosphor-icons/react/dist/csr/ArrowsOutCardinal";
+import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
@@ -26,6 +29,7 @@ import { useStructureStore } from "../../Structure.store";
 import styles from "../../Structure.module.css";
 
 export function InspectorPanel() {
+  const { orgId = "" } = useParams<{ orgId: string }>();
   const {
     selectedUnitId,
     drawerOpen,
@@ -140,6 +144,15 @@ export function InspectorPanel() {
               onClick={() => openDeactivateModal(unit.id, unit.name)}
             >
               Deactivate Unit
+            </Button>
+            <Button
+              size="xs"
+              variant="light"
+              component={Link}
+              href={`/admin/organization/${orgId}/event-log?unit=${unit.id}`}
+              leftSection={<ClockCounterClockwiseIcon size={13} />}
+            >
+              View History
             </Button>
           </Stack>
         </Stack>

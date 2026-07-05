@@ -38,6 +38,7 @@ export interface ModalHandlerProps<T extends Record<string, unknown>> {
   transformOnEdit?: (values: T, record: T) => unknown;
   onCreateSuccess?: (result: unknown) => void;
   onEditSuccess?: (result: unknown) => void;
+  getErrorMessage?: (error: unknown) => string;
 }
 
 export type ModalTableShellProps<T extends Record<string, unknown>> = Omit<
@@ -65,4 +66,5 @@ export type ModalTableShellProps<T extends Record<string, unknown>> = Omit<
   transformOnCreate?: (values: T) => unknown;
   transformOnEdit?: (values: T, record: T) => unknown;
   transformOnDelete?: (id: string | number) => unknown;
+  getErrorMessage?: (error: unknown) => string;
 };

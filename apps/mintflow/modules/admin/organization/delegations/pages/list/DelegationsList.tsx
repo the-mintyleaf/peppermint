@@ -5,6 +5,7 @@ import { ModalPaper, ModuleHeader } from "@peppermint/ui";
 import { ModalTableShell } from "@peppermint/admin";
 
 import { RequireStaff } from "@/components/RequireStaff";
+import { getApiErrorMessage } from "@/lib/authErrorMessages";
 
 import { DelegationForm } from "../../form";
 import type { DelegationFormValues } from "../../form";
@@ -54,6 +55,7 @@ function DelegationsListContent() {
             };
             return createDelegation(orgId, payload);
           }}
+          getErrorMessage={getApiErrorMessage}
           disableReviewButton
           pageSizes={[10, 20, 30, 50]}
           defaultPageSize={20}

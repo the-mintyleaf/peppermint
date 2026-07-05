@@ -45,8 +45,8 @@ export function MfaTab({ userId }: MfaTabProps) {
   return (
     <Stack gap="md">
       <Alert color="gray" icon={<ShieldWarningIcon size={18} aria-hidden />}>
-        There&apos;s no endpoint to read this user&apos;s MFA enrollment
-        status — only the reset action is available here.
+        There&apos;s no endpoint to read this user&apos;s MFA enrollment status
+        — only the reset action is available here.
       </Alert>
       <Button
         color="red"

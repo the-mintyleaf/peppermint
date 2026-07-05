@@ -6,6 +6,7 @@ import { ModalPaper, ModuleHeader } from "@peppermint/ui";
 import { ModalTableShell } from "@peppermint/admin";
 
 import { RequireStaff } from "@/components/RequireStaff";
+import { getApiErrorMessage } from "@/lib/authErrorMessages";
 
 import { ChainOfCommandView } from "../../components/ChainOfCommandView";
 import { ReportingLineForm } from "../../form";
@@ -54,6 +55,7 @@ function ReportingLinesListContent() {
               values as unknown as CreateReportingLinePayload,
             )
           }
+          getErrorMessage={getApiErrorMessage}
           disableReviewButton
           pageSizes={[10, 20, 30, 50]}
           defaultPageSize={20}

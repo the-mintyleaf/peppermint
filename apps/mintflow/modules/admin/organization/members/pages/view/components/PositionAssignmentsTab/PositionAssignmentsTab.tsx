@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import {
+  Alert,
   Badge,
   Button,
+  DateInput,
   Group,
   Modal,
   Select,
@@ -18,19 +20,26 @@ import {
   useQueryClient,
 } from "@peppermint/ui";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
+import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 
 import { getApiError, getApiErrorMessage } from "@/lib/authErrorMessages";
 
 import { UnitPickerSelect } from "../../../../../_shared/components/UnitPickerSelect";
+import { PositionPickerSelect } from "../../../../../_shared/components/PositionPickerSelect";
 import { ReasonTextarea } from "../../../../../_shared/components/ReasonTextarea";
 import {
   createPositionAssignment,
   endPositionAssignment,
   fetchPositionAssignments,
+  transferPositionAssignment,
 } from "../../../../members.api";
 import { membersQueryKeys } from "../../../../members.queryKeys";
 import type { AssignmentType } from "../../../../members.types";
-import { fetchPositions } from "../../../../../positions/positions.api";
+import type { AssignmentStatus } from "../../../../../_shared/organization.types";
+import {
+  fetchPositionHolders,
+  fetchPositions,
+} from "../../../../../positions/positions.api";
 import { positionsQueryKeys } from "../../../../../positions/positions.queryKeys";
 import type { PositionAssignmentsTabProps } from "./PositionAssignmentsTab.types";
 
@@ -44,6 +53,72 @@ const ASSIGNMENT_TYPE_OPTIONS: { value: AssignmentType; label: string }[] = [
   { value: "external", label: "External" },
   { value: "system", label: "System" },
 ];
+
+const ASSIGNMENT_STATUS_OPTIONS: { value: AssignmentStatus; label: string }[] =
+  [
+    { value: "planned", label: "Planned" },
+    { value: "active", label: "Active" },
+    { value: "paused", label: "Paused" },
+  ];
+
+function EndPositionAssignmentModalContent({
+  isLoading,
+  onConfirm,
+}: {
+  isLoading: boolean;
+  onConfirm: (reason: string) => void;
+}) {
+  const [reason, setReason] = useState("");
+
+  return (
+    <Stack gap="md">
+      <Text size="sm">This does not end unit or organization membership.</Text>
+      <ReasonTextarea value={reason} onChange={setReason} />
+      <Button
+        fullWidth
+        color="red"
+        loading={isLoading}
+        onClick={() => onConfirm(reason)}
+      >
+        End Assignment
+      </Button>
+    </Stack>
+  );
+}
+
+function TransferPositionAssignmentModalContent({
+  organizationId,
+  isLoading,
+  onConfirm,
+}: {
+  organizationId: string;
+  isLoading: boolean;
+  onConfirm: (newPositionId: string, reason: string) => void;
+}) {
+  const [newPositionId, setNewPositionId] = useState<string | null>(null);
+  const [reason, setReason] = useState("");
+
+  return (
+    <Stack gap="md">
+      <PositionPickerSelect
+        organizationId={organizationId}
+        label="New position"
+        required
+        value={newPositionId}
+        onChange={setNewPositionId}
+      />
+      <ReasonTextarea value={reason} onChange={setReason} required />
+      <Button
+        fullWidth
+        loading={isLoading}
+        disabled={!newPositionId || !reason.trim()}
+        onClick={() => newPositionId && onConfirm(newPositionId, reason)}
+      >
+        Transfer Assignment
+      </Button>
+    </Stack>
+  );
+}
 
 export function PositionAssignmentsTab({
   organizationId,
@@ -60,7 +135,11 @@ export function PositionAssignmentsTab({
   const [positionId, setPositionId] = useState<string | null>(null);
   const [assignmentType, setAssignmentType] =
     useState<AssignmentType>("primary");
+  const [assignmentStatus, setAssignmentStatus] =
+    useState<AssignmentStatus>("active");
   const [isPrimary, setIsPrimary] = useState(false);
+  const [startsAt, setStartsAt] = useState<string | null>(null);
+  const [endsAt, setEndsAt] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [apiFieldError, setApiFieldError] = useState<string | undefined>();
 
@@ -74,11 +153,31 @@ export function PositionAssignmentsTab({
     label: `${p.title} (${p.code})`,
   }));
 
+  const selectedPosition = (unitPositions?.data ?? []).find(
+    (p) => p.id === positionId,
+  );
+
+  const { data: holders } = useQuery({
+    queryKey: positionsQueryKeys.holders(positionId ?? ""),
+    queryFn: () => fetchPositionHolders(positionId as string),
+    enabled: Boolean(positionId),
+  });
+  const activeHolderCount = (holders ?? []).filter(
+    (h) => h.status === "active",
+  ).length;
+  const isNearCapacity =
+    Boolean(selectedPosition) &&
+    selectedPosition!.max_occupants > 0 &&
+    activeHolderCount >= selectedPosition!.max_occupants;
+
   const createMutation = useMutation({
     mutationFn: () =>
       createPositionAssignment(membershipId, {
         position_id: positionId as string,
         assignment_type: assignmentType,
+        status: assignmentStatus,
+        starts_at: startsAt,
+        ends_at: endsAt,
         is_primary: isPrimary,
         reason: reason || undefined,
       }),
@@ -94,6 +193,8 @@ export function PositionAssignmentsTab({
       setUnitId(null);
       setPositionId(null);
       setIsPrimary(false);
+      setStartsAt(null);
+      setEndsAt(null);
       setReason("");
     },
     onError: (error) => {
@@ -114,13 +215,19 @@ export function PositionAssignmentsTab({
   });
 
   const endMutation = useMutation({
-    mutationFn: (assignmentId: string) =>
-      endPositionAssignment(assignmentId, {}),
+    mutationFn: ({
+      assignmentId,
+      reason: endReason,
+    }: {
+      assignmentId: string;
+      reason: string;
+    }) => endPositionAssignment(assignmentId, { reason: endReason }),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: membersQueryKeys.positionAssignments(membershipId),
       });
       notifications.show({ color: "green", message: "Assignment ended." });
+      modals.closeAll();
     },
     onError: (error) => {
       notifications.show({
@@ -131,17 +238,69 @@ export function PositionAssignmentsTab({
     },
   });
 
+  const transferMutation = useMutation({
+    mutationFn: ({
+      assignmentId,
+      newPositionId,
+      reason: transferReason,
+    }: {
+      assignmentId: string;
+      newPositionId: string;
+      reason: string;
+    }) =>
+      transferPositionAssignment(assignmentId, {
+        new_position_id: newPositionId,
+        reason: transferReason,
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: membersQueryKeys.positionAssignments(membershipId),
+      });
+      notifications.show({
+        color: "green",
+        message: "Assignment transferred.",
+      });
+      modals.closeAll();
+    },
+    onError: (error) => {
+      notifications.show({
+        color: "red",
+        title: "Couldn't transfer assignment",
+        message: getApiErrorMessage(error),
+      });
+    },
+  });
+
   function requestEnd(assignmentId: string) {
-    modals.openConfirmModal({
+    modals.open({
       title: "End position assignment",
       children: (
-        <Text size="sm">
-          This does not end unit or organization membership. Continue?
-        </Text>
+        <EndPositionAssignmentModalContent
+          isLoading={endMutation.isPending}
+          onConfirm={(endReason) =>
+            endMutation.mutate({ assignmentId, reason: endReason })
+          }
+        />
       ),
-      labels: { confirm: "End", cancel: "Cancel" },
-      confirmProps: { color: "red" },
-      onConfirm: () => endMutation.mutate(assignmentId),
+    });
+  }
+
+  function requestTransfer(assignmentId: string) {
+    modals.open({
+      title: "Transfer position assignment",
+      children: (
+        <TransferPositionAssignmentModalContent
+          organizationId={organizationId}
+          isLoading={transferMutation.isPending}
+          onConfirm={(newPositionId, transferReason) =>
+            transferMutation.mutate({
+              assignmentId,
+              newPositionId,
+              reason: transferReason,
+            })
+          }
+        />
+      ),
     });
   }
 
@@ -185,14 +344,23 @@ export function PositionAssignmentsTab({
                 <Table.Td>{assignment.status}</Table.Td>
                 <Table.Td>
                   {assignment.status === "active" && (
-                    <Button
-                      size="xs"
-                      variant="light"
-                      color="red"
-                      onClick={() => requestEnd(assignment.id)}
-                    >
-                      End
-                    </Button>
+                    <Group gap="xs">
+                      <Button
+                        size="xs"
+                        variant="light"
+                        onClick={() => requestTransfer(assignment.id)}
+                      >
+                        Transfer
+                      </Button>
+                      <Button
+                        size="xs"
+                        variant="light"
+                        color="red"
+                        onClick={() => requestEnd(assignment.id)}
+                      >
+                        End
+                      </Button>
+                    </Group>
                   )}
                 </Table.Td>
               </Table.Tr>
@@ -233,11 +401,41 @@ export function PositionAssignmentsTab({
               value && setAssignmentType(value as AssignmentType)
             }
           />
+          <Select
+            label="Status"
+            data={ASSIGNMENT_STATUS_OPTIONS}
+            value={assignmentStatus}
+            onChange={(value) =>
+              value && setAssignmentStatus(value as AssignmentStatus)
+            }
+          />
+          <DateInput
+            label="Starts at"
+            clearable
+            value={startsAt}
+            onChange={setStartsAt}
+          />
+          <DateInput
+            label="Ends at"
+            clearable
+            value={endsAt}
+            onChange={setEndsAt}
+          />
           <Switch
             label="Primary assignment"
             checked={isPrimary}
             onChange={(e) => setIsPrimary(e.currentTarget.checked)}
           />
+          {isNearCapacity && (
+            <Alert
+              color="orange"
+              icon={<WarningIcon size={16} weight="fill" aria-hidden />}
+            >
+              This position is at capacity ({activeHolderCount}/
+              {selectedPosition!.max_occupants}). Creating this assignment may
+              be rejected.
+            </Alert>
+          )}
           <ReasonTextarea
             value={reason}
             onChange={setReason}

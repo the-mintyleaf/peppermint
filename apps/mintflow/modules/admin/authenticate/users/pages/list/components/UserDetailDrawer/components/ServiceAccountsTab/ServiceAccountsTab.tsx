@@ -22,13 +22,14 @@ import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { OneTimeSecretModal } from "@/modules/admin/authenticate/_shared/OneTimeSecretModal";
+import { QueryErrorState } from "@/components/QueryErrorState";
 
 import {
-  createServiceAccountCredential,
   fetchUserServiceAccountCredentials,
   revokeServiceAccountCredential,
 } from "../../../../../../users.api";
 import { usersQueryKeys } from "../../../../../../users.queryKeys";
+import { CreateServiceAccountCredentialModalContent } from "../../../CreateServiceAccountCredentialModalContent";
 import type { ServiceAccountsTabProps } from "./ServiceAccountsTab.types";
 
 const PAGE_SIZE = 10;
@@ -38,7 +39,7 @@ export function ServiceAccountsTab({ userId }: ServiceAccountsTabProps) {
   const [newToken, setNewToken] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isRefetching, refetch } = useQuery({
     queryKey: usersQueryKeys.serviceAccountCredentials(userId, page),
     queryFn: () =>
       fetchUserServiceAccountCredentials(userId, {
@@ -52,15 +53,17 @@ export function ServiceAccountsTab({ userId }: ServiceAccountsTabProps) {
       queryKey: usersQueryKeys.serviceAccountCredentialsKey(userId),
     });
 
-  const createMutation = useMutation({
-    mutationFn: () => createServiceAccountCredential(userId, {}),
-    onSuccess: (result) => {
-      setNewToken(result.token);
-      invalidate();
-    },
-    onError: (error) =>
-      notifications.show({ color: "red", message: getApiErrorMessage(error) }),
-  });
+  const handleNewCredential = () => {
+    modals.open({
+      title: "New service account credential",
+      children: (
+        <CreateServiceAccountCredentialModalContent
+          userId={userId}
+          onCreated={setNewToken}
+        />
+      ),
+    });
+  };
 
   const revokeMutation = useMutation({
     mutationFn: (credentialId: string) =>
@@ -97,9 +100,11 @@ export function ServiceAccountsTab({ userId }: ServiceAccountsTabProps) {
 
   if (isError) {
     return (
-      <Text size="sm" c="red">
-        Couldn&apos;t load service account credentials.
-      </Text>
+      <QueryErrorState
+        message="Couldn't load service account credentials."
+        onRetry={() => refetch()}
+        isRetrying={isRefetching}
+      />
     );
   }
 
@@ -111,8 +116,7 @@ export function ServiceAccountsTab({ userId }: ServiceAccountsTabProps) {
         <Button
           size="xs"
           leftSection={<PlusIcon size={14} aria-hidden />}
-          loading={createMutation.isPending}
-          onClick={() => createMutation.mutate()}
+          onClick={handleNewCredential}
         >
           New credential
         </Button>

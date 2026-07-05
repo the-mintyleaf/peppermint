@@ -24,6 +24,7 @@ import type { SelectedOrgInfo } from "../../stores/selectedOrg.store";
 export function buildAdminConfig(
   org: SelectedOrgInfo | null,
   orgSwitcherWidget?: ReactNode,
+  isStaff?: boolean,
 ): AdminShellConfig {
   return {
     brand: {
@@ -142,47 +143,51 @@ export function buildAdminConfig(
           ],
         },
       },
-      {
-        kind: "module",
-        id: "authenticate",
-        icon: IdentificationCardIcon,
-        label: "Identity & Access Management",
-        subNav: {
-          homeHref: "/admin/authenticate/users",
-          groups: [
+      ...(isStaff
+        ? [
             {
-              label: "Users & Sessions",
-              items: [
-                {
-                  label: "Users",
-                  href: "/admin/authenticate/users",
-                  icon: UserListIcon,
-                },
-              ],
+              kind: "module" as const,
+              id: "authenticate",
+              icon: IdentificationCardIcon,
+              label: "Identity & Access Management",
+              subNav: {
+                homeHref: "/admin/authenticate/users",
+                groups: [
+                  {
+                    label: "Users & Sessions",
+                    items: [
+                      {
+                        label: "Users",
+                        href: "/admin/authenticate/users",
+                        icon: UserListIcon,
+                      },
+                    ],
+                  },
+                  {
+                    label: "Access Control",
+                    items: [
+                      {
+                        label: "Roles & Bindings",
+                        href: "/admin/authenticate/roles-bindings",
+                        icon: LockKeyIcon,
+                      },
+                      {
+                        label: "Direct Access",
+                        href: "/admin/authenticate/direct-access",
+                        icon: KeyIcon,
+                      },
+                      {
+                        label: "Access Tools",
+                        href: "/admin/authenticate/access-tools",
+                        icon: MagnifyingGlassIcon,
+                      },
+                    ],
+                  },
+                ],
+              },
             },
-            {
-              label: "Access Control",
-              items: [
-                {
-                  label: "Roles & Bindings",
-                  href: "/admin/authenticate/roles-bindings",
-                  icon: LockKeyIcon,
-                },
-                {
-                  label: "Direct Access",
-                  href: "/admin/authenticate/direct-access",
-                  icon: KeyIcon,
-                },
-                {
-                  label: "Access Tools",
-                  href: "/admin/authenticate/access-tools",
-                  icon: MagnifyingGlassIcon,
-                },
-              ],
-            },
-          ],
-        },
-      },
+          ]
+        : []),
     ],
   };
 }

@@ -17,6 +17,7 @@ import {
 import { UserCircleIcon } from "@phosphor-icons/react/dist/csr/UserCircle";
 import { getApiError, getApiErrorMessage } from "@/lib/authErrorMessages";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
+import { QueryErrorState } from "@/components/QueryErrorState";
 import { updateProfile } from "../account-security.api";
 import type {
   ProfileFormProps,
@@ -98,7 +99,7 @@ function ProfileForm({ user }: ProfileFormProps) {
 }
 
 export function ProfileCard() {
-  const { user, isLoading } = useCurrentUser();
+  const { user, isLoading, isError, isRefetching, refetch } = useCurrentUser();
 
   return (
     <Card withBorder radius="md" p="lg">
@@ -108,7 +109,13 @@ export function ProfileCard() {
           <Title order={4}>Profile</Title>
         </Group>
 
-        {isLoading || !user ? (
+        {isError ? (
+          <QueryErrorState
+            message="Couldn't load your profile."
+            onRetry={() => refetch()}
+            isRetrying={isRefetching}
+          />
+        ) : isLoading || !user ? (
           <Group justify="center" py="lg">
             <Loader size="sm" />
           </Group>

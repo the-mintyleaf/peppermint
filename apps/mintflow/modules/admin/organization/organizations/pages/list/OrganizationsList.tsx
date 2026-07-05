@@ -6,25 +6,25 @@ import {
   Box,
   Button,
   Center,
+  Group,
   ManageHeader,
   Modal,
   ModalPaper,
   ModuleHeader,
   notifications,
-  Select,
+  SegmentedControl,
   SimpleGrid,
   Stack,
   Text,
-  TextInput,
   ThemeIcon,
   Title,
+  useComputedColorScheme,
   useDisclosure,
   useMutation,
   useQuery,
   useQueryClient,
 } from "@peppermint/ui";
 import { BuildingsIcon } from "@phosphor-icons/react/dist/csr/Buildings";
-import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 
 import { RequireStaff } from "@/components/RequireStaff";
@@ -40,19 +40,18 @@ import {
 import { organizationsQueryKeys } from "../../organizations.queryKeys";
 import type { Organization, OrganizationType } from "../../organizations.types";
 import { OrganizationCard } from "./OrganizationCard";
+import { OrganizationsSearchMenu } from "./components/OrganizationsSearchMenu";
 
 const STATUS_FILTER_OPTIONS = [
-  { value: "all", label: "All statuses" },
-  { value: "draft", label: "Draft" },
+  { value: "all", label: "All" },
   { value: "active", label: "Active" },
   { value: "inactive", label: "Inactive" },
-  { value: "suspended", label: "Suspended" },
-  { value: "archived", label: "Archived" },
 ];
 
 function OrganizationsListContent() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const colorScheme = useComputedColorScheme("light");
   const setOrg = useSelectedOrgStore((s) => s.setOrg);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string | null>("all");
@@ -136,42 +135,34 @@ function OrganizationsListContent() {
 
         <Box px="md" pb="md">
           <Stack gap="md">
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                justifyContent: "space-between",
-                flexWrap: "wrap",
-              }}
-            >
-              <div style={{ display: "flex", gap: 8, flex: 1, minWidth: 240 }}>
-                <TextInput
-                  placeholder="Search by name or code"
-                  leftSection={
-                    <MagnifyingGlassIcon size={13} aria-label="Search" />
-                  }
-                  value={search}
-                  onChange={(event) => setSearch(event.currentTarget.value)}
-                  style={{ flex: 1, maxWidth: 320 }}
+            <Group gap="xs" justify="space-between" wrap="wrap">
+              <SegmentedControl
+                withItemsBorders={false}
+                size="sm"
+                value={status ?? "all"}
+                onChange={setStatus}
+                data={STATUS_FILTER_OPTIONS}
+                color={colorScheme === "dark" ? "dark.4" : "white"}
+                autoContrast
+                styles={{
+                  label: {
+                    paddingInline: 10,
+                    fontSize: "var(--mantine-font-size-xs)",
+                  },
+                }}
+              />
+              <Group gap={4} wrap="nowrap">
+                <OrganizationsSearchMenu value={search} onChange={setSearch} />
+                <Button
                   size="xs"
-                />
-                <Select
-                  data={STATUS_FILTER_OPTIONS}
-                  value={status}
-                  onChange={setStatus}
-                  size="xs"
-                  w={160}
-                />
-              </div>
-              <Button
-                size="xs"
-                color="brand"
-                rightSection={<PlusIcon size={13} weight="bold" />}
-                onClick={openCreate}
-              >
-                Create Organization
-              </Button>
-            </div>
+                  color="brand"
+                  rightSection={<PlusIcon size={13} weight="bold" />}
+                  onClick={openCreate}
+                >
+                  Create Organization
+                </Button>
+              </Group>
+            </Group>
 
             {isLoading ? (
               <Text size="sm" c="dimmed">

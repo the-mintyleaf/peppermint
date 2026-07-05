@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import {
   ActionIcon,
+  Button,
   Menu,
+  Stack,
   Text,
   modals,
   notifications,
@@ -15,8 +18,35 @@ import { TreeStructureIcon } from "@phosphor-icons/react/dist/csr/TreeStructure"
 
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 
+import { ReasonTextarea } from "../../../../../_shared/components/ReasonTextarea";
 import { endReportingLine } from "../../../../reportingLines.api";
 import type { ReportingLineRowActionsMenuProps } from "./ReportingLineRowActionsMenu.types";
+
+function EndReportingLineModalContent({
+  isLoading,
+  onConfirm,
+}: {
+  isLoading: boolean;
+  onConfirm: (reason: string) => void;
+}) {
+  const [reason, setReason] = useState("");
+
+  return (
+    <Stack gap="md">
+      <Text size="sm">This chain-of-command link will no longer apply.</Text>
+      <ReasonTextarea value={reason} onChange={setReason} required />
+      <Button
+        fullWidth
+        color="red"
+        loading={isLoading}
+        disabled={!reason.trim()}
+        onClick={() => onConfirm(reason)}
+      >
+        End Reporting Line
+      </Button>
+    </Stack>
+  );
+}
 
 export function ReportingLineRowActionsMenu({
   reportingLine,
@@ -25,10 +55,12 @@ export function ReportingLineRowActionsMenu({
   const queryClient = useQueryClient();
 
   const endMutation = useMutation({
-    mutationFn: () => endReportingLine(reportingLine.id, {}),
+    mutationFn: (reason: string) =>
+      endReportingLine(reportingLine.id, { reason }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["reporting-lines"] });
       notifications.show({ color: "green", message: "Reporting line ended." });
+      modals.closeAll();
     },
     onError: (error) => {
       notifications.show({
@@ -40,16 +72,14 @@ export function ReportingLineRowActionsMenu({
   });
 
   function handleEnd() {
-    modals.openConfirmModal({
+    modals.open({
       title: "End reporting line",
       children: (
-        <Text size="sm">
-          This chain-of-command link will no longer apply. Continue?
-        </Text>
+        <EndReportingLineModalContent
+          isLoading={endMutation.isPending}
+          onConfirm={(reason) => endMutation.mutate(reason)}
+        />
       ),
-      labels: { confirm: "End", cancel: "Cancel" },
-      confirmProps: { color: "red" },
-      onConfirm: () => endMutation.mutate(),
     });
   }
 

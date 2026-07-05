@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Alert,
   Badge,
   Button,
   Card,
@@ -18,8 +17,8 @@ import {
 } from "@peppermint/ui";
 import { formatRelative } from "@peppermint/utils";
 import { DesktopIcon } from "@phosphor-icons/react/dist/csr/Desktop";
-import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
+import { QueryErrorState } from "@/components/QueryErrorState";
 import {
   fetchSessions,
   revokeAllSessions,
@@ -85,6 +84,8 @@ export function SessionsCard() {
     data: sessions,
     isLoading,
     isError,
+    isRefetching,
+    refetch,
   } = useQuery({
     queryKey: SESSIONS_QUERY_KEY,
     queryFn: fetchSessions,
@@ -176,12 +177,11 @@ export function SessionsCard() {
             <Loader size="sm" />
           </Group>
         ) : isError ? (
-          <Alert
-            color="red"
-            icon={<WarningIcon size={18} weight="fill" aria-hidden />}
-          >
-            Couldn&apos;t load your sessions. Try refreshing the page.
-          </Alert>
+          <QueryErrorState
+            message="Couldn't load your sessions."
+            onRetry={() => refetch()}
+            isRetrying={isRefetching}
+          />
         ) : !hasSessions ? (
           <Text size="sm" c="dimmed">
             No active sessions found.

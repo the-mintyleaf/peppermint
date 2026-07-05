@@ -23,6 +23,7 @@ export function ModalHandler<T extends Record<string, unknown>>({
   transformOnEdit,
   onCreateSuccess,
   onEditSuccess,
+  getErrorMessage,
 }: ModalHandlerProps<T>) {
   const queryClient = useQueryClient();
 
@@ -64,11 +65,13 @@ export function ModalHandler<T extends Record<string, unknown>>({
       invalidate();
       onCreateSuccess?.(result);
     },
-    onError: () => {
+    onError: (error) => {
       notifications.show({
         color: "red",
         title: "Error",
-        message: `Failed to create ${moduleLabel}.`,
+        message: getErrorMessage
+          ? getErrorMessage(error)
+          : `Failed to create ${moduleLabel}.`,
       });
     },
   });
@@ -92,11 +95,13 @@ export function ModalHandler<T extends Record<string, unknown>>({
       invalidate();
       onEditSuccess?.(result);
     },
-    onError: () => {
+    onError: (error) => {
       notifications.show({
         color: "red",
         title: "Error",
-        message: `Failed to update ${moduleLabel}.`,
+        message: getErrorMessage
+          ? getErrorMessage(error)
+          : `Failed to update ${moduleLabel}.`,
       });
     },
   });

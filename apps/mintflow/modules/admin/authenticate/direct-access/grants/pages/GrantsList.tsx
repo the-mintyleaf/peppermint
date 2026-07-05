@@ -1,6 +1,7 @@
 "use client";
 
 import { ModalTableShell } from "@peppermint/admin";
+import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { createGrant, fetchGrants } from "../grants.api";
 import { grantsColumns } from "../grants.columns";
 import { grantQueryKeys } from "../grants.queryKeys";
@@ -23,6 +24,7 @@ export function GrantsList() {
       idAccessor="id"
       createFormComponent={GrantForm}
       onCreateApi={(values) => createGrant(values as GrantCreatePayload)}
+      getErrorMessage={getApiErrorMessage}
       disableReviewButton
       pageSizes={[10, 20, 30, 50]}
       defaultPageSize={20}

@@ -11,6 +11,7 @@ import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
 import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
 
 import { RequireStaff } from "@/components/RequireStaff";
+import { getApiErrorMessage } from "@/lib/authErrorMessages";
 
 import { InviteMemberForm } from "../../form";
 import type { InviteMemberFormValues } from "../../form";
@@ -80,6 +81,7 @@ function MembersListContent() {
           onReviewClick={(record) =>
             router.push(`/admin/organization/${orgId}/members/${record.id}`)
           }
+          getErrorMessage={getApiErrorMessage}
           pageSizes={[10, 20, 30, 50]}
           defaultPageSize={20}
           tabs={tabs}

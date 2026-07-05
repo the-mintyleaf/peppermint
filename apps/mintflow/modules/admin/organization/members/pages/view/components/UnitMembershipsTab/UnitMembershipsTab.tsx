@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import {
   Badge,
   Button,
+  DateInput,
   Group,
   Modal,
   Stack,
@@ -34,6 +35,32 @@ import {
 import { membersQueryKeys } from "../../../../members.queryKeys";
 import type { UnitMembershipsTabProps } from "./UnitMembershipsTab.types";
 
+function EndUnitMembershipModalContent({
+  isLoading,
+  onConfirm,
+}: {
+  isLoading: boolean;
+  onConfirm: (reason: string) => void;
+}) {
+  const [reason, setReason] = useState("");
+
+  return (
+    <Stack gap="md">
+      <Text size="sm">This does not end the organization membership.</Text>
+      <ReasonTextarea value={reason} onChange={setReason} required />
+      <Button
+        fullWidth
+        color="red"
+        loading={isLoading}
+        disabled={!reason.trim()}
+        onClick={() => onConfirm(reason)}
+      >
+        End Unit Membership
+      </Button>
+    </Stack>
+  );
+}
+
 export function UnitMembershipsTab({
   organizationId,
   membershipId,
@@ -53,6 +80,8 @@ export function UnitMembershipsTab({
   const [unitId, setUnitId] = useState<string | null>(null);
   const [membershipType, setMembershipType] = useState("");
   const [isPrimary, setIsPrimary] = useState(false);
+  const [validFrom, setValidFrom] = useState<string | null>(null);
+  const [validTo, setValidTo] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [codeError, setCodeError] = useState<string | undefined>();
 
@@ -62,6 +91,8 @@ export function UnitMembershipsTab({
         unit_id: unitId as string,
         membership_type: membershipType || undefined,
         is_primary: isPrimary,
+        valid_from: validFrom,
+        valid_to: validTo,
         reason: reason || undefined,
       }),
     onSuccess: () => {
@@ -73,6 +104,8 @@ export function UnitMembershipsTab({
       setUnitId(null);
       setMembershipType("");
       setIsPrimary(false);
+      setValidFrom(null);
+      setValidTo(null);
       setReason("");
     },
     onError: (error) => {
@@ -90,13 +123,19 @@ export function UnitMembershipsTab({
   });
 
   const endMutation = useMutation({
-    mutationFn: (unitMembershipId: string) =>
-      endUnitMembership(unitMembershipId, {}),
+    mutationFn: ({
+      unitMembershipId,
+      reason: endReason,
+    }: {
+      unitMembershipId: string;
+      reason: string;
+    }) => endUnitMembership(unitMembershipId, { reason: endReason }),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: membersQueryKeys.unitMemberships(membershipId),
       });
       notifications.show({ color: "green", message: "Unit membership ended." });
+      modals.closeAll();
     },
     onError: (error) => {
       notifications.show({
@@ -108,16 +147,16 @@ export function UnitMembershipsTab({
   });
 
   function requestEnd(unitMembershipId: string) {
-    modals.openConfirmModal({
+    modals.open({
       title: "End unit membership",
       children: (
-        <Text size="sm">
-          This does not end the organization membership. Continue?
-        </Text>
+        <EndUnitMembershipModalContent
+          isLoading={endMutation.isPending}
+          onConfirm={(endReason) =>
+            endMutation.mutate({ unitMembershipId, reason: endReason })
+          }
+        />
       ),
-      labels: { confirm: "End", cancel: "Cancel" },
-      confirmProps: { color: "red" },
-      onConfirm: () => endMutation.mutate(unitMembershipId),
     });
   }
 
@@ -156,7 +195,11 @@ export function UnitMembershipsTab({
             {unitMemberships.map((um) => (
               <Table.Tr key={um.id}>
                 <Table.Td>{unitNameById.get(um.unit) ?? um.unit}</Table.Td>
-                <Table.Td>{um.membership_type || "—"}</Table.Td>
+                <Table.Td>
+                  <Badge size="xs" color={um.is_primary ? "blue" : "gray"}>
+                    {um.membership_type || "—"}
+                  </Badge>
+                </Table.Td>
                 <Table.Td>
                   {um.is_primary && <Badge size="xs">Primary</Badge>}
                 </Table.Td>
@@ -202,6 +245,18 @@ export function UnitMembershipsTab({
             label="Primary unit"
             checked={isPrimary}
             onChange={(e) => setIsPrimary(e.currentTarget.checked)}
+          />
+          <DateInput
+            label="Valid from"
+            clearable
+            value={validFrom}
+            onChange={setValidFrom}
+          />
+          <DateInput
+            label="Valid to"
+            clearable
+            value={validTo}
+            onChange={setValidTo}
           />
           <ReasonTextarea
             value={reason}

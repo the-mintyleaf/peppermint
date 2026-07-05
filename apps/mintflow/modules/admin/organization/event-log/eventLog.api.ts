@@ -16,9 +16,14 @@ export async function fetchEventLog(
         page: params?.page,
         page_size: params?.pageSize,
         search: params?.search || undefined,
+        ordering: "-created_at",
         ...params?.filters,
       },
     },
   );
-  return { data: data.data, meta: { ...data.meta, total: data.meta.count } };
+  const sorted = [...data.data].sort(
+    (a: OrganizationEventLog, b: OrganizationEventLog) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
+  return { data: sorted, meta: { ...data.meta, total: data.meta.count } };
 }

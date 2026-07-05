@@ -9,6 +9,7 @@ import {
   useQueryClient,
 } from "@peppermint/ui";
 
+import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { RoleEditForm, RoleForm } from "../form";
 import type { CreateRolePayload, UpdateRolePayload } from "../roles.api";
 import {
@@ -92,6 +93,7 @@ export function RolesList() {
         onEditApi={(values, record) =>
           updateRole(record.id, values as UpdateRolePayload)
         }
+        getErrorMessage={getApiErrorMessage}
         pageSizes={[10, 20, 30, 50]}
         defaultPageSize={20}
       />

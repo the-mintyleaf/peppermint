@@ -23,6 +23,12 @@ const REPORTING_LINE_TYPE_OPTIONS = [
   { value: "other", label: "Other" },
 ];
 
+const STATUS_OPTIONS = [
+  { value: "planned", label: "Planned" },
+  { value: "active", label: "Active" },
+  { value: "paused", label: "Paused" },
+];
+
 export function ReportingLineForm({
   onSubmit,
   isLoading,
@@ -33,6 +39,7 @@ export function ReportingLineForm({
       source_position_id: null,
       target_position_id: null,
       reporting_line_type: "",
+      status: "active",
       is_primary: true,
       reason: "",
     },
@@ -80,6 +87,12 @@ export function ReportingLineForm({
           data={REPORTING_LINE_TYPE_OPTIONS}
           disabled={isLoading}
           {...form.getInputProps("reporting_line_type")}
+        />
+        <Select
+          label="Status"
+          data={STATUS_OPTIONS}
+          disabled={isLoading}
+          {...form.getInputProps("status")}
         />
         <Switch
           label="Primary reporting line"

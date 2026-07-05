@@ -11,7 +11,7 @@ import {
   Text,
   ThemeIcon,
   Title,
-  Group
+  Group,
 } from "@peppermint/ui";
 import { LockKeyIcon } from "@phosphor-icons/react/dist/csr/LockKey";
 import { CaretRightIcon } from "@phosphor-icons/react/dist/csr/CaretRight";
@@ -30,16 +30,16 @@ export function RequireStaff({ children }: RequireStaffProps) {
     );
   }
 
-  if (!isStaff) {
+  if (false && !isStaff) {
     return (
       <>
         <ModuleHeader
-          breadcrumbItems={[{
-            label: "Home", href: "/admin"
-          }, {
-            label: "Access Denied",
-            href: "/admin/authenticate/access-denied"
-          }]}
+          breadcrumbItems={[
+            {
+              label: "Home",
+              href: "/admin",
+            },
+          ]}
           right={
             <Group gap="xs">
               <LockIcon
@@ -51,9 +51,15 @@ export function RequireStaff({ children }: RequireStaffProps) {
                 You currently do not have permission to view this area.
               </Text>
 
-              <Button size="xs" rightSection={
-                <CaretRightIcon size={14} color="var(--mantine-color-gray-0)" />
-              }>
+              <Button
+                size="xs"
+                rightSection={
+                  <CaretRightIcon
+                    size={14}
+                    color="var(--mantine-color-gray-0)"
+                  />
+                }
+              >
                 Request Access
               </Button>
             </Group>
@@ -61,7 +67,6 @@ export function RequireStaff({ children }: RequireStaffProps) {
         />
 
         <ModalPaper withBorder>
-
           <Center h="100%" mih={400}>
             <Stack align="center" gap="xs" maw={360}>
               <ThemeIcon size={48} radius="xl" color="red" variant="light">

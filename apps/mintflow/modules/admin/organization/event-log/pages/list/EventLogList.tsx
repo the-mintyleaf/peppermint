@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { ModalPaper, ModuleHeader } from "@peppermint/ui";
 import { DataTableShell } from "@peppermint/admin";
 
@@ -13,6 +13,8 @@ import { getEventLogColumns } from "./eventLog.columns";
 
 function EventLogListContent() {
   const { orgId = "" } = useParams<{ orgId: string }>();
+  const searchParams = useSearchParams();
+  const unitId = searchParams.get("unit");
   const columns = getEventLogColumns();
 
   return (
@@ -40,6 +42,15 @@ function EventLogListContent() {
           disableActions
           pageSizes={[10, 20, 30, 50]}
           defaultPageSize={20}
+          forceFilter={
+            unitId
+              ? (rows) =>
+                  rows.filter(
+                    (row) =>
+                      row.object_type === "unit" && row.object_id === unitId,
+                  )
+              : undefined
+          }
         />
       </ModalPaper>
     </>

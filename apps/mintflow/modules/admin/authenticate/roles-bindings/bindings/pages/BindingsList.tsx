@@ -14,6 +14,7 @@ import {
   useQueryClient,
 } from "@peppermint/ui";
 
+import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { RoleBindingForm } from "../form";
 import type { CreateRoleBindingPayload } from "../bindings.api";
 import {
@@ -134,6 +135,7 @@ export function BindingsList() {
       onCreateApi={(values) =>
         createRoleBinding(values as CreateRoleBindingPayload)
       }
+      getErrorMessage={getApiErrorMessage}
       pageSizes={[10, 20, 30, 50]}
       defaultPageSize={20}
     />

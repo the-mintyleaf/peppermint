@@ -1,6 +1,7 @@
 "use client";
 
 import { ModalTableShell } from "@peppermint/admin";
+import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { createDenial, fetchDenials } from "../denials.api";
 import { denialsColumns } from "../denials.columns";
 import { denialQueryKeys } from "../denials.queryKeys";
@@ -23,6 +24,7 @@ export function DenialsList() {
       idAccessor="id"
       createFormComponent={DenialForm}
       onCreateApi={(values) => createDenial(values as DenialCreatePayload)}
+      getErrorMessage={getApiErrorMessage}
       disableReviewButton
       pageSizes={[10, 20, 30, 50]}
       defaultPageSize={20}

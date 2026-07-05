@@ -80,12 +80,14 @@ export function DeactivateUnitModal({
         <ReasonTextarea
           value={reason}
           onChange={setReason}
+          required
           placeholder="e.g. Unit merged into Public Health Division."
         />
         <Button
           fullWidth
           color="red"
           loading={deactivateMutation.isPending}
+          disabled={!reason.trim()}
           onClick={handleSubmit}
         >
           Deactivate Unit

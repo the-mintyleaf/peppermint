@@ -30,7 +30,7 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
 
   const config = useMemo(
     () => ({
-      ...buildAdminConfig(org, undefined),
+      ...buildAdminConfig(org, undefined, isStaff),
       linkComponent: Link,
       userMenu: {
         variant: "icon" as const,

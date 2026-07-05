@@ -18,6 +18,7 @@ import {
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
 
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
+import { QueryErrorState } from "@/components/QueryErrorState";
 
 import {
   fetchUserSessions,
@@ -32,7 +33,7 @@ export function SessionsTab({ userId }: SessionsTabProps) {
   const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isRefetching, refetch } = useQuery({
     queryKey: usersQueryKeys.sessions(userId, page),
     queryFn: () => fetchUserSessions(userId, { page, pageSize: PAGE_SIZE }),
   });
@@ -76,9 +77,11 @@ export function SessionsTab({ userId }: SessionsTabProps) {
 
   if (isError) {
     return (
-      <Text size="sm" c="red">
-        Couldn&apos;t load sessions.
-      </Text>
+      <QueryErrorState
+        message="Couldn't load sessions."
+        onRetry={() => refetch()}
+        isRetrying={isRefetching}
+      />
     );
   }
 

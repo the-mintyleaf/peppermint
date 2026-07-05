@@ -21,5 +21,7 @@ export function useCurrentUser() {
     isSuperuser: Boolean(query.data?.is_superuser),
     isLoading: query.isLoading,
     isError: query.isError,
+    isRefetching: query.isRefetching,
+    refetch: query.refetch,
   };
 }

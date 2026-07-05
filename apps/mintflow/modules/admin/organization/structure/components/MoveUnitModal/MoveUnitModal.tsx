@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Modal, Stack, Text } from "@peppermint/ui";
+import { Alert, Button, Modal, Stack, Text } from "@peppermint/ui";
+import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 
 import { UnitPickerSelect } from "../../../_shared/components/UnitPickerSelect";
 import { ReasonTextarea } from "../../../_shared/components/ReasonTextarea";
@@ -41,6 +42,12 @@ export function MoveUnitModal({ organizationId }: MoveUnitModalProps) {
           Moving <strong>{moveModal.unitName}</strong>. Choose a new parent, or
           leave empty to promote it to a root-level unit.
         </Text>
+        {(descendants?.length ?? 0) > 0 && (
+          <Alert color="orange" icon={<WarningIcon size={16} weight="fill" />}>
+            This unit has {descendants!.length} descendant unit
+            {descendants!.length === 1 ? "" : "s"} that will move with it.
+          </Alert>
+        )}
         <UnitPickerSelect
           organizationId={organizationId}
           label="New Parent"

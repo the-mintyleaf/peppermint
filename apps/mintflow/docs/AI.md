@@ -97,28 +97,28 @@ apps/mintflow/
 
 ## Common edit targets
 
-| Task                                   | Files to open                                                                   |
-| -------------------------------------- | ------------------------------------------------------------------------------- |
-| Organization module (full map)         | `modules/admin/organization/docs/AI.md` (read first — 9 sub-modules)            |
-| Org structure canvas                   | `modules/admin/organization/structure/Structure.tsx`                            |
-| Org structure state                    | `modules/admin/organization/structure/Structure.store.ts`                       |
-| Org structure logic                    | `modules/admin/organization/structure/Structure.utils.ts`                       |
-| Org shared domain types                | `modules/admin/organization/_shared/organization.types.ts`                      |
-| Org sub-module (positions, members, reporting-lines, delegations, event-log, actor-context) | `modules/admin/organization/<sub-module>/` |
-| Task analytics UI                      | `modules/admin/tasks/analytics/TaskAnalyticsDashboard.tsx`                      |
-| Task analytics queries                 | `modules/admin/tasks/analytics/taskAnalytics.api.ts`                            |
-| Kanban board                           | `modules/admin/tasks/kanban/KanbanDashboard.tsx`                                |
-| General View dashboard                 | `modules/admin/tasks/general-view/GeneralViewDashboard.tsx`                     |
-| General View team panel                | `modules/admin/tasks/general-view/components/TeamMembersPanel/`                 |
-| General View task row                  | `modules/admin/tasks/general-view/components/TaskListRow/`                      |
-| Task shared types + mock data          | `modules/admin/tasks/kanban/module.api.ts`                                      |
-| Admin layout shell                     | `layouts/admin/Admin.tsx`                                                       |
-| Admin sidebar config (dynamic)         | `config/nav/admin-nav.ts` → `buildAdminConfig(org, orgSwitcherWidget, isStaff)` |
-| Selected org store (sidebar context)   | `stores/selectedOrg.store.ts`                                                   |
-| Route re-export                        | `app/admin/<route>/page.tsx`                                                    |
-| Identity & Access Management group     | `modules/admin/authenticate/docs/AI.md` (group index — read first)              |
-| Staff-only route gating                | `components/RequireStaff/RequireStaff.tsx`                                      |
-| API error → message mapping            | `lib/authErrorMessages.ts`                                                      |
+| Task                                                                                        | Files to open                                                                   |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Organization module (full map)                                                              | `modules/admin/organization/docs/AI.md` (read first — 9 sub-modules)            |
+| Org structure canvas                                                                        | `modules/admin/organization/structure/Structure.tsx`                            |
+| Org structure state                                                                         | `modules/admin/organization/structure/Structure.store.ts`                       |
+| Org structure logic                                                                         | `modules/admin/organization/structure/Structure.utils.ts`                       |
+| Org shared domain types                                                                     | `modules/admin/organization/_shared/organization.types.ts`                      |
+| Org sub-module (positions, members, reporting-lines, delegations, event-log, actor-context) | `modules/admin/organization/<sub-module>/`                                      |
+| Task analytics UI                                                                           | `modules/admin/tasks/analytics/TaskAnalyticsDashboard.tsx`                      |
+| Task analytics queries                                                                      | `modules/admin/tasks/analytics/taskAnalytics.api.ts`                            |
+| Kanban board                                                                                | `modules/admin/tasks/kanban/KanbanDashboard.tsx`                                |
+| General View dashboard                                                                      | `modules/admin/tasks/general-view/GeneralViewDashboard.tsx`                     |
+| General View team panel                                                                     | `modules/admin/tasks/general-view/components/TeamMembersPanel/`                 |
+| General View task row                                                                       | `modules/admin/tasks/general-view/components/TaskListRow/`                      |
+| Task shared types + mock data                                                               | `modules/admin/tasks/kanban/module.api.ts`                                      |
+| Admin layout shell                                                                          | `layouts/admin/Admin.tsx`                                                       |
+| Admin sidebar config (dynamic)                                                              | `config/nav/admin-nav.ts` → `buildAdminConfig(org, orgSwitcherWidget, isStaff)` |
+| Selected org store (sidebar context)                                                        | `stores/selectedOrg.store.ts`                                                   |
+| Route re-export                                                                             | `app/admin/<route>/page.tsx`                                                    |
+| Identity & Access Management group                                                          | `modules/admin/authenticate/docs/AI.md` (group index — read first)              |
+| Staff-only route gating                                                                     | `components/RequireStaff/RequireStaff.tsx`                                      |
+| API error → message mapping                                                                 | `lib/authErrorMessages.ts`                                                      |
 
 ---
 

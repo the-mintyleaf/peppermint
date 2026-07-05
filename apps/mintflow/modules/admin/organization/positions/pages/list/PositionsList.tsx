@@ -15,6 +15,7 @@ import { ModalTableShell } from "@peppermint/admin";
 import { BriefcaseIcon } from "@phosphor-icons/react/dist/csr/Briefcase";
 
 import { RequireStaff } from "@/components/RequireStaff";
+import { getApiErrorMessage } from "@/lib/authErrorMessages";
 
 import { UnitPickerSelect } from "../../../_shared/components/UnitPickerSelect";
 import { PositionEditForm, PositionForm } from "../../form";
@@ -99,6 +100,7 @@ function PositionsListContent() {
                 values as unknown as UpdatePositionPayload,
               )
             }
+            getErrorMessage={getApiErrorMessage}
             disableReviewButton
             pageSizes={[10, 20, 30, 50]}
             defaultPageSize={20}

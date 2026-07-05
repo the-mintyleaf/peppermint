@@ -12,6 +12,7 @@ import {
   Loader,
   ScrollArea,
   Stack,
+  Switch,
   Text,
   Title,
   Tooltip,
@@ -47,6 +48,7 @@ export function RolePermissionsDrawer({
   onClose,
 }: RolePermissionsDrawerProps) {
   const [permissionKey, setPermissionKey] = useState<string | null>(null);
+  const [showInactive, setShowInactive] = useState(false);
   const queryClient = useQueryClient();
 
   const queryKey = role ? roleQueryKeys.permissions(role.id) : [];
@@ -58,6 +60,9 @@ export function RolePermissionsDrawer({
   });
 
   const attachedPermissions = (permissions ?? []).filter((p) => p.is_active);
+  const visiblePermissions = showInactive
+    ? (permissions ?? [])
+    : attachedPermissions;
 
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey });
@@ -129,7 +134,14 @@ export function RolePermissionsDrawer({
     <Drawer
       opened={opened}
       onClose={onClose}
-      title={<Title order={5}>Permissions — {role?.display_name ?? ""}</Title>}
+      title={
+        <Group gap="xs">
+          <Title order={5}>Permissions — {role?.display_name ?? ""}</Title>
+          <Badge size="sm" variant="light">
+            {attachedPermissions.length} attached
+          </Badge>
+        </Group>
+      }
       position="right"
       size="md"
     >
@@ -154,28 +166,45 @@ export function RolePermissionsDrawer({
           </Button>
         </Group>
 
-        <Divider label="Currently attached" />
+        <Group justify="space-between" align="center">
+          <Divider label="Currently attached" style={{ flex: 1 }} />
+          <Switch
+            size="xs"
+            label="Show detached/inactive"
+            checked={showInactive}
+            onChange={(event) => setShowInactive(event.currentTarget.checked)}
+          />
+        </Group>
 
         {isLoading ? (
           <Center py="lg">
             <Loader size="sm" />
           </Center>
-        ) : attachedPermissions.length === 0 ? (
+        ) : visiblePermissions.length === 0 ? (
           <Text size="xs" c="dimmed">
             No permissions attached to this role yet.
           </Text>
         ) : (
           <ScrollArea.Autosize mah={480}>
             <Stack gap="xs">
-              {attachedPermissions.map((permission) => (
+              {visiblePermissions.map((permission) => (
                 <Group
                   key={permission.id}
                   justify="space-between"
                   wrap="nowrap"
                   py={4}
+                  style={{ opacity: permission.is_active ? 1 : 0.55 }}
                 >
                   <Stack gap={2}>
-                    <Text size="xs" fw={600}>
+                    <Text
+                      size="xs"
+                      fw={600}
+                      style={{
+                        textDecoration: permission.is_active
+                          ? undefined
+                          : "line-through",
+                      }}
+                    >
                       {permission.permission_key}
                     </Text>
                     <Group gap={4}>
@@ -189,23 +218,30 @@ export function RolePermissionsDrawer({
                       >
                         {permission.risk_level_snapshot}
                       </Badge>
+                      {!permission.is_active && (
+                        <Badge size="xs" color="gray" variant="dot">
+                          Detached
+                        </Badge>
+                      )}
                     </Group>
                   </Stack>
-                  <Tooltip label="Detach">
-                    <ActionIcon
-                      variant="subtle"
-                      color="red"
-                      aria-label={`Detach ${permission.permission_key}`}
-                      onClick={() =>
-                        requestDetach(
-                          permission.permission_key,
-                          permission.risk_level_snapshot,
-                        )
-                      }
-                    >
-                      <TrashIcon size={16} aria-hidden />
-                    </ActionIcon>
-                  </Tooltip>
+                  {permission.is_active && (
+                    <Tooltip label="Detach">
+                      <ActionIcon
+                        variant="subtle"
+                        color="red"
+                        aria-label={`Detach ${permission.permission_key}`}
+                        onClick={() =>
+                          requestDetach(
+                            permission.permission_key,
+                            permission.risk_level_snapshot,
+                          )
+                        }
+                      >
+                        <TrashIcon size={16} aria-hidden />
+                      </ActionIcon>
+                    </Tooltip>
+                  )}
                 </Group>
               ))}
             </Stack>

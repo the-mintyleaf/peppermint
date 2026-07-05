@@ -11,6 +11,7 @@ import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
 
 import { RequireStaff } from "@/components/RequireStaff";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
+import { getApiErrorMessage } from "@/lib/authErrorMessages";
 
 import { UserEditForm } from "../../form/UserEditForm";
 import { UserForm } from "../../form/UserForm";
@@ -72,6 +73,7 @@ function UsersListContent() {
           onEditApi={(values, record) =>
             updateUser(record.id, values as unknown as UpdateUserPayload)
           }
+          getErrorMessage={getApiErrorMessage}
           disableReviewButton
           pageSizes={[10, 20, 30, 50]}
           defaultPageSize={20}

@@ -3,7 +3,8 @@
 import { Card, Group, Stack, Text, ThemeIcon } from "@peppermint/ui";
 import { BuildingsIcon } from "@phosphor-icons/react/dist/csr/Buildings";
 
-import { OrganizationStatusBadge } from "../../../_shared/components/OrganizationStatusBadge";
+import { OrganizationRowActionsMenu } from "./components/OrganizationRowActionsMenu";
+import { OrganizationStatusSegmentedControl } from "./components/OrganizationStatusSegmentedControl";
 import type { OrganizationCardProps } from "./OrganizationCard.types";
 
 export function OrganizationCard({
@@ -23,7 +24,13 @@ export function OrganizationCard({
           <ThemeIcon size={36} radius="md" variant="light">
             <BuildingsIcon size={18} weight="fill" aria-hidden />
           </ThemeIcon>
-          <OrganizationStatusBadge status={organization.status} />
+          <Group gap="xs" wrap="nowrap">
+            <OrganizationStatusSegmentedControl organization={organization} />
+            <OrganizationRowActionsMenu
+              organization={organization}
+              onSelect={onSelect}
+            />
+          </Group>
         </Group>
         <Stack gap={2}>
           <Text fw={600} size="sm" lineClamp={1}>

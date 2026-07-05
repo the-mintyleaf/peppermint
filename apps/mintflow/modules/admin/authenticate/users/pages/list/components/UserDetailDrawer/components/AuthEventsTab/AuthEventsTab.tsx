@@ -14,6 +14,8 @@ import {
   Text,
 } from "@peppermint/ui";
 
+import { QueryErrorState } from "@/components/QueryErrorState";
+
 import { fetchUserAuthEvents } from "../../../../../../users.api";
 import { usersQueryKeys } from "../../../../../../users.queryKeys";
 import type { AuthEventType } from "../../../../../../users.types";
@@ -72,7 +74,7 @@ export function AuthEventsTab({ userId }: AuthEventsTabProps) {
   const [page, setPage] = useState(1);
   const [eventType, setEventType] = useState<string | null>(null);
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isRefetching, refetch } = useQuery({
     queryKey: usersQueryKeys.authEvents(userId, page, eventType ?? undefined),
     queryFn: () =>
       fetchUserAuthEvents(userId, {
@@ -92,9 +94,11 @@ export function AuthEventsTab({ userId }: AuthEventsTabProps) {
 
   if (isError) {
     return (
-      <Text size="sm" c="red">
-        Couldn&apos;t load auth events.
-      </Text>
+      <QueryErrorState
+        message="Couldn't load auth events."
+        onRetry={() => refetch()}
+        isRetrying={isRefetching}
+      />
     );
   }
 

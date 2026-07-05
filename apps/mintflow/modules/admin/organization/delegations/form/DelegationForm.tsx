@@ -1,7 +1,15 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { Button, Select, Stack, TextInput, useForm } from "@peppermint/ui";
+import {
+  Alert,
+  Button,
+  Select,
+  Stack,
+  TextInput,
+  useForm,
+} from "@peppermint/ui";
+import { InfoIcon } from "@phosphor-icons/react/dist/csr/Info";
 
 import { AssignmentPickerSelect } from "../../_shared/components/AssignmentPickerSelect";
 import { ReasonTextarea } from "../../_shared/components/ReasonTextarea";
@@ -62,6 +70,15 @@ export function DelegationForm({ onSubmit, isLoading }: DelegationFormProps) {
       )}
     >
       <Stack gap="md" p="md">
+        <Alert
+          variant="light"
+          color="blue"
+          icon={<InfoIcon size={16} aria-hidden />}
+        >
+          Delegations do not directly grant permissions in this version — the
+          assignment&apos;s own permissions still apply.
+        </Alert>
+
         <AssignmentPickerSelect
           organizationId={orgId}
           label="From Assignment"

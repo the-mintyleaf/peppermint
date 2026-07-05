@@ -15,13 +15,11 @@ function matchesSearch(permission: PolicyPermission, needle: string): boolean {
   return haystack.includes(needle);
 }
 
-function filterTreeBySearch(
+function filterTree(
   tree: PolicyAppTree[] | undefined,
-  search: string,
+  predicate: (permission: PolicyPermission) => boolean,
 ): PolicyAppTree[] {
   if (!tree) return [];
-  const needle = search.trim().toLowerCase();
-  if (!needle) return tree;
 
   return tree
     .map((appTree) => ({
@@ -29,9 +27,7 @@ function filterTreeBySearch(
       groups: appTree.groups
         .map((group) => ({
           ...group,
-          permissions: group.permissions.filter((permission) =>
-            matchesSearch(permission, needle),
-          ),
+          permissions: group.permissions.filter(predicate),
         }))
         .filter((group) => group.permissions.length > 0),
     }))
@@ -40,6 +36,8 @@ function filterTreeBySearch(
 
 export function usePermissionCatalog() {
   const [appFilter, setAppFilter] = useState<string | null>(null);
+  const [riskFilter, setRiskFilter] = useState<string | null>(null);
+  const [operationFilter, setOperationFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
   const { data: apps, isLoading: isLoadingApps } = useQuery({
@@ -54,10 +52,28 @@ export function usePermissionCatalog() {
     staleTime: 30_000,
   });
 
-  const filteredTree = useMemo(
-    () => filterTreeBySearch(tree, search),
-    [tree, search],
-  );
+  const operationOptions = useMemo(() => {
+    const operations = new Set<string>();
+    tree?.forEach((appTree) =>
+      appTree.groups.forEach((group) =>
+        group.permissions.forEach((permission) =>
+          operations.add(permission.operation),
+        ),
+      ),
+    );
+    return Array.from(operations).sort();
+  }, [tree]);
+
+  const filteredTree = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return filterTree(tree, (permission) => {
+      if (needle && !matchesSearch(permission, needle)) return false;
+      if (riskFilter && permission.risk_level !== riskFilter) return false;
+      if (operationFilter && permission.operation !== operationFilter)
+        return false;
+      return true;
+    });
+  }, [tree, search, riskFilter, operationFilter]);
 
   return {
     apps: apps ?? [],
@@ -65,6 +81,11 @@ export function usePermissionCatalog() {
     isLoadingTree,
     appFilter,
     setAppFilter,
+    riskFilter,
+    setRiskFilter,
+    operationFilter,
+    setOperationFilter,
+    operationOptions,
     search,
     setSearch,
     tree: filteredTree,

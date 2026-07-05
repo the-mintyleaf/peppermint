@@ -21,18 +21,18 @@ organization API is staff/superuser-only (confirmed in the recovered `API.md`).
 
 ## Routes
 
-| Route | Sub-module |
-| --- | --- |
-| `/admin/organization` | `organizations` (list, cards) |
-| `/admin/organization/[orgId]` | `organizations` (overview) |
-| `/admin/organization/[orgId]/structure` | `structure` |
-| `/admin/organization/[orgId]/positions` | `positions` |
-| `/admin/organization/[orgId]/members` | `members` (list) |
-| `/admin/organization/[orgId]/members/[membershipId]` | `members` (view) |
-| `/admin/organization/[orgId]/reporting-lines` | `reporting-lines` |
-| `/admin/organization/[orgId]/delegations` | `delegations` |
-| `/admin/organization/[orgId]/event-log` | `event-log` |
-| `/admin/organization/[orgId]/actor-context` | `actor-context` |
+| Route                                                | Sub-module                    |
+| ---------------------------------------------------- | ----------------------------- |
+| `/admin/organization`                                | `organizations` (list, cards) |
+| `/admin/organization/[orgId]`                        | `organizations` (overview)    |
+| `/admin/organization/[orgId]/structure`              | `structure`                   |
+| `/admin/organization/[orgId]/positions`              | `positions`                   |
+| `/admin/organization/[orgId]/members`                | `members` (list)              |
+| `/admin/organization/[orgId]/members/[membershipId]` | `members` (view)              |
+| `/admin/organization/[orgId]/reporting-lines`        | `reporting-lines`             |
+| `/admin/organization/[orgId]/delegations`            | `delegations`                 |
+| `/admin/organization/[orgId]/event-log`              | `event-log`                   |
+| `/admin/organization/[orgId]/actor-context`          | `actor-context`               |
 
 ## Entry files
 
@@ -42,21 +42,21 @@ organization API is staff/superuser-only (confirmed in the recovered `API.md`).
 
 ## Common edit targets
 
-| Task | Files |
-| --- | --- |
-| Add/change a domain field or enum | `_shared/organization.types.ts` (update here first, everything else imports from it) |
-| Organization list/create/activate | `organizations/` |
-| Unit tree canvas | `structure/Structure.tsx`, `.store.ts`, `.hooks.ts`, `.api.ts`, `.utils.ts` |
-| Position CRUD | `positions/` |
-| Member invite/status/placement | `members/` — `pages/view/components/UnitMembershipsTab`, `PositionAssignmentsTab` |
-| Reporting lines / chain of command | `reporting-lines/` |
-| Delegations | `delegations/` |
-| Event log | `event-log/` (read-only, no create/edit/delete UI — matches the real API) |
-| Actor context preview | `actor-context/` |
-| Unit/position/assignment pickers | `_shared/components/{UnitPickerSelect,PositionPickerSelect,AssignmentPickerSelect}` |
-| Status badges | `_shared/components/{OrganizationStatusBadge,MembershipStatusBadge}` |
-| API error message copy | `apps/mintflow/lib/authErrorMessages.ts` (shared app-wide dictionary — organization codes are prefixed `ORGANIZATION_*`) |
-| Nav entries | `apps/mintflow/config/nav/admin-nav.ts` |
+| Task                               | Files                                                                                                                    |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Add/change a domain field or enum  | `_shared/organization.types.ts` (update here first, everything else imports from it)                                     |
+| Organization list/create/activate  | `organizations/`                                                                                                         |
+| Unit tree canvas                   | `structure/Structure.tsx`, `.store.ts`, `.hooks.ts`, `.api.ts`, `.utils.ts`                                              |
+| Position CRUD                      | `positions/`                                                                                                             |
+| Member invite/status/placement     | `members/` — `pages/view/components/UnitMembershipsTab`, `PositionAssignmentsTab`                                        |
+| Reporting lines / chain of command | `reporting-lines/`                                                                                                       |
+| Delegations                        | `delegations/`                                                                                                           |
+| Event log                          | `event-log/` (read-only, no create/edit/delete UI — matches the real API)                                                |
+| Actor context preview              | `actor-context/`                                                                                                         |
+| Unit/position/assignment pickers   | `_shared/components/{UnitPickerSelect,PositionPickerSelect,AssignmentPickerSelect}`                                      |
+| Status badges                      | `_shared/components/{OrganizationStatusBadge,MembershipStatusBadge}`                                                     |
+| API error message copy             | `apps/mintflow/lib/authErrorMessages.ts` (shared app-wide dictionary — organization codes are prefixed `ORGANIZATION_*`) |
+| Nav entries                        | `apps/mintflow/config/nav/admin-nav.ts`                                                                                  |
 
 ## State ownership
 

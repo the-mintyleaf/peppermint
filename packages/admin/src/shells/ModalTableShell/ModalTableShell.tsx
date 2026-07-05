@@ -34,6 +34,7 @@ export function ModalTableShell<T extends Record<string, unknown>>({
   transformOnDelete,
   onReviewClick,
   disableReviewButton,
+  getErrorMessage,
   ...rest
 }: ModalTableShellProps<T>) {
   const [isCreateModalOpen, handlersCreateModal] = useDisclosure(false);
@@ -212,6 +213,7 @@ export function ModalTableShell<T extends Record<string, unknown>>({
           transformOnEdit={transformOnEdit}
           onCreateSuccess={onCreateSuccess}
           onEditSuccess={onEditSuccess}
+          getErrorMessage={getErrorMessage}
         />
       )}
     </ModalTableShellContext.Provider>

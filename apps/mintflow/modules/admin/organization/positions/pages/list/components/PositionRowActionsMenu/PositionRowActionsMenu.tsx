@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import {
   ActionIcon,
+  Button,
   Menu,
+  Stack,
   Text,
   modals,
   notifications,
@@ -15,8 +18,40 @@ import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
 
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 
+import { ReasonTextarea } from "../../../../../_shared/components/ReasonTextarea";
 import { deactivatePosition } from "../../../../positions.api";
 import type { PositionRowActionsMenuProps } from "./PositionRowActionsMenu.types";
+
+function DeactivatePositionModalContent({
+  title,
+  isLoading,
+  onConfirm,
+}: {
+  title: string;
+  isLoading: boolean;
+  onConfirm: (reason: string) => void;
+}) {
+  const [reason, setReason] = useState("");
+
+  return (
+    <Stack gap="md">
+      <Text size="sm">
+        &quot;{title}&quot; will no longer be assignable. Historical assignments
+        are kept.
+      </Text>
+      <ReasonTextarea value={reason} onChange={setReason} required />
+      <Button
+        fullWidth
+        color="red"
+        loading={isLoading}
+        disabled={!reason.trim()}
+        onClick={() => onConfirm(reason)}
+      >
+        Deactivate Position
+      </Button>
+    </Stack>
+  );
+}
 
 export function PositionRowActionsMenu({
   position,
@@ -25,7 +60,7 @@ export function PositionRowActionsMenu({
   const queryClient = useQueryClient();
 
   const deactivateMutation = useMutation({
-    mutationFn: () => deactivatePosition(position.id, {}),
+    mutationFn: (reason: string) => deactivatePosition(position.id, { reason }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["positions"] });
       notifications.show({
@@ -33,6 +68,7 @@ export function PositionRowActionsMenu({
         title: "Position deactivated",
         message: `"${position.title}" is no longer active.`,
       });
+      modals.closeAll();
     },
     onError: (error) => {
       notifications.show({
@@ -44,17 +80,15 @@ export function PositionRowActionsMenu({
   });
 
   function handleDeactivate() {
-    modals.openConfirmModal({
+    modals.open({
       title: "Deactivate position",
       children: (
-        <Text size="sm">
-          &quot;{position.title}&quot; will no longer be assignable. Historical
-          assignments are kept. Continue?
-        </Text>
+        <DeactivatePositionModalContent
+          title={position.title}
+          isLoading={deactivateMutation.isPending}
+          onConfirm={(reason) => deactivateMutation.mutate(reason)}
+        />
       ),
-      labels: { confirm: "Deactivate", cancel: "Cancel" },
-      confirmProps: { color: "red" },
-      onConfirm: () => deactivateMutation.mutate(),
     });
   }
 

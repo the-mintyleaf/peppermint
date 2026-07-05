@@ -22,6 +22,13 @@ const ACTOR_TYPE_COLORS: Record<ActorType, string> = {
   external: "yellow",
 };
 
+const ACTOR_TYPE_OPTIONS = [
+  { value: "human", label: "Human" },
+  { value: "system", label: "System" },
+  { value: "ai", label: "AI" },
+  { value: "external", label: "External" },
+];
+
 const ACCOUNT_STATUS_COLORS: Record<AccountStatus, string> = {
   pending: "gray",
   active: "green",
@@ -62,6 +69,7 @@ export function getUsersColumns({
       accessor: "actor_type",
       title: "Actor Type",
       icon: RobotIcon,
+      filter: { type: "select", options: ACTOR_TYPE_OPTIONS },
       render: (record) => (
         <Badge size="xs" color={ACTOR_TYPE_COLORS[record.actor_type]}>
           {record.actor_type}

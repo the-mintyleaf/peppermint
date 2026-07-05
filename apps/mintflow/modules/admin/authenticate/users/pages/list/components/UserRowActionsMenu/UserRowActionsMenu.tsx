@@ -98,6 +98,20 @@ export function UserRowActionsMenu({
     });
   };
 
+  const handleUnlock = () => {
+    modals.openConfirmModal({
+      title: "Unlock account",
+      children: (
+        <Text size="sm">
+          {user.display_name} will be able to sign in again. Continue?
+        </Text>
+      ),
+      labels: { confirm: "Unlock", cancel: "Cancel" },
+      confirmProps: { color: "blue" },
+      onConfirm: () => unlockMutation.mutate(),
+    });
+  };
+
   const handleLock = () => {
     modals.open({
       title: "Lock account",
@@ -175,7 +189,7 @@ export function UserRowActionsMenu({
         </Tooltip>
         <Menu.Item
           leftSection={<LockKeyOpenIcon size={14} aria-hidden />}
-          onClick={() => unlockMutation.mutate()}
+          onClick={handleUnlock}
         >
           Unlock account
         </Menu.Item>

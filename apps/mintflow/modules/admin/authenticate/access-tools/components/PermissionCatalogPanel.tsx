@@ -24,6 +24,13 @@ const RISK_COLOR: Record<PolicyPermission["risk_level"], string> = {
   critical: "red",
 };
 
+const RISK_OPTIONS = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+  { value: "critical", label: "Critical" },
+];
+
 export function PermissionCatalogPanel() {
   const {
     apps,
@@ -31,6 +38,11 @@ export function PermissionCatalogPanel() {
     isLoadingTree,
     appFilter,
     setAppFilter,
+    riskFilter,
+    setRiskFilter,
+    operationFilter,
+    setOperationFilter,
+    operationOptions,
     search,
     setSearch,
     tree,
@@ -39,6 +51,11 @@ export function PermissionCatalogPanel() {
   const appOptions = apps.map((app) => ({
     value: app.key,
     label: app.display_name,
+  }));
+
+  const operationSelectOptions = operationOptions.map((operation) => ({
+    value: operation,
+    label: operation,
   }));
 
   const isLoading = isLoadingApps || isLoadingTree;
@@ -57,6 +74,25 @@ export function PermissionCatalogPanel() {
           value={appFilter}
           onChange={setAppFilter}
           w={260}
+        />
+        <Select
+          label="Risk level"
+          placeholder="All risk levels"
+          clearable
+          data={RISK_OPTIONS}
+          value={riskFilter}
+          onChange={setRiskFilter}
+          w={180}
+        />
+        <Select
+          label="Operation"
+          placeholder="All operations"
+          clearable
+          searchable
+          data={operationSelectOptions}
+          value={operationFilter}
+          onChange={setOperationFilter}
+          w={200}
         />
         <TextInput
           label="Search"
