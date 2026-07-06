@@ -19,12 +19,15 @@ import {
   Loader,
   ModuleHeader,
   Paper,
+  useQueries,
   useQueryClient,
 } from "@peppermint/ui";
 
 import { RequireStaff } from "@/components/RequireStaff";
 
+import { fetchUnitChildren } from "../_shared/organization.api";
 import { organizationQueryKeys } from "../_shared/organization.queryKeys";
+import type { UnitTreeNodeFlat } from "../_shared/organization.types";
 import { BreadcrumbNav } from "./components/BreadcrumbNav";
 import { DeactivateUnitModal } from "./components/DeactivateUnitModal";
 import { EmptyState } from "./components/EmptyState";
@@ -34,12 +37,12 @@ import { OrgRootNode } from "./components/nodes/OrgRootNode";
 import { UnitNode } from "./components/nodes/UnitNode";
 import { Toolbar } from "./components/Toolbar";
 import { UnitFormModal } from "./components/UnitFormModal";
-import { useOrganizationRoot, useUnitTree } from "./Structure.hooks";
+import { useOrganizationRoot, useUnitRoots } from "./Structure.hooks";
 import { useStructureStore } from "./Structure.store";
 import type { StructureFlowEdge, StructureFlowNode } from "./Structure.types";
 import {
   autoArrangeNodes,
-  buildGraphFromTree,
+  buildGraphFromFlatNodes,
   computeDimmedNodeIds,
   computePathFromRoot,
   computeVisibleNodeIds,
@@ -53,14 +56,12 @@ function StructureInner() {
   const { orgId = "" } = useParams<{ orgId: string }>();
   const { data: organization, isLoading: orgLoading } =
     useOrganizationRoot(orgId);
-  const { data: tree, isLoading: treeLoading } = useUnitTree(orgId);
+  const { data: roots, isLoading: rootsLoading } = useUnitRoots(orgId);
 
   const {
     selectUnit,
     expandedUnitIds,
-    expandUnit,
     setExpandedUnitIds,
-    expandAll,
     collapseAll,
     focusedBranchId,
     setFocusedBranch,
@@ -80,13 +81,96 @@ function StructureInner() {
     nodesRef.current = nodes;
   }, [nodes]);
 
-  // Rebuild the full graph whenever the org/tree data changes, preserving
-  // any positions already computed for a node that survives the refetch.
+  // The org node stands in for the tree root; its "children" are the root units
+  // (fetched by useUnitRoots). Every OTHER expanded unit lazily loads its direct
+  // children + members on demand — one query per expanded branch, RQ-cached so
+  // collapsing then re-expanding is instant.
+  const expandedChildUnitIds = useMemo(
+    () => expandedUnitIds.filter((id) => id && id !== organization?.id),
+    [expandedUnitIds, organization?.id],
+  );
+
+  const childQueries = useQueries({
+    queries: expandedChildUnitIds.map((unitId) => ({
+      queryKey: organizationQueryKeys.unitChildren(orgId, unitId),
+      queryFn: () => fetchUnitChildren(orgId, unitId),
+      enabled: Boolean(orgId),
+    })),
+  });
+
+  // Merge the root list with every loaded branch into one flat node set. A unit
+  // can appear in more than one response (its parent's expand + its own); keep
+  // the member-enriched copy.
+  const flatNodes = useMemo(() => {
+    const map = new Map<string, UnitTreeNodeFlat>();
+    for (const root of roots ?? []) map.set(root.id, root);
+    for (const query of childQueries) {
+      for (const node of query.data ?? []) {
+        const existing = map.get(node.id);
+        if (existing?.positions && !node.positions) continue;
+        map.set(node.id, node);
+      }
+    }
+    return [...map.values()];
+  }, [roots, childQueries]);
+
+  // Units whose lazy child fetch is still in flight — drives the node spinner.
+  const loadingSignature = expandedChildUnitIds
+    .map((id, i) => (childQueries[i]?.isLoading ? id : ""))
+    .join(",");
+  const loadingUnitIds = useMemo(() => {
+    const set = new Set<string>();
+    expandedChildUnitIds.forEach((id, i) => {
+      if (childQueries[i]?.isLoading) set.add(id);
+    });
+    return set;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingSignature]);
+
+  // A stable digest of the aggregated node set — the graph is only rebuilt when
+  // this changes, so per-render churn from useQueries doesn't reshuffle the canvas.
+  const graphSignature = useMemo(() => {
+    const part = flatNodes
+      .map(
+        (n) =>
+          `${n.id}:${n.parent_id ?? ""}:${n.has_children ? 1 : 0}:${
+            n.positions ? n.positions.length : "-"
+          }`,
+      )
+      .join(",");
+    return `${organization?.id ?? ""}|${part}`;
+  }, [organization?.id, flatNodes]);
+
+  // Deterministic node heights (from member counts) so the layout can space nodes
+  // without waiting for ReactFlow to measure the taller, member-expanded cards.
+  const nodeHeights = useMemo(() => {
+    const heights: Record<string, number> = {};
+    for (const node of flatNodes) {
+      let height = 120;
+      if (node.positions && node.positions.length > 0) {
+        height += 26;
+        for (const position of node.positions) {
+          height += 22 + position.holders.length * 18;
+        }
+      } else if (node.positions) {
+        height += 26;
+      }
+      heights[node.id] = height;
+    }
+    return heights;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graphSignature]);
+
+  // Rebuild the graph only when the aggregated node set changes, preserving
+  // positions already computed for surviving nodes.
+  const prevGraphSignature = useRef("");
   useEffect(() => {
-    if (orgLoading || treeLoading || !organization) return;
-    const { nodes: freshNodes, edges: freshEdges } = buildGraphFromTree(
+    if (rootsLoading || orgLoading || !organization) return;
+    if (graphSignature === prevGraphSignature.current) return;
+    prevGraphSignature.current = graphSignature;
+    const { nodes: freshNodes, edges: freshEdges } = buildGraphFromFlatNodes(
       organization,
-      tree ?? [],
+      flatNodes,
     );
     const existingPositions = new Map(
       nodesRef.current.map((n) => [n.id, n.position]),
@@ -98,12 +182,25 @@ function StructureInner() {
     setNodes(nextNodes);
     setEdges(freshEdges);
     syncEdgeCache(freshEdges);
-    // Auto-expand the root so a freshly created structure is visible immediately.
-    if (organization && expandedUnitIds.length === 0) {
-      expandUnit(organization.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [graphSignature, rootsLoading, orgLoading]);
+
+  // Reset expansion when switching organizations so one org's open branches
+  // don't leak into another (the store is shared across orgs).
+  const didInitExpand = useRef(false);
+  useEffect(() => {
+    didInitExpand.current = false;
+    setExpandedUnitIds([]);
+  }, [orgId, setExpandedUnitIds]);
+
+  // Auto-expand the org node once per org so its root units are visible.
+  useEffect(() => {
+    if (organization && !didInitExpand.current) {
+      didInitExpand.current = true;
+      setExpandedUnitIds([organization.id]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [organization, tree, orgLoading, treeLoading]);
+  }, [organization]);
 
   const visibleNodeIds = useMemo(() => {
     if (!organization) return [];
@@ -137,6 +234,7 @@ function StructureInner() {
             _pathHighlighted:
               pathHighlightIds.has(n.id) && n.id !== focusedBranchId,
             _searchMatch: n.id === searchUnitId,
+            _childrenLoading: loadingUnitIds.has(n.id),
           },
         })),
     [
@@ -146,6 +244,7 @@ function StructureInner() {
       pathHighlightIds,
       focusedBranchId,
       searchUnitId,
+      loadingUnitIds,
     ],
   );
 
@@ -157,16 +256,20 @@ function StructureInner() {
     [edges, visibleNodeIdSet],
   );
 
-  // Re-layout whenever the visible set changes so newly expanded/collapsed
-  // branches don't overlap. Positions are always derived, never persisted.
-  const prevVisibleKey = useRef<string>("");
+  // Re-layout whenever the visible set OR member sizing changes so newly
+  // expanded/collapsed branches (and taller member-expanded cards) don't
+  // overlap. Positions are always derived, never persisted.
+  const layoutKey = useMemo(
+    () => `${[...visibleNodeIdSet].sort().join(",")}|${graphSignature}`,
+    [visibleNodeIdSet, graphSignature],
+  );
+  const prevLayoutKey = useRef<string>("");
   useEffect(() => {
-    const key = [...visibleNodeIdSet].sort().join(",");
-    if (key === prevVisibleKey.current) return;
-    prevVisibleKey.current = key;
+    if (layoutKey === prevLayoutKey.current) return;
+    prevLayoutKey.current = layoutKey;
     setNodes((current) => {
       const visible = current.filter((n) => visibleNodeIdSet.has(n.id));
-      const laidOut = autoArrangeNodes(visible, visibleEdges);
+      const laidOut = autoArrangeNodes(visible, visibleEdges, nodeHeights);
       const laidOutMap = new Map(laidOut.map((n) => [n.id, n.position]));
       return current.map((n) =>
         laidOutMap.has(n.id) ? { ...n, position: laidOutMap.get(n.id)! } : n,
@@ -178,7 +281,7 @@ function StructureInner() {
     );
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visibleNodeIdSet]);
+  }, [layoutKey]);
 
   const breadcrumbPath = useMemo(() => {
     if (!focusedBranchId) return [];
@@ -226,8 +329,8 @@ function StructureInner() {
     }, 120);
   }
 
-  const isLoading = orgLoading || treeLoading;
-  const isEmpty = !isLoading && (tree ?? []).length === 0;
+  const isLoading = orgLoading || rootsLoading;
+  const isEmpty = !isLoading && (roots ?? []).length === 0;
 
   return (
     <>
@@ -308,12 +411,18 @@ function StructureInner() {
                 onFitView={() => fitView({ duration: 400, padding: 0.15 })}
                 onRefresh={() =>
                   void queryClient.invalidateQueries({
-                    queryKey: organizationQueryKeys.unitTree(orgId),
+                    predicate: (query) => {
+                      const key = query.queryKey;
+                      return (
+                        Array.isArray(key) &&
+                        key[0] === "organizations" &&
+                        key[1] === orgId &&
+                        (key[2] === "unit-roots" || key[2] === "unit-children")
+                      );
+                    },
                   })
                 }
-                onExpandAll={expandAll}
                 onCollapseAll={collapseAll}
-                isFullyCollapsed={expandedUnitIds.length === 0}
                 searchOptions={searchOptions}
                 searchValue={searchUnitId}
                 onSearchChange={handleSearchChange}

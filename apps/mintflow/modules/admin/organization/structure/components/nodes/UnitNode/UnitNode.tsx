@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import { Handle, Position } from "@xyflow/react";
-import { ActionIcon, Badge, Group, Stack, Text, Tooltip } from "@peppermint/ui";
+import {
+  ActionIcon,
+  Badge,
+  Group,
+  Loader,
+  Stack,
+  Text,
+  Tooltip,
+} from "@peppermint/ui";
 import { ArrowsOutCardinalIcon } from "@phosphor-icons/react/dist/csr/ArrowsOutCardinal";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react/dist/csr/ArrowSquareOut";
 import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
@@ -88,28 +96,78 @@ export function UnitNode({ data, selected, id }: UnitNodeProps) {
         </Text>
       </div>
 
+      {unitData.positions && (
+        <div className={styles.memberSection}>
+          {unitData.positions.length === 0 ? (
+            <Text size="xs" c="dimmed">
+              No members
+            </Text>
+          ) : (
+            <Stack gap={6}>
+              {unitData.positions.map((position) => (
+                <div key={position.id}>
+                  <BilingualName
+                    np={position.title_np}
+                    en={position.title_en}
+                    size="xs"
+                    fw={600}
+                    inline
+                  />
+                  {position.holders.length === 0 ? (
+                    <Text size="xs" c="dimmed" mt={2}>
+                      Vacant
+                    </Text>
+                  ) : (
+                    <Group gap={4} mt={3}>
+                      {position.holders.map((holder) => (
+                        <Badge
+                          key={holder.assignment_id}
+                          size="xs"
+                          variant="light"
+                          color={holder.is_primary ? "violet" : "gray"}
+                        >
+                          {holder.display_name}
+                        </Badge>
+                      ))}
+                    </Group>
+                  )}
+                </div>
+              ))}
+            </Stack>
+          )}
+        </div>
+      )}
+
       {unitData.hasChildren && (
         <div className={styles.nodeExpandStrip}>
           <Text size="xs" c="dimmed" style={{ flex: 1 }}>
-            {isExpanded ? "Expanded" : "Has sub-units"}
+            {unitData._childrenLoading
+              ? "Loading…"
+              : isExpanded
+                ? "Expanded"
+                : "Show sub-units"}
           </Text>
-          <ActionIcon
-            size="xs"
-            variant="subtle"
-            color={isExpanded ? "gray" : "violet"}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (isExpanded) collapseUnit(id);
-              else expandUnit(id);
-            }}
-            aria-label={isExpanded ? "Collapse children" : "Expand children"}
-          >
-            {isExpanded ? (
-              <CaretUpIcon size={12} />
-            ) : (
-              <CaretDownIcon size={12} />
-            )}
-          </ActionIcon>
+          {unitData._childrenLoading ? (
+            <Loader size={12} color="violet" />
+          ) : (
+            <ActionIcon
+              size="xs"
+              variant="subtle"
+              color={isExpanded ? "gray" : "violet"}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isExpanded) collapseUnit(id);
+                else expandUnit(id);
+              }}
+              aria-label={isExpanded ? "Collapse children" : "Expand children"}
+            >
+              {isExpanded ? (
+                <CaretUpIcon size={12} />
+              ) : (
+                <CaretDownIcon size={12} />
+              )}
+            </ActionIcon>
+          )}
         </div>
       )}
 

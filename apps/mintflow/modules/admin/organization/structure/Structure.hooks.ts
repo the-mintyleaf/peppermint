@@ -7,7 +7,7 @@ import {
 
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 
-import { fetchUnitTree } from "../_shared/organization.api";
+import { fetchUnitRoots } from "../_shared/organization.api";
 import { organizationQueryKeys } from "../_shared/organization.queryKeys";
 import { fetchOrganization } from "../organizations/organizations.api";
 import { organizationsQueryKeys } from "../organizations/organizations.queryKeys";
@@ -35,10 +35,10 @@ export function useOrganizationRoot(organizationId: string) {
   });
 }
 
-export function useUnitTree(organizationId: string) {
+export function useUnitRoots(organizationId: string) {
   return useQuery({
-    queryKey: organizationQueryKeys.unitTree(organizationId),
-    queryFn: () => fetchUnitTree(organizationId),
+    queryKey: organizationQueryKeys.unitRoots(organizationId),
+    queryFn: () => fetchUnitRoots(organizationId),
     enabled: Boolean(organizationId),
   });
 }
@@ -70,11 +70,20 @@ export function useUnitDescendants(unitId: string | null) {
 function useInvalidateStructure(organizationId: string) {
   const queryClient = useQueryClient();
   return () => {
+    // Invalidate the root list, every lazily-loaded child branch, and the flat
+    // list in one pass — a mutation can reshape any loaded part of the tree.
     void queryClient.invalidateQueries({
-      queryKey: organizationQueryKeys.unitTree(organizationId),
-    });
-    void queryClient.invalidateQueries({
-      queryKey: organizationQueryKeys.unitsFlat(organizationId),
+      predicate: (query) => {
+        const key = query.queryKey;
+        return (
+          Array.isArray(key) &&
+          key[0] === "organizations" &&
+          key[1] === organizationId &&
+          (key[2] === "unit-roots" ||
+            key[2] === "unit-children" ||
+            key[2] === "units-flat")
+        );
+      },
     });
   };
 }

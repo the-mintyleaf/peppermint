@@ -96,8 +96,13 @@ export interface OrganizationUnit extends Record<string, unknown> {
   updated_at: string;
 }
 
-/** Nested node shape returned by `GET /organizations/<organization_id>/unit-tree/`. */
-export interface UnitTreeNode {
+/**
+ * Flat node shape returned by `GET /organizations/<organization_id>/unit-tree-nodes/`
+ * (the primary tree endpoint). Nodes come back ordered so every parent precedes its
+ * children — the client assembles the tree in a single forward pass off `parent_id`.
+ * `positions` is only present when the request passes `include_members=true`.
+ */
+export interface UnitTreeNodeFlat {
   id: string;
   parent_id: string | null;
   name_np: string;
@@ -105,8 +110,36 @@ export interface UnitTreeNode {
   code: string;
   unit_type: UnitType;
   status: UnitStatus;
+  depth: number;
   sort_order: number;
-  children: UnitTreeNode[];
+  path_cache: string;
+  is_operational: boolean;
+  is_active: boolean;
+  has_children: boolean;
+  positions?: UnitPositionNode[];
+}
+
+/** A position on a unit, with its active holders — from `unit-tree-nodes/?include_members=true`. */
+export interface UnitPositionNode {
+  id: string;
+  title_np: string;
+  title_en: string;
+  code: string;
+  position_type: PositionType;
+  is_leadership: boolean;
+  is_supervisory: boolean;
+  status: PositionStatus;
+  holders: PositionHolder[];
+}
+
+/** A person currently holding a position, as surfaced by the tree endpoint. */
+export interface PositionHolder {
+  assignment_id: string;
+  user_id: string;
+  username: string;
+  display_name: string;
+  assignment_type: string;
+  is_primary: boolean;
 }
 
 export type PositionType =

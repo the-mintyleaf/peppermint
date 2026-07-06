@@ -2,7 +2,6 @@
 
 import { ActionIcon, Select, Tooltip } from "@peppermint/ui";
 import { ArrowsInSimpleIcon } from "@phosphor-icons/react/dist/csr/ArrowsInSimple";
-import { ArrowsOutSimpleIcon } from "@phosphor-icons/react/dist/csr/ArrowsOutSimple";
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
 import { CornersOutIcon } from "@phosphor-icons/react/dist/csr/CornersOut";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
@@ -17,9 +16,7 @@ export function Toolbar({
   onZoomOut,
   onFitView,
   onRefresh,
-  onExpandAll,
   onCollapseAll,
-  isFullyCollapsed,
   searchOptions,
   searchValue,
   onSearchChange,
@@ -71,22 +68,14 @@ export function Toolbar({
         </ActionIcon>
       </Tooltip>
       <div className={styles.toolbarDivider} />
-      <Tooltip
-        label={isFullyCollapsed ? "Expand all" : "Collapse all"}
-        position="top"
-        withArrow
-      >
+      <Tooltip label="Collapse all" position="top" withArrow>
         <ActionIcon
           size="sm"
           variant="subtle"
-          onClick={isFullyCollapsed ? onExpandAll : onCollapseAll}
-          aria-label={isFullyCollapsed ? "Expand all" : "Collapse all"}
+          onClick={onCollapseAll}
+          aria-label="Collapse all"
         >
-          {isFullyCollapsed ? (
-            <ArrowsOutSimpleIcon size={14} />
-          ) : (
-            <ArrowsInSimpleIcon size={14} />
-          )}
+          <ArrowsInSimpleIcon size={14} />
         </ActionIcon>
       </Tooltip>
       <Tooltip label="Refresh tree" position="top" withArrow>

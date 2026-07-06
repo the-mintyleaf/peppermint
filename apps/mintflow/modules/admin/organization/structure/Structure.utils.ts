@@ -1,6 +1,9 @@
 import { MarkerType } from "@xyflow/react";
 
-import type { Organization, UnitTreeNode } from "../_shared/organization.types";
+import type {
+  Organization,
+  UnitTreeNodeFlat,
+} from "../_shared/organization.types";
 import type {
   OrgRootNodeData,
   StructureFlowEdge,
@@ -17,10 +20,15 @@ export const DEFAULT_EDGE_OPTIONS = {
   animated: false,
 } as const;
 
-/** Flattens the org root + nested unit tree into ReactFlow nodes/edges, positions unset. */
-export function buildGraphFromTree(
+/**
+ * Builds ReactFlow nodes/edges from the org root + a flat list of loaded units
+ * (positions unset). Each unit edges up to `parent_id ?? organization.id`, so
+ * top-level units hang off the org node. Only units already in `flatNodes` are
+ * emitted — the list grows as branches are lazily expanded.
+ */
+export function buildGraphFromFlatNodes(
   organization: Organization,
-  tree: UnitTreeNode[],
+  flatNodes: UnitTreeNodeFlat[],
 ): { nodes: StructureFlowNode[]; edges: StructureFlowEdge[] } {
   const nodes: StructureFlowNode[] = [
     {
@@ -39,7 +47,8 @@ export function buildGraphFromTree(
   ];
   const edges: StructureFlowEdge[] = [];
 
-  function walk(unit: UnitTreeNode, parentId: string) {
+  for (const unit of flatNodes) {
+    const parentId = unit.parent_id ?? organization.id;
     nodes.push({
       id: unit.id,
       type: "unit",
@@ -51,7 +60,8 @@ export function buildGraphFromTree(
         code: unit.code,
         unitType: unit.unit_type,
         status: unit.status,
-        hasChildren: unit.children.length > 0,
+        hasChildren: unit.has_children,
+        positions: unit.positions,
       } satisfies UnitNodeData,
     });
     edges.push({
@@ -60,10 +70,7 @@ export function buildGraphFromTree(
       target: unit.id,
       ...DEFAULT_EDGE_OPTIONS,
     });
-    for (const child of unit.children) walk(child, unit.id);
   }
-
-  for (const root of tree) walk(root, organization.id);
 
   return { nodes, edges };
 }
@@ -190,17 +197,25 @@ export function nodeMatchesSearch(
   return label.toLowerCase().includes(q) ? node.id : null;
 }
 
-/** Simple top-down tree layout — mirrors the structure builder reference's layout algorithm. */
+/**
+ * Simple top-down tree layout — mirrors the structure builder reference's layout algorithm.
+ * `heights` supplies each node's measured height (from ReactFlow) so nodes made taller by
+ * an inline member list push their children down without overlapping. Falls back to a
+ * default height for nodes not yet measured.
+ */
 export function autoArrangeNodes(
   nodes: StructureFlowNode[],
   edges: StructureFlowEdge[],
+  heights: Record<string, number> = {},
 ): StructureFlowNode[] {
   if (nodes.length === 0) return nodes;
 
   const NODE_W = 260;
   const NODE_H = 120;
   const H_GAP = 60;
-  const V_GAP = 120;
+  const V_GAP = 80;
+
+  const heightOf = (id: string) => heights[id] ?? NODE_H;
 
   const children = computeChildrenMap(edges);
   const hasParent = new Set(edges.map((e) => e.target));
@@ -229,9 +244,10 @@ export function autoArrangeNodes(
       .map(subtreeWidth)
       .reduce((acc, w) => acc + w + H_GAP, -H_GAP);
     let cx = x - totalWidth / 2;
+    const childY = y + heightOf(id) + V_GAP;
     for (const kid of kids) {
       const kw = subtreeWidth(kid);
-      layout(kid, cx + kw / 2, y + NODE_H + V_GAP);
+      layout(kid, cx + kw / 2, childY);
       cx += kw + H_GAP;
     }
   }

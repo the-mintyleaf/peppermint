@@ -1,12 +1,20 @@
 import type { Edge, Node } from "@xyflow/react";
 
-import type { UnitStatus, UnitType } from "../_shared/organization.types";
+import type {
+  UnitPositionNode,
+  UnitStatus,
+  UnitType,
+} from "../_shared/organization.types";
 
-/** `_dimmed`/`_pathHighlighted`/`_searchMatch` are injected per-render by the canvas — never persisted. */
+/**
+ * Injected per-render by the canvas — never persisted. `_childrenLoading` reflects
+ * the in-flight lazy fetch of a node's children/members after its expand caret is hit.
+ */
 interface EnrichedNodeFlags {
   _dimmed?: boolean;
   _pathHighlighted?: boolean;
   _searchMatch?: boolean;
+  _childrenLoading?: boolean;
 }
 
 export interface OrgRootNodeData
@@ -28,6 +36,8 @@ export interface UnitNodeData
   unitType: UnitType;
   status: UnitStatus;
   hasChildren: boolean;
+  /** Present once the unit's subtree has been lazily loaded (via `include_members`). */
+  positions?: UnitPositionNode[];
 }
 
 export type StructureNodeData = OrgRootNodeData | UnitNodeData;

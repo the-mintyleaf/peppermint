@@ -32,7 +32,6 @@ interface StructureState {
 
   expandUnit: (id: string) => void;
   collapseUnit: (id: string) => void;
-  expandAll: () => void;
   collapseAll: () => void;
   setExpandedUnitIds: (ids: string[]) => void;
   syncEdgeCache: (edges: Array<{ source: string; target: string }>) => void;
@@ -91,16 +90,6 @@ export const useStructureStore = create<StructureState>((set, get) => ({
       updates.drawerOpen = true;
     }
     set(updates);
-  },
-
-  expandAll: () => {
-    const { edgeCache } = get();
-    const ids = new Set<string>();
-    for (const edge of edgeCache) {
-      ids.add(edge.source);
-      ids.add(edge.target);
-    }
-    set({ expandedUnitIds: [...ids] });
   },
 
   collapseAll: () => set({ expandedUnitIds: [], focusedBranchId: null }),

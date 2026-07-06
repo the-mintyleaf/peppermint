@@ -2,7 +2,9 @@ export const organizationQueryKeys = {
   list: () => "organizations.list",
   listKey: () => ["organizations", "list"] as const,
   detail: (orgId: string) => ["organizations", orgId] as const,
-  unitTree: (orgId: string) => ["organizations", orgId, "unit-tree"] as const,
+  unitRoots: (orgId: string) => ["organizations", orgId, "unit-roots"] as const,
+  unitChildren: (orgId: string, unitId: string) =>
+    ["organizations", orgId, "unit-children", unitId] as const,
   unitsFlat: (orgId: string) => ["organizations", orgId, "units-flat"] as const,
   unitDetail: (unitId: string) => ["units", unitId] as const,
   unitAncestors: (unitId: string) => ["units", unitId, "ancestors"] as const,
