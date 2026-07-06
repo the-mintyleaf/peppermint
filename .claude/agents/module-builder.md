@@ -16,7 +16,9 @@ at the same time — your file jail is what makes that safe.
 
 1. **Assigned folder** (absolute path) — the only place you may write.
 2. **Requirements doc** (absolute path) + which Module Breakdown row is yours.
-3. **Module type tag** — `[CONTAINED]` or `[MULTI_PAGE]`.
+3. **Module type tag** — `[CONTAINED]` or `[MULTI_PAGE]`. These are the only types
+   dispatched to builders; if you receive `[NOT_CONTAINED]` or `[CUSTOM]`, stop and
+   report it — those are built inline by the orchestrator.
 4. **Reference sibling** — an existing sub-module to study for conventions.
 
 If any of these is missing from your prompt, stop and report the gap instead of guessing.
@@ -33,7 +35,8 @@ If any of these is missing from your prompt, stop and report the gap instead of 
 
 Follow the skill's step guide for your module type:
 types → query keys → API functions → columns → form → pages → your module's
-`index.ts` barrel → your module's `docs/AI.md`.
+`index.ts` barrel. Then — in addition to the skill's steps — create your module's
+`docs/AI.md` per `.claude/AI-AUTHORING.md`.
 
 **Skip the app-page and outer-barrel steps** in the skill — those files are
 orchestrator-owned. Report their content instead (see report format).
@@ -58,7 +61,10 @@ orchestrator-owned. Report their content instead (see report format).
 
 ### Wiring for orchestrator
 - Parent barrel (<path>): add line → export * from "./<sub-module>";
-- App route needed: <app/ path> → content: export { default } from "<module import path>";
+- App routes needed (one line PER route — MultiPage modules have several,
+  e.g. list, new, [id], [id]/edit):
+  - <app/ path> → content: export { default } from "<module import path>";
+  - <app/ path> → content: export { default } from "<module import path>";
 - Parent AI.md row: | <module> | <type> | <route> | <entry file> |
 
 ### Assumptions

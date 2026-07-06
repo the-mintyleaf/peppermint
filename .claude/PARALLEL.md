@@ -19,6 +19,7 @@ Subagent definitions live in `.claude/agents/`:
 | Situation                                                                | Action                                                                       |
 | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
 | Requirements doc lists 2+ independent `[CONTAINED]`/`[MULTI_PAGE]` modules | One `module-builder` per module, dispatched concurrently in a single message |
+| `[NOT_CONTAINED]` / `[CUSTOM]` modules                                    | Built inline by the orchestrator, sequentially — never dispatched to builders |
 | Verification spans 2+ independent scopes (check-types, lint, format:check) | One `verifier` per scope, dispatched concurrently                            |
 | Post-phase dual review                                                    | Codex (`mcp__codex__codex`) + one `adversarial-reviewer`, concurrently       |
 | Single unit of work                                                       | Inline, sequential — no dispatch                                             |
@@ -67,7 +68,8 @@ Subagents share no conversation context. Every `module-builder` dispatch must em
 ALL of the following — a dispatch missing any field is a protocol violation:
 
 ```
-1. Assigned folder (absolute path): apps/<app>/modules/<group>/<domain>/<sub-module>/
+1. Assigned folder (absolute path), e.g.:
+   /Users/<user>/Projects/ppm/apps/<app>/modules/<group>/<domain>/<sub-module>/
 2. Requirements doc (absolute path) + which Module Breakdown row is yours
 3. Module type tag: [CONTAINED] or [MULTI_PAGE]
 4. Read first:
@@ -91,12 +93,15 @@ tasks exempt). After each phase:
 
 1. **Collect** agent reports.
 2. **Wiring pass** (orchestrator): parent barrels, `app/` re-exports, parent/app AI.md rows.
-3. **Check `.todo` boxes** for completed units.
+3. **Format**: `pnpm format` — orchestrator only, with zero agents active. Formatting
+   runs BEFORE verification so `format:check` cannot fail on agent-written code.
 4. **Verification fan-out** (Section 6). Orchestrator fixes failures, re-dispatches only
    the failed scope.
-5. **Format**: `pnpm format` — orchestrator only, with zero agents active.
-6. **Commit**: `git add` the phase's files + `git commit` with a clear message in the
-   repo commit format. Applies to single-task work too.
+5. **Check `.todo` boxes** for completed units.
+6. **Commit**: `git add` the phase's files (including the updated `.todo`) +
+   `git commit` with a clear message in the repo commit format. Applies to single-task
+   work too. The phase's own "commit" checkbox is self-referential — check it right
+   after committing; it rides with the next commit (e.g. the review-fix commit).
 7. **Dual adversarial review** (Section 7) — unless the phase doesn't warrant it.
 8. **Apply combined review fixes** (orchestrator), commit the fixes.
 
@@ -110,6 +115,8 @@ tasks exempt). After each phase:
 | Design scan (Step 2b) — batch files across ≤4 scan-mode verifiers |                                                                  |
 
 - Scope each verifier with `--filter` where possible to shrink turbo contention.
+- `format:check` is only meaningful **after** the orchestrator's write-mode format pass
+  (Section 5, step 3) — never include it in a wave that runs before formatting.
 - Concurrent turbo shells on **different** tasks are acceptable; never run two builds
   at once, and never run write-mode format while any agent is active.
 - Known gap: `apps/mintflow` has no `check-types` script — the verifier reports it

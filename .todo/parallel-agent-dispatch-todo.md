@@ -6,8 +6,8 @@
 - [x] Create `.claude/agents/module-builder.md`
 - [x] Create `.claude/agents/verifier.md`
 - [x] Create `.claude/agents/adversarial-reviewer.md`
-- [ ] Commit Phase 1
-- [ ] Dual adversarial review (Codex + Opus reviewer), apply fixes, commit
+- [x] Commit Phase 1
+- [x] Dual adversarial review (Codex + Opus reviewer), apply fixes, commit
 
 ## Phase 2 — Doctrine + commands
 
