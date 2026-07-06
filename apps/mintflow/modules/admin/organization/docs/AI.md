@@ -6,13 +6,19 @@ Full organization builder: institutions (`Organization`), their internal unit
 hierarchy (`OrganizationUnit`), positions, member invitations/placement,
 reporting lines, delegations, event history, and actor-context resolution.
 Rebuilt from scratch against the real backend contract — see
-`git show HEAD:.todo/task-docs-1/api/organization_api_docs/{API,DATA_CONTRACT}.md`
-for the authoritative field/endpoint list (deleted from the working tree but
-recoverable from git history).
+`.todo/org-data-contract.md` (v1.5.0) for the authoritative field/endpoint list.
 
 **Model rule (do not violate):** `Organization` is not the hierarchy —
 `OrganizationUnit` is. Never let a screen create/nest an `Organization` as a
 child of anything. All internal structure lives in `OrganizationUnit`.
+
+**Bilingual fields (Nepal localization, do not violate):** human-readable names
+are bilingual — `name_np` (Devanagari, canonical, **required**) + `name_en`
+(English, independently canonical, optional); positions use `title_np`/`title_en`.
+`*_romanized` is a backend-only search key — **never display or edit it**.
+Render names with `_shared/components/BilingualName` (np primary line, muted en
+secondary). Code validation: Organization `code` is uppercase `^[A-Z0-9_\-]+$`;
+unit/position codes are ASCII-only. `country_code` is 2-letter ISO, uppercased.
 
 ## Module type
 
@@ -37,7 +43,7 @@ organization API is staff/superuser-only (confirmed in the recovered `API.md`).
 ## Entry files
 
 - `index.ts` — `ModuleOrganization = { main, overview, structure, positions, members, reportingLines, delegations, eventLog, actorContext }`
-- `_shared/organization.types.ts` — all 12 backend entities + enum unions, the single source of truth for domain types
+- `_shared/organization.types.ts` — all 12 backend entities + enum unions (bilingual `*_np`/`*_en`/`*_romanized` name fields), the single source of truth for domain types
 - `_shared/organization.api.ts` / `.queryKeys.ts` — cross-sub-module fetchers (unit tree, flat units list)
 
 ## Common edit targets
@@ -55,6 +61,7 @@ organization API is staff/superuser-only (confirmed in the recovered `API.md`).
 | Actor context preview              | `actor-context/`                                                                                                         |
 | Unit/position/assignment pickers   | `_shared/components/{UnitPickerSelect,PositionPickerSelect,AssignmentPickerSelect}`                                      |
 | Status badges                      | `_shared/components/{OrganizationStatusBadge,MembershipStatusBadge}`                                                     |
+| Bilingual name/title display       | `_shared/components/BilingualName` (`np` primary + muted `en`; never pass `*_romanized`)                                 |
 | API error message copy             | `apps/mintflow/lib/authErrorMessages.ts` (shared app-wide dictionary — organization codes are prefixed `ORGANIZATION_*`) |
 | Nav entries                        | `apps/mintflow/config/nav/admin-nav.ts`                                                                                  |
 
