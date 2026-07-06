@@ -15,6 +15,7 @@ interface EnrichedNodeFlags {
   _pathHighlighted?: boolean;
   _searchMatch?: boolean;
   _childrenLoading?: boolean;
+  _childrenError?: boolean;
 }
 
 export interface OrgRootNodeData

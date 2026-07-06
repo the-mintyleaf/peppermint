@@ -52,6 +52,9 @@ export async function fetchUnitChildren(
         root_unit_id: unitId,
         max_depth: 1,
         include_members: true,
+        // Match the active-only root fetch so an expanded branch never surfaces
+        // draft/inactive/archived children the initial view filtered out.
+        status: "active",
       },
     },
   );

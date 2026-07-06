@@ -15,6 +15,8 @@ interface StructureState {
   deactivateModal: DeactivateModalConfig;
 
   expandedUnitIds: string[];
+  /** The org the current `expandedUnitIds` belong to — the store is shared across orgs. */
+  expandedOrgId: string | null;
   focusedBranchId: string | null;
   searchUnitId: string | null;
   /** Cached so expand/collapse-all and subtree lookups don't need the live edges prop threaded through every action. */
@@ -34,6 +36,8 @@ interface StructureState {
   collapseUnit: (id: string) => void;
   collapseAll: () => void;
   setExpandedUnitIds: (ids: string[]) => void;
+  /** Claim the store for an org, clearing another org's stale expansion/selection. */
+  claimOrg: (orgId: string) => void;
   syncEdgeCache: (edges: Array<{ source: string; target: string }>) => void;
 
   setFocusedBranch: (id: string | null) => void;
@@ -48,6 +52,7 @@ export const useStructureStore = create<StructureState>((set, get) => ({
   deactivateModal: { open: false },
 
   expandedUnitIds: [],
+  expandedOrgId: null,
   focusedBranchId: null,
   searchUnitId: null,
   edgeCache: [],
@@ -95,6 +100,14 @@ export const useStructureStore = create<StructureState>((set, get) => ({
   collapseAll: () => set({ expandedUnitIds: [], focusedBranchId: null }),
 
   setExpandedUnitIds: (ids) => set({ expandedUnitIds: ids }),
+  claimOrg: (orgId) =>
+    set({
+      expandedOrgId: orgId,
+      expandedUnitIds: [],
+      focusedBranchId: null,
+      selectedUnitId: null,
+      drawerOpen: false,
+    }),
   syncEdgeCache: (edges) => set({ edgeCache: edges }),
 
   setFocusedBranch: (id) => set({ focusedBranchId: id }),

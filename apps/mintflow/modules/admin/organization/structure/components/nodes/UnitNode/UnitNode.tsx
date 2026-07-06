@@ -140,12 +140,18 @@ export function UnitNode({ data, selected, id }: UnitNodeProps) {
 
       {unitData.hasChildren && (
         <div className={styles.nodeExpandStrip}>
-          <Text size="xs" c="dimmed" style={{ flex: 1 }}>
+          <Text
+            size="xs"
+            c={unitData._childrenError ? "red" : "dimmed"}
+            style={{ flex: 1 }}
+          >
             {unitData._childrenLoading
               ? "Loading…"
-              : isExpanded
-                ? "Expanded"
-                : "Show sub-units"}
+              : unitData._childrenError
+                ? "Failed to load — retry"
+                : isExpanded
+                  ? "Expanded"
+                  : "Show sub-units"}
           </Text>
           {unitData._childrenLoading ? (
             <Loader size={12} color="violet" />

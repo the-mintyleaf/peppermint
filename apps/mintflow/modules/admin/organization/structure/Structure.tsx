@@ -15,10 +15,13 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import {
+  Button,
   Center,
   Loader,
   ModuleHeader,
   Paper,
+  Stack,
+  Text,
   useQueries,
   useQueryClient,
 } from "@peppermint/ui";
@@ -52,16 +55,30 @@ import {
 
 const nodeTypes = { org: OrgRootNode, unit: UnitNode } as const;
 
+/** Stable empty reference so transitional renders don't thrash downstream memos. */
+const EMPTY_IDS: string[] = [];
+
 function StructureInner() {
   const { orgId = "" } = useParams<{ orgId: string }>();
-  const { data: organization, isLoading: orgLoading } =
-    useOrganizationRoot(orgId);
-  const { data: roots, isLoading: rootsLoading } = useUnitRoots(orgId);
+  const {
+    data: organization,
+    isLoading: orgLoading,
+    isError: orgError,
+    refetch: refetchOrg,
+  } = useOrganizationRoot(orgId);
+  const {
+    data: roots,
+    isLoading: rootsLoading,
+    isError: rootsError,
+    refetch: refetchRoots,
+  } = useUnitRoots(orgId);
 
   const {
     selectUnit,
     expandedUnitIds,
+    expandedOrgId,
     setExpandedUnitIds,
+    claimOrg,
     collapseAll,
     focusedBranchId,
     setFocusedBranch,
@@ -81,13 +98,21 @@ function StructureInner() {
     nodesRef.current = nodes;
   }, [nodes]);
 
+  // The store is shared across orgs, so a previous org's open branches can still
+  // sit in `expandedUnitIds` during the render that switches `orgId`. Ignore them
+  // until the reset effect below has claimed the current org — otherwise we'd fire
+  // fetchUnitChildren(newOrg, oldOrgUnitId) and 404. `expandedOrgId` starts null,
+  // so this also guards the very first mount against stale persisted expansion.
+  const effectiveExpandedIds =
+    expandedOrgId === orgId ? expandedUnitIds : EMPTY_IDS;
+
   // The org node stands in for the tree root; its "children" are the root units
   // (fetched by useUnitRoots). Every OTHER expanded unit lazily loads its direct
   // children + members on demand — one query per expanded branch, RQ-cached so
   // collapsing then re-expanding is instant.
   const expandedChildUnitIds = useMemo(
-    () => expandedUnitIds.filter((id) => id && id !== organization?.id),
-    [expandedUnitIds, organization?.id],
+    () => effectiveExpandedIds.filter((id) => id && id !== organization?.id),
+    [effectiveExpandedIds, organization?.id],
   );
 
   const childQueries = useQueries({
@@ -127,19 +152,59 @@ function StructureInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadingSignature]);
 
-  // A stable digest of the aggregated node set — the graph is only rebuilt when
-  // this changes, so per-render churn from useQueries doesn't reshuffle the canvas.
+  // Units whose lazy child fetch failed — surfaced on the node so the expand
+  // doesn't silently render an empty branch. Collapsing + re-expanding retries.
+  const errorSignature = expandedChildUnitIds
+    .map((id, i) => (childQueries[i]?.isError ? id : ""))
+    .join(",");
+  const errorUnitIds = useMemo(() => {
+    const set = new Set<string>();
+    expandedChildUnitIds.forEach((id, i) => {
+      if (childQueries[i]?.isError) set.add(id);
+    });
+    return set;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [errorSignature]);
+
+  // A stable digest of everything the canvas renders — the graph is only rebuilt
+  // when this changes, so per-render churn from useQueries doesn't reshuffle the
+  // canvas. It must capture every displayed field (names, code, status, and each
+  // position's holders) so a mutation that changes a field without changing tree
+  // shape still refreshes the node.
   const graphSignature = useMemo(() => {
     const part = flatNodes
-      .map(
-        (n) =>
-          `${n.id}:${n.parent_id ?? ""}:${n.has_children ? 1 : 0}:${
-            n.positions ? n.positions.length : "-"
-          }`,
-      )
+      .map((n) => {
+        const members = n.positions
+          ? n.positions
+              .map(
+                (p) =>
+                  `${p.id}#${p.status}#${p.title_np}#${p.title_en}#` +
+                  p.holders
+                    .map(
+                      (h) =>
+                        `${h.assignment_id}~${h.display_name}~${
+                          h.is_primary ? 1 : 0
+                        }`,
+                    )
+                    .join("+"),
+              )
+              .join(";")
+          : "-";
+        return `${n.id}:${n.parent_id ?? ""}:${n.has_children ? 1 : 0}:${
+          n.name_np
+        }:${n.name_en}:${n.code}:${n.unit_type}:${n.status}:[${members}]`;
+      })
       .join(",");
-    return `${organization?.id ?? ""}|${part}`;
-  }, [organization?.id, flatNodes]);
+    return `${organization?.id ?? ""}:${organization?.name_np ?? ""}:${
+      organization?.name_en ?? ""
+    }:${organization?.status ?? ""}|${part}`;
+  }, [
+    organization?.id,
+    organization?.name_np,
+    organization?.name_en,
+    organization?.status,
+    flatNodes,
+  ]);
 
   // Deterministic node heights (from member counts) so the layout can space nodes
   // without waiting for ReactFlow to measure the taller, member-expanded cards.
@@ -186,12 +251,14 @@ function StructureInner() {
   }, [graphSignature, rootsLoading, orgLoading]);
 
   // Reset expansion when switching organizations so one org's open branches
-  // don't leak into another (the store is shared across orgs).
+  // don't leak into another (the store is shared across orgs). Claiming the org
+  // (which also stamps `expandedOrgId`) is what lets `effectiveExpandedIds` start
+  // trusting `expandedUnitIds` again.
   const didInitExpand = useRef(false);
   useEffect(() => {
     didInitExpand.current = false;
-    setExpandedUnitIds([]);
-  }, [orgId, setExpandedUnitIds]);
+    claimOrg(orgId);
+  }, [orgId, claimOrg]);
 
   // Auto-expand the org node once per org so its root units are visible.
   useEffect(() => {
@@ -204,8 +271,8 @@ function StructureInner() {
 
   const visibleNodeIds = useMemo(() => {
     if (!organization) return [];
-    return computeVisibleNodeIds(organization.id, edges, expandedUnitIds);
-  }, [organization, edges, expandedUnitIds]);
+    return computeVisibleNodeIds(organization.id, edges, effectiveExpandedIds);
+  }, [organization, edges, effectiveExpandedIds]);
 
   const dimmedNodeIds = useMemo(
     () => new Set(computeDimmedNodeIds(focusedBranchId, visibleNodeIds, edges)),
@@ -235,6 +302,7 @@ function StructureInner() {
               pathHighlightIds.has(n.id) && n.id !== focusedBranchId,
             _searchMatch: n.id === searchUnitId,
             _childrenLoading: loadingUnitIds.has(n.id),
+            _childrenError: errorUnitIds.has(n.id),
           },
         })),
     [
@@ -245,6 +313,7 @@ function StructureInner() {
       focusedBranchId,
       searchUnitId,
       loadingUnitIds,
+      errorUnitIds,
     ],
   );
 
@@ -330,7 +399,8 @@ function StructureInner() {
   }
 
   const isLoading = orgLoading || rootsLoading;
-  const isEmpty = !isLoading && (roots ?? []).length === 0;
+  const hasError = orgError || rootsError;
+  const isEmpty = !isLoading && !hasError && (roots ?? []).length === 0;
 
   return (
     <>
@@ -359,6 +429,26 @@ function StructureInner() {
           {isLoading ? (
             <Center h="100%">
               <Loader size="sm" />
+            </Center>
+          ) : hasError ? (
+            <Center h="100%">
+              <Stack align="center" gap="xs" maw={360} px="md">
+                <Text fw={600}>Couldn&apos;t load the structure</Text>
+                <Text size="sm" c="dimmed" ta="center">
+                  The unit tree failed to load. Check your connection and try
+                  again.
+                </Text>
+                <Button
+                  size="xs"
+                  variant="light"
+                  onClick={() => {
+                    void refetchOrg();
+                    void refetchRoots();
+                  }}
+                >
+                  Retry
+                </Button>
+              </Stack>
             </Center>
           ) : (
             <>
