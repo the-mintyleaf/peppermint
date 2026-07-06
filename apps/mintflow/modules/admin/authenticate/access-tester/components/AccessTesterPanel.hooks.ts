@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { notifications, useMutation } from "@peppermint/ui";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
-import { checkAccess, explainAccess } from "../access-tools.api";
-import type { AccessCheckRequest, AccessDecision } from "../access-tools.types";
+import { checkAccess, explainAccess } from "../access-tester.api";
+import type {
+  AccessCheckRequest,
+  AccessDecision,
+} from "../access-tester.types";
 
 export type AccessTesterAction = "check" | "explain";
 

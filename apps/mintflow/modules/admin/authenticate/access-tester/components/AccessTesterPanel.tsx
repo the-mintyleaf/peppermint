@@ -21,7 +21,10 @@ import { ScopeFields } from "@/modules/admin/authenticate/_shared/ScopeFields";
 import { UserPicker } from "@/modules/admin/authenticate/_shared/UserPicker";
 import type { ScopeValue } from "@/modules/admin/authenticate/_shared/authenticate.types";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
-import type { AccessCheckRequest, AccessDecision } from "../access-tools.types";
+import type {
+  AccessCheckRequest,
+  AccessDecision,
+} from "../access-tester.types";
 import {
   useAccessTester,
   type AccessTesterAction,

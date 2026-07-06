@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import type { AccessCheckRequest, AccessDecision } from "./access-tools.types";
+import type { AccessCheckRequest, AccessDecision } from "./access-tester.types";
 
 export async function checkAccess(
   payload: AccessCheckRequest,
