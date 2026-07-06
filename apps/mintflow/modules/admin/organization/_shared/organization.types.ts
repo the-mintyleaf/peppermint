@@ -1,5 +1,9 @@
-// Entity shapes mirror the recovered backend contract:
-// git show HEAD:.todo/task-docs-1/api/organization_api_docs/DATA_CONTRACT.md
+// Entity shapes mirror the backend data contract:
+// .todo/org-data-contract.md (v1.5.0 — Nepal localization, bilingual fields)
+//
+// Bilingual convention: `*_np` (Devanagari, canonical, required) + `*_en`
+// (English, independently canonical, optional) + `*_romanized` (ASCII search
+// key — NEVER displayed; backend-generated). Never render `*_romanized`.
 
 export type OrganizationType =
   | "ministry"
@@ -23,16 +27,20 @@ export type OrganizationStatus =
 
 export interface Organization extends Record<string, unknown> {
   id: string;
-  name: string;
+  name_np: string;
+  name_en: string;
+  name_romanized: string;
   code: string;
   organization_type: OrganizationType;
   status: OrganizationStatus;
   parent_organization: string | null;
-  legal_name: string;
-  short_name: string;
+  legal_name_np: string;
+  short_name_np: string;
+  short_name_en: string;
   description: string;
   country_code: string;
   timezone: string;
+  sort_order: number;
   metadata: Record<string, unknown>;
   is_active: boolean;
   created_at: string;
@@ -69,7 +77,9 @@ export interface OrganizationUnit extends Record<string, unknown> {
   id: string;
   organization: string;
   parent: string | null;
-  name: string;
+  name_np: string;
+  name_en: string;
+  name_romanized: string;
   code: string;
   unit_type: UnitType;
   status: UnitStatus;
@@ -90,7 +100,8 @@ export interface OrganizationUnit extends Record<string, unknown> {
 export interface UnitTreeNode {
   id: string;
   parent_id: string | null;
-  name: string;
+  name_np: string;
+  name_en: string;
   code: string;
   unit_type: UnitType;
   status: UnitStatus;
@@ -127,11 +138,14 @@ export interface Position extends Record<string, unknown> {
   id: string;
   organization: string;
   unit: string;
-  title: string;
+  title_np: string;
+  title_en: string;
+  title_romanized: string;
   code: string;
   position_type: PositionType;
   status: PositionStatus;
   description: string;
+  sort_order: number;
   is_leadership: boolean;
   is_supervisory: boolean;
   is_single_occupant: boolean;
@@ -337,7 +351,8 @@ export interface OrganizationEventLog extends Record<string, unknown> {
 export interface ActorContextOrganizationRef {
   id: string;
   code: string;
-  name: string;
+  name_np: string;
+  name_en: string;
 }
 
 export interface ActorContextMembership {
@@ -362,7 +377,8 @@ export interface ActorContextUnitMembership {
 export interface ActorContextPositionRef {
   id: string;
   code: string;
-  title: string;
+  title_np: string;
+  title_en: string;
 }
 
 export interface ActorContextPositionAssignment {
