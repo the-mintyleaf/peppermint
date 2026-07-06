@@ -168,7 +168,7 @@ function DataTableShellInner<T extends Record<string, unknown>>({
         )}
 
         {/* Table paper — active filters bar + data table */}
-        <Box px="md" size="xl" pos="relative">
+        <Box px="md" pt="sm" size="xl" pos="relative">
           <Paper
             withBorder
             style={{

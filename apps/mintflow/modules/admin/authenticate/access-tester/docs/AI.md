@@ -36,7 +36,7 @@ components — extend them there if a field needs to change, not by forking.
 - `GET /api/v1/auth/me/` → default subject user for the tester.
 - `POST /api/v1/permissions/check/` and `POST /api/v1/permissions/explain/` —
   identical request body `{permission_key, subject_user_id, organization_id,
-  organization_unit_id}`; identical `AccessDecision` response. A `deny` decision
+organization_unit_id}`; identical `AccessDecision` response. A `deny` decision
   is a normal 200 response, not an error.
 
 ## State ownership

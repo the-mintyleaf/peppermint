@@ -24,12 +24,12 @@ ContainedModule. Single route, staff-gated, `ModuleHeader` + `ModalPaper` +
 
 ## Common edit targets
 
-| Task                       | Files                                                             |
-| -------------------------- | ---------------------------------------------------------------- |
-| Bindings list UI / columns | `pages/BindingsList.tsx`, `bindings.columns.tsx`                 |
+| Task                       | Files                                                                 |
+| -------------------------- | --------------------------------------------------------------------- |
+| Bindings list UI / columns | `pages/BindingsList.tsx`, `bindings.columns.tsx`                      |
 | Binding create form        | `form/RoleBindingForm.tsx` (uses shared `UserPicker` + `ScopeFields`) |
-| Binding queries / API      | `bindings.queryKeys.ts`, `bindings.api.ts`                       |
-| Binding types              | `bindings.types.ts`                                              |
+| Binding queries / API      | `bindings.queryKeys.ts`, `bindings.api.ts`                            |
+| Binding types              | `bindings.types.ts`                                                   |
 
 ## State ownership
 

@@ -25,13 +25,13 @@ ContainedModule. Single route, staff-gated, `ModuleHeader` + `ModalPaper` +
 
 ## Common edit targets
 
-| Task                                   | Files                                                             |
-| -------------------------------------- | ---------------------------------------------------------------- |
-| Roles list UI / columns                | `pages/RolesList.tsx`, `roles.columns.tsx`                        |
-| Role create / edit forms               | `form/RoleForm.tsx`, `form/RoleEditForm.tsx`                      |
+| Task                                   | Files                                                              |
+| -------------------------------------- | ------------------------------------------------------------------ |
+| Roles list UI / columns                | `pages/RolesList.tsx`, `roles.columns.tsx`                         |
+| Role create / edit forms               | `form/RoleForm.tsx`, `form/RoleEditForm.tsx`                       |
 | Role Permission Editor (attach/detach) | `pages/components/RolePermissionsDrawer/RolePermissionsDrawer.tsx` |
-| Role queries / API                     | `roles.queryKeys.ts`, `roles.api.ts`                             |
-| Role types                             | `roles.types.ts`                                                 |
+| Role queries / API                     | `roles.queryKeys.ts`, `roles.api.ts`                               |
+| Role types                             | `roles.types.ts`                                                   |
 
 ## State ownership
 

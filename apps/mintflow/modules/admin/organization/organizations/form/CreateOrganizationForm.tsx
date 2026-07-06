@@ -29,7 +29,7 @@ const ORGANIZATION_TYPE_OPTIONS = [
   { value: "other", label: "Other" },
 ];
 
-const CODE_PATTERN = /^[A-Z0-9_\-]+$/;
+const CODE_PATTERN = /^[A-Za-z0-9_\-]+$/;
 const COUNTRY_CODE_PATTERN = /^[A-Za-z]{2}$/;
 
 export function CreateOrganizationForm({
@@ -56,7 +56,7 @@ export function CreateOrganizationForm({
       code: (value) => {
         if (!value) return "Required";
         if (!CODE_PATTERN.test(value)) {
-          return "Uppercase letters, numbers, underscore, and hyphen only";
+          return "Letters, numbers, underscore, and hyphen only";
         }
         return null;
       },
@@ -76,6 +76,7 @@ export function CreateOrganizationForm({
       onSubmit={form.onSubmit((values) =>
         onSubmit({
           ...values,
+          code: values.code.toLowerCase(),
           country_code: values.country_code.toUpperCase(),
           sort_order: Number(values.sort_order) || 0,
         }),

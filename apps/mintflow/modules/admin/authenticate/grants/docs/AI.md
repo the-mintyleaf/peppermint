@@ -25,13 +25,13 @@ ContainedModule. Single route, staff-gated, `ModuleHeader` + `ModalPaper` +
 
 ## Common edit targets
 
-| Task                     | Files                                       |
-| ------------------------ | ------------------------------------------- |
-| Grants list / columns    | `pages/GrantsList.tsx`, `grants.columns.tsx` |
-| Grants form              | `form/GrantForm.tsx`                         |
-| Grants queries / API     | `grants.api.ts`, `grants.queryKeys.ts`      |
-| Grants types             | `grants.types.ts`                           |
-| Shared pickers           | `../_shared/{UserPicker,PermissionKeyPicker,ScopeFields}` |
+| Task                  | Files                                                     |
+| --------------------- | --------------------------------------------------------- |
+| Grants list / columns | `pages/GrantsList.tsx`, `grants.columns.tsx`              |
+| Grants form           | `form/GrantForm.tsx`                                      |
+| Grants queries / API  | `grants.api.ts`, `grants.queryKeys.ts`                    |
+| Grants types          | `grants.types.ts`                                         |
+| Shared pickers        | `../_shared/{UserPicker,PermissionKeyPicker,ScopeFields}` |
 
 ## Backend contract
 

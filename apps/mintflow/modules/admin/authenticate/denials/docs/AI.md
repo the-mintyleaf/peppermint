@@ -25,13 +25,13 @@ ContainedModule. Single route, staff-gated, `ModuleHeader` + `ModalPaper` +
 
 ## Common edit targets
 
-| Task                      | Files                                          |
-| ------------------------- | ---------------------------------------------- |
-| Denials list / columns    | `pages/DenialsList.tsx`, `denials.columns.tsx` |
-| Denials form              | `form/DenialForm.tsx`                           |
-| Denials queries / API     | `denials.api.ts`, `denials.queryKeys.ts`       |
-| Denials types             | `denials.types.ts`                            |
-| Shared pickers            | `../_shared/{UserPicker,PermissionKeyPicker,ScopeFields}` |
+| Task                   | Files                                                     |
+| ---------------------- | --------------------------------------------------------- |
+| Denials list / columns | `pages/DenialsList.tsx`, `denials.columns.tsx`            |
+| Denials form           | `form/DenialForm.tsx`                                     |
+| Denials queries / API  | `denials.api.ts`, `denials.queryKeys.ts`                  |
+| Denials types          | `denials.types.ts`                                        |
+| Shared pickers         | `../_shared/{UserPicker,PermissionKeyPicker,ScopeFields}` |
 
 ## Backend contract
 
