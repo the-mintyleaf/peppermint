@@ -20,7 +20,9 @@ Skip files where the change was trivial (fewer than 10 lines changed or purely a
 
 ## Step 3 — Verify (parallel)
 
-Dispatch two `verifier` agents concurrently in a single message (per `.claude/PARALLEL.md`):
+First run `pnpm format` (main session, write mode — Step 2 edited files, and code
+must never be committed unformatted). Then dispatch two `verifier` agents
+concurrently in a single message (per `.claude/PARALLEL.md`):
 
 - One running `pnpm check-types` (the repo's typecheck script)
 - One running `pnpm lint`

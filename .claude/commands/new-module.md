@@ -21,6 +21,9 @@ If $ARGUMENTS points to an unstructured requirements doc, or if no structured re
 
 ## Step 3 — Scaffold the module(s)
 
+**Both paths:** before writing any code, create the `dev/<feature-name>` branch
+(never work on main) and a phase-organized `.todo/<task>-todo.md` per CLAUDE.md.
+
 ### Step 3a — Single module
 
 Invoke the `/mint-module-builder` skill using the structured requirements document.
@@ -31,14 +34,13 @@ Follow every step in the build guide for the assigned module type (ContainedModu
 
 When the Module Breakdown table lists 2+ independent modules, follow `.claude/PARALLEL.md`:
 
-1. Create the `dev/` branch and a phase-organized `.todo/<task>-todo.md` first.
-2. Pre-create any shared assets (`_shared/`) that 2+ modules need.
-3. Dispatch one `module-builder` agent per `[CONTAINED]`/`[MULTI_PAGE]` row, concurrently in a single message, using the mandatory dispatch prompt template.
-4. `[NOT_CONTAINED]`/`[CUSTOM]` rows and dependent modules are built inline/sequentially by the main session.
+1. Pre-create any shared assets (`_shared/`) that 2+ modules need.
+2. Dispatch one `module-builder` agent per `[CONTAINED]`/`[MULTI_PAGE]` row, concurrently in a single message, using the mandatory dispatch prompt template.
+3. `[NOT_CONTAINED]`/`[CUSTOM]` rows and dependent modules are built inline/sequentially by the main session.
 
 ### Step 3c — Wiring pass (after agents return)
 
-From the agent reports, the main session: updates group/parent barrels, creates `app/` route re-exports, and checks the `.todo` boxes. Agents never write these files.
+From the agent reports, the main session updates group/parent barrels and creates `app/` route re-exports. Agents never write these files. `.todo` boxes are checked only after verification passes (Step 6), per `.claude/PARALLEL.md` Section 5.
 
 ## Step 4 — Create the module AI map
 

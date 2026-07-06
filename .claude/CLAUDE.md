@@ -436,7 +436,7 @@ Examples:
 - Handle all UI states: loading, empty, error, success, disabled, pending mutation.
 - No raw hex colors, arbitrary spacing, or one-off visual values — use design tokens.
 - Every data-driven component must use `useQuery`. No `useEffect` fetching.
-- Verify with `pnpm format && pnpm typecheck && pnpm lint` before committing. Use `/verify`. For complete pre-commit and testing standards, see `STANDARDS.md → Verification & Testing Standards`.
+- Verify with `pnpm format && pnpm check-types && pnpm lint` before committing. Use `/verify`. For complete pre-commit and testing standards, see `STANDARDS.md → Verification & Testing Standards`.
 - Update `docs/AI.md` whenever module structure changes. Use `/update-ai-map`.
 - One PR per task/feature. Use `/pre-pr` to prepare.
 

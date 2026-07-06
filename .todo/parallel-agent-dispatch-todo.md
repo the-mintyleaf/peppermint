@@ -17,8 +17,8 @@
 - [x] Edit `.claude/commands/post-edit-loop.md`
 - [x] Edit `.claude/commands/pre-pr.md`
 - [x] Edit `.claude/rules.md` (pointer)
-- [ ] Commit Phase 2
-- [ ] Dual adversarial review, apply fixes, commit
+- [x] Commit Phase 2
+- [x] Dual adversarial review, apply fixes, commit
 
 ## Phase 3 — Skills
 

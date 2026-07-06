@@ -56,10 +56,10 @@ Decision: route? → no → triggered by another module? → yes → ModalModule
 ## Verification commands
 
 ```bash
-pnpm typecheck   # run before committing
-pnpm lint        # run before committing
-pnpm build       # run before PR
-pnpm format      # run before PR
+pnpm check-types  # run before committing (there is no "typecheck" script)
+pnpm lint         # run before committing
+pnpm build        # run before PR
+pnpm format       # run before verification (root only)
 ```
 
 Only run commands that exist in the repo. Do not invent scripts.

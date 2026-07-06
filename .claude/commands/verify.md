@@ -6,10 +6,10 @@ Arguments: $ARGUMENTS (optional filter: `--filter <package-name>` to scope to a 
 
 Before running anything, verify which of the following scripts are present in `package.json` at the repo root or in the target package:
 
-- pnpm typecheck
+- pnpm check-types (the repo's typecheck script — there is no `typecheck` script)
 - pnpm lint
 - pnpm build
-- pnpm format
+- pnpm format / pnpm format:check (root only — no sub-package has them)
 
 Do not invent or run scripts that do not exist.
 
@@ -18,19 +18,23 @@ Do not invent or run scripts that do not exist.
 The list below is the **logical gate order** (what must pass before what). Execution
 is parallelized per `.claude/PARALLEL.md`:
 
-1. pnpm typecheck (or pnpm check-types) — must pass with zero errors
-2. pnpm lint — must pass with zero errors
-3. pnpm build — must pass before opening a PR
-4. pnpm format — apply before committing
+1. pnpm format — apply FIRST (write mode, main session, no agents active), so
+   later checks never fail on unformatted code
+2. pnpm check-types — must pass with zero errors
+3. pnpm lint — must pass with zero errors
+4. pnpm build — must pass before opening a PR
 
-**Dispatch rule:** run `pnpm format` (write mode, main session, no agents active)
-first, then dispatch check-types, lint, and format:check as concurrent `verifier`
-agents in a single message. `build` runs alone, only after types and lint pass.
-Never run write-mode `pnpm format` concurrently with anything.
+**Dispatch rule:** after the format pass, dispatch check-types, lint, and
+format:check as concurrent `verifier` agents in a single message. `build` runs
+alone, only after types and lint pass. Never run write-mode `pnpm format`
+concurrently with anything.
 
-If $ARGUMENTS includes --filter name, scope each dispatched command with the same
-filter. Known gap: `apps/mintflow` has no `check-types` script — the verifier
-reports it SKIPPED; do not invent the script.
+**Filter scoping:** if $ARGUMENTS includes --filter name, apply the filter to
+check-types, lint, and build only. `format`/`format:check` exist at the repo root
+only — never pass them a `--filter`; to scope formatting, use path arguments
+instead (e.g. `pnpm prettier --check "apps/<app>/**/*.{ts,tsx,md}"`). Known gap:
+`apps/mintflow` has no `check-types` script — the verifier reports it SKIPPED;
+do not invent the script.
 
 ## Step 2b — Design scan (visual files only)
 
