@@ -16,9 +16,11 @@ import { ListIcon } from "@phosphor-icons/react/dist/csr/List";
 import { UserCircleIcon } from "@phosphor-icons/react/dist/csr/UserCircle";
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
 import { UserListIcon } from "@phosphor-icons/react/dist/csr/UserList";
-import { LockKeyIcon } from "@phosphor-icons/react/dist/csr/LockKey";
 import { KeyIcon } from "@phosphor-icons/react/dist/csr/Key";
-import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
+import { UsersThreeIcon } from "@phosphor-icons/react/dist/csr/UsersThree";
+import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
+import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
+import { ListMagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/ListMagnifyingGlass";
 import type { SelectedOrgInfo } from "../../stores/selectedOrg.store";
 
 export function buildAdminConfig(
@@ -164,22 +166,47 @@ export function buildAdminConfig(
                     ],
                   },
                   {
-                    label: "Access Control",
+                    label: "Roles & Bindings",
                     items: [
                       {
-                        label: "Roles & Bindings",
-                        href: "/admin/authenticate/roles-bindings",
-                        icon: LockKeyIcon,
-                      },
-                      {
-                        label: "Direct Access",
-                        href: "/admin/authenticate/direct-access",
+                        label: "Roles",
+                        href: "/admin/authenticate/roles",
                         icon: KeyIcon,
                       },
                       {
-                        label: "Access Tools",
-                        href: "/admin/authenticate/access-tools",
-                        icon: MagnifyingGlassIcon,
+                        label: "Bindings",
+                        href: "/admin/authenticate/bindings",
+                        icon: UsersThreeIcon,
+                      },
+                    ],
+                  },
+                  {
+                    label: "Direct Access",
+                    items: [
+                      {
+                        label: "Grants",
+                        href: "/admin/authenticate/grants",
+                        icon: CheckCircleIcon,
+                      },
+                      {
+                        label: "Denials",
+                        href: "/admin/authenticate/denials",
+                        icon: ProhibitIcon,
+                      },
+                    ],
+                  },
+                  {
+                    label: "Access Tools",
+                    items: [
+                      {
+                        label: "Permission Catalog",
+                        href: "/admin/authenticate/permission-catalog",
+                        icon: ListMagnifyingGlassIcon,
+                      },
+                      {
+                        label: "Access Tester",
+                        href: "/admin/authenticate/access-tester",
+                        icon: ShieldCheckIcon,
                       },
                     ],
                   },

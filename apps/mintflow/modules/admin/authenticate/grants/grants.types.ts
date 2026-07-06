@@ -1,7 +1,7 @@
 import type {
   PermissionUserRef,
   ScopeType,
-} from "../../_shared/authenticate.types";
+} from "../_shared/authenticate.types";
 
 export type GrantStatus = "active" | "revoked" | "expired";
 

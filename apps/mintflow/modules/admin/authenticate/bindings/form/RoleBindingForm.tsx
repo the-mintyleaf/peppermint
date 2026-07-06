@@ -13,8 +13,8 @@ import {
 import { UserPicker } from "@/modules/admin/authenticate/_shared/UserPicker";
 import { ScopeFields } from "@/modules/admin/authenticate/_shared/ScopeFields";
 import type { ScopeValue } from "@/modules/admin/authenticate/_shared/authenticate.types";
-import { fetchAssignableRoles } from "../../roles/roles.api";
-import { roleQueryKeys } from "../../roles/roles.queryKeys";
+import { fetchAssignableRoles } from "@/modules/admin/authenticate/roles/roles.api";
+import { roleQueryKeys } from "@/modules/admin/authenticate/roles/roles.queryKeys";
 import type { RoleBinding } from "../bindings.types";
 import type {
   RoleBindingFormProps,

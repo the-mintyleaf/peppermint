@@ -1,5 +1,5 @@
 import type { ModalFormComponentProps } from "@peppermint/admin";
-import type { ScopeType } from "../../../_shared/authenticate.types";
+import type { ScopeType } from "../../_shared/authenticate.types";
 import type { Grant } from "../grants.types";
 
 export type GrantFormProps = ModalFormComponentProps<Grant>;

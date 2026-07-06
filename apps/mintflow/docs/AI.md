@@ -37,9 +37,12 @@ apps/mintflow/
 │       └── general-view/    # General View (team panel + task list)
 │   └── authenticate/        # Identity & Access Management (ContainedModule group)
 │       ├── users/           # Staff user/actor management + sessions/events/MFA/service accounts
-│       ├── roles-bindings/  # Roles + Role Bindings (tabs)
-│       ├── direct-access/   # Direct Grants + Denials (tabs)
-│       ├── access-tools/    # Permission Catalog + Access Tester (tabs, Not-Contained)
+│       ├── roles/           # Permission roles (reusable permission-key packages)
+│       ├── bindings/        # Role bindings (assign a role to a user under a scope)
+│       ├── grants/          # Direct permission grants
+│       ├── denials/         # Direct permission denials
+│       ├── permission-catalog/ # Browse the permission catalog (Not-Contained)
+│       ├── access-tester/   # Check/explain a user's effective access (Not-Contained)
 │       ├── account-security/ # Self-service profile/password/MFA/sessions (Not-Contained)
 │       └── _shared/         # UserPicker, PermissionKeyPicker, ScopeFields, OneTimeSecretModal, useCurrentUser, useLogout
 ├── modules/sign-in/         # Sign-in page (login + MFA challenge)
@@ -51,20 +54,23 @@ apps/mintflow/
 
 ## Major modules
 
-| Module             | Path                                           | Route(s)                             | Module AI map                                            |
-| ------------------ | ---------------------------------------------- | ------------------------------------ | -------------------------------------------------------- |
-| Organization       | `modules/admin/organization/`                  | `/admin/organization/*`              | `modules/admin/organization/docs/AI.md`                  |
-| Task Analytics     | `modules/admin/tasks/analytics/`               | `/admin/tasks/analytics`             | —                                                        |
-| Kanban             | `modules/admin/tasks/kanban/`                  | `/admin/tasks`                       | —                                                        |
-| General View       | `modules/admin/tasks/general-view/`            | `/admin/tasks/general-view`          | —                                                        |
-| Admin Home         | `modules/admin/home/`                          | `/admin`                             | —                                                        |
-| Sign In            | `modules/sign-in/`                             | `/`                                  | `modules/sign-in/docs/AI.md`                             |
-| Password Change    | `modules/password-change/`                     | `/password-change`                   | `modules/password-change/docs/AI.md`                     |
-| Users              | `modules/admin/authenticate/users/`            | `/admin/authenticate/users`          | `modules/admin/authenticate/users/docs/AI.md`            |
-| Roles & Bindings   | `modules/admin/authenticate/roles-bindings/`   | `/admin/authenticate/roles-bindings` | `modules/admin/authenticate/roles-bindings/docs/AI.md`   |
-| Direct Access      | `modules/admin/authenticate/direct-access/`    | `/admin/authenticate/direct-access`  | `modules/admin/authenticate/direct-access/docs/AI.md`    |
-| Access Tools       | `modules/admin/authenticate/access-tools/`     | `/admin/authenticate/access-tools`   | `modules/admin/authenticate/access-tools/docs/AI.md`     |
-| Account & Security | `modules/admin/authenticate/account-security/` | `/admin/account/security`            | `modules/admin/authenticate/account-security/docs/AI.md` |
+| Module             | Path                                             | Route(s)                                 | Module AI map                                              |
+| ------------------ | ------------------------------------------------ | ---------------------------------------- | ---------------------------------------------------------- |
+| Organization       | `modules/admin/organization/`                    | `/admin/organization/*`                  | `modules/admin/organization/docs/AI.md`                    |
+| Task Analytics     | `modules/admin/tasks/analytics/`                 | `/admin/tasks/analytics`                 | —                                                          |
+| Kanban             | `modules/admin/tasks/kanban/`                    | `/admin/tasks`                           | —                                                          |
+| General View       | `modules/admin/tasks/general-view/`              | `/admin/tasks/general-view`              | —                                                          |
+| Admin Home         | `modules/admin/home/`                            | `/admin`                                 | —                                                          |
+| Sign In            | `modules/sign-in/`                               | `/`                                      | `modules/sign-in/docs/AI.md`                               |
+| Password Change    | `modules/password-change/`                       | `/password-change`                       | `modules/password-change/docs/AI.md`                       |
+| Users              | `modules/admin/authenticate/users/`              | `/admin/authenticate/users`              | `modules/admin/authenticate/users/docs/AI.md`              |
+| Roles              | `modules/admin/authenticate/roles/`              | `/admin/authenticate/roles`              | `modules/admin/authenticate/roles/docs/AI.md`              |
+| Bindings           | `modules/admin/authenticate/bindings/`           | `/admin/authenticate/bindings`           | `modules/admin/authenticate/bindings/docs/AI.md`           |
+| Grants             | `modules/admin/authenticate/grants/`             | `/admin/authenticate/grants`             | `modules/admin/authenticate/grants/docs/AI.md`             |
+| Denials            | `modules/admin/authenticate/denials/`            | `/admin/authenticate/denials`            | `modules/admin/authenticate/denials/docs/AI.md`            |
+| Permission Catalog | `modules/admin/authenticate/permission-catalog/` | `/admin/authenticate/permission-catalog` | `modules/admin/authenticate/permission-catalog/docs/AI.md` |
+| Access Tester      | `modules/admin/authenticate/access-tester/`      | `/admin/authenticate/access-tester`      | `modules/admin/authenticate/access-tester/docs/AI.md`      |
+| Account & Security | `modules/admin/authenticate/account-security/`   | `/admin/account/security`                | `modules/admin/authenticate/account-security/docs/AI.md`   |
 
 ---
 

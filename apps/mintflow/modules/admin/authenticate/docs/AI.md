@@ -8,15 +8,20 @@ Identity & Access Management: staff-facing user/actor management, role and permi
 
 One grouped module folder, `modules/admin/authenticate/`, containing sub-modules nested per the sub-module rule instead of scattered as independent top-level modules. Sign In (`modules/sign-in/`) and Password Change (`modules/password-change/`) are the deliberate exception — they run pre-authentication on their own root-level routes with no admin shell and no nav presence, so they live outside this group.
 
-| Sub-module          | Type                     | Route                                                                                                                         | Map                           |
-| ------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| `users/`            | ContainedModule          | `/admin/authenticate/users`                                                                                                   | `users/docs/AI.md`            |
-| `roles-bindings/`   | ContainedModule (2 tabs) | `/admin/authenticate/roles-bindings`                                                                                          | `roles-bindings/docs/AI.md`   |
-| `direct-access/`    | ContainedModule (2 tabs) | `/admin/authenticate/direct-access`                                                                                           | `direct-access/docs/AI.md`    |
-| `access-tools/`     | Not-Contained (2 tabs)   | `/admin/authenticate/access-tools`                                                                                            | `access-tools/docs/AI.md`     |
-| `account-security/` | Not-Contained            | `/admin/account/security` (off the staff nav — reachable via its own top-level nav item, visible to every authenticated user) | `account-security/docs/AI.md` |
+Every sub-module is a standalone, single-resource screen following the shared list pattern — `RequireStaff` → `ModuleHeader` (breadcrumb) → `ModalPaper withBorder` → its shell/panel. There are **no tabs merging two resources into one route**: the former `roles-bindings/`, `direct-access/`, and `access-tools/` tab modules were each split into two independent sibling sub-modules.
 
-All sub-modules except `account-security/` are wrapped in `<RequireStaff>` and only appear in the nav (`config/nav/admin-nav.ts`, id `authenticate`) when the current user is staff or superuser.
+| Sub-module            | Type            | Route                                                                                                                         | Map                             |
+| --------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| `users/`              | ContainedModule | `/admin/authenticate/users`                                                                                                   | `users/docs/AI.md`              |
+| `roles/`              | ContainedModule | `/admin/authenticate/roles`                                                                                                   | `roles/docs/AI.md`              |
+| `bindings/`           | ContainedModule | `/admin/authenticate/bindings`                                                                                                | `bindings/docs/AI.md`           |
+| `grants/`             | ContainedModule | `/admin/authenticate/grants`                                                                                                  | `grants/docs/AI.md`             |
+| `denials/`            | ContainedModule | `/admin/authenticate/denials`                                                                                                 | `denials/docs/AI.md`            |
+| `permission-catalog/` | Not-Contained   | `/admin/authenticate/permission-catalog`                                                                                      | `permission-catalog/docs/AI.md` |
+| `access-tester/`      | Not-Contained   | `/admin/authenticate/access-tester`                                                                                           | `access-tester/docs/AI.md`      |
+| `account-security/`   | Not-Contained   | `/admin/account/security` (off the staff nav — reachable via its own top-level nav item, visible to every authenticated user) | `account-security/docs/AI.md`   |
+
+All sub-modules except `account-security/` are wrapped in `<RequireStaff>` and only appear in the nav (`config/nav/admin-nav.ts`, id `authenticate`) when the current user is staff or superuser. In the nav they stay visually grouped under the "Roles & Bindings", "Direct Access", and "Access Tools" sub-group labels even though each is now its own route.
 
 ## Shared (`_shared/`)
 

@@ -1,5 +1,5 @@
 import type { ModalFormComponentProps } from "@peppermint/admin";
-import type { ScopeType } from "../../../_shared/authenticate.types";
+import type { ScopeType } from "../../_shared/authenticate.types";
 import type { Denial, DenialSeverity } from "../denials.types";
 
 export type DenialFormProps = ModalFormComponentProps<Denial>;
