@@ -32,6 +32,7 @@ import type {
 } from "./SignInPage.types";
 import { AUTH_TOKEN_KEYS } from "./utils/authTokenKeys";
 import { decodeJWT } from "./utils/decodeJWT";
+import { unwrapEnvelope } from "./utils/unwrapEnvelope";
 import {
   AppleLogoIcon,
   DiscordLogoIcon,
@@ -155,13 +156,18 @@ export function SignInPage({
         }),
       });
 
-      const data = await response.json();
+      const body = await response.json();
 
       if (!response.ok) {
-        setErrorMessage(resolveErrorMessage(data));
-        onError?.(data);
+        setErrorMessage(resolveErrorMessage(body));
+        onError?.(body);
         return;
       }
+
+      // Success payloads are wrapped in a `{ success, data }` envelope; unwrap
+      // to reach access/refresh/mfa fields. Falls back to the raw body for
+      // APIs that respond flat.
+      const data = unwrapEnvelope(body);
 
       if (data?.mfa_required) {
         if (!mfaVerifyApi) {
@@ -197,15 +203,15 @@ export function SignInPage({
         body: JSON.stringify({ challenge_id: challengeId, code }),
       });
 
-      const data = await response.json();
+      const body = await response.json();
 
       if (!response.ok) {
-        setErrorMessage(resolveErrorMessage(data));
-        onError?.(data);
+        setErrorMessage(resolveErrorMessage(body));
+        onError?.(body);
         return;
       }
 
-      await completeSuccess(data);
+      await completeSuccess(unwrapEnvelope(body));
     } catch (error: unknown) {
       setErrorMessage("Something went wrong. Please try again.");
       onError?.(error);
