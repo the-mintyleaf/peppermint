@@ -34,7 +34,7 @@ function OrganizationOverviewContent() {
       <ModuleHeader
         breadcrumbItems={[
           { label: "Organization", href: "/admin/organization" },
-          { label: organization?.name ?? "Overview", href: "#" },
+          { label: organization?.name_np ?? "Overview", href: "#" },
         ]}
       />
       <ModalPaper withBorder>

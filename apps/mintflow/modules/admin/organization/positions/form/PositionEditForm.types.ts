@@ -5,7 +5,9 @@ import type { Position, PositionType } from "../positions.types";
 export type PositionEditFormProps = ModalFormComponentProps<Position>;
 
 export interface PositionEditFormValues {
-  title: string;
+  title_np: string;
+  title_en: string;
+  sort_order: number;
   position_type: PositionType | "";
   status: Position["status"];
   is_leadership: boolean;

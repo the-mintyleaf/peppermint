@@ -23,11 +23,11 @@ import { deactivatePosition } from "../../../../positions.api";
 import type { PositionRowActionsMenuProps } from "./PositionRowActionsMenu.types";
 
 function DeactivatePositionModalContent({
-  title,
+  titleNp,
   isLoading,
   onConfirm,
 }: {
-  title: string;
+  titleNp: string;
   isLoading: boolean;
   onConfirm: (reason: string) => void;
 }) {
@@ -36,8 +36,8 @@ function DeactivatePositionModalContent({
   return (
     <Stack gap="md">
       <Text size="sm">
-        &quot;{title}&quot; will no longer be assignable. Historical assignments
-        are kept.
+        &quot;{titleNp}&quot; will no longer be assignable. Historical
+        assignments are kept.
       </Text>
       <ReasonTextarea value={reason} onChange={setReason} required />
       <Button
@@ -66,7 +66,7 @@ export function PositionRowActionsMenu({
       notifications.show({
         color: "green",
         title: "Position deactivated",
-        message: `"${position.title}" is no longer active.`,
+        message: `"${position.title_np}" is no longer active.`,
       });
       modals.closeAll();
     },
@@ -84,7 +84,7 @@ export function PositionRowActionsMenu({
       title: "Deactivate position",
       children: (
         <DeactivatePositionModalContent
-          title={position.title}
+          titleNp={position.title_np}
           isLoading={deactivateMutation.isPending}
           onConfirm={(reason) => deactivateMutation.mutate(reason)}
         />

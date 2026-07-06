@@ -3,6 +3,7 @@
 import { Card, Group, Stack, Text, ThemeIcon } from "@peppermint/ui";
 import { BuildingsIcon } from "@phosphor-icons/react/dist/csr/Buildings";
 
+import { BilingualName } from "../../../_shared/components/BilingualName";
 import { OrganizationRowActionsMenu } from "./components/OrganizationRowActionsMenu";
 import { OrganizationStatusSegmentedControl } from "./components/OrganizationStatusSegmentedControl";
 import type { OrganizationCardProps } from "./OrganizationCard.types";
@@ -33,9 +34,12 @@ export function OrganizationCard({
           </Group>
         </Group>
         <Stack gap={2}>
-          <Text fw={600} size="sm" lineClamp={1}>
-            {organization.name}
-          </Text>
+          <BilingualName
+            np={organization.name_np}
+            en={organization.name_en}
+            size="sm"
+            fw={600}
+          />
           <Text size="xs" c="dimmed">
             {organization.code} · {organization.organization_type}
           </Text>

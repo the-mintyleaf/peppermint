@@ -73,7 +73,7 @@ function OrganizationsListContent() {
       notifications.show({
         color: "green",
         title: "Organization created",
-        message: `"${organization.name}" was created as a draft.`,
+        message: `"${organization.name_np}" was created as a draft.`,
       });
       closeCreate();
       setCodeError(undefined);
@@ -96,7 +96,7 @@ function OrganizationsListContent() {
   function handleSelect(organization: Organization) {
     setOrg({
       id: organization.id,
-      name: organization.name,
+      name: organization.name_np,
       code: organization.code,
       status: organization.status,
       country_code: organization.country_code,
@@ -111,7 +111,8 @@ function OrganizationsListContent() {
         status === "all" || !status || org.status === status;
       const matchesSearch =
         !term ||
-        org.name.toLowerCase().includes(term) ||
+        org.name_np.toLowerCase().includes(term) ||
+        (org.name_en ?? "").toLowerCase().includes(term) ||
         org.code.toLowerCase().includes(term);
       return matchesStatus && matchesSearch;
     });
@@ -213,14 +214,17 @@ function OrganizationsListContent() {
         <CreateOrganizationForm
           onSubmit={(values: CreateOrganizationFormValues) =>
             createMutation.mutate({
-              name: values.name,
+              name_np: values.name_np,
+              name_en: values.name_en || undefined,
               code: values.code,
               organization_type: values.organization_type as OrganizationType,
-              legal_name: values.legal_name || undefined,
-              short_name: values.short_name || undefined,
+              legal_name_np: values.legal_name_np || undefined,
+              short_name_np: values.short_name_np || undefined,
+              short_name_en: values.short_name_en || undefined,
               description: values.description || undefined,
               country_code: values.country_code || undefined,
               timezone: values.timezone || undefined,
+              sort_order: values.sort_order,
             })
           }
           isLoading={createMutation.isPending}

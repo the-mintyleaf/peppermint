@@ -53,7 +53,7 @@ const UNIT_STATUS_OPTIONS = [
   { value: "archived", label: "Archived" },
 ];
 
-const CODE_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const CODE_PATTERN = /^[A-Za-z0-9_\-]+$/;
 
 export function UnitFormModal({ organizationId }: UnitFormModalProps) {
   const { unitModal, closeUnitModal } = useStructureStore();
@@ -66,7 +66,8 @@ export function UnitFormModal({ organizationId }: UnitFormModalProps) {
 
   const form = useForm<UnitFormValues>({
     initialValues: {
-      name: "",
+      name_np: "",
+      name_en: "",
       code: "",
       unit_type: "",
       status: "draft",
@@ -75,12 +76,12 @@ export function UnitFormModal({ organizationId }: UnitFormModalProps) {
       is_operational: true,
     },
     validate: {
-      name: (value) => (!value ? "Required" : null),
+      name_np: (value) => (!value ? "Required" : null),
       code: (value) => {
         if (isEdit) return null;
         if (!value) return "Required";
         if (!CODE_PATTERN.test(value)) {
-          return "Lowercase letters, numbers, and hyphens only";
+          return "Letters, numbers, underscore, and hyphen only";
         }
         return null;
       },
@@ -91,7 +92,8 @@ export function UnitFormModal({ organizationId }: UnitFormModalProps) {
   useEffect(() => {
     if (isEdit && editingUnit) {
       form.setValues({
-        name: editingUnit.name,
+        name_np: editingUnit.name_np,
+        name_en: editingUnit.name_en,
         code: editingUnit.code,
         unit_type: editingUnit.unit_type,
         status: editingUnit.status,
@@ -108,16 +110,18 @@ export function UnitFormModal({ organizationId }: UnitFormModalProps) {
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
   function handleSubmit(values: UnitFormValues) {
+    const sortOrder = Number(values.sort_order) || 0;
     if (isEdit && unitModal.editingUnitId) {
       updateMutation.mutate(
         {
           unitId: unitModal.editingUnitId,
           payload: {
-            name: values.name,
+            name_np: values.name_np,
+            name_en: values.name_en,
             unit_type: values.unit_type || undefined,
             status: values.status,
             description: values.description,
-            sort_order: values.sort_order,
+            sort_order: sortOrder,
             is_operational: values.is_operational,
           },
         },
@@ -128,7 +132,8 @@ export function UnitFormModal({ organizationId }: UnitFormModalProps) {
 
     createMutation.mutate(
       {
-        name: values.name,
+        name_np: values.name_np,
+        name_en: values.name_en,
         code: values.code,
         unit_type: values.unit_type || "other",
         parent: unitModal.parentId ?? null,
@@ -164,10 +169,15 @@ export function UnitFormModal({ organizationId }: UnitFormModalProps) {
             </Text>
           )}
           <TextInput
-            label="Name"
+            label="Name (Nepali)"
             required
             disabled={isLoading}
-            {...form.getInputProps("name")}
+            {...form.getInputProps("name_np")}
+          />
+          <TextInput
+            label="Name (English)"
+            disabled={isLoading}
+            {...form.getInputProps("name_en")}
           />
           {!isEdit && (
             <TextInput

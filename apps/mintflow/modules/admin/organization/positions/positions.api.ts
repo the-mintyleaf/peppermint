@@ -27,7 +27,9 @@ export async function fetchPositions(
 }
 
 export interface CreatePositionPayload {
-  title: string;
+  title_np: string;
+  title_en?: string;
+  sort_order: number;
   code: string;
   position_type: PositionType;
   is_leadership?: boolean;
@@ -54,7 +56,9 @@ export async function fetchPosition(id: string): Promise<Position> {
 }
 
 export interface UpdatePositionPayload {
-  title?: string;
+  title_np?: string;
+  title_en?: string;
+  sort_order?: number;
   code?: string;
   position_type?: PositionType;
   status?: Position["status"];

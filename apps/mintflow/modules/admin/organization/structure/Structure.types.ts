@@ -12,7 +12,8 @@ interface EnrichedNodeFlags {
 export interface OrgRootNodeData
   extends Record<string, unknown>, EnrichedNodeFlags {
   nodeType: "org";
-  name: string;
+  name_np: string;
+  name_en: string;
   code: string;
   organizationType: string;
   status: string;
@@ -21,7 +22,8 @@ export interface OrgRootNodeData
 export interface UnitNodeData
   extends Record<string, unknown>, EnrichedNodeFlags {
   nodeType: "unit";
-  name: string;
+  name_np: string;
+  name_en: string;
   code: string;
   unitType: UnitType;
   status: UnitStatus;

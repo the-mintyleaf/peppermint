@@ -1,11 +1,20 @@
 "use client";
 
-import { Button, Stack, Textarea, TextInput, useForm } from "@peppermint/ui";
+import {
+  Button,
+  NumberInput,
+  Stack,
+  Textarea,
+  TextInput,
+  useForm,
+} from "@peppermint/ui";
 
 import type {
   EditOrganizationProfileFormProps,
   EditOrganizationProfileFormValues,
 } from "./EditOrganizationProfileForm.types";
+
+const COUNTRY_CODE_PATTERN = /^[A-Za-z]{2}$/;
 
 export function EditOrganizationProfileForm({
   organization,
@@ -14,36 +23,64 @@ export function EditOrganizationProfileForm({
 }: EditOrganizationProfileFormProps) {
   const form = useForm<EditOrganizationProfileFormValues>({
     initialValues: {
-      name: organization.name,
-      legal_name: organization.legal_name,
-      short_name: organization.short_name,
+      name_np: organization.name_np,
+      name_en: organization.name_en,
+      legal_name_np: organization.legal_name_np,
+      short_name_np: organization.short_name_np,
+      short_name_en: organization.short_name_en,
       description: organization.description,
       country_code: organization.country_code,
       timezone: organization.timezone,
+      sort_order: organization.sort_order,
     },
     validate: {
-      name: (value) => (!value ? "Required" : null),
+      name_np: (value) => (!value ? "Required" : null),
+      country_code: (value) => {
+        if (!value) return null;
+        if (!COUNTRY_CODE_PATTERN.test(value)) {
+          return "Must be a 2-letter ISO country code";
+        }
+        return null;
+      },
     },
   });
 
   return (
-    <form onSubmit={form.onSubmit((values) => onSubmit(values))}>
+    <form
+      onSubmit={form.onSubmit((values) =>
+        onSubmit({
+          ...values,
+          country_code: values.country_code.toUpperCase(),
+          sort_order: Number(values.sort_order) || 0,
+        }),
+      )}
+    >
       <Stack gap="md" p="md">
         <TextInput
-          label="Name"
+          label="Name (Nepali)"
           required
           disabled={isLoading}
-          {...form.getInputProps("name")}
+          {...form.getInputProps("name_np")}
         />
         <TextInput
-          label="Legal Name"
+          label="Name (English)"
           disabled={isLoading}
-          {...form.getInputProps("legal_name")}
+          {...form.getInputProps("name_en")}
         />
         <TextInput
-          label="Short Name"
+          label="Legal name (Nepali)"
           disabled={isLoading}
-          {...form.getInputProps("short_name")}
+          {...form.getInputProps("legal_name_np")}
+        />
+        <TextInput
+          label="Short name (Nepali)"
+          disabled={isLoading}
+          {...form.getInputProps("short_name_np")}
+        />
+        <TextInput
+          label="Short name (English)"
+          disabled={isLoading}
+          {...form.getInputProps("short_name_en")}
         />
         <Textarea
           label="Description"
@@ -62,6 +99,12 @@ export function EditOrganizationProfileForm({
           label="Timezone"
           disabled={isLoading}
           {...form.getInputProps("timezone")}
+        />
+        <NumberInput
+          label="Sort order"
+          min={0}
+          disabled={isLoading}
+          {...form.getInputProps("sort_order")}
         />
         <Button type="submit" loading={isLoading} fullWidth>
           Save Changes

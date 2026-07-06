@@ -9,7 +9,6 @@ import {
   SimpleGrid,
   Stack,
   Text,
-  Title,
   useDisclosure,
   useMutation,
   useQueryClient,
@@ -18,6 +17,7 @@ import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 
+import { BilingualName } from "../../../../../_shared/components/BilingualName";
 import { OrganizationStatusBadge } from "../../../../../_shared/components/OrganizationStatusBadge";
 import { EditOrganizationProfileForm } from "../../../../form";
 import type { EditOrganizationProfileFormValues } from "../../../../form";
@@ -68,7 +68,12 @@ export function ProfileCard({ organization }: ProfileCardProps) {
       <Card withBorder padding="md" radius="md">
         <Group justify="space-between" align="flex-start" mb="sm">
           <Group gap="xs" align="center">
-            <Title order={4}>{organization.name}</Title>
+            <BilingualName
+              np={organization.name_np}
+              en={organization.name_en}
+              size="lg"
+              fw={600}
+            />
             <OrganizationStatusBadge status={organization.status} />
           </Group>
           <Button
@@ -83,8 +88,18 @@ export function ProfileCard({ organization }: ProfileCardProps) {
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
           <Field label="Code" value={organization.code} />
           <Field label="Type" value={organization.organization_type} />
-          <Field label="Legal Name" value={organization.legal_name} />
-          <Field label="Short Name" value={organization.short_name} />
+          <Field
+            label="Legal Name (Nepali)"
+            value={organization.legal_name_np}
+          />
+          <Field
+            label="Short Name (Nepali)"
+            value={organization.short_name_np}
+          />
+          <Field
+            label="Short Name (English)"
+            value={organization.short_name_en}
+          />
           <Field label="Country Code" value={organization.country_code} />
           <Field label="Timezone" value={organization.timezone} />
         </SimpleGrid>

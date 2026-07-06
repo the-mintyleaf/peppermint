@@ -12,6 +12,7 @@ import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
 
+import { BilingualName } from "../../../../_shared/components/BilingualName";
 import type { UnitStatus } from "../../../../_shared/organization.types";
 import { useStructureStore } from "../../../Structure.store";
 import styles from "../../../Structure.module.css";
@@ -65,9 +66,12 @@ export function UnitNode({ data, selected, id }: UnitNodeProps) {
             >
               {unitData.unitType}
             </Text>
-            <Text size="sm" fw={700} lineClamp={1}>
-              {unitData.name}
-            </Text>
+            <BilingualName
+              np={unitData.name_np}
+              en={unitData.name_en}
+              size="sm"
+              fw={700}
+            />
           </Stack>
           <Badge
             size="xs"
@@ -146,7 +150,7 @@ export function UnitNode({ data, selected, id }: UnitNodeProps) {
               color="violet"
               onClick={(e) => {
                 e.stopPropagation();
-                openAddUnitModal(id, unitData.name);
+                openAddUnitModal(id, unitData.name_np);
               }}
               aria-label="Add child unit"
             >
@@ -174,7 +178,7 @@ export function UnitNode({ data, selected, id }: UnitNodeProps) {
               color="cyan"
               onClick={(e) => {
                 e.stopPropagation();
-                openMoveModal(id, unitData.name);
+                openMoveModal(id, unitData.name_np);
               }}
               aria-label="Move unit"
             >
@@ -188,7 +192,7 @@ export function UnitNode({ data, selected, id }: UnitNodeProps) {
               color="red"
               onClick={(e) => {
                 e.stopPropagation();
-                openDeactivateModal(id, unitData.name);
+                openDeactivateModal(id, unitData.name_np);
               }}
               aria-label="Deactivate unit"
             >

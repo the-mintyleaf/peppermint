@@ -51,7 +51,9 @@ export function PositionEditForm({
 }: PositionEditFormProps) {
   const form = useForm<PositionEditFormValues>({
     initialValues: {
-      title: initialValues?.title ?? "",
+      title_np: initialValues?.title_np ?? "",
+      title_en: initialValues?.title_en ?? "",
+      sort_order: initialValues?.sort_order ?? 0,
       position_type: initialValues?.position_type ?? "",
       status: initialValues?.status ?? "draft",
       is_leadership: initialValues?.is_leadership ?? false,
@@ -61,7 +63,7 @@ export function PositionEditForm({
       description: initialValues?.description ?? "",
     },
     validate: {
-      title: (value) => (!value ? "Required" : null),
+      title_np: (value) => (!value ? "Required" : null),
       position_type: (value) => (!value ? "Required" : null),
     },
   });
@@ -69,15 +71,29 @@ export function PositionEditForm({
   return (
     <form
       onSubmit={form.onSubmit((values) =>
-        onSubmit(values as unknown as Position),
+        onSubmit({
+          ...values,
+          sort_order: Number(values.sort_order) || 0,
+        } as unknown as Position),
       )}
     >
       <Stack gap="md" p="md">
         <TextInput
-          label="Title"
+          label="Title (Nepali)"
           required
           disabled={isLoading}
-          {...form.getInputProps("title")}
+          {...form.getInputProps("title_np")}
+        />
+        <TextInput
+          label="Title (English)"
+          disabled={isLoading}
+          {...form.getInputProps("title_en")}
+        />
+        <NumberInput
+          label="Sort order"
+          min={0}
+          disabled={isLoading}
+          {...form.getInputProps("sort_order")}
         />
         <Select
           label="Position Type"

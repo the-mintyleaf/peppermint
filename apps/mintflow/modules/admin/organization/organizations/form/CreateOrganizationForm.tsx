@@ -2,6 +2,7 @@
 
 import {
   Button,
+  NumberInput,
   Select,
   Stack,
   Textarea,
@@ -28,7 +29,8 @@ const ORGANIZATION_TYPE_OPTIONS = [
   { value: "other", label: "Other" },
 ];
 
-const CODE_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const CODE_PATTERN = /^[A-Z0-9_\-]+$/;
+const COUNTRY_CODE_PATTERN = /^[A-Za-z]{2}$/;
 
 export function CreateOrganizationForm({
   onSubmit,
@@ -37,42 +39,66 @@ export function CreateOrganizationForm({
 }: CreateOrganizationFormProps) {
   const form = useForm<CreateOrganizationFormValues>({
     initialValues: {
-      name: "",
+      name_np: "",
+      name_en: "",
       code: "",
       organization_type: "",
-      legal_name: "",
-      short_name: "",
+      legal_name_np: "",
+      short_name_np: "",
+      short_name_en: "",
       description: "",
       country_code: "",
       timezone: "",
+      sort_order: 0,
     },
     validate: {
-      name: (value) => (!value ? "Required" : null),
+      name_np: (value) => (!value ? "Required" : null),
       code: (value) => {
         if (!value) return "Required";
         if (!CODE_PATTERN.test(value)) {
-          return "Lowercase letters, numbers, and hyphens only";
+          return "Uppercase letters, numbers, underscore, and hyphen only";
         }
         return null;
       },
       organization_type: (value) => (!value ? "Required" : null),
+      country_code: (value) => {
+        if (!value) return null;
+        if (!COUNTRY_CODE_PATTERN.test(value)) {
+          return "Must be a 2-letter ISO country code";
+        }
+        return null;
+      },
     },
   });
 
   return (
-    <form onSubmit={form.onSubmit((values) => onSubmit(values))}>
+    <form
+      onSubmit={form.onSubmit((values) =>
+        onSubmit({
+          ...values,
+          country_code: values.country_code.toUpperCase(),
+          sort_order: Number(values.sort_order) || 0,
+        }),
+      )}
+    >
       <Stack gap="md" p="md">
         <TextInput
-          label="Name"
-          placeholder="Ministry of Health"
+          label="Name (Nepali)"
+          placeholder="स्वास्थ्य मन्त्रालय"
           required
           disabled={isLoading}
-          {...form.getInputProps("name")}
+          {...form.getInputProps("name_np")}
+        />
+        <TextInput
+          label="Name (English)"
+          placeholder="Ministry of Health"
+          disabled={isLoading}
+          {...form.getInputProps("name_en")}
         />
         <TextInput
           label="Code"
-          placeholder="moh"
-          description="Globally unique lowercase slug"
+          placeholder="MOH"
+          description="Globally unique code"
           required
           disabled={isLoading}
           error={form.errors.code ?? codeError}
@@ -86,14 +112,19 @@ export function CreateOrganizationForm({
           {...form.getInputProps("organization_type")}
         />
         <TextInput
-          label="Legal Name"
+          label="Legal name (Nepali)"
           disabled={isLoading}
-          {...form.getInputProps("legal_name")}
+          {...form.getInputProps("legal_name_np")}
         />
         <TextInput
-          label="Short Name"
+          label="Short name (Nepali)"
           disabled={isLoading}
-          {...form.getInputProps("short_name")}
+          {...form.getInputProps("short_name_np")}
+        />
+        <TextInput
+          label="Short name (English)"
+          disabled={isLoading}
+          {...form.getInputProps("short_name_en")}
         />
         <Textarea
           label="Description"
@@ -114,6 +145,12 @@ export function CreateOrganizationForm({
           placeholder="Asia/Kathmandu"
           disabled={isLoading}
           {...form.getInputProps("timezone")}
+        />
+        <NumberInput
+          label="Sort order"
+          min={0}
+          disabled={isLoading}
+          {...form.getInputProps("sort_order")}
         />
         <Button type="submit" loading={isLoading} fullWidth>
           Create Organization

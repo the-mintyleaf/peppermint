@@ -70,7 +70,7 @@ export function ScopeFields({
           searchable
           data={(organizations ?? []).map((org) => ({
             value: org.id,
-            label: `${org.name} (${org.code})`,
+            label: `${org.name_np} (${org.code})`,
           }))}
           value={value.organization}
           onChange={(organization) =>
@@ -88,7 +88,7 @@ export function ScopeFields({
           searchable
           data={(units ?? []).map((unit) => ({
             value: unit.id,
-            label: `${unit.name} (${unit.code})`,
+            label: `${unit.name_np} (${unit.code})`,
           }))}
           value={value.organization_unit}
           onChange={(organizationUnit) =>

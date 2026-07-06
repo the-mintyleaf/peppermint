@@ -57,7 +57,8 @@ export async function endReportingLine(
 export interface ChainOfCommandLink {
   position_id: string;
   code: string;
-  title: string;
+  title_np: string;
+  title_en?: string;
   depth: number;
 }
 
@@ -75,7 +76,8 @@ export async function fetchChainOfCommand(
 export interface SubordinatePosition {
   id: string;
   code: string;
-  title: string;
+  title_np: string;
+  title_en?: string;
 }
 
 export async function fetchSubordinates(

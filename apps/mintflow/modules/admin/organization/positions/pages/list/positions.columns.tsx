@@ -9,6 +9,7 @@ import { HashIcon } from "@phosphor-icons/react/dist/csr/Hash";
 import { PulseIcon } from "@phosphor-icons/react/dist/csr/Pulse";
 import { UsersThreeIcon } from "@phosphor-icons/react/dist/csr/UsersThree";
 
+import { BilingualName } from "../../../_shared/components/BilingualName";
 import type { Position, PositionStatus } from "../../positions.types";
 import { PositionRowActionsMenu } from "./components/PositionRowActionsMenu";
 
@@ -29,10 +30,13 @@ export function getPositionsColumns({
 }: GetPositionsColumnsOptions): DataTableShellColumn<Position>[] {
   return [
     {
-      accessor: "title",
+      accessor: "title_np",
       title: "Title",
       icon: BriefcaseIcon,
       sortable: true,
+      render: (record) => (
+        <BilingualName np={record.title_np} en={record.title_en} />
+      ),
     },
     {
       accessor: "code",

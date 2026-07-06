@@ -11,15 +11,16 @@ Contract: `.todo/org-data-contract.md` (v1.5.0)
 
 ## Phase 1 — Per-sub-module migration (parallel builders)
 
-- [ ] `organizations/` — DTOs, forms (np/en/legal_np/short_np/short_en + sort_order + code/country_code validation), displays
-- [ ] `structure/` — unit DTOs, UnitFormModal, node/inspector displays
-- [ ] `positions/` — DTOs, forms (title_np/title_en + sort_order + code), columns, drawer
-- [ ] `reporting-lines/` — chain-of-command title refs → np/en
-- [ ] `members/` — PositionAssignmentsTab + UnitMembershipsTab display reads
-- [ ] `actor-context/` — ActorContextPreview org/position → np/en
-- [ ] `delegations/` + `event-log/` — verify only (no changes expected)
-- [ ] Dual adversarial review (Codex + adversarial-reviewer) over Phase-1 diff; apply fixes
-- [ ] Commit Phase 1
+- [x] `organizations/` — DTOs, forms (np/en/legal_np/short_np/short_en + sort_order + code/country_code validation), displays
+- [x] `structure/` — unit DTOs, UnitFormModal, node/inspector displays
+- [x] `positions/` — DTOs, forms (title_np/title_en + sort_order + code), columns, drawer
+- [x] `reporting-lines/` — chain-of-command title refs → np/en
+- [x] `members/` — PositionAssignmentsTab + UnitMembershipsTab display reads
+- [x] `actor-context/` — ActorContextPreview org/position → np/en
+- [x] `delegations/` + `event-log/` — verified: zero entity name/title reads, no changes needed
+- [x] Fixed `_shared` pickers (Position/Unit) — orchestrator-owned stale reads
+- [x] Dual adversarial review (Codex + adversarial-reviewer): fixed sort_order ""-on-clear (5 forms), ScopeFields cross-module break (authenticate), name_en search guard
+- [x] Commit Phase 1
 
 ## Phase 2 — Wiring, docs, verification (orchestrator)
 

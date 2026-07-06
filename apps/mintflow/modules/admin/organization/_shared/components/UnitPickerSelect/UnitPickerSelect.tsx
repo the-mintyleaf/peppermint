@@ -25,7 +25,7 @@ export function UnitPickerSelect({
     .sort((a, b) => a.path_cache.localeCompare(b.path_cache))
     .map((unit) => ({
       value: unit.id,
-      label: `${"  ".repeat(unit.depth)}${unit.name} (${unit.code})`,
+      label: `${"  ".repeat(unit.depth)}${unit.name_np} (${unit.code})`,
     }));
 
   return (

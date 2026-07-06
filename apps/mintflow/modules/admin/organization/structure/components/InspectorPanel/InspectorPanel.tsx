@@ -12,7 +12,6 @@ import {
   Loader,
   Stack,
   Text,
-  Title,
 } from "@peppermint/ui";
 import { ArrowsOutCardinalIcon } from "@phosphor-icons/react/dist/csr/ArrowsOutCardinal";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
@@ -20,6 +19,7 @@ import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
 
+import { BilingualName } from "../../../_shared/components/BilingualName";
 import {
   useUnitAncestors,
   useUnitDescendants,
@@ -60,7 +60,12 @@ export function InspectorPanel() {
         <Stack gap="md">
           <div>
             <Group gap="xs" align="center" mb={4}>
-              <Title order={4}>{unit.name}</Title>
+              <BilingualName
+                np={unit.name_np}
+                en={unit.name_en}
+                size="lg"
+                fw={600}
+              />
               <Badge size="xs">{unit.status}</Badge>
             </Group>
             <Text size="xs" c="dimmed">
@@ -84,7 +89,13 @@ export function InspectorPanel() {
               </Text>
               <List size="sm">
                 {ancestors.map((ancestor) => (
-                  <List.Item key={ancestor.id}>{ancestor.name}</List.Item>
+                  <List.Item key={ancestor.id}>
+                    <BilingualName
+                      np={ancestor.name_np}
+                      en={ancestor.name_en}
+                      inline
+                    />
+                  </List.Item>
                 ))}
               </List>
             </div>
@@ -97,7 +108,13 @@ export function InspectorPanel() {
               </Text>
               <List size="sm">
                 {descendants.slice(0, 10).map((descendant) => (
-                  <List.Item key={descendant.id}>{descendant.name}</List.Item>
+                  <List.Item key={descendant.id}>
+                    <BilingualName
+                      np={descendant.name_np}
+                      en={descendant.name_en}
+                      inline
+                    />
+                  </List.Item>
                 ))}
               </List>
               {descendants.length > 10 && (
@@ -115,7 +132,7 @@ export function InspectorPanel() {
               size="xs"
               variant="light"
               leftSection={<PlusIcon size={13} />}
-              onClick={() => openAddUnitModal(unit.id, unit.name)}
+              onClick={() => openAddUnitModal(unit.id, unit.name_np)}
             >
               Add Child Unit
             </Button>
@@ -132,7 +149,7 @@ export function InspectorPanel() {
               variant="light"
               color="cyan"
               leftSection={<ArrowsOutCardinalIcon size={13} />}
-              onClick={() => openMoveModal(unit.id, unit.name)}
+              onClick={() => openMoveModal(unit.id, unit.name_np)}
             >
               Move Unit
             </Button>
@@ -141,7 +158,7 @@ export function InspectorPanel() {
               variant="light"
               color="red"
               leftSection={<ProhibitIcon size={13} />}
-              onClick={() => openDeactivateModal(unit.id, unit.name)}
+              onClick={() => openDeactivateModal(unit.id, unit.name_np)}
             >
               Deactivate Unit
             </Button>

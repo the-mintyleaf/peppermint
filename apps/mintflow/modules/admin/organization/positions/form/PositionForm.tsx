@@ -36,12 +36,14 @@ const POSITION_TYPE_OPTIONS = [
   { value: "other", label: "Other" },
 ];
 
-const CODE_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const CODE_PATTERN = /^[A-Za-z0-9_\-]+$/;
 
 export function PositionForm({ onSubmit, isLoading }: PositionFormProps) {
   const form = useForm<PositionFormValues>({
     initialValues: {
-      title: "",
+      title_np: "",
+      title_en: "",
+      sort_order: 0,
       code: "",
       position_type: "",
       is_leadership: false,
@@ -51,11 +53,11 @@ export function PositionForm({ onSubmit, isLoading }: PositionFormProps) {
       description: "",
     },
     validate: {
-      title: (value) => (!value ? "Required" : null),
+      title_np: (value) => (!value ? "Required" : null),
       code: (value) => {
         if (!value) return "Required";
         if (!CODE_PATTERN.test(value)) {
-          return "Lowercase letters, numbers, and hyphens only";
+          return "Letters, numbers, underscore, and hyphen only";
         }
         return null;
       },
@@ -66,16 +68,31 @@ export function PositionForm({ onSubmit, isLoading }: PositionFormProps) {
   return (
     <form
       onSubmit={form.onSubmit((values) =>
-        onSubmit(values as unknown as Position),
+        onSubmit({
+          ...values,
+          sort_order: Number(values.sort_order) || 0,
+        } as unknown as Position),
       )}
     >
       <Stack gap="md" p="md">
         <TextInput
-          label="Title"
-          placeholder="Director of Public Health"
+          label="Title (Nepali)"
+          placeholder="जनस्वास्थ्य निर्देशक"
           required
           disabled={isLoading}
-          {...form.getInputProps("title")}
+          {...form.getInputProps("title_np")}
+        />
+        <TextInput
+          label="Title (English)"
+          placeholder="Director of Public Health"
+          disabled={isLoading}
+          {...form.getInputProps("title_en")}
+        />
+        <NumberInput
+          label="Sort order"
+          min={0}
+          disabled={isLoading}
+          {...form.getInputProps("sort_order")}
         />
         <TextInput
           label="Code"

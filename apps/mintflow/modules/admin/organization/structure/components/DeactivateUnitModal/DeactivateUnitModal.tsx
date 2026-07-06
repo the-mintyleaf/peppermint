@@ -71,7 +71,7 @@ export function DeactivateUnitModal({
             <List size="sm">
               {activeChildren.map((unit) => (
                 <List.Item key={unit.id}>
-                  {unit.name} ({unit.code})
+                  {unit.name_np} ({unit.code})
                 </List.Item>
               ))}
             </List>

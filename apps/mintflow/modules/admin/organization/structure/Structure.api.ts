@@ -10,7 +10,8 @@ export async function fetchUnitDetail(
 }
 
 export interface CreateUnitPayload {
-  name: string;
+  name_np: string;
+  name_en?: string;
   code: string;
   unit_type: UnitType;
   parent: string | null;
@@ -32,7 +33,8 @@ export async function createUnit(
 
 /** Never send `code` or `parent` through this endpoint — use `moveUnit` for re-parenting. */
 export interface UpdateUnitPayload {
-  name?: string;
+  name_np?: string;
+  name_en?: string;
   unit_type?: UnitType;
   status?: OrganizationUnit["status"];
   description?: string;

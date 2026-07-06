@@ -22,7 +22,7 @@ export function PositionPickerSelect({
 
   const options = (positions?.data ?? []).map((p) => ({
     value: p.id,
-    label: `${p.title} (${p.code})`,
+    label: `${p.title_np} (${p.code})`,
   }));
 
   return (

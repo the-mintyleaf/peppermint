@@ -150,7 +150,7 @@ export function PositionAssignmentsTab({
   });
   const positionOptions = (unitPositions?.data ?? []).map((p) => ({
     value: p.id,
-    label: `${p.title} (${p.code})`,
+    label: `${p.title_np} (${p.code})`,
   }));
 
   const selectedPosition = (unitPositions?.data ?? []).find(

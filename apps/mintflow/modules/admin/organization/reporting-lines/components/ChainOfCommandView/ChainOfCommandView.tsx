@@ -10,6 +10,7 @@ import {
   useQuery,
 } from "@peppermint/ui";
 
+import { BilingualName } from "../../../_shared/components/BilingualName";
 import {
   fetchChainOfCommand,
   fetchSubordinates,
@@ -58,7 +59,8 @@ export function ChainOfCommandView({
             <List size="sm" type="ordered">
               {chain.map((link) => (
                 <List.Item key={link.position_id}>
-                  {link.title} ({link.code})
+                  <BilingualName np={link.title_np} en={link.title_en} inline />{" "}
+                  ({link.code})
                 </List.Item>
               ))}
             </List>
@@ -79,7 +81,8 @@ export function ChainOfCommandView({
             <List size="sm">
               {subordinates.map((sub) => (
                 <List.Item key={sub.id}>
-                  {sub.title} ({sub.code})
+                  <BilingualName np={sub.title_np} en={sub.title_en} inline /> (
+                  {sub.code})
                 </List.Item>
               ))}
             </List>

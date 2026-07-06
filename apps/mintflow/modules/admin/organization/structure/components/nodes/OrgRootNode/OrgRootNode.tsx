@@ -9,6 +9,7 @@ import { CaretUpIcon } from "@phosphor-icons/react/dist/csr/CaretUp";
 import { CrosshairIcon } from "@phosphor-icons/react/dist/csr/Crosshair";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 
+import { BilingualName } from "../../../../_shared/components/BilingualName";
 import { useStructureStore } from "../../../Structure.store";
 import styles from "../../../Structure.module.css";
 import type { OrgRootNodeProps } from "./OrgRootNode.types";
@@ -47,9 +48,12 @@ export function OrgRootNode({ data, selected, id }: OrgRootNodeProps) {
             >
               {rootData.organizationType}
             </Text>
-            <Text size="sm" fw={700} lineClamp={1}>
-              {rootData.name}
-            </Text>
+            <BilingualName
+              np={rootData.name_np}
+              en={rootData.name_en}
+              size="sm"
+              fw={700}
+            />
           </Stack>
           <Badge size="xs">{rootData.status}</Badge>
         </Group>

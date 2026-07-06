@@ -186,8 +186,8 @@ function StructureInner() {
       const node = nodes.find((n) => n.id === id);
       const label =
         node?.data.nodeType === "org"
-          ? node.data.name
-          : (node?.data.name ?? id);
+          ? node.data.name_np
+          : (node?.data.name_np ?? id);
       return { id, label };
     });
   }, [focusedBranchId, edges, nodes]);
@@ -235,7 +235,7 @@ function StructureInner() {
         breadcrumbItems={[
           { label: "Organization", href: "/admin/organization" },
           {
-            label: organization?.name ?? "Structure",
+            label: organization?.name_np ?? "Structure",
             href: `/admin/organization/${orgId}`,
           },
           { label: "Structure Builder", href: "#" },

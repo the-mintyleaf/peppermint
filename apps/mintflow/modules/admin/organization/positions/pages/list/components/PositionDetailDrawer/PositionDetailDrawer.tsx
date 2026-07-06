@@ -8,10 +8,10 @@ import {
   Progress,
   Stack,
   Text,
-  Title,
   useQuery,
 } from "@peppermint/ui";
 
+import { BilingualName } from "../../../../../_shared/components/BilingualName";
 import { fetchPositionHolders } from "../../../../positions.api";
 import { positionsQueryKeys } from "../../../../positions.queryKeys";
 import type { PositionDetailDrawerProps } from "./PositionDetailDrawer.types";
@@ -42,7 +42,12 @@ export function PositionDetailDrawer({
       <Stack gap="md">
         <div>
           <Group gap="xs" align="center" mb={4}>
-            <Title order={4}>{position.title}</Title>
+            <BilingualName
+              np={position.title_np}
+              en={position.title_en}
+              size="lg"
+              fw={600}
+            />
             <Badge size="xs">{position.status}</Badge>
           </Group>
           <Text size="xs" c="dimmed">

@@ -29,7 +29,8 @@ export function buildGraphFromTree(
       position: { x: 0, y: 0 },
       data: {
         nodeType: "org",
-        name: organization.name,
+        name_np: organization.name_np,
+        name_en: organization.name_en,
         code: organization.code,
         organizationType: organization.organization_type,
         status: organization.status,
@@ -45,7 +46,8 @@ export function buildGraphFromTree(
       position: { x: 0, y: 0 },
       data: {
         nodeType: "unit",
-        name: unit.name,
+        name_np: unit.name_np,
+        name_en: unit.name_en,
         code: unit.code,
         unitType: unit.unit_type,
         status: unit.status,
@@ -171,9 +173,9 @@ export function expandAncestors(
 
 export function getNodeSearchOptionLabel(node: StructureFlowNode): string {
   if (node.data.nodeType === "org") {
-    return `Organization · ${node.data.name}`;
+    return `Organization · ${node.data.name_np}`;
   }
-  return `Unit · ${node.data.name} (${node.data.code})`;
+  return `Unit · ${node.data.name_np} (${node.data.code})`;
 }
 
 export function nodeMatchesSearch(
@@ -183,8 +185,8 @@ export function nodeMatchesSearch(
   const q = query.toLowerCase();
   const label =
     node.data.nodeType === "org"
-      ? node.data.name
-      : `${node.data.name} ${node.data.code}`;
+      ? `${node.data.name_np} ${node.data.name_en}`
+      : `${node.data.name_np} ${node.data.name_en} ${node.data.code}`;
   return label.toLowerCase().includes(q) ? node.id : null;
 }
 

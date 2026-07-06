@@ -20,6 +20,7 @@ import {
 import { RequireStaff } from "@/components/RequireStaff";
 import { UserPicker } from "@/modules/admin/authenticate/_shared/UserPicker";
 
+import { BilingualName } from "../_shared/components/BilingualName";
 import { fetchActorContext } from "./actorContext.api";
 
 function ActorContextPreviewContent() {
@@ -87,7 +88,16 @@ function ActorContextPreviewContent() {
                 ) : (
                   <Text size="sm" c="dimmed">
                     This user has no active membership in{" "}
-                    {context.organization?.name ?? "this organization"}.
+                    {context.organization ? (
+                      <BilingualName
+                        np={context.organization.name_np}
+                        en={context.organization.name_en}
+                        inline
+                      />
+                    ) : (
+                      "this organization"
+                    )}
+                    .
                   </Text>
                 )}
               </Card>
@@ -124,8 +134,12 @@ function ActorContextPreviewContent() {
                   <List size="sm">
                     {context.position_assignments.map((pa) => (
                       <List.Item key={pa.id}>
-                        {pa.position.title} ({pa.position.code}) ·{" "}
-                        {pa.assignment_type}
+                        <BilingualName
+                          np={pa.position.title_np}
+                          en={pa.position.title_en}
+                          inline
+                        />{" "}
+                        ({pa.position.code}) · {pa.assignment_type}
                         {pa.is_primary ? " (primary)" : ""} · {pa.status}
                       </List.Item>
                     ))}

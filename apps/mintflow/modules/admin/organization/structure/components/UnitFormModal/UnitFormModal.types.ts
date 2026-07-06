@@ -1,7 +1,8 @@
 import type { UnitStatus, UnitType } from "../../../_shared/organization.types";
 
 export interface UnitFormValues {
-  name: string;
+  name_np: string;
+  name_en: string;
   code: string;
   unit_type: UnitType | "";
   status: UnitStatus;

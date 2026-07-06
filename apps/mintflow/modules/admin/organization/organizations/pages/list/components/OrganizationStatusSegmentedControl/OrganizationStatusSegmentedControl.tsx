@@ -97,7 +97,7 @@ export function OrganizationStatusSegmentedControl({
       title: "Change organization status",
       children: (
         <ChangeStatusModalContent
-          organizationName={organization.name}
+          organizationName={organization.name_np}
           targetStatus={targetStatus}
           isLoading={statusMutation.isPending}
           onConfirm={(reason) =>

@@ -89,7 +89,7 @@ export function useCreateUnit(organizationId: string) {
       notifications.show({
         color: "green",
         title: "Unit created",
-        message: `"${unit.name}" was added to the structure.`,
+        message: `"${unit.name_np}" was added to the structure.`,
       });
     },
     onError: (error) => {
@@ -121,7 +121,7 @@ export function useUpdateUnit(organizationId: string) {
       notifications.show({
         color: "green",
         title: "Unit updated",
-        message: `"${unit.name}" was updated.`,
+        message: `"${unit.name_np}" was updated.`,
       });
     },
     onError: (error) => {
@@ -156,7 +156,7 @@ export function useMoveUnit(organizationId: string) {
       notifications.show({
         color: "green",
         title: "Unit moved",
-        message: `"${unit.name}" was moved.`,
+        message: `"${unit.name_np}" was moved.`,
       });
     },
     onError: (error) => {
@@ -184,7 +184,7 @@ export function useDeactivateUnit(organizationId: string) {
       notifications.show({
         color: "green",
         title: "Unit deactivated",
-        message: `"${unit.name}" is no longer operational.`,
+        message: `"${unit.name_np}" is no longer operational.`,
       });
     },
     onError: (error) => {

@@ -72,7 +72,7 @@ export function UnitMembershipsTab({
   });
   const { data: units } = useUnitOptions(organizationId);
   const unitNameById = useMemo(
-    () => new Map((units ?? []).map((u) => [u.id, `${u.name} (${u.code})`])),
+    () => new Map((units ?? []).map((u) => [u.id, `${u.name_np} (${u.code})`])),
     [units],
   );
 

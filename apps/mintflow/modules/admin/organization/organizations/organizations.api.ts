@@ -21,14 +21,17 @@ export async function fetchOrganization(id: string): Promise<Organization> {
 }
 
 export interface CreateOrganizationPayload {
-  name: string;
+  name_np: string;
+  name_en?: string;
   code: string;
   organization_type: OrganizationType;
-  legal_name?: string;
-  short_name?: string;
+  legal_name_np?: string;
+  short_name_np?: string;
+  short_name_en?: string;
   description?: string;
   country_code?: string;
   timezone?: string;
+  sort_order: number;
 }
 
 export async function createOrganization(
@@ -43,12 +46,15 @@ export async function createOrganization(
 
 /** Never send `code`, `status`, or `organization_type` through this endpoint. */
 export interface UpdateOrganizationPayload {
-  name?: string;
-  legal_name?: string;
-  short_name?: string;
+  name_np?: string;
+  name_en?: string;
+  legal_name_np?: string;
+  short_name_np?: string;
+  short_name_en?: string;
   description?: string;
   country_code?: string;
   timezone?: string;
+  sort_order?: number;
 }
 
 export async function updateOrganization(
