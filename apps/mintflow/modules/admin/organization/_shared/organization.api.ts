@@ -33,11 +33,15 @@ export async function fetchUnitsFlat(
 export async function fetchUnitRoots(
   organizationId: string,
 ): Promise<UnitTreeNodeFlat[]> {
-  const { data } = await api.get<{ data: UnitTreeNodeFlat[] }>(
+  // The response interceptor (`lib/api.ts`) already unwraps the `{success,data,meta}`
+  // envelope for non-paginated responses (this endpoint's `meta` has no `count`), so
+  // `data` is the array itself — do NOT read `data.data` (that would double-unwrap to
+  // `undefined`, which makes React Query throw).
+  const { data } = await api.get<UnitTreeNodeFlat[]>(
     `/api/v1/organization/organizations/${organizationId}/unit-tree-nodes/`,
     { params: { max_depth: 0 } },
   );
-  return data.data;
+  return data;
 }
 
 /**
@@ -50,7 +54,8 @@ export async function fetchUnitChildren(
   organizationId: string,
   unitId: string,
 ): Promise<UnitTreeNodeFlat[]> {
-  const { data } = await api.get<{ data: UnitTreeNodeFlat[] }>(
+  // Already-unwrapped by the response interceptor — return `data`, not `data.data`.
+  const { data } = await api.get<UnitTreeNodeFlat[]>(
     `/api/v1/organization/organizations/${organizationId}/unit-tree-nodes/`,
     {
       params: {
@@ -60,5 +65,5 @@ export async function fetchUnitChildren(
       },
     },
   );
-  return data.data;
+  return data;
 }

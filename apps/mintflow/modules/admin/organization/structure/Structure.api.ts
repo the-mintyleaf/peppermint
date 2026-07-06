@@ -87,17 +87,19 @@ export async function deactivateUnit(
 export async function fetchUnitAncestors(
   unitId: string,
 ): Promise<OrganizationUnit[]> {
-  const { data } = await api.get<{ data: OrganizationUnit[] }>(
+  // Envelope already unwrapped by the response interceptor (non-paginated,
+  // `meta` has no `count`) — return `data`, not `data.data`.
+  const { data } = await api.get<OrganizationUnit[]>(
     `/api/v1/organization/units/${unitId}/ancestors/`,
   );
-  return data.data;
+  return data;
 }
 
 export async function fetchUnitDescendants(
   unitId: string,
 ): Promise<OrganizationUnit[]> {
-  const { data } = await api.get<{ data: OrganizationUnit[] }>(
+  const { data } = await api.get<OrganizationUnit[]>(
     `/api/v1/organization/units/${unitId}/descendants/`,
   );
-  return data.data;
+  return data;
 }
