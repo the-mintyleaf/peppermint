@@ -16,14 +16,14 @@ Subagent definitions live in `.claude/agents/`:
 
 ## 1. When to dispatch in parallel
 
-| Situation                                                                | Action                                                                       |
-| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| Requirements doc lists 2+ independent `[CONTAINED]`/`[MULTI_PAGE]` modules | One `module-builder` per module, dispatched concurrently in a single message |
-| `[NOT_CONTAINED]` / `[CUSTOM]` modules                                    | Built inline by the orchestrator, sequentially — never dispatched to builders |
-| Verification spans 2+ independent scopes (check-types, lint, format:check) | One `verifier` per scope, dispatched concurrently                            |
-| Post-phase dual review                                                    | Codex (`mcp__codex__codex`) + one `adversarial-reviewer`, concurrently       |
-| Single unit of work                                                       | Inline, sequential — no dispatch                                             |
-| Units with genuine dependencies                                           | Sequential in dependency order (parallelize only the independent subsets)    |
+| Situation                                                                  | Action                                                                        |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Requirements doc lists 2+ independent `[CONTAINED]`/`[MULTI_PAGE]` modules | One `module-builder` per module, dispatched concurrently in a single message  |
+| `[NOT_CONTAINED]` / `[CUSTOM]` modules                                     | Built inline by the orchestrator, sequentially — never dispatched to builders |
+| Verification spans 2+ independent scopes (check-types, lint, format:check) | One `verifier` per scope, dispatched concurrently                             |
+| Post-phase dual review                                                     | Codex (`mcp__codex__codex`) + one `adversarial-reviewer`, concurrently        |
+| Single unit of work                                                        | Inline, sequential — no dispatch                                              |
+| Units with genuine dependencies                                            | Sequential in dependency order (parallelize only the independent subsets)     |
 
 Dispatch all concurrent agents **in one message** (multiple tool calls) so they actually
 run at the same time.
@@ -42,7 +42,7 @@ Units are parallel-safe if and only if they are **file-disjoint**:
 ## 3. File ownership
 
 **Builder agents** write only inside their assigned module folder — including barrels
-and `docs/AI.md` files *inside* that folder. Everything above it is orchestrator-owned.
+and `docs/AI.md` files _inside_ that folder. Everything above it is orchestrator-owned.
 
 **Orchestrator-owned (agents must never touch):**
 
@@ -107,12 +107,12 @@ tasks exempt). After each phase:
 
 ## 6. Verification concurrency matrix
 
-| Concurrent-safe (fan out, one `verifier` each)              | Serialized / gated                                              |
-| ------------------------------------------------------------ | ---------------------------------------------------------------- |
-| `pnpm check-types` (turbo)                                    | `pnpm build` — runs alone, only after types + lint pass           |
-| `pnpm lint` (turbo)                                           | `pnpm format` (write mode) — orchestrator only, zero agents active |
-| `pnpm format:check` (read-only prettier)                      | pre-pr gates: verify PASS → doc-check → greploop → PR             |
-| Design scan (Step 2b) — batch files across ≤4 scan-mode verifiers |                                                                  |
+| Concurrent-safe (fan out, one `verifier` each)                    | Serialized / gated                                                 |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `pnpm check-types` (turbo)                                        | `pnpm build` — runs alone, only after types + lint pass            |
+| `pnpm lint` (turbo)                                               | `pnpm format` (write mode) — orchestrator only, zero agents active |
+| `pnpm format:check` (read-only prettier)                          | pre-pr gates: verify PASS → doc-check → greploop → PR              |
+| Design scan (Step 2b) — batch files across ≤4 scan-mode verifiers |                                                                    |
 
 - Scope each verifier with `--filter` where possible to shrink turbo contention.
 - `format:check` is only meaningful **after** the orchestrator's write-mode format pass

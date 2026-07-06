@@ -43,7 +43,7 @@ orchestrator-owned. Report their content instead (see report format).
 
 ## Hard boundaries
 
-- **Never write outside your assigned folder.** Barrels and `docs/AI.md` *inside*
+- **Never write outside your assigned folder.** Barrels and `docs/AI.md` _inside_
   your folder are yours; anything above it is not.
 - Never touch `.todo/`, `app/` route files, parent/group barrels, or parent `docs/AI.md`.
 - Never run verification — you have no shell access by design. Do not ask for one.

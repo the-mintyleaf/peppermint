@@ -417,8 +417,8 @@ Adjust the structure above to match the recommended module type. Remove inapplic
 
 Required section. List the independent build units and what must stay with the orchestrator, per `.claude/PARALLEL.md`:
 
-| Build unit (module/sub-module) | Type tag | Depends on | Reference sibling | Parallel-safe? |
-| ------------------------------ | -------- | ---------- | ----------------- | -------------- |
+| Build unit (module/sub-module) | Type tag                   | Depends on          | Reference sibling          | Parallel-safe?             |
+| ------------------------------ | -------------------------- | ------------------- | -------------------------- | -------------------------- |
 | <unit path>                    | [CONTAINED] / [MULTI_PAGE] | — or <sibling unit> | <existing sub-module path> | Yes / No (build in wave 2) |
 
 **Shared wiring reserved for the orchestrator:** group/parent barrels, `app/` route re-exports, parent/app `docs/AI.md` rows, shared `_shared/` assets (pre-created before dispatch), `.todo` updates, git.
