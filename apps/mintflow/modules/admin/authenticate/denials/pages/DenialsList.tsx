@@ -5,6 +5,7 @@ import { ModalPaper, ModuleHeader } from "@peppermint/ui";
 
 import { RequireStaff } from "@/components/RequireStaff";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
+
 import { createDenial, fetchDenials } from "../denials.api";
 import { denialsColumns } from "../denials.columns";
 import { denialQueryKeys } from "../denials.queryKeys";
