@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ModalTableShell } from "@peppermint/admin";
 import type { DataTableShellTab } from "@peppermint/admin";
-import { ModalPaper, ModuleHeader } from "@peppermint/ui";
+import { ModalPaper } from "@peppermint/ui";
 import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
@@ -52,39 +52,35 @@ function UsersListContent() {
 
   return (
     <>
-      <ModuleHeader
-        breadcrumbItems={[
-          { label: "Users", href: "/admin/authenticate/users" },
-        ]}
+      <ModalTableShell<User>
+        queryKey={usersQueryKeys.list()}
+        queryGetFn={fetchUsers}
+        dataKey="data"
+        paginationKey="meta"
+        columns={columns}
+        moduleInfo={{
+          name: "user",
+          label: "Users",
+          description: "Manage staff, human accounts, and service actors",
+        }}
+        idAccessor="id"
+        createFormComponent={UserForm}
+        editFormComponent={UserEditForm}
+        onCreateApi={(values) =>
+          createUser(values as unknown as CreateUserPayload)
+        }
+        onEditApi={(values, record) =>
+          updateUser(record.id, values as unknown as UpdateUserPayload)
+        }
+        getErrorMessage={getApiErrorMessage}
+        disableReviewButton
+        pageSizes={[10, 20, 30, 50]}
+        defaultPageSize={20}
+        tabs={tabs}
+        basePath="/admin/authenticate/users"
+        mainComponent={ModalPaper}
       />
-      <ModalPaper withBorder>
-        <ModalTableShell<User>
-          queryKey={usersQueryKeys.list()}
-          queryGetFn={fetchUsers}
-          dataKey="data"
-          paginationKey="meta"
-          columns={columns}
-          moduleInfo={{
-            name: "user",
-            label: "Users",
-            description: "Manage staff, human accounts, and service actors",
-          }}
-          idAccessor="id"
-          createFormComponent={UserForm}
-          editFormComponent={UserEditForm}
-          onCreateApi={(values) =>
-            createUser(values as unknown as CreateUserPayload)
-          }
-          onEditApi={(values, record) =>
-            updateUser(record.id, values as unknown as UpdateUserPayload)
-          }
-          getErrorMessage={getApiErrorMessage}
-          disableReviewButton
-          pageSizes={[10, 20, 30, 50]}
-          defaultPageSize={20}
-          tabs={tabs}
-        />
-      </ModalPaper>
+
       <UserDetailDrawer
         user={detailUser}
         opened={Boolean(detailUser)}

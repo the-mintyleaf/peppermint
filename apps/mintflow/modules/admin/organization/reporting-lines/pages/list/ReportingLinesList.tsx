@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { ModalPaper, ModuleHeader } from "@peppermint/ui";
+import { ModalPaper } from "@peppermint/ui";
 import { ModalTableShell } from "@peppermint/admin";
 
 import { RequireStaff } from "@/components/RequireStaff";
@@ -29,38 +29,32 @@ function ReportingLinesListContent() {
 
   return (
     <>
-      <ModuleHeader
-        breadcrumbItems={[
-          { label: "Organization", href: "/admin/organization" },
-          { label: "Reporting Lines", href: "#" },
-        ]}
+      <ModalTableShell<ReportingLine>
+        queryKey={reportingLinesQueryKeys.list(orgId)}
+        queryGetFn={(params) => fetchReportingLines(orgId, params)}
+        dataKey="data"
+        paginationKey="meta"
+        columns={columns}
+        moduleInfo={{
+          name: "reporting-line",
+          label: "Reporting Lines",
+          description: "Position-to-position chain of command",
+        }}
+        idAccessor="id"
+        createFormComponent={ReportingLineForm}
+        onCreateApi={(values) =>
+          createReportingLine(
+            orgId,
+            values as unknown as CreateReportingLinePayload,
+          )
+        }
+        getErrorMessage={getApiErrorMessage}
+        disableReviewButton
+        pageSizes={[10, 20, 30, 50]}
+        defaultPageSize={20}
+        basePath={`/admin/organization/${orgId}/reporting-lines`}
+        mainComponent={ModalPaper}
       />
-      <ModalPaper withBorder>
-        <ModalTableShell<ReportingLine>
-          queryKey={reportingLinesQueryKeys.list(orgId)}
-          queryGetFn={(params) => fetchReportingLines(orgId, params)}
-          dataKey="data"
-          paginationKey="meta"
-          columns={columns}
-          moduleInfo={{
-            name: "reporting-line",
-            label: "Reporting Lines",
-            description: "Position-to-position chain of command",
-          }}
-          idAccessor="id"
-          createFormComponent={ReportingLineForm}
-          onCreateApi={(values) =>
-            createReportingLine(
-              orgId,
-              values as unknown as CreateReportingLinePayload,
-            )
-          }
-          getErrorMessage={getApiErrorMessage}
-          disableReviewButton
-          pageSizes={[10, 20, 30, 50]}
-          defaultPageSize={20}
-        />
-      </ModalPaper>
       <ChainOfCommandView
         positionId={chainPositionId}
         opened={Boolean(chainPositionId)}

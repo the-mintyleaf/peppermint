@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { ModalPaper, ModuleHeader } from "@peppermint/ui";
+import { ModalPaper } from "@peppermint/ui";
 import { ModalTableShell } from "@peppermint/admin";
 import type { DataTableShellTab } from "@peppermint/admin";
 import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
@@ -47,47 +47,39 @@ function MembersListContent() {
   const columns = getMembersColumns();
 
   return (
-    <>
-      <ModuleHeader
-        breadcrumbItems={[
-          { label: "Organization", href: "/admin/organization" },
-          { label: "Members", href: "#" },
-        ]}
-      />
-      <ModalPaper withBorder>
-        <ModalTableShell<OrganizationMembership>
-          queryKey={membersQueryKeys.list(orgId)}
-          queryGetFn={(params) => fetchMemberships(orgId, params)}
-          dataKey="data"
-          paginationKey="meta"
-          columns={columns}
-          moduleInfo={{
-            name: "membership",
-            label: "Members",
-            description: "Actors invited into this organization",
-          }}
-          idAccessor="id"
-          createFormComponent={InviteMemberForm}
-          onCreateApi={(values) => {
-            const formValues = values as unknown as InviteMemberFormValues;
-            const payload: CreateMembershipPayload = {
-              user_id: formValues.user_id as string,
-              employee_code: formValues.employee_code || undefined,
-              joined_at: formValues.joined_at || undefined,
-              is_primary: formValues.is_primary,
-            };
-            return createMembership(orgId, payload);
-          }}
-          onReviewClick={(record) =>
-            router.push(`/admin/organization/${orgId}/members/${record.id}`)
-          }
-          getErrorMessage={getApiErrorMessage}
-          pageSizes={[10, 20, 30, 50]}
-          defaultPageSize={20}
-          tabs={tabs}
-        />
-      </ModalPaper>
-    </>
+    <ModalTableShell<OrganizationMembership>
+      queryKey={membersQueryKeys.list(orgId)}
+      queryGetFn={(params) => fetchMemberships(orgId, params)}
+      dataKey="data"
+      paginationKey="meta"
+      columns={columns}
+      moduleInfo={{
+        name: "membership",
+        label: "Members",
+        description: "Actors invited into this organization",
+      }}
+      idAccessor="id"
+      createFormComponent={InviteMemberForm}
+      onCreateApi={(values) => {
+        const formValues = values as unknown as InviteMemberFormValues;
+        const payload: CreateMembershipPayload = {
+          user_id: formValues.user_id as string,
+          employee_code: formValues.employee_code || undefined,
+          joined_at: formValues.joined_at || undefined,
+          is_primary: formValues.is_primary,
+        };
+        return createMembership(orgId, payload);
+      }}
+      onReviewClick={(record) =>
+        router.push(`/admin/organization/${orgId}/members/${record.id}`)
+      }
+      getErrorMessage={getApiErrorMessage}
+      pageSizes={[10, 20, 30, 50]}
+      defaultPageSize={20}
+      tabs={tabs}
+      basePath={`/admin/organization/${orgId}/members`}
+      mainComponent={ModalPaper}
+    />
   );
 }
 
