@@ -35,8 +35,8 @@ If any of these is missing from your prompt, stop and report the gap instead of 
 
 Follow the skill's step guide for your module type:
 types → query keys → API functions → columns → form → pages → your module's
-`index.ts` barrel. Then — in addition to the skill's steps — create your module's
-`docs/AI.md` per `.claude/AI-AUTHORING.md`.
+`index.ts` barrel → your module's `docs/AI.md` (the skill's final step; author it
+per `.claude/AI-AUTHORING.md`).
 
 **Skip the app-page and outer-barrel steps** in the skill — those files are
 orchestrator-owned. Report their content instead (see report format).
@@ -62,9 +62,11 @@ orchestrator-owned. Report their content instead (see report format).
 ### Wiring for orchestrator
 - Parent barrel (<path>): add line → export * from "./<sub-module>";
 - App routes needed (one line PER route — MultiPage modules have several,
-  e.g. list, new, [id], [id]/edit):
-  - <app/ path> → content: export { default } from "<module import path>";
-  - <app/ path> → content: export { default } from "<module import path>";
+  e.g. list, new, [id], [id]/edit). Use the skill's app-page idiom — named
+  import + default export, never `export { default }`:
+  - <app/ path> → content:
+    import { Module<Name> } from "@/modules/<group>/<name>";
+    export default Module<Name>;        // or Module<Name>.main / .new / .edit / .view
 - Parent AI.md row: | <module> | <type> | <route> | <entry file> |
 
 ### Assumptions

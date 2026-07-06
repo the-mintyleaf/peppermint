@@ -417,9 +417,9 @@ Adjust the structure above to match the recommended module type. Remove inapplic
 
 Required section. List the independent build units and what must stay with the orchestrator, per `.claude/PARALLEL.md`:
 
-| Build unit (module/sub-module) | Type tag | Depends on | Parallel-safe? |
-| ------------------------------ | -------- | ---------- | -------------- |
-| <unit path>                    | [CONTAINED] / [MULTI_PAGE] | — or <sibling unit> | Yes / No (build in wave 2) |
+| Build unit (module/sub-module) | Type tag | Depends on | Reference sibling | Parallel-safe? |
+| ------------------------------ | -------- | ---------- | ----------------- | -------------- |
+| <unit path>                    | [CONTAINED] / [MULTI_PAGE] | — or <sibling unit> | <existing sub-module path> | Yes / No (build in wave 2) |
 
 **Shared wiring reserved for the orchestrator:** group/parent barrels, `app/` route re-exports, parent/app `docs/AI.md` rows, shared `_shared/` assets (pre-created before dispatch), `.todo` updates, git.
 
@@ -434,7 +434,7 @@ Phases 1–6 are **per-unit**. When the Parallelization Map lists 2+ independent
 - [ ] Create module folder and barrel export
 - [ ] Define types in `<Name>.types.ts`
 - [ ] Define query keys in `<name>.queryKeys.ts`
-- [ ] Wire `app/` page re-export
+- [ ] Wire `app/` page re-export _(orchestrator-owned when dispatched — the builder agent reports the re-export line instead; see Phase 7 wiring pass)_
 
 ### Phase 2 — UI Shell
 
@@ -473,7 +473,7 @@ Phases 1–6 are **per-unit**. When the Parallelization Map lists 2+ independent
 
 - [ ] Wiring pass: parent barrels, `app/` re-exports (from agent reports, if dispatched)
 - [ ] Run `/verify` — fans out per `.claude/PARALLEL.md`
-- [ ] Create `modules/<group>/<name>/docs/AI.md`
+- [ ] Confirm `modules/<group>/<name>/docs/AI.md` exists — the builder agent creates it when dispatched (builder-owned, inside its folder); the orchestrator writes it only in inline (non-dispatched) builds
 - [ ] Run `/update-ai-map` to update app-level `docs/AI.md`
 - [ ] Commit the phase, then dual adversarial review per `.claude/PARALLEL.md` Section 7
 - [ ] Run `/pre-pr`

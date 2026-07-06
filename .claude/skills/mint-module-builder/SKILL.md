@@ -387,7 +387,7 @@ ContainedModule
 - Do not import Mantine directly.
 ```
 
-After creating, run `/update-ai-map` to add the module to the app's `docs/AI.md` Major Modules table.
+After creating, run `/update-ai-map` to add the module to the app's `docs/AI.md` Major Modules table. (Orchestrator-owned when running as a dispatched parallel agent — report your parent AI.md row instead; the app-level map is outside your folder.)
 
 ---
 
@@ -857,7 +857,7 @@ MultiPageModule
 - Do not import Mantine directly.
 ```
 
-After creating, run `/update-ai-map` to add the module to the app's `docs/AI.md` Major Modules table.
+After creating, run `/update-ai-map` to add the module to the app's `docs/AI.md` Major Modules table. (Orchestrator-owned when running as a dispatched parallel agent — report your parent AI.md row instead; the app-level map is outside your folder.)
 
 ---
 
@@ -1120,7 +1120,7 @@ Given a requirements doc, follow this sequence:
 
 1. **Decide Contained vs Not Contained** (Section 2).
 2. **If Contained — pick ContainedModule or MultiPageModule** (Section 3).
-3. **Create the branch**: `git checkout -b dev/<feature-name>`.
+3. **Create the branch** (orchestrator-only): `git checkout -b dev/<feature-name>`.
 4. **Build in order** (within a single module): types → query keys → API → columns → form → list page → index → app page.
 5. **Every page** gets wrapped in `<ModalPaper withBorder>` — never a hand-rolled `Paper` with manual `radius`/`h`.
 6. **Every `app/` page** is a one-line re-export.
@@ -1129,5 +1129,5 @@ Given a requirements doc, follow this sequence:
 9. **Imports** → always from `@peppermint/ui`, never from `@mantine/*`.
 10. **Commit format** → `[app-name/module-name] add: description`.
 11. **Multiple independent modules in the doc** → do not build them one after another. Dispatch one `module-builder` agent per `[CONTAINED]`/`[MULTI_PAGE]` module, concurrently, per `.claude/PARALLEL.md`. `[NOT_CONTAINED]`/`[CUSTOM]` and dependent modules stay inline/sequential.
-12. **When running as a dispatched agent** → write only inside your assigned module folder. Outer barrels, `app/` pages, parent AI.md, and `.todo` belong to the orchestrator — report the exact wiring lines instead of writing them (see `.claude/agents/module-builder.md`).
-13. **After each phase** → commit (repo format), then run the dual adversarial review per `.claude/PARALLEL.md` Section 7 unless the phase doesn't warrant it.
+12. **When running as a dispatched agent** → write only inside your assigned module folder. Outer barrels, `app/` pages, parent AI.md, and `.todo` belong to the orchestrator — report the exact wiring lines instead of writing them (see `.claude/agents/module-builder.md`). Items 3, 11, and 13 are **orchestrator-only** — as a dispatched agent, never attempt git operations, agent dispatch, or reviews.
+13. **After each phase** (orchestrator) → commit (repo format), then run the dual adversarial review per `.claude/PARALLEL.md` Section 7 unless the phase doesn't warrant it.
