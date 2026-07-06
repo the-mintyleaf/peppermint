@@ -260,13 +260,20 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 - Use pnpm, not npm.
 - Testing standards and required verification checks are in `STANDARDS.md → Verification & Testing Standards`. Run the applicable categories before marking any task complete.
 - Do not read the full folder structure speculatively — only read what the task requires.
-- For tasks that span more than 5 files or are expected to take more than one working session:
+- For any multi-step task (only single, standalone tasks are exempt):
   1. Before writing any code, create `.todo/<task-name>-todo.md` at the repo root (`kebab-case` filename derived from the feature name).
-  2. The file must list every planned step as a checkbox: `- [ ] step description`.
+  2. The file must organize every planned step into **Phases**, each step a checkbox: `- [ ] step description`.
   3. After completing each step, immediately update the file: `- [x] step description`.
-  4. The `.todo/<task-name>-todo.md` file is the single source of truth — do not track progress in memory or conversation context only.
+  4. The `.todo/<task-name>-todo.md` file is the single source of truth — do not track progress in memory or conversation context only. When work is dispatched to parallel agents, only the main session writes this file — agents report, the orchestrator checks boxes.
   5. Delete the file once all steps are checked off and the task is complete.
 - Plan before coding if the task spans more than two files.
+
+**Parallel Agent Dispatch & Phase Workflow** (full protocol: `.claude/PARALLEL.md`):
+
+- When a task contains 2+ **independent** units — modules/sub-modules to build, or verification scopes to run — dispatch subagents concurrently in a single message (`module-builder` per module, `verifier` per scope; definitions in `.claude/agents/`). Sequential execution is reserved for genuinely dependent work.
+- File ownership: dispatched agents write only inside their assigned folder. The orchestrator (main session) owns all shared wiring (group/parent barrels, `app/` routes, parent `docs/AI.md`), the `.todo` file, all fixes, and all git operations.
+- After each phase (applies to single-task work too): `git add` + `git commit` the phase's changes with a clear message in the repo commit format.
+- After each phase, run a **dual adversarial code review**: `mcp__codex__codex` (Codex) and one `adversarial-reviewer` subagent (Opus), dispatched in parallel with the same review prompt over the phase's diff. Combine feedback from both, apply the fixes, commit. Skip the review when the phase doesn't require in-depth review (docs-only, trivial config, mechanical renames).
 - Refactor when it genuinely improves clarity or reduces duplication — not as a side effect of unrelated tasks.
 - Split long files and components when they're doing too much, not just when they're long.
 - No new dependencies that overlap the existing stack without flagging it first.

@@ -4,9 +4,11 @@ Arguments: $ARGUMENTS (optional base branch, default: main)
 
 ## Step 1 — Verify
 
-Run `/verify` to execute the full verification checklist (pnpm typecheck + lint + build + format).
+Run `/verify` to execute the full verification checklist (pnpm typecheck + lint + build + format). `/verify` parallelizes internally per `.claude/PARALLEL.md`.
 
 Do not proceed to Step 2 if typecheck or lint fails. Fix errors first.
+
+**Note:** Steps 1 → 2 → 3 remain strictly sequential gates. Git push, PR creation, and greploop are never parallelized.
 
 ## Step 2 — Check AI maps
 

@@ -64,6 +64,8 @@ pnpm format      # run before PR
 
 Only run commands that exist in the repo. Do not invent scripts.
 
+Parallel dispatch, phase commits, and dual-review rules: `.claude/PARALLEL.md`.
+
 ---
 
 ## Commit format

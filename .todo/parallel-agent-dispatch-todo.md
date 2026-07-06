@@ -11,12 +11,12 @@
 
 ## Phase 2 — Doctrine + commands
 
-- [ ] Edit `.claude/CLAUDE.md` (Parallel Agent Dispatch & Phase Workflow subsection)
-- [ ] Edit `.claude/commands/verify.md`
-- [ ] Edit `.claude/commands/new-module.md`
-- [ ] Edit `.claude/commands/post-edit-loop.md`
-- [ ] Edit `.claude/commands/pre-pr.md`
-- [ ] Edit `.claude/rules.md` (pointer)
+- [x] Edit `.claude/CLAUDE.md` (Parallel Agent Dispatch & Phase Workflow subsection)
+- [x] Edit `.claude/commands/verify.md`
+- [x] Edit `.claude/commands/new-module.md`
+- [x] Edit `.claude/commands/post-edit-loop.md`
+- [x] Edit `.claude/commands/pre-pr.md`
+- [x] Edit `.claude/rules.md` (pointer)
 - [ ] Commit Phase 2
 - [ ] Dual adversarial review, apply fixes, commit
 

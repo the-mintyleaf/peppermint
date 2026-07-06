@@ -15,14 +15,22 @@ Do not invent or run scripts that do not exist.
 
 ## Step 2 — Run available scripts
 
-Run each available script in this order:
+The list below is the **logical gate order** (what must pass before what). Execution
+is parallelized per `.claude/PARALLEL.md`:
 
 1. pnpm typecheck (or pnpm check-types) — must pass with zero errors
 2. pnpm lint — must pass with zero errors
 3. pnpm build — must pass before opening a PR
 4. pnpm format — apply before committing
 
-If $ARGUMENTS includes --filter name, scope each command with pnpm --filter name.
+**Dispatch rule:** run `pnpm format` (write mode, main session, no agents active)
+first, then dispatch check-types, lint, and format:check as concurrent `verifier`
+agents in a single message. `build` runs alone, only after types and lint pass.
+Never run write-mode `pnpm format` concurrently with anything.
+
+If $ARGUMENTS includes --filter name, scope each dispatched command with the same
+filter. Known gap: `apps/mintflow` has no `check-types` script — the verifier
+reports it SKIPPED; do not invent the script.
 
 ## Step 2b — Design scan (visual files only)
 
@@ -33,6 +41,10 @@ Detect which visual files are in scope:
 ```bash
 git diff --name-only HEAD 2>/dev/null | grep -E "(layouts|modules|components)/.*\.tsx$"
 ```
+
+**Dispatch rule:** if more than 3 visual files are in scope, batch them across up to
+4 `verifier` agents in scan mode (per `.claude/PARALLEL.md`); with 3 or fewer, scan
+inline.
 
 For each file in scope, run the following checks. Each check is labeled with its severity.
 
@@ -109,6 +121,9 @@ Output a table showing each check: result (PASS / FAIL / SKIPPED) and any notes.
 
 If typecheck or lint fails, investigate and fix the errors before reporting success.
 If the Step 2b design scan fails on a BLOCK check, fix or dismiss with logging before reporting success.
+
+Fixes are applied by the main session only — never by `verifier` agents. After
+fixing, re-dispatch only the failed scope, not the whole matrix.
 
 Do not mark a task complete if any check fails.
 
