@@ -29,6 +29,7 @@ Reading this replaces the need to re-scan the repository before building a modul
 | Icons                 | Phosphor Icons                                         | Default weight `regular`; always `aria-label` on meaningful icons |
 | Animations            | Framer Motion                                          | Duration > 300ms or layout-shifting → check `useReducedMotion()`  |
 | Admin shells          | `@peppermint/admin`                                    | `ModalTableShell`, `DataTableShell`, `FormWrapper`, `FormShell`   |
+| Module page wrapper   | `@peppermint/ui`                                       | `ModalPaper` — never hand-roll `Paper` + manual `radius`/`h`      |
 | HTTP client           | `@peppermint/api-client` or the app's `src/lib/api.ts` | Never instantiate Axios inline                                    |
 
 **TypeScript:** strict mode. No `any`. No `@ts-ignore` without an explanatory comment.
@@ -264,15 +265,14 @@ export interface StudentFormProps {
 
 ### Step 6 — `pages/list/<Name>List.tsx`
 
-Always wrap the shell in `<Paper p={0} withBorder radius="var(--mantine-radius-default)" h="calc(100vh - 16px)">`.
-Use `radius="var(--mantine-radius-default)"` — not a hardcoded size like `"md"` — so the section always respects whatever the app's Mantine theme configures as its default radius.
+Always wrap the shell in `<ModalPaper>` (from `@peppermint/ui`) — never a hand-rolled `Paper` with manual `radius`/`h`. `ModalPaper` already fills the remaining height below `ModuleHeader` and rounds only the top-left corner using the theme's default radius; adding your own `radius`/`h` props fights those defaults.
 Tabs must be typed as `DataTableShellTab[]`. Use `filter` (not `forceFilter`) — `filter` sends values to the server via `params.filters`.
 
 ```tsx
 "use client";
 
 import { ModalTableShell } from "@peppermint/admin";
-import { Paper } from "@peppermint/ui";
+import { ModalPaper } from "@peppermint/ui";
 import type { DataTableShellTab } from "@peppermint/admin";
 import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
@@ -294,12 +294,7 @@ const tabs: DataTableShellTab[] = [
 
 export function StudentsList() {
   return (
-    <Paper
-      p={0}
-      withBorder
-      radius="var(--mantine-radius-default)"
-      h="calc(100vh - 16px)"
-    >
+    <ModalPaper withBorder>
       <ModalTableShell<Student>
         queryKey={studentQueryKeys.list()}
         queryGetFn={fetchStudents}
@@ -322,7 +317,7 @@ export function StudentsList() {
         tabs={tabs}
         basePath="/admin/students"
       />
-    </Paper>
+    </ModalPaper>
   );
 }
 ```
@@ -336,6 +331,8 @@ export { StudentsList as ModuleStudents } from "./pages/list/StudentsList";
 ```
 
 ### Step 8 — `app/admin/<name>/page.tsx`
+
+(Orchestrator-owned when running as a dispatched parallel agent — report the re-export line instead of writing this file.)
 
 One line. No logic. No imports from inside the module.
 
@@ -682,13 +679,13 @@ export const PRODUCT_COLUMNS: DataTableShellColumn<Product>[] = [
 
 ### Step 8 — `pages/list/index.tsx`
 
-Wrap in Paper. Tabs typed as `DataTableShellTab[]`. Use `filter`, not `forceFilter`. Set `enableServerQuery`.
+Wrap in `ModalPaper`. Tabs typed as `DataTableShellTab[]`. Use `filter`, not `forceFilter`. Set `enableServerQuery`.
 
 ```tsx
 "use client";
 
 import { DataTableShell } from "@peppermint/admin";
-import { Paper } from "@peppermint/ui";
+import { ModalPaper } from "@peppermint/ui";
 import type { DataTableShellTab } from "@peppermint/admin";
 import { PackageIcon } from "@phosphor-icons/react/dist/csr/Package";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
@@ -707,12 +704,7 @@ const STATUS_TABS: DataTableShellTab[] = [
 
 export function ProductsList() {
   return (
-    <Paper
-      p={0}
-      withBorder
-      radius="var(--mantine-radius-default)"
-      h="calc(100vh - 16px)"
-    >
+    <ModalPaper withBorder>
       <DataTableShell<Product>
         queryKey="products.list"
         queryGetFn={(params) => fetchProducts(params)}
@@ -730,7 +722,7 @@ export function ProductsList() {
         pageSizes={[10, 20, 50, 100]}
         defaultPageSize={20}
       />
-    </Paper>
+    </ModalPaper>
   );
 }
 ```
@@ -739,23 +731,18 @@ export function ProductsList() {
 
 ### Step 9 — `pages/new/index.tsx` and `pages/edit/index.tsx`
 
-Both are thin wrappers. Wrap in Paper. `onBack` calls `history.back()`.
+Both are thin wrappers. Wrap in `ModalPaper`. `onBack` calls `history.back()`.
 
 ```tsx
 "use client";
-import { Paper } from "@peppermint/ui";
+import { ModalPaper } from "@peppermint/ui";
 import { ProductForm } from "../../form";
 
 export function ProductsNew() {
   return (
-    <Paper
-      p={0}
-      withBorder
-      radius="var(--mantine-radius-default)"
-      h="calc(100vh - 16px)"
-    >
+    <ModalPaper withBorder>
       <ProductForm onBack={() => history.back()} />
-    </Paper>
+    </ModalPaper>
   );
 }
 ```
@@ -765,20 +752,15 @@ export function ProductsNew() {
 ```tsx
 "use client";
 import { useParams } from "next/navigation";
-import { Paper } from "@peppermint/ui";
+import { ModalPaper } from "@peppermint/ui";
 import { ProductView } from "./ProductView";
 
 export function ProductsView() {
   const { id } = useParams<{ id: string }>();
   return (
-    <Paper
-      p={0}
-      withBorder
-      radius="var(--mantine-radius-default)"
-      h="calc(100vh - 16px)"
-    >
+    <ModalPaper withBorder>
       <ProductView productId={id} />
-    </Paper>
+    </ModalPaper>
   );
 }
 ```
@@ -802,6 +784,8 @@ export const ModuleProducts = {
 ```
 
 ### Step 12 — App pages
+
+(Orchestrator-owned when running as a dispatched parallel agent — report one re-export line per route instead of writing these files.)
 
 ```tsx
 // app/admin/product-management/products/page.tsx
@@ -953,7 +937,7 @@ export interface Student extends Record<string, unknown> {
 }
 ```
 
-### Not wrapping shells in Paper
+### Not wrapping shells in `ModalPaper`
 
 ```tsx
 // ❌ shell floats with no visual container
@@ -961,12 +945,21 @@ export function StudentsList() {
   return <ModalTableShell<Student> ... />;
 }
 
-// ✅ always wrap with the full Paper spec
+// ❌ hand-rolled Paper — fights ModalPaper's height/radius defaults and drifts out of sync
 export function StudentsList() {
   return (
     <Paper p={0} withBorder radius="var(--mantine-radius-default)" h="calc(100vh - 16px)">
       <ModalTableShell<Student> ... />
     </Paper>
+  );
+}
+
+// ✅ always wrap with ModalPaper — no manual radius/h
+export function StudentsList() {
+  return (
+    <ModalPaper withBorder>
+      <ModalTableShell<Student> ... />
+    </ModalPaper>
   );
 }
 ```
@@ -1086,6 +1079,7 @@ Examples:
 ```ts
 // UI components (Mantine wrappers — always use this)
 import {
+  ModalPaper,
   Paper,
   Stack,
   TextInput,
@@ -1127,10 +1121,13 @@ Given a requirements doc, follow this sequence:
 1. **Decide Contained vs Not Contained** (Section 2).
 2. **If Contained — pick ContainedModule or MultiPageModule** (Section 3).
 3. **Create the branch**: `git checkout -b dev/<feature-name>`.
-4. **Build in order**: types → query keys → API → columns → form → list page → index → app page.
-5. **Every page** gets wrapped in `<Paper p={0} withBorder radius="var(--mantine-radius-default)" h="calc(100vh - 16px)">`.
+4. **Build in order** (within a single module): types → query keys → API → columns → form → list page → index → app page.
+5. **Every page** gets wrapped in `<ModalPaper withBorder>` — never a hand-rolled `Paper` with manual `radius`/`h`.
 6. **Every `app/` page** is a one-line re-export.
 7. **Tabs** → always `DataTableShellTab[]`, always `filter` (not `forceFilter`).
 8. **Entity type** → always extends `Record<string, unknown>`.
 9. **Imports** → always from `@peppermint/ui`, never from `@mantine/*`.
 10. **Commit format** → `[app-name/module-name] add: description`.
+11. **Multiple independent modules in the doc** → do not build them one after another. Dispatch one `module-builder` agent per `[CONTAINED]`/`[MULTI_PAGE]` module, concurrently, per `.claude/PARALLEL.md`. `[NOT_CONTAINED]`/`[CUSTOM]` and dependent modules stay inline/sequential.
+12. **When running as a dispatched agent** → write only inside your assigned module folder. Outer barrels, `app/` pages, parent AI.md, and `.todo` belong to the orchestrator — report the exact wiring lines instead of writing them (see `.claude/agents/module-builder.md`).
+13. **After each phase** → commit (repo format), then run the dual adversarial review per `.claude/PARALLEL.md` Section 7 unless the phase doesn't warrant it.

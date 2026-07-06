@@ -22,8 +22,8 @@
 
 ## Phase 3 — Skills
 
-- [ ] Edit `.claude/skills/mint-module-builder/SKILL.md`
-- [ ] Edit `.claude/skills/mint-module-planner/SKILL.md`
+- [x] Edit `.claude/skills/mint-module-builder/SKILL.md`
+- [x] Edit `.claude/skills/mint-module-planner/SKILL.md`
 - [ ] Commit Phase 3
 - [ ] Dual adversarial review, apply fixes, commit
 

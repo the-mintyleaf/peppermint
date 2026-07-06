@@ -413,7 +413,21 @@ Adjust the structure above to match the recommended module type. Remove inapplic
 
 ---
 
+## Parallelization Map
+
+Required section. List the independent build units and what must stay with the orchestrator, per `.claude/PARALLEL.md`:
+
+| Build unit (module/sub-module) | Type tag | Depends on | Parallel-safe? |
+| ------------------------------ | -------- | ---------- | -------------- |
+| <unit path>                    | [CONTAINED] / [MULTI_PAGE] | — or <sibling unit> | Yes / No (build in wave 2) |
+
+**Shared wiring reserved for the orchestrator:** group/parent barrels, `app/` route re-exports, parent/app `docs/AI.md` rows, shared `_shared/` assets (pre-created before dispatch), `.todo` updates, git.
+
+---
+
 ## Implementation Phases
+
+Phases 1–6 are **per-unit**. When the Parallelization Map lists 2+ independent units, each unit's Phases 1–6 run inside its own dispatched `module-builder` agent (per `.claude/PARALLEL.md`); Phase 7 is orchestrator-only.
 
 ### Phase 1 — Foundation
 
@@ -455,11 +469,13 @@ Adjust the structure above to match the recommended module type. Remove inapplic
 - [ ] Loading skeletons for all async operations
 - [ ] Accessibility: keyboard nav, aria-labels on icons, semantic HTML
 
-### Phase 7 — Review and Verification
+### Phase 7 — Review and Verification (orchestrator-only)
 
-- [ ] Run `/verify` (typecheck + lint)
+- [ ] Wiring pass: parent barrels, `app/` re-exports (from agent reports, if dispatched)
+- [ ] Run `/verify` — fans out per `.claude/PARALLEL.md`
 - [ ] Create `modules/<group>/<name>/docs/AI.md`
 - [ ] Run `/update-ai-map` to update app-level `docs/AI.md`
+- [ ] Commit the phase, then dual adversarial review per `.claude/PARALLEL.md` Section 7
 - [ ] Run `/pre-pr`
 
 ---
@@ -560,6 +576,8 @@ Build [Module Name] in [app name] following the approved blueprint below.
 
 **Implement in this order:**
 [paste Phase 1–7 checklist]
+
+**Parallel dispatch:** if the Parallelization Map lists 2+ independent units, dispatch one `module-builder` agent per unit concurrently per `.claude/PARALLEL.md` and do the shared wiring yourself after they return. After each phase: commit, then dual adversarial review (PARALLEL.md Section 7).
 
 **Do not build:**
 [paste Out of Scope list]
