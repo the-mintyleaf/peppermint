@@ -83,7 +83,6 @@ function UsersListContent() {
           pageSizes={[10, 20, 30, 50]}
           defaultPageSize={20}
           tabs={tabs}
-          basePath="/admin/authenticate/users"
         />
       </ModalPaper>
       <UserDetailDrawer
