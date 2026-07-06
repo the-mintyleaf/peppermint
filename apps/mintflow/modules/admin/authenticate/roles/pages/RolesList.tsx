@@ -3,12 +3,15 @@
 import { useState } from "react";
 import { ModalTableShell } from "@peppermint/admin";
 import {
+  ModalPaper,
+  ModuleHeader,
   modals,
   notifications,
   useMutation,
   useQueryClient,
 } from "@peppermint/ui";
 
+import { RequireStaff } from "@/components/RequireStaff";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { RoleEditForm, RoleForm } from "../form";
 import type { CreateRolePayload, UpdateRolePayload } from "../roles.api";
@@ -24,6 +27,14 @@ import type { Role } from "../roles.types";
 import { RolePermissionsDrawer } from "./components/RolePermissionsDrawer";
 
 export function RolesList() {
+  return (
+    <RequireStaff>
+      <RolesListContent />
+    </RequireStaff>
+  );
+}
+
+function RolesListContent() {
   const [permissionsRole, setPermissionsRole] = useState<Role | null>(null);
   const queryClient = useQueryClient();
 
@@ -58,7 +69,7 @@ export function RolesList() {
           Deprecating <b>{role.display_name}</b> sets it to inactive and not
           assignable. Existing bindings that already reference this role are{" "}
           <b>not</b> automatically revoked — revoke them separately from the
-          Bindings tab if needed.
+          Bindings screen if needed.
         </>
       ),
       labels: { confirm: "Deprecate", cancel: "Cancel" },
@@ -74,29 +85,36 @@ export function RolesList() {
 
   return (
     <>
-      <ModalTableShell<Role>
-        queryKey={roleQueryKeys.list()}
-        queryGetFn={fetchRoles}
-        dataKey="data"
-        paginationKey="meta"
-        enableServerQuery
-        columns={columns}
-        moduleInfo={{
-          name: "role",
-          label: "Roles",
-          description: "Reusable permission-key packages.",
-        }}
-        idAccessor="id"
-        createFormComponent={RoleForm}
-        editFormComponent={RoleEditForm}
-        onCreateApi={(values) => createRole(values as CreateRolePayload)}
-        onEditApi={(values, record) =>
-          updateRole(record.id, values as UpdateRolePayload)
-        }
-        getErrorMessage={getApiErrorMessage}
-        pageSizes={[10, 20, 30, 50]}
-        defaultPageSize={20}
+      <ModuleHeader
+        breadcrumbItems={[
+          { label: "Roles", href: "/admin/authenticate/roles" },
+        ]}
       />
+      <ModalPaper withBorder>
+        <ModalTableShell<Role>
+          queryKey={roleQueryKeys.list()}
+          queryGetFn={fetchRoles}
+          dataKey="data"
+          paginationKey="meta"
+          enableServerQuery
+          columns={columns}
+          moduleInfo={{
+            name: "role",
+            label: "Roles",
+            description: "Reusable permission-key packages.",
+          }}
+          idAccessor="id"
+          createFormComponent={RoleForm}
+          editFormComponent={RoleEditForm}
+          onCreateApi={(values) => createRole(values as CreateRolePayload)}
+          onEditApi={(values, record) =>
+            updateRole(record.id, values as UpdateRolePayload)
+          }
+          getErrorMessage={getApiErrorMessage}
+          pageSizes={[10, 20, 30, 50]}
+          defaultPageSize={20}
+        />
+      </ModalPaper>
       <RolePermissionsDrawer
         role={permissionsRole}
         opened={Boolean(permissionsRole)}

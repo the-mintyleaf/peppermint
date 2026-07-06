@@ -5,6 +5,8 @@ import { ModalTableShell } from "@peppermint/admin";
 import {
   Button,
   Group,
+  ModalPaper,
+  ModuleHeader,
   Stack,
   Text,
   Textarea,
@@ -14,6 +16,7 @@ import {
   useQueryClient,
 } from "@peppermint/ui";
 
+import { RequireStaff } from "@/components/RequireStaff";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { RoleBindingForm } from "../form";
 import type { CreateRoleBindingPayload } from "../bindings.api";
@@ -66,6 +69,14 @@ function RevokeModalContent({
 }
 
 export function BindingsList() {
+  return (
+    <RequireStaff>
+      <BindingsListContent />
+    </RequireStaff>
+  );
+}
+
+function BindingsListContent() {
   const queryClient = useQueryClient();
 
   const invalidateBindings = () => {
@@ -118,26 +129,35 @@ export function BindingsList() {
   const columns = buildBindingsColumns({ onRevoke: requestRevoke });
 
   return (
-    <ModalTableShell<RoleBinding>
-      queryKey={roleBindingQueryKeys.list()}
-      queryGetFn={fetchRoleBindings}
-      dataKey="data"
-      paginationKey="meta"
-      enableServerQuery
-      columns={columns}
-      moduleInfo={{
-        name: "role binding",
-        label: "Bindings",
-        description: "Assign a role to a user under a scope.",
-      }}
-      idAccessor="id"
-      createFormComponent={RoleBindingForm}
-      onCreateApi={(values) =>
-        createRoleBinding(values as CreateRoleBindingPayload)
-      }
-      getErrorMessage={getApiErrorMessage}
-      pageSizes={[10, 20, 30, 50]}
-      defaultPageSize={20}
-    />
+    <>
+      <ModuleHeader
+        breadcrumbItems={[
+          { label: "Bindings", href: "/admin/authenticate/bindings" },
+        ]}
+      />
+      <ModalPaper withBorder>
+        <ModalTableShell<RoleBinding>
+          queryKey={roleBindingQueryKeys.list()}
+          queryGetFn={fetchRoleBindings}
+          dataKey="data"
+          paginationKey="meta"
+          enableServerQuery
+          columns={columns}
+          moduleInfo={{
+            name: "role binding",
+            label: "Bindings",
+            description: "Assign a role to a user under a scope.",
+          }}
+          idAccessor="id"
+          createFormComponent={RoleBindingForm}
+          onCreateApi={(values) =>
+            createRoleBinding(values as CreateRoleBindingPayload)
+          }
+          getErrorMessage={getApiErrorMessage}
+          pageSizes={[10, 20, 30, 50]}
+          defaultPageSize={20}
+        />
+      </ModalPaper>
+    </>
   );
 }
