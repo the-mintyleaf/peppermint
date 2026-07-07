@@ -80,7 +80,7 @@ organization API is staff/superuser-only (confirmed in the recovered `API.md`).
 - `UnitMembership` (users placed in a unit without a position) now surfaces via `unit_members` on `include_members` nodes and renders as a "Direct members" group on `UnitNode` (previously a documented gap).
 - Positions have no org-wide list endpoint — only `GET /units/<unit_id>/positions/`. Every position picker (`PositionPickerSelect`, `AssignmentPickerSelect`) is a two/three-step unit → position (→ holder) picker, not a flat search.
 - `fetchUserSummary` (`members/members.api.ts`) hits `GET /api/v1/auth/users/<id>/`, which is not documented in the organization API but inferred from the sibling `PATCH` endpoint already used in `authenticate/users/users.api.ts`.
-- Checklist §17 "Invited User Acceptance UI" (self-service accept/decline) and all `OrganizationSite` screens are **not built** — no real backend endpoint exists for either (every organization endpoint is staff-gated; `OrganizationSite` has a service function but no public API per the recovered `API.md`).
+- Checklist §17 "Invited User Acceptance UI" (self-service accept/decline) is now built as a **separate top-level module** — `apps/mintflow/modules/invitations/` (route `app/invitations/`), backed by `GET /organization/memberships/mine/` + `accept`/`decline`. It is self-service (not staff-gated), so it lives outside this admin module. All `OrganizationSite` screens remain **not built** — `OrganizationSite` has a service function but no public API per the recovered `API.md`.
 
 ## Do not do
 
@@ -89,4 +89,4 @@ organization API is staff/superuser-only (confirmed in the recovered `API.md`).
 - Do not add a hard-delete action anywhere in this module — the backend forbids it. Use deactivate/end/revoke with a reason instead.
 - Do not fetch in `useEffect` or call Axios directly in a handler — `useQuery`/`useMutation` only.
 - Do not import `@mantine/*` directly — always `@peppermint/ui`.
-- Do not build self-service invitation-acceptance UI against invented endpoints — confirm with the real backend team first (see Known constraints above).
+- Do not rebuild self-service invitation-acceptance UI here — it lives in the top-level `modules/invitations/` module (see Known constraints above).

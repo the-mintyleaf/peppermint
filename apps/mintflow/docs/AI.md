@@ -47,6 +47,7 @@ apps/mintflow/
 │       └── _shared/         # UserPicker, PermissionKeyPicker, ScopeFields, OneTimeSecretModal, useCurrentUser, useLogout
 ├── modules/sign-in/         # Sign-in page (login + MFA challenge)
 ├── modules/password-change/ # Forced/voluntary password change
+├── modules/invitations/     # Self-service org-invitation inbox (accept/decline)
 └── lib/                     # App-level utilities (api.ts, authErrorMessages.ts)
 ```
 
@@ -63,6 +64,7 @@ apps/mintflow/
 | Admin Home         | `modules/admin/home/`                            | `/admin`                                 | —                                                          |
 | Sign In            | `modules/sign-in/`                               | `/`                                      | `modules/sign-in/docs/AI.md`                               |
 | Password Change    | `modules/password-change/`                       | `/password-change`                       | `modules/password-change/docs/AI.md`                       |
+| Invitations        | `modules/invitations/`                           | `/invitations`                           | —                                                          |
 | Users              | `modules/admin/authenticate/users/`              | `/admin/authenticate/users`              | `modules/admin/authenticate/users/docs/AI.md`              |
 | Roles              | `modules/admin/authenticate/roles/`              | `/admin/authenticate/roles`              | `modules/admin/authenticate/roles/docs/AI.md`              |
 | Bindings           | `modules/admin/authenticate/bindings/`           | `/admin/authenticate/bindings`           | `modules/admin/authenticate/bindings/docs/AI.md`           |
