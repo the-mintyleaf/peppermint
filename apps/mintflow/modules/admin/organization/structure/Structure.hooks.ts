@@ -141,6 +141,11 @@ function applyUnitMutationResult(
   void queryClient.invalidateQueries({
     queryKey: organizationQueryKeys.unitDetail(node.id),
   });
+  // The flat unit list backs UnitPickerSelect (move/delegation/position/member
+  // forms); a rename/move/deactivate changes labels/paths there too.
+  void queryClient.invalidateQueries({
+    queryKey: organizationQueryKeys.unitsFlat(organizationId),
+  });
 
   if (!structural) return;
 
@@ -279,6 +284,9 @@ export function useDeactivateUnit(organizationId: string) {
     }) => deactivateUnit(unitId, payload),
     onSuccess: (result) => {
       if (result?.node) {
+        // Non-structural: the API rejects deactivating a unit that still has
+        // active children (ORGANIZATION_UNIT_HAS_ACTIVE_CHILDREN), so there is no
+        // cascade to refetch — only this node's status changes.
         applyUnitMutationResult(queryClient, organizationId, result, {
           structural: false,
         });

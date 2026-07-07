@@ -22,6 +22,7 @@ import {
   Paper,
   Stack,
   Text,
+  notifications,
   useDebouncedValue,
   useQueries,
   useQueryClient,
@@ -100,6 +101,18 @@ function StructureInner() {
   useEffect(() => {
     nodesRef.current = nodes;
   }, [nodes]);
+
+  // Guards the async "jump to search hit" poll: the token invalidates an in-flight
+  // poll when a newer selection or org switch happens; the ref lets us cancel the
+  // pending timeout on unmount so it can't center a stale/other canvas.
+  const searchTokenRef = useRef(0);
+  const centerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (centerTimeoutRef.current) clearTimeout(centerTimeoutRef.current);
+    },
+    [],
+  );
 
   // The store is shared across orgs, so a previous org's open branches can still
   // sit in `expandedUnitIds` during the render that switches `orgId`. Ignore them
@@ -281,6 +294,9 @@ function StructureInner() {
   const didInitExpand = useRef(false);
   useEffect(() => {
     didInitExpand.current = false;
+    // Invalidate any in-flight jump-to-node poll from the previous org.
+    searchTokenRef.current += 1;
+    if (centerTimeoutRef.current) clearTimeout(centerTimeoutRef.current);
     claimOrg(orgId);
   }, [orgId, claimOrg]);
 
@@ -422,8 +438,10 @@ function StructureInner() {
   );
 
   // Poll for the node to appear (its ancestor branches lazy-load after expand),
-  // then center on it. Gives up after a few tries so a bad id can't loop forever.
-  function centerOnNode(nodeId: string, attempt: number) {
+  // then center on it. `token` cancels the chain when a newer selection or org
+  // switch happens; on give-up we tell the user instead of failing silently.
+  function centerOnNode(nodeId: string, attempt: number, token: number) {
+    if (token !== searchTokenRef.current) return;
     const rfNode = getNode(nodeId);
     if (rfNode?.measured?.width) {
       const x = rfNode.position.x + rfNode.measured.width / 2;
@@ -432,7 +450,16 @@ function StructureInner() {
       return;
     }
     if (attempt < 12) {
-      setTimeout(() => centerOnNode(nodeId, attempt + 1), 200);
+      centerTimeoutRef.current = setTimeout(
+        () => centerOnNode(nodeId, attempt + 1, token),
+        200,
+      );
+    } else {
+      notifications.show({
+        color: "yellow",
+        title: "Couldn't reveal that unit",
+        message: "Expand its branch manually, then try again.",
+      });
     }
   }
 
@@ -441,6 +468,8 @@ function StructureInner() {
     if (!nodeId) return;
     // Reveal a deep hit by expanding its full ancestor path (root→node), lazily
     // loading each branch via the existing per-branch fetch, then center on it.
+    const token = (searchTokenRef.current += 1);
+    if (centerTimeoutRef.current) clearTimeout(centerTimeoutRef.current);
     const result = searchResultsById.get(nodeId);
     const nextExpanded = new Set(expandedUnitIds);
     if (organization) nextExpanded.add(organization.id);
@@ -448,8 +477,7 @@ function StructureInner() {
     if (nextExpanded.size !== expandedUnitIds.length) {
       setExpandedUnitIds([...nextExpanded]);
     }
-    setSearchQuery("");
-    centerOnNode(nodeId, 0);
+    centerOnNode(nodeId, 0, token);
   }
 
   const isLoading = orgLoading || rootsLoading;

@@ -114,6 +114,9 @@ export function patchNodeFieldsInList(
     ...node,
     positions: node.positions ?? list[idx].positions,
     unit_members: node.unit_members ?? list[idx].unit_members,
+    // Optional aggregate the bare mutation node may omit — keep the loaded value
+    // so a rename doesn't drop the org-wide total (which needs it on every root).
+    descendant_count: node.descendant_count ?? list[idx].descendant_count,
   };
   return next;
 }
