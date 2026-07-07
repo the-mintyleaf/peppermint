@@ -118,75 +118,7 @@ export function UnitNode({ data, selected, id }: UnitNodeProps) {
         </Group>
       </div>
 
-      {unitData.positions && unitData.positions.length > 0 && (
-        <div className={styles.memberSection}>
-          <Stack gap={6}>
-            {unitData.positions.map((position) => (
-              <div key={position.id}>
-                <BilingualName
-                  np={position.title_np}
-                  en={position.title_en}
-                  size="xs"
-                  fw={600}
-                  inline
-                />
-                {position.holders.length === 0 ? (
-                  <Text size="xs" c="dimmed" mt={2}>
-                    Vacant
-                  </Text>
-                ) : (
-                  <Group gap={4} mt={3}>
-                    {position.holders.map((holder) => (
-                      <Badge
-                        key={holder.assignment_id}
-                        size="xs"
-                        variant="light"
-                        color={holder.is_primary ? "violet" : "gray"}
-                      >
-                        {holder.display_name}
-                      </Badge>
-                    ))}
-                  </Group>
-                )}
-              </div>
-            ))}
-          </Stack>
-        </div>
-      )}
-
-      {/* Only "empty" once the subtree is loaded and neither positions nor direct
-          members exist — a direct-only unit shows its members block below instead. */}
-      {unitData.positions &&
-        unitData.positions.length === 0 &&
-        !unitData.unitMembers?.length && (
-          <div className={styles.memberSection}>
-            <Text size="xs" c="dimmed">
-              No members
-            </Text>
-          </div>
-        )}
-
-      {unitData.unitMembers && unitData.unitMembers.length > 0 && (
-        <div className={styles.memberSection}>
-          <Text size="xs" fw={600} c="dimmed" mb={4}>
-            Direct members
-          </Text>
-          <Group gap={4}>
-            {unitData.unitMembers.map((member) => (
-              <Badge
-                key={member.membership_id}
-                size="xs"
-                variant="light"
-                color={member.is_primary ? "violet" : "gray"}
-              >
-                {member.display_name}
-              </Badge>
-            ))}
-          </Group>
-        </div>
-      )}
-
-      {unitData.hasChildren && (
+      {(unitData.hasChildren || unitData.directMemberCount > 0) && (
         <div className={styles.nodeExpandStrip}>
           <Text
             size="xs"
@@ -199,7 +131,9 @@ export function UnitNode({ data, selected, id }: UnitNodeProps) {
                 ? "Failed to load — retry"
                 : isExpanded
                   ? "Expanded"
-                  : `${unitData.childCount} sub-units`}
+                  : unitData.hasChildren
+                    ? `${unitData.childCount} sub-units`
+                    : `${unitData.directMemberCount} members`}
           </Text>
           {unitData._childrenLoading ? (
             <Loader size={12} color="violet" />

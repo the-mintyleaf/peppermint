@@ -6,6 +6,7 @@ import type {
   UnitTreeNodeFlat,
 } from "../_shared/organization.types";
 import type {
+  MemberNodeData,
   OrgRootNodeData,
   StructureFlowEdge,
   StructureFlowNode,
@@ -13,6 +14,11 @@ import type {
 } from "./Structure.types";
 
 type MinEdge = { source: string; target: string };
+
+/** Graph node id for a direct unit member — stable across rebuilds. */
+export function memberNodeId(membershipId: string): string {
+  return `member:${membershipId}`;
+}
 
 export const DEFAULT_EDGE_OPTIONS = {
   type: "smoothstep",
@@ -80,9 +86,7 @@ export function buildGraphFromFlatNodes(
         hasChildren: unit.has_children,
         childCount: unit.child_count ?? 0,
         memberCount: unit.member_count ?? 0,
-        positionCount: unit.position_count ?? 0,
-        positions: unit.positions,
-        unitMembers: unit.unit_members,
+        directMemberCount: unit.unit_members?.length ?? 0,
       } satisfies UnitNodeData,
     });
     edges.push({
@@ -91,6 +95,30 @@ export function buildGraphFromFlatNodes(
       target: unit.id,
       ...DEFAULT_EDGE_OPTIONS,
     });
+
+    // Each direct member is its own node hanging off the unit. Positions and
+    // position holders are intentionally not rendered on the canvas.
+    for (const member of unit.unit_members ?? []) {
+      const id = memberNodeId(member.membership_id);
+      nodes.push({
+        id,
+        type: "member",
+        position: { x: 0, y: 0 },
+        data: {
+          nodeType: "member",
+          displayName: member.display_name,
+          username: member.username,
+          isPrimary: member.is_primary,
+          membershipType: member.membership_type,
+        } satisfies MemberNodeData,
+      });
+      edges.push({
+        id: `e-${unit.id}-${id}`,
+        source: unit.id,
+        target: id,
+        ...DEFAULT_EDGE_OPTIONS,
+      });
+    }
   }
 
   return { nodes, edges };

@@ -43,6 +43,12 @@
   --node-accent: #7c3aed;
 }
 
+.memberNode {
+  --node-accent: #0d9488;
+  min-width: 160px;
+  max-width: 220px;
+}
+
 .nodeHeader {
   padding: 14px 14px 10px;
   border-radius: 10px 10px 0 0;

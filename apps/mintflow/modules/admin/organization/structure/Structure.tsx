@@ -39,6 +39,7 @@ import { EmptyState } from "./components/EmptyState";
 import { InspectorPanel } from "./components/InspectorPanel";
 import { MoveUnitModal } from "./components/MoveUnitModal";
 import { AddMemberModal } from "./components/AddMemberModal";
+import { MemberNode } from "./components/nodes/MemberNode";
 import { OrgRootNode } from "./components/nodes/OrgRootNode";
 import { UnitNode } from "./components/nodes/UnitNode";
 import { Toolbar } from "./components/Toolbar";
@@ -56,9 +57,14 @@ import {
   computeDimmedNodeIds,
   computePathFromRoot,
   computeVisibleNodeIds,
+  memberNodeId,
 } from "./Structure.utils";
 
-const nodeTypes = { org: OrgRootNode, unit: UnitNode } as const;
+const nodeTypes = {
+  org: OrgRootNode,
+  unit: UnitNode,
+  member: MemberNode,
+} as const;
 
 /** Stable empty reference so transitional renders don't thrash downstream memos. */
 const EMPTY_IDS: string[] = [];
@@ -192,42 +198,24 @@ function StructureInner() {
 
   // A stable digest of everything the canvas renders — the graph is only rebuilt
   // when this changes, so per-render churn from useQueries doesn't reshuffle the
-  // canvas. It must capture every displayed field (names, code, status, and each
-  // position's holders) so a mutation that changes a field without changing tree
-  // shape still refreshes the node.
+  // canvas. It captures every displayed field (names, code, status, counts) plus
+  // each unit's direct members, which now render as their own nodes; positions
+  // are intentionally not rendered, so they are not in the signature.
   const graphSignature = useMemo(() => {
     const part = flatNodes
       .map((n) => {
-        const members = n.positions
-          ? n.positions
-              .map(
-                (p) =>
-                  `${p.id}#${p.status}#${p.title_np}#${p.title_en}#` +
-                  p.holders
-                    .map(
-                      (h) =>
-                        `${h.assignment_id}~${h.display_name}~${
-                          h.is_primary ? 1 : 0
-                        }`,
-                    )
-                    .join("+"),
-              )
-              .join(";")
-          : "-";
         const directMembers = n.unit_members
           ? n.unit_members
               .map(
                 (m) =>
-                  `${m.membership_id}~${m.display_name}~${m.is_primary ? 1 : 0}`,
+                  `${m.membership_id}~${m.display_name}~${m.is_primary ? 1 : 0}~${m.membership_type}`,
               )
               .join("+")
           : "-";
-        const counts = `${n.child_count}/${n.member_count}/${n.position_count}/${
-          n.descendant_count ?? ""
-        }`;
+        const counts = `${n.child_count}/${n.member_count}`;
         return `${n.id}:${n.parent_id ?? ""}:${n.has_children ? 1 : 0}:${
           n.name_np
-        }:${n.name_en}:${n.code}:${n.unit_type}:${n.status}:${counts}:[${members}]:{${directMembers}}`;
+        }:${n.name_en}:${n.code}:${n.unit_type}:${n.status}:${counts}:{${directMembers}}`;
       })
       .join(",");
     return `${organization?.id ?? ""}:${organization?.name_np ?? ""}:${
@@ -241,24 +229,16 @@ function StructureInner() {
     flatNodes,
   ]);
 
-  // Deterministic node heights (from member counts) so the layout can space nodes
-  // without waiting for ReactFlow to measure the taller, member-expanded cards.
+  // Deterministic node heights so the layout can space nodes before ReactFlow
+  // measures them. Unit cards are now a fixed header + counts + strip; each direct
+  // member is its own (shorter) node.
   const nodeHeights = useMemo(() => {
     const heights: Record<string, number> = {};
     for (const node of flatNodes) {
-      let height = 120;
-      if (node.positions && node.positions.length > 0) {
-        height += 26;
-        for (const position of node.positions) {
-          height += 22 + position.holders.length * 18;
-        }
-      } else if (node.positions) {
-        height += 26;
+      heights[node.id] = 120;
+      for (const member of node.unit_members ?? []) {
+        heights[memberNodeId(member.membership_id)] = 68;
       }
-      if (node.unit_members && node.unit_members.length > 0) {
-        height += 26 + node.unit_members.length * 18;
-      }
-      heights[node.id] = height;
     }
     return heights;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -398,9 +378,9 @@ function StructureInner() {
     return computePathFromRoot(focusedBranchId, edges).map((id) => {
       const node = nodes.find((n) => n.id === id);
       const label =
-        node?.data.nodeType === "org"
+        node?.data.nodeType === "org" || node?.data.nodeType === "unit"
           ? node.data.name_np
-          : (node?.data.name_np ?? id);
+          : id;
       return { id, label };
     });
   }, [focusedBranchId, edges, nodes]);
@@ -434,7 +414,10 @@ function StructureInner() {
   );
 
   const onNodeDoubleClick: NodeMouseHandler<StructureFlowNode> = useCallback(
-    (_event, node) => setFocusedBranch(node.id),
+    (_event, node) => {
+      // Member nodes are leaves — only units/org can be focused as a branch.
+      if (node.type !== "member") setFocusedBranch(node.id);
+    },
     [setFocusedBranch],
   );
 
