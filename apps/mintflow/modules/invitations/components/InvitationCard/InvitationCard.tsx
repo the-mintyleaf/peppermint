@@ -31,15 +31,17 @@ export function InvitationCard({ membership }: InvitationCardProps) {
   const decline = useDeclineInvitation();
 
   const busy = accept.isPending || decline.isPending;
-  const { organization } = membership;
+  // Response shape for `memberships/mine/` is assumed; degrade gracefully rather
+  // than crash the route if `organization` is absent or shaped differently.
+  const organization = membership.organization;
+  const orgName = organization?.name_np ?? "this organization";
 
   const handleAccept = () =>
     modals.openConfirmModal({
       title: "Accept invitation",
       children: (
         <Text size="sm">
-          Join {organization.name_np}? You&apos;ll become a member of this
-          organization.
+          Join {orgName}? You&apos;ll become a member of this organization.
         </Text>
       ),
       labels: { confirm: "Accept", cancel: "Cancel" },
@@ -69,16 +71,16 @@ export function InvitationCard({ membership }: InvitationCardProps) {
               c="dimmed"
               style={{ letterSpacing: "0.05em" }}
             >
-              {organization.organization_type}
+              {organization?.organization_type ?? "Organization"}
             </Text>
             <BilingualName
-              np={organization.name_np}
-              en={organization.name_en}
+              np={organization?.name_np ?? "Unknown organization"}
+              en={organization?.name_en ?? ""}
               size="md"
               fw={700}
             />
             <Text size="xs" c="dimmed">
-              {organization.code}
+              {organization?.code ?? "—"}
               {membership.employee_code ? ` · ${membership.employee_code}` : ""}
             </Text>
           </Stack>
@@ -119,8 +121,8 @@ export function InvitationCard({ membership }: InvitationCardProps) {
       >
         <Stack gap="md" p="md">
           <Text size="sm" c="dimmed">
-            Decline the invitation from {organization.name_np}? You can add an
-            optional reason.
+            Decline the invitation from {orgName}? You can add an optional
+            reason.
           </Text>
           <ReasonTextarea
             value={reason}
