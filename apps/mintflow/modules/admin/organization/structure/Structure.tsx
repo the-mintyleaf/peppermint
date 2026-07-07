@@ -132,7 +132,9 @@ function StructureInner() {
     for (const query of childQueries) {
       for (const node of query.data ?? []) {
         const existing = map.get(node.id);
-        if (existing?.positions && !node.positions) continue;
+        const existingEnriched = existing?.positions || existing?.unit_members;
+        const nodeEnriched = node.positions || node.unit_members;
+        if (existingEnriched && !nodeEnriched) continue;
         map.set(node.id, node);
       }
     }
@@ -190,9 +192,20 @@ function StructureInner() {
               )
               .join(";")
           : "-";
+        const directMembers = n.unit_members
+          ? n.unit_members
+              .map(
+                (m) =>
+                  `${m.membership_id}~${m.display_name}~${m.is_primary ? 1 : 0}`,
+              )
+              .join("+")
+          : "-";
+        const counts = `${n.child_count}/${n.member_count}/${n.position_count}/${
+          n.descendant_count ?? ""
+        }`;
         return `${n.id}:${n.parent_id ?? ""}:${n.has_children ? 1 : 0}:${
           n.name_np
-        }:${n.name_en}:${n.code}:${n.unit_type}:${n.status}:[${members}]`;
+        }:${n.name_en}:${n.code}:${n.unit_type}:${n.status}:${counts}:[${members}]:{${directMembers}}`;
       })
       .join(",");
     return `${organization?.id ?? ""}:${organization?.name_np ?? ""}:${
@@ -219,6 +232,9 @@ function StructureInner() {
         }
       } else if (node.positions) {
         height += 26;
+      }
+      if (node.unit_members && node.unit_members.length > 0) {
+        height += 26 + node.unit_members.length * 18;
       }
       heights[node.id] = height;
     }

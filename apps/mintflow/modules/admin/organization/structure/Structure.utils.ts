@@ -30,6 +30,17 @@ export function buildGraphFromFlatNodes(
   organization: Organization,
   flatNodes: UnitTreeNodeFlat[],
 ): { nodes: StructureFlowNode[]; edges: StructureFlowEdge[] } {
+  // Org-wide total: each top-level unit (parent_id === null) contributes itself
+  // plus its subtree. `descendant_count` is the count of descendants (excludes
+  // self), so `1 + descendant_count` is the whole top-level subtree. Undefined
+  // until the backend supplies it — leave the summary off in that case.
+  const rootNodes = flatNodes.filter((unit) => unit.parent_id === null);
+  const descendantCount = rootNodes.some(
+    (unit) => unit.descendant_count !== undefined,
+  )
+    ? rootNodes.reduce((sum, unit) => sum + 1 + (unit.descendant_count ?? 0), 0)
+    : undefined;
+
   const nodes: StructureFlowNode[] = [
     {
       id: organization.id,
@@ -42,6 +53,7 @@ export function buildGraphFromFlatNodes(
         code: organization.code,
         organizationType: organization.organization_type,
         status: organization.status,
+        descendantCount,
       } satisfies OrgRootNodeData,
     },
   ];
@@ -61,7 +73,11 @@ export function buildGraphFromFlatNodes(
         unitType: unit.unit_type,
         status: unit.status,
         hasChildren: unit.has_children,
+        childCount: unit.child_count,
+        memberCount: unit.member_count,
+        positionCount: unit.position_count,
         positions: unit.positions,
+        unitMembers: unit.unit_members,
       } satisfies UnitNodeData,
     });
     edges.push({

@@ -1,6 +1,7 @@
 import type { Edge, Node } from "@xyflow/react";
 
 import type {
+  UnitMember,
   UnitPositionNode,
   UnitStatus,
   UnitType,
@@ -26,6 +27,8 @@ export interface OrgRootNodeData
   code: string;
   organizationType: string;
   status: string;
+  /** Total units in the organization — summed from top-level subtree sizes. */
+  descendantCount?: number;
 }
 
 export interface UnitNodeData
@@ -37,8 +40,13 @@ export interface UnitNodeData
   unitType: UnitType;
   status: UnitStatus;
   hasChildren: boolean;
+  childCount: number;
+  memberCount: number;
+  positionCount: number;
   /** Present once the unit's subtree has been lazily loaded (via `include_members`). */
   positions?: UnitPositionNode[];
+  /** Direct unit members (no position) — present with the lazily-loaded subtree. */
+  unitMembers?: UnitMember[];
 }
 
 export type StructureNodeData = OrgRootNodeData | UnitNodeData;

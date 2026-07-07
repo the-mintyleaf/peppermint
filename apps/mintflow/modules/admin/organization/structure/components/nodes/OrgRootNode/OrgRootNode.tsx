@@ -61,7 +61,9 @@ export function OrgRootNode({ data, selected, id }: OrgRootNodeProps) {
 
       <div className={styles.nodeExpandStrip}>
         <Text size="xs" c="dimmed" style={{ flex: 1 }}>
-          Root of the unit tree
+          {rootData.descendantCount !== undefined
+            ? `${rootData.descendantCount.toLocaleString()} units`
+            : "Root of the unit tree"}
         </Text>
         <ActionIcon
           size="xs"

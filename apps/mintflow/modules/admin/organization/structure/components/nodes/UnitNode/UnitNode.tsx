@@ -19,6 +19,7 @@ import { CrosshairIcon } from "@phosphor-icons/react/dist/csr/Crosshair";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
+import { UsersThreeIcon } from "@phosphor-icons/react/dist/csr/UsersThree";
 
 import { BilingualName } from "../../../../_shared/components/BilingualName";
 import type { UnitStatus } from "../../../../_shared/organization.types";
@@ -91,9 +92,27 @@ export function UnitNode({ data, selected, id }: UnitNodeProps) {
         </Group>
       </div>
       <div className={styles.nodeBody}>
-        <Text size="xs" c="dimmed">
-          {unitData.code}
-        </Text>
+        <Group gap="xs" wrap="nowrap" justify="space-between">
+          <Text size="xs" c="dimmed" style={{ flex: 1, minWidth: 0 }} truncate>
+            {unitData.code}
+          </Text>
+          <Group gap={4} wrap="nowrap">
+            <Badge
+              size="xs"
+              variant="light"
+              color="gray"
+              leftSection={<UsersThreeIcon size={10} aria-hidden />}
+              aria-label={`${unitData.memberCount} members`}
+            >
+              {unitData.memberCount}
+            </Badge>
+            {unitData.childCount > 0 && (
+              <Badge size="xs" variant="light" color="gray">
+                {unitData.childCount} units
+              </Badge>
+            )}
+          </Group>
+        </Group>
       </div>
 
       {unitData.positions && (
@@ -138,6 +157,26 @@ export function UnitNode({ data, selected, id }: UnitNodeProps) {
         </div>
       )}
 
+      {unitData.unitMembers && unitData.unitMembers.length > 0 && (
+        <div className={styles.memberSection}>
+          <Text size="xs" fw={600} c="dimmed" mb={4}>
+            Direct members
+          </Text>
+          <Group gap={4}>
+            {unitData.unitMembers.map((member) => (
+              <Badge
+                key={member.membership_id}
+                size="xs"
+                variant="light"
+                color={member.is_primary ? "violet" : "gray"}
+              >
+                {member.display_name}
+              </Badge>
+            ))}
+          </Group>
+        </div>
+      )}
+
       {unitData.hasChildren && (
         <div className={styles.nodeExpandStrip}>
           <Text
@@ -151,7 +190,7 @@ export function UnitNode({ data, selected, id }: UnitNodeProps) {
                 ? "Failed to load — retry"
                 : isExpanded
                   ? "Expanded"
-                  : "Show sub-units"}
+                  : `${unitData.childCount} sub-units`}
           </Text>
           {unitData._childrenLoading ? (
             <Loader size={12} color="violet" />

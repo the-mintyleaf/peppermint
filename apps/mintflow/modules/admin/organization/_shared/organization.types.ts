@@ -116,7 +116,19 @@ export interface UnitTreeNodeFlat {
   is_operational: boolean;
   is_active: boolean;
   has_children: boolean;
+  /**
+   * Lightweight aggregates present on every node (including the cheap `max_depth=0`
+   * root fetch), computed under the request's `status` filter. `has_children` is
+   * always `child_count > 0`; `member_count` counts each person once across
+   * positions and direct memberships; `descendant_count` is the whole subtree size.
+   */
+  child_count: number;
+  member_count: number;
+  position_count: number;
+  descendant_count?: number;
   positions?: UnitPositionNode[];
+  /** Direct `UnitMembership` people (no position) — only with `include_members=true`. */
+  unit_members?: UnitMember[];
 }
 
 /** A position on a unit, with its active holders — from `unit-tree-nodes/?include_members=true`. */
@@ -139,6 +151,16 @@ export interface PositionHolder {
   username: string;
   display_name: string;
   assignment_type: string;
+  is_primary: boolean;
+}
+
+/** A person placed directly in a unit via `UnitMembership` (no position). */
+export interface UnitMember {
+  membership_id: string;
+  user_id: string;
+  username: string;
+  display_name: string;
+  membership_type: string;
   is_primary: boolean;
 }
 
