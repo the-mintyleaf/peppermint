@@ -132,10 +132,15 @@ function StructureInner() {
     for (const query of childQueries) {
       for (const node of query.data ?? []) {
         const existing = map.get(node.id);
-        const existingEnriched = existing?.positions || existing?.unit_members;
-        const nodeEnriched = node.positions || node.unit_members;
-        if (existingEnriched && !nodeEnriched) continue;
-        map.set(node.id, node);
+        // Take the incoming node's scalar fields (fresh counts/status), but never
+        // drop an already-loaded dimension: keep positions / direct members from
+        // whichever copy carried them, so an asymmetric payload (e.g. one fetch
+        // with positions but no unit_members) can't blank the members list.
+        map.set(node.id, {
+          ...node,
+          positions: node.positions ?? existing?.positions,
+          unit_members: node.unit_members ?? existing?.unit_members,
+        });
       }
     }
     return [...map.values()];

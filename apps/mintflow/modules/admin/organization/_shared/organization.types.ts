@@ -120,7 +120,8 @@ export interface UnitTreeNodeFlat {
    * Lightweight aggregates present on every node (including the cheap `max_depth=0`
    * root fetch), computed under the request's `status` filter. `has_children` is
    * always `child_count > 0`; `member_count` counts each person once across
-   * positions and direct memberships; `descendant_count` is the whole subtree size.
+   * positions and direct memberships; `descendant_count` is the number of
+   * descendant units (excludes this unit itself).
    */
   child_count: number;
   member_count: number;

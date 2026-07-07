@@ -10,6 +10,7 @@ import {
   Stack,
   Text,
   Tooltip,
+  VisuallyHidden,
 } from "@peppermint/ui";
 import { ArrowsOutCardinalIcon } from "@phosphor-icons/react/dist/csr/ArrowsOutCardinal";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react/dist/csr/ArrowSquareOut";
@@ -102,9 +103,9 @@ export function UnitNode({ data, selected, id }: UnitNodeProps) {
               variant="light"
               color="gray"
               leftSection={<UsersThreeIcon size={10} aria-hidden />}
-              aria-label={`${unitData.memberCount} members`}
             >
               {unitData.memberCount}
+              <VisuallyHidden> members</VisuallyHidden>
             </Badge>
             {unitData.childCount > 0 && (
               <Badge size="xs" variant="light" color="gray">
@@ -115,47 +116,53 @@ export function UnitNode({ data, selected, id }: UnitNodeProps) {
         </Group>
       </div>
 
-      {unitData.positions && (
+      {unitData.positions && unitData.positions.length > 0 && (
         <div className={styles.memberSection}>
-          {unitData.positions.length === 0 ? (
+          <Stack gap={6}>
+            {unitData.positions.map((position) => (
+              <div key={position.id}>
+                <BilingualName
+                  np={position.title_np}
+                  en={position.title_en}
+                  size="xs"
+                  fw={600}
+                  inline
+                />
+                {position.holders.length === 0 ? (
+                  <Text size="xs" c="dimmed" mt={2}>
+                    Vacant
+                  </Text>
+                ) : (
+                  <Group gap={4} mt={3}>
+                    {position.holders.map((holder) => (
+                      <Badge
+                        key={holder.assignment_id}
+                        size="xs"
+                        variant="light"
+                        color={holder.is_primary ? "violet" : "gray"}
+                      >
+                        {holder.display_name}
+                      </Badge>
+                    ))}
+                  </Group>
+                )}
+              </div>
+            ))}
+          </Stack>
+        </div>
+      )}
+
+      {/* Only "empty" once the subtree is loaded and neither positions nor direct
+          members exist — a direct-only unit shows its members block below instead. */}
+      {unitData.positions &&
+        unitData.positions.length === 0 &&
+        !unitData.unitMembers?.length && (
+          <div className={styles.memberSection}>
             <Text size="xs" c="dimmed">
               No members
             </Text>
-          ) : (
-            <Stack gap={6}>
-              {unitData.positions.map((position) => (
-                <div key={position.id}>
-                  <BilingualName
-                    np={position.title_np}
-                    en={position.title_en}
-                    size="xs"
-                    fw={600}
-                    inline
-                  />
-                  {position.holders.length === 0 ? (
-                    <Text size="xs" c="dimmed" mt={2}>
-                      Vacant
-                    </Text>
-                  ) : (
-                    <Group gap={4} mt={3}>
-                      {position.holders.map((holder) => (
-                        <Badge
-                          key={holder.assignment_id}
-                          size="xs"
-                          variant="light"
-                          color={holder.is_primary ? "violet" : "gray"}
-                        >
-                          {holder.display_name}
-                        </Badge>
-                      ))}
-                    </Group>
-                  )}
-                </div>
-              ))}
-            </Stack>
-          )}
-        </div>
-      )}
+          </div>
+        )}
 
       {unitData.unitMembers && unitData.unitMembers.length > 0 && (
         <div className={styles.memberSection}>
