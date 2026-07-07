@@ -38,6 +38,7 @@ import { DeactivateUnitModal } from "./components/DeactivateUnitModal";
 import { EmptyState } from "./components/EmptyState";
 import { InspectorPanel } from "./components/InspectorPanel";
 import { MoveUnitModal } from "./components/MoveUnitModal";
+import { AddMemberModal } from "./components/AddMemberModal";
 import { OrgRootNode } from "./components/nodes/OrgRootNode";
 import { UnitNode } from "./components/nodes/UnitNode";
 import { Toolbar } from "./components/Toolbar";
@@ -613,6 +614,7 @@ function StructureInner() {
           <UnitFormModal organizationId={organization.id} />
           <MoveUnitModal organizationId={organization.id} />
           <DeactivateUnitModal organizationId={organization.id} />
+          <AddMemberModal organizationId={organization.id} />
         </>
       )}
     </>

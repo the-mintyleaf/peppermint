@@ -18,6 +18,7 @@ import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockC
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
+import { UserPlusIcon } from "@phosphor-icons/react/dist/csr/UserPlus";
 
 import { BilingualName } from "../../../_shared/components/BilingualName";
 import {
@@ -38,6 +39,7 @@ export function InspectorPanel() {
     openEditUnitModal,
     openMoveModal,
     openDeactivateModal,
+    openAddMemberModal,
   } = useStructureStore();
 
   const { data: unit, isLoading } = useUnitDetail(selectedUnitId);
@@ -135,6 +137,15 @@ export function InspectorPanel() {
               onClick={() => openAddUnitModal(unit.id, unit.name_np)}
             >
               Add Child Unit
+            </Button>
+            <Button
+              size="xs"
+              variant="light"
+              color="teal"
+              leftSection={<UserPlusIcon size={13} />}
+              onClick={() => openAddMemberModal(unit.id, unit.name_np)}
+            >
+              Add Member
             </Button>
             <Button
               size="xs"

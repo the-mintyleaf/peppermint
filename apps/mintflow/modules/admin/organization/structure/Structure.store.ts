@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 import { computeSubtreeIds } from "./Structure.utils";
 import type {
+  AddMemberModalConfig,
   DeactivateModalConfig,
   MoveModalConfig,
   UnitModalConfig,
@@ -13,6 +14,7 @@ interface StructureState {
   unitModal: UnitModalConfig;
   moveModal: MoveModalConfig;
   deactivateModal: DeactivateModalConfig;
+  addMemberModal: AddMemberModalConfig;
 
   expandedUnitIds: string[];
   /** The org the current `expandedUnitIds` belong to — the store is shared across orgs. */
@@ -31,6 +33,8 @@ interface StructureState {
   closeMoveModal: () => void;
   openDeactivateModal: (unitId: string, unitName: string) => void;
   closeDeactivateModal: () => void;
+  openAddMemberModal: (unitId: string, unitName: string) => void;
+  closeAddMemberModal: () => void;
 
   expandUnit: (id: string) => void;
   collapseUnit: (id: string) => void;
@@ -50,6 +54,7 @@ export const useStructureStore = create<StructureState>((set, get) => ({
   unitModal: { open: false, mode: "add" },
   moveModal: { open: false },
   deactivateModal: { open: false },
+  addMemberModal: { open: false },
 
   expandedUnitIds: [],
   expandedOrgId: null,
@@ -73,6 +78,10 @@ export const useStructureStore = create<StructureState>((set, get) => ({
   openDeactivateModal: (unitId, unitName) =>
     set({ deactivateModal: { open: true, unitId, unitName } }),
   closeDeactivateModal: () => set({ deactivateModal: { open: false } }),
+
+  openAddMemberModal: (unitId, unitName) =>
+    set({ addMemberModal: { open: true, unitId, unitName } }),
+  closeAddMemberModal: () => set({ addMemberModal: { open: false } }),
 
   expandUnit: (id) => {
     const { expandedUnitIds } = get();

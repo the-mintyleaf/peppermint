@@ -72,3 +72,9 @@ export interface DeactivateModalConfig {
   unitId?: string;
   unitName?: string;
 }
+
+export interface AddMemberModalConfig {
+  open: boolean;
+  unitId?: string;
+  unitName?: string;
+}

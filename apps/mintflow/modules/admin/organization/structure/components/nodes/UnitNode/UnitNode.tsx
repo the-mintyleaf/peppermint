@@ -20,6 +20,7 @@ import { CrosshairIcon } from "@phosphor-icons/react/dist/csr/Crosshair";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
+import { UserPlusIcon } from "@phosphor-icons/react/dist/csr/UserPlus";
 import { UsersThreeIcon } from "@phosphor-icons/react/dist/csr/UsersThree";
 
 import { BilingualName } from "../../../../_shared/components/BilingualName";
@@ -52,6 +53,7 @@ export function UnitNode({ data, selected, id }: UnitNodeProps) {
     openEditUnitModal,
     openMoveModal,
     openDeactivateModal,
+    openAddMemberModal,
   } = useStructureStore();
   const isExpanded = expandedUnitIds.includes(id);
 
@@ -265,6 +267,20 @@ export function UnitNode({ data, selected, id }: UnitNodeProps) {
               aria-label="Add child unit"
             >
               <PlusIcon size={12} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="Add member" position="top" withArrow>
+            <ActionIcon
+              size="xs"
+              variant="light"
+              color="teal"
+              onClick={(e) => {
+                e.stopPropagation();
+                openAddMemberModal(id, unitData.name_np);
+              }}
+              aria-label="Add member"
+            >
+              <UserPlusIcon size={12} />
             </ActionIcon>
           </Tooltip>
           <Tooltip label="Edit" position="top" withArrow>
