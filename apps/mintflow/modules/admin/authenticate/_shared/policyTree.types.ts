@@ -5,6 +5,8 @@ export interface PolicyPermission {
   description: string;
   risk_level: "low" | "medium" | "high" | "critical";
   is_sensitive: boolean;
+  is_active: boolean;
+  is_deprecated: boolean;
   dependencies: string[];
 }
 

@@ -17,6 +17,8 @@ export const ERROR_MESSAGES: Record<string, string> = {
     "That password has been used recently. Choose a different password.",
   AUTH_CANNOT_DISABLE_SELF: "You can't take this action on your own account.",
   AUTH_MFA_INVALID_CODE: "That code isn't valid. Please try again.",
+  AUTH_MFA_CHALLENGE_EXPIRED:
+    "Your verification session expired. Restart sign-in to get a new code.",
   AUTH_MFA_NOT_ENROLLED: "You need to set up MFA before doing this.",
   AUTH_MFA_DISABLE_BLOCKED_BY_POLICY:
     "MFA is required by policy on this account. Contact an administrator to reset it.",

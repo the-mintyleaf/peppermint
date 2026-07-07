@@ -23,6 +23,7 @@ import { QueryErrorState } from "@/components/QueryErrorState";
 import {
   fetchUserSessions,
   revokeAllUserSessions,
+  revokeUserSession,
 } from "../../../../../../users.api";
 import { usersQueryKeys } from "../../../../../../users.queryKeys";
 import type { SessionsTabProps } from "./SessionsTab.types";
@@ -53,6 +54,18 @@ export function SessionsTab({ userId }: SessionsTabProps) {
       notifications.show({ color: "red", message: getApiErrorMessage(error) }),
   });
 
+  const revokeMutation = useMutation({
+    mutationFn: (sessionId: string) => revokeUserSession(userId, sessionId),
+    onSuccess: () => {
+      notifications.show({ color: "green", message: "Session revoked." });
+      queryClient.invalidateQueries({
+        queryKey: usersQueryKeys.sessionsKey(userId),
+      });
+    },
+    onError: (error) =>
+      notifications.show({ color: "red", message: getApiErrorMessage(error) }),
+  });
+
   const handleRevokeAll = () => {
     modals.openConfirmModal({
       title: "Revoke all sessions",
@@ -64,6 +77,18 @@ export function SessionsTab({ userId }: SessionsTabProps) {
       labels: { confirm: "Revoke all", cancel: "Cancel" },
       confirmProps: { color: "red" },
       onConfirm: () => revokeAllMutation.mutate(),
+    });
+  };
+
+  const handleRevoke = (sessionId: string) => {
+    modals.openConfirmModal({
+      title: "Revoke session",
+      children: (
+        <Text size="sm">This signs the user out on that device. Continue?</Text>
+      ),
+      labels: { confirm: "Revoke", cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: () => revokeMutation.mutate(sessionId),
     });
   };
 
@@ -114,6 +139,7 @@ export function SessionsTab({ userId }: SessionsTabProps) {
               <Table.Th>IP</Table.Th>
               <Table.Th>Last seen</Table.Th>
               <Table.Th>Status</Table.Th>
+              <Table.Th />
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -132,6 +158,19 @@ export function SessionsTab({ userId }: SessionsTabProps) {
                   <Badge size="xs" color={session.is_active ? "green" : "gray"}>
                     {session.is_active ? "Active" : "Revoked"}
                   </Badge>
+                </Table.Td>
+                <Table.Td>
+                  {session.is_active && (
+                    <Button
+                      size="compact-xs"
+                      variant="light"
+                      color="red"
+                      disabled={revokeMutation.isPending}
+                      onClick={() => handleRevoke(session.id)}
+                    >
+                      Revoke
+                    </Button>
+                  )}
                 </Table.Td>
               </Table.Tr>
             ))}

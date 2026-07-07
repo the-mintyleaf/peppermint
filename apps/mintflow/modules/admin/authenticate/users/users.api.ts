@@ -120,6 +120,13 @@ export async function revokeAllUserSessions(
   return data;
 }
 
+export async function revokeUserSession(
+  id: string,
+  sessionId: string,
+): Promise<void> {
+  await api.post(`/api/v1/auth/users/${id}/sessions/${sessionId}/revoke/`);
+}
+
 export async function fetchUserAuthEvents(
   id: string,
   params: { page: number; pageSize: number; eventType?: AuthEventType },
