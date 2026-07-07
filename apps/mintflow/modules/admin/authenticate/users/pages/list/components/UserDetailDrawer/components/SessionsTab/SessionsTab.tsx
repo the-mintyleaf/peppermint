@@ -12,6 +12,7 @@ import {
   Stack,
   Table,
   Text,
+  VisuallyHidden,
   modals,
   notifications,
 } from "@peppermint/ui";
@@ -121,6 +122,7 @@ export function SessionsTab({ userId }: SessionsTabProps) {
           variant="light"
           leftSection={<ArrowsClockwiseIcon size={14} aria-hidden />}
           loading={revokeAllMutation.isPending}
+          disabled={revokeMutation.isPending}
           onClick={handleRevokeAll}
         >
           Revoke all sessions
@@ -139,7 +141,9 @@ export function SessionsTab({ userId }: SessionsTabProps) {
               <Table.Th>IP</Table.Th>
               <Table.Th>Last seen</Table.Th>
               <Table.Th>Status</Table.Th>
-              <Table.Th />
+              <Table.Th>
+                <VisuallyHidden>Actions</VisuallyHidden>
+              </Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -165,7 +169,9 @@ export function SessionsTab({ userId }: SessionsTabProps) {
                       size="compact-xs"
                       variant="light"
                       color="red"
-                      disabled={revokeMutation.isPending}
+                      disabled={
+                        revokeMutation.isPending || revokeAllMutation.isPending
+                      }
                       onClick={() => handleRevoke(session.id)}
                     >
                       Revoke

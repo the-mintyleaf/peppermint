@@ -169,7 +169,7 @@ export function PermissionCatalogPanel() {
                                       Sensitive
                                     </Badge>
                                   )}
-                                  {permission.is_deprecated ? (
+                                  {permission.is_deprecated && (
                                     <Badge
                                       size="xs"
                                       color="red"
@@ -177,16 +177,15 @@ export function PermissionCatalogPanel() {
                                     >
                                       Deprecated
                                     </Badge>
-                                  ) : (
-                                    !permission.is_active && (
-                                      <Badge
-                                        size="xs"
-                                        color="gray"
-                                        variant="outline"
-                                      >
-                                        Inactive
-                                      </Badge>
-                                    )
+                                  )}
+                                  {permission.is_active === false && (
+                                    <Badge
+                                      size="xs"
+                                      color="gray"
+                                      variant="outline"
+                                    >
+                                      Inactive
+                                    </Badge>
                                   )}
                                 </Group>
                               </Group>
