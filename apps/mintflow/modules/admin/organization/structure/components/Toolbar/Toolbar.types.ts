@@ -9,7 +9,12 @@ export interface ToolbarProps {
   onFitView: () => void;
   onRefresh: () => void;
   onCollapseAll: () => void;
-  searchOptions: ToolbarSearchOption[];
-  searchValue: string | null;
-  onSearchChange: (value: string | null) => void;
+  /** Server-search hits mapped to Select options. */
+  searchResults: ToolbarSearchOption[];
+  /** The typed search text (controlled) — drives the server query upstream. */
+  searchQuery: string;
+  onSearchQueryChange: (query: string) => void;
+  /** Fired when a result is picked — the id to jump to. */
+  onSelectUnit: (value: string | null) => void;
+  searchLoading?: boolean;
 }

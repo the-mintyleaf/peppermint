@@ -3,6 +3,7 @@ import api from "@/lib/api";
 import type {
   OrganizationListResponse,
   OrganizationUnit,
+  UnitSearchResult,
   UnitTreeNodeFlat,
 } from "./organization.types";
 
@@ -66,4 +67,24 @@ export async function fetchUnitChildren(
     },
   );
   return data;
+}
+
+/**
+ * Server-side unit search for jump-to-node — matches on name/code/path and returns
+ * each hit with its root→node ancestor `path` so the client can lazily expand and
+ * center on a deep, collapsed unit. Unfiltered by status, matching the builder.
+ *
+ * The endpoint is limit-capped (not paginated), so the interceptor unwraps its
+ * envelope to a bare array; the `Array.isArray` guard tolerates either shape.
+ */
+export async function searchUnits(
+  organizationId: string,
+  query: string,
+  options: { limit?: number } = {},
+): Promise<UnitSearchResult[]> {
+  const { data } = await api.get(
+    `/api/v1/organization/organizations/${organizationId}/units/search/`,
+    { params: { q: query, limit: options.limit ?? 20 } },
+  );
+  return Array.isArray(data) ? data : (data?.data ?? []);
 }

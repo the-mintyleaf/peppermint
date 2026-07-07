@@ -2,6 +2,7 @@ import { MarkerType } from "@xyflow/react";
 
 import type {
   Organization,
+  UnitParentPatch,
   UnitTreeNodeFlat,
 } from "../_shared/organization.types";
 import type {
@@ -95,6 +96,48 @@ export function buildGraphFromFlatNodes(
   return { nodes, edges };
 }
 
+/**
+ * Patch a single node's scalar fields in a cached `unit-tree-nodes` list, in place,
+ * only if it is already present (never adds — placement of a new/moved node is left
+ * to a scoped refetch). Preserves the already-loaded `positions` / `unit_members`
+ * dimensions, which the bare mutation node doesn't carry.
+ */
+export function patchNodeFieldsInList(
+  list: UnitTreeNodeFlat[] | undefined,
+  node: UnitTreeNodeFlat,
+): UnitTreeNodeFlat[] | undefined {
+  if (!list) return list;
+  const idx = list.findIndex((n) => n.id === node.id);
+  if (idx === -1) return list;
+  const next = [...list];
+  next[idx] = {
+    ...node,
+    positions: node.positions ?? list[idx].positions,
+    unit_members: node.unit_members ?? list[idx].unit_members,
+  };
+  return next;
+}
+
+/** Patch `has_children`/`child_count` for any parent present in a cached list. */
+export function patchParentsInList(
+  list: UnitTreeNodeFlat[] | undefined,
+  parents: UnitParentPatch[],
+): UnitTreeNodeFlat[] | undefined {
+  if (!list || parents.length === 0) return list;
+  let changed = false;
+  const next = list.map((n) => {
+    const patch = parents.find((p) => p.id === n.id);
+    if (!patch) return n;
+    changed = true;
+    return {
+      ...n,
+      has_children: patch.has_children,
+      child_count: patch.child_count,
+    };
+  });
+  return changed ? next : list;
+}
+
 export function computeChildrenMap(edges: MinEdge[]): Record<string, string[]> {
   const map: Record<string, string[]> = {};
   for (const edge of edges) {
@@ -179,42 +222,6 @@ export function computeDimmedNodeIds(
   const subtreeIds = new Set(computeSubtreeIds(focusedBranchId, edges));
   const keepIds = new Set([...pathIds, ...subtreeIds]);
   return visibleNodeIds.filter((id) => !keepIds.has(id));
-}
-
-export function expandAncestors(
-  nodeId: string,
-  edges: MinEdge[],
-  currentExpandedIds: string[],
-): string[] {
-  const parentMap = computeParentMap(edges);
-  const result = new Set(currentExpandedIds);
-  let current: string | undefined = parentMap[nodeId];
-  const visited = new Set<string>();
-  while (current && !visited.has(current)) {
-    visited.add(current);
-    result.add(current);
-    current = parentMap[current];
-  }
-  return [...result];
-}
-
-export function getNodeSearchOptionLabel(node: StructureFlowNode): string {
-  if (node.data.nodeType === "org") {
-    return `Organization · ${node.data.name_np}`;
-  }
-  return `Unit · ${node.data.name_np} (${node.data.code})`;
-}
-
-export function nodeMatchesSearch(
-  node: StructureFlowNode,
-  query: string,
-): string | null {
-  const q = query.toLowerCase();
-  const label =
-    node.data.nodeType === "org"
-      ? `${node.data.name_np} ${node.data.name_en}`
-      : `${node.data.name_np} ${node.data.name_en} ${node.data.code}`;
-  return label.toLowerCase().includes(q) ? node.id : null;
 }
 
 /**

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import {
   Background,
@@ -22,6 +22,7 @@ import {
   Paper,
   Stack,
   Text,
+  useDebouncedValue,
   useQueries,
   useQueryClient,
 } from "@peppermint/ui";
@@ -40,7 +41,11 @@ import { OrgRootNode } from "./components/nodes/OrgRootNode";
 import { UnitNode } from "./components/nodes/UnitNode";
 import { Toolbar } from "./components/Toolbar";
 import { UnitFormModal } from "./components/UnitFormModal";
-import { useOrganizationRoot, useUnitRoots } from "./Structure.hooks";
+import {
+  useOrganizationRoot,
+  useUnitRoots,
+  useUnitSearch,
+} from "./Structure.hooks";
 import { useStructureStore } from "./Structure.store";
 import type { StructureFlowEdge, StructureFlowNode } from "./Structure.types";
 import {
@@ -49,8 +54,6 @@ import {
   computeDimmedNodeIds,
   computePathFromRoot,
   computeVisibleNodeIds,
-  expandAncestors,
-  getNodeSearchOptionLabel,
 } from "./Structure.utils";
 
 const nodeTypes = { org: OrgRootNode, unit: UnitNode } as const;
@@ -385,10 +388,25 @@ function StructureInner() {
     });
   }, [focusedBranchId, edges, nodes]);
 
+  // Server-side unit search — finds deep, collapsed units the client hasn't
+  // loaded. Debounced so typing doesn't fire a request per keystroke.
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery] = useDebouncedValue(searchQuery, 250);
+  const { data: searchResults = [], isFetching: searchLoading } = useUnitSearch(
+    orgId,
+    debouncedQuery,
+  );
+  const searchResultsById = useMemo(
+    () => new Map(searchResults.map((r) => [r.id, r])),
+    [searchResults],
+  );
   const searchOptions = useMemo(
     () =>
-      nodes.map((n) => ({ value: n.id, label: getNodeSearchOptionLabel(n) })),
-    [nodes],
+      searchResults.map((r) => ({
+        value: r.id,
+        label: `${r.name_np} · ${r.code}`,
+      })),
+    [searchResults],
   );
 
   const onNodeClick: NodeMouseHandler<StructureFlowNode> = useCallback(
@@ -403,20 +421,35 @@ function StructureInner() {
     [setFocusedBranch],
   );
 
-  function handleSearchChange(nodeId: string | null) {
+  // Poll for the node to appear (its ancestor branches lazy-load after expand),
+  // then center on it. Gives up after a few tries so a bad id can't loop forever.
+  function centerOnNode(nodeId: string, attempt: number) {
+    const rfNode = getNode(nodeId);
+    if (rfNode?.measured?.width) {
+      const x = rfNode.position.x + rfNode.measured.width / 2;
+      const y = rfNode.position.y + (rfNode.measured.height ?? 100) / 2;
+      setCenter(x, y, { zoom: 1, duration: 400 });
+      return;
+    }
+    if (attempt < 12) {
+      setTimeout(() => centerOnNode(nodeId, attempt + 1), 200);
+    }
+  }
+
+  function handleSelectSearchResult(nodeId: string | null) {
     setSearchUnitId(nodeId);
     if (!nodeId) return;
-    const newExpanded = expandAncestors(nodeId, edges, expandedUnitIds);
-    if (newExpanded.length !== expandedUnitIds.length) {
-      setExpandedUnitIds(newExpanded);
+    // Reveal a deep hit by expanding its full ancestor path (root→node), lazily
+    // loading each branch via the existing per-branch fetch, then center on it.
+    const result = searchResultsById.get(nodeId);
+    const nextExpanded = new Set(expandedUnitIds);
+    if (organization) nextExpanded.add(organization.id);
+    for (const ancestor of result?.path ?? []) nextExpanded.add(ancestor.id);
+    if (nextExpanded.size !== expandedUnitIds.length) {
+      setExpandedUnitIds([...nextExpanded]);
     }
-    setTimeout(() => {
-      const rfNode = getNode(nodeId);
-      if (!rfNode) return;
-      const x = rfNode.position.x + (rfNode.measured?.width ?? 220) / 2;
-      const y = rfNode.position.y + (rfNode.measured?.height ?? 100) / 2;
-      setCenter(x, y, { zoom: 1, duration: 400 });
-    }, 120);
+    setSearchQuery("");
+    centerOnNode(nodeId, 0);
   }
 
   const isLoading = orgLoading || rootsLoading;
@@ -534,9 +567,11 @@ function StructureInner() {
                   })
                 }
                 onCollapseAll={collapseAll}
-                searchOptions={searchOptions}
-                searchValue={searchUnitId}
-                onSearchChange={handleSearchChange}
+                searchResults={searchOptions}
+                searchQuery={searchQuery}
+                onSearchQueryChange={setSearchQuery}
+                onSelectUnit={handleSelectSearchResult}
+                searchLoading={searchLoading}
               />
             </>
           )}

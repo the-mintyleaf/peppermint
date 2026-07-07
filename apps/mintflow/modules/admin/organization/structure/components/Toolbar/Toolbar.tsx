@@ -1,6 +1,6 @@
 "use client";
 
-import { ActionIcon, Select, Tooltip } from "@peppermint/ui";
+import { ActionIcon, Loader, Select, Tooltip } from "@peppermint/ui";
 import { ArrowsInSimpleIcon } from "@phosphor-icons/react/dist/csr/ArrowsInSimple";
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
 import { CornersOutIcon } from "@phosphor-icons/react/dist/csr/CornersOut";
@@ -17,22 +17,35 @@ export function Toolbar({
   onFitView,
   onRefresh,
   onCollapseAll,
-  searchOptions,
-  searchValue,
-  onSearchChange,
+  searchResults,
+  searchQuery,
+  onSearchQueryChange,
+  onSelectUnit,
+  searchLoading = false,
 }: ToolbarProps) {
   return (
     <div className={styles.toolbar}>
       <Select
-        placeholder="Find a unit…"
+        placeholder="Search units…"
         size="xs"
         searchable
         clearable
-        data={searchOptions}
-        value={searchValue}
-        onChange={onSearchChange}
-        nothingFoundMessage="No units found"
+        data={searchResults}
+        value={null}
+        onChange={onSelectUnit}
+        searchValue={searchQuery}
+        onSearchChange={onSearchQueryChange}
+        // Results are already filtered by the server — show them as-is.
+        filter={({ options }) => options}
+        nothingFoundMessage={
+          searchLoading
+            ? "Searching…"
+            : searchQuery.trim().length >= 2
+              ? "No units found"
+              : "Type to search units"
+        }
         leftSection={<MagnifyingGlassIcon size={13} aria-label="Find unit" />}
+        rightSection={searchLoading ? <Loader size={12} /> : undefined}
         comboboxProps={{ withinPortal: true }}
         className={styles.toolbarSearch}
       />

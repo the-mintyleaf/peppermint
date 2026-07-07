@@ -155,6 +155,42 @@ export interface PositionHolder {
   is_primary: boolean;
 }
 
+/** One ancestor in a unit-search hit's root→node path. */
+export interface UnitSearchAncestor {
+  id: string;
+  name_np: string;
+  name_en: string;
+}
+
+/** A unit-search match with its ancestor path, so the client can reveal it (T4). */
+export interface UnitSearchResult {
+  id: string;
+  name_np: string;
+  name_en: string;
+  code: string;
+  unit_type: UnitType;
+  depth: number;
+  path: UnitSearchAncestor[];
+}
+
+/** Count fields a mutation reports for a parent whose child set changed (T5). */
+export interface UnitParentPatch {
+  id: string;
+  has_children: boolean;
+  child_count: number;
+}
+
+/**
+ * Shape returned by unit CRUD mutations (create/update/move/deactivate) — the
+ * affected node in tree shape plus any parent whose `has_children`/counts changed
+ * (for `move`, both the old and new parent). Lets the client patch the cache in
+ * place instead of invalidating the whole tree.
+ */
+export interface UnitMutationResult {
+  node: UnitTreeNodeFlat;
+  affected_parents: UnitParentPatch[];
+}
+
 /** A person placed directly in a unit via `UnitMembership` (no position). */
 export interface UnitMember {
   membership_id: string;

@@ -4,11 +4,16 @@ import {
   useQuery,
   useQueryClient,
 } from "@peppermint/ui";
+import type { QueryClient } from "@peppermint/ui";
 
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 
-import { fetchUnitRoots } from "../_shared/organization.api";
+import { fetchUnitRoots, searchUnits } from "../_shared/organization.api";
 import { organizationQueryKeys } from "../_shared/organization.queryKeys";
+import type {
+  UnitMutationResult,
+  UnitTreeNodeFlat,
+} from "../_shared/organization.types";
 import { fetchOrganization } from "../organizations/organizations.api";
 import { organizationsQueryKeys } from "../organizations/organizations.queryKeys";
 import {
@@ -26,6 +31,7 @@ import type {
   MoveUnitPayload,
   UpdateUnitPayload,
 } from "./Structure.api";
+import { patchNodeFieldsInList, patchParentsInList } from "./Structure.utils";
 
 export function useOrganizationRoot(organizationId: string) {
   return useQuery({
@@ -67,11 +73,22 @@ export function useUnitDescendants(unitId: string | null) {
   });
 }
 
+export function useUnitSearch(organizationId: string, query: string) {
+  const trimmed = query.trim();
+  return useQuery({
+    queryKey: organizationQueryKeys.unitSearch(organizationId, trimmed),
+    queryFn: () => searchUnits(organizationId, trimmed),
+    enabled: Boolean(organizationId) && trimmed.length >= 2,
+    staleTime: 30_000,
+  });
+}
+
 function useInvalidateStructure(organizationId: string) {
   const queryClient = useQueryClient();
   return () => {
-    // Invalidate the root list, every lazily-loaded child branch, and the flat
-    // list in one pass — a mutation can reshape any loaded part of the tree.
+    // Fallback path (mutation response lacks the T5 shape): invalidate the root
+    // list, every lazily-loaded child branch, and the flat list in one pass — a
+    // mutation can reshape any loaded part of the tree.
     void queryClient.invalidateQueries({
       predicate: (query) => {
         const key = query.queryKey;
@@ -88,17 +105,79 @@ function useInvalidateStructure(organizationId: string) {
   };
 }
 
+function isOrgUnitListKey(key: unknown, organizationId: string): boolean {
+  return (
+    Array.isArray(key) &&
+    key[0] === "organizations" &&
+    key[1] === organizationId &&
+    (key[2] === "unit-roots" || key[2] === "unit-children")
+  );
+}
+
+/**
+ * Apply a mutation's affected node + parents to the cache directly (T5). Field
+ * changes (name/status/counts) patch in place across every cached list — no
+ * refetch, no flash. `structural` create/move additionally refetch only the
+ * touched parent branches + roots so the node lands in the right place, instead
+ * of invalidating the whole tree.
+ */
+function applyUnitMutationResult(
+  queryClient: QueryClient,
+  organizationId: string,
+  result: UnitMutationResult,
+  { structural }: { structural: boolean },
+) {
+  const { node, affected_parents } = result;
+
+  queryClient.setQueriesData<UnitTreeNodeFlat[]>(
+    { predicate: (q) => isOrgUnitListKey(q.queryKey, organizationId) },
+    (old) => patchNodeFieldsInList(old, node),
+  );
+  queryClient.setQueriesData<UnitTreeNodeFlat[]>(
+    { predicate: (q) => isOrgUnitListKey(q.queryKey, organizationId) },
+    (old) => patchParentsInList(old, affected_parents),
+  );
+
+  void queryClient.invalidateQueries({
+    queryKey: organizationQueryKeys.unitDetail(node.id),
+  });
+
+  if (!structural) return;
+
+  // Refetch only the branches whose child set changed (new parent + every
+  // affected parent, which for `move` includes the old parent) plus the root
+  // list — scoped, not the whole tree.
+  const branchIds = new Set<string>();
+  if (node.parent_id) branchIds.add(node.parent_id);
+  for (const parent of affected_parents) branchIds.add(parent.id);
+  for (const branchId of branchIds) {
+    void queryClient.invalidateQueries({
+      queryKey: organizationQueryKeys.unitChildren(organizationId, branchId),
+    });
+  }
+  void queryClient.invalidateQueries({
+    queryKey: organizationQueryKeys.unitRoots(organizationId),
+  });
+}
+
 export function useCreateUnit(organizationId: string) {
+  const queryClient = useQueryClient();
   const invalidate = useInvalidateStructure(organizationId);
   return useMutation({
     mutationFn: (payload: CreateUnitPayload) =>
       createUnit(organizationId, payload),
-    onSuccess: (unit) => {
-      invalidate();
+    onSuccess: (result) => {
+      if (result?.node) {
+        applyUnitMutationResult(queryClient, organizationId, result, {
+          structural: true,
+        });
+      } else {
+        invalidate();
+      }
       notifications.show({
         color: "green",
         title: "Unit created",
-        message: `"${unit.name_np}" was added to the structure.`,
+        message: `"${result?.node?.name_np ?? "The unit"}" was added to the structure.`,
       });
     },
     onError: (error) => {
@@ -122,15 +201,18 @@ export function useUpdateUnit(organizationId: string) {
       unitId: string;
       payload: UpdateUnitPayload;
     }) => updateUnit(unitId, payload),
-    onSuccess: (unit) => {
-      invalidate();
-      void queryClient.invalidateQueries({
-        queryKey: organizationQueryKeys.unitDetail(unit.id),
-      });
+    onSuccess: (result) => {
+      if (result?.node) {
+        applyUnitMutationResult(queryClient, organizationId, result, {
+          structural: false,
+        });
+      } else {
+        invalidate();
+      }
       notifications.show({
         color: "green",
         title: "Unit updated",
-        message: `"${unit.name_np}" was updated.`,
+        message: `"${result?.node?.name_np ?? "The unit"}" was updated.`,
       });
     },
     onError: (error) => {
@@ -154,18 +236,24 @@ export function useMoveUnit(organizationId: string) {
       unitId: string;
       payload: MoveUnitPayload;
     }) => moveUnit(unitId, payload),
-    onSuccess: (unit) => {
-      invalidate();
-      void queryClient.invalidateQueries({
-        queryKey: organizationQueryKeys.unitAncestors(unit.id),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: organizationQueryKeys.unitDescendants(unit.id),
-      });
+    onSuccess: (result) => {
+      if (result?.node) {
+        applyUnitMutationResult(queryClient, organizationId, result, {
+          structural: true,
+        });
+        void queryClient.invalidateQueries({
+          queryKey: organizationQueryKeys.unitAncestors(result.node.id),
+        });
+        void queryClient.invalidateQueries({
+          queryKey: organizationQueryKeys.unitDescendants(result.node.id),
+        });
+      } else {
+        invalidate();
+      }
       notifications.show({
         color: "green",
         title: "Unit moved",
-        message: `"${unit.name_np}" was moved.`,
+        message: `"${result?.node?.name_np ?? "The unit"}" was moved.`,
       });
     },
     onError: (error) => {
@@ -179,6 +267,7 @@ export function useMoveUnit(organizationId: string) {
 }
 
 export function useDeactivateUnit(organizationId: string) {
+  const queryClient = useQueryClient();
   const invalidate = useInvalidateStructure(organizationId);
   return useMutation({
     mutationFn: ({
@@ -188,12 +277,18 @@ export function useDeactivateUnit(organizationId: string) {
       unitId: string;
       payload: DeactivateUnitPayload;
     }) => deactivateUnit(unitId, payload),
-    onSuccess: (unit) => {
-      invalidate();
+    onSuccess: (result) => {
+      if (result?.node) {
+        applyUnitMutationResult(queryClient, organizationId, result, {
+          structural: false,
+        });
+      } else {
+        invalidate();
+      }
       notifications.show({
         color: "green",
         title: "Unit deactivated",
-        message: `"${unit.name_np}" is no longer operational.`,
+        message: `"${result?.node?.name_np ?? "The unit"}" is no longer operational.`,
       });
     },
     onError: (error) => {

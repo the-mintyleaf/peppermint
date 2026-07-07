@@ -1,6 +1,10 @@
 import api from "@/lib/api";
 
-import type { OrganizationUnit, UnitType } from "../_shared/organization.types";
+import type {
+  OrganizationUnit,
+  UnitMutationResult,
+  UnitType,
+} from "../_shared/organization.types";
 
 export async function fetchUnitDetail(
   unitId: string,
@@ -23,7 +27,7 @@ export interface CreateUnitPayload {
 export async function createUnit(
   organizationId: string,
   payload: CreateUnitPayload,
-): Promise<OrganizationUnit> {
+): Promise<UnitMutationResult> {
   const { data } = await api.post(
     `/api/v1/organization/organizations/${organizationId}/units/`,
     payload,
@@ -45,7 +49,7 @@ export interface UpdateUnitPayload {
 export async function updateUnit(
   unitId: string,
   payload: UpdateUnitPayload,
-): Promise<OrganizationUnit> {
+): Promise<UnitMutationResult> {
   const { data } = await api.patch(
     `/api/v1/organization/units/${unitId}/`,
     payload,
@@ -61,7 +65,7 @@ export interface MoveUnitPayload {
 export async function moveUnit(
   unitId: string,
   payload: MoveUnitPayload,
-): Promise<OrganizationUnit> {
+): Promise<UnitMutationResult> {
   const { data } = await api.post(
     `/api/v1/organization/units/${unitId}/move/`,
     payload,
@@ -76,7 +80,7 @@ export interface DeactivateUnitPayload {
 export async function deactivateUnit(
   unitId: string,
   payload: DeactivateUnitPayload,
-): Promise<OrganizationUnit> {
+): Promise<UnitMutationResult> {
   const { data } = await api.post(
     `/api/v1/organization/units/${unitId}/deactivate/`,
     payload,
