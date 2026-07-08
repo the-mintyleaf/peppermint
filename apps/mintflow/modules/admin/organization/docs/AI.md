@@ -27,18 +27,19 @@ organization API is staff/superuser-only (confirmed in the recovered `API.md`).
 
 ## Routes
 
-| Route                                                | Sub-module                    |
-| ---------------------------------------------------- | ----------------------------- |
-| `/admin/organization`                                | `organizations` (list, cards) |
-| `/admin/organization/[orgId]`                        | `organizations` (overview)    |
-| `/admin/organization/[orgId]/structure`              | `structure`                   |
-| `/admin/organization/[orgId]/positions`              | `positions`                   |
-| `/admin/organization/[orgId]/members`                | `members` (list)              |
-| `/admin/organization/[orgId]/members/[membershipId]` | `members` (view)              |
-| `/admin/organization/[orgId]/reporting-lines`        | `reporting-lines`             |
-| `/admin/organization/[orgId]/delegations`            | `delegations`                 |
-| `/admin/organization/[orgId]/event-log`              | `event-log`                   |
-| `/admin/organization/[orgId]/actor-context`          | `actor-context`               |
+| Route                                                | Sub-module                       |
+| ---------------------------------------------------- | -------------------------------- |
+| `/admin/organization`                                | `organizations` (list, cards)    |
+| `/admin/organization/[orgId]`                        | `organizations` (overview)       |
+| `/admin/organization/[orgId]/structure`              | `structure`                      |
+| `/admin/organization/[orgId]/positions`              | `positions`                      |
+| `/admin/organization/[orgId]/members`                | `members` (list)                 |
+| `/admin/organization/[orgId]/members/[membershipId]` | `members` (view)                 |
+| `/admin/organization/[orgId]/reporting-lines`        | `reporting-lines`                |
+| `/admin/organization/[orgId]/delegations`            | `delegations`                    |
+| `/admin/organization/[orgId]/event-log`              | `event-log`                      |
+| `/admin/organization/[orgId]/actor-context`          | `actor-context`                  |
+| `/admin/organization/test-tree`                      | `test-tree` (offline playground) |
 
 ## Entry files
 
@@ -52,7 +53,9 @@ organization API is staff/superuser-only (confirmed in the recovered `API.md`).
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | Add/change a domain field or enum  | `_shared/organization.types.ts` (update here first, everything else imports from it)                                     |
 | Organization list/create/activate  | `organizations/`                                                                                                         |
-| Unit tree canvas                   | `structure/Structure.tsx`, `.store.ts`, `.hooks.ts`, `.api.ts`, `.utils.ts`                                              |
+| Unit tree canvas                   | `structure/Structure.tsx` (`StructureCanvas`), `.store.ts`, `.hooks.ts`, `.api.ts`, `.utils.ts`                          |
+| Offline canvas playground          | `test-tree/` — renders the shared `StructureCanvas` off an in-memory mock (`mockStructureDataSource.ts` + `testSeed.ts`) |
+| Swap/extend the canvas data layer  | `_shared/structure-data/` (`StructureDataSource` interface, `realStructureDataSource`, `StructureDataProvider`)          |
 | Position CRUD                      | `positions/`                                                                                                             |
 | Member invite/status/placement     | `members/` — `pages/view/components/UnitMembershipsTab`, `PositionAssignmentsTab`                                        |
 | Reporting lines / chain of command | `reporting-lines/`                                                                                                       |
@@ -71,6 +74,28 @@ organization API is staff/superuser-only (confirmed in the recovered `API.md`).
 - Currently selected organization: `apps/mintflow/stores/selectedOrg.store.ts` (Zustand + persist). Single-writer rule — only `organizations/pages/list/OrganizationsList.tsx` calls `setOrg`.
 - Structure canvas interaction state (selection, drawer, modals, expand/collapse, focus branch, search-hit highlight): `structure/Structure.store.ts`. The typed search query itself is local `useState` in `Structure.tsx` (debounced → server search), not store state. No undo/redo — every canvas action is a real backend mutation, not a staged client edit, so there is no local "unsaved" state to revert.
 - Everything else: local `useState`, no dedicated stores needed.
+
+## Structure data-source seam
+
+The Structure Builder canvas is `StructureCanvas` (exported from `structure/`). It
+never imports an axios fetcher directly — every read/write goes through
+`useStructureData()` (from `_shared/structure-data/`), which returns
+`{ orgId, dataSource }`. The context **defaults to the real axios source**
+(`realStructureDataSource`), so any consumer with no provider — including the shared
+`UnitPickerSelect` used by the positions/delegations/member forms — behaves exactly
+as before.
+
+- Real builder: `structure/Structure.tsx` wraps `StructureCanvas` in
+  `StructureDataProvider` with `orgId` from `useParams` (source defaults to real).
+- Offline playground: `test-tree/TestTree.tsx` wraps the SAME `StructureCanvas` in a
+  provider seeded with a distinct `TEST_ORG_ID` and an in-memory `dataSource` — so
+  UI/interaction work on the canvas carries over to both automatically. Query keys
+  are unchanged, so the cache-patching in `Structure.hooks.ts` works for both; the
+  fake `TEST_ORG_ID` keeps the playground's React Query cache isolated from real orgs.
+
+To add a data call to the canvas: add it to the `StructureDataSource` interface,
+implement it in `realStructureDataSource.ts` **and** `mockStructureDataSource.ts`,
+then call it via `useStructureData().dataSource`.
 
 ## Known constraints
 
