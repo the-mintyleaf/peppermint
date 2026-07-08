@@ -6,11 +6,13 @@ import { OrganizationOverview, OrganizationsList } from "./organizations";
 import { ModulePositions } from "./positions";
 import { ModuleReportingLines } from "./reporting-lines";
 import { Structure } from "./structure";
+import { TestTree } from "./test-tree";
 
 export const ModuleOrganization = {
   main: OrganizationsList,
   overview: OrganizationOverview,
   structure: Structure,
+  testTree: TestTree,
   positions: ModulePositions,
   members: ModuleMembers,
   reportingLines: ModuleReportingLines,

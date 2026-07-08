@@ -23,10 +23,12 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
-    if (!token) {
+    // The Structure Test Tree is an offline, no-backend playground — never bounce
+    // it to sign-in for a missing session.
+    if (!token && pathname !== "/admin/organization/test-tree") {
       router.replace("/");
     }
-  }, [router]);
+  }, [router, pathname]);
 
   const config = useMemo(
     () => ({

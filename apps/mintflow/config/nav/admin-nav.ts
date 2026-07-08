@@ -95,6 +95,11 @@ export function buildAdminConfig(
                   href: "/admin/organization",
                   icon: BuildingsIcon,
                 },
+                {
+                  label: "Structure Test Tree",
+                  href: "/admin/organization/test-tree",
+                  icon: TreeStructureIcon,
+                },
               ],
             },
             ...(org
