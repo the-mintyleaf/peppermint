@@ -4,21 +4,14 @@ import type {
   OrganizationUnit,
   UnitMutationResult,
 } from "../_shared/organization.types";
-// Payload types now live with the data-source seam; re-exported here for the
-// existing importers (Structure.hooks.ts and the unit modals).
+// Unit CRUD payload types are defined with the data-source seam (their canonical
+// home); imported here only to annotate these functions' signatures.
 import type {
   CreateUnitPayload,
   DeactivateUnitPayload,
   MoveUnitPayload,
   UpdateUnitPayload,
 } from "../_shared/structure-data";
-
-export type {
-  CreateUnitPayload,
-  DeactivateUnitPayload,
-  MoveUnitPayload,
-  UpdateUnitPayload,
-};
 
 export async function fetchUnitDetail(
   unitId: string,
