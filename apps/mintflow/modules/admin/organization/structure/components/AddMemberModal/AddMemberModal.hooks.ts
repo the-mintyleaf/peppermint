@@ -6,12 +6,9 @@ import {
 } from "@peppermint/ui";
 
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
-import {
-  createUnitMembership,
-  fetchMemberships,
-} from "@/modules/admin/organization/members/members.api";
 
 import { organizationQueryKeys } from "../../../_shared/organization.queryKeys";
+import { useStructureData } from "../../../_shared/structure-data";
 
 interface AddUnitMemberInput {
   membershipId: string;
@@ -26,10 +23,11 @@ export function useOrgMembershipOptions(
   organizationId: string,
   enabled: boolean,
 ) {
+  const { dataSource } = useStructureData();
   return useQuery({
     queryKey: organizationQueryKeys.membershipsList(organizationId),
     queryFn: () =>
-      fetchMemberships(organizationId, {
+      dataSource.fetchMemberships(organizationId, {
         page: 1,
         pageSize: 100,
         search: "",
@@ -41,6 +39,7 @@ export function useOrgMembershipOptions(
 }
 
 export function useAddUnitMember(organizationId: string) {
+  const { dataSource } = useStructureData();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
@@ -50,7 +49,7 @@ export function useAddUnitMember(organizationId: string) {
       isPrimary,
       reason,
     }: AddUnitMemberInput) =>
-      createUnitMembership(membershipId, {
+      dataSource.createUnitMembership(membershipId, {
         unit_id: unitId,
         membership_type: membershipType || undefined,
         is_primary: isPrimary,

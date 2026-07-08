@@ -8,76 +8,72 @@ import type { QueryClient } from "@peppermint/ui";
 
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 
-import { fetchUnitRoots, searchUnits } from "../_shared/organization.api";
 import { organizationQueryKeys } from "../_shared/organization.queryKeys";
 import type {
   UnitMutationResult,
   UnitTreeNodeFlat,
 } from "../_shared/organization.types";
-import { fetchOrganization } from "../organizations/organizations.api";
-import { organizationsQueryKeys } from "../organizations/organizations.queryKeys";
-import {
-  createUnit,
-  deactivateUnit,
-  fetchUnitAncestors,
-  fetchUnitDescendants,
-  fetchUnitDetail,
-  moveUnit,
-  updateUnit,
-} from "./Structure.api";
+import { useStructureData } from "../_shared/structure-data";
 import type {
   CreateUnitPayload,
   DeactivateUnitPayload,
   MoveUnitPayload,
   UpdateUnitPayload,
-} from "./Structure.api";
+} from "../_shared/structure-data";
+import { organizationsQueryKeys } from "../organizations/organizations.queryKeys";
 import { patchNodeFieldsInList, patchParentsInList } from "./Structure.utils";
 
 export function useOrganizationRoot(organizationId: string) {
+  const { dataSource } = useStructureData();
   return useQuery({
     queryKey: organizationsQueryKeys.detail(organizationId),
-    queryFn: () => fetchOrganization(organizationId),
+    queryFn: () => dataSource.fetchOrganization(organizationId),
     enabled: Boolean(organizationId),
   });
 }
 
 export function useUnitRoots(organizationId: string) {
+  const { dataSource } = useStructureData();
   return useQuery({
     queryKey: organizationQueryKeys.unitRoots(organizationId),
-    queryFn: () => fetchUnitRoots(organizationId),
+    queryFn: () => dataSource.fetchUnitRoots(organizationId),
     enabled: Boolean(organizationId),
   });
 }
 
 export function useUnitDetail(unitId: string | null) {
+  const { dataSource } = useStructureData();
   return useQuery({
     queryKey: organizationQueryKeys.unitDetail(unitId ?? ""),
-    queryFn: () => fetchUnitDetail(unitId as string),
+    queryFn: () => dataSource.fetchUnitDetail(unitId as string),
     enabled: Boolean(unitId),
   });
 }
 
 export function useUnitAncestors(unitId: string | null) {
+  const { dataSource } = useStructureData();
   return useQuery({
     queryKey: organizationQueryKeys.unitAncestors(unitId ?? ""),
-    queryFn: () => fetchUnitAncestors(unitId as string),
+    queryFn: () => dataSource.fetchUnitAncestors(unitId as string),
     enabled: Boolean(unitId),
   });
 }
 
 export function useUnitDescendants(unitId: string | null) {
+  const { dataSource } = useStructureData();
   return useQuery({
     queryKey: organizationQueryKeys.unitDescendants(unitId ?? ""),
-    queryFn: () => fetchUnitDescendants(unitId as string),
+    queryFn: () => dataSource.fetchUnitDescendants(unitId as string),
     enabled: Boolean(unitId),
   });
 }
 
 export function useUnitSearch(organizationId: string, query: string) {
+  const { dataSource } = useStructureData();
   const trimmed = query.trim();
   return useQuery({
     queryKey: organizationQueryKeys.unitSearch(organizationId, trimmed),
-    queryFn: () => searchUnits(organizationId, trimmed),
+    queryFn: () => dataSource.searchUnits(organizationId, trimmed),
     enabled: Boolean(organizationId) && trimmed.length >= 2,
     staleTime: 30_000,
   });
@@ -166,11 +162,12 @@ function applyUnitMutationResult(
 }
 
 export function useCreateUnit(organizationId: string) {
+  const { dataSource } = useStructureData();
   const queryClient = useQueryClient();
   const invalidate = useInvalidateStructure(organizationId);
   return useMutation({
     mutationFn: (payload: CreateUnitPayload) =>
-      createUnit(organizationId, payload),
+      dataSource.createUnit(organizationId, payload),
     onSuccess: (result) => {
       if (result?.node) {
         applyUnitMutationResult(queryClient, organizationId, result, {
@@ -196,6 +193,7 @@ export function useCreateUnit(organizationId: string) {
 }
 
 export function useUpdateUnit(organizationId: string) {
+  const { dataSource } = useStructureData();
   const queryClient = useQueryClient();
   const invalidate = useInvalidateStructure(organizationId);
   return useMutation({
@@ -205,7 +203,7 @@ export function useUpdateUnit(organizationId: string) {
     }: {
       unitId: string;
       payload: UpdateUnitPayload;
-    }) => updateUnit(unitId, payload),
+    }) => dataSource.updateUnit(unitId, payload),
     onSuccess: (result) => {
       if (result?.node) {
         applyUnitMutationResult(queryClient, organizationId, result, {
@@ -231,6 +229,7 @@ export function useUpdateUnit(organizationId: string) {
 }
 
 export function useMoveUnit(organizationId: string) {
+  const { dataSource } = useStructureData();
   const queryClient = useQueryClient();
   const invalidate = useInvalidateStructure(organizationId);
   return useMutation({
@@ -240,7 +239,7 @@ export function useMoveUnit(organizationId: string) {
     }: {
       unitId: string;
       payload: MoveUnitPayload;
-    }) => moveUnit(unitId, payload),
+    }) => dataSource.moveUnit(unitId, payload),
     onSuccess: (result) => {
       if (result?.node) {
         applyUnitMutationResult(queryClient, organizationId, result, {
@@ -272,6 +271,7 @@ export function useMoveUnit(organizationId: string) {
 }
 
 export function useDeactivateUnit(organizationId: string) {
+  const { dataSource } = useStructureData();
   const queryClient = useQueryClient();
   const invalidate = useInvalidateStructure(organizationId);
   return useMutation({
@@ -281,7 +281,7 @@ export function useDeactivateUnit(organizationId: string) {
     }: {
       unitId: string;
       payload: DeactivateUnitPayload;
-    }) => deactivateUnit(unitId, payload),
+    }) => dataSource.deactivateUnit(unitId, payload),
     onSuccess: (result) => {
       if (result?.node) {
         // Non-structural: the API rejects deactivating a unit that still has

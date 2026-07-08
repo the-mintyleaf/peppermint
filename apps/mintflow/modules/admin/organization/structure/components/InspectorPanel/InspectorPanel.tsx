@@ -1,6 +1,5 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   Badge,
@@ -21,6 +20,7 @@ import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
 import { UserPlusIcon } from "@phosphor-icons/react/dist/csr/UserPlus";
 
 import { BilingualName } from "../../../_shared/components/BilingualName";
+import { useStructureData } from "../../../_shared/structure-data";
 import {
   useUnitAncestors,
   useUnitDescendants,
@@ -30,7 +30,7 @@ import { useStructureStore } from "../../Structure.store";
 import styles from "../../Structure.module.css";
 
 export function InspectorPanel() {
-  const { orgId = "" } = useParams<{ orgId: string }>();
+  const { orgId } = useStructureData();
   const {
     selectedUnitId,
     drawerOpen,

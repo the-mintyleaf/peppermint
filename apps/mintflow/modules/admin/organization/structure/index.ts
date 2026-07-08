@@ -1,1 +1,1 @@
-export { Structure } from "./Structure";
+export { Structure, StructureCanvas } from "./Structure";

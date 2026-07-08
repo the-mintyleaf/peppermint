@@ -30,9 +30,12 @@ import {
 
 import { RequireStaff } from "@/components/RequireStaff";
 
-import { fetchUnitChildren } from "../_shared/organization.api";
 import { organizationQueryKeys } from "../_shared/organization.queryKeys";
 import type { UnitTreeNodeFlat } from "../_shared/organization.types";
+import {
+  StructureDataProvider,
+  useStructureData,
+} from "../_shared/structure-data";
 import { BreadcrumbNav } from "./components/BreadcrumbNav";
 import { DeactivateUnitModal } from "./components/DeactivateUnitModal";
 import { EmptyState } from "./components/EmptyState";
@@ -69,8 +72,13 @@ const nodeTypes = {
 /** Stable empty reference so transitional renders don't thrash downstream memos. */
 const EMPTY_IDS: string[] = [];
 
-function StructureInner() {
-  const { orgId = "" } = useParams<{ orgId: string }>();
+/**
+ * The shared canvas. Reads its `orgId` and data source from context, so the same
+ * component renders both the real (axios) Structure Builder and the offline
+ * test-tree playground — only the surrounding `StructureDataProvider` differs.
+ */
+export function StructureCanvas() {
+  const { orgId, dataSource } = useStructureData();
   const {
     data: organization,
     isLoading: orgLoading,
@@ -141,7 +149,7 @@ function StructureInner() {
   const childQueries = useQueries({
     queries: expandedChildUnitIds.map((unitId) => ({
       queryKey: organizationQueryKeys.unitChildren(orgId, unitId),
-      queryFn: () => fetchUnitChildren(orgId, unitId),
+      queryFn: () => dataSource.fetchUnitChildren(orgId, unitId),
       enabled: Boolean(orgId),
     })),
   });
@@ -605,10 +613,16 @@ function StructureInner() {
 }
 
 function StructureContent() {
+  // The real builder is route-driven and axios-backed: read `orgId` from the URL
+  // and let the provider default to the real data source. The test-tree wraps
+  // StructureCanvas in its own provider with an in-memory source instead.
+  const { orgId = "" } = useParams<{ orgId: string }>();
   return (
-    <ReactFlowProvider>
-      <StructureInner />
-    </ReactFlowProvider>
+    <StructureDataProvider orgId={orgId}>
+      <ReactFlowProvider>
+        <StructureCanvas />
+      </ReactFlowProvider>
+    </StructureDataProvider>
   );
 }
 
