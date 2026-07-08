@@ -49,6 +49,18 @@ export interface MockStructureDataSource {
  */
 export function createMockStructureDataSource(): MockStructureDataSource {
   let state: Seed = buildSeed();
+  // Bumped by reset(). A write captures the generation before its latency `await`
+  // and re-checks after, so a mutation in flight during a Reset can't land on the
+  // fresh seed (which would resurrect discarded changes).
+  let generation = 0;
+  const guardGeneration = (captured: number) => {
+    if (captured !== generation) {
+      throw apiError(
+        "TEST_TREE_RESET",
+        "The playground was reset while this action was in flight. Try again.",
+      );
+    }
+  };
 
   const findUnit = (id: string) => state.units.find((u) => u.id === id);
   const childrenOf = (id: string | null) =>
@@ -81,7 +93,10 @@ export function createMockStructureDataSource(): MockStructureDataSource {
   }
 
   const toUnitMember = (m: Seed["unitMembers"][number]): UnitMember => ({
-    membership_id: m.membershipId,
+    // The unique per-placement id, NOT the org-membership id — the canvas derives a
+    // ReactFlow node id from this, so it must be unique per member node (the same
+    // person can appear in more than one unit).
+    membership_id: m.id,
     user_id: m.userId,
     username: m.username,
     display_name: m.displayName,
@@ -150,7 +165,9 @@ export function createMockStructureDataSource(): MockStructureDataSource {
     ): Promise<UnitTreeNodeFlat[]> {
       await delay(READ_LATENCY_MS);
       const unit = findUnit(unitId);
-      if (!unit) return [];
+      if (!unit) {
+        throw apiError("ORGANIZATION_UNIT_NOT_FOUND", "Unit not found.");
+      }
       return [
         toFlat(unit, true),
         ...childrenOf(unitId).map((k) => toFlat(k, true)),
@@ -220,7 +237,9 @@ export function createMockStructureDataSource(): MockStructureDataSource {
       organizationId: string,
       payload: CreateUnitPayload,
     ): Promise<UnitMutationResult> {
+      const gen = generation;
       await delay(WRITE_LATENCY_MS);
+      guardGeneration(gen);
       if (
         state.units.some(
           (u) => u.code.toLowerCase() === payload.code.toLowerCase(),
@@ -271,7 +290,9 @@ export function createMockStructureDataSource(): MockStructureDataSource {
       unitId: string,
       payload: UpdateUnitPayload,
     ): Promise<UnitMutationResult> {
+      const gen = generation;
       await delay(WRITE_LATENCY_MS);
+      guardGeneration(gen);
       const unit = findUnit(unitId);
       if (!unit) {
         throw apiError("ORGANIZATION_UNIT_NOT_FOUND", "Unit not found.");
@@ -292,7 +313,9 @@ export function createMockStructureDataSource(): MockStructureDataSource {
       unitId: string,
       payload: MoveUnitPayload,
     ): Promise<UnitMutationResult> {
+      const gen = generation;
       await delay(WRITE_LATENCY_MS);
+      guardGeneration(gen);
       const unit = findUnit(unitId);
       if (!unit) {
         throw apiError("ORGANIZATION_UNIT_NOT_FOUND", "Unit not found.");
@@ -329,7 +352,9 @@ export function createMockStructureDataSource(): MockStructureDataSource {
     },
 
     async deactivateUnit(unitId: string): Promise<UnitMutationResult> {
+      const gen = generation;
       await delay(WRITE_LATENCY_MS);
+      guardGeneration(gen);
       const unit = findUnit(unitId);
       if (!unit) {
         throw apiError("ORGANIZATION_UNIT_NOT_FOUND", "Unit not found.");
@@ -378,7 +403,9 @@ export function createMockStructureDataSource(): MockStructureDataSource {
       membershipId: string,
       payload: CreateUnitMembershipPayload,
     ): Promise<UnitMembership> {
+      const gen = generation;
       await delay(WRITE_LATENCY_MS);
+      guardGeneration(gen);
       const membership = state.memberships.find((m) => m.id === membershipId);
       if (!membership) {
         throw apiError(
@@ -388,6 +415,18 @@ export function createMockStructureDataSource(): MockStructureDataSource {
       }
       if (!findUnit(payload.unit_id)) {
         throw apiError("ORGANIZATION_UNIT_NOT_FOUND", "Unit not found.");
+      }
+      if (
+        state.unitMembers.some(
+          (m) =>
+            m.membershipId === membershipId && m.unitId === payload.unit_id,
+        )
+      ) {
+        // Custom code (not in the error dictionary) so the friendly message shows.
+        throw apiError(
+          "ORGANIZATION_UNIT_MEMBERSHIP_EXISTS",
+          "This member is already placed in this unit.",
+        );
       }
       const person = state.people[membership.user];
       const now = nowIso();
@@ -423,6 +462,7 @@ export function createMockStructureDataSource(): MockStructureDataSource {
   return {
     dataSource,
     reset: () => {
+      generation += 1;
       state = buildSeed();
     },
   };

@@ -33,13 +33,17 @@ export function TestTree() {
 
   function handleReset() {
     mock.reset();
+    // Drop only THIS org's cached tree (roots/children/units-flat/search/detail).
+    // The re-seed mints new unit ids, so any lingering ["units", oldId, ...] entries
+    // are unreachable and harmless — and scoping to the test org avoids evicting
+    // unrelated admin caches (e.g. real-org positions).
     queryClient.removeQueries({
       predicate: (query) => {
         const key = query.queryKey;
-        if (!Array.isArray(key)) return false;
         return (
-          (key[0] === "organizations" && key[1] === TEST_ORG_ID) ||
-          key[0] === "units"
+          Array.isArray(key) &&
+          key[0] === "organizations" &&
+          key[1] === TEST_ORG_ID
         );
       },
     });
