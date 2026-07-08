@@ -3,25 +3,28 @@ import api from "@/lib/api";
 import type {
   OrganizationUnit,
   UnitMutationResult,
-  UnitType,
 } from "../_shared/organization.types";
+// Payload types now live with the data-source seam; re-exported here for the
+// existing importers (Structure.hooks.ts and the unit modals).
+import type {
+  CreateUnitPayload,
+  DeactivateUnitPayload,
+  MoveUnitPayload,
+  UpdateUnitPayload,
+} from "../_shared/structure-data";
+
+export type {
+  CreateUnitPayload,
+  DeactivateUnitPayload,
+  MoveUnitPayload,
+  UpdateUnitPayload,
+};
 
 export async function fetchUnitDetail(
   unitId: string,
 ): Promise<OrganizationUnit> {
   const { data } = await api.get(`/api/v1/organization/units/${unitId}/`);
   return data;
-}
-
-export interface CreateUnitPayload {
-  name_np: string;
-  name_en?: string;
-  code: string;
-  unit_type: UnitType;
-  parent: string | null;
-  description?: string;
-  sort_order?: number;
-  is_operational?: boolean;
 }
 
 export async function createUnit(
@@ -35,17 +38,6 @@ export async function createUnit(
   return data;
 }
 
-/** Never send `code` or `parent` through this endpoint — use `moveUnit` for re-parenting. */
-export interface UpdateUnitPayload {
-  name_np?: string;
-  name_en?: string;
-  unit_type?: UnitType;
-  status?: OrganizationUnit["status"];
-  description?: string;
-  sort_order?: number;
-  is_operational?: boolean;
-}
-
 export async function updateUnit(
   unitId: string,
   payload: UpdateUnitPayload,
@@ -57,11 +49,6 @@ export async function updateUnit(
   return data;
 }
 
-export interface MoveUnitPayload {
-  new_parent: string | null;
-  reason: string;
-}
-
 export async function moveUnit(
   unitId: string,
   payload: MoveUnitPayload,
@@ -71,10 +58,6 @@ export async function moveUnit(
     payload,
   );
   return data;
-}
-
-export interface DeactivateUnitPayload {
-  reason?: string;
 }
 
 export async function deactivateUnit(
