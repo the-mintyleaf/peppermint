@@ -12,6 +12,22 @@ import type {
  */
 export const TEST_ORG_ID = "test-tree-org";
 
+/**
+ * A random id that also works in an insecure browser context — `crypto.randomUUID`
+ * is undefined when the app is served over plain http on a LAN IP (not
+ * `localhost`/https), which would otherwise crash the playground on hydration.
+ */
+export function genId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    try {
+      return crypto.randomUUID();
+    } catch {
+      // fall through to the non-crypto fallback below
+    }
+  }
+  return `id-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+}
+
 /** A person the test-tree can place into units. Names back the member nodes. */
 export interface SeedPerson {
   userId: string;
@@ -211,7 +227,7 @@ export function buildSeed(): Seed {
 
   // Resolve codes → uuids, then compute depth + path_cache off the parent chain.
   const idByCode = new Map<string, string>();
-  for (const spec of UNIT_SPECS) idByCode.set(spec.code, crypto.randomUUID());
+  for (const spec of UNIT_SPECS) idByCode.set(spec.code, genId());
   const specByCode = new Map(UNIT_SPECS.map((s) => [s.code, s]));
 
   function depthOf(code: string): number {
@@ -258,8 +274,8 @@ export function buildSeed(): Seed {
 
   const people: Record<string, SeedPerson> = {};
   const memberships: OrganizationMembership[] = PEOPLE_SPECS.map((spec) => {
-    const userId = crypto.randomUUID();
-    const membershipId = crypto.randomUUID();
+    const userId = genId();
+    const membershipId = genId();
     people[userId] = { userId, ...spec };
     return {
       id: membershipId,
@@ -285,7 +301,7 @@ export function buildSeed(): Seed {
     const membership = membershipByEmpCode.get(spec.employeeCode)!;
     const person = personByUserId[membership.user];
     return {
-      id: crypto.randomUUID(),
+      id: genId(),
       membershipId: membership.id,
       unitId: idByCode.get(spec.unitCode)!,
       userId: membership.user,

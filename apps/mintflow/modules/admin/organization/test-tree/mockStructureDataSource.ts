@@ -19,7 +19,7 @@ import type {
   UpdateUnitPayload,
 } from "../_shared/structure-data";
 import type { CreateUnitMembershipPayload } from "../members/members.api";
-import { buildSeed, TEST_ORG_ID, type Seed } from "./testSeed";
+import { buildSeed, genId, TEST_ORG_ID, type Seed } from "./testSeed";
 
 const READ_LATENCY_MS = 160;
 const WRITE_LATENCY_MS = 240;

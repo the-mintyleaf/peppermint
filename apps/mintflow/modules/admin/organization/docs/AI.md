@@ -43,7 +43,7 @@ organization API is staff/superuser-only (confirmed in the recovered `API.md`).
 
 ## Entry files
 
-- `index.ts` — `ModuleOrganization = { main, overview, structure, positions, members, reportingLines, delegations, eventLog, actorContext }`
+- `index.ts` — `ModuleOrganization = { main, overview, structure, testTree, positions, members, reportingLines, delegations, eventLog, actorContext }`
 - `_shared/organization.types.ts` — all 12 backend entities + enum unions (bilingual `*_np`/`*_en`/`*_romanized` name fields), the single source of truth for domain types
 - `_shared/organization.api.ts` / `.queryKeys.ts` — cross-sub-module fetchers (unit tree, flat units list)
 
