@@ -8,8 +8,8 @@ import {
   disableMfa,
   regenerateRecoveryCodes,
   setupMfa,
-} from "../account-security.api";
-import type { MfaSetupResponse } from "../account-security.types";
+} from "../account-settings.api";
+import type { MfaSetupResponse } from "../account-settings.types";
 
 export type MfaScreen = "idle" | "setup" | "confirm";
 

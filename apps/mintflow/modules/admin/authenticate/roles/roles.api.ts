@@ -18,16 +18,21 @@ export async function fetchRoles(
   return { data: data.data, meta: { ...data.meta, total: data.meta.count } };
 }
 
+/** Full role directory in one generous page, for id → name lookups. */
+export async function fetchRoleDirectory(): Promise<Role[]> {
+  const { data } = await api.get("/api/v1/permissions/roles/", {
+    params: { page_size: 200 },
+  });
+  return data.data as Role[];
+}
+
 /**
  * Roles eligible for a binding: active + assignable. The list endpoint
  * doesn't document a server-side filter for this, so fetch a large page and
  * filter client-side.
  */
 export async function fetchAssignableRoles(): Promise<Role[]> {
-  const { data } = await api.get("/api/v1/permissions/roles/", {
-    params: { page_size: 200 },
-  });
-  return (data.data as Role[]).filter(
+  return (await fetchRoleDirectory()).filter(
     (role) => role.is_assignable && role.is_active,
   );
 }

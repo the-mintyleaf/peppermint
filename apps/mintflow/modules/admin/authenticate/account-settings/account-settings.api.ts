@@ -7,7 +7,7 @@ import type {
   ProfileUpdateValues,
   RevokeAllResponse,
   UserSession,
-} from "./account-security.types";
+} from "./account-settings.types";
 
 // ─── Profile ────────────────────────────────────────────────────────────────
 

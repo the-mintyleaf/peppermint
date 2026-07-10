@@ -2,27 +2,24 @@
 
 import {
   Button,
-  Card,
   Group,
   Loader,
   Stack,
   Text,
   TextInput,
-  Title,
   notifications,
   useForm,
   useMutation,
   useQueryClient,
 } from "@peppermint/ui";
-import { UserCircleIcon } from "@phosphor-icons/react/dist/csr/UserCircle";
 import { getApiError, getApiErrorMessage } from "@/lib/authErrorMessages";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import { QueryErrorState } from "@/components/QueryErrorState";
-import { updateProfile } from "../account-security.api";
+import { updateProfile } from "../account-settings.api";
 import type {
   ProfileFormProps,
   ProfileUpdateValues,
-} from "../account-security.types";
+} from "../account-settings.types";
 
 function ProfileForm({ user }: ProfileFormProps) {
   const queryClient = useQueryClient();
@@ -98,31 +95,24 @@ function ProfileForm({ user }: ProfileFormProps) {
   );
 }
 
-export function ProfileCard() {
+export function ProfileTab() {
   const { user, isLoading, isError, isRefetching, refetch } = useCurrentUser();
 
   return (
-    <Card withBorder radius="md" p="lg">
-      <Stack gap="md">
-        <Group gap="xs">
-          <UserCircleIcon size={20} aria-hidden />
-          <Title order={4}>Profile</Title>
+    <Stack gap="md" maw={480}>
+      {isError ? (
+        <QueryErrorState
+          message="Couldn't load your profile."
+          onRetry={() => refetch()}
+          isRetrying={isRefetching}
+        />
+      ) : isLoading || !user ? (
+        <Group justify="center" py="lg">
+          <Loader size="sm" />
         </Group>
-
-        {isError ? (
-          <QueryErrorState
-            message="Couldn't load your profile."
-            onRetry={() => refetch()}
-            isRetrying={isRefetching}
-          />
-        ) : isLoading || !user ? (
-          <Group justify="center" py="lg">
-            <Loader size="sm" />
-          </Group>
-        ) : (
-          <ProfileForm key={user.id} user={user} />
-        )}
-      </Stack>
-    </Card>
+      ) : (
+        <ProfileForm key={user.id} user={user} />
+      )}
+    </Stack>
   );
 }

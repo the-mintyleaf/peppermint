@@ -3,12 +3,10 @@
 import {
   Badge,
   Button,
-  Card,
   Group,
   Loader,
   Stack,
   Text,
-  Title,
   modals,
   notifications,
   useMutation,
@@ -23,8 +21,8 @@ import {
   fetchSessions,
   revokeAllSessions,
   revokeSession,
-} from "../account-security.api";
-import type { UserSession } from "../account-security.types";
+} from "../account-settings.api";
+import type { UserSession } from "../account-settings.types";
 
 const SESSIONS_QUERY_KEY = ["auth", "sessions"];
 
@@ -77,7 +75,7 @@ function SessionRow({
   );
 }
 
-export function SessionsCard() {
+export function SessionsTab() {
   const queryClient = useQueryClient();
 
   const {
@@ -153,52 +151,46 @@ export function SessionsCard() {
   const hasSessions = Boolean(sessions && sessions.length > 0);
 
   return (
-    <Card withBorder radius="md" p="lg">
-      <Stack gap="md">
-        <Group justify="space-between">
-          <Group gap="xs">
-            <DesktopIcon size={20} aria-hidden />
-            <Title order={4}>Active sessions</Title>
-          </Group>
-          <Button
-            size="compact-sm"
-            variant="light"
-            color="red"
-            onClick={requestRevokeAll}
-            loading={revokeAllMutation.isPending}
-            disabled={!hasSessions}
-          >
-            Revoke all other sessions
-          </Button>
-        </Group>
+    <Stack gap="md">
+      <Group justify="flex-end">
+        <Button
+          size="compact-sm"
+          variant="light"
+          color="red"
+          onClick={requestRevokeAll}
+          loading={revokeAllMutation.isPending}
+          disabled={!hasSessions}
+        >
+          Revoke all other sessions
+        </Button>
+      </Group>
 
-        {isLoading ? (
-          <Group justify="center" py="lg">
-            <Loader size="sm" />
-          </Group>
-        ) : isError ? (
-          <QueryErrorState
-            message="Couldn't load your sessions."
-            onRetry={() => refetch()}
-            isRetrying={isRefetching}
-          />
-        ) : !hasSessions ? (
-          <Text size="sm" c="dimmed">
-            No active sessions found.
-          </Text>
-        ) : (
-          <Stack gap="sm">
-            {sessions!.map((session) => (
-              <SessionRow
-                key={session.id}
-                session={session}
-                onRevoke={requestRevoke}
-                isRevoking={revokeMutation.isPending}
-              />
-            ))}
-          </Stack>
-        )}
-      </Stack>
-    </Card>
+      {isLoading ? (
+        <Group justify="center" py="lg">
+          <Loader size="sm" />
+        </Group>
+      ) : isError ? (
+        <QueryErrorState
+          message="Couldn't load your sessions."
+          onRetry={() => refetch()}
+          isRetrying={isRefetching}
+        />
+      ) : !hasSessions ? (
+        <Text size="sm" c="dimmed">
+          No active sessions found.
+        </Text>
+      ) : (
+        <Stack gap="sm">
+          {sessions!.map((session) => (
+            <SessionRow
+              key={session.id}
+              session={session}
+              onRevoke={requestRevoke}
+              isRevoking={revokeMutation.isPending}
+            />
+          ))}
+        </Stack>
+      )}
+    </Stack>
   );
 }

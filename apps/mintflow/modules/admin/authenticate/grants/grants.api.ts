@@ -21,6 +21,16 @@ export async function fetchGrants(): Promise<GrantsFetchResponse> {
   return { data: data.data, meta: { total: data.meta.count } };
 }
 
+export async function fetchGrantsForSubject(
+  subjectUserId: string,
+): Promise<Grant[]> {
+  const { data } = await api.get<GrantsListResponse>(
+    "/api/v1/permissions/grants/",
+    { params: { subject_user_id: subjectUserId, page_size: 200 } },
+  );
+  return data.data;
+}
+
 export async function createGrant(values: GrantCreatePayload): Promise<Grant> {
   const { data } = await api.post<Grant>("/api/v1/permissions/grants/", values);
   return data;
