@@ -20,12 +20,14 @@ import { PlanetIcon } from "@phosphor-icons/react/dist/csr/Planet";
 import { QuestionIcon } from "@phosphor-icons/react/dist/csr/Question";
 import { SignOutIcon } from "@phosphor-icons/react/dist/csr/SignOut";
 import { SunIcon } from "@phosphor-icons/react/dist/csr/Sun";
+import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
 import type { UserInfoPopoverProps } from "./UserInfoPopover.types";
 
 export function UserInfoPopover({
   variant = "default",
   user = null,
   onLogout,
+  onProfileClick,
   disableSetAway = false,
   disablePauseNotifications = false,
   disableHelp = false,
@@ -148,6 +150,18 @@ export function UserInfoPopover({
         </Menu.Item>
 
         <Menu.Divider />
+
+        {onProfileClick && (
+          <>
+            <Menu.Item
+              leftSection={<UserIcon size={16} />}
+              onClick={onProfileClick}
+            >
+              <Text size="xs">Profile</Text>
+            </Menu.Item>
+            <Menu.Divider />
+          </>
+        )}
 
         {!disableSetAway && (
           <Menu.Item
