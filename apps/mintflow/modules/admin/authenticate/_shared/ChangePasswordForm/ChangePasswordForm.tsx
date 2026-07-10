@@ -15,7 +15,10 @@ import type {
   ChangePasswordFormValues,
 } from "./ChangePasswordForm.types";
 
-export function ChangePasswordForm({ onSuccess }: ChangePasswordFormProps) {
+export function ChangePasswordForm({
+  onSuccess,
+  size = "sm",
+}: ChangePasswordFormProps) {
   const form = useForm<ChangePasswordFormValues>({
     initialValues: {
       old_password: "",
@@ -72,6 +75,7 @@ export function ChangePasswordForm({ onSuccess }: ChangePasswordFormProps) {
       <Stack gap="md">
         <PasswordInput
           label="Current password"
+          size={size}
           required
           disabled={mutation.isPending}
           {...form.getInputProps("old_password")}
@@ -79,17 +83,24 @@ export function ChangePasswordForm({ onSuccess }: ChangePasswordFormProps) {
         <PasswordInput
           label="New password"
           description="At least 12 characters."
+          size={size}
           required
           disabled={mutation.isPending}
           {...form.getInputProps("new_password")}
         />
         <PasswordInput
           label="Confirm new password"
+          size={size}
           required
           disabled={mutation.isPending}
           {...form.getInputProps("confirm_password")}
         />
-        <Button type="submit" loading={mutation.isPending} fullWidth>
+        <Button
+          type="submit"
+          size={size}
+          loading={mutation.isPending}
+          fullWidth
+        >
           Change password
         </Button>
       </Stack>

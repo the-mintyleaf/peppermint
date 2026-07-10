@@ -86,7 +86,7 @@ function SectionState({
   if (error) {
     if (isPermissionDenied(error)) {
       return (
-        <Text size="sm" c="dimmed">
+        <Text size="xs" c="dimmed">
           {deniedMessage}
         </Text>
       );
@@ -101,7 +101,7 @@ function SectionState({
   }
   if (isEmpty) {
     return (
-      <Text size="sm" c="dimmed">
+      <Text size="xs" c="dimmed">
         {emptyMessage}
       </Text>
     );
@@ -149,8 +149,10 @@ export function PermissionsTab() {
       <Card withBorder radius="md" p="lg">
         <Stack gap="md">
           <Group gap="xs">
-            <KeyIcon size={20} aria-hidden />
-            <Title order={4}>Roles</Title>
+            <KeyIcon size={16} aria-hidden />
+            <Title order={4} size="xs">
+              Roles
+            </Title>
           </Group>
           <SectionState
             isLoading={!user || bindingsQuery.isLoading}
@@ -171,7 +173,7 @@ export function PermissionsTab() {
                   align="flex-start"
                 >
                   <Stack gap={2}>
-                    <Text size="sm" fw={500}>
+                    <Text size="xs" fw={500}>
                       {roleNameById.get(binding.role) ?? binding.role}
                     </Text>
                     <ValidityText
@@ -179,7 +181,7 @@ export function PermissionsTab() {
                       validUntil={binding.valid_until}
                     />
                   </Stack>
-                  <Badge variant="light" color="gray">
+                  <Badge variant="light" color="gray" size="sm">
                     {SCOPE_LABELS[binding.scope_type]}
                   </Badge>
                 </Group>
@@ -192,8 +194,10 @@ export function PermissionsTab() {
       <Card withBorder radius="md" p="lg">
         <Stack gap="md">
           <Group gap="xs">
-            <CheckCircleIcon size={20} aria-hidden />
-            <Title order={4}>Direct grants</Title>
+            <CheckCircleIcon size={16} aria-hidden />
+            <Title order={4} size="xs">
+              Direct grants
+            </Title>
           </Group>
           <SectionState
             isLoading={!user || grantsQuery.isLoading}
@@ -214,7 +218,7 @@ export function PermissionsTab() {
                   align="flex-start"
                 >
                   <Stack gap={2}>
-                    <Text size="sm" fw={500} ff="monospace">
+                    <Text size="xs" fw={500} ff="monospace">
                       {grant.permission_key}
                     </Text>
                     {grant.reason ? (
@@ -227,7 +231,7 @@ export function PermissionsTab() {
                       validUntil={grant.valid_until}
                     />
                   </Stack>
-                  <Badge variant="light" color="gray">
+                  <Badge variant="light" color="gray" size="sm">
                     {SCOPE_LABELS[grant.scope_type]}
                   </Badge>
                 </Group>

@@ -38,10 +38,10 @@ function SessionRow({
   return (
     <Group justify="space-between" wrap="nowrap" align="flex-start">
       <Group gap="sm" wrap="nowrap" align="flex-start">
-        <DesktopIcon size={20} aria-hidden />
+        <DesktopIcon size={16} aria-hidden />
         <Stack gap={2}>
           <Group gap="xs">
-            <Text size="sm" fw={500}>
+            <Text size="xs" fw={500}>
               {session.device_label ?? "Unknown device"}
             </Text>
             {!session.is_active && (
@@ -63,7 +63,7 @@ function SessionRow({
         </Stack>
       </Group>
       <Button
-        size="compact-sm"
+        size="compact-xs"
         variant="light"
         color="red"
         onClick={() => onRevoke(session.id)}
@@ -154,7 +154,7 @@ export function SessionsTab() {
     <Stack gap="md">
       <Group justify="flex-end">
         <Button
-          size="compact-sm"
+          size="compact-xs"
           variant="light"
           color="red"
           onClick={requestRevokeAll}
@@ -176,7 +176,7 @@ export function SessionsTab() {
           isRetrying={isRefetching}
         />
       ) : !hasSessions ? (
-        <Text size="sm" c="dimmed">
+        <Text size="xs" c="dimmed">
           No active sessions found.
         </Text>
       ) : (

@@ -66,6 +66,7 @@ function ProfileForm({ user }: ProfileFormProps) {
       <Stack gap="md">
         <TextInput
           label="Display name"
+          size="xs"
           required
           disabled={mutation.isPending}
           {...form.getInputProps("display_name")}
@@ -73,6 +74,7 @@ function ProfileForm({ user }: ProfileFormProps) {
         <TextInput
           label="Email"
           type="email"
+          size="xs"
           description="Used for account notifications."
           disabled={mutation.isPending}
           {...form.getInputProps("email")}
@@ -84,6 +86,7 @@ function ProfileForm({ user }: ProfileFormProps) {
           </Text>
           <Button
             type="submit"
+            size="xs"
             loading={mutation.isPending}
             disabled={!form.isDirty()}
           >

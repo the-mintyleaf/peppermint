@@ -101,7 +101,7 @@ export function AccountSettingsModal({
               onClick={onClose}
               aria-label="Close settings"
             />
-            <Text fw={600} size="sm">
+            <Text fw={600} size="xs">
               Settings
             </Text>
           </Group>
@@ -111,8 +111,12 @@ export function AccountSettingsModal({
                 key={tab.id}
                 component="button"
                 type="button"
-                label={tab.label}
-                leftSection={<tab.icon size={16} aria-hidden />}
+                label={
+                  <Text size="xs" component="span">
+                    {tab.label}
+                  </Text>
+                }
+                leftSection={<tab.icon size={14} aria-hidden />}
                 active={tab.id === active.id}
                 onClick={() => setActiveTab(tab.id)}
                 style={{ borderRadius: "var(--mantine-radius-sm)" }}
@@ -123,7 +127,9 @@ export function AccountSettingsModal({
 
         <Box className={styles.content}>
           <Box className={styles.contentHeader}>
-            <Title order={4}>{active.label}</Title>
+            <Title order={4} size="xs">
+              {active.label}
+            </Title>
             <Text size="xs" c="dimmed">
               {active.description}
             </Text>

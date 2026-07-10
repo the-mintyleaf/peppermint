@@ -6,4 +6,6 @@ export interface ChangePasswordFormValues {
 
 export interface ChangePasswordFormProps {
   onSuccess?: () => void;
+  /** Mantine size for the inputs and submit button. Defaults to "sm". */
+  size?: "xs" | "sm" | "md";
 }

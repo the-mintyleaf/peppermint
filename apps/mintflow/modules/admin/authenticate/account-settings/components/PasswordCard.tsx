@@ -9,13 +9,15 @@ export function PasswordCard() {
     <Card withBorder radius="md" p="lg">
       <Stack gap="md">
         <Group gap="xs">
-          <PasswordIcon size={20} aria-hidden />
-          <Title order={4}>Password</Title>
+          <PasswordIcon size={16} aria-hidden />
+          <Title order={4} size="xs">
+            Password
+          </Title>
         </Group>
-        <Text size="sm" c="dimmed">
+        <Text size="xs" c="dimmed">
           Choose a strong password you don&apos;t use anywhere else.
         </Text>
-        <ChangePasswordForm />
+        <ChangePasswordForm size="xs" />
       </Stack>
     </Card>
   );

@@ -27,15 +27,17 @@ export function MfaCard() {
       <Stack gap="md">
         <Group gap="xs" justify="space-between">
           <Group gap="xs">
-            <ShieldCheckIcon size={20} aria-hidden />
-            <Title order={4}>Two-factor authentication</Title>
+            <ShieldCheckIcon size={16} aria-hidden />
+            <Title order={4} size="xs">
+              Two-factor authentication
+            </Title>
           </Group>
           {mfa.status === "enrolled" ? (
-            <Badge color="green" variant="light">
+            <Badge color="green" variant="light" size="sm">
               Enabled
             </Badge>
           ) : (
-            <Badge color="gray" variant="light">
+            <Badge color="gray" variant="light" size="sm">
               Not confirmed
             </Badge>
           )}
@@ -45,12 +47,13 @@ export function MfaCard() {
           <Stack gap="md">
             {mfa.status === "enrolled" ? (
               <>
-                <Text size="sm" c="dimmed">
+                <Text size="xs" c="dimmed">
                   Two-factor authentication is on for this session. You can
                   regenerate your recovery codes or turn it off below.
                 </Text>
                 <Group>
                   <Button
+                    size="xs"
                     variant="default"
                     onClick={mfa.requestRegenerate}
                     loading={mfa.isRegenerating}
@@ -58,6 +61,7 @@ export function MfaCard() {
                     Regenerate recovery codes
                   </Button>
                   <Button
+                    size="xs"
                     color="red"
                     variant="light"
                     onClick={mfa.requestDisable}
@@ -69,12 +73,13 @@ export function MfaCard() {
               </>
             ) : (
               <>
-                <Text size="sm" c="dimmed">
+                <Text size="xs" c="dimmed">
                   Add an extra layer of security by requiring a one-time code
                   from an authenticator app when you sign in.
                 </Text>
                 <Group>
                   <Button
+                    size="xs"
                     onClick={mfa.startSetup}
                     loading={mfa.isStartingSetup}
                   >
@@ -88,7 +93,7 @@ export function MfaCard() {
 
         {mfa.screen === "setup" && mfa.setupData && (
           <Stack gap="md">
-            <Text size="sm">
+            <Text size="xs">
               Scan this QR code with your authenticator app, or enter the setup
               key manually.
             </Text>
@@ -107,7 +112,7 @@ export function MfaCard() {
               <Group gap="xs" wrap="nowrap">
                 <Text
                   ff="monospace"
-                  size="sm"
+                  size="xs"
                   style={{ wordBreak: "break-all" }}
                 >
                   {mfa.setupData.secret}
@@ -134,22 +139,25 @@ export function MfaCard() {
               </Group>
             </Stack>
             <Group justify="flex-end">
-              <Button variant="default" onClick={mfa.cancelSetup}>
+              <Button size="xs" variant="default" onClick={mfa.cancelSetup}>
                 Cancel
               </Button>
-              <Button onClick={mfa.goToConfirm}>Continue</Button>
+              <Button size="xs" onClick={mfa.goToConfirm}>
+                Continue
+              </Button>
             </Group>
           </Stack>
         )}
 
         {mfa.screen === "confirm" && (
           <Stack gap="md">
-            <Text size="sm">
+            <Text size="xs">
               Enter the 6-digit code from your authenticator app to finish
               enabling MFA.
             </Text>
             <TextInput
               label="Authentication code"
+              size="xs"
               placeholder="123456"
               inputMode="numeric"
               autoComplete="one-time-code"
@@ -159,10 +167,11 @@ export function MfaCard() {
               disabled={mfa.isConfirming}
             />
             <Group justify="flex-end">
-              <Button variant="default" onClick={mfa.cancelSetup}>
+              <Button size="xs" variant="default" onClick={mfa.cancelSetup}>
                 Cancel
               </Button>
               <Button
+                size="xs"
                 onClick={mfa.confirmSetup}
                 loading={mfa.isConfirming}
                 disabled={mfa.code.trim().length === 0}
