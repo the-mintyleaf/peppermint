@@ -43,7 +43,7 @@ apps/mintflow/
 │       ├── denials/         # Direct permission denials
 │       ├── permission-catalog/ # Browse the permission catalog (Not-Contained)
 │       ├── access-tester/   # Check/explain a user's effective access (Not-Contained)
-│       ├── account-security/ # Self-service profile/password/MFA/sessions (Not-Contained)
+│       ├── account-settings/ # Self-service profile/password/MFA/sessions/permissions settings modal (ModalModule, opened from avatar menu)
 │       └── _shared/         # UserPicker, PermissionKeyPicker, ScopeFields, OneTimeSecretModal, useCurrentUser, useLogout
 ├── modules/sign-in/         # Sign-in page (login + MFA challenge)
 ├── modules/password-change/ # Forced/voluntary password change
@@ -73,7 +73,7 @@ apps/mintflow/
 | Denials             | `modules/admin/authenticate/denials/`            | `/admin/authenticate/denials`            | `modules/admin/authenticate/denials/docs/AI.md`            |
 | Permission Catalog  | `modules/admin/authenticate/permission-catalog/` | `/admin/authenticate/permission-catalog` | `modules/admin/authenticate/permission-catalog/docs/AI.md` |
 | Access Tester       | `modules/admin/authenticate/access-tester/`      | `/admin/authenticate/access-tester`      | `modules/admin/authenticate/access-tester/docs/AI.md`      |
-| Account & Security  | `modules/admin/authenticate/account-security/`   | `/admin/account/security`                | `modules/admin/authenticate/account-security/docs/AI.md`   |
+| Account Settings    | `modules/admin/authenticate/account-settings/`   | none (modal from avatar menu)            | `modules/admin/authenticate/account-settings/docs/AI.md`   |
 
 ---
 

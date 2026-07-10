@@ -2,15 +2,15 @@
 
 import { useEffect, useMemo } from "react";
 import { AdminShell } from "@peppermint/admin";
-import { Box } from "@peppermint/ui";
+import { Box, useDisclosure } from "@peppermint/ui";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { KanbanIcon } from "@phosphor-icons/react/dist/csr/Kanban";
 import { buildAdminConfig } from "@/config/nav/admin-nav";
 import { useSelectedOrgStore } from "@/stores/selectedOrg.store";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import { useLogout } from "@/modules/admin/authenticate/_shared/useLogout";
+import { AccountSettingsModal } from "@/modules/admin/authenticate/account-settings";
 import { LeafIcon } from "@phosphor-icons/react";
 import styles from "./Admin.module.css";
 
@@ -20,6 +20,7 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
   const org = useSelectedOrgStore((s) => s.org);
   const { user, isStaff } = useCurrentUser();
   const { mutate: logoutMutate } = useLogout();
+  const [settingsOpened, settingsHandlers] = useDisclosure(false);
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -46,9 +47,10 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
             }
           : null,
         onLogout: () => logoutMutate(),
+        onProfileClick: settingsHandlers.open,
       },
     }),
-    [org, isStaff, user, logoutMutate],
+    [org, isStaff, user, logoutMutate, settingsHandlers.open],
   );
 
   return (
@@ -56,6 +58,9 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
       <Box className={styles.paperGrid} h="100%" mih="100%">
         {children}
       </Box>
+      {settingsOpened && (
+        <AccountSettingsModal opened onClose={settingsHandlers.close} />
+      )}
     </AdminShell>
   );
 }

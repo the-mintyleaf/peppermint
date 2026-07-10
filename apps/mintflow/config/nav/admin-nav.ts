@@ -13,7 +13,6 @@ import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
 import { CheckSquareIcon } from "@phosphor-icons/react/dist/csr/CheckSquare";
 import { ChartLineIcon } from "@phosphor-icons/react/dist/csr/ChartLine";
 import { ListIcon } from "@phosphor-icons/react/dist/csr/List";
-import { UserCircleIcon } from "@phosphor-icons/react/dist/csr/UserCircle";
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
 import { UserListIcon } from "@phosphor-icons/react/dist/csr/UserList";
 import { KeyIcon } from "@phosphor-icons/react/dist/csr/Key";
@@ -40,13 +39,6 @@ export function buildAdminConfig(
         icon: HouseIcon,
         label: "Home",
         href: "/admin",
-      },
-      {
-        kind: "page",
-        id: "account-security",
-        icon: UserCircleIcon,
-        label: "Account & Security",
-        href: "/admin/account/security",
       },
       {
         kind: "module",

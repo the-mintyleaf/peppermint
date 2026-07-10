@@ -22,7 +22,7 @@ export async function fetchRoleBindingsForSubject(
   subjectUserId: string,
 ): Promise<RoleBinding[]> {
   const { data } = await api.get("/api/v1/permissions/role-bindings/", {
-    params: { subject_user_id: subjectUserId },
+    params: { subject_user_id: subjectUserId, page_size: 200 },
   });
   return data.data;
 }

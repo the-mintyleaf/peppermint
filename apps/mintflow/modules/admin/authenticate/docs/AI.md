@@ -10,18 +10,18 @@ One grouped module folder, `modules/admin/authenticate/`, containing sub-modules
 
 Every sub-module is a standalone, single-resource screen following the shared list pattern — `RequireStaff` → `ModuleHeader` (breadcrumb) → `ModalPaper withBorder` → its shell/panel. There are **no tabs merging two resources into one route**: the former `roles-bindings/`, `direct-access/`, and `access-tools/` tab modules were each split into two independent sibling sub-modules.
 
-| Sub-module            | Type            | Route                                                                                                                         | Map                             |
-| --------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| `users/`              | ContainedModule | `/admin/authenticate/users`                                                                                                   | `users/docs/AI.md`              |
-| `roles/`              | ContainedModule | `/admin/authenticate/roles`                                                                                                   | `roles/docs/AI.md`              |
-| `bindings/`           | ContainedModule | `/admin/authenticate/bindings`                                                                                                | `bindings/docs/AI.md`           |
-| `grants/`             | ContainedModule | `/admin/authenticate/grants`                                                                                                  | `grants/docs/AI.md`             |
-| `denials/`            | ContainedModule | `/admin/authenticate/denials`                                                                                                 | `denials/docs/AI.md`            |
-| `permission-catalog/` | Not-Contained   | `/admin/authenticate/permission-catalog`                                                                                      | `permission-catalog/docs/AI.md` |
-| `access-tester/`      | Not-Contained   | `/admin/authenticate/access-tester`                                                                                           | `access-tester/docs/AI.md`      |
-| `account-security/`   | Not-Contained   | `/admin/account/security` (off the staff nav — reachable via its own top-level nav item, visible to every authenticated user) | `account-security/docs/AI.md`   |
+| Sub-module            | Type            | Route                                                                                                                    | Map                             |
+| --------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------- |
+| `users/`              | ContainedModule | `/admin/authenticate/users`                                                                                              | `users/docs/AI.md`              |
+| `roles/`              | ContainedModule | `/admin/authenticate/roles`                                                                                              | `roles/docs/AI.md`              |
+| `bindings/`           | ContainedModule | `/admin/authenticate/bindings`                                                                                           | `bindings/docs/AI.md`           |
+| `grants/`             | ContainedModule | `/admin/authenticate/grants`                                                                                             | `grants/docs/AI.md`             |
+| `denials/`            | ContainedModule | `/admin/authenticate/denials`                                                                                            | `denials/docs/AI.md`            |
+| `permission-catalog/` | Not-Contained   | `/admin/authenticate/permission-catalog`                                                                                 | `permission-catalog/docs/AI.md` |
+| `access-tester/`      | Not-Contained   | `/admin/authenticate/access-tester`                                                                                      | `access-tester/docs/AI.md`      |
+| `account-settings/`   | ModalModule     | none — settings modal opened from the avatar menu ("Profile" item) in `LayoutAdmin`; visible to every authenticated user | `account-settings/docs/AI.md`   |
 
-All sub-modules except `account-security/` are wrapped in `<RequireStaff>` and only appear in the nav (`config/nav/admin-nav.ts`, id `authenticate`) when the current user is staff or superuser. In the nav they stay visually grouped under the "Roles & Bindings", "Direct Access", and "Access Tools" sub-group labels even though each is now its own route.
+All sub-modules except `account-settings/` are wrapped in `<RequireStaff>` and only appear in the nav (`config/nav/admin-nav.ts`, id `authenticate`) when the current user is staff or superuser. In the nav they stay visually grouped under the "Roles & Bindings", "Direct Access", and "Access Tools" sub-group labels even though each is now its own route.
 
 ## Shared (`_shared/`)
 
@@ -34,7 +34,7 @@ All sub-modules except `account-security/` are wrapped in `<RequireStaff>` and o
 | `PermissionKeyPicker/`                              | Searchable, app-grouped permission-key select, backed by `policyTree.api.ts`                                    |
 | `ScopeFields/`                                      | `scope_type` select + conditional organization/organization_unit pickers                                        |
 | `OneTimeSecretModal/`                               | "Shown once, copy it now" reveal modal (MFA recovery codes, service-account tokens)                             |
-| `ChangePasswordForm/`                               | Old/new password form, shared by `modules/password-change/` and `account-security/`                             |
+| `ChangePasswordForm/`                               | Old/new password form, shared by `modules/password-change/` and `account-settings/`                             |
 | `policyTree.api.ts` / `.queryKeys.ts` / `.types.ts` | `core.policy_engine` catalog reads (`/api/v1/policy/apps/`, `/api/v1/policy/permissions/tree/`)                 |
 | `organizationScope.api.ts` / `.types.ts`            | Minimal read-only Organization-app calls used only by `ScopeFields`                                             |
 
