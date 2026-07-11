@@ -8,8 +8,8 @@ import {
   Group,
   ManageHeader,
   Menu,
+  ModalPaper,
   ModuleHeader,
-  Paper,
   SegmentedControl,
   Stack,
   Text,
@@ -120,158 +120,162 @@ export function KanbanDashboard() {
   );
 
   return (
-    <Paper>
-      <Stack gap={0} h="100vh" style={{ overflow: "hidden" }}>
-        <ModuleHeader
-          breadcrumbItems={BREADCRUMB}
-          right={
-            <Group gap="xs" mr="sm">
-              <AccessMenu data={{ accounts: [], roles: [] }} />
-              <Button
-                size="xs"
-                leftSection={<PlusIcon size={16} aria-label="Add" />}
-                onClick={() => {
-                  setCreateStatus(null);
-                  setCreateOpen(true);
-                }}
-              >
-                New Task
-              </Button>
-            </Group>
-          }
-        />
-
-        <Box px="md">
-          <ManageHeader
-            title="Task Board"
-            count={isLoading ? undefined : totalVisible}
-            description={KANBAN_SUBHEADING}
-          />
-        </Box>
-
-        <Group justify="space-between" px="md" gap="xs" wrap="nowrap">
-          <SegmentedControl
-            withItemsBorders={false}
-            value={String(activeTabIndex)}
-            onChange={(v) => setActiveTabIndex(Number(v))}
-            data={TAB_SEGMENTS}
-            size="sm"
-            color="white"
-            autoContrast
-            styles={{
-              label: {
-                paddingInline: 10,
-                fontSize: "var(--mantine-font-size-xs)",
-              },
-            }}
-          />
-
-          <Group gap={6} wrap="nowrap">
-            <TeamMembersPanel
-              members={members}
-              taskCountByMember={taskCountByMember}
-              selectedMemberId={selectedMemberId}
-              onSelect={setSelectedMemberId}
-            />
-
-            <Menu shadow="sm" width={180} position="bottom-end">
-              <Menu.Target>
-                <Button
-                  variant="light"
-                  color="gray"
-                  size="xs"
-                  leftSection={<SortAscendingIcon size={13} weight="duotone" />}
-                  styles={{ root: { fontWeight: 500 } }}
-                >
-                  Sort
-                </Button>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Label>Sort by</Menu.Label>
-                <Menu.Item>Due date</Menu.Item>
-                <Menu.Item>Priority</Menu.Item>
-                <Menu.Item>Name</Menu.Item>
-                <Menu.Item>Created</Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-
-            <Menu shadow="sm" width={180} position="bottom-end">
-              <Menu.Target>
-                <Button
-                  variant="light"
-                  color="gray"
-                  size="xs"
-                  leftSection={<ColumnsIcon size={13} weight="duotone" />}
-                  styles={{ root: { fontWeight: 500 } }}
-                >
-                  View
-                </Button>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Label>Columns</Menu.Label>
-                <Menu.Item>Priority</Menu.Item>
-                <Menu.Item>Due date</Menu.Item>
-                <Menu.Item>Assignee</Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-
-            <Menu shadow="sm" width={200} position="bottom-end">
-              <Menu.Target>
-                <Button
-                  variant="light"
-                  color="gray"
-                  size="xs"
-                  leftSection={<FunnelIcon size={13} weight="duotone" />}
-                  styles={{ root: { fontWeight: 500 } }}
-                >
-                  Filter by
-                </Button>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Label>Filter by</Menu.Label>
-                <Menu.Item>Assignee</Menu.Item>
-                <Menu.Item>Priority</Menu.Item>
-                <Menu.Item>Due date</Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-
-            <TextInput
-              miw={200}
-              leftSection={<MagnifyingGlassIcon size={13} />}
+    <>
+      <ModuleHeader
+        breadcrumbItems={BREADCRUMB}
+        right={
+          <Group gap="xs" mr="sm">
+            <AccessMenu data={{ accounts: [], roles: [] }} />
+            <Button
               size="xs"
-              placeholder="Search tasks…"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.currentTarget.value)}
-            />
+              leftSection={<PlusIcon size={16} aria-label="Add" />}
+              onClick={() => {
+                setCreateStatus(null);
+                setCreateOpen(true);
+              }}
+            >
+              New Task
+            </Button>
           </Group>
-        </Group>
+        }
+      />
 
-        <Box
-          p="md"
-          style={{
-            flex: 1,
-            minHeight: 0,
-            overflowY: "auto",
-            overflowX: "auto",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          {isLoading ? (
-            <Text c="dimmed" size="sm">
-              Loading tasks…
-            </Text>
-          ) : (
-            <KanbanBoard
-              tasksByStatus={filteredByStatus}
-              onMoveTask={moveTask}
-              onReorderTask={reorderTask}
-              onCardClick={handleCardClick}
-              onAddTask={handleAddTask}
+      <ModalPaper withBorder>
+        <Stack gap={0} h="100%" style={{ overflow: "hidden" }}>
+          <Box px="md">
+            <ManageHeader
+              title="Task Board"
+              count={isLoading ? undefined : totalVisible}
+              description={KANBAN_SUBHEADING}
             />
-          )}
-        </Box>
-      </Stack>
+          </Box>
+
+          <Group justify="space-between" px="md" gap="xs" wrap="nowrap">
+            <SegmentedControl
+              withItemsBorders={false}
+              value={String(activeTabIndex)}
+              onChange={(v) => setActiveTabIndex(Number(v))}
+              data={TAB_SEGMENTS}
+              size="sm"
+              color="white"
+              autoContrast
+              styles={{
+                label: {
+                  paddingInline: 10,
+                  fontSize: "var(--mantine-font-size-xs)",
+                },
+              }}
+            />
+
+            <Group gap={6} wrap="nowrap">
+              <TeamMembersPanel
+                members={members}
+                taskCountByMember={taskCountByMember}
+                selectedMemberId={selectedMemberId}
+                onSelect={setSelectedMemberId}
+              />
+
+              <Menu shadow="sm" width={180} position="bottom-end">
+                <Menu.Target>
+                  <Button
+                    variant="light"
+                    color="gray"
+                    size="xs"
+                    leftSection={
+                      <SortAscendingIcon size={13} weight="duotone" />
+                    }
+                    styles={{ root: { fontWeight: 500 } }}
+                  >
+                    Sort
+                  </Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Label>Sort by</Menu.Label>
+                  <Menu.Item>Due date</Menu.Item>
+                  <Menu.Item>Priority</Menu.Item>
+                  <Menu.Item>Name</Menu.Item>
+                  <Menu.Item>Created</Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+
+              <Menu shadow="sm" width={180} position="bottom-end">
+                <Menu.Target>
+                  <Button
+                    variant="light"
+                    color="gray"
+                    size="xs"
+                    leftSection={<ColumnsIcon size={13} weight="duotone" />}
+                    styles={{ root: { fontWeight: 500 } }}
+                  >
+                    View
+                  </Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Label>Columns</Menu.Label>
+                  <Menu.Item>Priority</Menu.Item>
+                  <Menu.Item>Due date</Menu.Item>
+                  <Menu.Item>Assignee</Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+
+              <Menu shadow="sm" width={200} position="bottom-end">
+                <Menu.Target>
+                  <Button
+                    variant="light"
+                    color="gray"
+                    size="xs"
+                    leftSection={<FunnelIcon size={13} weight="duotone" />}
+                    styles={{ root: { fontWeight: 500 } }}
+                  >
+                    Filter by
+                  </Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Label>Filter by</Menu.Label>
+                  <Menu.Item>Assignee</Menu.Item>
+                  <Menu.Item>Priority</Menu.Item>
+                  <Menu.Item>Due date</Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+
+              <TextInput
+                miw={200}
+                leftSection={<MagnifyingGlassIcon size={13} />}
+                size="xs"
+                placeholder="Search tasks…"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.currentTarget.value)}
+              />
+            </Group>
+          </Group>
+
+          <Box
+            p="md"
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflowY: "auto",
+              overflowX: "auto",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {isLoading ? (
+              <Text c="dimmed" size="sm">
+                Loading tasks…
+              </Text>
+            ) : (
+              <KanbanBoard
+                tasksByStatus={filteredByStatus}
+                onMoveTask={moveTask}
+                onReorderTask={reorderTask}
+                onCardClick={handleCardClick}
+                onAddTask={handleAddTask}
+              />
+            )}
+          </Box>
+        </Stack>
+      </ModalPaper>
 
       <TaskDetailModal
         task={selectedTask}
@@ -284,6 +288,6 @@ export function KanbanDashboard() {
         initialStatus={createStatus ?? undefined}
         onClose={handleCloseForm}
       />
-    </Paper>
+    </>
   );
 }
