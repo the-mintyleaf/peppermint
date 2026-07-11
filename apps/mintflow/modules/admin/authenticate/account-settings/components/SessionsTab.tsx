@@ -22,7 +22,8 @@ import {
   revokeAllSessions,
   revokeSession,
 } from "../account-settings.api";
-import type { UserSession } from "../account-settings.types";
+import type { SettingsTabProps, UserSession } from "../account-settings.types";
+import { SettingsHeader } from "./SettingsHeader";
 
 const SESSIONS_QUERY_KEY = ["auth", "sessions"];
 
@@ -75,7 +76,7 @@ function SessionRow({
   );
 }
 
-export function SessionsTab() {
+export function SessionsTab({ title, description }: SettingsTabProps) {
   const queryClient = useQueryClient();
 
   const {
@@ -152,7 +153,8 @@ export function SessionsTab() {
 
   return (
     <Stack gap="md">
-      <Group justify="flex-end">
+      <Group justify="space-between" align="flex-start" wrap="nowrap">
+        <SettingsHeader title={title} description={description} />
         <Button
           size="compact-xs"
           variant="light"
@@ -160,6 +162,7 @@ export function SessionsTab() {
           onClick={requestRevokeAll}
           loading={revokeAllMutation.isPending}
           disabled={!hasSessions}
+          style={{ flexShrink: 0 }}
         >
           Revoke all other sessions
         </Button>

@@ -16,28 +16,50 @@ conditional render), so none of the tab queries fire until the user opens it.
 Visible to **every** authenticated user; deliberately **not** `RequireStaff`-
 gated, unlike the rest of the `authenticate` module group.
 
+## Layout pattern — minimal, de-carded, overview → sub-screen
+
+No nested cards. Sections are separated by `<Divider>` and whitespace only
+(DESIGN.md 1.2). The shell renders a compact sidebar nav + a single scrollable
+content pane with **no fixed header** — each tab owns its own header.
+
+Three shared building blocks live in `components/` and are reused across tabs:
+
+- `SettingsHeader` — tab title + dimmed description; rendered by each tab's
+  overview.
+- `SettingsRow` — a `label` (+ optional `description`) with a right-aligned
+  `right` node (read-only value, button, or badge). Parent composes `<Divider>`
+  between rows.
+- `SettingsSubScreen` — back-arrow + title header wrapping `children`. Used for
+  the **content-pane-only** sub-screens (sidebar stays visible). Each tab holds
+  local `view` state to switch overview ↔ sub-screen.
+
+Profile and Security follow the overview→sub-screen pattern: read-only rows with
+a button ("Edit profile" / "Change password") that swaps the content pane to the
+form. MFA setup/confirm likewise takes over the pane as a sub-screen.
+
 ## Entry files
 
-- `AccountSettingsModal.tsx` — modal shell: left sidebar nav (Profile /
-  Security / Sessions / Permissions) + scrollable content pane. Active tab is
-  local `useState`; it resets to Profile on every open because the layout
-  remounts the modal.
+- `AccountSettingsModal.tsx` — modal shell: compact left sidebar nav (Profile /
+  Security / Sessions / Permissions) + scrollable content pane. Passes each
+  tab its `title`/`description`. Active tab is local `useState`; it resets to
+  Profile on every open because the layout remounts the modal.
 - `AccountSettingsModal.types.ts` — `AccountSettingsModalProps`, `SettingsTab`.
 - `AccountSettingsModal.module.css` — sidebar/content split, mobile stacking.
 - `index.ts` — exports `AccountSettingsModal`.
 
 ## Common edit targets
 
-| Task                     | Files                                                   |
-| ------------------------ | ------------------------------------------------------- |
-| Profile (name/email)     | `components/ProfileTab.tsx`                             |
-| Password change          | `components/PasswordCard.tsx` (wraps shared form)       |
-| MFA setup/disable/codes  | `components/MfaCard.tsx`, `components/MfaCard.hooks.ts` |
-| Sessions list/revoke     | `components/SessionsTab.tsx`                            |
-| My roles / direct grants | `components/PermissionsTab.tsx`                         |
-| Sidebar tabs / layout    | `AccountSettingsModal.tsx`, `.module.css`               |
-| Auth API calls           | `account-settings.api.ts`                               |
-| Types                    | `account-settings.types.ts`                             |
+| Task                     | Files                                                           |
+| ------------------------ | --------------------------------------------------------------- |
+| Profile (name/email)     | `components/ProfileTab.tsx` (overview rows + edit sub-screen)   |
+| Password change          | `components/SecurityTab.tsx` (sub-screen wraps shared form)     |
+| MFA setup/disable/codes  | `components/MfaSection.tsx`, `components/MfaSection.hooks.ts`   |
+| Sessions list/revoke     | `components/SessionsTab.tsx`                                    |
+| My roles / direct grants | `components/PermissionsTab.tsx`                                 |
+| Sidebar tabs / layout    | `AccountSettingsModal.tsx`, `.module.css`                       |
+| Shared row/header/screen | `components/SettingsRow`, `SettingsHeader`, `SettingsSubScreen` |
+| Auth API calls           | `account-settings.api.ts`                                       |
+| Types                    | `account-settings.types.ts` (`SettingsTabProps` shared by tabs) |
 
 ## Backend endpoints
 
@@ -75,7 +97,7 @@ for non-staff users):
 The `/me/` response carries **no** MFA enrollment field, and there is **no GET
 endpoint** to re-derive enrollment status. Therefore:
 
-- On every fresh mount the MFA card starts in an `"unknown"` / "Not confirmed"
+- On every fresh mount the MFA section starts in an `"unknown"` / "Not confirmed"
   state — we cannot tell whether the user already has MFA enabled.
 - After a successful `confirm` we set local status to `"enrolled"` for the rest
   of the session only. Closing the modal loses that.

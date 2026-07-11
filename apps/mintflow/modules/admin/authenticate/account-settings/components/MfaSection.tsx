@@ -5,93 +5,87 @@ import {
   Badge,
   Box,
   Button,
-  Card,
   CopyButton,
   Group,
   Stack,
   Text,
   TextInput,
-  Title,
 } from "@peppermint/ui";
 import { CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
 import { CopyIcon } from "@phosphor-icons/react/dist/csr/Copy";
-import { ShieldCheckIcon } from "@phosphor-icons/react/dist/csr/ShieldCheck";
 import { OneTimeSecretModal } from "@/modules/admin/authenticate/_shared/OneTimeSecretModal";
-import { useMfaCard } from "./MfaCard.hooks";
+import { SettingsRow } from "./SettingsRow";
+import { SettingsSubScreen } from "./SettingsSubScreen";
+import type { MfaSectionState } from "./MfaSection.hooks";
 
-export function MfaCard() {
-  const mfa = useMfaCard();
+interface MfaSectionProps {
+  mfa: MfaSectionState;
+}
+
+export function MfaSection({ mfa }: MfaSectionProps) {
+  const statusBadge =
+    mfa.status === "enrolled" ? (
+      <Badge color="green" variant="light" size="sm">
+        Enabled
+      </Badge>
+    ) : (
+      <Badge color="gray" variant="light" size="sm">
+        Not confirmed
+      </Badge>
+    );
 
   return (
-    <Card withBorder radius="md" p="lg">
-      <Stack gap="md">
-        <Group gap="xs" justify="space-between">
-          <Group gap="xs">
-            <ShieldCheckIcon size={16} aria-hidden />
-            <Title order={4} size="xs">
-              Two-factor authentication
-            </Title>
-          </Group>
+    <>
+      {mfa.screen === "idle" && (
+        <Stack gap="sm">
+          <SettingsRow
+            label="Two-factor authentication"
+            description={
+              mfa.status === "enrolled"
+                ? "On for this session. Regenerate your recovery codes or turn it off."
+                : "Require a one-time code from an authenticator app when you sign in."
+            }
+            right={statusBadge}
+          />
           {mfa.status === "enrolled" ? (
-            <Badge color="green" variant="light" size="sm">
-              Enabled
-            </Badge>
+            <Group gap="xs">
+              <Button
+                size="xs"
+                variant="default"
+                onClick={mfa.requestRegenerate}
+                loading={mfa.isRegenerating}
+              >
+                Regenerate recovery codes
+              </Button>
+              <Button
+                size="xs"
+                color="red"
+                variant="light"
+                onClick={mfa.requestDisable}
+                loading={mfa.isDisabling}
+              >
+                Disable MFA
+              </Button>
+            </Group>
           ) : (
-            <Badge color="gray" variant="light" size="sm">
-              Not confirmed
-            </Badge>
+            <Group gap="xs">
+              <Button
+                size="xs"
+                onClick={mfa.startSetup}
+                loading={mfa.isStartingSetup}
+              >
+                Set up MFA
+              </Button>
+            </Group>
           )}
-        </Group>
+        </Stack>
+      )}
 
-        {mfa.screen === "idle" && (
-          <Stack gap="md">
-            {mfa.status === "enrolled" ? (
-              <>
-                <Text size="xs" c="dimmed">
-                  Two-factor authentication is on for this session. You can
-                  regenerate your recovery codes or turn it off below.
-                </Text>
-                <Group>
-                  <Button
-                    size="xs"
-                    variant="default"
-                    onClick={mfa.requestRegenerate}
-                    loading={mfa.isRegenerating}
-                  >
-                    Regenerate recovery codes
-                  </Button>
-                  <Button
-                    size="xs"
-                    color="red"
-                    variant="light"
-                    onClick={mfa.requestDisable}
-                    loading={mfa.isDisabling}
-                  >
-                    Disable MFA
-                  </Button>
-                </Group>
-              </>
-            ) : (
-              <>
-                <Text size="xs" c="dimmed">
-                  Add an extra layer of security by requiring a one-time code
-                  from an authenticator app when you sign in.
-                </Text>
-                <Group>
-                  <Button
-                    size="xs"
-                    onClick={mfa.startSetup}
-                    loading={mfa.isStartingSetup}
-                  >
-                    Set up MFA
-                  </Button>
-                </Group>
-              </>
-            )}
-          </Stack>
-        )}
-
-        {mfa.screen === "setup" && mfa.setupData && (
+      {mfa.screen === "setup" && mfa.setupData && (
+        <SettingsSubScreen
+          title="Set up two-factor authentication"
+          onBack={mfa.cancelSetup}
+        >
           <Stack gap="md">
             <Text size="xs">
               Scan this QR code with your authenticator app, or enter the setup
@@ -147,9 +141,14 @@ export function MfaCard() {
               </Button>
             </Group>
           </Stack>
-        )}
+        </SettingsSubScreen>
+      )}
 
-        {mfa.screen === "confirm" && (
+      {mfa.screen === "confirm" && (
+        <SettingsSubScreen
+          title="Set up two-factor authentication"
+          onBack={mfa.cancelSetup}
+        >
           <Stack gap="md">
             <Text size="xs">
               Enter the 6-digit code from your authenticator app to finish
@@ -180,8 +179,8 @@ export function MfaCard() {
               </Button>
             </Group>
           </Stack>
-        )}
-      </Stack>
+        </SettingsSubScreen>
+      )}
 
       <OneTimeSecretModal
         opened={mfa.recoveryModal.opened}
@@ -190,6 +189,6 @@ export function MfaCard() {
         description="Store these somewhere safe — each code can be used once if you lose access to your authenticator."
         secrets={mfa.recoveryModal.codes}
       />
-    </Card>
+    </>
   );
 }

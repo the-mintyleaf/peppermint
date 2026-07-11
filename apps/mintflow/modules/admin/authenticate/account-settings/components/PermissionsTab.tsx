@@ -2,7 +2,7 @@
 
 import {
   Badge,
-  Card,
+  Divider,
   Group,
   Loader,
   Stack,
@@ -21,6 +21,8 @@ import { fetchRoleBindingsForSubject } from "@/modules/admin/authenticate/bindin
 import { fetchGrantsForSubject } from "@/modules/admin/authenticate/grants/grants.api";
 import { fetchRoleDirectory } from "@/modules/admin/authenticate/roles/roles.api";
 import type { Role } from "@/modules/admin/authenticate/roles/roles.types";
+import type { SettingsTabProps } from "../account-settings.types";
+import { SettingsHeader } from "./SettingsHeader";
 
 const SCOPE_LABELS: Record<ScopeType, string> = {
   global: "Global",
@@ -109,7 +111,7 @@ function SectionState({
   return <>{children}</>;
 }
 
-export function PermissionsTab() {
+export function PermissionsTab({ title, description }: SettingsTabProps) {
   const { user } = useCurrentUser();
 
   const bindingsQuery = useQuery({
@@ -146,100 +148,100 @@ export function PermissionsTab() {
 
   return (
     <Stack gap="lg">
-      <Card withBorder radius="md" p="lg">
-        <Stack gap="md">
-          <Group gap="xs">
-            <KeyIcon size={16} aria-hidden />
-            <Title order={4} size="xs">
-              Roles
-            </Title>
-          </Group>
-          <SectionState
-            isLoading={!user || bindingsQuery.isLoading}
-            error={bindingsQuery.error}
-            isEmpty={activeBindings.length === 0}
-            emptyMessage="No roles are assigned to you."
-            deniedMessage="Your account isn't allowed to view its own role assignments. Ask an administrator if you need this list."
-            errorMessage="Couldn't load your roles."
-            onRetry={() => bindingsQuery.refetch()}
-            isRetrying={bindingsQuery.isRefetching}
-          >
-            <Stack gap="sm">
-              {activeBindings.map((binding) => (
-                <Group
-                  key={binding.id}
-                  justify="space-between"
-                  wrap="nowrap"
-                  align="flex-start"
-                >
-                  <Stack gap={2}>
-                    <Text size="xs" fw={500}>
-                      {roleNameById.get(binding.role) ?? binding.role}
-                    </Text>
-                    <ValidityText
-                      validFrom={binding.valid_from}
-                      validUntil={binding.valid_until}
-                    />
-                  </Stack>
-                  <Badge variant="light" color="gray" size="sm">
-                    {SCOPE_LABELS[binding.scope_type]}
-                  </Badge>
-                </Group>
-              ))}
-            </Stack>
-          </SectionState>
-        </Stack>
-      </Card>
+      <SettingsHeader title={title} description={description} />
 
-      <Card withBorder radius="md" p="lg">
-        <Stack gap="md">
-          <Group gap="xs">
-            <CheckCircleIcon size={16} aria-hidden />
-            <Title order={4} size="xs">
-              Direct grants
-            </Title>
-          </Group>
-          <SectionState
-            isLoading={!user || grantsQuery.isLoading}
-            error={grantsQuery.error}
-            isEmpty={activeGrants.length === 0}
-            emptyMessage="No permissions are granted to you directly."
-            deniedMessage="Your account isn't allowed to view its own direct grants. Ask an administrator if you need this list."
-            errorMessage="Couldn't load your direct grants."
-            onRetry={() => grantsQuery.refetch()}
-            isRetrying={grantsQuery.isRefetching}
-          >
-            <Stack gap="sm">
-              {activeGrants.map((grant) => (
-                <Group
-                  key={grant.id}
-                  justify="space-between"
-                  wrap="nowrap"
-                  align="flex-start"
-                >
-                  <Stack gap={2}>
-                    <Text size="xs" fw={500} ff="monospace">
-                      {grant.permission_key}
+      <Stack gap="sm">
+        <Group gap="xs">
+          <KeyIcon size={16} aria-hidden />
+          <Title order={4} size="xs">
+            Roles
+          </Title>
+        </Group>
+        <SectionState
+          isLoading={!user || bindingsQuery.isLoading}
+          error={bindingsQuery.error}
+          isEmpty={activeBindings.length === 0}
+          emptyMessage="No roles are assigned to you."
+          deniedMessage="Your account isn't allowed to view its own role assignments. Ask an administrator if you need this list."
+          errorMessage="Couldn't load your roles."
+          onRetry={() => bindingsQuery.refetch()}
+          isRetrying={bindingsQuery.isRefetching}
+        >
+          <Stack gap="sm">
+            {activeBindings.map((binding) => (
+              <Group
+                key={binding.id}
+                justify="space-between"
+                wrap="nowrap"
+                align="flex-start"
+              >
+                <Stack gap={2}>
+                  <Text size="xs" fw={500}>
+                    {roleNameById.get(binding.role) ?? binding.role}
+                  </Text>
+                  <ValidityText
+                    validFrom={binding.valid_from}
+                    validUntil={binding.valid_until}
+                  />
+                </Stack>
+                <Badge variant="light" color="gray" size="sm">
+                  {SCOPE_LABELS[binding.scope_type]}
+                </Badge>
+              </Group>
+            ))}
+          </Stack>
+        </SectionState>
+      </Stack>
+
+      <Divider />
+
+      <Stack gap="sm">
+        <Group gap="xs">
+          <CheckCircleIcon size={16} aria-hidden />
+          <Title order={4} size="xs">
+            Direct grants
+          </Title>
+        </Group>
+        <SectionState
+          isLoading={!user || grantsQuery.isLoading}
+          error={grantsQuery.error}
+          isEmpty={activeGrants.length === 0}
+          emptyMessage="No permissions are granted to you directly."
+          deniedMessage="Your account isn't allowed to view its own direct grants. Ask an administrator if you need this list."
+          errorMessage="Couldn't load your direct grants."
+          onRetry={() => grantsQuery.refetch()}
+          isRetrying={grantsQuery.isRefetching}
+        >
+          <Stack gap="sm">
+            {activeGrants.map((grant) => (
+              <Group
+                key={grant.id}
+                justify="space-between"
+                wrap="nowrap"
+                align="flex-start"
+              >
+                <Stack gap={2}>
+                  <Text size="xs" fw={500} ff="monospace">
+                    {grant.permission_key}
+                  </Text>
+                  {grant.reason ? (
+                    <Text size="xs" c="dimmed">
+                      {grant.reason}
                     </Text>
-                    {grant.reason ? (
-                      <Text size="xs" c="dimmed">
-                        {grant.reason}
-                      </Text>
-                    ) : null}
-                    <ValidityText
-                      validFrom={grant.valid_from}
-                      validUntil={grant.valid_until}
-                    />
-                  </Stack>
-                  <Badge variant="light" color="gray" size="sm">
-                    {SCOPE_LABELS[grant.scope_type]}
-                  </Badge>
-                </Group>
-              ))}
-            </Stack>
-          </SectionState>
-        </Stack>
-      </Card>
+                  ) : null}
+                  <ValidityText
+                    validFrom={grant.valid_from}
+                    validUntil={grant.valid_until}
+                  />
+                </Stack>
+                <Badge variant="light" color="gray" size="sm">
+                  {SCOPE_LABELS[grant.scope_type]}
+                </Badge>
+              </Group>
+            ))}
+          </Stack>
+        </SectionState>
+      </Stack>
     </Stack>
   );
 }

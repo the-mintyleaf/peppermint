@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import {
   Button,
+  Divider,
   Group,
   Loader,
   Stack,
@@ -19,9 +21,13 @@ import { updateProfile } from "../account-settings.api";
 import type {
   ProfileFormProps,
   ProfileUpdateValues,
+  SettingsTabProps,
 } from "../account-settings.types";
+import { SettingsHeader } from "./SettingsHeader";
+import { SettingsRow } from "./SettingsRow";
+import { SettingsSubScreen } from "./SettingsSubScreen";
 
-function ProfileForm({ user }: ProfileFormProps) {
+function ProfileForm({ user, onSaved }: ProfileFormProps) {
   const queryClient = useQueryClient();
 
   const form = useForm<ProfileUpdateValues>({
@@ -38,14 +44,17 @@ function ProfileForm({ user }: ProfileFormProps) {
 
   const mutation = useMutation({
     mutationFn: (values: ProfileUpdateValues) => updateProfile(values),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+    onSuccess: (updated) => {
+      // The PATCH returns the full updated user, so write it straight into the
+      // cache — the overview then shows fresh values immediately, with no stale
+      // window or refetch that could fail and flip the tab to an error state.
+      queryClient.setQueryData(["auth", "me"], updated);
       notifications.show({
         color: "green",
         title: "Profile updated",
         message: "Your details have been saved.",
       });
-      form.resetDirty();
+      onSaved();
     },
     onError: (error) => {
       const apiError = getApiError(error);
@@ -63,7 +72,7 @@ function ProfileForm({ user }: ProfileFormProps) {
 
   return (
     <form onSubmit={form.onSubmit((values) => mutation.mutate(values))}>
-      <Stack gap="md">
+      <Stack gap="md" maw={420}>
         <TextInput
           label="Display name"
           size="xs"
@@ -79,11 +88,10 @@ function ProfileForm({ user }: ProfileFormProps) {
           disabled={mutation.isPending}
           {...form.getInputProps("email")}
         />
-        <Group justify="space-between" align="center">
-          <Text size="xs" c="dimmed">
-            Username <strong>{user.username}</strong> can&apos;t be changed
-            here.
-          </Text>
+        <Text size="xs" c="dimmed">
+          Username <strong>{user.username}</strong> can&apos;t be changed here.
+        </Text>
+        <Group justify="flex-end">
           <Button
             type="submit"
             size="xs"
@@ -98,24 +106,78 @@ function ProfileForm({ user }: ProfileFormProps) {
   );
 }
 
-export function ProfileTab() {
+export function ProfileTab({ title, description }: SettingsTabProps) {
+  const [view, setView] = useState<"overview" | "edit">("overview");
   const { user, isLoading, isError, isRefetching, refetch } = useCurrentUser();
 
-  return (
-    <Stack gap="md" maw={480}>
-      {isError ? (
+  if (isError) {
+    return (
+      <Stack gap="md">
+        <SettingsHeader title={title} description={description} />
         <QueryErrorState
           message="Couldn't load your profile."
           onRetry={() => refetch()}
           isRetrying={isRefetching}
         />
-      ) : isLoading || !user ? (
+      </Stack>
+    );
+  }
+
+  if (isLoading || !user) {
+    return (
+      <Stack gap="md">
+        <SettingsHeader title={title} description={description} />
         <Group justify="center" py="lg">
           <Loader size="sm" />
         </Group>
-      ) : (
-        <ProfileForm key={user.id} user={user} />
-      )}
+      </Stack>
+    );
+  }
+
+  if (view === "edit") {
+    return (
+      <SettingsSubScreen
+        title="Edit profile"
+        onBack={() => setView("overview")}
+      >
+        <ProfileForm
+          key={user.id}
+          user={user}
+          onSaved={() => setView("overview")}
+        />
+      </SettingsSubScreen>
+    );
+  }
+
+  return (
+    <Stack gap="md">
+      <SettingsHeader title={title} description={description} />
+      <Stack gap="sm">
+        <SettingsRow
+          label="Display name"
+          right={<Text size="xs">{user.display_name}</Text>}
+        />
+        <Divider />
+        <SettingsRow
+          label="Email"
+          right={
+            <Text size="xs" c={user.email ? undefined : "dimmed"}>
+              {user.email || "Not set"}
+            </Text>
+          }
+        />
+        <Divider />
+        <SettingsRow
+          label="Username"
+          description="Can't be changed here."
+          right={<Text size="xs">{user.username}</Text>}
+        />
+      </Stack>
+      <Group justify="flex-end">
+        <Button size="xs" variant="default" onClick={() => setView("edit")}>
+          Edit profile
+        </Button>
+      </Group>
     </Stack>
   );
 }

@@ -20,7 +20,7 @@ interface RecoveryModalState {
   codes: string[];
 }
 
-export function useMfaCard() {
+export function useMfaSection() {
   const [screen, setScreen] = useState<MfaScreen>("idle");
   const [status, setStatus] = useState<MfaStatus>("unknown");
   const [setupData, setSetupData] = useState<MfaSetupResponse | null>(null);
@@ -183,3 +183,5 @@ export function useMfaCard() {
     isRegenerating: regenerateMutation.isPending,
   };
 }
+
+export type MfaSectionState = ReturnType<typeof useMfaSection>;
