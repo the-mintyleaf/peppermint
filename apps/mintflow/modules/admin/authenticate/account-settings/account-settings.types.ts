@@ -1,5 +1,11 @@
 import type { CurrentUser } from "@/modules/admin/authenticate/_shared/authenticate.types";
 
+/** Shared props every settings tab receives — used to render its overview header. */
+export interface SettingsTabProps {
+  title: string;
+  description: string;
+}
+
 export interface ProfileUpdateValues {
   display_name: string;
   email: string;
@@ -7,6 +13,8 @@ export interface ProfileUpdateValues {
 
 export interface ProfileFormProps {
   user: CurrentUser;
+  /** Called after a successful save so the caller can leave the edit screen. */
+  onSaved: () => void;
 }
 
 export interface MfaSetupResponse {

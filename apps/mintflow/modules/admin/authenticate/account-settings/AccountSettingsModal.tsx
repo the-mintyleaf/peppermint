@@ -10,7 +10,6 @@ import {
   ScrollArea,
   Stack,
   Text,
-  Title,
 } from "@peppermint/ui";
 import type { Icon } from "@phosphor-icons/react";
 import { DesktopIcon } from "@phosphor-icons/react/dist/csr/Desktop";
@@ -61,16 +60,16 @@ const TABS: TabDefinition[] = [
   },
 ];
 
-function TabContent({ tab }: { tab: SettingsTab }) {
-  switch (tab) {
+function TabContent({ tab }: { tab: TabDefinition }) {
+  switch (tab.id) {
     case "profile":
-      return <ProfileTab />;
+      return <ProfileTab title={tab.label} description={tab.description} />;
     case "security":
-      return <SecurityTab />;
+      return <SecurityTab title={tab.label} description={tab.description} />;
     case "sessions":
-      return <SessionsTab />;
+      return <SessionsTab title={tab.label} description={tab.description} />;
     case "permissions":
-      return <PermissionsTab />;
+      return <PermissionsTab title={tab.label} description={tab.description} />;
   }
 }
 
@@ -119,24 +118,22 @@ export function AccountSettingsModal({
                 leftSection={<tab.icon size={14} aria-hidden />}
                 active={tab.id === active.id}
                 onClick={() => setActiveTab(tab.id)}
-                style={{ borderRadius: "var(--mantine-radius-sm)" }}
+                styles={{
+                  root: {
+                    padding: "4px 8px",
+                    borderRadius: "var(--mantine-radius-sm)",
+                  },
+                  section: { marginInlineEnd: "var(--mantine-spacing-xs)" },
+                }}
               />
             ))}
           </Stack>
         </Box>
 
         <Box className={styles.content}>
-          <Box className={styles.contentHeader}>
-            <Title order={4} size="xs">
-              {active.label}
-            </Title>
-            <Text size="xs" c="dimmed">
-              {active.description}
-            </Text>
-          </Box>
           <ScrollArea className={styles.contentScroll}>
             <Box p="lg">
-              <TabContent tab={active.id} />
+              <TabContent tab={active} />
             </Box>
           </ScrollArea>
         </Box>

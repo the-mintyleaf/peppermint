@@ -10,6 +10,8 @@ import {
 } from "@peppermint/ui";
 import { getApiError, getApiErrorMessage } from "@/lib/authErrorMessages";
 import { changePassword } from "./ChangePasswordForm.api";
+import { PASSWORD_MIN_LENGTH } from "./ChangePasswordForm.utils";
+import { PasswordStrengthMeter } from "./PasswordStrengthMeter";
 import type {
   ChangePasswordFormProps,
   ChangePasswordFormValues,
@@ -28,7 +30,9 @@ export function ChangePasswordForm({
     validate: {
       old_password: (value) => (!value ? "Required" : null),
       new_password: (value) =>
-        value.length < 12 ? "Must be at least 12 characters" : null,
+        value.length < PASSWORD_MIN_LENGTH
+          ? `Must be at least ${PASSWORD_MIN_LENGTH} characters`
+          : null,
       confirm_password: (value, values) =>
         value !== values.new_password ? "Passwords do not match" : null,
     },
@@ -82,12 +86,12 @@ export function ChangePasswordForm({
         />
         <PasswordInput
           label="New password"
-          description="At least 12 characters."
           size={size}
           required
           disabled={mutation.isPending}
           {...form.getInputProps("new_password")}
         />
+        <PasswordStrengthMeter password={form.values.new_password} />
         <PasswordInput
           label="Confirm new password"
           size={size}
