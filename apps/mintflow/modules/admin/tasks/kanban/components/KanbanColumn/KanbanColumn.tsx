@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState } from "react";
 import {
   ActionIcon,
   Badge,
@@ -18,6 +18,8 @@ import {
 } from "@dnd-kit/sortable";
 import { DotsThreeVerticalIcon } from "@phosphor-icons/react/dist/csr/DotsThreeVertical";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
+import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
+import { CaretUpIcon } from "@phosphor-icons/react/dist/csr/CaretUp";
 import { TrayIcon } from "@phosphor-icons/react/dist/csr/Tray";
 import { SpinnerGapIcon } from "@phosphor-icons/react/dist/csr/SpinnerGap";
 import { HourglassMediumIcon } from "@phosphor-icons/react/dist/csr/HourglassMedium";
@@ -92,6 +94,11 @@ const COLUMN_GRADIENT_COLOR: Record<TaskStatus, string> = {
   rejected: "var(--mantine-color-red-1)",
 };
 
+// How many cards a column shows before collapsing the rest behind "Show all".
+// Keeps tall columns from dominating the board; the header badge still shows the
+// true total.
+const COLLAPSED_VISIBLE_COUNT = 6;
+
 export const KanbanColumn = memo(function KanbanColumn({
   status,
   tasks,
@@ -103,7 +110,15 @@ export const KanbanColumn = memo(function KanbanColumn({
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const isDragging = active !== null;
 
-  const taskIds = useMemo(() => tasks.map((t) => t.id), [tasks]);
+  const [expanded, setExpanded] = useState(false);
+  const hasOverflow = tasks.length > COLLAPSED_VISIBLE_COUNT;
+  const showAll = expanded || !hasOverflow;
+  const visibleTasks = useMemo(
+    () => (showAll ? tasks : tasks.slice(0, COLLAPSED_VISIBLE_COUNT)),
+    [showAll, tasks],
+  );
+
+  const taskIds = useMemo(() => visibleTasks.map((t) => t.id), [visibleTasks]);
 
   const handleAddTask = () => onAddTask?.(status);
 
@@ -210,13 +225,32 @@ export const KanbanColumn = memo(function KanbanColumn({
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           {tasks.length > 0 ? (
             <Stack gap={4}>
-              {tasks.map((task) => (
+              {visibleTasks.map((task) => (
                 <KanbanCard
                   key={task.id}
                   task={task}
                   onCardClick={onCardClick}
                 />
               ))}
+              {hasOverflow && (
+                <Button
+                  variant="subtle"
+                  color="gray"
+                  size="xs"
+                  fullWidth
+                  onClick={() => setExpanded((v) => !v)}
+                  leftSection={
+                    expanded ? (
+                      <CaretUpIcon size={12} weight="bold" />
+                    ) : (
+                      <CaretDownIcon size={12} weight="bold" />
+                    )
+                  }
+                  styles={{ root: { fontWeight: 500 } }}
+                >
+                  {expanded ? "Show less" : `Show all (${tasks.length})`}
+                </Button>
+              )}
             </Stack>
           ) : (
             <Box
