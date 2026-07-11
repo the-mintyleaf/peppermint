@@ -25,7 +25,7 @@ export function SecurityTab({ title, description }: SettingsTabProps) {
         title="Change password"
         onBack={() => setView("overview")}
       >
-        <Stack maw={420}>
+        <Stack maw={360} w="100%" mx="auto" mt="lg">
           <ChangePasswordForm size="xs" onSuccess={() => setView("overview")} />
         </Stack>
       </SettingsSubScreen>
