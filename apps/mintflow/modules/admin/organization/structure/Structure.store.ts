@@ -10,7 +10,7 @@ import type {
 
 interface StructureState {
   selectedUnitId: string | null;
-  drawerOpen: boolean;
+  panelOpen: boolean;
   unitModal: UnitModalConfig;
   moveModal: MoveModalConfig;
   deactivateModal: DeactivateModalConfig;
@@ -25,7 +25,7 @@ interface StructureState {
   edgeCache: Array<{ source: string; target: string }>;
 
   selectUnit: (id: string | null) => void;
-  closeDrawer: () => void;
+  closePanel: () => void;
   openAddUnitModal: (parentId?: string, parentName?: string) => void;
   openEditUnitModal: (unitId: string) => void;
   closeUnitModal: () => void;
@@ -50,7 +50,7 @@ interface StructureState {
 
 export const useStructureStore = create<StructureState>((set, get) => ({
   selectedUnitId: null,
-  drawerOpen: false,
+  panelOpen: false,
   unitModal: { open: false, mode: "add" },
   moveModal: { open: false },
   deactivateModal: { open: false },
@@ -62,8 +62,8 @@ export const useStructureStore = create<StructureState>((set, get) => ({
   searchUnitId: null,
   edgeCache: [],
 
-  selectUnit: (id) => set({ selectedUnitId: id, drawerOpen: id !== null }),
-  closeDrawer: () => set({ selectedUnitId: null, drawerOpen: false }),
+  selectUnit: (id) => set({ selectedUnitId: id, panelOpen: id !== null }),
+  closePanel: () => set({ selectedUnitId: null, panelOpen: false }),
 
   openAddUnitModal: (parentId, parentName) =>
     set({ unitModal: { open: true, mode: "add", parentId, parentName } }),
@@ -101,7 +101,7 @@ export const useStructureStore = create<StructureState>((set, get) => ({
       descendants.has(selectedUnitId)
     ) {
       updates.selectedUnitId = id;
-      updates.drawerOpen = true;
+      updates.panelOpen = true;
     }
     set(updates);
   },
@@ -115,7 +115,7 @@ export const useStructureStore = create<StructureState>((set, get) => ({
       expandedUnitIds: [],
       focusedBranchId: null,
       selectedUnitId: null,
-      drawerOpen: false,
+      panelOpen: false,
     }),
   syncEdgeCache: (edges) => set({ edgeCache: edges }),
 

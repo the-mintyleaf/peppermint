@@ -205,13 +205,6 @@
   color: var(--mantine-color-red-filled);
 }
 
-.drawerSection {
-  border: 1px solid var(--mantine-color-default-border);
-  border-radius: 10px;
-  padding: 12px 14px;
-  margin-bottom: 12px;
-}
-
 .nodeExpandStrip {
   display: flex;
   align-items: center;

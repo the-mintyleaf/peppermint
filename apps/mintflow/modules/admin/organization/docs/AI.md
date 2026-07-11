@@ -72,7 +72,7 @@ organization API is staff/superuser-only (confirmed in the recovered `API.md`).
 
 - Server data: React Query throughout. Query keys live in each sub-module's `<name>.queryKeys.ts`, or `_shared/organization.queryKeys.ts` when shared.
 - Currently selected organization: `apps/mintflow/stores/selectedOrg.store.ts` (Zustand + persist). Single-writer rule — only `organizations/pages/list/OrganizationsList.tsx` calls `setOrg`.
-- Structure canvas interaction state (selection, drawer, modals, expand/collapse, focus branch, search-hit highlight): `structure/Structure.store.ts`. The typed search query itself is local `useState` in `Structure.tsx` (debounced → server search), not store state. No undo/redo — every canvas action is a real backend mutation, not a staged client edit, so there is no local "unsaved" state to revert.
+- Structure canvas interaction state (selection, inspector panel open/close, modals, expand/collapse, focus branch, search-hit highlight): `structure/Structure.store.ts` (`panelOpen`/`closePanel`). The typed search query itself is local `useState` in `Structure.tsx` (debounced → server search), not store state. No undo/redo — every canvas action is a real backend mutation, not a staged client edit, so there is no local "unsaved" state to revert.
 - Everything else: local `useState`, no dedicated stores needed.
 
 ## Structure data-source seam
