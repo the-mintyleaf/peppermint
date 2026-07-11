@@ -18,7 +18,10 @@ export const TEST_ORG_ID = "test-tree-org";
  * `localhost`/https), which would otherwise crash the playground on hydration.
  */
 export function genId(): string {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
     try {
       return crypto.randomUUID();
     } catch {

@@ -54,8 +54,6 @@ function PositionsListContent() {
 
   return (
     <>
-
-
       {!activeUnitId ? (
         <Center h="100%" mih={300}>
           <Stack align="center" gap="xs" maw={360}>
