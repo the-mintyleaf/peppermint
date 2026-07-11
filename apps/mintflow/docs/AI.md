@@ -30,6 +30,7 @@ apps/mintflow/
 ├── layouts/admin/           # Admin layout shell (Admin.tsx)
 ├── modules/admin/           # Feature modules
 │   ├── home/                # Admin home/dashboard
+│   ├── not-found/           # Admin 404 (ModuleNotFound) + catch-all trigger for unmatched /admin/*
 │   ├── organization/        # Org management (MultiPageModule) ← most complex
 │   └── tasks/
 │       ├── analytics/       # Task analytics dashboard
@@ -63,6 +64,7 @@ apps/mintflow/
 | Kanban              | `modules/admin/tasks/kanban/`                    | `/admin/tasks`                           | —                                                          |
 | General View        | `modules/admin/tasks/general-view/`              | `/admin/tasks/general-view`              | —                                                          |
 | Admin Home          | `modules/admin/home/`                            | `/admin`                                 | —                                                          |
+| Admin Not Found     | `modules/admin/not-found/`                       | `/admin/*` (unmatched)                   | —                                                          |
 | Sign In             | `modules/sign-in/`                               | `/`                                      | `modules/sign-in/docs/AI.md`                               |
 | Password Change     | `modules/password-change/`                       | `/password-change`                       | `modules/password-change/docs/AI.md`                       |
 | Invitations         | `modules/invitations/`                           | `/invitations`                           | —                                                          |
