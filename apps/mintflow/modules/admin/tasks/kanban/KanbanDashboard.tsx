@@ -254,8 +254,7 @@ export function KanbanDashboard() {
             style={{
               flex: 1,
               minHeight: 0,
-              overflowY: "auto",
-              overflowX: "auto",
+              overflow: "hidden",
               display: "flex",
               flexDirection: "column",
             }}
