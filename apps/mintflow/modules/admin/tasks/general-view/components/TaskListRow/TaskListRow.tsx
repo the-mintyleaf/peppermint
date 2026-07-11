@@ -6,11 +6,11 @@ import {
   Badge,
   Box,
   Collapse,
+  DatePicker,
   Menu,
   Popover,
   Text,
 } from "@peppermint/ui";
-import { DatePicker } from "@mantine/dates";
 import { CaretRightIcon } from "@phosphor-icons/react/dist/csr/CaretRight";
 import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
 import { CalendarBlankIcon } from "@phosphor-icons/react/dist/csr/CalendarBlank";
@@ -79,6 +79,23 @@ function parseDateStr(dateStr?: string): Date | null {
   if (!dateStr) return null;
   const d = new Date(dateStr);
   return isNaN(d.getTime()) ? null : d;
+}
+
+// Mantine 9 date components use "YYYY-MM-DD" strings, but this component's logic
+// is Date-based — convert at the DatePicker boundary (local time, no UTC shift).
+function toDateValue(date: Date | null): string | null {
+  if (!date) return null;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function fromDateValue(value: string | null): Date | null {
+  if (!value) return null;
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
 }
 
 function PriorityCell({
@@ -218,9 +235,9 @@ function DueDateCell({
       </Popover.Target>
       <Popover.Dropdown onClick={(e) => e.stopPropagation()} p="xs">
         <DatePicker
-          value={date}
+          value={toDateValue(date)}
           onChange={(d) => {
-            onChange(d);
+            onChange(fromDateValue(d));
             setOpen(false);
           }}
           size="xs"
