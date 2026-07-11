@@ -9,8 +9,8 @@ import {
   Group,
   ManageHeader,
   Menu,
+  ModalPaper,
   ModuleHeader,
-  Paper,
   ScrollArea,
   SegmentedControl,
   Skeleton,
@@ -88,232 +88,236 @@ export function GeneralViewDashboard(_props: GeneralViewDashboardProps) {
   );
 
   return (
-    <Paper>
-      <Stack gap={0} h="100vh" style={{ overflow: "hidden" }}>
-        <ModuleHeader
-          breadcrumbItems={BREADCRUMB}
-          right={
-            <Group gap="xs" mr="sm">
-              <AccessMenu data={{ accounts: [], roles: [] }} />
-              <Button
-                size="xs"
-                leftSection={<PlusIcon size={16} aria-label="Add task" />}
-                onClick={() => setCreateOpen(true)}
-              >
-                New Task
-              </Button>
-            </Group>
-          }
-        />
-
-        <Box px="md">
-          <ManageHeader
-            title="Tasks"
-            count={isLoading ? undefined : totalVisible}
-            description={TASKS_SUBHEADING}
-          />
-        </Box>
-
-        {/* Filter tabs + search */}
-        <Group justify="space-between" px="md" gap="xs" wrap="nowrap">
-          <SegmentedControl
-            withItemsBorders={false}
-            value={String(activeTabIndex)}
-            onChange={(v) => setActiveTabIndex(Number(v))}
-            data={TAB_SEGMENTS}
-            size="sm"
-            color="white"
-            autoContrast
-            styles={{
-              label: {
-                paddingInline: 10,
-                fontSize: "var(--mantine-font-size-xs)",
-              },
-            }}
-          />
-
-          <Group gap={6} wrap="nowrap">
-            <TeamMembersPanel
-              members={members}
-              taskCountByMember={taskCountByMember}
-              selectedMemberId={selectedMemberId}
-              onSelect={setSelectedMemberId}
-            />
-
-            {/* Group by */}
-            <Menu shadow="sm" width={180} position="bottom-end">
-              <Menu.Target>
-                <Button
-                  variant="light"
-                  color="gray"
-                  size="xs"
-                  leftSection={<RowsIcon size={13} weight="duotone" />}
-                  styles={{ root: { fontWeight: 500 } }}
-                >
-                  Group by Status
-                </Button>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Label>Group by</Menu.Label>
-                <Menu.Item
-                  leftSection={<RowsIcon size={12} weight="duotone" />}
-                  fw={600}
-                >
-                  Status
-                </Menu.Item>
-                <Menu.Item
-                  leftSection={<FunnelIcon size={12} weight="duotone" />}
-                >
-                  Priority
-                </Menu.Item>
-                <Menu.Item
-                  leftSection={<ColumnsIcon size={12} weight="duotone" />}
-                >
-                  List
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-
-            {/* Sort */}
-            <Menu shadow="sm" width={180} position="bottom-end">
-              <Menu.Target>
-                <Button
-                  variant="light"
-                  color="gray"
-                  size="xs"
-                  leftSection={<SortAscendingIcon size={13} weight="duotone" />}
-                  styles={{ root: { fontWeight: 500 } }}
-                >
-                  Sort
-                </Button>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Label>Sort by</Menu.Label>
-                <Menu.Item>Due date</Menu.Item>
-                <Menu.Item>Priority</Menu.Item>
-                <Menu.Item>Name</Menu.Item>
-                <Menu.Item>Created</Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-
-            {/* View */}
-            <Menu shadow="sm" width={180} position="bottom-end">
-              <Menu.Target>
-                <Button
-                  variant="light"
-                  color="gray"
-                  size="xs"
-                  leftSection={<ColumnsIcon size={13} weight="duotone" />}
-                  styles={{ root: { fontWeight: 500 } }}
-                >
-                  View
-                </Button>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Label>Columns</Menu.Label>
-                <Menu.Item>Priority</Menu.Item>
-                <Menu.Item>List</Menu.Item>
-                <Menu.Item>Due date</Menu.Item>
-                <Menu.Item>Assignee</Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-
-            {/* Filter by */}
-            <Menu shadow="sm" width={200} position="bottom-end">
-              <Menu.Target>
-                <Button
-                  variant="light"
-                  color="gray"
-                  size="xs"
-                  leftSection={<FunnelIcon size={13} weight="duotone" />}
-                  styles={{ root: { fontWeight: 500 } }}
-                >
-                  Filter by
-                </Button>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Label>Filter by</Menu.Label>
-                <Menu.Item>Assignee</Menu.Item>
-                <Menu.Item>Priority</Menu.Item>
-                <Menu.Item>Due date</Menu.Item>
-                <Menu.Item>List</Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-
-            {/* Search */}
-            <TextInput
-              miw={200}
-              leftSection={<MagnifyingGlassIcon size={13} />}
+    <>
+      <ModuleHeader
+        breadcrumbItems={BREADCRUMB}
+        right={
+          <Group gap="xs" mr="sm">
+            <AccessMenu data={{ accounts: [], roles: [] }} />
+            <Button
               size="xs"
-              placeholder="Search tasks…"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.currentTarget.value)}
-            />
+              leftSection={<PlusIcon size={16} aria-label="Add task" />}
+              onClick={() => setCreateOpen(true)}
+            >
+              New Task
+            </Button>
           </Group>
-        </Group>
+        }
+      />
 
-        {/* Column headers */}
-        <Box
-          className={`${tableClasses.table} ${tableClasses.header} ${tableClasses.grid}`}
-        >
-          <span className={tableClasses.headerLabel}>Name</span>
-          <span />
-          <span className={tableClasses.headerLabel}>Priority</span>
-          <span className={tableClasses.headerLabel}>List</span>
-          <span className={tableClasses.headerLabel}>Due date</span>
-          <span className={tableClasses.headerLabel}>Assignee</span>
-        </Box>
+      <ModalPaper withBorder>
+        <Stack gap={0} h="100%" style={{ overflow: "hidden" }}>
+          <Box px="md">
+            <ManageHeader
+              title="Tasks"
+              count={isLoading ? undefined : totalVisible}
+              description={TASKS_SUBHEADING}
+            />
+          </Box>
 
-        {/* Task list */}
-        <ScrollArea
-          className={tableClasses.table}
-          style={{ flex: 1, minHeight: 0 }}
-        >
-          {isLoading ? (
-            <Stack p="md" gap="xs">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} height={48} radius="sm" />
-              ))}
-            </Stack>
-          ) : totalVisible === 0 ? (
-            <Stack align="center" justify="center" h={300} gap="xs">
-              <Text c="dimmed" size="sm">
-                No tasks found
-              </Text>
-              {(debouncedSearch || selectedMemberId) && (
-                <Text
-                  size="xs"
-                  c="blue"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => {
-                    setSearchInput("");
-                    setSelectedMemberId(null);
-                  }}
-                >
-                  Clear filters
+          {/* Filter tabs + search */}
+          <Group justify="space-between" px="md" gap="xs" wrap="nowrap">
+            <SegmentedControl
+              withItemsBorders={false}
+              value={String(activeTabIndex)}
+              onChange={(v) => setActiveTabIndex(Number(v))}
+              data={TAB_SEGMENTS}
+              size="sm"
+              color="white"
+              autoContrast
+              styles={{
+                label: {
+                  paddingInline: 10,
+                  fontSize: "var(--mantine-font-size-xs)",
+                },
+              }}
+            />
+
+            <Group gap={6} wrap="nowrap">
+              <TeamMembersPanel
+                members={members}
+                taskCountByMember={taskCountByMember}
+                selectedMemberId={selectedMemberId}
+                onSelect={setSelectedMemberId}
+              />
+
+              {/* Group by */}
+              <Menu shadow="sm" width={180} position="bottom-end">
+                <Menu.Target>
+                  <Button
+                    variant="light"
+                    color="gray"
+                    size="xs"
+                    leftSection={<RowsIcon size={13} weight="duotone" />}
+                    styles={{ root: { fontWeight: 500 } }}
+                  >
+                    Group by Status
+                  </Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Label>Group by</Menu.Label>
+                  <Menu.Item
+                    leftSection={<RowsIcon size={12} weight="duotone" />}
+                    fw={600}
+                  >
+                    Status
+                  </Menu.Item>
+                  <Menu.Item
+                    leftSection={<FunnelIcon size={12} weight="duotone" />}
+                  >
+                    Priority
+                  </Menu.Item>
+                  <Menu.Item
+                    leftSection={<ColumnsIcon size={12} weight="duotone" />}
+                  >
+                    List
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+
+              {/* Sort */}
+              <Menu shadow="sm" width={180} position="bottom-end">
+                <Menu.Target>
+                  <Button
+                    variant="light"
+                    color="gray"
+                    size="xs"
+                    leftSection={
+                      <SortAscendingIcon size={13} weight="duotone" />
+                    }
+                    styles={{ root: { fontWeight: 500 } }}
+                  >
+                    Sort
+                  </Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Label>Sort by</Menu.Label>
+                  <Menu.Item>Due date</Menu.Item>
+                  <Menu.Item>Priority</Menu.Item>
+                  <Menu.Item>Name</Menu.Item>
+                  <Menu.Item>Created</Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+
+              {/* View */}
+              <Menu shadow="sm" width={180} position="bottom-end">
+                <Menu.Target>
+                  <Button
+                    variant="light"
+                    color="gray"
+                    size="xs"
+                    leftSection={<ColumnsIcon size={13} weight="duotone" />}
+                    styles={{ root: { fontWeight: 500 } }}
+                  >
+                    View
+                  </Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Label>Columns</Menu.Label>
+                  <Menu.Item>Priority</Menu.Item>
+                  <Menu.Item>List</Menu.Item>
+                  <Menu.Item>Due date</Menu.Item>
+                  <Menu.Item>Assignee</Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+
+              {/* Filter by */}
+              <Menu shadow="sm" width={200} position="bottom-end">
+                <Menu.Target>
+                  <Button
+                    variant="light"
+                    color="gray"
+                    size="xs"
+                    leftSection={<FunnelIcon size={13} weight="duotone" />}
+                    styles={{ root: { fontWeight: 500 } }}
+                  >
+                    Filter by
+                  </Button>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Label>Filter by</Menu.Label>
+                  <Menu.Item>Assignee</Menu.Item>
+                  <Menu.Item>Priority</Menu.Item>
+                  <Menu.Item>Due date</Menu.Item>
+                  <Menu.Item>List</Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+
+              {/* Search */}
+              <TextInput
+                miw={200}
+                leftSection={<MagnifyingGlassIcon size={13} />}
+                size="xs"
+                placeholder="Search tasks…"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.currentTarget.value)}
+              />
+            </Group>
+          </Group>
+
+          {/* Column headers */}
+          <Box
+            className={`${tableClasses.table} ${tableClasses.header} ${tableClasses.grid}`}
+          >
+            <span className={tableClasses.headerLabel}>Name</span>
+            <span />
+            <span className={tableClasses.headerLabel}>Priority</span>
+            <span className={tableClasses.headerLabel}>List</span>
+            <span className={tableClasses.headerLabel}>Due date</span>
+            <span className={tableClasses.headerLabel}>Assignee</span>
+          </Box>
+
+          {/* Task list */}
+          <ScrollArea
+            className={tableClasses.table}
+            style={{ flex: 1, minHeight: 0 }}
+          >
+            {isLoading ? (
+              <Stack p="md" gap="xs">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} height={48} radius="sm" />
+                ))}
+              </Stack>
+            ) : totalVisible === 0 ? (
+              <Stack align="center" justify="center" h={300} gap="xs">
+                <Text c="dimmed" size="sm">
+                  No tasks found
                 </Text>
-              )}
-            </Stack>
-          ) : (
-            <Box>
-              {DISPLAY_STATUS_ORDER.map((status) => (
-                <TaskGroupSection
-                  key={status}
-                  displayStatus={status}
-                  label={DISPLAY_STATUS_LABELS[status]}
-                  tasks={groupedTasks[status]}
-                />
-              ))}
-            </Box>
-          )}
-        </ScrollArea>
-      </Stack>
+                {(debouncedSearch || selectedMemberId) && (
+                  <Text
+                    size="xs"
+                    c="blue"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      setSearchInput("");
+                      setSelectedMemberId(null);
+                    }}
+                  >
+                    Clear filters
+                  </Text>
+                )}
+              </Stack>
+            ) : (
+              <Box>
+                {DISPLAY_STATUS_ORDER.map((status) => (
+                  <TaskGroupSection
+                    key={status}
+                    displayStatus={status}
+                    label={DISPLAY_STATUS_LABELS[status]}
+                    tasks={groupedTasks[status]}
+                  />
+                ))}
+              </Box>
+            )}
+          </ScrollArea>
+        </Stack>
+      </ModalPaper>
 
       <CreateTaskModal
         opened={createOpen || !!editTask}
         editTask={editTask}
         onClose={handleCloseForm}
       />
-    </Paper>
+    </>
   );
 }

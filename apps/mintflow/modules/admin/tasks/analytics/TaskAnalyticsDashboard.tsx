@@ -1,7 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Box, Skeleton, Stack, useDebouncedValue } from "@peppermint/ui";
+import {
+  Box,
+  ModalPaper,
+  ModuleHeader,
+  Skeleton,
+  Stack,
+  useDebouncedValue,
+} from "@peppermint/ui";
 import { TaskDetailModal } from "../kanban/components/TaskDetailModal";
 import type { Task } from "../kanban/module.api";
 import { ArchiveProjects } from "./components/ArchiveProjects";
@@ -21,6 +28,11 @@ import type {
 function formatMonthKey(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
+
+const BREADCRUMB = [
+  { label: "Tasks", href: "/admin/tasks" },
+  { label: "Analytics", href: "#" },
+];
 
 export function TaskAnalyticsDashboard() {
   const [selectedMonth, setSelectedMonth] = useState(new Date(2025, 5, 1));
@@ -80,83 +92,87 @@ export function TaskAnalyticsDashboard() {
 
   return (
     <>
-      <Stack gap={0} h="100%" style={{ overflow: "hidden" }}>
-        {isLoading || !data ? (
-          <Box p="md">
-            <Skeleton h={48} mb="md" />
-            <Skeleton h={400} />
-          </Box>
-        ) : (
-          <Box
-            style={{
-              flex: 1,
-              minHeight: 0,
-              overflowY: "auto",
-              overflowX: "hidden",
-            }}
-          >
+      <ModuleHeader breadcrumbItems={BREADCRUMB} />
+
+      <ModalPaper withBorder>
+        <Stack gap={0} h="100%" style={{ overflow: "hidden" }}>
+          {isLoading || !data ? (
+            <Box p="md">
+              <Skeleton h={48} mb="md" />
+              <Skeleton h={400} />
+            </Box>
+          ) : (
             <Box
               style={{
-                display: "grid",
-                gridTemplateColumns: "minmax(260px, 300px) 1fr",
-                gridTemplateRows: "auto auto",
-                gridTemplateAreas: `
+                flex: 1,
+                minHeight: 0,
+                overflowY: "auto",
+                overflowX: "hidden",
+              }}
+            >
+              <Box
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "minmax(260px, 300px) 1fr",
+                  gridTemplateRows: "auto auto",
+                  gridTemplateAreas: `
                   "sidebar main"
                   "bottom  bottom"
                 `,
-                gap: 8,
-                alignContent: "start",
-              }}
-            >
-              <Stack
-                gap={8}
-                style={{ gridArea: "sidebar", alignSelf: "start" }}
-              >
-                <MiniCalendar
-                  activeFilter={calendarFilter}
-                  onFilterChange={setCalendarFilter}
-                />
-                <FeaturedUpcomingTask task={data.featuredTask} />
-                <TaskCategories
-                  categories={data.categories}
-                  activeCategories={activeCategories}
-                  onToggle={handleCategoryToggle}
-                />
-              </Stack>
-
-              <Box style={{ gridArea: "main", minHeight: 480 }}>
-                <PlanningSchedule
-                  days={data.scheduleDays}
-                  tasks={filteredTasks}
-                  view={view}
-                  onTaskClick={handleTaskClick}
-                  selectedMonth={selectedMonth}
-                  onMonthChange={setSelectedMonth}
-                  onViewChange={setView}
-                  search={searchInput}
-                  onSearchChange={setSearchInput}
-                  teamMembers={data.teamMembers}
-                />
-              </Box>
-
-              <Box
-                style={{
-                  gridArea: "bottom",
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
                   gap: 8,
+                  alignContent: "start",
                 }}
               >
-                <WeeklyProductivity
-                  data={data.productivity}
-                  taskCount={data.selectedPeriodTaskCount}
-                />
-                <ArchiveProjects projects={data.archiveProjects} />
+                <Stack
+                  gap={8}
+                  style={{ gridArea: "sidebar", alignSelf: "start" }}
+                >
+                  <MiniCalendar
+                    activeFilter={calendarFilter}
+                    onFilterChange={setCalendarFilter}
+                  />
+                  <FeaturedUpcomingTask task={data.featuredTask} />
+                  <TaskCategories
+                    categories={data.categories}
+                    activeCategories={activeCategories}
+                    onToggle={handleCategoryToggle}
+                  />
+                </Stack>
+
+                <Box style={{ gridArea: "main", minHeight: 480 }}>
+                  <PlanningSchedule
+                    days={data.scheduleDays}
+                    tasks={filteredTasks}
+                    view={view}
+                    onTaskClick={handleTaskClick}
+                    selectedMonth={selectedMonth}
+                    onMonthChange={setSelectedMonth}
+                    onViewChange={setView}
+                    search={searchInput}
+                    onSearchChange={setSearchInput}
+                    teamMembers={data.teamMembers}
+                  />
+                </Box>
+
+                <Box
+                  style={{
+                    gridArea: "bottom",
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 8,
+                  }}
+                >
+                  <WeeklyProductivity
+                    data={data.productivity}
+                    taskCount={data.selectedPeriodTaskCount}
+                  />
+                  <ArchiveProjects projects={data.archiveProjects} />
+                </Box>
               </Box>
             </Box>
-          </Box>
-        )}
-      </Stack>
+          )}
+        </Stack>
+      </ModalPaper>
 
       <TaskDetailModal task={selectedTask} onClose={handleCloseModal} />
     </>

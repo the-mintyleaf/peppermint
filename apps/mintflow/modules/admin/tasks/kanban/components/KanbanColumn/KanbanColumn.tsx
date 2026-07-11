@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo } from "react";
+import { memo, useMemo, useState } from "react";
 import {
   ActionIcon,
   Badge,
@@ -18,6 +18,8 @@ import {
 } from "@dnd-kit/sortable";
 import { DotsThreeVerticalIcon } from "@phosphor-icons/react/dist/csr/DotsThreeVertical";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
+import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
+import { CaretUpIcon } from "@phosphor-icons/react/dist/csr/CaretUp";
 import { TrayIcon } from "@phosphor-icons/react/dist/csr/Tray";
 import { SpinnerGapIcon } from "@phosphor-icons/react/dist/csr/SpinnerGap";
 import { HourglassMediumIcon } from "@phosphor-icons/react/dist/csr/HourglassMedium";
@@ -92,6 +94,11 @@ const COLUMN_GRADIENT_COLOR: Record<TaskStatus, string> = {
   rejected: "var(--mantine-color-red-1)",
 };
 
+// How many cards a column shows before collapsing the rest behind "Show all".
+// Keeps tall columns from dominating the board; the header badge still shows the
+// true total.
+const COLLAPSED_VISIBLE_COUNT = 6;
+
 export const KanbanColumn = memo(function KanbanColumn({
   status,
   tasks,
@@ -103,7 +110,15 @@ export const KanbanColumn = memo(function KanbanColumn({
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const isDragging = active !== null;
 
-  const taskIds = useMemo(() => tasks.map((t) => t.id), [tasks]);
+  const [expanded, setExpanded] = useState(false);
+  const hasOverflow = tasks.length > COLLAPSED_VISIBLE_COUNT;
+  const showAll = expanded || !hasOverflow;
+  const visibleTasks = useMemo(
+    () => (showAll ? tasks : tasks.slice(0, COLLAPSED_VISIBLE_COUNT)),
+    [showAll, tasks],
+  );
+
+  const taskIds = useMemo(() => visibleTasks.map((t) => t.id), [visibleTasks]);
 
   const handleAddTask = () => onAddTask?.(status);
 
@@ -118,7 +133,7 @@ export const KanbanColumn = memo(function KanbanColumn({
         borderRadius: "var(--mantine-radius-md)",
         display: "flex",
         flexDirection: "column",
-        minHeight: "100%",
+        minHeight: 0,
         background: `linear-gradient(to top, ${COLUMN_GRADIENT_COLOR[status]} 0%, var(--mantine-color-gray-0) 90%)`,
         border:
           isDragging && isOver
@@ -207,36 +222,71 @@ export const KanbanColumn = memo(function KanbanColumn({
           flexDirection: "column",
         }}
       >
-        <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
-          {tasks.length > 0 ? (
-            <Stack gap={4}>
-              {tasks.map((task) => (
-                <KanbanCard
-                  key={task.id}
-                  task={task}
-                  onCardClick={onCardClick}
-                />
-              ))}
-            </Stack>
-          ) : (
-            <Box
-              style={{
-                flex: 1,
-                minHeight: 120,
-                width: "100%",
-                border: "2px dashed var(--mantine-color-gray-3)",
-                borderRadius: "var(--mantine-radius-md)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+        {tasks.length > 0 ? (
+          // Cards scroll inside the column so a tall column never grows the board.
+          <Box
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflowY: "auto",
+              overflowX: "hidden",
+            }}
+          >
+            <SortableContext
+              items={taskIds}
+              strategy={verticalListSortingStrategy}
             >
-              <Text size="xs" c="dimmed">
-                No tasks
-              </Text>
-            </Box>
-          )}
-        </SortableContext>
+              <Stack gap={4}>
+                {visibleTasks.map((task) => (
+                  <KanbanCard
+                    key={task.id}
+                    task={task}
+                    onCardClick={onCardClick}
+                  />
+                ))}
+              </Stack>
+            </SortableContext>
+          </Box>
+        ) : (
+          <Box
+            style={{
+              flex: 1,
+              minHeight: 120,
+              width: "100%",
+              border: "2px dashed var(--mantine-color-gray-3)",
+              borderRadius: "var(--mantine-radius-md)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text size="xs" c="dimmed">
+              No tasks
+            </Text>
+          </Box>
+        )}
+
+        {/* Pinned below the scroll area so it stays reachable without scrolling. */}
+        {hasOverflow && (
+          <Button
+            mt={4}
+            variant="subtle"
+            color="gray"
+            size="xs"
+            fullWidth
+            onClick={() => setExpanded((v) => !v)}
+            leftSection={
+              expanded ? (
+                <CaretUpIcon size={12} weight="bold" />
+              ) : (
+                <CaretDownIcon size={12} weight="bold" />
+              )
+            }
+            styles={{ root: { fontWeight: 500 } }}
+          >
+            {expanded ? "Show less" : `Show all (${tasks.length})`}
+          </Button>
+        )}
       </Box>
     </Box>
   );

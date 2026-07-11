@@ -170,7 +170,14 @@ export function KanbanBoard({
   );
 
   return (
-    <Box style={{ height: "100%", minHeight: "calc(100vh - 180px)" }}>
+    <Box
+      style={{
+        flex: 1,
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <DndContext
         sensors={sensors}
         collisionDetection={collisionDetection}
@@ -183,10 +190,11 @@ export function KanbanBoard({
             display: "flex",
             gap: 4,
             overflowX: "auto",
-            paddingBottom: 16,
+            overflowY: "hidden",
+            paddingBottom: 4,
             alignItems: "stretch",
-            minHeight: "calc(100vh - 180px)",
-            height: "100%",
+            flex: 1,
+            minHeight: 0,
           }}
         >
           {COLUMN_ORDER.map((status) => (
