@@ -16,16 +16,19 @@ Branch: `dev/claude-tuning` (do NOT create a new branch)
 
 **Phase 0 DONE.** Both reviewers confirmed a faithful, regression-free refactor. Fixes applied: refresh-queue rejects parked requests on failure; tightened refresh-parse; doc drift corrected.
 
-## Phase 1 — Correctness & security
+## Phase 1 — Correctness & security ✅ DONE (commits 1fbbccc, c8e0e58, 7916a26)
 
-- [ ] C1 apply `store.filters` in client pipeline
-- [ ] C2 additive cross-page selection via `useTableSelection`
-- [ ] C3 wire `onNavigate` through AdminShell → Navbar → MainNav (next/navigation)
-- [ ] H2 real error state in `DataTableShellTable` + effect-based onError with real error
-- [ ] H3/H4 replace raw `fetch`/`window.location.href` with `useMutation`/next-navigation; redirect only after token stored
-- [ ] C4 interim token hardening (one key set, drop dead sessionStorage writes, stop trusting client-decoded claims)
-- [ ] H9 fix mobile nav (burger + useDisclosure handlers)
-- [ ] Commit + dual adversarial review
+- [x] C1 apply `store.filters` in client pipeline (new clientFilter util)
+- [x] C2 additive cross-page selection (diff page ids vs reactive selection Set)
+- [x] C3 wire `onNavigate` (AdminShellConfig → Navbar → MainNav; app passes router.push)
+- [x] H2 real error state (EmptyState error variant) + single-fire effect-based onError with real error
+- [x] H3 raw `fetch` → `useMutation` in SignInPage + PasswordChangePage
+- [~] H4 window.location.href — DEFERRED to Phase 4 (only 1 read-only non-modal DataTableShell consumer; folds into shell-API rework)
+- [x] C4 interim token hardening (single key set via src/auth/authStorage; removed dead sessionStorage/decodeJWT/token_payload/user_data/meApi; redirect only after token stored)
+- [x] H9 mobile nav (useDisclosure handlers + contrasting Burger + close-on-route)
+- [x] Commit + dual adversarial review (Codex + Opus) + apply fixes (empty-array filter, filter-menu 0, onError single-fire, burger contrast, authStorage relocation)
+
+**Deferred to Phase 4:** H4; filter key≠accessor divergence; post-forceFilter selection derivation.
 
 ## Phase 2 — Core foundation hardening
 
