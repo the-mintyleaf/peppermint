@@ -38,4 +38,4 @@ The recommended way to mount `QueryClientWrapper` in a Next.js app is via the `w
 </AppWrapper>
 ```
 
-This mounts `QueryClientWrapper` around `MantineProvider` and `ModalsProvider`. `configureApiClient()` is called separately in `app/layout.tsx` — `AppWrapper` does not import `@peppermint/api-client`.
+This mounts `QueryClientWrapper` around `MantineProvider` and `ModalsProvider`. `configureApiClient()` is called separately in the app's `lib/api.ts` (which exports the configured instance) — `AppWrapper` does not import `@peppermint/api-client`.

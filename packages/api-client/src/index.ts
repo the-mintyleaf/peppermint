@@ -105,12 +105,30 @@ export function configureApiClient(
     });
 
   // Refresh coordination — per-instance so multiple clients never clash.
+  // Followers park their settle handlers here while the leader refreshes.
+  interface QueuedRequest {
+    resolve: (value: unknown) => void;
+    reject: (reason: unknown) => void;
+    config: RetryableConfig;
+  }
   let isRefreshing = false;
-  let refreshQueue: Array<(token: string) => void> = [];
+  let refreshQueue: QueuedRequest[] = [];
 
-  const drainQueue = (newToken: string) => {
-    refreshQueue.forEach((cb) => cb(newToken));
+  const resolveQueue = (newToken: string) => {
+    const queued = refreshQueue;
     refreshQueue = [];
+    queued.forEach(({ resolve, config }) => {
+      config.headers.Authorization = `Bearer ${newToken}`;
+      resolve(instance(config));
+    });
+  };
+
+  // On refresh failure, reject parked requests instead of leaving them hanging
+  // forever (they would otherwise never settle).
+  const rejectQueue = (reason: unknown) => {
+    const queued = refreshQueue;
+    refreshQueue = [];
+    queued.forEach(({ reject }) => reject(reason));
   };
 
   instance.interceptors.request.use((req: InternalAxiosRequestConfig) => {
@@ -139,11 +157,8 @@ export function configureApiClient(
       }
 
       if (isRefreshing) {
-        return new Promise((resolve) => {
-          refreshQueue.push((token) => {
-            original.headers.Authorization = `Bearer ${token}`;
-            resolve(instance(original));
-          });
+        return new Promise((resolve, reject) => {
+          refreshQueue.push({ resolve, reject, config: original });
         });
       }
 
@@ -162,26 +177,33 @@ export function configureApiClient(
         });
         if (!res.ok) throw new Error("Refresh failed");
 
-        const payload: unknown = await res.json();
-        const data =
-          payload && typeof payload === "object" && "data" in payload
-            ? (payload as { data: { access?: string; refresh?: string } }).data
-            : (payload as { access?: string; refresh?: string });
+        // Accept the nested envelope `{ data: { access, refresh } }` only when it
+        // actually carries a token; otherwise fall back to a flat `{ access, refresh }`.
+        const payload = (await res.json()) as {
+          access?: string;
+          refresh?: string;
+          data?: { access?: string; refresh?: string };
+        } | null;
+        const nested = payload?.data;
+        const tokens =
+          nested && typeof nested.access === "string"
+            ? nested
+            : (payload ?? {});
 
-        const access = data?.access;
+        const access = tokens.access;
         if (!access) throw new Error("Refresh response missing access token");
 
         if (typeof window !== "undefined") {
           window.localStorage.setItem(accessTokenKey, access);
-          if (data.refresh)
-            window.localStorage.setItem(refreshTokenKey, data.refresh);
+          if (tokens.refresh)
+            window.localStorage.setItem(refreshTokenKey, tokens.refresh);
         }
 
-        drainQueue(access);
+        resolveQueue(access);
         original.headers.Authorization = `Bearer ${access}`;
         return instance(original);
       } catch {
-        refreshQueue = [];
+        rejectQueue(error);
         handleAuthFailure();
         return Promise.reject(error);
       } finally {
