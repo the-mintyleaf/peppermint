@@ -23,9 +23,9 @@ Branch: dev/claude-tuning
 
 ## Phase 3 — /sync-design (design guidelines intake)
 
-- [ ] Create `.claude/skills/mint-design-sync/SKILL.md`
-- [ ] Create `.claude/commands/sync-design.md`
-- [ ] Note token-source wiring in verify.md Step 2b (W1 points at app design-system.md when present)
+- [x] Create `.claude/skills/mint-design-sync/SKILL.md` (targets existing `config/theme/` structure)
+- [x] Create `.claude/commands/sync-design.md`
+- [x] Note token-source wiring in verify.md Step 2b (W1 points at app design-system.md when present)
 - [ ] Commit phase 3
 
 ## Phase 4 — /visual-review (screenshot feedback loop)

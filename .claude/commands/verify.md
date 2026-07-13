@@ -90,7 +90,7 @@ Look for confirmation patterns that contain only a binary yes/no prompt without 
 grep -n "#[0-9a-fA-F]\{3,6\}" <file> | head -10
 ```
 
-Flag any raw hex color (`#xxxxxx` or `#xxx`) used in a `color=`, `style=`, or `className=` prop near a `Badge`, `Tag`, `status`, or `severity` keyword within 5 lines. Use design tokens instead.
+Flag any raw hex color (`#xxxxxx` or `#xxx`) used in a `color=`, `style=`, or `className=` prop near a `Badge`, `Tag`, `status`, or `severity` keyword within 5 lines. Use design tokens instead. When `apps/<app>/docs/design/design-system.md` exists (created by `/sync-design`), name the specific token from its color tables that should replace the hex value.
 
 **W2 — Data fetch without loading/error/empty handling**
 
