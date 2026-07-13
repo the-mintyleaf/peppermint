@@ -6,17 +6,25 @@ export interface WindowSize {
 }
 
 export function useWindowSize(): WindowSize {
-  const [size, setSize] = useState<WindowSize>({
-    width: typeof window !== "undefined" ? window.innerWidth : 0,
-    height: typeof window !== "undefined" ? window.innerHeight : 0,
-  });
+  // Start at 0/0 so server and first client render agree (no hydration mismatch);
+  // the real size is measured in the mount effect below.
+  const [size, setSize] = useState<WindowSize>({ width: 0, height: 0 });
 
   useEffect(() => {
-    function onResize() {
+    let frame = 0;
+    const update = () =>
       setSize({ width: window.innerWidth, height: window.innerHeight });
-    }
+    // Throttle to one update per animation frame.
+    const onResize = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(update);
+    };
+    update();
     window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", onResize);
+    };
   }, []);
 
   return size;

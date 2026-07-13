@@ -5,12 +5,10 @@ export * from "@mantine/modals";
 export * from "@mantine/notifications";
 export * from "@mantine/nprogress";
 export * from "@mantine/spotlight";
-export * from "@mantine/tiptap";
-export * from "@mantine/carousel";
-export * from "@mantine/charts";
-export * from "@mantine/code-highlight";
-export * from "@mantine/dropzone";
 export * from "@mantine/form";
+// Heavy domains are NOT re-exported here — import them from their subpath entries
+// to keep recharts/tiptap/embla out of the main barrel's closure:
+//   @peppermint/ui/charts · /editor · /carousel · /code-highlight · /dropzone
 export * from "@tanstack/react-query";
 export { default as dayjs } from "dayjs";
 

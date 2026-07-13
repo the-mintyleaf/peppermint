@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { BarChart, Box, Group, Stack, Text } from "@peppermint/ui";
+import { Box, Group, Stack, Text } from "@peppermint/ui";
+import { BarChart } from "@peppermint/ui/charts";
 import { ChartBarIcon } from "@phosphor-icons/react/dist/csr/ChartBar";
 import { ANALYTICS_COLORS, darkCardStyle } from "../../taskAnalytics.styles";
 import type { WeeklyProductivityProps } from "./WeeklyProductivity.types";

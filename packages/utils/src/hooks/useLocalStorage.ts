@@ -4,15 +4,20 @@ export function useLocalStorage<T>(
   key: string,
   initial: T,
 ): [T, (value: T | ((prev: T) => T)) => void] {
-  const [stored, setStored] = useState<T>(() => {
-    if (typeof window === "undefined") return initial;
+  // Always `initial` on the first render so server and client HTML match; the
+  // stored value is read after mount to avoid a hydration mismatch / flash.
+  const [stored, setStored] = useState<T>(initial);
+
+  useEffect(() => {
     try {
       const item = window.localStorage.getItem(key);
-      return item ? (JSON.parse(item) as T) : initial;
+      if (item != null) setStored(JSON.parse(item) as T);
     } catch {
-      return initial;
+      // Corrupt/unavailable storage — keep the initial value.
     }
-  });
+    // Re-read when the key changes; `initial` is intentionally not a dep.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
 
   const setValue = useCallback(
     (value: T | ((prev: T) => T)) => {

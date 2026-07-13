@@ -1,13 +1,8 @@
 "use client";
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useDebounce } from "@peppermint/utils";
 import { useStore } from "zustand/react";
 import {
   DataTableDataContext,
@@ -63,10 +58,11 @@ export function DataTableWrapper<T = unknown>({
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
 
-  // Parsed query key — normalize from string or array, stable as long as the queryKey doesn't change
+  // Parsed query key — normalize from string or array, stable as long as the queryKey doesn't change.
+  // (typeof-narrow rather than Array.isArray, which doesn't narrow readonly arrays.)
   const parsedKey = useMemo(() => {
-    if (Array.isArray(queryKey)) {
-      return queryKey as readonly string[];
+    if (typeof queryKey !== "string") {
+      return queryKey;
     }
     return queryKey.split(".");
   }, [queryKey]);
@@ -80,29 +76,16 @@ export function DataTableWrapper<T = unknown>({
   const sort = useStore(store, (s) => s.sort);
   const filters = useStore(store, (s) => s.filters);
 
-  // Debounced search and filters for the React Query key.
-  // The store updates immediately (so local UI like a search input stays snappy),
-  // but the query only fires after the user stops typing for debounceMs.
-  // Debounce only applies when enableServerQuery is true — client-side filtering
-  // is synchronous and cheap, so it runs against the live value.
-  const [debouncedSearch, setDebouncedSearch] = useState(search);
-  const [debouncedFilters, setDebouncedFilters] = useState(filters);
-  const [isDebouncing, setIsDebouncing] = useState(false);
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    if (!enableServerQuery) return;
-    setIsDebouncing(true);
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => {
-      setDebouncedSearch(search);
-      setDebouncedFilters(filters);
-      setIsDebouncing(false);
-    }, debounceMs);
-    return () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    };
-  }, [search, filters, enableServerQuery, debounceMs]);
+  // Debounced search and filters for the React Query key. The store updates
+  // immediately (so a search input stays snappy) but the query only fires after
+  // debounceMs. Debounce is only *consumed* when enableServerQuery is true (client
+  // filtering runs against the live value); isDebouncing is derived as the lag
+  // between live and debounced values.
+  const debouncedSearch = useDebounce(search, debounceMs);
+  const debouncedFilters = useDebounce(filters, debounceMs);
+  const isDebouncing =
+    enableServerQuery &&
+    (debouncedSearch !== search || debouncedFilters !== filters);
 
   // Rehydrate persisted UI preferences from localStorage on mount
   useEffect(() => {

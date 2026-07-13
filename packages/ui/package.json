@@ -6,15 +6,28 @@
     "check-types": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "sideEffects": [
+    "**/*.css"
+  ],
   "exports": {
     ".": "./src/index.ts",
-    "./app-wrapper": "./src/wrappers/AppWrapper/index.ts"
+    "./app-wrapper": "./src/wrappers/AppWrapper/index.ts",
+    "./charts": "./src/charts.ts",
+    "./editor": "./src/editor.ts",
+    "./carousel": "./src/carousel.ts",
+    "./code-highlight": "./src/code-highlight.ts",
+    "./dropzone": "./src/dropzone.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "peerDependencies": {
+    "@tanstack/react-query": ">=5",
+    "react": ">=19",
+    "react-dom": ">=19",
+    "zustand": ">=5"
+  },
   "dependencies": {
-    "@tanstack/react-query": "^5.100.9",
     "@mantine/carousel": "^9.2.0",
     "@mantine/charts": "^9.2.0",
     "@mantine/code-highlight": "^9.2.0",
@@ -37,14 +50,13 @@
     "dayjs": "^1.11.20",
     "embla-carousel": "^8.5.2",
     "embla-carousel-react": "^8.5.2",
-    "framer-motion": "^12.38.0",
-    "next": "^16.2.6",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "recharts": "^3.8.1",
-    "zustand": "^5.0.13"
+    "recharts": "^3.8.1"
   },
   "devDependencies": {
+    "@tanstack/react-query": "^5.100.9",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zustand": "^5.0.13",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

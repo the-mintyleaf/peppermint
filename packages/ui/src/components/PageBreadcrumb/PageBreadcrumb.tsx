@@ -1,7 +1,8 @@
 "use client";
 
 import { Anchor, Box, Breadcrumbs } from "@mantine/core";
-import { CaretRightIcon, HouseSimpleIcon } from "@phosphor-icons/react";
+import { CaretRightIcon } from "@phosphor-icons/react/dist/csr/CaretRight";
+import { HouseSimpleIcon } from "@phosphor-icons/react/dist/csr/HouseSimple";
 import type { MantineColor } from "@mantine/core";
 
 interface PageBreadcrumbProps {
