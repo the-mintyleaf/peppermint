@@ -41,15 +41,19 @@ Branch: `dev/claude-tuning` (do NOT create a new branch)
 - [x] BONUS: greened the last 2 pre-existing type errors (PageBreadcrumb phosphor csr imports; queryKey typeof narrow) — `turbo check-types` + `turbo build` fully GREEN
 - [x] Commit + dual adversarial review (Codex + Opus, no high/med findings) + apply 4 low fixes + `pnpm build` ✓
 
-## Phase 3 — Missing framework primitives
+## Phase 3 — Missing framework primitives ✅ DONE (commits fbe1475, c92f0c4)
 
-- [ ] createResourceApi
-- [ ] createQueryKeys
-- [ ] useAppMutation
-- [ ] column helpers (statusColumn/dateColumn/booleanColumn/rowActionsColumn/bilingualColumn + StatusBadge)
-- [ ] RowActionsMenu + ReasonConfirmModal primitives
-- [ ] ModuleErrorBoundary
-- [ ] Commit + dual adversarial review
+- [x] createResourceApi (src/data) — list/get/create/update/remove/action + meta.count→total + DRF ordering; injects app HTTP client
+- [x] createQueryKeys (src/data) — typed array-form keys
+- [x] useAppMutation + configureAppMutations (src/data) — mutation + notify + invalidate + injected error resolver
+- [x] column helpers (src/columns) — StatusBadge + statusColumn/dateColumn/booleanColumn + rowActionsColumn
+- [x] RowActionsMenu + openReasonConfirmModal (src/actions)
+- [x] ModuleErrorBoundary (src/feedback) — module-level boundary w/ resetKeys
+- [~] bilingualColumn — SKIPPED (too app-specific; app keeps BilingualName)
+- [x] usage-doc/admin/primitives.md
+- [x] Commit + dual adversarial review (Codex + Opus) + apply fixes (null/invalid column values, Fragment menu items, unique modal id + catch, filters-before-reserved, resetKeys)
+
+**Purely additive** — no app behavior change; modules adopt these in Phase 5. `configureAppMutations` wired during migration.
 
 ## Phase 4 — API-surface & type-safety
 
