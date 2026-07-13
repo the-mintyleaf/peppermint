@@ -116,9 +116,7 @@ export function DataTableWrapper<T = unknown>({
       const raw = localStorage.getItem(`dtw:${key}`);
       if (!raw) return;
       const saved = JSON.parse(raw) as Record<string, unknown>;
-      const { getState } = store;
       if (targets.includes("columnVisibility") && saved.columnVisibility) {
-        getState().toggleColumn; // verify store is ready
         store.setState({
           columnVisibility: saved.columnVisibility as Record<string, boolean>,
         });

@@ -1,141 +1,67 @@
-# apiDispatch — API Reference
+# @peppermint/api-client — API Reference
 
-HTTP client layer for `@peppermint/api-client`. Wraps Axios with auth injection, 401 refresh/retry, and an offline mutation queue.
+HTTP client layer for the Peppermint framework. Wraps Axios with auth-header
+injection, `{ success, data, meta }` envelope unwrapping, and single-flight 401
+refresh/retry.
 
-No React. No JSX. Safe to import in Node.js.
+No React. No JSX. The factory reads `localStorage` and `window`, so call it on the
+client.
 
 ---
 
-## `configureApiClient(options)`
+## `configureApiClient(config?)`
 
-Call once at app boot (e.g. in `app/layout.tsx`) before any API calls are made.
+Call once at app boot (e.g. in `src/lib/api.ts`) and export the returned Axios
+instance. All app data access goes through that instance via React Query.
 
 ```typescript
 import { configureApiClient } from "@peppermint/api-client";
 
-configureApiClient({
-  tokenKey: "access_token", // sessionStorage key for the access token
-  refreshEndpoint: "/auth/refresh", // POST endpoint called on 401
-  onLogout: () => router.push("/login"), // called when refresh fails
-  debug: false, // optional — logs all requests/responses
+const api = configureApiClient({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  refreshEndpoint: "/api/v1/auth/refresh/",
 });
+
+export default api;
 ```
 
-| Option            | Type         | Required | Description                                           |
-| ----------------- | ------------ | -------- | ----------------------------------------------------- |
-| `tokenKey`        | `string`     | Yes      | `sessionStorage` key where the access token is stored |
-| `refreshEndpoint` | `string`     | Yes      | Endpoint POSTed to refresh the token on 401           |
-| `onLogout`        | `() => void` | Yes      | Callback invoked when token refresh fails             |
-| `debug`           | `boolean`    | No       | Logs requests and responses to the console            |
+Returns a standard `AxiosInstance` — use `api.get`, `api.post`, `api.patch`,
+`api.delete` as normal; responses are already unwrapped (see below).
+
+### `ApiClientConfig`
+
+| Option            | Type         | Required | Default                     | Description                                         |
+| ----------------- | ------------ | -------- | --------------------------- | --------------------------------------------------- |
+| `baseURL`         | `string`     | No       | `undefined`                 | Base URL for all requests.                          |
+| `accessTokenKey`  | `string`     | No       | `"access_token"`            | `localStorage` key for the access token.            |
+| `refreshTokenKey` | `string`     | No       | `"refresh_token"`           | `localStorage` key for the refresh token.           |
+| `refreshEndpoint` | `string`     | No       | `"/api/v1/auth/refresh/"`   | Absolute URL, or a path resolved against `baseURL`. |
+| `onAuthFailure`   | `() => void` | No       | clear tokens + redirect `/` | Called when refresh fails.                          |
+| `headers`         | `object`     | No       | `{}`                        | Extra default headers merged onto every request.    |
 
 ---
 
-## `api`
+## Interceptor behaviour
 
-The main HTTP client. All methods return `Promise<ApiResponse<T>>`. Errors are returned, never thrown.
+**Request:** reads `localStorage[accessTokenKey]` and sets
+`Authorization: Bearer <token>` on every request (skipped during SSR).
 
-### `api.get<T>(options)`
+**Response (success):** if the body is a `{ success: true, data, meta? }` envelope,
+it is unwrapped — paginated lists (a `meta.count` number) keep `{ data, meta }` so
+consumers can read both the rows and the total; everything else unwraps to `data`.
 
-```typescript
-const result = await api.get<User[]>({ url: "/users", params: { page: 1 } });
-```
-
-### `api.post<T>(options)`
-
-```typescript
-const result = await api.post<User>({ url: "/users", body: { name: "Alice" } });
-```
-
-If offline: mutation is queued, returns `{ ok: false, status: 0, data: null, message: 'Offline — queued' }`.
-
-### `api.patch<T>(options)`
-
-```typescript
-const result = await api.patch<User>({
-  url: "/users/1",
-  body: { name: "Bob" },
-});
-```
-
-### `api.del<T>(options)`
-
-```typescript
-const result = await api.del<void>({ url: "/users/1" });
-```
-
-### `api.login<T>(options)`
-
-Like `api.post` but always fires immediately — never queued, never intercepted for 401 refresh.
-
-```typescript
-const result = await api.login<{ access_token: string }>({
-  url: "/auth/login",
-  body: { email, password },
-});
-```
+**Response (401):** the first 401 triggers a refresh POST to `refreshEndpoint` with
+`{ refresh: <refreshToken> }`. Concurrent requests are queued and replayed once the
+new token lands; a per-request `_retry` guard prevents loops. If refresh fails,
+`onAuthFailure` runs and the original error rejects. Refresh state is per-instance.
 
 ---
 
-## `ApiResponse<T>`
+## Notes
 
-```typescript
-interface ApiResponse<T> {
-  data: T | null;
-  ok: boolean;
-  status: number;
-  message: string;
-}
-```
-
-`ok: true` means the request succeeded. `ok: false` means it failed — inspect `status` and `message`.
-
----
-
-## `RequestOptions`
-
-```typescript
-interface RequestOptions {
-  url: string;
-  body?: unknown;
-  params?: Record<string, unknown>;
-  headers?: Record<string, string>;
-}
-```
-
----
-
-## `PaginationData`
-
-```typescript
-interface PaginationData {
-  page: number;
-  pageSize: number;
-  total: number;
-  totalPages: number;
-}
-```
-
-Used by `paginationResponseFn` in `DataTableShell` to map API pagination shapes.
-
----
-
-## `ApiClientConfig`
-
-```typescript
-interface ApiClientConfig {
-  tokenKey: string;
-  refreshEndpoint: string;
-  onLogout: () => void;
-  debug?: boolean;
-}
-```
-
----
-
-## Interceptor Behaviour
-
-**Request:** Reads `sessionStorage[tokenKey]` and sets `Authorization: Bearer <token>` on every request.
-
-**401 Response:** Pauses all in-flight requests, calls `refreshEndpoint`, stores the new token in `sessionStorage`, retries all paused requests. If refresh fails, calls `onLogout` and rejects.
-
-**Offline Queue:** `post`, `patch`, and `del` calls made while `navigator.onLine === false` are buffered. On `window 'online'` event, the queue drains in FIFO order.
+- The refresh call uses raw `fetch` (not the instance) so it bypasses these
+  interceptors and can never recurse.
+- Token keys are parameterized so an app can consolidate onto a single key set
+  without editing this package.
+- Typed per-resource CRUD helpers (`createResourceApi`) are a planned layer on top
+  of this instance — see the framework plan, Phase 3.

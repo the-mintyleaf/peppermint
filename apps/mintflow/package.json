@@ -13,6 +13,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@peppermint/admin": "workspace:*",
+    "@peppermint/api-client": "workspace:*",
     "@peppermint/ui": "workspace:*",
     "@peppermint/utils": "workspace:^",
     "@phosphor-icons/react": "^2.1.10",

@@ -1,21 +1,19 @@
 "use client";
 
-import { Warning, XIcon, TrashIcon } from "@phosphor-icons/react";
+import { Warning } from "@phosphor-icons/react";
 import {
-  Alert,
   Box,
-  Button,
   Container,
   Divider,
   Group,
   ModuleHeader,
   Paper,
   Progress,
-  Stack,
   Text,
 } from "@peppermint/ui";
 import { useFormControls } from "../../wrappers/FormWrapper/FormWrapper.hooks";
 import { FormShellFooter } from "./components/FormShellFooter";
+import { FormShellHeader } from "./components/FormShellHeader";
 import { FormShellStepper } from "./components/FormShellStepper";
 import type { FormShellProps } from "./FormShell.types";
 
@@ -43,34 +41,13 @@ export function FormShell({
 
   return (
     <>
-      <ModuleHeader
-        breadcrumbItems={breadcrumbItems}
-        right={
-          <Group gap={0}>
-            <Button
-              color="orange"
-              px="md"
-              h={38}
-              size="xs"
-              variant="subtle"
-              leftSection={<TrashIcon weight="fill" size={14} />}
-              onClick={onBack}
-            >
-              Refill fields
-            </Button>
+      <ModuleHeader breadcrumbItems={breadcrumbItems} />
 
-            <Button
-              px="md"
-              h={38}
-              size="xs"
-              variant="light"
-              leftSection={<XIcon size={14} />}
-              onClick={onBack}
-            >
-              Cancel
-            </Button>
-          </Group>
-        }
+      {/* Title + guarded Back button. Back confirms first when the form is dirty. */}
+      <FormShellHeader
+        title={title}
+        description={description}
+        onBack={onBack}
       />
 
       <Box style={{ flexShrink: 0 }} bg="gray.0">

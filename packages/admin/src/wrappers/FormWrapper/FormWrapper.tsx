@@ -204,9 +204,22 @@ export function FormWrapper<T extends FormValues>({
     if (config?.mode === "on-next") {
       isLoadingRef.current = true;
       setIsLoading(true);
-      const ok = await callStepApi(cur);
-      isLoadingRef.current = false;
-      setIsLoading(false);
+      let ok = false;
+      try {
+        ok = await callStepApi(cur);
+      } catch (error) {
+        // A rejected promise (vs. a resolved { ok: false }) must not latch loading.
+        notifications.show({
+          color: "red",
+          title: "Error",
+          message:
+            error instanceof Error ? error.message : "Something went wrong.",
+        });
+        setStepStatus((prev) => ({ ...prev, [cur]: "error" }));
+      } finally {
+        isLoadingRef.current = false;
+        setIsLoading(false);
+      }
       if (!ok) return;
     }
 
@@ -245,38 +258,46 @@ export function FormWrapper<T extends FormValues>({
     isLoadingRef.current = true;
     setIsLoading(true);
 
-    const configs = stepApiConfigsRef.current ?? [];
-    for (let i = 0; i < configs.length; i++) {
-      if (configs[i]?.mode === "on-submit") {
-        const ok = await callStepApi(i);
-        if (!ok) {
-          isLoadingRef.current = false;
-          setIsLoading(false);
+    // try/finally guarantees loading is released even if an API call rejects
+    // (rather than returning a resolved { ok: false }) — otherwise the form
+    // would latch disabled forever.
+    try {
+      const configs = stepApiConfigsRef.current ?? [];
+      for (let i = 0; i < configs.length; i++) {
+        if (configs[i]?.mode === "on-submit") {
+          const ok = await callStepApi(i);
+          if (!ok) return;
+        }
+      }
+
+      const finalFn = finalSubmitFnRef.current;
+      if (finalFn) {
+        const clone = structuredClone(f.values) as T;
+        const response = await finalFn(clone, stepIdsRef.current);
+        if (!response.ok) {
+          notifications.show({
+            color: "red",
+            title: "Error",
+            message: response.message ?? "Something went wrong.",
+          });
+          setStepStatus((prev) => ({ ...prev, [currentRef.current]: "error" }));
           return;
         }
       }
-    }
 
-    const finalFn = finalSubmitFnRef.current;
-    if (finalFn) {
-      const clone = structuredClone(f.values) as T;
-      const response = await finalFn(clone, stepIdsRef.current);
-      if (!response.ok) {
-        notifications.show({
-          color: "red",
-          title: "Error",
-          message: response.message ?? "Something went wrong.",
-        });
-        setStepStatus((prev) => ({ ...prev, [currentRef.current]: "error" }));
-        isLoadingRef.current = false;
-        setIsLoading(false);
-        return;
-      }
+      if (formClearOnSuccessRef.current) f.reset();
+    } catch (error) {
+      notifications.show({
+        color: "red",
+        title: "Error",
+        message:
+          error instanceof Error ? error.message : "Something went wrong.",
+      });
+      setStepStatus((prev) => ({ ...prev, [currentRef.current]: "error" }));
+    } finally {
+      isLoadingRef.current = false;
+      setIsLoading(false);
     }
-
-    if (formClearOnSuccessRef.current) f.reset();
-    isLoadingRef.current = false;
-    setIsLoading(false);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // form is a new reference on every render in Mantine controlled mode.

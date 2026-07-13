@@ -14,6 +14,11 @@ export * from "@mantine/form";
 export * from "@tanstack/react-query";
 export { default as dayjs } from "dayjs";
 
+// `noop` is exported by more than one starred module (e.g. @mantine/core and
+// @tanstack/react-query); an explicit re-export disambiguates the otherwise
+// ambiguous `export *` (TS2308). Fuller barrel rework is tracked as H7 (Phase 2).
+export { noop } from "@mantine/core";
+
 export * from "./wrappers/AppWrapper";
 export * from "./wrappers/QueryClientWrapper";
 

@@ -2,7 +2,6 @@
   "name": "@peppermint/ui",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "check-types": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1"
