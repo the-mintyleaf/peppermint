@@ -20,7 +20,9 @@ export interface ReasonConfirmOptions {
   onConfirm: (reason: string) => void | Promise<void>;
 }
 
-const MODAL_ID = "reason-confirm-modal";
+// Unique id per open so two confirm modals in quick succession don't collide on
+// the same id (Mantine ignores a second open with a duplicate id).
+let modalCounter = 0;
 
 interface ReasonConfirmContentProps extends ReasonConfirmOptions {
   modalId: string;
@@ -46,8 +48,11 @@ function ReasonConfirmContent({
     setSubmitting(true);
     try {
       await onConfirm(reason.trim());
+      // Success — close the modal (content unmounts; no setState afterward).
       modals.close(modalId);
-    } finally {
+    } catch {
+      // Keep the modal open for retry; onConfirm is expected to surface its own
+      // error toast. Catching here avoids an unhandled promise rejection.
       setSubmitting(false);
     }
   };
@@ -95,13 +100,14 @@ function ReasonConfirmContent({
  * required) and shows a spinner while `onConfirm` runs.
  */
 export function openReasonConfirmModal(options: ReasonConfirmOptions): void {
+  const modalId = `reason-confirm-modal-${(modalCounter += 1)}`;
   modals.open({
-    modalId: MODAL_ID,
+    modalId,
     title: (
       <Text size="sm" fw={600}>
         {options.title}
       </Text>
     ),
-    children: <ReasonConfirmContent {...options} modalId={MODAL_ID} />,
+    children: <ReasonConfirmContent {...options} modalId={modalId} />,
   });
 }

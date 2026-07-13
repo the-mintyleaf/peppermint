@@ -57,15 +57,22 @@ function defaultToServerParams(params: QueryParams): Record<string, unknown> {
     .map((s) => (s.direction === "desc" ? `-${s.field}` : s.field))
     .join(",");
   return {
+    // Filters first so a filter key can never clobber the reserved pagination/sort
+    // params below.
+    ...params.filters,
     page: params.page,
     page_size: params.pageSize,
     ...(params.search ? { search: params.search } : {}),
     ...(ordering ? { ordering } : {}),
-    ...params.filters,
   };
 }
 
-/** Default: `{ data, meta: { count } }` → `{ data, meta: { total: count, ...meta } }`. */
+/**
+ * Default: `{ data, meta: { count } }` → `{ data, meta: { total: count, ...meta } }`.
+ * Assumes the Peppermint list envelope; a resource that deviates should pass its own
+ * `toListResponse`. When `meta.count` is absent (a contract mismatch) `total` is 0
+ * rather than a fabricated page-length that would silently mis-paginate.
+ */
 function defaultToListResponse<TRow>(raw: unknown): ResourceListResponse<TRow> {
   const body = (raw ?? {}) as {
     data?: TRow[];
@@ -73,7 +80,7 @@ function defaultToListResponse<TRow>(raw: unknown): ResourceListResponse<TRow> {
   };
   const rows = Array.isArray(body.data) ? body.data : [];
   const meta = body.meta ?? {};
-  const total = typeof meta.count === "number" ? meta.count : rows.length;
+  const total = typeof meta.count === "number" ? meta.count : 0;
   return { data: rows, meta: { ...meta, total } };
 }
 

@@ -13,6 +13,12 @@ export interface ModuleErrorBoundaryProps {
   onError?: (error: Error) => void;
   /** Heading shown by the default fallback. */
   title?: string;
+  /**
+   * When any value here changes (shallow), the boundary clears its error — so
+   * navigating to a different record or changing a filter recovers automatically
+   * instead of staying stuck on the fallback. Pass e.g. `[recordId]` or `[pathname]`.
+   */
+  resetKeys?: readonly unknown[];
 }
 
 interface ModuleErrorBoundaryState {
@@ -36,6 +42,15 @@ export class ModuleErrorBoundary extends Component<
 
   componentDidCatch(error: Error): void {
     this.props.onError?.(error);
+  }
+
+  componentDidUpdate(prev: ModuleErrorBoundaryProps): void {
+    if (!this.state.error) return;
+    const a = prev.resetKeys;
+    const b = this.props.resetKeys;
+    const changed =
+      a?.length !== b?.length || !!a?.some((value, i) => value !== b?.[i]);
+    if (changed) this.reset();
   }
 
   reset = (): void => this.setState({ error: null });

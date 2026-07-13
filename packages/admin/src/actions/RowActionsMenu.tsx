@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import type { ReactNode } from "react";
 import { ActionIcon, Menu } from "@peppermint/ui";
 import { DotsThreeVerticalIcon } from "@phosphor-icons/react/dist/csr/DotsThreeVertical";
@@ -46,7 +47,8 @@ export function RowActionsMenu<T>({
       </Menu.Target>
       <Menu.Dropdown>
         {visible.map((action, index) => (
-          <div key={action.label}>
+          // Fragment (not a div) so items stay direct children of Menu.Dropdown.
+          <Fragment key={action.label}>
             {action.dividerBefore && index > 0 && <Menu.Divider />}
             <Menu.Item
               leftSection={action.icon}
@@ -56,7 +58,7 @@ export function RowActionsMenu<T>({
             >
               {action.label}
             </Menu.Item>
-          </div>
+          </Fragment>
         ))}
       </Menu.Dropdown>
     </Menu>

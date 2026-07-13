@@ -29,13 +29,24 @@ export function statusColumn<T extends Row, S extends string = string>(
   return {
     accessor,
     title: title ?? accessorToTitle(accessor),
-    render: (record) => (
-      <StatusBadge
-        value={String(getFieldValue(record, accessor)) as S}
-        colorMap={colorMap}
-        labelMap={labelMap}
-      />
-    ),
+    render: (record) => {
+      const raw = getFieldValue(record, accessor);
+      // A nullish/empty status must not render a `"null"`/`"undefined"` pill.
+      if (raw == null || raw === "") {
+        return (
+          <Text size="xs" c="dimmed">
+            —
+          </Text>
+        );
+      }
+      return (
+        <StatusBadge
+          value={String(raw) as S}
+          colorMap={colorMap}
+          labelMap={labelMap}
+        />
+      );
+    },
     ...rest,
   } as DataTableShellColumn<T>;
 }
@@ -60,9 +71,15 @@ export function dateColumn<T extends Row>(
     title: title ?? accessorToTitle(accessor),
     render: (record) => {
       const value = getFieldValue(record, accessor);
+      const parsed =
+        value != null && value !== "" ? dayjs(value as string) : null;
+      // Guard against unparseable values so a non-date never renders "Invalid Date".
+      if (parsed && parsed.isValid()) {
+        return <Text size="xs">{parsed.format(format)}</Text>;
+      }
       return (
-        <Text size="xs" c={value ? undefined : "dimmed"}>
-          {value ? dayjs(value as string).format(format) : fallback}
+        <Text size="xs" c="dimmed">
+          {fallback}
         </Text>
       );
     },
@@ -75,6 +92,8 @@ export function dateColumn<T extends Row>(
 export interface BooleanColumnOptions {
   trueLabel?: string;
   falseLabel?: string;
+  /** Shown when the value is null/undefined — distinct from an explicit `false`. */
+  nullLabel?: string;
 }
 
 /** A column that renders a boolean as Yes/No (or custom labels). */
@@ -82,15 +101,28 @@ export function booleanColumn<T extends Row>(
   accessor: string,
   options: BooleanColumnOptions & ColumnOverrides<T> = {},
 ): DataTableShellColumn<T> {
-  const { trueLabel = "Yes", falseLabel = "No", title, ...rest } = options;
+  const {
+    trueLabel = "Yes",
+    falseLabel = "No",
+    nullLabel = "—",
+    title,
+    ...rest
+  } = options;
   return {
     accessor,
     title: title ?? accessorToTitle(accessor),
-    render: (record) => (
-      <Text size="xs">
-        {getFieldValue(record, accessor) ? trueLabel : falseLabel}
-      </Text>
-    ),
+    render: (record) => {
+      const value = getFieldValue(record, accessor);
+      // Don't misrepresent an unset (null) value as a definitive "No".
+      if (value == null) {
+        return (
+          <Text size="xs" c="dimmed">
+            {nullLabel}
+          </Text>
+        );
+      }
+      return <Text size="xs">{value ? trueLabel : falseLabel}</Text>;
+    },
     ...rest,
   } as DataTableShellColumn<T>;
 }
