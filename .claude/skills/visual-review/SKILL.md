@@ -18,6 +18,9 @@ contrast failures, competing anchors, and broken dark mode are actually visible.
 
 1. Probe: `curl -s -o /dev/null -w "%{http_code}" http://localhost:3000` —
    any HTTP response means a server is up; reuse it and **do not kill it later**.
+   Verify it is actually the target app (the first capture should render it — if
+   the screenshots show something else, another service owns port 3000: start
+   the app on a free port and pass that port in `--url`).
 2. Otherwise start one in the background: `pnpm dev --filter <app>`, then poll
    the same curl until it responds (Next.js dev boot can take ~30–60s). You
    started it → you stop it at the end.

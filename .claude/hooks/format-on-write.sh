@@ -15,6 +15,12 @@ case "$FILE" in
 esac
 
 cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
-pnpm exec prettier --write "$FILE" > /dev/null 2>&1 || true
+ERR=$(pnpm exec prettier --write "$FILE" 2>&1 > /dev/null)
+if [ $? -ne 0 ]; then
+  # Prettier failing to parse usually means a syntax error in what was just
+  # written — tell Claude instead of hiding it.
+  jq -n --arg ctx "[WARN] prettier could not format $FILE (likely a syntax error in the content just written):
+$(printf '%s' "$ERR" | head -5)" '{hookSpecificOutput: {hookEventName: "PostToolUse", additionalContext: $ctx}}'
+fi
 
 exit 0

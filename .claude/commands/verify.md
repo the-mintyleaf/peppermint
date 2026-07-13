@@ -32,7 +32,7 @@ concurrently with anything.
 **Filter scoping:** if $ARGUMENTS includes --filter name, apply the filter to
 check-types, lint, and build only. `format`/`format:check` exist at the repo root
 only — never pass them a `--filter`; to scope formatting, use path arguments
-instead (e.g. `pnpm prettier --check "apps/<app>/**/*.{ts,tsx,md}"`). Known gap:
+instead (e.g. `pnpm exec prettier --check "apps/<app>/**/*.{ts,tsx,md}"`). Known gap:
 `apps/mintflow` has no `check-types` script — the verifier reports it SKIPPED;
 do not invent the script.
 

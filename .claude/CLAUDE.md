@@ -439,6 +439,9 @@ Examples:
 - Verify with `pnpm format && pnpm check-types && pnpm lint` before committing. Use `/verify`. For complete pre-commit and testing standards, see `STANDARDS.md → Verification & Testing Standards`.
 - Update `docs/AI.md` whenever module structure changes. Use `/update-ai-map`.
 - One PR per task/feature. Use `/pre-pr` to prepare.
+- Backend docs arrived or changed → `/sync-api <app> <domain>` (canonical intake: `docs/backend/<domain>/`; never guess DTO shapes a contract digest answers).
+- Design guidelines arrived or changed → `/sync-design <app>` (produces `docs/design/` + theme tokens).
+- After building or changing visual modules → `/visual-review <route>` to see the rendered result before calling it done.
 
 ---
 

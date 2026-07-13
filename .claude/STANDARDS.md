@@ -417,7 +417,7 @@ Utility docs should include:
 
 ### Verification & Testing Standards
 
-> **Scope rule:** Items 1–2 and 22 apply to every task. All other categories apply when the task touches that area. Do not run all 22 categories for a one-line CSS fix.
+> **Scope rule:** Items 1–2 apply to every task; item 22 to every task that touches visual `.tsx` files (its own scope rule). All other categories apply when the task touches that area. Do not run all 22 categories for a one-line CSS fix.
 >
 > **ACTIVE vs DORMANT:** Categories marked **DORMANT** describe standards whose runner is not configured in this repo yet (no test framework, no analyzer, no Storybook app). They remain the target for when that infra lands. For a DORMANT category: **do not invent or run its scripts** (`rules.md`: only run commands that exist) — verify the checklist items manually where feasible and note what could not be verified. The only runnable scripts today are the root `package.json` scripts (`build`, `dev`, `lint`, `format`, `format:check`, `check-types`) plus native pnpm commands (`install`, `audit`).
 
@@ -477,7 +477,7 @@ Checks:
 
 #### 3. Unit tests — DORMANT (no runner configured; do not invent scripts)
 
-Run:
+Run (once a runner exists — not today):
 
 ```bash
 pnpm test
@@ -507,7 +507,7 @@ Minimum pass rule:
 
 Use Vitest/Jest + Testing Library.
 
-Run:
+Run (once a runner exists — not today):
 
 ```bash
 pnpm test:components
@@ -557,7 +557,7 @@ Examples:
 
 Use Playwright or Cypress.
 
-Run:
+Run (once a runner exists — not today):
 
 ```bash
 pnpm test:e2e

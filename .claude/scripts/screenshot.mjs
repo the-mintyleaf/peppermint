@@ -44,6 +44,19 @@ function parseArgs(argv) {
     console.error("Required: --url <url> --out <dir>");
     process.exit(1);
   }
+  if (
+    args.widths.some((w) => !Number.isFinite(w) || w <= 0) ||
+    !Number.isFinite(args.height) ||
+    !Number.isFinite(args.waitMs)
+  ) {
+    console.error("Invalid numeric value in --widths/--height/--wait-ms");
+    process.exit(1);
+  }
+  const validSchemes = ["light", "dark", "no-preference"];
+  if (args.schemes.some((s) => !validSchemes.includes(s))) {
+    console.error(`Invalid --schemes value; use: ${validSchemes.join(",")}`);
+    process.exit(1);
+  }
   return args;
 }
 
@@ -69,7 +82,12 @@ for (const scheme of args.schemes) {
     const page = await context.newPage();
     const file = join(args.out, `${slug}-${width}-${scheme}.png`);
     try {
-      await page.goto(args.url, { waitUntil: "networkidle", timeout: 30000 });
+      // networkidle never resolves on pages with polling/SSE — fall back to "load".
+      try {
+        await page.goto(args.url, { waitUntil: "networkidle", timeout: 15000 });
+      } catch {
+        await page.goto(args.url, { waitUntil: "load", timeout: 30000 });
+      }
       // Settle skeletons/animations beyond network idle.
       await page.waitForTimeout(args.waitMs);
       await page.screenshot({ path: file, fullPage: true });
