@@ -163,7 +163,7 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 4. Add to the package root `src/index.ts` if it is part of the public API.
 5. Create `packages/<pkg>/docs/<Name>.md` — implementation reference (internals, key decisions).
 6. Create `usage-doc/<pkg>/<Name>.md` — consumer reference (props, usage examples).
-7. If the component is a public-facing UI component, create a story at `apps/storybook/stories/<pkg>/<Name>.stories.tsx` covering: default, loading, empty, error, and disabled states.
+7. _Once `apps/storybook` exists_ (it does not yet — see `STANDARDS.md` cat 19, DORMANT): if the component is public-facing, add a story at `apps/storybook/stories/<pkg>/<Name>.stories.tsx` covering default, loading, empty, error, and disabled states. Skip until the app is scaffolded — do not create the app to satisfy this step.
 
 #### Editing a package component
 
@@ -183,7 +183,7 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 2. Remove from all barrel levels: component `index.ts` → group `index.ts` → `src/index.ts`.
 3. Delete `packages/<pkg>/docs/<Name>.md`.
 4. Delete `usage-doc/<pkg>/<Name>.md`.
-5. Check `apps/storybook/stories/` for a story file and delete it with the component.
+5. If `apps/storybook` exists (not yet — see cat 19 DORMANT), check `apps/storybook/stories/` for a story file and delete it with the component.
 6. If the component owned a context or Zustand store, grep for consumers of those exports too before removing.
 
 ---
