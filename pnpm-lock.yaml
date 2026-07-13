@@ -131,10 +131,10 @@ importers:
         specifier: ^8.3.13
         version: 8.3.13(@mantine/core@9.3.0(@mantine/hooks@9.3.0(react@19.2.4))(@types/react@19.2.16)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.3.0(react@19.2.4))(clsx@2.1.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
-        specifier: '>=19'
+        specifier: '>=19 <20'
         version: 19.2.4
       react-dom:
-        specifier: '>=19'
+        specifier: '>=19 <20'
         version: 19.2.4(react@19.2.4)
       zod:
         specifier: ^4.4.3

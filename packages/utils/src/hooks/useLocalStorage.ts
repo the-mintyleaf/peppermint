@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 export function useLocalStorage<T>(
   key: string,
@@ -7,6 +7,11 @@ export function useLocalStorage<T>(
   // Always `initial` on the first render so server and client HTML match; the
   // stored value is read after mount to avoid a hydration mismatch / flash.
   const [stored, setStored] = useState<T>(initial);
+
+  // Read `initial` via a ref so effects don't re-subscribe when a caller passes
+  // an inline literal (a fresh reference every render).
+  const initialRef = useRef(initial);
+  initialRef.current = initial;
 
   useEffect(() => {
     try {
@@ -37,12 +42,14 @@ export function useLocalStorage<T>(
     function onStorage(e: StorageEvent) {
       if (e.key !== key) return;
       try {
-        setStored(e.newValue ? (JSON.parse(e.newValue) as T) : initial);
+        setStored(
+          e.newValue ? (JSON.parse(e.newValue) as T) : initialRef.current,
+        );
       } catch {}
     }
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
-  }, [key, initial]);
+  }, [key]);
 
   return [stored, setValue];
 }

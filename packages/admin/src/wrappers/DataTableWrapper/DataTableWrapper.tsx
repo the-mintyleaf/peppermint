@@ -20,9 +20,13 @@ import type {
   DataTableDataContextValue,
   DataTableStoreContextValue,
   DataTableWrapperProps,
+  FilterState,
   PaginationMeta,
   QueryParams,
 } from "./DataTableWrapper.types";
+
+// Stable empty-filters reference fed to useDebounce in client mode (see below).
+const EMPTY_FILTERS: FilterState = {};
 
 export function DataTableWrapper<T = unknown>({
   queryKey,
@@ -81,8 +85,16 @@ export function DataTableWrapper<T = unknown>({
   // debounceMs. Debounce is only *consumed* when enableServerQuery is true (client
   // filtering runs against the live value); isDebouncing is derived as the lag
   // between live and debounced values.
-  const debouncedSearch = useDebounce(search, debounceMs);
-  const debouncedFilters = useDebounce(filters, debounceMs);
+  // Feed stable constants in client mode so no debounce timer churns when the
+  // debounced values are never consumed.
+  const debouncedSearch = useDebounce(
+    enableServerQuery ? search : "",
+    debounceMs,
+  );
+  const debouncedFilters = useDebounce(
+    enableServerQuery ? filters : EMPTY_FILTERS,
+    debounceMs,
+  );
   const isDebouncing =
     enableServerQuery &&
     (debouncedSearch !== search || debouncedFilters !== filters);
