@@ -3,7 +3,10 @@ import type { ModalFormComponentProps } from "@peppermint/admin";
 import type { ScopeType } from "@/modules/admin/authenticate/_shared/authenticate.types";
 import type { RoleBinding } from "../bindings.types";
 
-export type RoleBindingFormProps = ModalFormComponentProps<RoleBinding>;
+export type RoleBindingFormProps = ModalFormComponentProps<
+  RoleBinding,
+  RoleBindingFormValues
+>;
 
 export interface RoleBindingFormValues {
   subject_user_id: string | null;

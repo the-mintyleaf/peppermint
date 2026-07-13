@@ -10,6 +10,7 @@ import { createDenial, fetchDenials } from "../denials.api";
 import { denialsColumns } from "../denials.columns";
 import { denialQueryKeys } from "../denials.queryKeys";
 import type { Denial, DenialCreatePayload } from "../denials.types";
+import type { DenialFormValues } from "../form/DenialForm.types";
 import { DenialForm } from "../form";
 
 export function DenialsList() {
@@ -21,7 +22,7 @@ export function DenialsList() {
         ]}
       />
       <ModalPaper withBorder>
-        <ModalTableShell<Denial>
+        <ModalTableShell<Denial, DenialFormValues>
           queryKey={denialQueryKeys.list()}
           queryGetFn={fetchDenials}
           dataKey="data"

@@ -2,13 +2,11 @@ import type { ModalFormComponentProps } from "@peppermint/admin";
 import type { ScopeType } from "../../_shared/authenticate.types";
 import type { Grant } from "../grants.types";
 
-export type GrantFormProps = ModalFormComponentProps<Grant>;
+/** Record type is `Grant` (for edit prefill); the form's own value shape is
+ * `GrantFormValues`, so `onSubmit` is typed to the values the form actually
+ * emits — no cast across the boundary. */
+export type GrantFormProps = ModalFormComponentProps<Grant, GrantFormValues>;
 
-/** Internal form state — this is the create-payload shape, not the `Grant`
- * read entity. `ModalFormComponentProps<Grant>` forces `onSubmit`'s declared
- * parameter type to `Grant`; the submit handler casts across that boundary
- * (see GrantForm.tsx). GrantsList.tsx's `onCreateApi` casts back to
- * `GrantCreatePayload` before calling the API. */
 export interface GrantFormValues {
   subject_user_id: string | null;
   permission_key: string | null;

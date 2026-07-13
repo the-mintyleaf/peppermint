@@ -4,7 +4,6 @@ import { Button, Stack, Textarea, useForm } from "@peppermint/ui";
 import { PermissionKeyPicker } from "@/modules/admin/authenticate/_shared/PermissionKeyPicker";
 import { ScopeFields } from "@/modules/admin/authenticate/_shared/ScopeFields";
 import { UserPicker } from "@/modules/admin/authenticate/_shared/UserPicker";
-import type { Grant } from "../grants.types";
 import type { GrantFormProps, GrantFormValues } from "./GrantForm.types";
 
 const INITIAL_VALUES: GrantFormValues = {
@@ -35,7 +34,7 @@ export function GrantForm({ onSubmit, isLoading }: GrantFormProps) {
   });
 
   const handleSubmit = form.onSubmit((values) => {
-    onSubmit(values as unknown as Grant);
+    onSubmit(values);
   });
 
   return (

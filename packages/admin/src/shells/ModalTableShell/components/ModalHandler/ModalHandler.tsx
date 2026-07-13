@@ -9,7 +9,11 @@ import type { ModalHandlerProps } from "../../ModalTableShell.types";
 
 const MODAL_BODY_PADDING = 0;
 
-export function ModalHandler<T extends Record<string, unknown>>({
+export function ModalHandler<
+  TRow extends Record<string, unknown>,
+  TCreate = TRow,
+  TEdit = TCreate,
+>({
   queryKey,
   moduleInfo,
   modalWidth = "md",
@@ -24,7 +28,7 @@ export function ModalHandler<T extends Record<string, unknown>>({
   onCreateSuccess,
   onEditSuccess,
   getErrorMessage,
-}: ModalHandlerProps<T>) {
+}: ModalHandlerProps<TRow, TCreate, TEdit>) {
   const queryClient = useQueryClient();
 
   const {
@@ -35,7 +39,7 @@ export function ModalHandler<T extends Record<string, unknown>>({
     closeCreateModal,
     closeEditModal,
     setActiveEditRecord,
-  } = useModalTableShellContext<T>();
+  } = useModalTableShellContext<TRow>();
 
   const moduleLabel = moduleInfo.label ?? moduleInfo.name;
   const createLabel = createModalTitle ?? `New ${moduleInfo.name}`;
@@ -50,10 +54,10 @@ export function ModalHandler<T extends Record<string, unknown>>({
   }, [queryClient, queryKey]);
 
   const createMutation = useMutation({
-    mutationFn: async (values: T) => {
+    mutationFn: async (values: TCreate) => {
       if (!onCreateApi) return;
       const payload = transformOnCreate ? transformOnCreate(values) : values;
-      return onCreateApi(payload as T);
+      return onCreateApi(payload as TCreate);
     },
     onSuccess: (result) => {
       notifications.show({
@@ -77,12 +81,12 @@ export function ModalHandler<T extends Record<string, unknown>>({
   });
 
   const editMutation = useMutation({
-    mutationFn: async (values: T) => {
+    mutationFn: async (values: TEdit) => {
       if (!onEditApi || !activeEditRecord) return;
       const payload = transformOnEdit
         ? transformOnEdit(values, activeEditRecord)
         : values;
-      return onEditApi(payload as T, activeEditRecord);
+      return onEditApi(payload as TEdit, activeEditRecord);
     },
     onSuccess: (result) => {
       notifications.show({

@@ -14,7 +14,11 @@ import type {
   ModalTableShellContextValue,
 } from "./ModalTableShell.types";
 
-export function ModalTableShell<T extends Record<string, unknown>>({
+export function ModalTableShell<
+  TRow extends Record<string, unknown>,
+  TCreate = TRow,
+  TEdit = TCreate,
+>({
   queryKey,
   moduleInfo,
   modalWidth,
@@ -36,10 +40,10 @@ export function ModalTableShell<T extends Record<string, unknown>>({
   disableReviewButton,
   getErrorMessage,
   ...rest
-}: ModalTableShellProps<T>) {
+}: ModalTableShellProps<TRow, TCreate, TEdit>) {
   const [isCreateModalOpen, handlersCreateModal] = useDisclosure(false);
   const [isEditModalOpen, handlersEditModal] = useDisclosure(false);
-  const [activeEditRecord, setActiveEditRecord] = useState<T | null>(null);
+  const [activeEditRecord, setActiveEditRecord] = useState<TRow | null>(null);
   const [editLoading, setEditLoading] = useState(false);
 
   const queryClient = useQueryClient();
@@ -57,7 +61,7 @@ export function ModalTableShell<T extends Record<string, unknown>>({
   }, [handlersCreateModal]);
 
   const handleEditClick = useCallback(
-    async (record: T) => {
+    async (record: TRow) => {
       if (onEditTrigger) {
         setEditLoading(true);
         handlersEditModal.open();
@@ -158,7 +162,7 @@ export function ModalTableShell<T extends Record<string, unknown>>({
   const disableEditButton = !editFormComponent;
   const disableDeleteButton = !onDeleteApi;
 
-  const contextValue: ModalTableShellContextValue<T> = useMemo(
+  const contextValue: ModalTableShellContextValue<TRow> = useMemo(
     () => ({
       isCreateModalOpen,
       isEditModalOpen,
@@ -184,7 +188,7 @@ export function ModalTableShell<T extends Record<string, unknown>>({
 
   return (
     <ModalTableShellContext.Provider value={contextValue}>
-      <DataTableShell<T>
+      <DataTableShell<TRow>
         {...rest}
         queryKey={queryKey}
         moduleInfo={moduleInfo}
@@ -199,7 +203,7 @@ export function ModalTableShell<T extends Record<string, unknown>>({
         disableReviewButton={disableReviewButton}
       />
       {(onCreateApi || onEditApi) && (
-        <ModalHandler<T>
+        <ModalHandler<TRow, TCreate, TEdit>
           queryKey={queryKey}
           moduleInfo={moduleInfo}
           modalWidth={modalWidth}

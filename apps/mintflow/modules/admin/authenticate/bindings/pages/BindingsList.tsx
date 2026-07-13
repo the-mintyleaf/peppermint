@@ -19,6 +19,7 @@ import {
 import { RequireStaff } from "@/components/RequireStaff";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { RoleBindingForm } from "../form";
+import type { RoleBindingFormValues } from "../form/RoleBindingForm.types";
 import type { CreateRoleBindingPayload } from "../bindings.api";
 import {
   createRoleBinding,
@@ -136,7 +137,7 @@ function BindingsListContent() {
         ]}
       />
       <ModalPaper withBorder>
-        <ModalTableShell<RoleBinding>
+        <ModalTableShell<RoleBinding, RoleBindingFormValues>
           queryKey={roleBindingQueryKeys.list()}
           queryGetFn={fetchRoleBindings}
           dataKey="data"

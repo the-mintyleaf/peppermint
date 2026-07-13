@@ -12,7 +12,6 @@ import { InfoIcon } from "@phosphor-icons/react/dist/csr/Info";
 import { PermissionKeyPicker } from "@/modules/admin/authenticate/_shared/PermissionKeyPicker";
 import { ScopeFields } from "@/modules/admin/authenticate/_shared/ScopeFields";
 import { UserPicker } from "@/modules/admin/authenticate/_shared/UserPicker";
-import type { Denial } from "../denials.types";
 import type { DenialFormProps, DenialFormValues } from "./DenialForm.types";
 
 const SEVERITY_OPTIONS = [
@@ -51,7 +50,7 @@ export function DenialForm({ onSubmit, isLoading }: DenialFormProps) {
   });
 
   const handleSubmit = form.onSubmit((values) => {
-    onSubmit(values as unknown as Denial);
+    onSubmit(values);
   });
 
   return (

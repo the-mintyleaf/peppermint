@@ -15,7 +15,6 @@ import { ScopeFields } from "@/modules/admin/authenticate/_shared/ScopeFields";
 import type { ScopeValue } from "@/modules/admin/authenticate/_shared/authenticate.types";
 import { fetchAssignableRoles } from "@/modules/admin/authenticate/roles/roles.api";
 import { roleQueryKeys } from "@/modules/admin/authenticate/roles/roles.queryKeys";
-import type { RoleBinding } from "../bindings.types";
 import type {
   RoleBindingFormProps,
   RoleBindingFormValues,
@@ -56,11 +55,7 @@ export function RoleBindingForm({ onSubmit, isLoading }: RoleBindingFormProps) {
   };
 
   return (
-    <form
-      onSubmit={form.onSubmit((values) =>
-        onSubmit(values as unknown as RoleBinding),
-      )}
-    >
+    <form onSubmit={form.onSubmit((values) => onSubmit(values))}>
       <Stack gap="md" p="md">
         <UserPicker
           label="Subject user"

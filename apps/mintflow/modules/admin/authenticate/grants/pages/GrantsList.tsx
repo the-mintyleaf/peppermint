@@ -10,6 +10,7 @@ import { createGrant, fetchGrants } from "../grants.api";
 import { grantsColumns } from "../grants.columns";
 import { grantQueryKeys } from "../grants.queryKeys";
 import type { Grant, GrantCreatePayload } from "../grants.types";
+import type { GrantFormValues } from "../form/GrantForm.types";
 import { GrantForm } from "../form";
 
 export function GrantsList() {
@@ -21,7 +22,7 @@ export function GrantsList() {
         ]}
       />
       <ModalPaper withBorder>
-        <ModalTableShell<Grant>
+        <ModalTableShell<Grant, GrantFormValues>
           queryKey={grantQueryKeys.list()}
           queryGetFn={fetchGrants}
           dataKey="data"
