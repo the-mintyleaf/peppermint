@@ -57,11 +57,19 @@ Branch: `dev/claude-tuning` (do NOT create a new branch)
 
 ## Phase 4 — API-surface & type-safety
 
-- [ ] H5 re-type modal/form contract (TRow/TCreate/TEdit; TFormValues)
-- [ ] H6 remove Record<string,unknown> leak
+- [x] H5 re-type modal/form contract (ModalFormComponentProps<TRecord,TFormValues>; ModalTableShell<TRow,TCreate,TEdit>) — commits 51a0388, 0eb774e; dual-reviewed (backward-compat + runtime preservation confirmed)
+- [x] H5 migrated 3 representative consumers (grants/denials/bindings) — forms fully de-casted; runtime byte-identical
+- [ ] H5 sweep the remaining ~17 consumers' now-removable casts (incremental; they compile as-is)
+- [ ] H6 remove Record<string,unknown> leak (21 forced index signatures) — DEEP/risky
 - [ ] M1 collapse DataTableShellInner prop double-forward into context/config
-- [ ] Extend FormShell/FormWrapper into real form contract; migrate ~15 forms
-- [ ] Commit + dual adversarial review
+- [ ] Extend FormShell/FormWrapper into real form contract; migrate ~15 forms — LARGE
+- [ ] Commit + dual adversarial review (done for H5 core)
+
+### ⚠️ FLAGGED — pre-existing wire bug surfaced by H5 (needs backend confirmation)
+
+`GrantsList` POSTs `approved_by_id` but `GrantCreatePayload`/backend expects `approved_by`
+→ a selected approver is silently dropped on grant creation. Predates this work; NOT
+changed by the migration. Fix requires confirming the backend field name (docs/backend).
 
 ## Phase 5 — Consolidation factory
 
