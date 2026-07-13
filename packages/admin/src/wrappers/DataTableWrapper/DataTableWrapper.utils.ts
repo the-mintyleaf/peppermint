@@ -54,7 +54,12 @@ function matchesFilterValue(rowVal: unknown, filterVal: unknown): boolean {
  */
 export function clientFilter<T>(rows: T[], filters: FilterState): T[] {
   const active = Object.entries(filters).filter(
-    ([, v]) => v !== undefined && v !== null && v !== "",
+    ([, v]) =>
+      v !== undefined &&
+      v !== null &&
+      v !== "" &&
+      // An empty array would match nothing via `some(...)` — treat it as inactive.
+      !(Array.isArray(v) && v.length === 0),
   );
   if (!active.length) return rows;
   return rows.filter((row) =>

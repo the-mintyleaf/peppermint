@@ -73,19 +73,25 @@ export function AdminShell({
     <>
       <style dangerouslySetInnerHTML={{ __html: TRANSITION_STYLES }} />
       {/* Mobile-only toggle — the navbar is collapsed below `sm` and otherwise
-          has no way to open. */}
-      <Burger
-        opened={opened}
-        onClick={toggleMobileNav}
+          has no way to open. Sits in a dark chip so it stays visible over the
+          light main content. */}
+      <Box
         hiddenFrom="sm"
-        size="sm"
-        color="var(--mantine-color-gray-0)"
-        aria-label="Toggle navigation"
         pos="fixed"
         top={12}
         left={12}
-        style={{ zIndex: 1000 }}
-      />
+        p={4}
+        bg="dark.7"
+        style={{ zIndex: 1000, borderRadius: "var(--mantine-radius-sm)" }}
+      >
+        <Burger
+          opened={opened}
+          onClick={toggleMobileNav}
+          size="sm"
+          color="var(--mantine-color-gray-0)"
+          aria-label="Toggle navigation"
+        />
+      </Box>
       <AppShell
         className={styles.adminShell}
         mode="static"

@@ -229,7 +229,11 @@ export function DataTableShellFilterMenu<T extends Record<string, unknown>>({
           )}
 
           {filterType !== "select" && (
-            <Button size="xs" onClick={handleApply} disabled={!draftValue}>
+            <Button
+              size="xs"
+              onClick={handleApply}
+              disabled={draftValue === "" || draftValue == null}
+            >
               Apply filter
             </Button>
           )}

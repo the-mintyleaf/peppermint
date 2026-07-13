@@ -25,7 +25,7 @@ import {
   SunIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import type { PasswordChangePageProps } from "./PasswordChangePage.types";
-import { ACCESS_TOKEN_KEY } from "../SignInPage/utils/authStorage";
+import { ACCESS_TOKEN_KEY } from "../../auth/authStorage";
 
 interface FormValues {
   old_password: string;

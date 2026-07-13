@@ -33,7 +33,7 @@ import type {
   SignInPageProps,
   SignInResultData,
 } from "./SignInPage.types";
-import { storeAuthTokens } from "./utils/authStorage";
+import { storeAuthTokens } from "../../auth/authStorage";
 import { unwrapEnvelope } from "./utils/unwrapEnvelope";
 import {
   AppleLogoIcon,

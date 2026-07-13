@@ -200,14 +200,21 @@ export function DataTableWrapper<T = unknown>({
 
   // Surface query errors via onError from an effect (never during render — that
   // double-fires under StrictMode) and hand the caller the real error, not a
-  // synthetic one, so a field-level message can be shown.
+  // synthetic one, so a field-level message can be shown. A transition ref keeps
+  // this to one fire per error episode, so a failed manual refetch (isError stays
+  // true with a new Error instance) doesn't re-notify.
+  const wasError = useRef(false);
   useEffect(() => {
-    if (!isError) return;
-    onErrorRef.current?.(
-      error instanceof Error
-        ? error
-        : new Error("DataTableWrapper query failed"),
-    );
+    if (isError && !wasError.current) {
+      wasError.current = true;
+      onErrorRef.current?.(
+        error instanceof Error
+          ? error
+          : new Error("DataTableWrapper query failed"),
+      );
+    } else if (!isError) {
+      wasError.current = false;
+    }
   }, [isError, error]);
 
   // Extract rows array from response using dot-path dataKey
