@@ -1,4 +1,4 @@
-import type { SortState } from "./DataTableWrapper.types";
+import type { FilterState, SortState } from "./DataTableWrapper.types";
 
 /**
  * Reads a dot-notation path from a plain object.
@@ -29,6 +29,40 @@ export function clientSearch<T>(rows: T[], search: string): T[] {
       if (typeof v === "string") return v.toLowerCase().includes(lower);
       if (typeof v === "number") return String(v).includes(lower);
       return false;
+    }),
+  );
+}
+
+/** Loose equality used by client-side filtering. */
+function matchesFilterValue(rowVal: unknown, filterVal: unknown): boolean {
+  if (rowVal === filterVal) return true;
+  if (rowVal == null) return false;
+  const r = String(rowVal);
+  const f = String(filterVal);
+  if (r === f) return true;
+  // Date filters store `YYYY-MM-DD`; the row may hold a longer ISO timestamp.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(f) && r.startsWith(f)) return true;
+  return false;
+}
+
+/**
+ * Applies the store's active filters to rows in client mode. Each filter key is a
+ * dot-path into the row; a row passes when every active filter matches (scalar
+ * equality, or membership when the filter value is an array). Empty/null/undefined
+ * filter values are ignored. Without this, tab filters and the Filter menu are
+ * cosmetic in client mode.
+ */
+export function clientFilter<T>(rows: T[], filters: FilterState): T[] {
+  const active = Object.entries(filters).filter(
+    ([, v]) => v !== undefined && v !== null && v !== "",
+  );
+  if (!active.length) return rows;
+  return rows.filter((row) =>
+    active.every(([key, filterVal]) => {
+      const rowVal = getNestedValue(row, key);
+      return Array.isArray(filterVal)
+        ? filterVal.some((fv) => matchesFilterValue(rowVal, fv))
+        : matchesFilterValue(rowVal, filterVal);
     }),
   );
 }

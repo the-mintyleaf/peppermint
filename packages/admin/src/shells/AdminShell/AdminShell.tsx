@@ -1,9 +1,15 @@
 "use client";
 
-import { AppShell, Box, MantineProvider, useDisclosure } from "@peppermint/ui";
+import {
+  AppShell,
+  Box,
+  Burger,
+  MantineProvider,
+  useDisclosure,
+} from "@peppermint/ui";
 import type { ReactNode } from "react";
 import type { Icon } from "@phosphor-icons/react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { AdminShellNavbar } from "./components/Navbar/AdminShell.Navbar";
 import { resolveActiveMainNavItem } from "./nav.utils";
 import { SHELL_INSET, getNavbarWidth } from "./shell.constants";
@@ -42,10 +48,17 @@ export function AdminShell({
   mainNavHeader,
   pathname,
 }: AdminShellProps) {
-  const [opened] = useDisclosure();
+  const [opened, { toggle: toggleMobileNav, close: closeMobileNav }] =
+    useDisclosure();
   const subNavCollapsed = useSubNavStore((s) => s.subNavCollapsed);
   const collapse = useSubNavStore((s) => s.collapse);
   const expand = useSubNavStore((s) => s.expand);
+
+  // Close the mobile navbar whenever the route changes so a tap-through doesn't
+  // leave the overlay open on top of the new page.
+  useEffect(() => {
+    closeMobileNav();
+  }, [pathname, closeMobileNav]);
 
   const activeItem = useMemo(
     () => resolveActiveMainNavItem(config.mainNav, pathname ?? ""),
@@ -59,6 +72,20 @@ export function AdminShell({
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: TRANSITION_STYLES }} />
+      {/* Mobile-only toggle — the navbar is collapsed below `sm` and otherwise
+          has no way to open. */}
+      <Burger
+        opened={opened}
+        onClick={toggleMobileNav}
+        hiddenFrom="sm"
+        size="sm"
+        color="var(--mantine-color-gray-0)"
+        aria-label="Toggle navigation"
+        pos="fixed"
+        top={12}
+        left={12}
+        style={{ zIndex: 1000 }}
+      />
       <AppShell
         className={styles.adminShell}
         mode="static"

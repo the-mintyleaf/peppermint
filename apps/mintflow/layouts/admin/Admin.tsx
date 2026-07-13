@@ -35,6 +35,7 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
     () => ({
       ...buildAdminConfig(org, undefined, isStaff),
       linkComponent: Link,
+      onNavigate: (href: string) => router.push(href),
       userMenu: {
         variant: "icon" as const,
         user: user
@@ -50,7 +51,7 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
         onProfileClick: settingsHandlers.open,
       },
     }),
-    [org, isStaff, user, logoutMutate, settingsHandlers.open],
+    [org, isStaff, user, logoutMutate, settingsHandlers.open, router],
   );
 
   return (

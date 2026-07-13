@@ -15,6 +15,7 @@ import {
 } from "./DataTableWrapper.context";
 import { createTableStore } from "./DataTableWrapper.store";
 import {
+  clientFilter,
   clientPaginate,
   clientSearch,
   clientSort,
@@ -178,6 +179,7 @@ export function DataTableWrapper<T = unknown>({
     isLoading,
     isFetching,
     isError,
+    error,
     refetch,
   } = useQuery({
     queryKey: fullQueryKey,
@@ -196,14 +198,17 @@ export function DataTableWrapper<T = unknown>({
     staleTime,
   });
 
-  // Fire onError synchronously on the first error transition — avoids useEffect lag
-  const prevIsError = useRef(false);
-  if (isError && !prevIsError.current) {
-    prevIsError.current = true;
-    onErrorRef.current?.(new Error("DataTableWrapper query failed"));
-  } else if (!isError) {
-    prevIsError.current = false;
-  }
+  // Surface query errors via onError from an effect (never during render — that
+  // double-fires under StrictMode) and hand the caller the real error, not a
+  // synthetic one, so a field-level message can be shown.
+  useEffect(() => {
+    if (!isError) return;
+    onErrorRef.current?.(
+      error instanceof Error
+        ? error
+        : new Error("DataTableWrapper query failed"),
+    );
+  }, [isError, error]);
 
   // Extract rows array from response using dot-path dataKey
   const allRows = useMemo(() => {
@@ -228,12 +233,15 @@ export function DataTableWrapper<T = unknown>({
     return 0;
   }, [rawData]);
 
-  // Client-side processing pipeline — search → sort → paginate.
+  // Client-side processing pipeline — search → filter → sort → paginate.
   // Uses live (non-debounced) values so local filtering feels instant.
   const processedRows = useMemo<T[]>(() => {
     if (enableServerQuery) return allRows;
-    return clientSort(clientSearch(allRows, search), sort);
-  }, [allRows, enableServerQuery, search, sort]);
+    return clientSort(
+      clientFilter(clientSearch(allRows, search), filters),
+      sort,
+    );
+  }, [allRows, enableServerQuery, search, filters, sort]);
 
   const rows = useMemo<T[]>(() => {
     if (enableServerQuery) return allRows;

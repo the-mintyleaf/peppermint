@@ -80,4 +80,10 @@ export interface AdminShellConfig {
   settingsButton?: AdminShellSettingsButton;
   userMenu?: UserInfoPopoverProps;
   linkComponent?: ElementType;
+  /**
+   * Programmatic navigation used by spotlight results and bookmark items (which
+   * fire via onClick, not an anchor). Without it, spotlight/bookmark navigation
+   * is inert. Apps typically pass `(href) => router.push(href)`.
+   */
+  onNavigate?: (href: string) => void;
 }

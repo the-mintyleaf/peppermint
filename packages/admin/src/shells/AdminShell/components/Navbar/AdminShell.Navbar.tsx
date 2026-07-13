@@ -56,6 +56,7 @@ export function AdminShellNavbar({
           activeItemId={activeItem?.id}
           subNavCollapsed={subNavCollapsed}
           onSubNavExpand={onSubNavExpand}
+          onNavigate={config.onNavigate}
           userMenu={config.userMenu}
         />
 

@@ -36,7 +36,7 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
   rowExpansion,
   disableActions = false,
 }: DataTableShellTableProps<T>) {
-  const { rows, isLoading, isFetching, isDebouncing, paginationMeta } =
+  const { rows, isLoading, isFetching, isDebouncing, isError, paginationMeta } =
     useTableData<T>();
   const { selectedRecords } = useDataTableShellContext<T>();
 
@@ -49,6 +49,7 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
   const setSort = useTable((s) => s.setSort);
   const columnVisibility = useTable((s) => s.columnVisibility);
   const density = useTable((s) => s.density);
+  const selection = useTable((s) => s.selection);
   const setSelection = useTable((s) => s.setSelection);
 
   const spacing = DENSITY_SPACING[density];
@@ -114,13 +115,24 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
     [setPageSize, setPage],
   );
 
-  // Bridge mantine-datatable's record array selection to the store's Set<id>
+  // Bridge mantine-datatable's record array selection to the store's Set<id>.
+  // mantine-datatable only reports records on the CURRENT page, so we diff against
+  // the current page's ids and merge — otherwise every page change would wipe
+  // selections made on other pages.
   const handleSelectionChange = useCallback(
     (records: T[]) => {
-      const ids = records.map((r) => r[idAccessor] as string | number);
-      setSelection(new Set(ids));
+      const selectedPageIds = new Set(
+        records.map((r) => r[idAccessor] as string | number),
+      );
+      const next = new Set(selection);
+      for (const row of filteredRows) {
+        const id = row[idAccessor] as string | number;
+        if (selectedPageIds.has(id)) next.add(id);
+        else next.delete(id);
+      }
+      setSelection(next);
     },
-    [setSelection, idAccessor],
+    [selection, filteredRows, setSelection, idAccessor],
   );
 
   return (
@@ -147,7 +159,7 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
         records={filteredRows}
         fetching={isLoading || isFetching || isDebouncing}
         height={tableHeight > 0 ? tableHeight : undefined}
-        emptyState={<DataTableShellEmptyState />}
+        emptyState={<DataTableShellEmptyState error={isError} />}
         rowStyle={rowStyle}
         sortStatus={sortStatus}
         onSortStatusChange={handleSortStatusChange}
