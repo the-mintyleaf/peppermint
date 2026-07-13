@@ -44,7 +44,7 @@ Compose the PR description following the format in `.claude/STANDARDS.md > Agent
 - list of modules, packages, or files touched
 
 ## Screenshots
-- (flag for human if UI changed — agent cannot take screenshots)
+- (if UI changed: run /visual-review on the touched routes and reference the capture paths + findings here)
 
 ## Docs updated
 - list of docs/AI.md files updated

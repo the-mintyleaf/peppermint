@@ -31,6 +31,8 @@ If git diff returns nothing (clean working tree), ask the user which module or f
 
 Read `.claude/DESIGN.md` in full before proceeding. Every finding must cite a principle from that document (e.g., "DESIGN.md §1.9" or "DESIGN.md Part 6").
 
+**With screenshots (recommended for new pages and pre-release polish):** if the scoped modules have routes and a dev server is available, also run `/visual-review` on those routes first — this audit then covers both the code and the rendered result, and findings can cite screenshot evidence in addition to file:line.
+
 ---
 
 ## 1. Identify the page pattern

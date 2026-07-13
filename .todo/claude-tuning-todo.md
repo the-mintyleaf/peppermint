@@ -30,10 +30,11 @@ Branch: dev/claude-tuning
 
 ## Phase 4 — /visual-review (screenshot feedback loop)
 
-- [ ] Create `.claude/scripts/screenshot.mjs` (Playwright capture: breakpoints × light/dark)
-- [ ] Create `.claude/skills/visual-review/SKILL.md`
-- [ ] Create `.claude/commands/visual-review.md`
-- [ ] Update pre-pr.md ("agent cannot take screenshots" → /visual-review) and design-check pointer
+- [x] Create `.claude/scripts/screenshot.mjs` (Playwright capture: breakpoints × light/dark)
+- [x] Create `.claude/skills/visual-review/SKILL.md`
+- [x] Create `.claude/commands/visual-review.md`
+- [x] Update pre-pr.md ("agent cannot take screenshots" → /visual-review) and design-check pointer
+- [x] E2E verified: real mintflow route captured at 390/1440 × light/dark, PNGs read back (found real "Versoin" typo on sign-in)
 - [ ] Commit phase 4
 
 ## Final
