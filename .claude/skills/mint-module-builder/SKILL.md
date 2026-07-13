@@ -1118,6 +1118,7 @@ import { useParams, useRouter } from "next/navigation";
 
 Given a requirements doc, follow this sequence:
 
+0. **Check for a contract digest** — if `apps/<app>/docs/api-contracts/<domain>.md` exists for your module's domain, it is required reading and the authority on DTO shapes, endpoints, envelopes, and error codes. Do not guess API shapes it already answers; if it's missing but `docs/backend/<domain>/` exists, ask the orchestrator to run `/sync-api` first.
 1. **Decide Contained vs Not Contained** (Section 2).
 2. **If Contained — pick ContainedModule or MultiPageModule** (Section 3).
 3. **Create the branch** (orchestrator-only): `git checkout -b dev/<feature-name>`.

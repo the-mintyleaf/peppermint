@@ -15,10 +15,10 @@ Branch: dev/claude-tuning
 
 ## Phase 2 — /sync-api (backend docs intake)
 
-- [ ] Move `.todo/task/{API,DATA_CONTRACT,INTEGRATION,SECURITY}.md` → `docs/backend/events/`
-- [ ] Create `.claude/skills/mint-api-sync/SKILL.md`
-- [ ] Create `.claude/commands/sync-api.md`
-- [ ] Point mint-requirements-tuner + mint-module-builder at contract digests as required reading
+- [x] Move `.todo/task/{API,DATA_CONTRACT,INTEGRATION,SECURITY}.md` → `docs/backend/events/`
+- [x] Create `.claude/skills/mint-api-sync/SKILL.md`
+- [x] Create `.claude/commands/sync-api.md`
+- [x] Point mint-requirements-tuner + mint-module-builder (skill §12 + agent read list) at contract digests
 - [ ] Commit phase 2
 
 ## Phase 3 — /sync-design (design guidelines intake)

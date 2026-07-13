@@ -218,6 +218,8 @@ For every field:
 
 ### K. API Shape (CONTAINED, MULTI_PAGE)
 
+Before interviewing: check `apps/<app>/docs/api-contracts/<domain>.md` and `docs/backend/<domain>/`. When a contract digest exists, take the answers below from it (cite it in the output) and only interview for what it leaves open. When backend docs exist without a digest, recommend running `/sync-api` first.
+
 - [ ] Key that holds the array in the list response (e.g. `data`, `items`)
 - [ ] Key that holds pagination (e.g. `meta`, `pagination`)
 - [ ] Server-side or client-side filtering/sorting/pagination?

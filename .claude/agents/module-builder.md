@@ -30,6 +30,10 @@ If any of these is missing from your prompt, stop and report the gap instead of 
 3. `.claude/rules.md` — quick reference.
 4. The parent domain's `docs/AI.md`.
 5. The reference sibling sub-module.
+6. `apps/<app>/docs/api-contracts/<domain>.md` if it exists — the authority on DTO
+   shapes, endpoints, and envelopes. Never guess an API shape it answers; if your
+   domain has `docs/backend/<domain>/` but no digest, report it as a blocker so the
+   orchestrator runs `/sync-api` first.
 
 ## Build order (within your unit)
 
