@@ -12,7 +12,9 @@ Branch: `dev/claude-tuning` (do NOT create a new branch)
 - [x] Remove stale `"main"` fields from ui/config/kanban (M12); empty config/kanban kept as intentional stubs (in dep-direction table)
 - [x] Remove dead code: `VantaTrunk` (M13, insecure CDN injection), `getState().toggleColumn;` no-op + unused `getState` (M3)
 - [~] `columnOrder` (M2) + `DataTableShellSortMenu` — SCOPE MOVED to Phase 4 (half-built features; decide render-order/multi-sort together in the DataTable API rework)
-- [ ] Verify (pre-existing repo type errors noted, scheduled to later phases), commit + dual adversarial review
+- [x] Verify (ui/api-client/utils green; 2 pre-existing admin errors scheduled Phase 2/4), commit (2958b83) + dual adversarial review (Codex + Opus) + apply fixes (5ab03a2)
+
+**Phase 0 DONE.** Both reviewers confirmed a faithful, regression-free refactor. Fixes applied: refresh-queue rejects parked requests on failure; tightened refresh-parse; doc drift corrected.
 
 ## Phase 1 — Correctness & security
 
