@@ -90,3 +90,10 @@ Example: `[mintflow/organization] add: department drawer component`
 - Adding `"use client"` to an `app/` page or layout file
 - Importing `@peppermint/api-client` directly in a component
 - Creating `<module>-<sub>/` sibling folders — always nest sub-modules inside their parent
+
+---
+
+## Governance
+
+Observed governance failure? → log it in `.claude/FAILURE-LOG.md` (cause list there;
+cause→justified-response table in `.claude/GOVERNANCE.md`). Only a logged entry authorizes a new rule/hook/command change.

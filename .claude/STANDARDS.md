@@ -418,6 +418,8 @@ Utility docs should include:
 ### Verification & Testing Standards
 
 > **Scope rule:** Items 1–2 and 22 apply to every task. All other categories apply when the task touches that area. Do not run all 22 categories for a one-line CSS fix.
+>
+> **ACTIVE vs DORMANT:** Categories marked **DORMANT** describe standards whose runner is not configured in this repo yet (no test framework, no analyzer, no Storybook app). They remain the target for when that infra lands. For a DORMANT category: **do not invent or run its scripts** (`rules.md`: only run commands that exist) — verify the checklist items manually where feasible and note what could not be verified. The only runnable scripts today are the root `package.json` scripts (`build`, `dev`, `lint`, `format`, `format:check`, `check-types`) plus native pnpm commands (`install`, `audit`).
 
 A task is not complete until code, docs, exports, and checks are all handled.
 
@@ -451,7 +453,7 @@ Run:
 
 ```bash
 pnpm lint
-pnpm typecheck
+pnpm check-types
 pnpm format:check
 ```
 
@@ -473,7 +475,7 @@ Checks:
 
 ---
 
-#### 3. Unit tests
+#### 3. Unit tests — DORMANT (no runner configured; do not invent scripts)
 
 Run:
 
@@ -501,7 +503,7 @@ Minimum pass rule:
 
 ---
 
-#### 4. Component tests
+#### 4. Component tests — DORMANT (no runner configured; do not invent scripts)
 
 Use Vitest/Jest + Testing Library.
 
@@ -528,7 +530,7 @@ Avoid fragile tests based on implementation details like internal class names.
 
 ---
 
-#### 5. Integration tests
+#### 5. Integration tests — DORMANT (no runner configured; do not invent scripts)
 
 Test full feature behavior, not isolated UI pieces.
 
@@ -551,7 +553,7 @@ Examples:
 
 ---
 
-#### 6. End-to-end browser tests
+#### 6. End-to-end browser tests — DORMANT (no runner configured; do not invent scripts)
 
 Use Playwright or Cypress.
 
@@ -580,7 +582,7 @@ E2E flows:
 
 ---
 
-#### 7. Visual regression tests
+#### 7. Visual regression tests — DORMANT (no tooling configured; `/visual-review` covers the manual variant)
 
 Test:
 
@@ -596,13 +598,9 @@ Checks:
 
 ---
 
-#### 8. Accessibility tests
+#### 8. Accessibility tests — DORMANT script, ACTIVE manual checks
 
-Run:
-
-```bash
-pnpm test:a11y
-```
+There is no `test:a11y` script yet — run the checklist below manually (axe DevTools or Playwright accessibility snapshot when available).
 
 Use axe, Playwright accessibility checks, or equivalent.
 
@@ -635,12 +633,12 @@ Checks:
 
 ---
 
-#### 10. Performance and optimization tests
+#### 10. Performance and optimization tests — DORMANT tooling (`analyze`/`lighthouse` not configured)
 
 Run:
 
 ```bash
-pnpm build && pnpm analyze && pnpm lighthouse
+pnpm build
 ```
 
 Core Web Vitals targets: LCP ≤ 2.5s · INP ≤ 200ms · CLS ≤ 0.1.
@@ -656,12 +654,12 @@ Checks:
 
 ---
 
-#### 11. Bundle and dependency tests
+#### 11. Bundle and dependency tests — DORMANT analyzer (`pnpm analyze` not configured)
 
 Run:
 
 ```bash
-pnpm build && pnpm analyze && pnpm audit
+pnpm build && pnpm audit
 ```
 
 Checks:
@@ -776,15 +774,9 @@ Checks:
 
 ---
 
-#### 19. Storybook component story tests
+#### 19. Storybook component story tests — DORMANT (no `apps/storybook` app exists yet)
 
-Run:
-
-```bash
-pnpm test:storybook
-```
-
-Every public-facing UI component in `@peppermint/*` packages must have a story in `apps/storybook`.
+Every public-facing UI component in `@peppermint/*` packages must have a story in `apps/storybook` once that app exists.
 
 Stories must cover at minimum: default · loading · empty · error · disabled · dark mode · responsive/constrained-width.
 
@@ -863,16 +855,13 @@ Safety > Truth > Clarity > Speed > Density > Consistency > Aesthetics
 
 #### 23. Production readiness tests
 
-Run before final answer:
+Run before final answer (runnable subset — `clean`/`test`/`test:e2e` have no scripts yet):
 
 ```bash
-pnpm clean
 pnpm install --frozen-lockfile
 pnpm lint
-pnpm typecheck
-pnpm test
+pnpm check-types
 pnpm build
-pnpm test:e2e
 pnpm audit
 ```
 

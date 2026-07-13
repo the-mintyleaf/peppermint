@@ -496,7 +496,7 @@ Phases 1–6 are **per-unit**. When the Parallelization Map lists 2+ independent
 - [ ] Empty, loading, and error states are rendered for all async operations
 - [ ] Permission rules are enforced (unauthorized users cannot see or trigger restricted actions)
 - [ ] All `[ASSUMPTION]` items from the Assumptions section have been confirmed or corrected
-- [ ] `pnpm typecheck && pnpm lint` pass with no errors
+- [ ] `pnpm check-types && pnpm lint` pass with no errors
 - [ ] Module AI map (`docs/AI.md`) is created and accurate
 - [ ] App-level AI map (`apps/<app>/docs/AI.md`) is updated with the new module
 

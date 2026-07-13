@@ -69,7 +69,7 @@ Once you know a module is **Contained**, pick the shape by route count:
 | **ContainedModule** | 1           | `ModalTableShell`                              | Single list page; create & edit open in modals/drawers; form has ≤ ~8 fields   |
 | **MultiPageModule** | 2–4         | `DataTableShell` + `FormWrapper` + `FormShell` | Complex form, multi-step wizard, file uploads, or a dedicated detail/view page |
 
-The CRUD strategies (`ModalModule`, `RouteModule`) documented elsewhere refer to the same two options under different terminology. `ModalModule` = ContainedModule; `RouteModule` = MultiPageModule.
+`ModalModule` and `RouteModule` (CLAUDE.md § Module Types) are **distinct types, not aliases** of these two patterns. A `ModalModule` has no route — another module opens it via state (e.g. the profile overlay in the user-avatar menu). A `RouteModule` owns its own layout shell wired in `app/`. Neither fits the Contained builder patterns above: treat both as custom work built inline by the orchestrator — never dispatched to `module-builder` agents (see `.claude/PARALLEL.md` §1).
 
 ---
 

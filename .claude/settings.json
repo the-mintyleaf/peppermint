@@ -1,23 +1,47 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(pnpm check-types)",
+      "Bash(pnpm check-types:*)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm format)",
+      "Bash(pnpm format:check)",
+      "Bash(pnpm build)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm exec prettier --check:*)",
+      "Bash(pnpm exec prettier --write:*)",
+      "Bash(git status)",
+      "Bash(git status:*)",
+      "Bash(git diff)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Edit",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'FILE=\"$CLAUDE_TOOL_INPUT_FILE_PATH\"; if [ -n \"$FILE\" ] && [ -f \"$FILE\" ]; then VIOLATIONS=\"\"; MANTINE=$(grep -n \"@mantine/\" \"$FILE\" 2>/dev/null | grep -v \"@peppermint\" | head -3); EFFECT=$(grep -n \"useEffect\" \"$FILE\" 2>/dev/null | grep -iE \"fetch|axios|\\.get\\(|\\.post\\(|api\\b\" | head -3); INLINE_AXIOS=$(grep -n \"axios\\.\\(get\\|post\\|put\\|patch\\|delete\\)\\|new axios\" \"$FILE\" 2>/dev/null | head -3); if [ -n \"$MANTINE\" ]; then VIOLATIONS=\"$VIOLATIONS\\n[VIOLATION] Direct @mantine/ import — use @peppermint/ui instead:\\n$MANTINE\"; fi; if [ -n \"$EFFECT\" ]; then VIOLATIONS=\"$VIOLATIONS\\n[VIOLATION] Possible useEffect data fetch — use useQuery instead:\\n$EFFECT\"; fi; if [ -n \"$INLINE_AXIOS\" ]; then VIOLATIONS=\"$VIOLATIONS\\n[VIOLATION] Inline Axios call in event handler — use useMutation instead:\\n$INLINE_AXIOS\"; fi; if [ -n \"$VIOLATIONS\" ]; then echo -e \"[pre-edit] Anti-pattern detected in $FILE:$VIOLATIONS\\nFix before proceeding.\"; fi; if echo \"$FILE\" | grep -qE \"(layouts|modules|components)/.+\\.tsx$\"; then if grep -qiE \"\\b(status|action|badge|confirm|danger|delete|suspend|approve|reject|loading|error|empty|disabled|permission|unsaved)\\b\" \"$FILE\" 2>/dev/null; then echo \"\"; echo \"── Design primer (.claude/DESIGN.md) ──\"; echo \"Decision ladder: Safety > Truth > Clarity > Speed > Density > Consistency > Aesthetics\"; echo \"State != Action: badge/fact and button/lever must look and sit differently\"; echo \"Status = words + color + position — never color alone\"; echo \"Name the one question this component answers before laying out elements\"; fi; fi; fi'"
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/anti-pattern-gate.sh\""
           }
         ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "Write",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'FILE=\"$CLAUDE_TOOL_INPUT_FILE_PATH\"; echo \"[new-file] File created. Quick checklist:\"; echo \"  - If this is a component: does a .types.ts file exist?\"; echo \"  - Is the barrel export (index.ts) updated?\"; echo \"  - If in packages/: is the group barrel updated?\"; echo \"  - If this is a new module or sub-module: run /update-ai-map\"; if [ -n \"$FILE\" ] && echo \"$FILE\" | grep -qE \"(layouts|modules|components)/.+\\.tsx$\"; then BASENAME=$(basename \"$FILE\" .tsx); echo \"\"; echo \"── Output contract (.claude/DESIGN.md Part 6) ──\"; echo \"[ ] Empty state                 [ ] N/A\"; echo \"[ ] Loading / partial loading   [ ] N/A\"; echo \"[ ] Request-failed              [ ] N/A\"; echo \"[ ] Permission-denied           [ ] N/A\"; echo \"[ ] Read-only mode              [ ] N/A\"; echo \"[ ] Archived/deleted record     [ ] N/A\"; echo \"[ ] Conflicting edits           [ ] N/A\"; if echo \"$BASENAME\" | grep -qiE \"List|Table|Grid\"; then echo \"[ ] No-results state            (list/table detected — required)\"; else echo \"[ ] No-results state            [ ] N/A  (filterable lists only)\"; fi; if echo \"$BASENAME\" | grep -qiE \"Form|Modal|Dialog|Drawer\"; then echo \"[ ] Unsaved changes warning     (form/modal detected — required)\"; else echo \"[ ] Unsaved changes warning     [ ] N/A  (forms only)\"; fi; if echo \"$BASENAME\" | grep -qiE \"Dashboard\"; then echo \"[ ] Data freshness indicator    (dashboard detected — required)\"; echo \"[ ] Long-running job state      (dashboard detected — required)\"; else echo \"[ ] Long-running job state      [ ] N/A  (async actions only)\"; fi; echo \"[ ] One page-level anchor; regional anchors subordinate and non-competing\"; echo \"[ ] Actions labeled by risk tier; destructive actions spatially separated\"; echo \"[ ] Recovery path for every consequential action (undo/audit/retry/restore)\"; fi'"
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/format-on-write.sh\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/design-context.sh\""
           }
         ]
       }
@@ -27,7 +51,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'CHANGED=$(git diff --name-only 2>/dev/null | grep -E \"\\.(tsx|ts)$\"); if [ -n \"$CHANGED\" ]; then echo \"[post-response] Modified TS/TSX files:\"; echo \"$CHANGED\" | head -8; echo \"\"; VISUAL=$(echo \"$CHANGED\" | grep -E \"(layouts|modules|components)/.*\\.tsx$\"); if [ -n \"$VISUAL\" ]; then echo \"Before closing: /verify (includes design scan) · /design-check for full audit · /simplify if >10 lines changed · /update-ai-map if structure changed\"; else echo \"Before closing: /verify (typecheck+lint) · /simplify if >10 lines changed · /update-ai-map if structure changed\"; fi; fi'"
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop-reminder.sh\""
           }
         ]
       }

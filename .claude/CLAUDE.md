@@ -453,3 +453,17 @@ CLAUDE.md → apps/<app>/docs/AI.md → module docs/AI.md → source files
 ```
 
 Read docs first. Only open source files when docs identify them as relevant or are missing/stale.
+
+---
+
+## Governance Failure Logging
+
+When you observe a **real, in-session** governance failure — a rule that was missing,
+contradictory, or ignored; a command that drifted; a hook that misfired; or a verification
+gate that wasn't run — append one row to `.claude/FAILURE-LOG.md`, using exactly one cause
+from the fixed list in that file.
+
+- Record only observed failures. No hypothetical or "could-have" risks.
+- A logged entry is the **only** thing that authorizes a new governance mechanism, and any
+  corrective change is limited to the `justified-response` for that cause. See
+  `.claude/GOVERNANCE.md` for the cause→justified-response table.
