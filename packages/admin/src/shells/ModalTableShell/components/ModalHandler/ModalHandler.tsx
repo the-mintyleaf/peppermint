@@ -57,7 +57,7 @@ export function ModalHandler<
     mutationFn: async (values: TCreate) => {
       if (!onCreateApi) return;
       const payload = transformOnCreate ? transformOnCreate(values) : values;
-      return onCreateApi(payload as TCreate);
+      return onCreateApi(payload);
     },
     onSuccess: (result) => {
       notifications.show({
@@ -86,7 +86,7 @@ export function ModalHandler<
       const payload = transformOnEdit
         ? transformOnEdit(values, activeEditRecord)
         : values;
-      return onEditApi(payload as TEdit, activeEditRecord);
+      return onEditApi(payload, activeEditRecord);
     },
     onSuccess: (result) => {
       notifications.show({

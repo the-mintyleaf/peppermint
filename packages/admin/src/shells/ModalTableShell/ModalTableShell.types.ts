@@ -46,8 +46,8 @@ export interface ModalHandlerProps<
   editFormComponent?: React.ComponentType<ModalFormComponentProps<TRow, TEdit>>;
   onCreateApi?: (values: TCreate) => Promise<unknown>;
   onEditApi?: (values: TEdit, record: TRow) => Promise<unknown>;
-  transformOnCreate?: (values: TCreate) => unknown;
-  transformOnEdit?: (values: TEdit, record: TRow) => unknown;
+  transformOnCreate?: (values: TCreate) => TCreate;
+  transformOnEdit?: (values: TEdit, record: TRow) => TEdit;
   onCreateSuccess?: (result: unknown) => void;
   onEditSuccess?: (result: unknown) => void;
   getErrorMessage?: (error: unknown) => string;
@@ -81,8 +81,8 @@ export type ModalTableShellProps<
   onEditSuccess?: (result: unknown) => void;
   onDeleteSuccess?: () => void;
   onEditTrigger?: (record: TRow) => Promise<TRow>;
-  transformOnCreate?: (values: TCreate) => unknown;
-  transformOnEdit?: (values: TEdit, record: TRow) => unknown;
+  transformOnCreate?: (values: TCreate) => TCreate;
+  transformOnEdit?: (values: TEdit, record: TRow) => TEdit;
   transformOnDelete?: (id: string | number) => unknown;
   getErrorMessage?: (error: unknown) => string;
 };
