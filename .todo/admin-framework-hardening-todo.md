@@ -30,14 +30,16 @@ Branch: `dev/claude-tuning` (do NOT create a new branch)
 
 **Deferred to Phase 4:** H4; filter key≠accessor divergence; post-forceFilter selection derivation.
 
-## Phase 2 — Core foundation hardening
+## Phase 2 — Core foundation hardening ✅ DONE (commits ee519b5, ee4940e)
 
-- [ ] H1 react/react-dom/react-query/zustand → peerDependencies in ui/admin
-- [ ] H7 `sideEffects` + subpath exports for heavy Mantine domains
-- [ ] M6 deep-merge QueryClientWrapper config; reconsider staleTime:0
-- [ ] M7/M8 ColorSchemeScript + SSR-safe hooks + throttle resize + forceColorScheme
-- [ ] M4 useDebounce + mantine-form-zod-resolver
-- [ ] Commit + dual adversarial review + `pnpm build`
+- [x] H1 react/react-dom/react-query/zustand → peerDependencies in ui/admin (ranges pinned to majors); dropped unused next/framer-motion from ui
+- [x] H7 `sideEffects` (incl. subpath entries) + subpath exports @peppermint/ui/{charts,editor,carousel,code-highlight,dropzone} with co-located CSS; migrated 1 consumer
+- [x] M6 deep-merge QueryClientWrapper config; staleTime 0 → 30s
+- [x] M8 SSR-safe useLocalStorage/useWindowSize (no init-time browser reads) + rAF-throttled resize; initial-ref in storage effect
+- [~] M7 ColorSchemeScript/mantineHtmlProps already handled in app root LayoutApp; forceColorScheme left intentional (shell is light-only)
+- [x] M4 zodResolver parses once/pass; DataTableWrapper debounce → useDebounce (client-mode gated)
+- [x] BONUS: greened the last 2 pre-existing type errors (PageBreadcrumb phosphor csr imports; queryKey typeof narrow) — `turbo check-types` + `turbo build` fully GREEN
+- [x] Commit + dual adversarial review (Codex + Opus, no high/med findings) + apply 4 low fixes + `pnpm build` ✓
 
 ## Phase 3 — Missing framework primitives
 
