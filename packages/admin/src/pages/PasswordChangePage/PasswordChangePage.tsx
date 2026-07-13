@@ -17,6 +17,7 @@ import {
   useForm,
 } from "@peppermint/ui";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import {
   LeafIcon,
   LockKeyIcon,
@@ -24,11 +25,26 @@ import {
   SunIcon,
 } from "@phosphor-icons/react/dist/ssr";
 import type { PasswordChangePageProps } from "./PasswordChangePage.types";
+import { ACCESS_TOKEN_KEY } from "../SignInPage/utils/authStorage";
 
 interface FormValues {
   old_password: string;
   new_password: string;
   confirm_password: string;
+}
+
+interface PasswordChangeErrorBody {
+  error?: { code?: string; message?: string };
+}
+
+/** Carries the parsed error body from a failed change-password request. */
+class PasswordChangeRequestError extends Error {
+  body: PasswordChangeErrorBody;
+  constructor(body: PasswordChangeErrorBody) {
+    super("Password change failed");
+    this.name = "PasswordChangeRequestError";
+    this.body = body;
+  }
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -44,7 +60,6 @@ export function PasswordChangePage({
   onSuccess,
   onError,
 }: PasswordChangePageProps) {
-  const [isLoading, setIsLoading] = useState(false);
   const [succeeded, setSucceeded] = useState(false);
   const { setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme("light");
@@ -61,12 +76,11 @@ export function PasswordChangePage({
     },
   });
 
-  const handleSubmit = async (values: FormValues) => {
-    setIsLoading(true);
-    try {
+  const changePasswordMutation = useMutation({
+    mutationFn: async (values: FormValues) => {
       const token =
         typeof window !== "undefined"
-          ? localStorage.getItem("access_token")
+          ? window.localStorage.getItem(ACCESS_TOKEN_KEY)
           : null;
 
       const response = await fetch(changePasswordApi, {
@@ -82,38 +96,48 @@ export function PasswordChangePage({
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        onError?.(data);
-
-        const code = data?.error?.code as string | undefined;
-        const message = code
-          ? (ERROR_MESSAGES[code] ??
-            data?.error?.message ??
-            "Failed to update password")
-          : "Failed to update password";
-
-        if (code === "AUTH_PASSWORD_INVALID") {
-          form.setErrors({ old_password: message });
-        } else {
-          form.setErrors({ new_password: message });
-        }
-        return;
+        const data = (await response.json()) as PasswordChangeErrorBody;
+        throw new PasswordChangeRequestError(data);
       }
-
+    },
+    onSuccess: () => {
       setSucceeded(true);
       onSuccess?.();
-
       if (successRedirectUrl) {
         setTimeout(() => {
           window.location.href = successRedirectUrl;
         }, 1500);
       }
-    } catch (error) {
-      onError?.(error);
-      form.setErrors({ new_password: "Something went wrong. Try again." });
-    } finally {
-      setIsLoading(false);
-    }
+    },
+    onError: (error) => {
+      onError?.(
+        error instanceof PasswordChangeRequestError ? error.body : error,
+      );
+
+      if (!(error instanceof PasswordChangeRequestError)) {
+        form.setErrors({ new_password: "Something went wrong. Try again." });
+        return;
+      }
+
+      const code = error.body.error?.code;
+      const message = code
+        ? (ERROR_MESSAGES[code] ??
+          error.body.error?.message ??
+          "Failed to update password")
+        : "Failed to update password";
+
+      if (code === "AUTH_PASSWORD_INVALID") {
+        form.setErrors({ old_password: message });
+      } else {
+        form.setErrors({ new_password: message });
+      }
+    },
+  });
+
+  const isLoading = changePasswordMutation.isPending;
+
+  const handleSubmit = (values: FormValues) => {
+    changePasswordMutation.mutate(values);
   };
 
   return (

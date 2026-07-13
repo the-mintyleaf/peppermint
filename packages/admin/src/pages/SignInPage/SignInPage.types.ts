@@ -1,5 +1,19 @@
 export type SignInIdentifierField = "email" | "username" | "identifier";
 
+/** Unwrapped login/MFA response payload the page reads tokens and flags from. */
+export interface SignInResultData {
+  access?: string;
+  accessToken?: string;
+  refresh?: string;
+  refreshToken?: string;
+  mfa_required?: boolean;
+  challenge_id?: string;
+  mfa_setup_recommended?: boolean;
+  error?: { code?: string; message?: string };
+  message?: string;
+  [key: string]: unknown;
+}
+
 export interface SignInPageProps {
   heading?: [string, string];
   subheading?: string;
@@ -13,8 +27,8 @@ export interface SignInPageProps {
   skipEmailValidation?: boolean;
   successRedirectUrl: string;
   forgotRedirectUrl?: string;
-  onSuccess?: (data: any) => void;
-  onError?: (error: any) => void;
+  onSuccess?: (data: SignInResultData) => void;
+  onError?: (error: unknown) => void;
   onForgotPassword?: () => void;
   hasGoogleLogin?: boolean;
   hasAppleLogin?: boolean;
@@ -33,8 +47,6 @@ export interface SignInPageProps {
    * MFA-shaped responses are treated as a misconfiguration error.
    */
   mfaVerifyApi?: string;
-  /** Optional endpoint to fetch the current user after a successful login/verify, stored as `user_data`. */
-  meApi?: string;
   /** Called when the login response sets `mfa_setup_recommended: true` on a non-MFA success. */
   onMfaSetupRecommended?: () => void;
   /** Optional error-code -> message overrides. Falls back to the backend's own `error.message`/`message`. */

@@ -24,15 +24,16 @@ import {
 } from "@peppermint/ui";
 
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { GoogleIcon } from "./components/GoogleIcon";
 import { SignInForm } from "./components/SignInForm";
 import { MfaChallengeForm } from "./components/MfaChallengeForm";
 import type {
   SignInIdentifierField,
   SignInPageProps,
+  SignInResultData,
 } from "./SignInPage.types";
-import { AUTH_TOKEN_KEYS } from "./utils/authTokenKeys";
-import { decodeJWT } from "./utils/decodeJWT";
+import { storeAuthTokens } from "./utils/authStorage";
 import { unwrapEnvelope } from "./utils/unwrapEnvelope";
 import {
   AppleLogoIcon,
@@ -44,6 +45,16 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 
 type SignInPhase = "credentials" | "mfa" | "redirecting";
+
+/** Carries the parsed response body alongside a resolved, user-facing message. */
+class SignInRequestError extends Error {
+  body: unknown;
+  constructor(message: string, body: unknown) {
+    super(message);
+    this.name = "SignInRequestError";
+    this.body = body;
+  }
+}
 
 export function SignInPage({
   heading = ["Sign into", "to your portal."],
@@ -71,7 +82,6 @@ export function SignInPage({
   disableSignUp = false,
   disableForgotPassword = false,
   mfaVerifyApi,
-  meApi,
   onMfaSetupRecommended,
   errorMessageMap,
 }: SignInPageProps) {
@@ -80,7 +90,6 @@ export function SignInPage({
 
   const [showMagicLink, setShowMagicLink] = useState(false);
   const [magicLinkEmail, setMagicLinkEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [phase, setPhase] = useState<SignInPhase>("credentials");
   const [challengeId, setChallengeId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -88,139 +97,115 @@ export function SignInPage({
   const computedColorScheme = useComputedColorScheme("light");
   const isDark = computedColorScheme === "dark";
 
-  const resolveErrorMessage = (data: any): string => {
-    const code = data?.error?.code;
+  const resolveErrorMessage = (body: unknown): string => {
+    const data = (body ?? {}) as SignInResultData;
+    const code = data.error?.code;
     if (code && errorMessageMap?.[code]) return errorMessageMap[code];
     return (
-      data?.error?.message ??
-      data?.message ??
+      data.error?.message ??
+      data.message ??
       "Something went wrong. Please try again."
     );
   };
 
-  const completeSuccess = async (data: any) => {
+  // POST a JSON body and unwrap the `{ success, data }` envelope; throw a
+  // SignInRequestError (carrying the parsed body) on a non-2xx so the mutation's
+  // onError path can surface a resolved message.
+  const postAuth = async (
+    url: string,
+    payload: Record<string, unknown>,
+  ): Promise<SignInResultData> => {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const body = await response.json();
+    if (!response.ok) {
+      throw new SignInRequestError(resolveErrorMessage(body), body);
+    }
+    return unwrapEnvelope(body) as SignInResultData;
+  };
+
+  const completeSuccess = (data: SignInResultData) => {
+    const accessToken = data.access ?? data.accessToken;
+    const refreshToken = data.refresh ?? data.refreshToken;
+
+    // Only advance into the app once we actually hold an access token — a 200 with
+    // an unexpected body must not redirect into an unauthenticated session (which
+    // would bounce straight back to sign-in).
+    if (!accessToken) {
+      setErrorMessage("Signed in, but no access token was returned.");
+      onError?.(data);
+      return;
+    }
+
+    storeAuthTokens(accessToken, refreshToken);
     setPhase("redirecting");
-
-    const accessToken = data?.access || data?.accessToken;
-    const refreshToken = data?.refresh || data?.refreshToken;
-
-    if (accessToken) {
-      sessionStorage.setItem(AUTH_TOKEN_KEYS.ACCESS_TOKEN, accessToken);
-      localStorage.setItem("access_token", accessToken);
-
-      const decoded = decodeJWT(accessToken);
-      if (decoded) {
-        localStorage.setItem("token_payload", JSON.stringify(decoded));
-      }
-    }
-
-    if (refreshToken) {
-      sessionStorage.setItem(AUTH_TOKEN_KEYS.REFRESH_TOKEN, refreshToken);
-      localStorage.setItem("refresh_token", refreshToken);
-    }
-
     onSuccess?.(data);
-
-    if (data?.mfa_setup_recommended) {
-      onMfaSetupRecommended?.();
-    }
-
-    if (meApi && accessToken) {
-      try {
-        const userResponse = await fetch(meApi, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-
-        if (userResponse.ok) {
-          const userData = await userResponse.json();
-          localStorage.setItem("user_data", JSON.stringify(userData));
-        }
-      } catch (userError) {
-        console.error("Failed to fetch user data:", userError);
-      }
-    }
+    if (data.mfa_setup_recommended) onMfaSetupRecommended?.();
 
     setTimeout(() => {
       window.location.href = successRedirectUrl;
     }, 1000);
   };
 
-  const handleSignIn = async (identifier: string, password: string) => {
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    try {
-      const response = await fetch(loginApi, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          [resolvedIdentifierField]: identifier,
-          password,
-        }),
-      });
-
-      const body = await response.json();
-
-      if (!response.ok) {
-        setErrorMessage(resolveErrorMessage(body));
-        onError?.(body);
+  const handleSuccessData = (data: SignInResultData) => {
+    if (data.mfa_required) {
+      if (!mfaVerifyApi) {
+        setErrorMessage(
+          "Multi-factor authentication is required but not configured.",
+        );
+        onError?.(data);
         return;
       }
-
-      // Success payloads are wrapped in a `{ success, data }` envelope; unwrap
-      // to reach access/refresh/mfa fields. Falls back to the raw body for
-      // APIs that respond flat.
-      const data = unwrapEnvelope(body);
-
-      if (data?.mfa_required) {
-        if (!mfaVerifyApi) {
-          setErrorMessage(
-            "Multi-factor authentication is required but not configured.",
-          );
-          onError?.(data);
-          return;
-        }
-        setChallengeId(data.challenge_id ?? null);
-        setPhase("mfa");
-        return;
-      }
-
-      await completeSuccess(data);
-    } catch (error: unknown) {
-      setErrorMessage("Something went wrong. Please try again.");
-      onError?.(error);
-    } finally {
-      setIsLoading(false);
+      setChallengeId(data.challenge_id ?? null);
+      setPhase("mfa");
+      return;
     }
+    completeSuccess(data);
   };
 
-  const handleMfaSubmit = async (code: string) => {
-    if (!mfaVerifyApi) return;
-    setIsLoading(true);
+  const handleMutationError = (error: unknown) => {
+    setErrorMessage(
+      error instanceof SignInRequestError
+        ? error.message
+        : "Something went wrong. Please try again.",
+    );
+    onError?.(error instanceof SignInRequestError ? error.body : error);
+  };
+
+  const loginMutation = useMutation({
+    mutationFn: (vars: { identifier: string; password: string }) =>
+      postAuth(loginApi, {
+        [resolvedIdentifierField]: vars.identifier,
+        password: vars.password,
+      }),
+    onSuccess: handleSuccessData,
+    onError: handleMutationError,
+  });
+
+  const mfaMutation = useMutation({
+    mutationFn: (code: string) =>
+      postAuth(mfaVerifyApi as string, {
+        challenge_id: challengeId,
+        code,
+      }),
+    onSuccess: completeSuccess,
+    onError: handleMutationError,
+  });
+
+  const isLoading = loginMutation.isPending || mfaMutation.isPending;
+
+  const handleSignIn = (identifier: string, password: string) => {
     setErrorMessage(null);
+    loginMutation.mutate({ identifier, password });
+  };
 
-    try {
-      const response = await fetch(mfaVerifyApi, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ challenge_id: challengeId, code }),
-      });
-
-      const body = await response.json();
-
-      if (!response.ok) {
-        setErrorMessage(resolveErrorMessage(body));
-        onError?.(body);
-        return;
-      }
-
-      await completeSuccess(unwrapEnvelope(body));
-    } catch (error: unknown) {
-      setErrorMessage("Something went wrong. Please try again.");
-      onError?.(error);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleMfaSubmit = (code: string) => {
+    if (!mfaVerifyApi) return;
+    setErrorMessage(null);
+    mfaMutation.mutate(code);
   };
 
   const handleBackToSignIn = () => {
@@ -537,7 +522,7 @@ export function SignInPage({
                       </Text>
 
                       <Text ta="center" size="10px" c="gray.5">
-                        Versoin v1.0.1 @ Copyright 2026 mintyleaf.co
+                        Version v1.0.1 @ Copyright 2026 mintyleaf.co
                       </Text>
                     </Stack>
                   </Center>
