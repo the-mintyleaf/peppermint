@@ -14,7 +14,6 @@ import { InfoIcon } from "@phosphor-icons/react/dist/csr/Info";
 import { AssignmentPickerSelect } from "../../_shared/components/AssignmentPickerSelect";
 import { ReasonTextarea } from "../../_shared/components/ReasonTextarea";
 import { UnitPickerSelect } from "../../_shared/components/UnitPickerSelect";
-import type { AuthorityDelegation } from "../delegations.types";
 import type {
   DelegationFormProps,
   DelegationFormValues,
@@ -64,11 +63,7 @@ export function DelegationForm({ onSubmit, isLoading }: DelegationFormProps) {
   });
 
   return (
-    <form
-      onSubmit={form.onSubmit((values) =>
-        onSubmit(values as unknown as AuthorityDelegation),
-      )}
-    >
+    <form onSubmit={form.onSubmit((values) => onSubmit(values))}>
       <Stack gap="md" p="md">
         <Alert
           variant="light"

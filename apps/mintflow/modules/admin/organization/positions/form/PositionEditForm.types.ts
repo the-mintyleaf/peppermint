@@ -2,7 +2,10 @@ import type { ModalFormComponentProps } from "@peppermint/admin";
 
 import type { Position, PositionType } from "../positions.types";
 
-export type PositionEditFormProps = ModalFormComponentProps<Position>;
+export type PositionEditFormProps = ModalFormComponentProps<
+  Position,
+  PositionEditFormValues
+>;
 
 export interface PositionEditFormValues {
   title_np: string;

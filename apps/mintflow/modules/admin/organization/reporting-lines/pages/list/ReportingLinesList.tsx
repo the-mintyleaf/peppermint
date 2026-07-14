@@ -10,6 +10,7 @@ import { getApiErrorMessage } from "@/lib/authErrorMessages";
 
 import { ChainOfCommandView } from "../../components/ChainOfCommandView";
 import { ReportingLineForm } from "../../form";
+import type { ReportingLineFormValues } from "../../form/ReportingLineForm.types";
 import {
   createReportingLine,
   fetchReportingLines,
@@ -29,7 +30,7 @@ function ReportingLinesListContent() {
 
   return (
     <>
-      <ModalTableShell<ReportingLine>
+      <ModalTableShell<ReportingLine, ReportingLineFormValues>
         queryKey={reportingLinesQueryKeys.list(orgId)}
         queryGetFn={(params) => fetchReportingLines(orgId, params)}
         dataKey="data"
@@ -43,10 +44,7 @@ function ReportingLinesListContent() {
         idAccessor="id"
         createFormComponent={ReportingLineForm}
         onCreateApi={(values) =>
-          createReportingLine(
-            orgId,
-            values as unknown as CreateReportingLinePayload,
-          )
+          createReportingLine(orgId, values as CreateReportingLinePayload)
         }
         getErrorMessage={getApiErrorMessage}
         disableReviewButton

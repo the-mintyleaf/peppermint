@@ -47,7 +47,7 @@ function MembersListContent() {
   const columns = getMembersColumns();
 
   return (
-    <ModalTableShell<OrganizationMembership>
+    <ModalTableShell<OrganizationMembership, InviteMemberFormValues>
       queryKey={membersQueryKeys.list(orgId)}
       queryGetFn={(params) => fetchMemberships(orgId, params)}
       dataKey="data"
@@ -61,7 +61,7 @@ function MembersListContent() {
       idAccessor="id"
       createFormComponent={InviteMemberForm}
       onCreateApi={(values) => {
-        const formValues = values as unknown as InviteMemberFormValues;
+        const formValues = values;
         const payload: CreateMembershipPayload = {
           user_id: formValues.user_id as string,
           employee_code: formValues.employee_code || undefined,

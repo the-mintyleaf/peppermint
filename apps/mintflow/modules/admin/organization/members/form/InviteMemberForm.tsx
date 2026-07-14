@@ -4,7 +4,6 @@ import { Button, Stack, Switch, TextInput, useForm } from "@peppermint/ui";
 
 import { UserPicker } from "@/modules/admin/authenticate/_shared/UserPicker";
 
-import type { OrganizationMembership } from "../members.types";
 import type {
   InviteMemberFormProps,
   InviteMemberFormValues,
@@ -27,11 +26,7 @@ export function InviteMemberForm({
   });
 
   return (
-    <form
-      onSubmit={form.onSubmit((values) =>
-        onSubmit(values as unknown as OrganizationMembership),
-      )}
-    >
+    <form onSubmit={form.onSubmit((values) => onSubmit(values))}>
       <Stack gap="md" p="md">
         <UserPicker
           label="User"

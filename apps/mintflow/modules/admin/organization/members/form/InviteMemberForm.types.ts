@@ -2,8 +2,10 @@ import type { ModalFormComponentProps } from "@peppermint/admin";
 
 import type { OrganizationMembership } from "../members.types";
 
-export type InviteMemberFormProps =
-  ModalFormComponentProps<OrganizationMembership>;
+export type InviteMemberFormProps = ModalFormComponentProps<
+  OrganizationMembership,
+  InviteMemberFormValues
+>;
 
 export interface InviteMemberFormValues {
   user_id: string | null;

@@ -11,7 +11,6 @@ import {
   useForm,
 } from "@peppermint/ui";
 
-import type { Position } from "../positions.types";
 import type {
   PositionEditFormProps,
   PositionEditFormValues,
@@ -74,7 +73,7 @@ export function PositionEditForm({
         onSubmit({
           ...values,
           sort_order: Number(values.sort_order) || 0,
-        } as unknown as Position),
+        }),
       )}
     >
       <Stack gap="md" p="md">

@@ -2,7 +2,10 @@ import type { ModalFormComponentProps } from "@peppermint/admin";
 
 import type { AuthorityDelegation, DelegationType } from "../delegations.types";
 
-export type DelegationFormProps = ModalFormComponentProps<AuthorityDelegation>;
+export type DelegationFormProps = ModalFormComponentProps<
+  AuthorityDelegation,
+  DelegationFormValues
+>;
 
 export interface DelegationFormValues {
   from_assignment_id: string | null;

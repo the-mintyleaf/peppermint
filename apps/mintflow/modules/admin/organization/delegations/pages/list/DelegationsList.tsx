@@ -20,7 +20,7 @@ function DelegationsListContent() {
   const columns = getDelegationsColumns();
 
   return (
-    <ModalTableShell<AuthorityDelegation>
+    <ModalTableShell<AuthorityDelegation, DelegationFormValues>
       queryKey={delegationsQueryKeys.list(orgId)}
       queryGetFn={(params) => fetchDelegations(orgId, params)}
       dataKey="data"
@@ -34,7 +34,7 @@ function DelegationsListContent() {
       idAccessor="id"
       createFormComponent={DelegationForm}
       onCreateApi={(values) => {
-        const formValues = values as unknown as DelegationFormValues;
+        const formValues = values;
         const payload: CreateDelegationPayload = {
           from_assignment_id: formValues.from_assignment_id as string,
           to_assignment_id: formValues.to_assignment_id as string,

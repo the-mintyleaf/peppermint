@@ -5,7 +5,6 @@ import { Button, Select, Stack, Switch, useForm } from "@peppermint/ui";
 
 import { PositionPickerSelect } from "../../_shared/components/PositionPickerSelect";
 import { ReasonTextarea } from "../../_shared/components/ReasonTextarea";
-import type { ReportingLine } from "../reportingLines.types";
 import type {
   ReportingLineFormProps,
   ReportingLineFormValues,
@@ -57,11 +56,7 @@ export function ReportingLineForm({
   });
 
   return (
-    <form
-      onSubmit={form.onSubmit((values) =>
-        onSubmit(values as unknown as ReportingLine),
-      )}
-    >
+    <form onSubmit={form.onSubmit((values) => onSubmit(values))}>
       <Stack gap="md" p="md">
         <PositionPickerSelect
           organizationId={orgId}

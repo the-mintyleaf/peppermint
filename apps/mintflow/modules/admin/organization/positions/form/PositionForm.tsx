@@ -11,7 +11,6 @@ import {
   useForm,
 } from "@peppermint/ui";
 
-import type { Position } from "../positions.types";
 import type {
   PositionFormProps,
   PositionFormValues,
@@ -71,7 +70,7 @@ export function PositionForm({ onSubmit, isLoading }: PositionFormProps) {
         onSubmit({
           ...values,
           sort_order: Number(values.sort_order) || 0,
-        } as unknown as Position),
+        }),
       )}
     >
       <Stack gap="md" p="md">

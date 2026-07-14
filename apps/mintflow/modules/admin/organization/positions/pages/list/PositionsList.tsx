@@ -23,6 +23,8 @@ import {
 } from "../../../_shared/components/UnitPickerMenu";
 import { useUnitOptions } from "../../../_shared/components/UnitPickerSelect";
 import { PositionEditForm, PositionForm } from "../../form";
+import type { PositionFormValues } from "../../form/PositionForm.types";
+import type { PositionEditFormValues } from "../../form/PositionEditForm.types";
 import {
   createPosition,
   fetchPositions,
@@ -70,7 +72,7 @@ function PositionsListContent() {
           </Stack>
         </Center>
       ) : (
-        <ModalTableShell<Position>
+        <ModalTableShell<Position, PositionFormValues, PositionEditFormValues>
           key={activeUnitId}
           queryKey={positionsQueryKeys.list(activeUnitId)}
           queryGetFn={(params) => fetchPositions(activeUnitId, params)}
@@ -86,16 +88,10 @@ function PositionsListContent() {
           createFormComponent={PositionForm}
           editFormComponent={PositionEditForm}
           onCreateApi={(values) =>
-            createPosition(
-              activeUnitId,
-              values as unknown as CreatePositionPayload,
-            )
+            createPosition(activeUnitId, values as CreatePositionPayload)
           }
           onEditApi={(values, record) =>
-            updatePosition(
-              record.id,
-              values as unknown as UpdatePositionPayload,
-            )
+            updatePosition(record.id, values as UpdatePositionPayload)
           }
           getErrorMessage={getApiErrorMessage}
           disableReviewButton

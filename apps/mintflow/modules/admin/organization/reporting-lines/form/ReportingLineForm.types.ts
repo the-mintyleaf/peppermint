@@ -3,7 +3,10 @@ import type { ModalFormComponentProps } from "@peppermint/admin";
 import type { AssignmentStatus } from "../../_shared/organization.types";
 import type { ReportingLine, ReportingLineType } from "../reportingLines.types";
 
-export type ReportingLineFormProps = ModalFormComponentProps<ReportingLine>;
+export type ReportingLineFormProps = ModalFormComponentProps<
+  ReportingLine,
+  ReportingLineFormValues
+>;
 
 export interface ReportingLineFormValues {
   source_position_id: string | null;
