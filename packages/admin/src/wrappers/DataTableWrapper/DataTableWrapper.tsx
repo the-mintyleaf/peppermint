@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useDebounce } from "@peppermint/utils";
 import { useStore } from "zustand/react";
 import {
@@ -191,6 +191,9 @@ export function DataTableWrapper<T = unknown>({
       return queryGetFnRef.current(params);
     },
     staleTime,
+    // Hold the previous page's rows while the next page loads so server-mode
+    // pagination doesn't flash empty on every page change.
+    placeholderData: keepPreviousData,
   });
 
   // Surface query errors via onError from an effect (never during render — that

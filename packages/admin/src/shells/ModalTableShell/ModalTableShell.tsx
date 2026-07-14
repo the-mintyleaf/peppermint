@@ -109,7 +109,6 @@ export function ModalTableShell<
         title: "Deleted",
         message: `${moduleInfo.label ?? moduleInfo.name} deleted successfully.`,
       });
-      invalidate();
       onDeleteSuccess?.();
     },
     onError: (err) => {
@@ -121,6 +120,11 @@ export function ModalTableShell<
             ? err.message
             : `Failed to delete ${moduleInfo.label ?? moduleInfo.name}.`,
       });
+    },
+    // Invalidate on settled (not just success) so a partial bulk-delete failure
+    // still refreshes away the rows that WERE deleted.
+    onSettled: () => {
+      invalidate();
     },
   });
 
