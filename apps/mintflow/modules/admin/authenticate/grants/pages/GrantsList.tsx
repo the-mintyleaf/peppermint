@@ -1,10 +1,6 @@
 "use client";
 
-import { ModalTableShell } from "@peppermint/admin";
-import { ModalPaper, ModuleHeader } from "@peppermint/ui";
-
-import { RequireStaff } from "@/components/RequireStaff";
-import { getApiErrorMessage } from "@/lib/authErrorMessages";
+import { createListModule } from "@/components/createListModule";
 
 import { createGrant, fetchGrants } from "../grants.api";
 import { grantsColumns } from "../grants.columns";
@@ -13,35 +9,17 @@ import type { Grant, GrantCreatePayload } from "../grants.types";
 import type { GrantFormValues } from "../form/GrantForm.types";
 import { GrantForm } from "../form";
 
-export function GrantsList() {
-  return (
-    <RequireStaff>
-      <ModuleHeader
-        breadcrumbItems={[
-          { label: "Grants", href: "/admin/authenticate/grants" },
-        ]}
-      />
-      <ModalPaper withBorder>
-        <ModalTableShell<Grant, GrantFormValues>
-          queryKey={grantQueryKeys.list()}
-          queryGetFn={fetchGrants}
-          dataKey="data"
-          paginationKey="meta"
-          columns={grantsColumns}
-          moduleInfo={{
-            name: "grant",
-            label: "Grants",
-            description: "Direct permission grants for individual users",
-          }}
-          idAccessor="id"
-          createFormComponent={GrantForm}
-          onCreateApi={(values) => createGrant(values as GrantCreatePayload)}
-          getErrorMessage={getApiErrorMessage}
-          disableReviewButton
-          pageSizes={[10, 20, 30, 50]}
-          defaultPageSize={20}
-        />
-      </ModalPaper>
-    </RequireStaff>
-  );
-}
+export const GrantsList = createListModule<Grant, GrantFormValues>({
+  breadcrumb: [{ label: "Grants", href: "/admin/authenticate/grants" }],
+  queryKey: grantQueryKeys.list(),
+  queryGetFn: fetchGrants,
+  columns: grantsColumns,
+  moduleInfo: {
+    name: "grant",
+    label: "Grants",
+    description: "Direct permission grants for individual users",
+  },
+  createFormComponent: GrantForm,
+  onCreateApi: (values) => createGrant(values as GrantCreatePayload),
+  disableReviewButton: true,
+});
