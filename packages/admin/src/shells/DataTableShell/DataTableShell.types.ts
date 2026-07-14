@@ -124,40 +124,29 @@ export interface DataTableShellProps<
 
 // ── Internal props passed to DataTableShellInner ──────────────────────────────
 
-export interface DataTableShellInnerProps<T extends Record<string, unknown>> {
-  columns: DataTableShellColumn<T>[];
-  moduleInfo: DataTableShellModuleInfo;
-  idAccessor: string;
-  basePath?: string;
-  tabs: DataTableShellTab[];
-  newButtonHref?: string;
-  onNewClick?: () => void;
-  disableCreateButton?: boolean;
-  onEditClick?: (record: T) => void;
-  onDeleteClick?: (ids: Array<string | number>) => Promise<void> | void;
-  onReviewClick?: (record: T) => void;
-  disableEditButton?: boolean;
-  disableDeleteButton?: boolean;
-  disableReviewButton?: boolean;
-  pageSizes: number[];
-  forceFilter?: (rows: T[]) => T[];
-  rowStyle?: (record: T, index: number) => React.CSSProperties;
-  rowExpansion?: DataTableRowExpansionProps<T>;
-  hideToolbar: boolean;
-  disableActions: boolean;
-  sustained: boolean;
+/** Props that belong to DataTableWrapper (not forwarded to the inner shell). */
+type DataTableWrapperOnlyKey =
+  | "queryKey"
+  | "queryGetFn"
+  | "dataKey"
+  | "paginationKey"
+  | "enableServerQuery"
+  | "defaultPageSize"
+  | "staleTime"
+  | "debounceMs"
+  | "forceFilters"
+  | "onError";
+
+// Derived from DataTableShellProps (minus the wrapper-only props) so the ~30
+// shell props aren't hand-duplicated here and re-forwarded one-by-one.
+export type DataTableShellInnerProps<T extends Record<string, unknown>> = Omit<
+  DataTableShellProps<T>,
+  DataTableWrapperOnlyKey
+> & {
   activeTab: number;
   onTabChange: (index: number) => void;
   activeTabForceFilter?: (rows: T[]) => T[];
-  headerRight?: ReactNode;
-  moduleAccess?: DataTableShellModuleAccess;
-  onModuleAccessChange?: (change: DataTableShellModuleAccessChange) => void;
-  lastEditedAt?: string | Date;
-  shareUrl?: string;
-  hideAccessMenu?: boolean;
-  mainComponent?: ElementType;
-  mainComponentProps?: Record<string, unknown>;
-}
+};
 
 // ── Sub-component prop types ──────────────────────────────────────────────────
 

@@ -56,9 +56,9 @@ function DataTableShellTabSync({
 function DataTableShellInner<T extends Record<string, unknown>>({
   columns,
   moduleInfo,
-  idAccessor,
+  idAccessor = "id",
   basePath,
-  tabs,
+  tabs = [],
   newButtonHref,
   onNewClick,
   disableCreateButton,
@@ -68,13 +68,13 @@ function DataTableShellInner<T extends Record<string, unknown>>({
   disableEditButton,
   disableDeleteButton,
   disableReviewButton,
-  pageSizes,
+  pageSizes = [10, 20, 50, 100],
   forceFilter,
   rowStyle,
   rowExpansion,
-  hideToolbar,
-  disableActions,
-  sustained,
+  hideToolbar = false,
+  disableActions = false,
+  sustained = false,
   activeTab,
   onTabChange,
   activeTabForceFilter,
@@ -224,47 +224,21 @@ function DataTableShellInner<T extends Record<string, unknown>>({
 export function DataTableShell<
   T extends Record<string, unknown> = Record<string, unknown>,
 >({
-  // DataTableWrapper props
+  // DataTableWrapper props — consumed here, not forwarded to the inner shell.
   queryKey,
   queryGetFn,
   dataKey,
   paginationKey,
   enableServerQuery,
   defaultPageSize,
-  pageSizes = [10, 20, 50, 100],
   staleTime,
   debounceMs,
   forceFilters,
   onError,
-  // Shell props
-  columns,
+  // Read here too; the rest spread straight into the inner shell.
   moduleInfo,
-  idAccessor = "id",
-  basePath,
   tabs = [],
-  newButtonHref,
-  onNewClick,
-  disableCreateButton,
-  onEditClick,
-  onDeleteClick,
-  onReviewClick,
-  disableEditButton,
-  disableDeleteButton,
-  disableReviewButton,
-  forceFilter,
-  rowStyle,
-  rowExpansion,
-  hideToolbar = false,
-  disableActions = false,
-  sustained = false,
-  headerRight,
-  moduleAccess,
-  onModuleAccessChange,
-  lastEditedAt,
-  shareUrl,
-  hideAccessMenu,
-  mainComponent,
-  mainComponentProps,
+  ...shellProps
 }: DataTableShellProps<T>) {
   const [activeTab, setActiveTab] = useState(0);
 
@@ -292,38 +266,12 @@ export function DataTableShell<
     >
       <DataTableShellTabSync activeTab={activeTab} tabs={tabs} />
       <DataTableShellInner<T>
-        columns={columns}
+        {...shellProps}
         moduleInfo={moduleInfo}
-        idAccessor={idAccessor}
-        basePath={basePath}
         tabs={tabs}
-        newButtonHref={newButtonHref}
-        onNewClick={onNewClick}
-        disableCreateButton={disableCreateButton}
-        onEditClick={onEditClick}
-        onDeleteClick={onDeleteClick}
-        onReviewClick={onReviewClick}
-        disableEditButton={disableEditButton}
-        disableDeleteButton={disableDeleteButton}
-        disableReviewButton={disableReviewButton}
-        pageSizes={pageSizes}
-        forceFilter={forceFilter}
-        rowStyle={rowStyle}
-        rowExpansion={rowExpansion}
-        hideToolbar={hideToolbar}
-        disableActions={disableActions}
-        sustained={sustained}
         activeTab={activeTab}
         onTabChange={handleTabChange}
         activeTabForceFilter={activeTabForceFilter}
-        headerRight={headerRight}
-        moduleAccess={moduleAccess}
-        onModuleAccessChange={onModuleAccessChange}
-        lastEditedAt={lastEditedAt}
-        shareUrl={shareUrl}
-        hideAccessMenu={hideAccessMenu}
-        mainComponent={mainComponent}
-        mainComponentProps={mainComponentProps}
       />
     </DataTableWrapper>
   );
