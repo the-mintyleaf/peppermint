@@ -457,6 +457,9 @@ pnpm check-types
 pnpm format:check
 ```
 
+`pnpm check-types` (turbo) now type-checks the `mintflow` app too (it has a
+`check-types` script). App-level type errors surface here, not only in `pnpm build`.
+
 Also run:
 
 ```bash

@@ -6,13 +6,21 @@ Fast lookup for agents. Full context lives in CLAUDE.md and the relevant skills.
 
 ## Imports
 
-| Need             | Import from                                                             |
-| ---------------- | ----------------------------------------------------------------------- |
-| Any UI component | `@peppermint/ui` (never `@mantine/*` directly)                          |
-| Forms            | `@mantine/form` via `@peppermint/ui`                                    |
-| HTTP client      | app's `src/lib/api.ts` (never `@peppermint/api-client` directly)        |
-| Icons            | `@phosphor-icons/react` — default weight `regular`, always `aria-label` |
-| React Query      | `@peppermint/ui` re-exports `@tanstack/react-query`                     |
+| Need                             | Import from                                                                                                     |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Any UI component                 | `@peppermint/ui` (never `@mantine/*` directly)                                                                  |
+| Charts/editor/etc                | `@peppermint/ui/{charts,editor,carousel,code-highlight,dropzone}` (subpath)                                     |
+| Forms                            | `@mantine/form` via `@peppermint/ui`                                                                            |
+| HTTP client                      | app's `src/lib/api.ts` (never `@peppermint/api-client` directly)                                                |
+| Resource API / keys / mutation   | `@peppermint/admin` — `createResourceApi`, `createQueryKeys`, `useAppMutation`                                  |
+| Status/date columns, row actions | `@peppermint/admin` — `statusColumn`, `dateColumn`, `booleanColumn`, `RowActionsMenu`, `openReasonConfirmModal` |
+| Error boundary                   | `@peppermint/admin` — `ModuleErrorBoundary`                                                                     |
+| Icons                            | `@phosphor-icons/react` — default weight `regular`, always `aria-label`                                         |
+| React Query                      | `@peppermint/ui` re-exports `@tanstack/react-query`                                                             |
+
+Before hand-rolling a fetch/query-key/mutation/column/menu, check the primitives above
+(full API: `usage-doc/admin/primitives.md`). Staff CRUD list pages: use
+`createListModule` from `@/components/createListModule`.
 
 ---
 
@@ -90,6 +98,9 @@ Example: `[mintflow/organization] add: department drawer component`
 - Adding `"use client"` to an `app/` page or layout file
 - Importing `@peppermint/api-client` directly in a component
 - Creating `<module>-<sub>/` sibling folders — always nest sub-modules inside their parent
+- Hand-rolling a resource API / query keys / mutation-with-notification / status-date column / row-action menu when a `@peppermint/admin` primitive exists
+- `as unknown as` at the modal/form boundary — specify `ModalTableShell<TRow, TCreate, TEdit>` generics instead
+- `extends Record<string, unknown>` on a domain row type — shells constrain `T extends object` (only React-Flow node data needs it)
 
 ---
 

@@ -6,9 +6,9 @@ Turborepo monorepo. UI lives in `@peppermint/ui` (Mantine wrapper) and is consum
 
 **Packages:**
 
-- `@peppermint/ui` — Mantine component wrapper (shared UI)
-- `@peppermint/api-client` — Axios-based API client
-- `@peppermint/admin` — admin UI components
+- `@peppermint/ui` — Mantine component wrapper (shared UI). Heavy Mantine domains are opt-in subpath exports: `@peppermint/ui/{charts,editor,carousel,code-highlight,dropzone}` (not in the main barrel — import them from the subpath).
+- `@peppermint/api-client` — HTTP client factory. `configureApiClient(config)` returns the app's Axios instance (auth-header injection, `{ success, data, meta }` envelope unwrap, single-flight 401 refresh).
+- `@peppermint/admin` — admin shells (`AdminShell`, `DataTableShell`, `ModalTableShell`, `FormShell`), wrappers, auth pages, and the framework primitives under `src/{data,columns,actions,feedback}` — see [Framework Primitives](#framework-primitives).
 - `@peppermint/kanban` — kanban UI components
 - `@peppermint/config` — shared config values
 - `@peppermint/utils` — shared utility functions
@@ -19,12 +19,17 @@ Apps live in `apps/` — see [App Structure](#app-structure) below. When creatin
 
 ```
 apps/*  →  any @peppermint/* package
-@peppermint/admin   →  @peppermint/ui, @peppermint/utils
+@peppermint/admin   →  @peppermint/ui, @peppermint/utils, @peppermint/api-client
 @peppermint/kanban  →  @peppermint/ui, @peppermint/utils
 @peppermint/ui      →  (no internal package imports)
 @peppermint/utils   →  (no internal package imports)
 packages must never import from apps/
 ```
+
+`react`, `react-dom`, `@tanstack/react-query`, and `zustand` are `peerDependencies`
+(not `dependencies`) in `@peppermint/ui` and `@peppermint/admin`, so the app supplies a
+single copy. When adding one of these to a library package, use `peerDependencies` +
+`devDependencies`, never `dependencies`.
 
 ## Stack Rules
 
@@ -46,7 +51,7 @@ Check these before assuming an API signature. Use `next/navigation` not `next/ro
 
 **Forms** — always use `@mantine/form` via `@peppermint/ui`. Never use React Hook Form or other form libraries.
 
-**`@peppermint/api-client`** — the shared Axios instance. Each app configures it in `src/lib/api.ts` (base URL, auth headers). Always import from the app's `src/lib/api.ts` — never import from `@peppermint/api-client` directly in components, and never instantiate Axios inline.
+**`@peppermint/api-client`** — the app calls `configureApiClient({ baseURL, refreshEndpoint })` once in `src/lib/api.ts` and exports the returned Axios instance (auth-header injection, `{ success, data, meta }` envelope unwrap, and single-flight 401 refresh are built in). Always import that instance from the app's `src/lib/api.ts` — never call `configureApiClient` or instantiate Axios inline in a component.
 
 **React Query + Axios** — all server state goes through React Query. No fetching in `useEffect`. Query functions live in the component's `.hooks.ts` file, or in a `queries/` folder at the module root when shared across multiple components. Query keys live next to their query function. All mutations use `useMutation` — never call Axios directly in event handlers. Mutation functions follow the same co-location rule as query functions.
 
@@ -249,10 +254,11 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 
 **Before writing any code — run this checklist:**
 
-1. Check `@peppermint/ui` exports — don't build what already exists.
-2. If the task involves a module, identify its type (ContainedModule / MultiPageModule / ModalModule / RouteModule) before touching files.
-3. If the task spans more than two files, write a plan first.
-4. If the task doesn't fit a pattern described in this file — stop and ask. Don't invent a new pattern.
+1. Check `@peppermint/ui` exports AND the `@peppermint/admin` [Framework Primitives](#framework-primitives) — don't hand-roll a resource API, query keys, a mutation-with-notification, a status/date column, a row-action menu, a reason-confirm modal, or a list module when a primitive already exists.
+2. For any module/sub-module build, restyle, or extension, run `/design-decisions` (pre-build design reasoning — pages, form/column/icon order, feasibility) before `/plan-module`.
+3. If the task involves a module, identify its type (ContainedModule / MultiPageModule / ModalModule / RouteModule) before touching files.
+4. If the task spans more than two files, write a plan first.
+5. If the task doesn't fit a pattern described in this file — stop and ask. Don't invent a new pattern.
 
 **General rules:**
 
@@ -369,6 +375,33 @@ import { ModuleDashboard } from "../modules/dashboard";
 export default ModuleDashboard;
 ```
 
+## Framework Primitives
+
+`@peppermint/admin` provides building blocks that absorb the boilerplate a list/CRUD
+module used to hand-write. **Reach for these before hand-rolling.** Full API +
+examples: `usage-doc/admin/primitives.md`.
+
+**Data layer (`@peppermint/admin` → `src/data`)**
+
+- `createResourceApi<TRow, TCreate, TUpdate>({ client, basePath })` — typed
+  `list/get/create/update/remove/action(verb)` over a REST resource, with the
+  `meta.count → total` remap and DRF `ordering` built in. Pass the app's Axios instance
+  (from `src/lib/api.ts`) as `client`.
+- `createQueryKeys(resource)` — typed **array-form** query keys (`.all/.lists()/.list(params)/.detail(id)`). Do not build stringly-typed `"resource.list"` keys or `.split(".")`.
+- `useAppMutation({ mutationFn, successMessage, invalidateKeys, ... })` + `configureAppMutations({ getErrorMessage })` — `useMutation` + success/error notifications + cache invalidation in one call. Configure the app's `getApiErrorMessage` resolver once at boot.
+
+**Columns (`src/columns`)** — `StatusBadge`, `statusColumn`, `dateColumn`, `booleanColumn` consolidate the status-pill / date / yes-no cells. Each returns a `DataTableShellColumn<T>`.
+
+**Row actions (`src/actions`)** — `RowActionsMenu` (config-driven dots menu), `rowActionsColumn`, `openReasonConfirmModal` (reason-textarea confirm flow).
+
+**Feedback (`src/feedback`)** — `ModuleErrorBoundary` (the mandated module-level error boundary; wrap module content, pass `resetKeys`).
+
+**List modules** — the app-level `createListModule(config)` (`@/components/createListModule`) collapses the `RequireStaff → ModuleHeader → ModalPaper → ModalTableShell` skeleton into a config. Use it for staff CRUD list pages.
+
+**Shell type contract** — `ModalTableShell<TRow, TCreate = TRow, TEdit = TCreate>` and `ModalFormComponentProps<TRecord, TFormValues = TRecord>`: a form's value shape is a **separate generic** from the table row, so `onSubmit`/`onCreateApi`/`onEditApi` are typed to the form values — **no `as unknown as` casts**. Specify the generics at the call site (e.g. `<ModalTableShell<Grant, GrantFormValues>>`) and type the form as `ModalFormComponentProps<Grant, GrantFormValues>`.
+
+**Domain row types** — the shells constrain `T extends object`, so a table/form row type is a **plain interface**. Do **not** add `extends Record<string, unknown>` to a domain entity to satisfy a shell (only React-Flow node data legitimately needs it).
+
 ## Module Types
 
 Every module belongs to one of four types. Pick before writing any code.
@@ -405,6 +438,9 @@ Things that look right but are wrong in this codebase. Stop if you're about to d
 - **Importing `@peppermint/api-client` directly in components** — Always import the Axios instance from the app's `src/lib/api.ts`. That file is where the base URL and auth headers are configured; importing the raw package bypasses all of that.
 - **Importing across the wrong package boundary** — Packages never import from `apps/`. `@peppermint/ui` never imports from other internal packages. See dependency direction above.
 - **Sibling sub-modules** — Never create `<module>-<sub>/` folders as siblings of `<module>/`. Sub-modules always nest inside their parent: `modules/<group>/<module>/<sub>/`, not `modules/<group>/<module>-<sub>/`.
+- **Hand-rolling what a primitive owns** — Don't reimplement a paginated fetch + `meta.count → total` remap, stringly-typed query keys, the `useMutation` + notification + invalidate trio, a status/date/boolean column, a dots row-action menu, or a reason-confirm modal. Use the [Framework Primitives](#framework-primitives).
+- **`as unknown as` at the modal/form boundary** — The `ModalTableShell<TRow, TCreate, TEdit>` / `ModalFormComponentProps<TRecord, TFormValues>` generics make casts unnecessary. Specify the generics; don't cast form values to the row type.
+- **`extends Record<string, unknown>` on a domain type** — Shells constrain `T extends object`; row types are plain interfaces. Only React-Flow node data needs the index signature.
 - **Inventing a new pattern when uncertain** — If a task doesn't fit a pattern described in this file, stop and ask. Don't improvise a new pattern.
 
 ## Git Commit Format
