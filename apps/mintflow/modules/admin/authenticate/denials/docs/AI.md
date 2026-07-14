@@ -18,8 +18,9 @@ ContainedModule. Single route, staff-gated, `ModuleHeader` + `ModalPaper` +
 
 ## Entry files
 
-- `pages/DenialsList.tsx` — `RequireStaff` + `ModuleHeader` + `ModalPaper` +
-  `ModalTableShell`.
+- `pages/DenialsList.tsx` — a `createListModule` config (the shared factory at
+  `@/components/createListModule` renders `RequireStaff` + `ModuleHeader` +
+  `ModalPaper` + `ModalTableShell`).
 - `index.ts` — exports `ModuleDenials`.
 - `app/admin/authenticate/denials/page.tsx` — one-line re-export.
 
@@ -49,10 +50,11 @@ Base prefix `/api/v1/permissions/`. **All endpoints staff-only.**
 ## Type boundary — form values vs. read entity
 
 `Denial` is the **read** shape (`subject_user` is a nested user object). The
-create payload uses `subject_user_id` (a string). `DenialForm` keeps an internal
-`DenialFormValues` type and casts once at the `onSubmit` boundary
-(`as unknown as Denial`); `DenialsList` casts back to `DenialCreatePayload` in
-`onCreateApi`. Do not make `Denial` double as the form's internal type.
+create payload uses `subject_user_id` (a string). `DenialForm` is typed
+`ModalFormComponentProps<Denial, DenialFormValues>`, so `onSubmit` emits
+`DenialFormValues` directly (no cast); `DenialsList` types the shell as
+`<Denial, DenialFormValues>` and maps to `DenialCreatePayload` once at the
+`onCreateApi` boundary. Do not make `Denial` double as the form's internal type.
 
 ## Row actions
 

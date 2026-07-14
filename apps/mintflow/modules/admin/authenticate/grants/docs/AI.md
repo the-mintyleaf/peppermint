@@ -18,8 +18,9 @@ ContainedModule. Single route, staff-gated, `ModuleHeader` + `ModalPaper` +
 
 ## Entry files
 
-- `pages/GrantsList.tsx` — `RequireStaff` + `ModuleHeader` + `ModalPaper` +
-  `ModalTableShell`.
+- `pages/GrantsList.tsx` — a `createListModule` config (the shared factory at
+  `@/components/createListModule` renders `RequireStaff` + `ModuleHeader` +
+  `ModalPaper` + `ModalTableShell`).
 - `index.ts` — exports `ModuleGrants`.
 - `app/admin/authenticate/grants/page.tsx` — one-line re-export.
 
@@ -47,10 +48,11 @@ Base prefix `/api/v1/permissions/`. **All endpoints staff-only.**
 ## Type boundary — form values vs. read entity
 
 `Grant` is the **read** shape (`subject_user` is a nested user object). The
-create payload uses `subject_user_id` (a string). `GrantForm` keeps an internal
-`GrantFormValues` type and casts once at the `onSubmit` boundary
-(`as unknown as Grant`); `GrantsList` casts back to `GrantCreatePayload` in
-`onCreateApi`. Do not make `Grant` double as the form's internal type.
+create payload uses `subject_user_id` (a string). `GrantForm` is typed
+`ModalFormComponentProps<Grant, GrantFormValues>`, so `onSubmit` emits
+`GrantFormValues` directly (no cast); `GrantsList` types the shell as
+`<Grant, GrantFormValues>` and maps to `GrantCreatePayload` once at the
+`onCreateApi` boundary. Do not make `Grant` double as the form's internal type.
 
 ## Row actions
 
