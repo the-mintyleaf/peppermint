@@ -10,15 +10,15 @@ Stack: Next.js App Router, Mantine (via `@peppermint/ui`), React Query, Zustand,
 
 ## Read by task type
 
-| Task                  | Read first                                                                            | Then inspect                                        |
-| --------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| Edit visual design    | `docs/design/DESIGN.md`, `docs/design/design-system.md` (pending — create if missing) | target component only                               |
-| Add UI component      | `@peppermint/ui` exports, `@peppermint/admin` exports                                 | target component folder                             |
-| Edit existing module  | module `docs/AI.md`                                                                   | target module files only                            |
-| Add query or mutation | module `docs/AI.md`, `docs/api-contracts/` if exists                                  | module `.api.ts` and `.queryKeys.ts`                |
-| Edit state            | module `docs/AI.md`                                                                   | relevant `.store.ts`, `.context.ts`, or `.hooks.ts` |
-| Edit a route          | route entry in Major Modules table below                                              | `app/admin/<route>/page.tsx` + target module        |
-| Scaffold new module   | `.claude/CLAUDE.md` (module type rules), `usage-doc/module-patterns/README.md`        | run `/new-module`                                   |
+| Task                  | Read first                                                                     | Then inspect                                        |
+| --------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------- |
+| Edit visual design    | `docs/design/design-system.md` (tokens), `docs/design/DESIGN.md` (pending)     | target component only                               |
+| Add UI component      | `@peppermint/ui` exports, `@peppermint/admin` exports                          | target component folder                             |
+| Edit existing module  | module `docs/AI.md`                                                            | target module files only                            |
+| Add query or mutation | module `docs/AI.md`, `docs/api-contracts/` if exists                           | module `.api.ts` and `.queryKeys.ts`                |
+| Edit state            | module `docs/AI.md`                                                            | relevant `.store.ts`, `.context.ts`, or `.hooks.ts` |
+| Edit a route          | route entry in Major Modules table below                                       | `app/admin/<route>/page.tsx` + target module        |
+| Scaffold new module   | `.claude/CLAUDE.md` (module type rules), `usage-doc/module-patterns/README.md` | run `/new-module`                                   |
 
 ---
 

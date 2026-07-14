@@ -1118,17 +1118,19 @@ import { useParams, useRouter } from "next/navigation";
 
 Given a requirements doc, follow this sequence:
 
+> Before this sequence, the design decisions — page/route surface, form field order, column order + icons, shell choice — should already be made and user-confirmed via `/design-decisions`. If they aren't, run it first; don't improvise them while building.
+
 0. **Check for a contract digest** — if `apps/<app>/docs/api-contracts/<domain>.md` exists for your module's domain, it is required reading and the authority on DTO shapes, endpoints, envelopes, and error codes. Do not guess API shapes it already answers; if it's missing but `docs/backend/<domain>/` exists, ask the orchestrator to run `/sync-api` first.
 1. **Decide Contained vs Not Contained** (Section 2).
-2. **If Contained — pick ContainedModule or MultiPageModule** (Section 3).
-3. **Create the branch** (orchestrator-only): `git checkout -b dev/<feature-name>`.
-4. **Build in order** (within a single module): types → query keys → API → columns → form → list page → index → app page.
-5. **Every page** gets wrapped in `<ModalPaper withBorder>` — never a hand-rolled `Paper` with manual `radius`/`h`.
-6. **Every `app/` page** is a one-line re-export.
-7. **Tabs** → always `DataTableShellTab[]`, always `filter` (not `forceFilter`).
-8. **Entity type** → always extends `Record<string, unknown>`.
-9. **Imports** → always from `@peppermint/ui`, never from `@mantine/*`.
-10. **Commit format** → `[app-name/module-name] add: description`.
-11. **Multiple independent modules in the doc** → do not build them one after another. Dispatch one `module-builder` agent per `[CONTAINED]`/`[MULTI_PAGE]` module, concurrently, per `.claude/PARALLEL.md`. `[NOT_CONTAINED]`/`[CUSTOM]` and dependent modules stay inline/sequential.
-12. **When running as a dispatched agent** → write only inside your assigned module folder. Outer barrels, `app/` pages, parent AI.md, and `.todo` belong to the orchestrator — report the exact wiring lines instead of writing them (see `.claude/agents/module-builder.md`). Items 3, 11, and 13 are **orchestrator-only** — as a dispatched agent, never attempt git operations, agent dispatch, or reviews.
-13. **After each phase** (orchestrator) → commit (repo format), then run the dual adversarial review per `.claude/PARALLEL.md` Section 7 unless the phase doesn't warrant it.
+1. **If Contained — pick ContainedModule or MultiPageModule** (Section 3).
+1. **Create the branch** (orchestrator-only): `git checkout -b dev/<feature-name>`.
+1. **Build in order** (within a single module): types → query keys → API → columns → form → list page → index → app page.
+1. **Every page** gets wrapped in `<ModalPaper withBorder>` — never a hand-rolled `Paper` with manual `radius`/`h`.
+1. **Every `app/` page** is a one-line re-export.
+1. **Tabs** → always `DataTableShellTab[]`, always `filter` (not `forceFilter`).
+1. **Entity type** → always extends `Record<string, unknown>`.
+1. **Imports** → always from `@peppermint/ui`, never from `@mantine/*`.
+1. **Commit format** → `[app-name/module-name] add: description`.
+1. **Multiple independent modules in the doc** → do not build them one after another. Dispatch one `module-builder` agent per `[CONTAINED]`/`[MULTI_PAGE]` module, concurrently, per `.claude/PARALLEL.md`. `[NOT_CONTAINED]`/`[CUSTOM]` and dependent modules stay inline/sequential.
+1. **When running as a dispatched agent** → write only inside your assigned module folder. Outer barrels, `app/` pages, parent AI.md, and `.todo` belong to the orchestrator — report the exact wiring lines instead of writing them (see `.claude/agents/module-builder.md`). Items 3, 11, and 13 are **orchestrator-only** — as a dispatched agent, never attempt git operations, agent dispatch, or reviews.
+1. **After each phase** (orchestrator) → commit (repo format), then run the dual adversarial review per `.claude/PARALLEL.md` Section 7 unless the phase doesn't warrant it.

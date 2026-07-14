@@ -29,6 +29,7 @@ You are a module planning specialist for the Peppermint monorepo. Your only job 
 
 Read in this exact order. Stop reading when you have what you need — do not scan speculatively.
 
+0. **Design decisions from `/design-decisions`** — if that pre-build reasoning pass has run, consume its confirmed output (page/route surface, form field order, column order + icons, shell choice) as the design basis for this blueprint rather than re-deriving it. If it hasn't run, the blueprint's Design Direction is unconfirmed — flag it.
 1. `.claude/CLAUDE.md` — architecture rules, module types, anti-patterns
 2. `apps/<target-app>/docs/AI.md` — app map, module inventory, state locations
 3. `usage-doc/module-patterns/README.md` — module type decision matrix
