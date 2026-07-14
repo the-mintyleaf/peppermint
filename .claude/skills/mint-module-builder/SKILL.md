@@ -69,6 +69,12 @@ Once you know a module is **Contained**, pick the shape by route count:
 | **ContainedModule** | 1           | `ModalTableShell`                              | Single list page; create & edit open in modals/drawers; form has ≤ ~8 fields   |
 | **MultiPageModule** | 2–4         | `DataTableShell` + `FormWrapper` + `FormShell` | Complex form, multi-step wizard, file uploads, or a dedicated detail/view page |
 
+The **form** in _both_ patterns is built on `FormWrapper` (the state/validation/submit
+engine — see Step 5). The difference is chrome: a ContainedModule form renders inside the
+`ModalTableShell` modal (FormWrapper only, no `FormShell`); a MultiPageModule form route
+wraps FormWrapper in `FormShell` for the full-page header / stepper / footer. Never
+hand-roll `useForm` for a module form.
+
 `ModalModule` and `RouteModule` (CLAUDE.md § Module Types) are **distinct types, not aliases** of these two patterns. A `ModalModule` has no route — another module opens it via state (e.g. the profile overlay in the user-avatar menu). A `RouteModule` owns its own layout shell wired in `app/`. Neither fits the Contained builder patterns above: treat both as custom work built inline by the orchestrator — never dispatched to `module-builder` agents (see `.claude/PARALLEL.md` §1).
 
 ---
@@ -190,77 +196,118 @@ export const studentsColumns: DataTableShellColumn<Student>[] = [
 
 ### Step 5 — `form/<Name>Form.tsx`
 
-The form owns its submit button. `ModalTableShell` injects `initialValues`, `onSubmit`, and `isLoading`.
+**Build module forms on `FormWrapper` — it owns form state, Zod validation, dirty
+tracking, and the submit flow. Do NOT hand-roll `useForm` for a module form.** For a
+modal form (ContainedModule + `ModalTableShell`), the shell injects `initialValues`
+(edit prefill), `onSubmit`, and `isLoading`; `FormWrapper`'s `finalSubmitFn` hands the
+validated values back to the shell's mutation. There is **no `FormShell`** here — the
+modal is the chrome. Fields live in a **child component** so they subscribe to the form
+context (not navigation).
 
 ```tsx
-import { Stack, TextInput, Select, Button, useForm } from "@peppermint/ui";
-import type { StudentFormProps } from "./StudentForm.types";
-import type { Student } from "../students.types";
+"use client";
+import { Stack, TextInput, Select, Button } from "@peppermint/ui";
+import {
+  FormWrapper,
+  useFormInstance,
+  useFormControls,
+} from "@peppermint/admin";
+import { z } from "zod";
+import type { StudentFormProps, StudentFormValues } from "./StudentForm.types";
+
+const schema = z.object({
+  fullName: z.string().min(1, "Required"),
+  email: z.string().email("Invalid email"),
+  status: z.enum(["active", "on-leave", "graduated", "dropped"]),
+});
+
+const INITIAL: StudentFormValues = {
+  fullName: "",
+  email: "",
+  status: "active",
+};
 
 export function StudentForm({
   initialValues,
   onSubmit,
   isLoading,
 }: StudentFormProps) {
-  const form = useForm<Student>({
-    initialValues: initialValues ?? {
-      fullName: "",
-      email: "",
-      status: "active",
-    },
-    validate: {
-      fullName: (v) => (!v ? "Required" : null),
-      email: (v) =>
-        !v ? "Required" : !/^\S+@\S+$/.test(v) ? "Invalid email" : null,
-    },
-  });
-
   return (
-    <form onSubmit={form.onSubmit(onSubmit)}>
-      <Stack gap="md" p="md">
-        <TextInput
-          label="Full Name"
-          required
-          disabled={isLoading}
-          {...form.getInputProps("fullName")}
-        />
-        <TextInput
-          label="Email"
-          type="email"
-          required
-          disabled={isLoading}
-          {...form.getInputProps("email")}
-        />
-        <Select
-          label="Status"
-          data={[
-            { value: "active", label: "Active" },
-            { value: "on-leave", label: "On Leave" },
-            { value: "graduated", label: "Graduated" },
-            { value: "dropped", label: "Dropped" },
-          ]}
-          disabled={isLoading}
-          {...form.getInputProps("status")}
-        />
-        <Button type="submit" loading={isLoading} fullWidth>
-          {initialValues?.id ? "Update Student" : "Create Student"}
-        </Button>
-      </Stack>
-    </form>
+    <FormWrapper<StudentFormValues>
+      initial={{ ...INITIAL, ...initialValues }} // for records that differ from the form shape, map explicitly
+      validation={[schema]} // one schema per step; single-step passes [schema]
+      finalSubmitFn={async (values) => {
+        onSubmit(values); // hand validated values to ModalTableShell's create/edit mutation
+        return { ok: true };
+      }}
+    >
+      <StudentFields isLoading={isLoading} />
+    </FormWrapper>
+  );
+}
+
+// Fields in a child component — reads the form via useFormInstance, submits via useFormControls.
+function StudentFields({ isLoading }: { isLoading?: boolean }) {
+  const { form } = useFormInstance<StudentFormValues>();
+  const { handleSubmit } = useFormControls();
+  return (
+    <Stack gap="md" p="md">
+      <TextInput
+        label="Full Name"
+        required
+        disabled={isLoading}
+        {...form.getInputProps("fullName")}
+      />
+      <TextInput
+        label="Email"
+        type="email"
+        required
+        disabled={isLoading}
+        {...form.getInputProps("email")}
+      />
+      <Select
+        label="Status"
+        data={[
+          { value: "active", label: "Active" },
+          { value: "on-leave", label: "On Leave" },
+          { value: "graduated", label: "Graduated" },
+          { value: "dropped", label: "Dropped" },
+        ]}
+        disabled={isLoading}
+        {...form.getInputProps("status")}
+      />
+      {/* spinner = shell's isLoading (the real mutation); handleSubmit validates then submits */}
+      <Button loading={isLoading} onClick={handleSubmit} fullWidth>
+        Save
+      </Button>
+    </Stack>
   );
 }
 ```
 
+**Full-page / multi-step forms (MultiPageModule new/edit routes):** keep the same
+`FormWrapper`, but wrap the fields in `<FormShell title=… onBack=… steps={[…]}>` for the
+header / progress bar / stepper / footer / dirty-banner chrome (multi-step also uses
+`stepApiConfigs` + `stepFields`). Full API + examples: `usage-doc/admin/FormWrapper.md`
+and `usage-doc/admin/FormShell.md`.
+
 `form/<Name>Form.types.ts`:
 
 ```ts
+import type { ModalFormComponentProps } from "@peppermint/admin";
 import type { Student } from "../students.types";
 
-export interface StudentFormProps {
-  initialValues?: Student;
-  onSubmit: (values: Student) => void;
-  isLoading?: boolean;
+/** The form's own value shape — what onSubmit emits (distinct from the read entity). */
+export interface StudentFormValues {
+  fullName: string;
+  email: string;
+  status: Student["status"];
 }
+
+export type StudentFormProps = ModalFormComponentProps<
+  Student,
+  StudentFormValues
+>;
 ```
 
 ### Step 6 — `pages/list/<Name>List.tsx`

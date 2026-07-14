@@ -49,7 +49,7 @@ Check these before assuming an API signature. Use `next/navigation` not `next/ro
 
 **`@peppermint/ui`** — always import Mantine components from here, never from `@mantine/*` directly.
 
-**Forms** — always use `@mantine/form` via `@peppermint/ui`. Never use React Hook Form or other form libraries.
+**Forms** — build module forms on **`FormWrapper`** from `@peppermint/admin` (the state / Zod-validation / dirty / submit engine, which wraps `@mantine/form`) — read fields via `useFormInstance()`, submit via `useFormControls()`. Do **not** hand-roll `useForm` for a module form. Add **`FormShell`** (which must sit inside `FormWrapper`) for full-page / multi-step form routes; a modal form (inside `ModalTableShell`) uses `FormWrapper` only, with `finalSubmitFn` handing values to the shell's mutation. Never use React Hook Form or other form libraries. Full API: `usage-doc/admin/FormWrapper.md` + `FormShell.md`.
 
 **`@peppermint/api-client`** — the app calls `configureApiClient({ baseURL, refreshEndpoint })` once in `src/lib/api.ts` and exports the returned Axios instance (auth-header injection, `{ success, data, meta }` envelope unwrap, and single-flight 401 refresh are built in). Always import that instance from the app's `src/lib/api.ts` — never call `configureApiClient` or instantiate Axios inline in a component.
 
@@ -393,6 +393,8 @@ examples: `usage-doc/admin/primitives.md`.
 **Columns (`src/columns`)** — `StatusBadge`, `statusColumn`, `dateColumn`, `booleanColumn` consolidate the status-pill / date / yes-no cells. Each returns a `DataTableShellColumn<T>`.
 
 **Row actions (`src/actions`)** — `RowActionsMenu` (config-driven dots menu), `rowActionsColumn`, `openReasonConfirmModal` (reason-textarea confirm flow).
+
+**Forms (`src/wrappers/FormWrapper`, `src/shells/FormShell`)** — `FormWrapper` is the form engine (state, Zod validation, dirty tracking, multi-step, submit); read fields with `useFormInstance()`, submit with `useFormControls()`. Every module form uses it — never hand-roll `useForm`. `FormShell` (must be inside `FormWrapper`) adds the full-page header/stepper/footer/dirty-banner chrome for MultiPageModule form routes; modal forms use `FormWrapper` only. See the **Forms** rule above.
 
 **Feedback (`src/feedback`)** — `ModuleErrorBoundary` (the mandated module-level error boundary; wrap module content, pass `resetKeys`).
 
