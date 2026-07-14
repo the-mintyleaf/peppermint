@@ -28,7 +28,7 @@ import { DataTableShellSettingsMenu } from "./DataTableShellSettingsMenu";
 import { getColumnKey, getColumnLabel } from "./toolbar.utils";
 import { useTableStore } from "../../../../wrappers/DataTableWrapper";
 
-export function DataTableShellToolbar<T extends Record<string, unknown>>({
+export function DataTableShellToolbar<T extends object>({
   moduleInfo,
   columns,
   tabs = [],

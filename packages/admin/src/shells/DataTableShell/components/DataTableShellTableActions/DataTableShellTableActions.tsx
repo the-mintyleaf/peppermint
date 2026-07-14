@@ -10,7 +10,7 @@ import { useTableStore } from "../../../../wrappers/DataTableWrapper";
 import { useDataTableShellContext } from "../../DataTableShell.context";
 import type { DataTableShellTableActionsProps } from "../../DataTableShell.types";
 
-export function DataTableShellTableActions<T extends Record<string, unknown>>({
+export function DataTableShellTableActions<T extends object>({
   idAccessor,
   basePath,
   sustained = false,
@@ -35,7 +35,9 @@ export function DataTableShellTableActions<T extends Record<string, unknown>>({
 
   const handleDelete = useCallback(async () => {
     if (!onDeleteClick) return;
-    const ids = selectedRecords.map((r) => r[idAccessor] as string | number);
+    const ids = selectedRecords.map(
+      (r) => (r as Record<string, unknown>)[idAccessor] as string | number,
+    );
     setDeleting(true);
     try {
       await onDeleteClick(ids);
@@ -53,7 +55,7 @@ export function DataTableShellTableActions<T extends Record<string, unknown>>({
     if (sustained && onEditClick) {
       onEditClick(record);
     } else {
-      const id = record[idAccessor];
+      const id = (record as Record<string, unknown>)[idAccessor];
       const href = basePath ? `${basePath}/${id}/edit` : `/${id}/edit`;
       window.location.href = href;
     }
@@ -65,7 +67,7 @@ export function DataTableShellTableActions<T extends Record<string, unknown>>({
     if (onReviewClick) {
       onReviewClick(record);
     } else {
-      const id = record[idAccessor];
+      const id = (record as Record<string, unknown>)[idAccessor];
       const href = basePath ? `${basePath}/${id}` : `/${id}`;
       window.location.href = href;
     }

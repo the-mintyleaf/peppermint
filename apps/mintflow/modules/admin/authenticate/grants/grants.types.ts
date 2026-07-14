@@ -5,7 +5,7 @@ import type {
 
 export type GrantStatus = "active" | "revoked" | "expired";
 
-export interface Grant extends Record<string, unknown> {
+export interface Grant {
   id: string;
   subject_user: PermissionUserRef | null;
   permission_key: string;

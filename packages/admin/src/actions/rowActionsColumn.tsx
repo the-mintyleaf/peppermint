@@ -14,7 +14,7 @@ export interface RowActionsColumnOptions<T> {
  * A trailing "Actions" column rendering a {@link RowActionsMenu} per row.
  * Keeps the actions column identical across list modules.
  */
-export function rowActionsColumn<T extends Record<string, unknown>>(
+export function rowActionsColumn<T extends object>(
   options: RowActionsColumnOptions<T>,
 ): DataTableShellColumn<T> {
   const { actions, title = "", width = 60 } = options;

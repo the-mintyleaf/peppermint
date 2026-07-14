@@ -25,7 +25,7 @@ export type OrganizationStatus =
   | "suspended"
   | "archived";
 
-export interface Organization extends Record<string, unknown> {
+export interface Organization {
   id: string;
   name_np: string;
   name_en: string;
@@ -73,7 +73,7 @@ export type UnitStatus =
   | "renamed"
   | "archived";
 
-export interface OrganizationUnit extends Record<string, unknown> {
+export interface OrganizationUnit {
   id: string;
   organization: string;
   parent: string | null;
@@ -226,7 +226,7 @@ export type PositionStatus =
   | "abolished"
   | "archived";
 
-export interface Position extends Record<string, unknown> {
+export interface Position {
   id: string;
   organization: string;
   unit: string;
@@ -259,7 +259,7 @@ export type MembershipStatus =
   | "ended"
   | "archived";
 
-export interface OrganizationMembership extends Record<string, unknown> {
+export interface OrganizationMembership {
   id: string;
   organization: string;
   user: string;
@@ -274,7 +274,7 @@ export interface OrganizationMembership extends Record<string, unknown> {
 }
 
 /** Reuses `MembershipStatus` per the data contract. */
-export interface UnitMembership extends Record<string, unknown> {
+export interface UnitMembership {
   id: string;
   organization: string;
   membership: string;
@@ -308,7 +308,7 @@ export type AssignmentStatus =
   | "revoked"
   | "archived";
 
-export interface PositionAssignment extends Record<string, unknown> {
+export interface PositionAssignment {
   id: string;
   organization: string;
   membership: string;
@@ -339,7 +339,7 @@ export type ReportingLineType =
   | "other";
 
 /** Reuses `AssignmentStatus` per the data contract. */
-export interface ReportingLine extends Record<string, unknown> {
+export interface ReportingLine {
   id: string;
   organization: string;
   source_position: string;
@@ -372,7 +372,7 @@ export type DelegationStatus =
   | "cancelled"
   | "archived";
 
-export interface AuthorityDelegation extends Record<string, unknown> {
+export interface AuthorityDelegation {
   id: string;
   organization: string;
   from_assignment: string;
@@ -421,7 +421,7 @@ export type OrganizationEventType =
   | "metadata_updated";
 
 /** Append-only — no create/update/delete endpoint exists for this resource. */
-export interface OrganizationEventLog extends Record<string, unknown> {
+export interface OrganizationEventLog {
   id: string;
   organization: string | null;
   actor: string | null;

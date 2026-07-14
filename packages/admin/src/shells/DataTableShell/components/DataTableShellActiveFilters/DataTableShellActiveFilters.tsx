@@ -11,11 +11,11 @@ import {
   getColumnKey,
 } from "../DataTableShellToolbar/toolbar.utils";
 
-interface DataTableShellActiveFiltersProps<T extends Record<string, unknown>> {
+interface DataTableShellActiveFiltersProps<T extends object> {
   columns: DataTableShellColumn<T>[];
 }
 
-export function DataTableShellActiveFilters<T extends Record<string, unknown>>({
+export function DataTableShellActiveFilters<T extends object>({
   columns,
 }: DataTableShellActiveFiltersProps<T>) {
   const useTable = useTableStore();

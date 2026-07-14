@@ -5,7 +5,7 @@ import type {
 
 export type { AccountStatus, ActorType };
 
-export interface User extends Record<string, unknown> {
+export interface User {
   id: string;
   username: string;
   email: string | null;
@@ -34,7 +34,7 @@ export interface UsersFetchResponse {
   };
 }
 
-export interface UserSession extends Record<string, unknown> {
+export interface UserSession {
   id: string;
   device_label: string;
   ip_address: string;
@@ -86,7 +86,7 @@ export type AuthEventType =
   | "service_account_credential_revoked"
   | "service_account_auth_failed";
 
-export interface AuthEvent extends Record<string, unknown> {
+export interface AuthEvent {
   id: string;
   user: string;
   identifier_entered: string;
@@ -112,7 +112,7 @@ export interface AuthEventsFetchResponse {
   };
 }
 
-export interface ServiceAccountCredential extends Record<string, unknown> {
+export interface ServiceAccountCredential {
   id: string;
   key_id: string;
   name: string | null;

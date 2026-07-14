@@ -15,7 +15,7 @@ import type {
 } from "./ModalTableShell.types";
 
 export function ModalTableShell<
-  TRow extends Record<string, unknown>,
+  TRow extends object,
   TCreate = TRow,
   TEdit = TCreate,
 >({

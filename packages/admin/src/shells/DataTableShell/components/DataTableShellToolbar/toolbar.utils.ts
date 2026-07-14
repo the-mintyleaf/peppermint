@@ -19,13 +19,13 @@ const FILTER_TYPE_ICONS: Record<DataTableColumnFilterType, FilterIcon> = {
   date: CalendarIcon as FilterIcon,
 };
 
-export function getColumnKey<T extends Record<string, unknown>>(
+export function getColumnKey<T extends object>(
   col: DataTableShellColumn<T>,
 ): string {
   return col.key ?? String(col.accessor);
 }
 
-export function getColumnLabel<T extends Record<string, unknown>>(
+export function getColumnLabel<T extends object>(
   col: DataTableShellColumn<T>,
 ): string {
   return typeof col.title === "string" ? col.title : getColumnKey(col);
@@ -37,13 +37,13 @@ export function getFilterIcon(filter?: DataTableColumnFilter): FilterIcon {
   return FILTER_TYPE_ICONS[type];
 }
 
-export function getFilterableColumns<T extends Record<string, unknown>>(
+export function getFilterableColumns<T extends object>(
   columns: DataTableShellColumn<T>[],
 ) {
   return columns.filter((col) => col.filter != null);
 }
 
-export function buildColumnLabelMap<T extends Record<string, unknown>>(
+export function buildColumnLabelMap<T extends object>(
   columns: DataTableShellColumn<T>[],
 ): Record<string, string> {
   const map: Record<string, string> = {};

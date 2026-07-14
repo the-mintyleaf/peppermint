@@ -10,7 +10,7 @@ import type { ModalHandlerProps } from "../../ModalTableShell.types";
 const MODAL_BODY_PADDING = 0;
 
 export function ModalHandler<
-  TRow extends Record<string, unknown>,
+  TRow extends object,
   TCreate = TRow,
   TEdit = TCreate,
 >({

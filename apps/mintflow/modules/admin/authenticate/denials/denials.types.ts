@@ -6,7 +6,7 @@ import type {
 export type DenialStatus = "active" | "revoked" | "expired";
 export type DenialSeverity = "low" | "medium" | "high" | "critical";
 
-export interface Denial extends Record<string, unknown> {
+export interface Denial {
   id: string;
   subject_user: PermissionUserRef | null;
   permission_key: string;

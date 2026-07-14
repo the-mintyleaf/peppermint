@@ -1,4 +1,4 @@
-export interface Role extends Record<string, unknown> {
+export interface Role {
   id: string;
   key: string;
   display_name: string;

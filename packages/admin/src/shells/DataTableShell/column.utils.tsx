@@ -36,7 +36,7 @@ function renderColumnIcon(icon: DataTableShellColumnIcon): ReactNode {
   return icon;
 }
 
-export function buildColumnHeaderTitle<T extends Record<string, unknown>>(
+export function buildColumnHeaderTitle<T extends object>(
   col: DataTableShellColumn<T>,
 ): ReactNode {
   if (!col.icon) return col.title ?? getColumnLabel(col);
@@ -54,9 +54,9 @@ export function buildColumnHeaderTitle<T extends Record<string, unknown>>(
   );
 }
 
-export function mapShellColumnsToDataTableColumns<
-  T extends Record<string, unknown>,
->(columns: DataTableShellColumn<T>[]): DataTableColumn<T>[] {
+export function mapShellColumnsToDataTableColumns<T extends object>(
+  columns: DataTableShellColumn<T>[],
+): DataTableColumn<T>[] {
   return columns.map((col) => {
     const {
       filter: _filter,

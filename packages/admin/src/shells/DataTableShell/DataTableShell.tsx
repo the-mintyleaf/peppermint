@@ -53,7 +53,7 @@ function DataTableShellTabSync({
 
 // ── Inner component — lives inside DataTableWrapper so it can use wrapper hooks ──
 
-function DataTableShellInner<T extends Record<string, unknown>>({
+function DataTableShellInner<T extends object>({
   columns,
   moduleInfo,
   idAccessor = "id",
@@ -93,7 +93,12 @@ function DataTableShellInner<T extends Record<string, unknown>>({
 
   // Derive selectedRecords from rows + store selection — no duplicate state
   const selectedRecords = useMemo<T[]>(
-    () => rows.filter((r) => selection.has(r[idAccessor] as string | number)),
+    () =>
+      rows.filter((r) =>
+        selection.has(
+          (r as Record<string, unknown>)[idAccessor] as string | number,
+        ),
+      ),
     [rows, selection, idAccessor],
   );
 
@@ -114,7 +119,7 @@ function DataTableShellInner<T extends Record<string, unknown>>({
   const rowsUpdatedAt = useMemo(() => {
     let latest: string | undefined;
     for (const row of rows) {
-      const value = row.updatedAt;
+      const value = (row as Record<string, unknown>).updatedAt;
       if (typeof value === "string" && (!latest || value > latest)) {
         latest = value;
       }
@@ -221,9 +226,7 @@ function DataTableShellInner<T extends Record<string, unknown>>({
 
 // ── Public shell component — owns activeTab and wraps DataTableWrapper ────────
 
-export function DataTableShell<
-  T extends Record<string, unknown> = Record<string, unknown>,
->({
+export function DataTableShell<T extends object = Record<string, unknown>>({
   // DataTableWrapper props — consumed here, not forwarded to the inner shell.
   queryKey,
   queryGetFn,

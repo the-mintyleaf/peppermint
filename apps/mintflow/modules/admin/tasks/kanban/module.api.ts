@@ -33,7 +33,7 @@ export interface TaskSubtask {
   dueDate: string;
 }
 
-export interface Task extends Record<string, unknown> {
+export interface Task {
   id: string;
   taskNumber: string;
   title: string;

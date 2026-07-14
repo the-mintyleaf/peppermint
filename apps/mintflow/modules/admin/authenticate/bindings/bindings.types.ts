@@ -2,7 +2,7 @@ import type { ScopeType } from "@/modules/admin/authenticate/_shared/authenticat
 
 export type RoleBindingStatus = "active" | "revoked" | "expired";
 
-export interface RoleBinding extends Record<string, unknown> {
+export interface RoleBinding {
   id: string;
   subject_user: string;
   role: string;

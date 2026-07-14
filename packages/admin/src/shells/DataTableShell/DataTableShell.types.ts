@@ -43,18 +43,17 @@ export interface DataTableColumnFilter {
   placeholder?: string;
 }
 
-export type DataTableShellColumn<
-  T extends Record<string, unknown> = Record<string, unknown>,
-> = Omit<DataTableColumn<T>, "filter"> & {
-  /** Key used in columnVisibility map. Defaults to String(accessor). */
-  key?: string;
-  /** Initial visibility before any user preference. Defaults to true. */
-  defaultVisible?: boolean;
-  /** When set, column appears in the filter picker. */
-  filter?: DataTableColumnFilter;
-  /** Icon rendered beside the column title in the table header. */
-  icon?: DataTableShellColumnIcon;
-};
+export type DataTableShellColumn<T extends object = Record<string, unknown>> =
+  Omit<DataTableColumn<T>, "filter"> & {
+    /** Key used in columnVisibility map. Defaults to String(accessor). */
+    key?: string;
+    /** Initial visibility before any user preference. Defaults to true. */
+    defaultVisible?: boolean;
+    /** When set, column appears in the filter picker. */
+    filter?: DataTableColumnFilter;
+    /** Icon rendered beside the column title in the table header. */
+    icon?: DataTableShellColumnIcon;
+  };
 
 export interface DataTableShellModuleInfo {
   /** Used as the persistence storageKey and the "New X" button label. */
@@ -67,7 +66,7 @@ export interface DataTableShellModuleInfo {
 }
 
 export interface DataTableShellProps<
-  T extends Record<string, unknown> = Record<string, unknown>,
+  T extends object = Record<string, unknown>,
 > extends Omit<DataTableWrapperProps<T>, "children" | "persistence"> {
   columns: DataTableShellColumn<T>[];
   moduleInfo: DataTableShellModuleInfo;
@@ -139,7 +138,7 @@ type DataTableWrapperOnlyKey =
 
 // Derived from DataTableShellProps (minus the wrapper-only props) so the ~30
 // shell props aren't hand-duplicated here and re-forwarded one-by-one.
-export type DataTableShellInnerProps<T extends Record<string, unknown>> = Omit<
+export type DataTableShellInnerProps<T extends object> = Omit<
   DataTableShellProps<T>,
   DataTableWrapperOnlyKey
 > & {
@@ -154,7 +153,7 @@ export interface DataTableShellHeaderProps {
   moduleInfo: DataTableShellModuleInfo;
 }
 
-export interface DataTableShellToolbarProps<T extends Record<string, unknown>> {
+export interface DataTableShellToolbarProps<T extends object> {
   moduleInfo: DataTableShellModuleInfo;
   columns: DataTableShellColumn<T>[];
   tabs?: DataTableShellTab[];
@@ -165,7 +164,7 @@ export interface DataTableShellToolbarProps<T extends Record<string, unknown>> {
   sustained?: boolean;
 }
 
-export interface DataTableShellTableProps<T extends Record<string, unknown>> {
+export interface DataTableShellTableProps<T extends object> {
   columns: DataTableShellColumn<T>[];
   idAccessor: string;
   pageSizes: number[];
@@ -176,9 +175,7 @@ export interface DataTableShellTableProps<T extends Record<string, unknown>> {
   disableActions?: boolean;
 }
 
-export interface DataTableShellTableActionsProps<
-  T extends Record<string, unknown>,
-> {
+export interface DataTableShellTableActionsProps<T extends object> {
   idAccessor: string;
   basePath?: string;
   sustained?: boolean;

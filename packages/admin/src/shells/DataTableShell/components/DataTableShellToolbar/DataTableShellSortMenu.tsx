@@ -17,11 +17,11 @@ import type { DataTableShellColumn } from "../../DataTableShell.types";
 import { ToolbarIconButton } from "./ToolbarIconButton";
 import { getColumnKey, getColumnLabel } from "./toolbar.utils";
 
-interface DataTableShellSortMenuProps<T extends Record<string, unknown>> {
+interface DataTableShellSortMenuProps<T extends object> {
   columns: DataTableShellColumn<T>[];
 }
 
-export function DataTableShellSortMenu<T extends Record<string, unknown>>({
+export function DataTableShellSortMenu<T extends object>({
   columns,
 }: DataTableShellSortMenuProps<T>) {
   const [opened, setOpened] = useState(false);

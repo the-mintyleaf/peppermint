@@ -26,7 +26,7 @@ const DENSITY_SPACING: Record<
   xl: { verticalSpacing: 12, horizontalSpacing: 14, fz: "sm" },
 };
 
-export function DataTableShellTable<T extends Record<string, unknown>>({
+export function DataTableShellTable<T extends object>({
   columns,
   idAccessor,
   pageSizes,
@@ -122,11 +122,15 @@ export function DataTableShellTable<T extends Record<string, unknown>>({
   const handleSelectionChange = useCallback(
     (records: T[]) => {
       const selectedPageIds = new Set(
-        records.map((r) => r[idAccessor] as string | number),
+        records.map(
+          (r) => (r as Record<string, unknown>)[idAccessor] as string | number,
+        ),
       );
       const next = new Set(selection);
       for (const row of filteredRows) {
-        const id = row[idAccessor] as string | number;
+        const id = (row as Record<string, unknown>)[idAccessor] as
+          | string
+          | number;
         if (selectedPageIds.has(id)) next.add(id);
         else next.delete(id);
       }

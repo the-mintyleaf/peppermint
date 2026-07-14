@@ -15,9 +15,7 @@ export interface ModalFormComponentProps<TRecord, TFormValues = TRecord> {
   isLoading: boolean;
 }
 
-export interface ModalTableShellContextValue<
-  T extends Record<string, unknown>,
-> {
+export interface ModalTableShellContextValue<T extends object> {
   isCreateModalOpen: boolean;
   isEditModalOpen: boolean;
   activeEditRecord: T | null;
@@ -31,7 +29,7 @@ export interface ModalTableShellContextValue<
 }
 
 export interface ModalHandlerProps<
-  TRow extends Record<string, unknown>,
+  TRow extends object,
   TCreate = TRow,
   TEdit = TCreate,
 > {
@@ -54,7 +52,7 @@ export interface ModalHandlerProps<
 }
 
 export type ModalTableShellProps<
-  TRow extends Record<string, unknown>,
+  TRow extends object,
   TCreate = TRow,
   TEdit = TCreate,
 > = Omit<

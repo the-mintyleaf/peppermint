@@ -8,11 +8,11 @@ import { ColumnToggleList } from "./ColumnToggleList";
 import { ToolbarIconButton } from "./ToolbarIconButton";
 import { getColumnKey, getColumnLabel } from "./toolbar.utils";
 
-interface DataTableShellColumnsMenuProps<T extends Record<string, unknown>> {
+interface DataTableShellColumnsMenuProps<T extends object> {
   columns: DataTableShellColumn<T>[];
 }
 
-export function DataTableShellColumnsMenu<T extends Record<string, unknown>>({
+export function DataTableShellColumnsMenu<T extends object>({
   columns,
 }: DataTableShellColumnsMenuProps<T>) {
   const [opened, setOpened] = useState(false);

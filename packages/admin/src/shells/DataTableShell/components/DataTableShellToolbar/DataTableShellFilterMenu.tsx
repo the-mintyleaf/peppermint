@@ -16,7 +16,7 @@ import {
   getFilterableColumns,
 } from "./toolbar.utils";
 
-interface DataTableShellFilterMenuProps<T extends Record<string, unknown>> {
+interface DataTableShellFilterMenuProps<T extends object> {
   columns: DataTableShellColumn<T>[];
   /** When true, renders inline content without the icon popover wrapper. */
   inline?: boolean;
@@ -25,7 +25,7 @@ interface DataTableShellFilterMenuProps<T extends Record<string, unknown>> {
 
 type FilterStep = "pick" | "value";
 
-export function DataTableShellFilterMenu<T extends Record<string, unknown>>({
+export function DataTableShellFilterMenu<T extends object>({
   columns,
   inline = false,
   onApplied,

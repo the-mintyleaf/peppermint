@@ -3,7 +3,7 @@
 import { DataTable } from "mantine-datatable";
 import type { DataTableShellNestedTableProps } from "./DataTableShellNestedTable.types";
 
-export function DataTableShellNestedTable<T extends Record<string, unknown>>({
+export function DataTableShellNestedTable<T extends object>({
   records,
   columns,
   idAccessor = "id",

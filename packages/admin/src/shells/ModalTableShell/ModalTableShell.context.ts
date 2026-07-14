@@ -6,7 +6,7 @@ export const ModalTableShellContext =
 ModalTableShellContext.displayName = "ModalTableShellContext";
 
 export function useModalTableShellContext<
-  T extends Record<string, unknown>,
+  T extends object,
 >(): ModalTableShellContextValue<T> {
   const ctx = useContext(ModalTableShellContext);
   if (!ctx)
