@@ -59,11 +59,11 @@ Branch: `dev/claude-tuning` (do NOT create a new branch)
 
 - [x] H5 re-type modal/form contract (ModalFormComponentProps<TRecord,TFormValues>; ModalTableShell<TRow,TCreate,TEdit>) — commits 51a0388, 0eb774e; dual-reviewed (backward-compat + runtime preservation confirmed)
 - [x] H5 migrated 3 representative consumers (grants/denials/bindings) — forms fully de-casted; runtime byte-identical
-- [ ] H5 sweep the remaining ~17 consumers' now-removable casts (incremental; they compile as-is)
-- [ ] H6 remove Record<string,unknown> leak (21 forced index signatures) — DEEP/risky
-- [ ] M1 collapse DataTableShellInner prop double-forward into context/config
-- [ ] Extend FormShell/FormWrapper into real form contract; migrate ~15 forms — LARGE
-- [ ] Commit + dual adversarial review (done for H5 core)
+- [x] H5 FULL cast sweep — all 9 ModalTableShell consumers de-casted; **ZERO `as unknown as` remain (was 21)** — commits 1533e13 (roles/users), ba5c751 (org modules)
+- [x] M1 collapse DataTableShellInner prop double-forward (Omit-based InnerProps + `...shellProps`) — commit 0d39438; dual-reviewed (props/defaults intact)
+- [ ] H6 remove Record<string,unknown> leak (21 forced index signatures) — DEEP/risky, NOT done
+- [ ] Extend FormShell/FormWrapper into real form contract; migrate ~15 forms — LARGE, NOT done
+- [x] Commit + dual adversarial review (H5, M1, sweeps all reviewed — no defects)
 
 ### ⚠️ FLAGGED — pre-existing wire bug surfaced by H5 (needs backend confirmation)
 
