@@ -2,7 +2,7 @@ import type { ModalFormComponentProps } from "@peppermint/admin";
 
 import type { Role } from "../roles.types";
 
-export type RoleFormProps = ModalFormComponentProps<Role>;
+export type RoleFormProps = ModalFormComponentProps<Role, RoleFormValues>;
 
 export interface RoleFormValues {
   key: string;

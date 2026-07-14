@@ -10,7 +10,6 @@ import {
   useForm,
 } from "@peppermint/ui";
 
-import type { User } from "../users.types";
 import type { UserFormProps, UserFormValues } from "./UserForm.types";
 
 const ACTOR_TYPE_OPTIONS = [
@@ -54,9 +53,7 @@ export function UserForm({ onSubmit, isLoading }: UserFormProps) {
   const isHuman = form.values.actor_type === "human";
 
   return (
-    <form
-      onSubmit={form.onSubmit((values) => onSubmit(values as unknown as User))}
-    >
+    <form onSubmit={form.onSubmit((values) => onSubmit(values))}>
       <Stack gap="md" p="md">
         <TextInput
           label="Username"

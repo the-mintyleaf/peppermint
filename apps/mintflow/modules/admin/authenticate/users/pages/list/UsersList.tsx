@@ -15,6 +15,8 @@ import { getApiErrorMessage } from "@/lib/authErrorMessages";
 
 import { UserEditForm } from "../../form/UserEditForm";
 import { UserForm } from "../../form/UserForm";
+import type { UserFormValues } from "../../form/UserForm.types";
+import type { UserEditFormValues } from "../../form/UserEditForm.types";
 import type { CreateUserPayload, UpdateUserPayload } from "../../users.api";
 import { createUser, fetchUsers, updateUser } from "../../users.api";
 import { usersQueryKeys } from "../../users.queryKeys";
@@ -52,7 +54,7 @@ function UsersListContent() {
 
   return (
     <>
-      <ModalTableShell<User>
+      <ModalTableShell<User, UserFormValues, UserEditFormValues>
         queryKey={usersQueryKeys.list()}
         queryGetFn={fetchUsers}
         dataKey="data"
@@ -66,11 +68,9 @@ function UsersListContent() {
         idAccessor="id"
         createFormComponent={UserForm}
         editFormComponent={UserEditForm}
-        onCreateApi={(values) =>
-          createUser(values as unknown as CreateUserPayload)
-        }
+        onCreateApi={(values) => createUser(values as CreateUserPayload)}
         onEditApi={(values, record) =>
-          updateUser(record.id, values as unknown as UpdateUserPayload)
+          updateUser(record.id, values as UpdateUserPayload)
         }
         getErrorMessage={getApiErrorMessage}
         disableReviewButton

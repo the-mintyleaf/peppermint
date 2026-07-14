@@ -10,7 +10,6 @@ import {
   useForm,
 } from "@peppermint/ui";
 
-import type { Role } from "../roles.types";
 import type { RoleFormProps, RoleFormValues } from "./RoleForm.types";
 
 const KEY_PATTERN = /^[a-z0-9][a-z0-9_-]*$/;
@@ -37,9 +36,7 @@ export function RoleForm({ onSubmit, isLoading }: RoleFormProps) {
   });
 
   return (
-    <form
-      onSubmit={form.onSubmit((values) => onSubmit(values as unknown as Role))}
-    >
+    <form onSubmit={form.onSubmit((values) => onSubmit(values))}>
       <Stack gap="md" p="md">
         <TextInput
           label="Key"

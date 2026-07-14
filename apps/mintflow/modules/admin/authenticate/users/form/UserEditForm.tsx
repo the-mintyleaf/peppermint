@@ -2,7 +2,6 @@
 
 import { Button, Select, Stack, TextInput, useForm } from "@peppermint/ui";
 
-import type { User } from "../users.types";
 import type {
   UserEditFormProps,
   UserEditFormValues,
@@ -34,9 +33,7 @@ export function UserEditForm({
   });
 
   return (
-    <form
-      onSubmit={form.onSubmit((values) => onSubmit(values as unknown as User))}
-    >
+    <form onSubmit={form.onSubmit((values) => onSubmit(values))}>
       <Stack gap="md" p="md">
         <TextInput
           label="Display Name"

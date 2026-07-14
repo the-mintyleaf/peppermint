@@ -14,6 +14,8 @@ import {
 import { RequireStaff } from "@/components/RequireStaff";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { RoleEditForm, RoleForm } from "../form";
+import type { RoleFormValues } from "../form/RoleForm.types";
+import type { RoleEditFormValues } from "../form/RoleEditForm.types";
 import type { CreateRolePayload, UpdateRolePayload } from "../roles.api";
 import {
   deprecateRole,
@@ -91,7 +93,7 @@ function RolesListContent() {
         ]}
       />
       <ModalPaper withBorder>
-        <ModalTableShell<Role>
+        <ModalTableShell<Role, RoleFormValues, RoleEditFormValues>
           queryKey={roleQueryKeys.list()}
           queryGetFn={fetchRoles}
           dataKey="data"

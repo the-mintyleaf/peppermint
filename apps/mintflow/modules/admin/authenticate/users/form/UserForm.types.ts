@@ -2,7 +2,7 @@ import type { ModalFormComponentProps } from "@peppermint/admin";
 
 import type { User } from "../users.types";
 
-export type UserFormProps = ModalFormComponentProps<User>;
+export type UserFormProps = ModalFormComponentProps<User, UserFormValues>;
 
 export interface UserFormValues {
   username: string;

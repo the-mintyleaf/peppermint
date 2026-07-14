@@ -10,7 +10,6 @@ import {
   useForm,
 } from "@peppermint/ui";
 
-import type { Role } from "../roles.types";
 import type {
   RoleEditFormProps,
   RoleEditFormValues,
@@ -34,9 +33,7 @@ export function RoleEditForm({
   });
 
   return (
-    <form
-      onSubmit={form.onSubmit((values) => onSubmit(values as unknown as Role))}
-    >
+    <form onSubmit={form.onSubmit((values) => onSubmit(values))}>
       <Stack gap="md" p="md">
         <TextInput
           label="Key"
