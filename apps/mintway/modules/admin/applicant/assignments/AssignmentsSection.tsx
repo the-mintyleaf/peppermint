@@ -17,7 +17,8 @@ import {
 import { openReasonConfirmModal } from "@peppermint/admin";
 import { UserPlusIcon } from "@phosphor-icons/react/dist/csr/UserPlus";
 
-import { assignmentKeys, useApplicantMutation } from "../_shared";
+import { fetchUsers } from "@/modules/admin/authenticate/users/users.api";
+import { assignmentKeys, caseKeys, useApplicantMutation } from "../_shared";
 import type { Assignment } from "../_shared";
 import { AssignAssignmentModal } from "./AssignAssignmentModal";
 import { endAssignment, fetchAssignments } from "./assignments.api";
@@ -48,12 +49,31 @@ export function AssignmentsSection({ applicantId }: { applicantId: string }) {
     retry: false,
   });
 
+  // Resolve assignee ids → names (the API returns only user ids on assignments).
+  const usersQuery = useQuery({
+    queryKey: ["assignment-user-directory"],
+    queryFn: () =>
+      fetchUsers({ page: 1, pageSize: 100, search: "", sort: [], filters: {} }),
+    staleTime: 60_000,
+  });
+  const nameById = new Map<string, string>();
+  for (const u of usersQuery.data?.data ?? []) {
+    const p = u.employee_profile;
+    nameById.set(
+      u.id,
+      [p.preferred_name || p.first_name, p.last_name]
+        .filter(Boolean)
+        .join(" ") || u.username,
+    );
+  }
+
   const end = useApplicantMutation<void, { id: string; reason: string }>({
     mutationFn: ({ id, reason }) => endAssignment(applicantId, id, reason),
     successTitle: "Assignment ended",
     successMessage: "The assignment was ended.",
     errorTitle: "Couldn't end assignment",
-    invalidateKeys: [assignmentKeys.list(applicantId)],
+    // A case-scoped end updates the case's counsellor, so refresh case lists too.
+    invalidateKeys: [assignmentKeys.list(applicantId), caseKeys.lists()],
   });
 
   const confirmEnd = (assignment: Assignment) =>
@@ -107,7 +127,9 @@ export function AssignmentsSection({ applicantId }: { applicantId: string }) {
               {rows.map((a) => (
                 <Table.Tr key={a.id}>
                   <Table.Td>
-                    <Text size="xs">{a.assigned_to}</Text>
+                    <Text size="xs">
+                      {nameById.get(a.assigned_to) ?? a.assigned_to}
+                    </Text>
                   </Table.Td>
                   <Table.Td>
                     <Text size="xs">

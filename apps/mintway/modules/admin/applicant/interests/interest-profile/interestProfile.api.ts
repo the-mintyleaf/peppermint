@@ -1,12 +1,17 @@
 import type { AxiosError } from "axios";
 
 import api from "@/lib/api";
+import { getApiError } from "@/lib/authErrorMessages";
 import type { InterestProfile } from "../../_shared";
 
 const path = (applicantId: string) =>
   `/api/v1/applicants/${applicantId}/interest-profile/`;
 
-/** `GET …/interest-profile/` — the OneToOne profile, or `null` when unset (404). */
+/**
+ * `GET …/interest-profile/` — the OneToOne profile, or `null` when the profile is unset
+ * (`APPLICANT_CHILD_NOT_FOUND`). A `APPLICANT_NOT_FOUND` (bad applicant) is re-thrown so
+ * the caller doesn't mistake it for "no profile" and offer a create form.
+ */
 export async function getInterestProfile(
   applicantId: string,
 ): Promise<InterestProfile | null> {
@@ -15,7 +20,12 @@ export async function getInterestProfile(
     return data;
   } catch (error) {
     const status = (error as AxiosError)?.response?.status;
-    if (status === 404) return null;
+    if (
+      status === 404 &&
+      getApiError(error).code === "APPLICANT_CHILD_NOT_FOUND"
+    ) {
+      return null;
+    }
     throw error;
   }
 }

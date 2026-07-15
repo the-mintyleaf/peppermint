@@ -80,6 +80,13 @@ function CaseDetailContent() {
     errorTitle: "Couldn't save changes",
     invalidateKeys: [caseKeys.detail(caseId), caseKeys.lists()],
     onSuccess: () => setEditOpen(false),
+    // On a stale-version 409, refetch so a retry carries the fresh record_version
+    // instead of re-firing the same conflict.
+    onError: (error) => {
+      if (getApiError(error).code === "APPLICANT_CASE_VERSION_CONFLICT") {
+        void query.refetch();
+      }
+    },
   });
 
   const backHref = kase

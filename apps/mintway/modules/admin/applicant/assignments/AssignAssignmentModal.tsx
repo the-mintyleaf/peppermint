@@ -10,10 +10,11 @@ import {
   Textarea,
   useDebouncedValue,
   useQuery,
+  useQueryClient,
 } from "@peppermint/ui";
 
 import { fetchUsers } from "@/modules/admin/authenticate/users/users.api";
-import { assignmentKeys, useApplicantMutation } from "../_shared";
+import { assignmentKeys, caseKeys, useApplicantMutation } from "../_shared";
 import type { Assignment } from "../_shared";
 import { fetchCases } from "../cases/cases.api";
 import {
@@ -54,6 +55,7 @@ export function AssignAssignmentModal({
   const [caseId, setCaseId] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [debouncedSearch] = useDebouncedValue(search, 300);
+  const queryClient = useQueryClient();
 
   const users = useQuery({
     queryKey: ["assignment-user-search", debouncedSearch],
@@ -63,7 +65,9 @@ export function AssignAssignmentModal({
         pageSize: 20,
         search: debouncedSearch,
         sort: [],
-        filters: {},
+        // The assignee must be an active account (APPLICANT_ASSIGNEE_INVALID), so
+        // don't offer suspended/deactivated users in the picker.
+        filters: { status: "active" },
       }),
     enabled: opened && debouncedSearch.trim().length > 0,
   });
@@ -81,10 +85,12 @@ export function AssignAssignmentModal({
     enabled: opened,
   });
 
-  const userOptions = (users.data?.data ?? []).map((u) => ({
-    value: u.id,
-    label: `${userLabel(u.employee_profile)} · @${u.username}`,
-  }));
+  const userOptions = (users.data?.data ?? [])
+    .filter((u) => u.account_status === "active")
+    .map((u) => ({
+      value: u.id,
+      label: `${userLabel(u.employee_profile)} · @${u.username}`,
+    }));
   const caseOptions = (cases.data?.data ?? []).map((c) => ({
     value: c.id,
     label: `${c.case_code}${c.destination_country ? ` · ${c.destination_country}` : ""}`,
@@ -107,7 +113,17 @@ export function AssignAssignmentModal({
     successMessage: "The counsellor was assigned.",
     errorTitle: "Couldn't assign",
     invalidateKeys: [assignmentKeys.list(applicantId)],
-    onSuccess: handleClose,
+    onSuccess: (_data, variables) => {
+      // A case-scoped assignment sets ApplicationCase.assigned_counsellor and bumps its
+      // record_version, so refresh the case caches too (§11.1).
+      if (variables.application_case_id) {
+        void queryClient.invalidateQueries({
+          queryKey: caseKeys.detail(variables.application_case_id),
+        });
+        void queryClient.invalidateQueries({ queryKey: caseKeys.lists() });
+      }
+      handleClose();
+    },
   });
 
   const handleSubmit = () => {

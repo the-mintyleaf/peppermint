@@ -10,8 +10,10 @@ import {
   Stack,
   Text,
   Textarea,
+  useQueryClient,
 } from "@peppermint/ui";
 
+import { getApiError } from "@/lib/authErrorMessages";
 import {
   CASE_REASON_REQUIRED,
   CASE_STATUS_LABELS,
@@ -52,6 +54,8 @@ export function CaseTransitionModal({
     onClose();
   };
 
+  const queryClient = useQueryClient();
+
   const mutation = useApplicantMutation<ApplicationCase, CaseTransitionPayload>(
     {
       mutationFn: (payload) => transitionCase(kase.id, payload),
@@ -64,6 +68,14 @@ export function CaseTransitionModal({
         caseKeys.lists(),
       ],
       onSuccess: handleClose,
+      // Refresh the case on a stale-version 409 so a retry uses the fresh version.
+      onError: (error) => {
+        if (getApiError(error).code === "APPLICANT_CASE_VERSION_CONFLICT") {
+          void queryClient.invalidateQueries({
+            queryKey: caseKeys.detail(kase.id),
+          });
+        }
+      },
     },
   );
 
