@@ -1,0 +1,1 @@
+export { TrainingsSection } from "./TrainingsSection";

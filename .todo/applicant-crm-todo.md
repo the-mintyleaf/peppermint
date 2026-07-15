@@ -45,11 +45,12 @@ Scope: every non-document applicant API. Do NOT touch `modules/documents/` or `c
 
 ## Phase 3 — Profile records (admin) — parallel builders
 
-- [ ] `identity/` — identity-documents + evidence-media (same-applicant refs, dup fingerprint)
-- [ ] `education/` — educations · language-tests · trainings · skills · languages · academic-gradings
-- [ ] `family/` — family-members · emergency-contacts · references
-- [ ] routes + barrel wiring
-- [ ] Verify + commit + dual review
+- [x] `identity/` (orchestrator) — identity-documents (issued≤expiry) + evidence-media (upload/view/delete). Media-ref linking + dup-fingerprint warning deferred (documented).
+- [x] `education/` (agent) — educations · language-tests · trainings · skills · languages · academic-gradings
+- [x] `family/` (agent) — family-members · emergency-contacts · references
+- [x] routes (identity/education/family) + group barrel wiring
+- [x] Verify full module (types/prettier/eslint clean)
+- [ ] Commit + dual review (Phase 2 + 3) — next
 
 ## Phase 4 — Interests + CRM (admin)
 
