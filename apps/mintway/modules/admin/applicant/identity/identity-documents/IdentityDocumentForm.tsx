@@ -72,22 +72,35 @@ function toInitial(
   };
 }
 
-const OPTIONAL_KEYS: (keyof IdentityDocumentFormValues)[] = [
+const TEXT_KEYS: (keyof IdentityDocumentFormValues)[] = [
   "document_number",
   "issuing_country",
-  "issued_at",
-  "expires_at",
-  "verification_status",
   "verification_notes",
 ];
+const DATE_KEYS: (keyof IdentityDocumentFormValues)[] = [
+  "issued_at",
+  "expires_at",
+];
 
+/**
+ * On create, empties are dropped. On edit, blank text is sent so a cleared field
+ * clears (PATCH), while empty dates are dropped (DRF rejects ""). `verification_status`
+ * always carries a value from its select.
+ */
 function toPayload(
   values: IdentityDocumentFormValues,
+  isEdit: boolean,
 ): IdentityDocumentPayload {
   const payload: Record<string, unknown> = {
     document_type: values.document_type,
+    verification_status: values.verification_status,
   };
-  for (const key of OPTIONAL_KEYS) {
+  for (const key of TEXT_KEYS) {
+    const value = values[key];
+    if (typeof value !== "string") continue;
+    if (value !== "" || isEdit) payload[key] = value;
+  }
+  for (const key of DATE_KEYS) {
     const value = values[key];
     if (typeof value === "string" && value !== "") payload[key] = value;
   }
@@ -104,12 +117,13 @@ export function IdentityDocumentForm({
   onSubmit,
   isLoading,
 }: IdentityDocumentFormProps) {
+  const isEdit = Boolean(initialValues);
   return (
     <FormWrapper<IdentityDocumentFormValues>
       initial={toInitial(initialValues)}
       validation={[schema]}
       finalSubmitFn={async (values) => {
-        onSubmit(toPayload(values));
+        onSubmit(toPayload(values, isEdit));
         return { ok: true };
       }}
     >

@@ -34,9 +34,13 @@ export async function uploadEvidenceMedia(
   const form = new FormData();
   form.append("category", category);
   form.append("file", file);
+  // Override the instance's default JSON Content-Type so axios sends the FormData as
+  // multipart (otherwise it JSON-stringifies it and drops the file); the browser adds
+  // the boundary.
   const { data } = await api.post<MediaItem>(
     `/api/v1/applicants/${applicantId}/media/`,
     form,
+    { headers: { "Content-Type": "multipart/form-data" } },
   );
   return data;
 }

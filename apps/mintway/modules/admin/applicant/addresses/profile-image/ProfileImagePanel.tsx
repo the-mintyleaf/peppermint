@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Avatar,
   Button,
@@ -46,14 +46,22 @@ export function ProfileImagePanel({
     retry: false,
   });
 
-  // Create the object URL from the streamed blob, revoking the previous one whenever
-  // the blob changes and on unmount (cleanup only — no setState in the effect).
-  const url = useMemo(() => (blob ? URL.createObjectURL(blob) : null), [blob]);
+  // Object-URL lifecycle is a genuine external-system sync: create it in the effect
+  // from the streamed blob and revoke the exact URL on change/unmount. Creating it in
+  // render (useMemo) would leak on aborted StrictMode renders.
+  const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
+    const objectUrl = blob ? URL.createObjectURL(blob) : null;
+    // Legitimate external-system sync (blob → object URL); the rule's cascading-render
+    // concern doesn't apply — this runs once per blob change and revokes on cleanup.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUrl(objectUrl);
     return () => {
-      if (url) URL.revokeObjectURL(url);
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [url]);
+  }, [blob]);
+
+  const resetFileRef = useRef<() => void>(null);
 
   const upload = useApplicantMutation<unknown, File>({
     mutationFn: (file) => uploadProfileImage(applicantId, file),
@@ -64,6 +72,9 @@ export function ProfileImagePanel({
   });
 
   const handleFile = (file: File | null) => {
+    // Reset the input so picking the SAME file again (e.g. after a failed upload)
+    // still fires onChange.
+    resetFileRef.current?.();
     if (!file) return;
     if (!PROFILE_IMAGE_TYPES.includes(file.type)) {
       notifications.show({
@@ -100,6 +111,7 @@ export function ProfileImagePanel({
             <FileButton
               onChange={handleFile}
               accept={PROFILE_IMAGE_TYPES.join(",")}
+              resetRef={resetFileRef}
             >
               {(props) => (
                 <Button

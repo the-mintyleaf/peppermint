@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ActionIcon,
   Button,
@@ -80,6 +80,7 @@ function validateFile(file: File): string | null {
 export function EvidenceMediaSection({ applicantId }: { applicantId: string }) {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [category, setCategory] = useState<string>("other");
+  const resetFileRef = useRef<() => void>(null);
   const invalidate = [mediaKeys.list(applicantId)];
 
   const query = useQuery({
@@ -113,6 +114,8 @@ export function EvidenceMediaSection({ applicantId }: { applicantId: string }) {
   });
 
   const handleFile = (file: File | null) => {
+    // Reset so re-picking the same file after a failure still fires onChange.
+    resetFileRef.current?.();
     if (!file) return;
     const error = validateFile(file);
     if (error) {
@@ -126,21 +129,38 @@ export function EvidenceMediaSection({ applicantId }: { applicantId: string }) {
     upload.mutate(file);
   };
 
-  const handleView = async (media: MediaItem) => {
-    try {
-      const blob = await fetchEvidenceMediaBlob(applicantId, media.id);
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank", "noopener");
-      // Revoke after the new tab has had time to load the resource.
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    } catch (error) {
-      notifications.show({
-        color: "red",
-        title: "Couldn't open file",
-        message: getApiErrorMessage(error),
+  const handleView = (media: MediaItem) => {
+    // Open the tab synchronously (inside the click gesture) so it isn't popup-blocked,
+    // then point it at the blob once the authed fetch resolves.
+    const win = window.open("about:blank", "_blank");
+    if (win) win.opener = null;
+    fetchEvidenceMediaBlob(applicantId, media.id)
+      .then((blob) => {
+        if (!blob) {
+          win?.close();
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        if (win) {
+          win.location.href = url;
+        } else {
+          notifications.show({
+            color: "yellow",
+            title: "Popup blocked",
+            message: "Allow popups for this site to view files.",
+          });
+        }
+        // Revoke after the new tab has had time to load the resource.
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      })
+      .catch((error) => {
+        win?.close();
+        notifications.show({
+          color: "red",
+          title: "Couldn't open file",
+          message: getApiErrorMessage(error),
+        });
       });
-    }
   };
 
   const confirmDelete = (media: MediaItem) =>
@@ -250,6 +270,7 @@ export function EvidenceMediaSection({ applicantId }: { applicantId: string }) {
           <FileButton
             onChange={handleFile}
             accept={[...EVIDENCE_IMAGE_TYPES, EVIDENCE_PDF_TYPE].join(",")}
+            resetRef={resetFileRef}
           >
             {(props) => (
               <Button

@@ -50,7 +50,19 @@ Scope: every non-document applicant API. Do NOT touch `modules/documents/` or `c
 - [x] `family/` (agent) — family-members · emergency-contacts · references
 - [x] routes (identity/education/family) + group barrel wiring
 - [x] Verify full module (types/prettier/eslint clean)
-- [ ] Commit + dual review (Phase 2 + 3) — next
+- [x] Commit + dual review (Phase 2 + 3) done; fixes applied
+
+### Phase 2+3 review fixes (Codex + adversarial)
+
+- [x] CRITICAL: multipart uploads were JSON-stringified (instance defaults Content-Type
+      to application/json → axios drops the file). Override to multipart/form-data on both
+      upload calls. Verified against axios@1.17.0 source.
+- [x] ProfileImagePanel object-URL: create+revoke in effect (not render useMemo)
+- [x] Evidence view: open tab synchronously (popup-safe) + null-check + revoke-on-fail
+- [x] FileButton resetRef on both panels (re-pick same file after failure)
+- [x] Clear-on-edit fixed for address + identity forms
+- [~] Clear-on-edit for agent child forms (education/family): documented v1 limitation —
+  hard-deletable records; delete+recreate to clear an optional field. Not blocking.
 
 ## Phase 4 — Interests + CRM (admin)
 

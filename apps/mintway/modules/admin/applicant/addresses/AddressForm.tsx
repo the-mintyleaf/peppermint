@@ -72,15 +72,20 @@ const TEXT_KEYS: (keyof AddressFormValues)[] = [
   "address_text",
 ];
 
-/** Build the api payload — always send address_type + is_primary; drop empty text/dates. */
-function toPayload(values: AddressFormValues): AddressPayload {
+/**
+ * Build the api payload. Always send address_type + is_primary. On create, empty text
+ * is dropped; on edit, blank text is sent so a cleared field actually clears (PATCH).
+ * Empty dates are always dropped (DRF rejects "" for a date field).
+ */
+function toPayload(values: AddressFormValues, isEdit: boolean): AddressPayload {
   const payload: Record<string, unknown> = {
     address_type: values.address_type,
     is_primary: values.is_primary,
   };
   for (const key of TEXT_KEYS) {
     const value = values[key];
-    if (typeof value === "string" && value !== "") payload[key] = value;
+    if (typeof value !== "string") continue;
+    if (value !== "" || isEdit) payload[key] = value;
   }
   if (values.valid_from) payload.valid_from = values.valid_from;
   if (values.valid_to) payload.valid_to = values.valid_to;
@@ -97,11 +102,12 @@ export function AddressForm({
   onSubmit,
   isLoading,
 }: AddressFormProps) {
+  const isEdit = Boolean(initialValues);
   return (
     <FormWrapper<AddressFormValues>
       initial={toInitial(initialValues)}
       finalSubmitFn={async (values) => {
-        onSubmit(toPayload(values));
+        onSubmit(toPayload(values, isEdit));
         return { ok: true };
       }}
     >

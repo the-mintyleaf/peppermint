@@ -36,11 +36,14 @@ export async function uploadProfileImage(
 ): Promise<ProfileImageUploadResult> {
   const form = new FormData();
   form.append("file", file);
-  // Axios's browser adapter strips the instance's default JSON Content-Type for a
-  // FormData body and sets multipart with the boundary itself.
+  // The shared instance defaults Content-Type to application/json; axios then
+  // JSON-stringifies FormData (dropping the file) unless the content type is not
+  // JSON. Override it so axios passes the FormData through and the browser sets
+  // multipart/form-data with the correct boundary.
   const { data } = await api.post<ProfileImageUploadResult>(
     `/api/v1/applicants/${applicantId}/profile-image/`,
     form,
+    { headers: { "Content-Type": "multipart/form-data" } },
   );
   return data;
 }
