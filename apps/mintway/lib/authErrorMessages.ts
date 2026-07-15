@@ -39,6 +39,59 @@ export const ERROR_MESSAGES: Record<string, string> = {
   AUTH_USER_USERNAME_TAKEN: "That username is already in use.",
   AUTH_USER_EMPLOYEE_CODE_TAKEN: "That employee code is already in use.",
 
+  // ── Applicant CRM (`applicant` app; see .todo/applications/API.md) ──
+  APPLICANT_NOT_FOUND:
+    "That applicant couldn't be found. It may have been archived.",
+  APPLICANT_ADDRESS_NOT_FOUND: "That address couldn't be found.",
+  APPLICANT_VERSION_CONFLICT:
+    "This record changed since you opened it. Reload and try again.",
+  APPLICANT_RECORD_LOCKED:
+    "This applicant is locked and can't be edited until an admin unlocks it.",
+  APPLICANT_FIELD_FORBIDDEN: "You can't change one of those fields.",
+  APPLICANT_TRANSITION_INVALID:
+    "That stage change isn't allowed — the funnel only moves forward.",
+  APPLICANT_TRANSITION_REASON_REQUIRED:
+    "A reason is required to move an applicant straight to Applicant.",
+  APPLICANT_TRANSITION_ASSESSMENT_REQUIRED:
+    "Moving to Potential needs a qualification assessment or an override reason.",
+  APPLICANT_ENGAGEMENT_REASON_REQUIRED:
+    "A reason is required for that engagement status.",
+  APPLICANT_ALREADY_LOCKED: "This applicant is already locked.",
+  APPLICANT_NOT_LOCKED: "This applicant isn't locked.",
+  APPLICANT_LOCK_REASON_REQUIRED: "A reason is required to lock or unlock.",
+  APPLICANT_ARCHIVED:
+    "This applicant is archived. Reactivate it before making changes.",
+  APPLICANT_CONTACT_REQUIRED: "Enter at least an email or a phone number.",
+  APPLICANT_MEDIA_INVALID:
+    "That file couldn't be accepted. Check the type and size.",
+  APPLICANT_MEDIA_TYPE_UNSUPPORTED:
+    "That file type isn't supported. Use an image or a PDF.",
+  APPLICANT_MEDIA_TOO_LARGE: "That file is too large.",
+  APPLICANT_MEDIA_NOT_FOUND: "That file couldn't be found.",
+  APPLICANT_CHILD_NOT_FOUND: "That record couldn't be found.",
+  APPLICANT_ASSESSMENT_NOT_FOUND: "That assessment couldn't be found.",
+  APPLICANT_CASE_NOT_FOUND: "That case couldn't be found.",
+  APPLICANT_CASE_VERSION_CONFLICT:
+    "This case changed since you opened it. Reload and try again.",
+  APPLICANT_CASE_TRANSITION_INVALID: "That case status change isn't allowed.",
+  APPLICANT_CASE_REASON_REQUIRED: "A reason is required for that case status.",
+  APPLICANT_CASE_ARCHIVED: "This case is archived.",
+  APPLICANT_CASE_APPLICANT_MISMATCH:
+    "That case belongs to a different applicant.",
+  APPLICANT_ASSIGNMENT_NOT_FOUND: "That assignment couldn't be found.",
+  APPLICANT_ASSIGNEE_INVALID: "That user can't be assigned.",
+  APPLICANT_MERGE_SELF: "An applicant can't be merged into itself.",
+  APPLICANT_MERGE_REASON_REQUIRED: "A reason is required to merge.",
+  APPLICANT_MERGE_SURVIVING_NOT_FOUND:
+    "The surviving applicant couldn't be found.",
+  APPLICANT_MERGE_ALREADY_MERGED: "One of these applicants is already merged.",
+  APPLICANT_IDENTITY_DATE_INVALID:
+    "The issue date can't be after the expiry date.",
+  APPLICANT_LANGUAGE_TEST_SCORE_INVALID:
+    "A score is outside the valid range for that test.",
+  APPLICANT_INTEREST_PROFILE_EXISTS:
+    "This applicant already has an interest profile.",
+
   // Framework-level
   VALIDATION_ERROR: "Please check the highlighted fields and try again.",
   AUTHENTICATION_REQUIRED: "Please sign in to continue.",
