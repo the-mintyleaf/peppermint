@@ -4,11 +4,22 @@ export type SignInIdentifierField = "email" | "username" | "identifier";
 export interface SignInResultData {
   access?: string;
   accessToken?: string;
+  /** Grandway-style access token field (`{ access_token, access_expires_at }`). */
+  access_token?: string;
+  access_expires_at?: string;
   refresh?: string;
   refreshToken?: string;
   mfa_required?: boolean;
   challenge_id?: string;
   mfa_setup_recommended?: boolean;
+  /**
+   * First-login challenge fields: some backends respond to a login attempt on a
+   * forced-password-change account with a challenge (and no session) instead of tokens.
+   */
+  password_change_required?: boolean;
+  next_action?: string;
+  challenge_token?: string;
+  challenge_expires_at?: string;
   error?: { code?: string; message?: string };
   message?: string;
   [key: string]: unknown;
@@ -49,6 +60,15 @@ export interface SignInPageProps {
   mfaVerifyApi?: string;
   /** Called when the login response sets `mfa_setup_recommended: true` on a non-MFA success. */
   onMfaSetupRecommended?: () => void;
+  /**
+   * Called when the login response is a first-login challenge
+   * (`password_change_required: true` or `next_action: "first_login_password_change"`)
+   * that carries no session. The page stops (no token error, no redirect) and hands the
+   * full response to this callback — typically to stash the `challenge_token` and route
+   * to a forced-password-change page. When unset, such a response falls through to the
+   * standard "no access token" handling.
+   */
+  onPasswordChangeRequired?: (data: SignInResultData) => void;
   /** Optional error-code -> message overrides. Falls back to the backend's own `error.message`/`message`. */
   errorMessageMap?: Record<string, string>;
 }

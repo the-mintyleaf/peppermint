@@ -28,11 +28,39 @@ export interface ApiClientConfig {
   onAuthFailure?: () => void;
   /** Extra default headers merged onto every request. */
   headers?: Record<string, string>;
+  /**
+   * How the access token is refreshed on a 401.
+   * - `"body"` (default): POST `{ refresh: <localStorage refresh token> }`; the response
+   *   carries new `access`/`refresh` tokens (the historical Peppermint behavior).
+   * - `"cookie"`: POST with **no body** and `credentials: "include"` so an HttpOnly
+   *   refresh cookie is sent; a double-submit CSRF header is added from `csrfCookieName`.
+   *   No refresh token is read from or written to localStorage.
+   */
+  refreshMode?: "body" | "cookie";
+  /**
+   * Send credentials (cookies) with same-instance requests and the refresh call.
+   * Implied `true` when `refreshMode` is `"cookie"`.
+   */
+  withCredentials?: boolean;
+  /**
+   * Name of the JS-readable CSRF cookie whose value is echoed in the refresh
+   * request's CSRF header (cookie refresh mode). Defaults to `"csrftoken"`.
+   */
+  csrfCookieName?: string;
+  /** Header the CSRF cookie value is sent under. Defaults to `"X-CSRFToken"`. */
+  csrfHeaderName?: string;
+  /**
+   * Field on the (unwrapped) refresh response holding the new access token.
+   * Defaults to `"access"`; backends that return `access_token` set that here.
+   */
+  accessResponseField?: string;
 }
 
 const DEFAULT_ACCESS_TOKEN_KEY = "access_token";
 const DEFAULT_REFRESH_TOKEN_KEY = "refresh_token";
 const DEFAULT_REFRESH_ENDPOINT = "/api/v1/auth/refresh/";
+const DEFAULT_CSRF_COOKIE_NAME = "csrftoken";
+const DEFAULT_CSRF_HEADER_NAME = "X-CSRFToken";
 
 type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
@@ -63,6 +91,17 @@ function readToken(key: string): string | null {
     : null;
 }
 
+/** Read a browser cookie value by name (client-only; returns `null` on the server). */
+function readCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(
+    new RegExp(
+      `(?:^|;\\s*)${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}=([^;]*)`,
+    ),
+  );
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 /**
  * Create a configured Axios instance for a Peppermint app. Call once at app boot
  * (e.g. in `src/lib/api.ts`) and export the returned instance.
@@ -73,6 +112,11 @@ function readToken(key: string): string | null {
  *   everything else unwraps to `data`),
  * - transparently refreshes the access token once on a 401, serializing concurrent
  *   refreshes and guarding against retry loops, and calls `onAuthFailure` if refresh fails.
+ *
+ * Refresh transport is configurable via `refreshMode`: the default `"body"` posts a
+ * localStorage refresh token, while `"cookie"` posts no body with `credentials: "include"`
+ * (HttpOnly refresh cookie) plus a double-submit CSRF header — for backends like grandway
+ * that keep the refresh token in a cookie and return `access_token`.
  */
 export function configureApiClient(
   config: ApiClientConfig = {},
@@ -84,10 +128,18 @@ export function configureApiClient(
     refreshEndpoint = DEFAULT_REFRESH_ENDPOINT,
     headers,
     onAuthFailure,
+    refreshMode = "body",
+    csrfCookieName = DEFAULT_CSRF_COOKIE_NAME,
+    csrfHeaderName = DEFAULT_CSRF_HEADER_NAME,
+    accessResponseField = "access",
   } = config;
+
+  // Cookie refresh needs credentials on every request so the refresh cookie is sent.
+  const withCredentials = config.withCredentials ?? refreshMode === "cookie";
 
   const instance = axios.create({
     baseURL,
+    withCredentials,
     headers: { "Content-Type": "application/json", ...headers },
   });
 
@@ -166,37 +218,62 @@ export function configureApiClient(
       isRefreshing = true;
 
       try {
-        const refreshToken = readToken(refreshTokenKey);
-        if (!refreshToken) throw new Error("No refresh token");
+        let res: Response;
 
-        // Raw fetch (not the instance) so this call skips the interceptors above.
-        const res = await fetch(refreshUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ refresh: refreshToken }),
-        });
+        if (refreshMode === "cookie") {
+          // Cookie mode: the refresh token rides in an HttpOnly cookie, so send no
+          // body and include credentials; echo the JS-readable CSRF cookie in the
+          // double-submit header the backend expects.
+          const csrf = readCookie(csrfCookieName);
+          const refreshHeaders: Record<string, string> = {
+            "Content-Type": "application/json",
+          };
+          if (csrf) refreshHeaders[csrfHeaderName] = csrf;
+
+          // Raw fetch (not the instance) so this call skips the interceptors above.
+          res = await fetch(refreshUrl, {
+            method: "POST",
+            headers: refreshHeaders,
+            credentials: "include",
+          });
+        } else {
+          const refreshToken = readToken(refreshTokenKey);
+          if (!refreshToken) throw new Error("No refresh token");
+
+          // Raw fetch (not the instance) so this call skips the interceptors above.
+          res = await fetch(refreshUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refresh: refreshToken }),
+            ...(withCredentials ? { credentials: "include" } : {}),
+          });
+        }
         if (!res.ok) throw new Error("Refresh failed");
 
-        // Accept the nested envelope `{ data: { access, refresh } }` only when it
-        // actually carries a token; otherwise fall back to a flat `{ access, refresh }`.
-        const payload = (await res.json()) as {
-          access?: string;
-          refresh?: string;
-          data?: { access?: string; refresh?: string };
-        } | null;
-        const nested = payload?.data;
+        // Accept the nested envelope `{ data: { <field>, refresh } }` only when it
+        // carries a token; otherwise fall back to a flat `{ <field>, refresh }`.
+        const payload = (await res.json()) as Record<string, unknown> | null;
+        const nested = payload?.data as Record<string, unknown> | undefined;
         const tokens =
-          nested && typeof nested.access === "string"
+          nested && typeof nested[accessResponseField] === "string"
             ? nested
-            : (payload ?? {});
+            : ((payload ?? {}) as Record<string, unknown>);
 
-        const access = tokens.access;
-        if (!access) throw new Error("Refresh response missing access token");
+        const access = tokens[accessResponseField];
+        if (typeof access !== "string" || !access) {
+          throw new Error("Refresh response missing access token");
+        }
+        const refresh = tokens.refresh;
 
         if (typeof window !== "undefined") {
           window.localStorage.setItem(accessTokenKey, access);
-          if (tokens.refresh)
-            window.localStorage.setItem(refreshTokenKey, tokens.refresh);
+          // Cookie mode never persists a refresh token client-side.
+          if (
+            refreshMode !== "cookie" &&
+            typeof refresh === "string" &&
+            refresh
+          )
+            window.localStorage.setItem(refreshTokenKey, refresh);
         }
 
         resolveQueue(access);

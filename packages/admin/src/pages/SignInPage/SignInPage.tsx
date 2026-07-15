@@ -83,6 +83,7 @@ export function SignInPage({
   disableForgotPassword = false,
   mfaVerifyApi,
   onMfaSetupRecommended,
+  onPasswordChangeRequired,
   errorMessageMap,
 }: SignInPageProps) {
   const resolvedIdentifierField: SignInIdentifierField =
@@ -119,6 +120,9 @@ export function SignInPage({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      // Include credentials so cookie-based auth backends can set their session
+      // cookies (e.g. an HttpOnly refresh cookie + CSRF cookie) on login.
+      credentials: "include",
     });
     const body = await response.json();
     if (!response.ok) {
@@ -128,7 +132,18 @@ export function SignInPage({
   };
 
   const completeSuccess = (data: SignInResultData) => {
-    const accessToken = data.access ?? data.accessToken;
+    // A first-login challenge (no session) short-circuits into the caller's
+    // forced-password-change flow instead of the "no access token" error below.
+    if (
+      onPasswordChangeRequired &&
+      (data.password_change_required === true ||
+        data.next_action === "first_login_password_change")
+    ) {
+      onPasswordChangeRequired(data);
+      return;
+    }
+
+    const accessToken = data.access ?? data.accessToken ?? data.access_token;
     const refreshToken = data.refresh ?? data.refreshToken;
 
     // Only advance into the app once we actually hold an access token — a 200 with
