@@ -74,10 +74,11 @@ Scope: every non-document applicant API. Do NOT touch `modules/documents/` or `c
 
 ## Phase 5 — Cases + assignments (admin)
 
-- [ ] `cases/` — nested list/create + `application-cases/[caseId]/` detail (update, transition, status-history)
-- [ ] `assignments/` — assign / end (case-scoped)
-- [ ] routes + barrel wiring
-- [ ] Verify + commit + dual review
+- [x] `cases/` — nested list/open (CasesSection) + top-level `application-cases/[caseId]/` detail (edit, transition with reason rules + own record_version, status-history feed)
+- [x] `assignments/` — assign (user + case picker) / end (case-scoped); history table
+- [x] routes (cases/assignments detail sections + application-cases/[caseId]) + barrel
+- [x] Verify (types/prettier/eslint clean); commit
+- [ ] Dual review (Phase 4 + 5) — next
 
 ## Phase 6 — History + finish
 

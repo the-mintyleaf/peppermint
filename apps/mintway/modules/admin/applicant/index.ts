@@ -1,5 +1,7 @@
 import { AddressesPage } from "./addresses";
 import { ApplicantsList, ApplicantOverview } from "./applicants";
+import { AssignmentsPage } from "./assignments";
+import { CaseDetailPage, CasesPage } from "./cases";
 import { CrmPage } from "./crm";
 import { EducationPage } from "./education";
 import { FamilyPage } from "./family";
@@ -20,5 +22,9 @@ export const ModuleApplicant = {
   family: FamilyPage,
   interests: InterestsPage,
   crm: CrmPage,
+  cases: CasesPage,
+  assignments: AssignmentsPage,
   history: HistoryPage,
+  /** Top-level route: /admin/application-cases/[caseId] */
+  caseDetail: CaseDetailPage,
 };
