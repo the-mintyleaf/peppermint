@@ -66,10 +66,11 @@ Scope: every non-document applicant API. Do NOT touch `modules/documents/` or `c
 
 ## Phase 4 — Interests + CRM (admin)
 
-- [ ] `interests/` — interest-profile (OneToOne) + qualification-assessments (append/supersede)
-- [ ] `crm/` — interactions · sponsors · travel-history · visa-history · consents
-- [ ] routes + barrel wiring
-- [ ] Verify + commit + dual review
+- [x] `interests/` — interest-profile OneToOne (create/view/edit/delete, TagsInput lists) + qualification-assessments (append-only via child factory, edit/delete disabled)
+- [x] `crm/` (agent) — interactions · sponsors · travel-history · visa-history · consents (edit-aware payload; decimal money kept as strings)
+- [x] routes (interests/crm) + barrel wiring
+- [x] Verify (types/prettier/eslint clean)
+- [ ] Commit; dual review batched with Phase 5
 
 ## Phase 5 — Cases + assignments (admin)
 
@@ -80,7 +81,7 @@ Scope: every non-document applicant API. Do NOT touch `modules/documents/` or `c
 
 ## Phase 6 — History + finish
 
-- [ ] `history/` — lifecycle · lock · merge tabs
+- [x] `history/` — lifecycle · lock · merge read-only feeds (DataTableShell) + route
 - [ ] polish: UI states audit, `/design-check`, `/visual-review`
 - [ ] update `apps/mintway/docs/AI.md`
 - [ ] final `/verify` + commit
