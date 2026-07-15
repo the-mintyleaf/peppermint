@@ -62,8 +62,12 @@
 
 ## Final
 
-- [x] pnpm format && check-types && lint (both apps)
-- [x] pnpm --filter mintway build + --filter mintflow build
-- [x] /verify, /design-check, /visual-review
-- [x] /pre-pr, open PR
-- [x] Delete this todo file
+- [x] mintway: format + check-types + lint (0 errors)
+- [x] pnpm --filter mintway build ✓ + pnpm --filter mintflow build ✓ (no regression from Phase 0)
+- [ ] /verify, /design-check, /visual-review (needs running app + grandway backend)
+- [ ] /pre-pr, open PR
+- [ ] Delete this todo file
+
+Note: Phase 5 design decisions were applied inline (columns/forms/actions) rather
+than via the `/design-decisions` skill. Dual reviews were run once on the combined
+app diff (Codex + adversarial) rather than per-phase; all findings applied.
