@@ -2,6 +2,7 @@ import type { AdminShellConfig } from "@peppermint/admin";
 import { HouseIcon } from "@phosphor-icons/react/dist/csr/House";
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
 import { UserListIcon } from "@phosphor-icons/react/dist/csr/UserList";
+import { UsersThreeIcon } from "@phosphor-icons/react/dist/csr/UsersThree";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
 
 /**
@@ -24,6 +25,15 @@ export function buildAdminConfig(
         icon: HouseIcon,
         label: "Home",
         href: "/admin",
+      },
+      {
+        // Staff-reachable: the applicant list/detail/addresses are staff-permitted;
+        // admin-only sections gate within each route.
+        kind: "page",
+        id: "applicants",
+        icon: UsersThreeIcon,
+        label: "Applicants",
+        href: "/admin/applicants",
       },
       ...(isAdmin
         ? [

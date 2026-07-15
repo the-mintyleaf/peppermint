@@ -25,15 +25,15 @@ Scope: every non-document applicant API. Do NOT touch `modules/documents/` or `c
 
 ## Phase 1 — Applicants list + overview + core actions
 
-- [ ] `applicants/` list (staff/admin projections, search, lifecycle/engagement tabs, dup warning)
-- [ ] create form (staff vs admin field sets)
-- [ ] overview page (badges, lock indicator, admin actions)
-- [ ] edit form
-- [ ] transition action (funnel + engagement, reason rules, assessment ref)
-- [ ] lock/unlock (reason modals) + archive (DELETE)
-- [ ] merge (surviving picker + field_resolutions)
-- [ ] routes `app/admin/applicants/` + `[applicantId]/` + barrel
-- [ ] Verify + commit + dual review
+- [x] `applicants/` list (staff/admin projections, search, lifecycle tabs, dup warning)
+- [x] create form (staff vs admin field sets) + edit form (onEditTrigger fetches full record)
+- [x] overview page (info cards, badges, lock indicator, edit modal, action bar)
+- [x] transition action (funnel + engagement, reason rules, assessment ref)
+- [x] lock/unlock (reason modals) + archive (DELETE + reason)
+- [x] merge (surviving picker + field_resolutions → routes to survivor)
+- [x] routes `app/admin/applicants/` + `[applicantId]/` + `ModuleApplicant` barrel + nav
+- [x] Verify my files (types/prettier/eslint clean); commit
+- [ ] Dual review (Phase 0 + Phase 1 spine) — next
 
 ## Phase 2 — Addresses + profile image (staff+)
 
