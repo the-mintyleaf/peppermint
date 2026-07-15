@@ -32,6 +32,8 @@ export function ApplicantActionBar({
   const { isAdmin } = useCurrentUser();
   const state = useApplicantActionState(applicant);
   const isArchived = Boolean(applicant.archived_at);
+  const isMerged = Boolean(applicant.merged_into);
+  const isTerminal = isArchived || isMerged;
 
   return (
     <>
@@ -51,7 +53,7 @@ export function ApplicantActionBar({
               size="xs"
               leftSection={<ArrowsLeftRightIcon size={14} />}
               onClick={() => state.setTransitionOpen(true)}
-              disabled={isArchived}
+              disabled={isTerminal}
             >
               Change lifecycle
             </Button>
@@ -65,6 +67,8 @@ export function ApplicantActionBar({
                   <LockKeyIcon size={14} />
                 )
               }
+              // Locking a terminal record 409s; unlocking one is still valid.
+              disabled={!applicant.is_locked && isTerminal}
               onClick={() =>
                 applicant.is_locked ? state.openUnlock() : state.openLock()
               }
@@ -75,6 +79,7 @@ export function ApplicantActionBar({
               variant="default"
               size="xs"
               leftSection={<GitMergeIcon size={14} />}
+              disabled={isTerminal}
               onClick={() => state.setMergeOpen(true)}
             >
               Merge

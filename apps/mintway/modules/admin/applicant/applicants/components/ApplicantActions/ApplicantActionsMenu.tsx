@@ -56,14 +56,18 @@ export function ApplicantActionsMenu({ applicant }: { applicant: Applicant }) {
       ) : (
         <LockKeyIcon size={16} />
       ),
-      hidden: notAdmin,
+      // Locking a terminal (archived/merged) record 409s; unlocking one is still valid.
+      hidden: (r) =>
+        notAdmin() ||
+        (!r.is_locked && (Boolean(r.archived_at) || Boolean(r.merged_into))),
       onClick: () =>
         applicant.is_locked ? state.openUnlock() : state.openLock(),
     },
     {
       label: "Merge…",
       icon: <GitMergeIcon size={16} />,
-      hidden: notAdmin,
+      hidden: (r) =>
+        notAdmin() || Boolean(r.archived_at) || Boolean(r.merged_into),
       onClick: () => state.setMergeOpen(true),
     },
     {

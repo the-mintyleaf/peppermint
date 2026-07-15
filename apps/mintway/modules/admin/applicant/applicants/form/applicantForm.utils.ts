@@ -71,6 +71,20 @@ export function buildApplicantSchema(requireContact: boolean) {
   });
 }
 
+/** ISO date → `YYYY-MM-DD` for `<input type="date">`. */
+function toDateInput(iso?: string | null): string {
+  return iso ? iso.slice(0, 10) : "";
+}
+
+/**
+ * ISO datetime → `YYYY-MM-DDThh:mm` for `<input type="datetime-local">`. A full ISO
+ * string (with seconds/offset) makes the native control render blank, so it must be
+ * trimmed to the minute.
+ */
+function toDatetimeLocalInput(iso?: string | null): string {
+  return iso ? iso.slice(0, 16) : "";
+}
+
 /** Prefill the form from an existing applicant (edit). Missing fields → "". */
 export function applicantToFormValues(
   a: Partial<Applicant>,
@@ -90,18 +104,19 @@ export function applicantToFormValues(
     lead_source: a.lead_source ?? "",
     lead_source_detail: a.lead_source_detail ?? "",
     initial_interest: a.initial_interest ?? "",
-    date_of_birth: a.date_of_birth ?? "",
+    date_of_birth: toDateInput(a.date_of_birth),
     gender: a.gender ?? "",
     religion: a.religion ?? "",
     summary: a.summary ?? "",
     eligibility_summary: a.eligibility_summary ?? "",
     counselling_notes: a.counselling_notes ?? "",
-    next_follow_up_at: a.next_follow_up_at ?? "",
+    next_follow_up_at: toDatetimeLocalInput(a.next_follow_up_at),
     follow_up_priority: a.follow_up_priority ?? "",
   };
 }
 
-const STAFF_FIELDS: (keyof ApplicantFormValues)[] = [
+/** Free-text fields — a blank value is a legitimate clear (sent as `""` on update). */
+const STAFF_TEXT_FIELDS: (keyof ApplicantFormValues)[] = [
   "middle_name",
   "last_name",
   "preferred_display_name",
@@ -111,36 +126,55 @@ const STAFF_FIELDS: (keyof ApplicantFormValues)[] = [
   "alternate_email",
   "primary_phone",
   "alternate_phone",
-  "lead_source",
   "lead_source_detail",
   "initial_interest",
 ];
 
-const ADMIN_ONLY_FIELDS: (keyof ApplicantFormValues)[] = [
-  "date_of_birth",
-  "gender",
+const ADMIN_TEXT_FIELDS: (keyof ApplicantFormValues)[] = [
   "religion",
   "summary",
   "eligibility_summary",
   "counselling_notes",
+];
+
+/** Date/enum/datetime fields — DRF rejects `""`, so an empty value is dropped. */
+const STAFF_ENUM_DATE_FIELDS: (keyof ApplicantFormValues)[] = ["lead_source"];
+
+const ADMIN_ENUM_DATE_FIELDS: (keyof ApplicantFormValues)[] = [
+  "date_of_birth",
+  "gender",
   "next_follow_up_at",
   "follow_up_priority",
 ];
 
 /**
- * Build a write payload from form values, honoring the role whitelist and dropping
- * empty strings so a blank optional field is never sent as `""` (which DRF rejects for
- * nullable date/enum fields). `first_name` is always included.
+ * Build a write payload honoring the role whitelist. On **create** every empty field
+ * is dropped (don't send blanks). On **update** free-text fields are always sent — so a
+ * cleared field (e.g. `counselling_notes`) actually clears server-side — while
+ * date/enum fields are still dropped when empty (DRF rejects `""` for those; there is
+ * no in-form affordance to clear them to null). `first_name` is always included.
  */
 function toPayload(
   values: ApplicantFormValues,
   isAdmin: boolean,
+  mode: "create" | "update",
 ): Record<string, unknown> {
   const payload: Record<string, unknown> = { first_name: values.first_name };
-  const fields = isAdmin
-    ? [...STAFF_FIELDS, ...ADMIN_ONLY_FIELDS]
-    : STAFF_FIELDS;
-  for (const key of fields) {
+
+  const textFields = isAdmin
+    ? [...STAFF_TEXT_FIELDS, ...ADMIN_TEXT_FIELDS]
+    : STAFF_TEXT_FIELDS;
+  const enumDateFields = isAdmin
+    ? [...STAFF_ENUM_DATE_FIELDS, ...ADMIN_ENUM_DATE_FIELDS]
+    : STAFF_ENUM_DATE_FIELDS;
+
+  for (const key of textFields) {
+    const value = values[key];
+    if (typeof value !== "string") continue;
+    // Update sends blanks to clear; create omits them.
+    if (value !== "" || mode === "update") payload[key] = value;
+  }
+  for (const key of enumDateFields) {
     const value = values[key];
     if (typeof value === "string" && value !== "") payload[key] = value;
   }
@@ -151,7 +185,7 @@ export function toCreatePayload(
   values: ApplicantFormValues,
   isAdmin: boolean,
 ): ApplicantCreatePayload {
-  return toPayload(values, isAdmin) as ApplicantCreatePayload;
+  return toPayload(values, isAdmin, "create") as ApplicantCreatePayload;
 }
 
 export function toUpdatePayload(
@@ -160,7 +194,7 @@ export function toUpdatePayload(
   recordVersion: number,
 ): ApplicantUpdatePayload {
   return {
-    ...toPayload(values, isAdmin),
+    ...toPayload(values, isAdmin, "update"),
     record_version: recordVersion,
   } as ApplicantUpdatePayload;
 }

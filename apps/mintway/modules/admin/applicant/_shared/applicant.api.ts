@@ -29,7 +29,15 @@ interface CapturedEnvelope<T> {
 }
 
 function captureMetaTransform(raw: string): unknown {
-  const parsed = raw ? JSON.parse(raw) : {};
+  // A non-JSON body (e.g. a 502/504 HTML gateway page) must not throw here — that
+  // would surface as a SyntaxError with no `.response`, losing the real HTTP status
+  // for `getApiError`. Fall back to `{}` so the error interceptor keeps the response.
+  let parsed: { success?: boolean; data?: unknown; meta?: unknown };
+  try {
+    parsed = raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
   if (parsed && parsed.success === true) {
     return {
       payload: parsed.data,
