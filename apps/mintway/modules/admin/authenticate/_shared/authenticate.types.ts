@@ -24,6 +24,8 @@ export interface EmployeeProfile {
   employment_start_date: string;
   employment_end_date: string | null;
   employment_status: EmploymentStatus;
+  /** Admin-only notes — present on the admin read, absent from `me`. */
+  remarks?: string;
 }
 
 /** `GET /api/v1/auth/me/` — the signed-in account + profile (API §2.1). */

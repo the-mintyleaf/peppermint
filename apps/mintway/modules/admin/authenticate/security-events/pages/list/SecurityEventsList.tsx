@@ -99,6 +99,7 @@ export function SecurityEventsList() {
         <DataTableShell<SecurityEvent>
           queryKey={securityEventsQueryKeys.lists()}
           queryGetFn={fetchSecurityEvents}
+          enableServerQuery
           dataKey="data"
           paginationKey="meta"
           idAccessor="id"
@@ -109,6 +110,7 @@ export function SecurityEventsList() {
             description: "Append-only authentication audit feed, newest first",
           }}
           disableActions
+          disableCreateButton
           pageSizes={[10, 20, 30, 50]}
           defaultPageSize={20}
           tabs={TABS}

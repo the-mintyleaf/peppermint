@@ -58,7 +58,7 @@ export function UserProfileEditForm({
     contact_phone: p?.phone ?? "",
     employment_end_date: p?.employment_end_date ?? "",
     employment_status: p?.employment_status ?? "active",
-    remarks: "",
+    remarks: p?.remarks ?? "",
   };
 
   return (

@@ -60,6 +60,7 @@ function UsersListContent() {
         <ModalTableShell<UserAdmin, CreateUserValues, ProfileUpdateValues>
           queryKey={usersQueryKeys.lists()}
           queryGetFn={fetchUsers}
+          enableServerQuery
           dataKey="data"
           paginationKey="meta"
           idAccessor="id"

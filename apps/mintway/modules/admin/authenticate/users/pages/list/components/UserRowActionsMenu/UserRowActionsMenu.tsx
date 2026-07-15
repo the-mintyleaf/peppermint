@@ -116,6 +116,9 @@ export function UserRowActionsMenu({
 
   const isSelf = user.id === currentUserId;
   const status = user.account_status;
+  // A plain admin may only lifecycle `staff` targets (API §3); the superadmin may act
+  // on any visible account. Hide the action rather than let the backend 403 it.
+  const canLifecycle = isSuperadmin || user.role === "staff";
 
   return (
     <>
@@ -138,7 +141,7 @@ export function UserRowActionsMenu({
             icon: <ProhibitIcon size={16} aria-hidden />,
             color: "red",
             dividerBefore: true,
-            hidden: () => status !== "active",
+            hidden: () => status !== "active" || !canLifecycle,
             disabled: () => isSelf,
             onClick: () =>
               openReasonConfirmModal({
@@ -152,7 +155,7 @@ export function UserRowActionsMenu({
           {
             label: "Reactivate",
             icon: <ArrowCounterClockwiseIcon size={16} aria-hidden />,
-            hidden: () => status !== "deactivated",
+            hidden: () => status !== "deactivated" || !canLifecycle,
             onClick: () => reactivateMutation.mutate(),
           },
           {
@@ -203,6 +206,9 @@ export function UserRowActionsMenu({
       />
 
       <SetTemporaryPasswordModal
+        // Remount per open so the entered password never lingers in state after a
+        // success (which closes via setResetOpen, bypassing the input's own reset).
+        key={resetOpen ? "reset-open" : "reset-closed"}
         opened={resetOpen}
         onClose={() => setResetOpen(false)}
         username={user.username}

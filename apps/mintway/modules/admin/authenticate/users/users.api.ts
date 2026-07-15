@@ -38,14 +38,38 @@ export async function createUser(values: CreateUserValues): Promise<UserAdmin> {
   return data;
 }
 
-/** `PATCH /api/v1/auth/users/<id>/profile/` — non-security profile fields only. */
+/**
+ * `PATCH /api/v1/auth/users/<id>/profile/` — non-security profile fields only.
+ *
+ * Required fields are always sent; optional fields are omitted when empty so a save
+ * never (a) submits `""` to the nullable `employment_end_date` date field (DRF would
+ * reject it), nor (b) clobbers an existing optional value (e.g. admin-only `remarks`,
+ * which isn't returned by the read and so can't be pre-filled).
+ */
 export async function updateUserProfile(
   id: string,
   values: ProfileUpdateValues,
 ): Promise<UserAdmin> {
+  const payload: Record<string, unknown> = {
+    first_name: values.first_name,
+    last_name: values.last_name,
+    job_title: values.job_title,
+    employment_status: values.employment_status,
+  };
+  const optional: (keyof ProfileUpdateValues)[] = [
+    "middle_name",
+    "preferred_name",
+    "contact_email",
+    "contact_phone",
+    "employment_end_date",
+    "remarks",
+  ];
+  for (const key of optional) {
+    if (values[key] !== "") payload[key] = values[key];
+  }
   const { data } = await api.patch<UserAdmin>(
     `/api/v1/auth/users/${id}/profile/`,
-    values,
+    payload,
   );
   return data;
 }

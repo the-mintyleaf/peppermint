@@ -22,13 +22,41 @@ import type { RequireStaffProps } from "./RequireStaff.types";
  * their own module (this only enforces the admin baseline).
  */
 export function RequireStaff({ children }: RequireStaffProps) {
-  const { isAdmin, isLoading } = useCurrentUser();
+  const { isAdmin, isLoading, isError } = useCurrentUser();
 
   if (isLoading) {
     return (
       <Center h="100%" mih={400}>
         <Loader size="sm" />
       </Center>
+    );
+  }
+
+  // A failed `/me` (e.g. a revoked session that couldn't refresh) isn't a permission
+  // problem — offer a path back to sign-in rather than a misleading "Forbidden".
+  if (isError) {
+    return (
+      <>
+        <ModuleHeader breadcrumbItems={[{ label: "Home", href: "/admin" }]} />
+        <ModalPaper withBorder>
+          <Center h="100%" mih={400}>
+            <Stack align="center" gap="xs" maw={360}>
+              <ThemeIcon size={48} radius="xl" color="red" variant="light">
+                <LockKeyIcon size={24} weight="fill" aria-hidden />
+              </ThemeIcon>
+              <Title order={4} ta="center">
+                Your session couldn&apos;t be verified
+              </Title>
+              <Text size="sm" c="dimmed" ta="center">
+                Please sign in again to continue.
+              </Text>
+              <Button component={Link} href="/" mt="sm">
+                Back to sign in
+              </Button>
+            </Stack>
+          </Center>
+        </ModalPaper>
+      </>
     );
   }
 
