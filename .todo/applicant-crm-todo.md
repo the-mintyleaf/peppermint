@@ -33,14 +33,15 @@ Scope: every non-document applicant API. Do NOT touch `modules/documents/` or `c
 - [x] merge (surviving picker + field_resolutions → routes to survivor)
 - [x] routes `app/admin/applicants/` + `[applicantId]/` + `ModuleApplicant` barrel + nav
 - [x] Verify my files (types/prettier/eslint clean); commit
-- [ ] Dual review (Phase 0 + Phase 1 spine) — next
+- [x] Dual review (Codex + adversarial) done; fixes applied + committed (8537aff)
 
 ## Phase 2 — Addresses + profile image (staff+)
 
-- [ ] `addresses/` address CRUD (primary demotion, lock/archive aware)
-- [ ] profile-image view (streamed) + upload (multipart)
-- [ ] route `[applicantId]/addresses/`
-- [ ] Verify + commit + dual review
+- [x] `addresses/` address CRUD via child factory (AddressForm + columns; primary/lock/archive server-guarded)
+- [x] profile-image view (streamed blob → object URL) + upload (multipart, client-validated)
+- [x] route `[applicantId]/addresses/` + barrel + group wiring
+- [x] Verify (types/prettier/eslint clean); commit
+- [~] Dual review — batch with Phase 3
 
 ## Phase 3 — Profile records (admin) — parallel builders
 

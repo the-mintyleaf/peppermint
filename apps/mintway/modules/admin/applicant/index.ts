@@ -1,3 +1,4 @@
+import { AddressesPage } from "./addresses";
 import { ApplicantsList, ApplicantOverview } from "./applicants";
 
 /**
@@ -7,4 +8,5 @@ import { ApplicantsList, ApplicantOverview } from "./applicants";
 export const ModuleApplicant = {
   main: ApplicantsList,
   overview: ApplicantOverview,
+  addresses: AddressesPage,
 };
