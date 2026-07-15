@@ -2,70 +2,70 @@
 
 ## Purpose
 
-Sign-in screen, including the MFA challenge step, for mintflow.
+Auth-initiation (login) screen for mintflow — the pre-authentication entry
+point. Implements the `Login.dc.html` Claude Design (kamban./Griha onboarding
+look) as a responsive full-page screen.
 
 ## Module type
 
-RouteModule — owns its own layout (`layouts/app/App.tsx`), sits outside the
-admin shell, and has no nav entry (it's the pre-authentication entry point).
+ContainedModule — a single self-contained view at `/`, no nested routes and
+no own layout shell. It renders inside the shared app root layout
+(`layouts/app/App.tsx`, wired via `app/layout.tsx`) — it does **not** own that
+layout. It is the unauthenticated landing and has no nav entry.
 
 ## Route
 
-`/`
+`/` (`app/page.tsx` re-exports `ModuleSignIn`).
 
 ## Entry files
 
-- `SignIn.tsx` — thin wrapper configuring `SignInPage` from `@peppermint/admin`.
-- `index.ts` — barrel, exports `ModuleSignIn`.
-- `app/page.tsx` — one-line re-export.
+- `SignIn.tsx` — `"use client"` component; the whole screen and its two phases.
+- `SignIn.types.ts` — `SignInPhase` (`"intro" | "email"`).
+- `SignIn.module.css` — scoped palette/type from the design + hero, CTA, and
+  reveal animation styles.
+- `index.ts` — barrel, exports `ModuleSignIn` + `SignInPhase`.
 
-## Architecture note
+## Two phases (local `useState<SignInPhase>`)
 
-Login/MFA logic lives inside `@peppermint/admin`'s `SignInPage` component
-itself (`packages/admin/src/pages/SignInPage/`), not in this module.
-`SignInPage` does its own `fetch()` (not the app's `api.ts`/React Query — it's
-a shared, backend-agnostic component that takes raw endpoint URLs as props)
-and handles: the `identifier`/password form, the `mfa_required` +
-`challenge_id` MFA round-trip (`mfaVerifyApi`), inline error display
-(`errorMessageMap`), token storage (`access_token`/`refresh_token` in
-`localStorage`, matching what `lib/api.ts` reads), and redirect on success.
+- `intro` — logo, hero artwork placeholder, headline, **Continue with email**
+  CTA, **Continue with magic email** link, footer copy.
+- `email` — same header, with revealed **Email** + **Password** fields and a
+  **Continue** submit; **Use another method** returns to `intro`.
 
-This module only supplies mintflow-specific configuration: full backend URLs
-(`${NEXT_PUBLIC_API_URL}/api/v1/auth/...`), `identifierField="identifier"`,
-the shared `ERROR_MESSAGES` map from `lib/authErrorMessages.ts`, and an
-`onMfaSetupRecommended` callback.
+Clicking **Continue with email** switches `intro → email`. The swap is a short
+(180 ms) `reveal-in` fade, disabled under `prefers-reduced-motion`.
 
-## Common edit targets
+## Wiring status — UI ONLY
 
-| Task                                 | Files                                                                                       |
-| ------------------------------------ | ------------------------------------------------------------------------------------------- |
-| Change login/MFA flow behavior       | `packages/admin/src/pages/SignInPage/SignInPage.tsx` (shared — check other consumers first) |
-| Change mintflow-specific copy/config | `SignIn.tsx`                                                                                |
-| Change error copy                    | `lib/authErrorMessages.ts` (`ERROR_MESSAGES`)                                               |
+Nothing is connected to a backend yet (deliberate, this build):
 
-## Backend endpoints
+- **Continue** (email submit) and **Continue with magic email** both call
+  `notifications.show(...)` with a "Not connected yet" info message.
+- Submit is disabled until both fields are non-empty; no network request,
+  no token storage, no redirect.
 
-- `POST /api/v1/auth/login/` `{identifier, password}` → either
-  `{access, refresh, user, mfa_setup_recommended}` (success) or
-  `{mfa_required: true, challenge_id}` (both are 200 responses — MFA required
-  is not an error).
-- `POST /api/v1/auth/mfa/totp/verify/` `{challenge_id, code}` → same shape as
-  a successful login (`{access, refresh, user}`). `code` accepts both TOTP
-  and recovery codes.
+When auth is wired later, replace `handleSubmit` / the magic-email handler —
+see the admin `SignInPage` in `@peppermint/admin` for the login/MFA pattern
+(`/api/v1/auth/login/`, token storage, redirect).
 
-## State ownership
+## Output contract states
 
-- MFA phase / error / loading state: local `useState` inside `SignInPage`.
-- Already-signed-in redirect: `useEffect` reading `localStorage` in
-  `SignIn.tsx` (mirrors the check in `layouts/admin/Admin.tsx`).
+Mostly **N/A** — there is no query or mutation here, so no
+empty/loading/request-failed/permission-denied/read-only/archived/conflict
+states apply. The only interactive states are the `intro`/`email` phase swap
+and the submit-disabled-until-filled guard.
+
+## Design source
+
+`Login.dc.html` (Claude Design project `26e16bfd-…`). Copy (kamban./Griha)
+is kept verbatim per product decision. Colors/type live as scoped CSS custom
+properties in `SignIn.module.css` — this pre-auth screen intentionally does
+not use the app's brand-green design tokens.
 
 ## Do not do
 
-- Do not rebuild login/MFA logic in this module — it belongs in the shared
-  `SignInPage` component.
-- Do not fetch data in `useEffect` for anything other than the one-off
-  already-signed-in redirect check.
-- Do not imply which field (identifier vs password) was wrong on
-  `AUTH_INVALID_CREDENTIALS` — this is deliberate account-enumeration
-  defense from the backend, and `SignInPage` already respects it by showing
-  the backend's own generic message.
+- Do not add data fetching in `useEffect` — there is none here.
+- Do not swap the scoped login palette for app brand tokens; the light
+  onboarding look is intended.
+- Do not rebuild login/MFA logic inline when wiring auth — delegate to the
+  shared `@peppermint/admin` `SignInPage` pattern.
