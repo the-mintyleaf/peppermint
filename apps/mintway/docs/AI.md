@@ -2,15 +2,22 @@
 
 ## App purpose
 
-Identity & access admin for the **grandway** `authenticate` backend. Handles sign-in
-(username/password + forced first-login password change), self-service account settings,
-staff/admin account administration, and the superadmin security-event audit feed.
+Identity & access admin for the **grandway** `authenticate` backend **plus the
+Applicant CRM** for the `applicant` backend. Handles sign-in (username/password + forced
+first-login password change), self-service account settings, staff/admin account
+administration, the superadmin security-event audit feed, and the full applicant
+lifecycle (leads → applicants, profile, CRM, cases, assignments).
 
 Stack: Next.js App Router, Mantine (via `@peppermint/ui`), React Query, `@peppermint/admin`
-shells + primitives. Backend contract: `.todo/auth_doc_grandway/` (`API.md`,
-`DATA_CONTRACT.md`, `INTEGRATION.md`, `SECURITY.md`).
+shells + primitives. Backend contracts: `.todo/auth_doc_grandway/` (auth) and
+`.todo/applications/` (applicant: `API.md`, `DATA_CONTRACT.md`, `INTEGRATION.md`,
+`SECURITY.md`).
 
-Base API: `/api/v1/auth/` at `NEXT_PUBLIC_API_URL`.
+Base APIs: `/api/v1/auth/` (auth) and `/api/v1/applicants/` · `/api/v1/application-cases/`
+(applicant) at `NEXT_PUBLIC_API_URL`.
+
+> The `modules/documents/` module and `components/templates/` are a separate in-progress
+> effort — not part of the applicant CRM.
 
 ---
 
@@ -80,6 +87,52 @@ apps/mintway/
 - Security Events is superadmin-only (gated in `SecurityEventsList` + hidden from nav).
 
 ---
+
+## Applicant CRM (`modules/admin/applicant`)
+
+A MultiPageModule group (mirrors mintflow's `organization`). The applicant is the
+aggregate root; each detail section is a route under `[applicantId]`. Backend contract:
+`.todo/applications/`.
+
+**Shared spine — `applicant/_shared/`** (read before touching any section):
+
+- `applicant.types.ts` / `applicant.enums.ts` — domain types (role-projected) + label/color maps.
+- `applicant.api.ts` — applicant-core client (CRUD, transition, lock/unlock, histories, merge).
+  `postCapturingMeta` re-tags success payloads so the shared api-client's envelope unwrap
+  doesn't drop the create/merge `possible_duplicate` warning meta.
+- `applicantQueryKeys.ts` — `createQueryKeys` per resource.
+- `childResource/createChildResource.tsx` — **the DRY factory** every nested CRUD section
+  uses (ModalTableShell-backed; scoped to `/applicants/:id/:slug`; string-array query key
+  namespaced by slug + applicantId).
+- `useApplicant.ts` (detail + role/version/lock), `useApplicantMutation.ts` (useAppMutation
+  - the app error resolver), `ApplicantDetailShell/` (header + role-filtered section nav).
+
+**Access:** `components/RequireAuth` gates the staff-reachable surface (list, overview,
+addresses, profile image); `components/RequireStaff` (admin/superadmin) gates every other
+section. Role also drives field projections — never render admin-only fields for staff.
+
+**Sections & routes:**
+
+| Section     | Path                    | Notes                                                                                                                                 |
+| ----------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Applicants  | `applicant/applicants`  | `/admin/applicants` list (staff/admin projections, tabs, dup warning) + `[id]` overview + create/edit + transition/lock/archive/merge |
+| Addresses   | `applicant/addresses`   | `/admin/applicants/[id]/addresses` — addresses (child factory) + profile image (streamed blob + multipart upload). **Staff+**         |
+| Identity    | `applicant/identity`    | `[id]/identity` — identity documents + evidence media (upload/view/delete)                                                            |
+| Education   | `applicant/education`   | `[id]/education` — educations · language tests · trainings · skills · languages · academic gradings                                   |
+| Family      | `applicant/family`      | `[id]/family` — family members · emergency contacts · references                                                                      |
+| Interests   | `applicant/interests`   | `[id]/interests` — interest profile (OneToOne) + qualification assessments (append-only)                                              |
+| CRM         | `applicant/crm`         | `[id]/crm` — interactions · sponsors · travel · visa · consents                                                                       |
+| Cases       | `applicant/cases`       | `[id]/cases` list/open + top-level `/admin/application-cases/[caseId]` detail (edit, transition, status-history)                      |
+| Assignments | `applicant/assignments` | `[id]/assignments` — assign (user + case picker) / end                                                                                |
+| History     | `applicant/history`     | `[id]/history` — lifecycle · lock · merge feeds (read-only)                                                                           |
+
+**Concurrency:** every applicant PATCH/transition/lock/archive and every case PATCH/transition
+sends the last-read `record_version` (cases carry their own). A 409 refetches; the message
+tells the user to reload.
+
+**v1 deferrals:** identity media-ref linking + identity dup-fingerprint warning; clearing an
+optional field on an agent-built child record (delete + recreate). Documents/signatures are
+out of scope (separate module).
 
 ## Conventions
 

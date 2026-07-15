@@ -83,7 +83,8 @@ Scope: every non-document applicant API. Do NOT touch `modules/documents/` or `c
 ## Phase 6 — History + finish
 
 - [x] `history/` — lifecycle · lock · merge read-only feeds (DataTableShell) + route
-- [ ] polish: UI states audit, `/design-check`, `/visual-review`
-- [ ] update `apps/mintway/docs/AI.md`
-- [ ] final `/verify` + commit
-- [ ] delete this file
+- [x] Phase 4+5 dual review (Codex + adversarial); fixes applied + committed (f31051e)
+- [x] update `apps/mintway/docs/AI.md` (Applicant CRM section)
+- [x] final verify — format + check-types + lint clean across all 154 module files + 12 routes
+- [~] `/design-check` + `/visual-review` — require a running app + backend (Playwright);
+  not runnable in this environment. Run before merge once the backend is reachable.
