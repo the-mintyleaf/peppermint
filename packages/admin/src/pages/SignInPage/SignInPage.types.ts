@@ -69,6 +69,13 @@ export interface SignInPageProps {
    * standard "no access token" handling.
    */
   onPasswordChangeRequired?: (data: SignInResultData) => void;
+  /**
+   * Send credentials (cookies) with the login / MFA fetch so a cookie-based backend can
+   * set its session cookies (e.g. an HttpOnly refresh cookie + CSRF cookie). Defaults to
+   * `false` — leave it off for token-in-body backends whose login endpoint may respond
+   * with a wildcard CORS origin (which the browser rejects under credentialed requests).
+   */
+  withCredentials?: boolean;
   /** Optional error-code -> message overrides. Falls back to the backend's own `error.message`/`message`. */
   errorMessageMap?: Record<string, string>;
 }

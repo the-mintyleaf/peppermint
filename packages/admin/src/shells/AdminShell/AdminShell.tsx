@@ -99,7 +99,7 @@ export function AdminShell({
         p={0}
         padding={0}
         withBorder={false}
-        bg="linear-gradient(160deg, var(--mantine-color-dark-9) 0%, var(--mantine-color-brand-9) 100%)"
+       // bg="linear-gradient(160deg, var(--mantine-color-dark-9) 0%, var(--mantine-color-brand-9) 100%)"
         transitionDuration={SUB_NAV_TRANSITION_MS}
         navbar={{
           width: navbarWidth,

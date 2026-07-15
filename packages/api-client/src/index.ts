@@ -91,7 +91,12 @@ function readToken(key: string): string | null {
     : null;
 }
 
-/** Read a browser cookie value by name (client-only; returns `null` on the server). */
+/**
+ * Read a browser cookie's **raw** value by name (client-only; `null` on the server).
+ * The value is intentionally not URL-decoded: it is echoed verbatim into the
+ * double-submit CSRF header so it matches the raw cookie the backend compares, and
+ * a bare `%` in a token would otherwise make `decodeURIComponent` throw.
+ */
 function readCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(
@@ -99,7 +104,7 @@ function readCookie(name: string): string | null {
       `(?:^|;\\s*)${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}=([^;]*)`,
     ),
   );
-  return match ? decodeURIComponent(match[1]) : null;
+  return match ? match[1] : null;
 }
 
 /**
