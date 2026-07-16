@@ -1,6 +1,6 @@
 "use client";
 
-import type { MouseEvent } from "react";
+import type { ElementType } from "react";
 import {
   ActionIcon,
   BookmarksMenu,
@@ -10,6 +10,7 @@ import {
   Stack,
   Tooltip,
 } from "@peppermint/ui";
+import type { Icon } from "@phosphor-icons/react";
 import { StarFourIcon } from "@phosphor-icons/react/dist/csr/StarFour";
 import { BellIcon } from "@phosphor-icons/react/dist/csr/Bell";
 import { GearSixIcon } from "@phosphor-icons/react/dist/csr/GearSix";
@@ -18,6 +19,57 @@ import { UserMenu } from "../UserMenu";
 import { isActiveHref } from "../../../../nav.utils";
 import type { SidebarFooterProps } from "./SidebarFooter.types";
 import classes from "./SidebarFooter.module.css";
+
+interface QuickActionProps {
+  icon: Icon;
+  label: string;
+  href?: string;
+  onClick?: () => void;
+  active?: boolean;
+  color?: string;
+  weight?: "fill" | "regular";
+  linkComponent?: ElementType;
+}
+
+/**
+ * A single footer quick action. Links render through `linkComponent` (Next
+ * `Link`) so modified-clicks keep their native semantics; only genuine
+ * button actions attach an `onClick`.
+ */
+function QuickAction({
+  icon: IconComponent,
+  label,
+  href,
+  onClick,
+  active = false,
+  color = "gray.0",
+  weight,
+  linkComponent,
+}: QuickActionProps) {
+  const useButton = Boolean(onClick);
+  // Cast narrows Mantine's polymorphic `component` from the broad `ElementType`.
+  const Component = (useButton ? "button" : (linkComponent ?? "a")) as "a";
+
+  return (
+    <Tooltip label={label} withArrow>
+      <ActionIcon
+        component={Component}
+        href={useButton ? undefined : href}
+        onClick={useButton ? onClick : undefined}
+        variant="subtle"
+        size="lg"
+        color={color}
+        aria-label={label}
+        aria-current={active ? "page" : undefined}
+      >
+        <IconComponent
+          size={18}
+          weight={weight ?? (active ? "fill" : "regular")}
+        />
+      </ActionIcon>
+    </Tooltip>
+  );
+}
 
 /**
  * Bottom cluster of the nav panel: a row of quick actions (AI, bookmarks,
@@ -36,93 +88,57 @@ export function SidebarFooter({
   const settingsActive = isActiveHref(pathname, settingsHref);
   const hasUnread = (notifications?.count ?? 0) > 0;
 
-  const navigate = (event: MouseEvent, onClick?: () => void, href?: string) => {
-    if (onClick) {
-      event.preventDefault();
-      onClick();
-    } else if (href && onNavigate) {
-      event.preventDefault();
-      onNavigate(href);
-    }
-  };
-
-  const AiIcon = aiButton?.icon ?? StarFourIcon;
-  const SettingsIcon = settingsButton?.icon ?? GearSixIcon;
-
   return (
     <Stack gap={8}>
       <Divider className={classes.divider} />
 
       <Box className={classes.cluster}>
         {aiButton && !aiButton.hidden && (
-          <Tooltip label={aiButton.label ?? "Ask AI"} withArrow>
-            <ActionIcon
-              component={aiButton.onClick ? "button" : "a"}
-              href={aiButton.onClick ? undefined : aiButton.href}
-              variant="subtle"
-              size="lg"
-              color="accent.4"
-              aria-label={aiButton.label ?? "Ask AI"}
-              onClick={(event: MouseEvent) =>
-                navigate(event, aiButton.onClick, aiButton.href)
-              }
-            >
-              <AiIcon size={18} weight="fill" />
-            </ActionIcon>
-          </Tooltip>
+          <QuickAction
+            icon={aiButton.icon ?? StarFourIcon}
+            label={aiButton.label ?? "Ask AI"}
+            href={aiButton.href}
+            onClick={aiButton.onClick}
+            color="accent.4"
+            weight="fill"
+            linkComponent={linkComponent}
+          />
         )}
 
         <BookmarksMenu variant="sidenav" onNavigate={onNavigate} />
 
         {notifications && !notifications.hidden && (
-          <Tooltip label="Notifications" withArrow>
-            <Indicator
-              inline
-              size={7}
-              offset={6}
-              position="top-end"
-              color="red"
-              disabled={!hasUnread}
-            >
-              <ActionIcon
-                component={notifications.onClick ? "button" : "a"}
-                href={notifications.onClick ? undefined : notifications.href}
-                variant="subtle"
-                size="lg"
-                color="gray.0"
-                aria-label="Notifications"
-                onClick={(event: MouseEvent) =>
-                  navigate(event, notifications.onClick, notifications.href)
-                }
-              >
-                <BellIcon size={18} weight="fill" />
-              </ActionIcon>
-            </Indicator>
-          </Tooltip>
+          <Indicator
+            inline
+            size={7}
+            offset={6}
+            position="top-end"
+            color="red"
+            disabled={!hasUnread}
+          >
+            <QuickAction
+              icon={BellIcon}
+              label="Notifications"
+              href={notifications.href}
+              onClick={notifications.onClick}
+              weight="fill"
+              linkComponent={linkComponent}
+            />
+          </Indicator>
         )}
 
         <Box className={classes.spacer} />
 
         {settingsButton && !settingsButton.hidden && (
-          <Tooltip label={settingsButton.label ?? "Settings"} withArrow>
-            <ActionIcon
-              component={settingsButton.onClick ? "button" : "a"}
-              href={settingsButton.onClick ? undefined : settingsHref}
-              variant="subtle"
-              size="lg"
-              color={settingsActive ? "accent.4" : "gray.0"}
-              aria-label={settingsButton.label ?? "Settings"}
-              aria-current={settingsActive ? "page" : undefined}
-              onClick={(event: MouseEvent) =>
-                navigate(event, settingsButton.onClick, settingsHref)
-              }
-            >
-              <SettingsIcon
-                size={18}
-                weight={settingsActive ? "fill" : "regular"}
-              />
-            </ActionIcon>
-          </Tooltip>
+          <QuickAction
+            icon={settingsButton.icon ?? GearSixIcon}
+            label={settingsButton.label ?? "Settings"}
+            href={settingsHref}
+            onClick={settingsButton.onClick}
+            active={settingsActive}
+            color={settingsActive ? "accent.4" : "gray.0"}
+            linkComponent={linkComponent}
+          />
         )}
       </Box>
 
