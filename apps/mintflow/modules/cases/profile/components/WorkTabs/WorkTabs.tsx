@@ -89,6 +89,13 @@ function FilesPanel({ files }: { files: CaseFile[] }) {
 }
 
 function PeoplePanel({ workCase }: { workCase: WorkCase }) {
+  if (workCase.officers.length === 0) {
+    return (
+      <Text fz="sm" c="dimmed" ta="center" py="xl">
+        No officers assigned to this case yet.
+      </Text>
+    );
+  }
   return (
     <Stack gap={8}>
       {workCase.officers.map((officer) => (

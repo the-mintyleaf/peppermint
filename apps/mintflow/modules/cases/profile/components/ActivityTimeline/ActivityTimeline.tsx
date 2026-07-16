@@ -96,7 +96,9 @@ export function ActivityTimeline({
 
       {events.length === 0 ? (
         <Text fz="sm" c="dimmed" ta="center" py="lg">
-          No activity recorded yet.
+          {filterLabel
+            ? "No activity for this task yet."
+            : "No activity recorded yet."}
         </Text>
       ) : (
         <Stack gap={0}>

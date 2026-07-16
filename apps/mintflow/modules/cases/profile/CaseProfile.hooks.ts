@@ -26,7 +26,9 @@ export function useProfileView() {
   return { taskId, setTaskId, toggleTask, tab, setTab };
 }
 
-/** Activity filtered to a selected task, or the full feed when none is picked. */
+/** Activity filtered to a selected task, or the full feed when none is picked.
+ *  A task with no events yields an empty list (not the full feed) so the
+ *  "showing activity for X" banner never lies. */
 export function useVisibleActivity(
   activity: CaseActivityEvent[] | undefined,
   taskId: string | null,
@@ -34,7 +36,6 @@ export function useVisibleActivity(
   return useMemo(() => {
     const feed = activity ?? [];
     if (!taskId) return feed;
-    const scoped = feed.filter((e) => e.taskId === taskId);
-    return scoped.length > 0 ? scoped : feed;
+    return feed.filter((e) => e.taskId === taskId);
   }, [activity, taskId]);
 }
