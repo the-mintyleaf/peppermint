@@ -1,9 +1,13 @@
 import type { AppShellNavItem } from "./AppShell.types";
 
+/** A route is active when the path equals its href or is nested under it. */
+export function isActiveHref(pathname: string, href: string): boolean {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 /**
- * Resolve the active destination for a pathname. A destination matches when the
- * path equals its href or is nested under it; the longest matching href wins so
- * that `/files/123/trail` highlights `Files`, not `/`.
+ * Resolve the active destination for a pathname. The longest matching href wins
+ * so that `/files/123/trail` highlights `Files`, not `/`.
  */
 export function resolveActiveNavItem(
   items: AppShellNavItem[],
@@ -12,10 +16,10 @@ export function resolveActiveNavItem(
   let match: AppShellNavItem | undefined;
 
   for (const item of items) {
-    const isMatch =
-      pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-    if (isMatch && (!match || item.href.length > match.href.length)) {
+    if (
+      isActiveHref(pathname, item.href) &&
+      (!match || item.href.length > match.href.length)
+    ) {
       match = item;
     }
   }

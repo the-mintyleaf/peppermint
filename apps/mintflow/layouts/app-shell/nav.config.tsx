@@ -12,6 +12,8 @@ import { GearSixIcon } from "@phosphor-icons/react/dist/csr/GearSix";
 import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
 import { SignOutIcon } from "@phosphor-icons/react/dist/csr/SignOut";
 
+import { notifications } from "@peppermint/ui";
+
 import type { AppShellConfig } from "./AppShell.types";
 
 /**
@@ -64,7 +66,15 @@ export const APP_SHELL_CONFIG: Omit<
         icon: GearSixIcon,
         href: "/settings",
       },
-      { id: "signout", label: "Sign out", icon: SignOutIcon, danger: true },
+      {
+        id: "signout",
+        label: "Sign out",
+        icon: SignOutIcon,
+        danger: true,
+        // Placeholder — no auth yet; mirrors the app's "not connected" pattern.
+        onClick: () =>
+          notifications.show({ message: "Not connected yet", color: "gray" }),
+      },
     ],
   },
 };

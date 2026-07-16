@@ -10,7 +10,7 @@ import {
 } from "@peppermint/ui";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 
-import { resolveActiveNavItem } from "../../nav.utils";
+import { isActiveHref, resolveActiveNavItem } from "../../nav.utils";
 import {
   NAV_HEADER_HEIGHT,
   RAIL_WIDTH,
@@ -91,7 +91,7 @@ export function Sidebar({ config, pathname }: SidebarProps) {
                   label={item.label}
                   href={item.onClick ? undefined : item.href}
                   badge={item.badge}
-                  active={item.href ? activeItem?.href === item.href : false}
+                  active={item.href ? isActiveHref(pathname, item.href) : false}
                   linkComponent={config.linkComponent}
                   onClick={
                     item.onClick

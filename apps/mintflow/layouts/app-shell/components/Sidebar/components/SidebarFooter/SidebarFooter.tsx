@@ -16,16 +16,13 @@ import { GearSixIcon } from "@phosphor-icons/react/dist/csr/GearSix";
 
 import { NavIconButton } from "../NavIconButton";
 import { UserMenu } from "../UserMenu";
+import { isActiveHref } from "../../../../nav.utils";
 import type { SidebarFooterProps } from "./SidebarFooter.types";
 import type {
   AppShellAiButton,
   AppShellNotifications,
 } from "../../../../AppShell.types";
 import classes from "./SidebarFooter.module.css";
-
-function isActiveHref(pathname: string, href: string): boolean {
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
 
 function AiButton({
   aiButton,
@@ -67,12 +64,17 @@ function AiButton({
 
 function NotificationsBell({
   notifications,
+  linkComponent,
   onNavigate,
 }: {
   notifications: AppShellNotifications;
+  linkComponent?: SidebarFooterProps["linkComponent"];
   onNavigate?: (href: string) => void;
 }) {
   const hasUnread = (notifications.count ?? 0) > 0;
+  const useButton = Boolean(notifications.onClick);
+  // Cast narrows Mantine's polymorphic `component` from the broad `ElementType`.
+  const Component = (useButton ? "button" : (linkComponent ?? "a")) as "a";
 
   return (
     <Indicator
@@ -84,10 +86,8 @@ function NotificationsBell({
       disabled={!hasUnread}
     >
       <ActionIcon
-        component={
-          notifications.href && !notifications.onClick ? "a" : "button"
-        }
-        href={notifications.href}
+        component={Component}
+        href={useButton ? undefined : notifications.href}
         variant="subtle"
         size="lg"
         color="gray.0"
@@ -138,6 +138,7 @@ export function SidebarFooter({
       {notifications && !notifications.hidden && (
         <NotificationsBell
           notifications={notifications}
+          linkComponent={linkComponent}
           onNavigate={onNavigate}
         />
       )}
