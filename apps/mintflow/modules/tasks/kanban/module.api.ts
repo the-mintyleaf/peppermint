@@ -1534,21 +1534,165 @@ const DEPARTMENT_GROUPS = [
   "Engineering",
 ];
 
+// ---------------------------------------------------------------------------
+// In-memory store (mock backend)
+//
+// `MOCK_TASKS` above is the immutable seed. `taskStore` is the mutable working
+// set the CRUD helpers read and write, so create / edit / delete / reorder
+// persist for the browser session (until a full reload re-seeds from the mock).
+// ---------------------------------------------------------------------------
+
+let taskStore: Task[] = MOCK_TASKS.map((t) => ({ ...t }));
+
+const MOCK_LATENCY = 200;
+const delay = () => new Promise((r) => setTimeout(r, MOCK_LATENCY));
+
 export async function fetchTasks(filter: TaskBoardFilter): Promise<Task[]> {
-  await new Promise((r) => setTimeout(r, 200));
+  await delay();
   switch (filter) {
     case "mine":
-      return MOCK_TASKS.filter(
+      return taskStore.filter(
         (t) =>
           t.assignee === CURRENT_USER_NAME ||
           t.assignees?.some((a) => a.name === CURRENT_USER_NAME),
       );
     case "team":
-      return MOCK_TASKS.filter((t) => (t.assignees?.length ?? 0) > 1);
+      return taskStore.filter((t) => (t.assignees?.length ?? 0) > 1);
     case "department":
-      return MOCK_TASKS.filter((t) => DEPARTMENT_GROUPS.includes(t.group));
+      return taskStore.filter((t) => DEPARTMENT_GROUPS.includes(t.group));
     case "all":
     default:
-      return MOCK_TASKS;
+      return taskStore.slice();
   }
+}
+
+// Recency rank parsed from the human `createdAt` label, in "minutes ago"
+// (smaller = newer). Lets the Created sort order real tasks without a stored
+// timestamp; freshly created tasks use "just now" and rank at the top.
+const AGE_UNIT_MINUTES: Record<string, number> = {
+  minute: 1,
+  hour: 60,
+  day: 60 * 24,
+  week: 60 * 24 * 7,
+};
+
+export function createdRank(task: Task): number {
+  const label = task.createdAt.trim().toLowerCase();
+  if (label === "just now") return 0;
+  if (label === "yesterday") return AGE_UNIT_MINUTES.day;
+  const match = label.match(/^(\d+)\s+(minute|hour|day|week)s?\s+ago$/);
+  if (!match) return Number.MAX_SAFE_INTEGER;
+  return Number(match[1]) * AGE_UNIT_MINUTES[match[2]];
+}
+
+export interface TaskInput {
+  title: string;
+  status: TaskStatus;
+  priority?: TaskPriority;
+  category?: TaskCategory;
+  assigneeNames: string[];
+  startDate?: string | null;
+  endDate?: string | null;
+  tags?: TaskTag[];
+  description?: string;
+  group?: string;
+  subtasks?: TaskSubtask[];
+}
+
+// Resolve display avatars from team-member names, falling back to derived
+// initials for names not in the roster.
+function buildAssignees(names: string[]): TaskAssignee[] {
+  return names.map((name) => {
+    const member = TEAM_MEMBERS.find((m) => m.name === name);
+    if (member) {
+      return { name, initials: member.initials, color: member.color };
+    }
+    const initials = name
+      .split(/\s+/)
+      .map((part) => part[0] ?? "")
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+    return { name, initials, color: "gray" };
+  });
+}
+
+let taskSeq = MOCK_TASKS.length;
+
+export async function createTask(input: TaskInput): Promise<Task> {
+  await delay();
+  taskSeq += 1;
+  const assignees = buildAssignees(input.assigneeNames);
+  const task: Task = {
+    id: `t-${taskSeq}`,
+    taskNumber: `T-${1124162 + taskSeq}`,
+    title: input.title.trim(),
+    category: input.category ?? "general",
+    status: input.status,
+    priority: input.priority ?? "normal",
+    assignee: assignees[0]?.name ?? "Unassigned",
+    createdAt: "just now",
+    group: input.group ?? "General Tasks",
+    description: input.description?.trim() || undefined,
+    assignees: assignees.length ? assignees : undefined,
+    startDate: input.startDate ?? undefined,
+    endDate: input.endDate ?? undefined,
+    tags: input.tags?.length ? input.tags : undefined,
+    subtasks: input.subtasks?.length ? input.subtasks : undefined,
+  };
+  taskStore = [task, ...taskStore];
+  return task;
+}
+
+export async function updateTask(id: string, patch: TaskInput): Promise<Task> {
+  await delay();
+  const assignees = buildAssignees(patch.assigneeNames);
+  let updated: Task | undefined;
+  taskStore = taskStore.map((t) => {
+    if (t.id !== id) return t;
+    updated = {
+      ...t,
+      title: patch.title.trim(),
+      status: patch.status,
+      priority: patch.priority ?? t.priority,
+      category: patch.category ?? t.category,
+      assignee: assignees[0]?.name ?? t.assignee,
+      assignees: assignees.length ? assignees : t.assignees,
+      startDate: patch.startDate ?? t.startDate,
+      endDate: patch.endDate ?? t.endDate,
+      tags: patch.tags ?? t.tags,
+      description: patch.description?.trim() ?? t.description,
+      subtasks: patch.subtasks ?? t.subtasks,
+    };
+    return updated;
+  });
+  if (!updated) throw new Error(`Task ${id} not found`);
+  return updated;
+}
+
+export async function deleteTask(id: string): Promise<void> {
+  await delay();
+  taskStore = taskStore.filter((t) => t.id !== id);
+}
+
+export async function setTaskStatus(
+  id: string,
+  status: TaskStatus,
+): Promise<void> {
+  await delay();
+  taskStore = taskStore.map((t) => (t.id === id ? { ...t, status } : t));
+}
+
+export async function reorderTasks(
+  activeId: string,
+  overId: string,
+): Promise<void> {
+  await delay();
+  const from = taskStore.findIndex((t) => t.id === activeId);
+  const to = taskStore.findIndex((t) => t.id === overId);
+  if (from === -1 || to === -1) return;
+  const next = taskStore.slice();
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
+  taskStore = next;
 }

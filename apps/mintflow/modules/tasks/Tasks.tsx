@@ -121,10 +121,7 @@ export function ModuleTasks() {
   }, []);
 
   const { data: tasks, isLoading } = useTasks(activeFilter);
-  const { tasksByStatus, moveTask, reorderTask } = useKanbanBoard(
-    tasks,
-    activeFilter,
-  );
+  const { tasksByStatus, moveTask, reorderTask } = useKanbanBoard(tasks);
   const { members, taskCountByMember } = useTeamMembers(tasks);
   const groupedTasks = useGroupedTasks(
     tasks,
