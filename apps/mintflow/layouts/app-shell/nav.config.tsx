@@ -1,3 +1,5 @@
+"use client";
+
 import type { Icon } from "@phosphor-icons/react";
 import { HouseIcon } from "@phosphor-icons/react/dist/csr/House";
 import { ListChecksIcon } from "@phosphor-icons/react/dist/csr/ListChecks";
