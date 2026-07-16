@@ -2,86 +2,72 @@
 
 ## Purpose
 
-mintflow is the mobile-first **"kamban." minister app** — a task/case workspace for a
-government minister. It renders the Claude Design mockups (project `26e16bfd-…`) as real,
-responsive React screens built on Mantine (imported via `@peppermint/ui`). These are
-**bespoke UI screens — not** `@peppermint/admin` framework screens (no `createListModule`,
-`ModalTableShell`, `FormShell`, `createResourceApi`). **No backend yet** — all screen data
-is intentional local mock data (same "not wired" spirit as the sign-in screen).
+mintflow is the **"kamban." minister app**, being rebuilt on this branch as an
+admin-style surface ("mintflow-admin"). It renders bespoke React screens on Mantine
+(via `@peppermint/ui`) tuned to a fixed brand design system — **not**
+`@peppermint/admin` framework screens. **No backend yet** — screen data is intentional
+local mock data (the "not wired" pattern: `notifications.show("Not connected yet")`).
+
+> ⚠️ Mid-rebuild: the previous mobile shell (bottom-nav + IconRail) and most modules
+> were removed. What exists now is the new **single-sidebar app shell** and a
+> placeholder dashboard. Add real modules under `modules/` and routes under `app/(app)/`.
 
 ## Surfaces & routing
 
-- `/` — `ModuleSignIn` (pre-auth landing; see `modules/sign-in/docs/AI.md`). Outside the app shell.
-- Route group `app/(app)/` wraps the authenticated app in the **app shell** (`layouts/app-shell`):
-  - `/home` → `ModuleHome` · `/tasks` → `ModuleTasks` · `/dashboard` → `ModuleDashboard`
-  - `/files` → `ModuleFiles` · `/files/[caseId]/trail` → `ModuleWorkTrail`
-  - `/ai` → `ModuleAskAi` · `/settings` → `ModuleSettings` (placeholder)
-- **Immersive routes, OUTSIDE the shell** (no bottom nav): `/onboarding` → `ModuleOnboarding`,
-  `/voice` → `ModuleVoice`.
-- `app/` files are re-export only.
+- `/` → redirects to `/dashboard` (`app/page.tsx`).
+- Route group `app/(app)/` wraps authenticated routes in the app shell
+  (`layouts/app-shell`); `(app)/layout.tsx` is a pure re-export of `LayoutAppShell`.
+  - `/dashboard` → `ModuleDashboard` (placeholder content region).
+- `app/` files are re-export only (the root redirect is the one allowed exception).
 
-## The shared nav shell — `layouts/app-shell/`
+## The app shell — `layouts/app-shell/`
 
-`LayoutAppShell` (client) is the chrome around every `(app)` route:
+`LayoutAppShell` (client) is a **single dark icon rail** (no second-tier sub-nav) over
+the warm-paper content area — the in-app, mint-tuned counterpart of
+`@peppermint/admin`'s `AdminShell` MainNav.
 
-- **Mobile (< 62em):** floating dark **`BottomNav`** pill — Home · Tasks · **＋** · Reports · Files.
-- **Desktop (≥ 62em):** left **`IconRail`** — same 4 destinations + Settings + avatar.
-- The center **＋** opens the **Create Task** sheet from any screen via `CreateTaskHost`
-  (a bottom `Drawer` driven by `app-shell.store.ts`, a Zustand store — `useAppShellStore`).
-- Destinations + active-route logic: `nav.config.tsx` (`NAV_DESTINATIONS`, `isDestinationActive`).
-  ⚠️ `nav.config` is **not** re-exported from `layouts/app-shell/index.ts` and is marked
-  `"use client"` — it imports Phosphor icons (`createContext`); re-exporting it through the
-  barrel made the Server-Component `(app)/layout.tsx` evaluate it on the server → SSR 500
-  (the prod build tree-shook it and passed, hiding the bug). Import it directly from the
-  client nav components only.
+- **Config-driven.** `nav.config.tsx` (`APP_SHELL_CONFIG`) holds the static shape —
+  brand, `nav` destinations, `additional`, `aiButton`, `settingsButton`,
+  `notifications`, `user`. `LayoutAppShell` injects router-bound `onNavigate`
+  (`router.push`) and `linkComponent` (Next `Link`) at runtime. Types: `AppShell.types.ts`.
+- **Rail composition** (`components/Sidebar/`): `SidebarBrand` (accent chip) → search
+  (`spotlight.open()` opens the single `NavSpotlight`, also `mod+K`) → `NavIconButton`
+  destinations (mint-accent active pill, active resolved by `nav.utils.ts`
+  `resolveActiveNavItem` / `isActiveHref`) → optional `additional` → `SidebarFooter`
+  (AI, `BookmarksMenu` variant="sidenav", notifications bell, settings, `UserMenu`).
+- **Dark rail is explicit.** Unlike `AdminShell` (transparent rail over a dark app bg),
+  mintflow's body is light, so the rail Stack carries its own `tokens.tile` surface +
+  `tokens.shadow.nav` (see `shell.constants.ts` `railCardStyle`). Mobile (< `sm`): a
+  fixed `Burger` toggles the collapsed rail.
+- **Placeholder destinations** (`/cases`, `/calendar`, `/team`, `/notifications`, …)
+  have no routes yet and 404 until built — rewire `nav.config.tsx` as routes land.
+
+> ⚠️ SSR lesson (still applies): `nav.config.tsx` is `"use client"` (it imports Phosphor
+> icons) and is imported **directly** by the client shell only — it is **not**
+> re-exported through `layouts/app-shell/index.ts`. Re-exporting an icon-importing config
+> through a barrel a Server Component evaluates caused an SSR 500 in the prior shell.
 
 ## Shared foundation
 
-- **Design tokens:** `config/design/tokens.ts` (`tokens`, `categoryStyles`, `statusDot`) —
-  mirrored as `--k-*` CSS vars in `app/globals.css`. Fixed brand values, color-scheme
-  independent (screens are a fixed warm-paper surface; the dashboard is a fixed dark surface,
-  so light/dark screenshots look identical by design).
-- **Theme:** `config/theme/` — Space Grotesk (UI) + JetBrains Mono (monospace), accent-orange
-  primary + `accent`/`ink` color ramps.
-- **App-local primitives:** `components/` (built on `@peppermint/ui`, exported from
-  `components/index.ts`): `Screen` (page container: centered ~460px column that clears the
-  bottom nav, `dark`/`fluid` variants), `MonoText`, `SectionLabel`, `StatusPill`, `CheckRing`,
-  `CheckItem`, `CaseIcon`.
-
-## Screens (`modules/`)
-
-Each is a `"use client"` module exporting `Module<Name>`, with colocated
-`*.data.ts` (mock seed), `*.types.ts`, and a `components/` subfolder where large.
-
-- **home** — Focus-now card, day legend, toggleable task list (CheckItem), Schedule/Reflect rows.
-- **tasks** — All-tasks list with status tabs (All/Ongoing/On-Next/Complete) + category badges.
-  Rows are presentational (no task-detail route yet).
-- **files** — Work collections list with band filter chips, summary strip, `CaseIcon` rows,
-  "New work" FAB (opens Create Task). Rows route to the work-trail.
-  - **files/work-trail** — vertical case timeline (`TrailStage`/`TrailNode` + branch/handoff lines).
-- **dashboard** — Reports. Two layouts via `useMediaQuery` (SSR-guarded, defaults mobile):
-  mobile bento grid + desktop two-column. Pure-CSS flex bar charts (no chart lib). Week/Month toggle.
-- **create-task** — bottom-sheet form content (`{ onClose }`); status/priority inline pickers,
-  sub-tasks. Rendered by `CreateTaskHost`, not a route.
-- **onboarding** — 3-step wizard (details / preferences / guidance), immersive.
-- **ai** — Ask AI chat. Mock: `AskAi.mutation.ts` `askKambanAi()` resolves canned replies via a
-  React Query `useMutation` (`isPending` → typing dots). Composer mic → `/voice`.
-  - **ai/voice** — immersive animated voice orb + meter (no real speech).
-- **settings** — placeholder (the rail exposes a Settings destination).
+- **Design tokens:** `config/design/tokens.ts` (`tokens`, `categoryStyles`, `statusDot`)
+  — fixed brand values, color-scheme independent (warm-paper surface; dark ink/tile rail).
+- **Theme:** `config/theme/` — Space Grotesk (UI) + JetBrains Mono (mono), accent-orange
+  primary (`accent` ramp, shade 6) + `ink` ramp.
+- **App-local primitives:** `components/` (exported from `components/index.ts`): `Screen`,
+  `MonoText`, `SectionLabel`, `StatusPill`, `CheckRing`, `CheckItem`, `CaseIcon`.
 
 ## Wiring status — UI ONLY
 
-No backend. Ask AI is a mock mutation (`AskAi.mutation.ts` — swap the body for a real
-`api` call later, no call-site change). Voice is animation-only. Sign-in uses the
-`notifications.show("Not connected yet")` pattern. Output-contract async states
-(loading/error/permission/etc.) are **N/A** on every screen; lists still render empty states.
+No backend. Auth/sign-out and placeholder actions use the "Not connected yet"
+notification pattern. Output-contract async states (loading/error/permission) are **N/A**
+on placeholder screens.
 
 ## Do not do
 
 - Do not import `@mantine/*` directly — always via `@peppermint/ui`.
 - Do not add `useEffect` data fetching; server state goes through React Query when wired.
-- Do not re-export icon-importing modules (like `nav.config`) through a barrel consumed by a
-  Server Component — mark them `"use client"` and import directly (see the SSR note above).
-- Do not add the bottom nav to `/onboarding` or `/voice` — they are intentionally immersive.
-- Do not swap the fixed token colors for Mantine color-scheme variables — the surfaces are
-  deliberately fixed (paper / dark).
+- Do not re-export `nav.config` (or any icon-importing client module) through a barrel a
+  Server Component evaluates — import it directly from the client shell (SSR note above).
+- Do not put logic in `app/` files beyond the root redirect — they are re-export only.
+- Do not swap the fixed token colors for Mantine color-scheme variables — the paper
+  content surface and dark rail are deliberately fixed.
