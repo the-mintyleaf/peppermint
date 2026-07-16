@@ -63,6 +63,7 @@ export function CaseCard({ workCase, onOpen }: CaseCardProps) {
               size="sm"
               aria-label="Case actions"
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
             >
               <DotsThreeIcon size={18} weight="bold" />
             </ActionIcon>

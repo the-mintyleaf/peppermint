@@ -9,7 +9,8 @@ import type { Person, WorkCase, WorkFile } from "./module.api";
 
 export type SortKey = "modified" | "name" | "size";
 
-/** Order files/cases appear in for the "Modified" sort (mock data is pre-sorted). */
+// "modified" preserves source order — MOCK_CASES / MOCK_FILES are stored
+// most-recently-modified first; "name"/"size" re-sort explicitly below.
 const SORT_LABELS: Record<SortKey, string> = {
   modified: "Modified",
   name: "Name",
@@ -91,6 +92,9 @@ export interface ListRow {
   glyph?: string;
 }
 
+// Cases are emitted before files (each already filtered + sorted by the caller),
+// mirroring the Block view's "Cases" then "Files" grouping — the list is grouped
+// by kind, not globally interleaved.
 export function useListRows(cases: WorkCase[], files: WorkFile[]): ListRow[] {
   return useMemo(() => {
     const caseRows: ListRow[] = cases.map((c) => {

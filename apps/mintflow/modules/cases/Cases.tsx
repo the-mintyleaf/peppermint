@@ -200,14 +200,14 @@ export function ModuleCases() {
                   No cases or files found
                 </Text>
                 {debouncedSearch && (
-                  <Text
-                    size="xs"
-                    c="accent"
-                    style={{ cursor: "pointer" }}
+                  <Button
+                    variant="transparent"
+                    color="accent"
+                    size="compact-xs"
                     onClick={clearSearch}
                   >
                     Clear search
-                  </Text>
+                  </Button>
                 )}
               </Stack>
             ) : view === "block" ? (

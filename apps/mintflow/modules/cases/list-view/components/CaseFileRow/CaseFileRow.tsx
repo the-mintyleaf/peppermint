@@ -66,6 +66,7 @@ export function CaseFileRow({ row, onOpen }: CaseFileRowProps) {
               size="sm"
               aria-label={`${row.name} actions`}
               onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
             >
               <DotsThreeIcon size={18} weight="bold" />
             </ActionIcon>
