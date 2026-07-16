@@ -29,7 +29,7 @@ export function PickerField({
 
   return (
     <Box>
-      <PropertyRow icon={icon} label={label} onClick={onToggle}>
+      <PropertyRow icon={icon} label={label} onClick={onToggle} expanded={open}>
         <Group justify="space-between" wrap="nowrap" gap={8} w="100%">
           <StatusPill
             fg={selected.fg}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Group, Stack, Text, UnstyledButton } from "@peppermint/ui";
+import { Box, Group, Stack, Text } from "@peppermint/ui";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/csr/ArrowUpRight";
 
 import { categoryStyles, statusDot, tokens } from "@/config/design";
@@ -9,18 +9,19 @@ import { MonoText, StatusPill } from "@/components";
 import type { TaskCardProps } from "./TaskCard.types";
 import classes from "./TaskCard.module.css";
 
-/** A single task row: category badge + status, title, and mono meta line. */
-export function TaskCard({ task, onClick }: TaskCardProps) {
+/**
+ * A single task row: category badge + status, title, and mono meta line.
+ * Presentational only — there is no task-detail route yet, so the row is not an
+ * interactive control (the arrow is a decorative affordance).
+ */
+export function TaskCard({ task }: TaskCardProps) {
   const category = categoryStyles[task.category];
 
   return (
-    <UnstyledButton
-      onClick={onClick}
+    <Box
+      component="article"
       className={classes.card}
       style={{
-        display: "block",
-        width: "auto",
-        textAlign: "left",
         padding: "18px 12px",
         marginInline: -12,
         borderRadius: 10,
@@ -78,6 +79,6 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
           />
         </Group>
       </Stack>
-    </UnstyledButton>
+    </Box>
   );
 }

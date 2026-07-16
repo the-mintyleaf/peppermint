@@ -16,6 +16,7 @@ export function PropertyRow({
   label,
   children,
   onClick,
+  expanded,
 }: PropertyRowProps) {
   const content = (
     <Group gap={0} wrap="nowrap" align="center" w="100%">
@@ -39,6 +40,8 @@ export function PropertyRow({
       {onClick ? (
         <UnstyledButton
           onClick={onClick}
+          aria-haspopup="listbox"
+          aria-expanded={expanded ?? undefined}
           style={{ width: "100%", display: "block" }}
         >
           {content}

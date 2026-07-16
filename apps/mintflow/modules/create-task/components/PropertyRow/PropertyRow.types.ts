@@ -9,4 +9,6 @@ export interface PropertyRowProps {
   children: ReactNode;
   /** When set, the whole row becomes a button (used by the pickers). */
   onClick?: () => void;
+  /** Forwarded to the row button when it toggles a popup (pickers). */
+  expanded?: boolean;
 }

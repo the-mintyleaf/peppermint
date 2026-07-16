@@ -5,7 +5,7 @@ import { CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
 import { PaperPlaneTiltIcon } from "@phosphor-icons/react/dist/csr/PaperPlaneTilt";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Box, Group, Stack, Text, UnstyledButton } from "@peppermint/ui";
 
 import { CheckItem, MonoText, Screen, StatusPill } from "@/components";
@@ -32,9 +32,10 @@ const blue = "rgb(44,110,202)";
  */
 export function ModuleWorkTrail() {
   const router = useRouter();
-  const params = useParams<{ caseId?: string }>();
   const { case: kase, stages, owners, subtasks, approver } = workTrail;
-  const caseLabel = params?.caseId ? `CASE #${params.caseId}` : kase.number;
+  // The route slug is an opaque file id, not a case number — show the mock
+  // case's formatted number rather than interpolating the slug.
+  const caseLabel = kase.number;
 
   return (
     <Screen>

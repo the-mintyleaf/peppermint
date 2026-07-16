@@ -136,11 +136,7 @@ export function ModuleTasks() {
         ) : (
           <Stack gap={0}>
             {filtered.map((task, i) => (
-              <TaskCard
-                key={`${task.title}-${i}`}
-                task={task}
-                onClick={() => {}}
-              />
+              <TaskCard key={`${task.title}-${i}`} task={task} />
             ))}
           </Stack>
         )}

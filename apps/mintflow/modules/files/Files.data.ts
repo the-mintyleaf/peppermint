@@ -101,5 +101,5 @@ export const FILTERS: FilterOption[] = [
   { label: "Archived", band: "archived" },
 ];
 
-/** Total open tasks across all collections = sum of completed tasks. */
-export const OPEN_TASKS = FILES.reduce((sum, f) => sum + f.done, 0);
+/** Total open (incomplete) tasks across all collections. */
+export const OPEN_TASKS = FILES.reduce((sum, f) => sum + (f.tasks - f.done), 0);
