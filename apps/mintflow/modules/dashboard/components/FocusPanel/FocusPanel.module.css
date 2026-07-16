@@ -1,0 +1,27 @@
+/* Calm moss gradient header (spec §5). moss = the app's green token. */
+.header {
+  position: relative;
+  padding: 22px 24px;
+  background:
+    radial-gradient(
+      120% 140% at 100% 0%,
+      rgba(16, 130, 85, 0.14) 0%,
+      rgba(16, 130, 85, 0) 55%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(16, 130, 85, 0.12) 0%,
+      rgba(143, 226, 182, 0.1) 42%,
+      rgba(252, 251, 249, 0) 100%
+    );
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.4px;
+  color: rgb(10, 12, 14);
+}
