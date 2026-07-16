@@ -15,7 +15,6 @@ import {
 import { ArrowClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowClockwise";
 import { WarningCircleIcon } from "@phosphor-icons/react/dist/csr/WarningCircle";
 
-import { Screen } from "@/components";
 import { tokens } from "@/config/design";
 import {
   useDashboard,
@@ -48,8 +47,8 @@ export function ModuleDashboard() {
   };
 
   return (
-    <Screen fluid>
-      <Box p={{ base: 16, sm: 28 }}>
+    <>
+      <Box p={{ base: 20, sm: 40 }} mih="100%" bg={tokens.paper}>
         {/* Page-level anchor (spec §14 — one primary anchor) */}
         <Group
           justify="space-between"
@@ -201,7 +200,7 @@ export function ModuleDashboard() {
           </Stack>
         ) : null}
       </Modal>
-    </Screen>
+    </>
   );
 }
 

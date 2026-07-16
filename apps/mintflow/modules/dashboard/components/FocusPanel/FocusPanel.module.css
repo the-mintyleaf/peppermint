@@ -17,11 +17,11 @@
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
+/* Inherits the app UI font (Space Grotesk) — no bespoke font family. */
 .title {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 25px;
-  font-weight: 600;
-  line-height: 1.1;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.15;
   letter-spacing: -0.4px;
   color: rgb(10, 12, 14);
 }
