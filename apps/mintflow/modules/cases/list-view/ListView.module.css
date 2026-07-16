@@ -1,0 +1,80 @@
+.grid {
+  display: grid;
+  grid-template-columns: 2.4fr 1fr 0.9fr 1fr 1.2fr 40px;
+  column-gap: 14px;
+  align-items: center;
+}
+
+.header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--mantine-color-gray-2);
+  flex-shrink: 0;
+}
+
+.headerLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--mantine-color-gray-5);
+  white-space: nowrap;
+}
+
+.row {
+  padding: 11px 20px;
+  border-bottom: 1px solid var(--mantine-color-gray-1);
+  cursor: pointer;
+  transition: background-color 0.14s ease;
+}
+
+.row:hover {
+  background-color: var(--mantine-color-gray-0);
+}
+
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.glyphBox {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--mantine-font-family);
+}
+
+.nameText {
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--mantine-color-dark-7);
+}
+
+.metaText {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dark-4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.peopleCell {
+  display: flex;
+  align-items: center;
+}
+
+.actionCell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}

@@ -19,6 +19,7 @@ local mock data (the "not wired" pattern: `notifications.show("Not connected yet
   (`layouts/app-shell`); `(app)/layout.tsx` is a pure re-export of `LayoutAppShell`.
   - `/dashboard` → `ModuleDashboard` (placeholder content region).
   - `/tasks` → `ModuleTasks` (`modules/tasks/`) — the imported Tasks page.
+  - `/cases` → `ModuleCases` (`modules/cases/`) — work-files listing.
 - `app/` files are re-export only (the root redirect is the one allowed exception).
 
 ## Modules
@@ -41,6 +42,29 @@ Single Tasks page with a **List / Board** view toggle, ported verbatim from
 
 > The `*Dashboard.hooks.ts` filenames are retained from the source; the per-route
 > `*Dashboard.tsx` themselves were replaced by the single `Tasks.tsx`.
+
+### `modules/cases/` — `ModuleCases` (ContainedModule)
+
+Single `/cases` "Work files" page with a **Block / List** view toggle, adapted from the
+Claude Design `Files.dc.html` mock (its green palette is pre-rebrand — this uses the
+mintflow orange/paper tokens). A **case** = a unit of ministry work (a folder of tasks,
+sub-tasks, and files); the page lists cases plus loose top-level files. Self-contained on
+**mock data** (`module.api.ts` — `MOCK_CASES` / `MOCK_FILES`, `fetchCases` / `fetchFiles`),
+no backend. Case/file clicks + New Case / Upload use the "Not connected yet" pattern.
+
+- `Cases.tsx` (`ModuleCases`) — chrome (`ModuleHeader` + Upload / New Case, `ManageHeader`,
+  Block/List `SegmentedControl`, sort menu, search) rendered once; the body swaps between
+  block and list, with shared loading / empty states.
+- `Cases.hooks.ts` — `useCases` / `useFiles` (React Query over the mock fetchers),
+  `useFilteredCases` / `useFilteredFiles` (search + `SortKey` sort), `useListRows`
+  (normalizes cases + files into one `ListRow[]` for the table).
+- `module.api.ts` — types (`WorkCase`, `WorkFile`, `Person`, `CaseCategory`, `FileKind`),
+  style maps (`CASE_STYLE` icon/tint per category, `FILE_STYLE` badge/thumb per kind), and
+  the mock data + fetchers.
+- `block-view/` — `BlockView` (Cases + Files card grids); `components/CaseCard` (folder
+  card via `CaseIcon`) + `components/FileCard` (thumbnail + ext badge).
+- `list-view/` — `ListView` (table over `ListView.module.css` grid);
+  `components/CaseFileRow` (one case-or-file row).
 
 ## The app shell — `layouts/app-shell/`
 
