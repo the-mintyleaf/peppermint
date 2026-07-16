@@ -1,8 +1,8 @@
-import type { WorkCase, WorkFile } from "../module.api";
+import type { CaseFile, WorkCase } from "../module.api";
 
 export interface BlockViewProps {
   cases: WorkCase[];
-  files: WorkFile[];
+  files: CaseFile[];
   onOpenCase: (workCase: WorkCase) => void;
-  onOpenFile: (file: WorkFile) => void;
+  onOpenFile: (file: CaseFile) => void;
 }

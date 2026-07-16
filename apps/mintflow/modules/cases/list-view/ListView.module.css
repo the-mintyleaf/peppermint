@@ -1,14 +1,35 @@
-.grid {
+/* Horizontal scroll wrapper so the dense grid never breaks the page layout. */
+.scroll {
+  overflow-x: auto;
+}
+
+.table {
+  min-width: 940px;
+}
+
+.caseGrid {
   display: grid;
-  grid-template-columns: 2.4fr 1fr 0.9fr 1fr 1.2fr 40px;
+  grid-template-columns: minmax(220px, 2.6fr) 108px 92px 128px minmax(
+      140px,
+      1.4fr
+    ) 96px 116px 40px;
+  column-gap: 14px;
+  align-items: center;
+}
+
+.fileGrid {
+  display: grid;
+  grid-template-columns: minmax(220px, 2.4fr) 110px minmax(
+      140px,
+      1.2fr
+    ) 90px 110px 40px;
   column-gap: 14px;
   align-items: center;
 }
 
 .header {
-  padding: 14px 20px;
+  padding: 12px 18px;
   border-bottom: 1px solid var(--mantine-color-gray-2);
-  flex-shrink: 0;
 }
 
 .headerLabel {
@@ -21,7 +42,7 @@
 }
 
 .row {
-  padding: 11px 20px;
+  padding: 12px 18px;
   border-bottom: 1px solid var(--mantine-color-gray-1);
   cursor: pointer;
   transition: background-color 0.14s ease;
@@ -31,24 +52,22 @@
   background-color: var(--mantine-color-gray-0);
 }
 
-.nameCell {
+.identity {
   display: flex;
   align-items: center;
   gap: 12px;
   min-width: 0;
 }
 
-.glyphBox {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.identityText {
+  min-width: 0;
+}
+
+.caseNumber {
   font-size: 10px;
-  font-weight: 700;
-  font-family: var(--mantine-font-family);
+  font-family: var(--mantine-font-family-monospace);
+  color: var(--mantine-color-gray-6);
+  letter-spacing: 0.04em;
 }
 
 .nameText {
@@ -60,6 +79,16 @@
   color: var(--mantine-color-dark-7);
 }
 
+.glyphBox {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .metaText {
   font-size: var(--mantine-font-size-xs);
   color: var(--mantine-color-dark-4);
@@ -68,9 +97,11 @@
   text-overflow: ellipsis;
 }
 
-.peopleCell {
-  display: flex;
-  align-items: center;
+.mono {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 11px;
+  color: var(--mantine-color-gray-6);
+  white-space: nowrap;
 }
 
 .actionCell {

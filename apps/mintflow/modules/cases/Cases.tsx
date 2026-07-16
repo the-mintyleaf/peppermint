@@ -25,19 +25,21 @@ import { SortAscendingIcon } from "@phosphor-icons/react/dist/csr/SortAscending"
 import { SquaresFourIcon } from "@phosphor-icons/react/dist/csr/SquaresFour";
 import { RowsIcon } from "@phosphor-icons/react/dist/csr/Rows";
 
-import { MonoText } from "@/components";
 import { tokens } from "@/config/design";
 import { BlockView } from "./block-view";
 import { ListView } from "./list-view";
+import { CaseDetailModal } from "./detail/CaseDetailModal";
 import {
+  SORT_KEYS,
+  STATUS_TABS,
   sortLabel,
   useCases,
   useFiles,
   useFilteredCases,
   useFilteredFiles,
-  useListRows,
 } from "./Cases.hooks";
-import type { SortKey } from "./Cases.hooks";
+import type { SortKey, StatusFilter } from "./Cases.hooks";
+import type { WorkCase } from "./module.api";
 
 type CasesView = "block" | "list";
 
@@ -62,12 +64,14 @@ const VIEW_SEGMENTS = [
   },
 ];
 
-const SORT_KEYS: SortKey[] = ["modified", "name", "size"];
+const STATUS_SEGMENTS = STATUS_TABS.map((t) => ({
+  value: t.value,
+  label: t.label,
+}));
 
 const BREADCRUMB = [{ label: "Cases", href: "/cases" }];
 const CASES_SUBHEADING =
-  "Work files for the ministry — cases group the tasks, sub-tasks, and files of a single piece of work.";
-const STORAGE_USED = "15.7 GB used";
+  "Track and act on the matters before the Ministry of Home Affairs — status, tasks, officers, and departments at a glance.";
 
 function notConnected() {
   notifications.show({ message: "Not connected yet", color: "gray" });
@@ -75,26 +79,35 @@ function notConnected() {
 
 export function ModuleCases() {
   const [view, setView] = useState<CasesView>("block");
-  const [sort, setSort] = useState<SortKey>("modified");
+  const [status, setStatus] = useState<StatusFilter>("all");
+  const [sort, setSort] = useState<SortKey>("recent");
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch] = useDebouncedValue(searchInput, 300);
+  const [selectedCase, setSelectedCase] = useState<WorkCase | null>(null);
 
   const { data: cases, isLoading: casesLoading } = useCases();
   const { data: files, isLoading: filesLoading } = useFiles();
   const isLoading = casesLoading || filesLoading;
 
-  const filteredCases = useFilteredCases(cases, debouncedSearch, sort);
-  const filteredFiles = useFilteredFiles(files, debouncedSearch, sort);
-  const rows = useListRows(filteredCases, filteredFiles);
+  const filteredCases = useFilteredCases(cases, status, debouncedSearch, sort);
+  const filteredFiles = useFilteredFiles(files, debouncedSearch);
+  // Recent documents belong to the overview — hide them when a status is pinned.
+  const visibleFiles = status === "all" ? filteredFiles : [];
 
-  const totalVisible = filteredCases.length + filteredFiles.length;
+  const totalVisible = filteredCases.length + visibleFiles.length;
 
-  const handleOpen = useCallback(() => notConnected(), []);
-  const clearSearch = useCallback(() => setSearchInput(""), []);
+  const openCase = useCallback((c: WorkCase) => setSelectedCase(c), []);
+  const closeCase = useCallback(() => setSelectedCase(null), []);
+  const clearFilters = useCallback(() => {
+    setSearchInput("");
+    setStatus("all");
+  }, []);
+
+  const isFiltered = debouncedSearch !== "" || status !== "all";
 
   const summary = useMemo(
-    () => `${totalVisible} items · ${STORAGE_USED}`,
-    [totalVisible],
+    () => `${filteredCases.length} cases · ${visibleFiles.length} documents`,
+    [filteredCases.length, visibleFiles.length],
   );
 
   return (
@@ -128,16 +141,28 @@ export function ModuleCases() {
           <Box px="md">
             <ManageHeader
               title="Cases"
-              count={isLoading ? undefined : totalVisible}
+              count={isLoading ? undefined : filteredCases.length}
               description={CASES_SUBHEADING}
             />
           </Box>
 
-          {/* Toolbar: summary + view toggle + sort + search */}
+          {/* Status tabs + tools */}
           <Group justify="space-between" px="md" gap="xs" wrap="nowrap">
-            <MonoText fz="12px" c={tokens.muted} fw={600}>
-              {summary}
-            </MonoText>
+            <SegmentedControl
+              withItemsBorders={false}
+              value={status}
+              onChange={(v) => setStatus(v as StatusFilter)}
+              data={STATUS_SEGMENTS}
+              size="sm"
+              color="white"
+              autoContrast
+              styles={{
+                label: {
+                  paddingInline: 10,
+                  fontSize: "var(--mantine-font-size-xs)",
+                },
+              }}
+            />
 
             <Group gap={6} wrap="nowrap">
               <SegmentedControl
@@ -177,52 +202,65 @@ export function ModuleCases() {
               </Menu>
 
               <TextInput
-                miw={200}
+                miw={210}
                 leftSection={<MagnifyingGlassIcon size={13} />}
                 size="xs"
-                placeholder="Search files…"
+                placeholder="Search cases…"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.currentTarget.value)}
               />
             </Group>
           </Group>
 
+          <Box px="md" pt="sm">
+            <Text ff="monospace" fz="11px" c={tokens.muted} fw={600}>
+              {summary}
+            </Text>
+          </Box>
+
           <ScrollArea style={{ flex: 1, minHeight: 0 }}>
             {isLoading ? (
-              <Stack p="md" gap="sm">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <Skeleton key={i} height={64} radius="md" />
+              <Stack p="md" gap="md">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} height={180} radius="lg" />
                 ))}
               </Stack>
             ) : totalVisible === 0 ? (
-              <Stack align="center" justify="center" h={300} gap="xs">
+              <Stack align="center" justify="center" h={320} gap="xs">
                 <Text c="dimmed" size="sm">
-                  No cases or files found
+                  No cases match your filters
                 </Text>
-                {debouncedSearch && (
+                {isFiltered && (
                   <Button
                     variant="transparent"
                     color="accent"
                     size="compact-xs"
-                    onClick={clearSearch}
+                    onClick={clearFilters}
                   >
-                    Clear search
+                    Clear filters
                   </Button>
                 )}
               </Stack>
             ) : view === "block" ? (
               <BlockView
                 cases={filteredCases}
-                files={filteredFiles}
-                onOpenCase={handleOpen}
-                onOpenFile={handleOpen}
+                files={visibleFiles}
+                onOpenCase={openCase}
+                onOpenFile={notConnected}
               />
             ) : (
-              <ListView rows={rows} onOpenRow={handleOpen} />
+              <ListView
+                cases={filteredCases}
+                files={visibleFiles}
+                onOpenCase={openCase}
+                onOpenFile={notConnected}
+              />
             )}
           </ScrollArea>
         </Stack>
       </ModalPaper>
+
+      <CaseDetailModal workCase={selectedCase} onClose={closeCase} />
     </>
   );
 }

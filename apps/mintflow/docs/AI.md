@@ -45,26 +45,33 @@ Single Tasks page with a **List / Board** view toggle, ported verbatim from
 
 ### `modules/cases/` — `ModuleCases` (ContainedModule)
 
-Single `/cases` "Work files" page with a **Block / List** view toggle, adapted from the
-Claude Design `Files.dc.html` mock (its green palette is pre-rebrand — this uses the
-mintflow orange/paper tokens). A **case** = a unit of ministry work (a folder of tasks,
-sub-tasks, and files); the page lists cases plus loose top-level files. Self-contained on
-**mock data** (`module.api.ts` — `MOCK_CASES` / `MOCK_FILES`, `fetchCases` / `fetchFiles`),
-no backend. Case/file clicks + New Case / Upload use the "Not connected yet" pattern.
+Single `/cases` case-management board. A **case** = a matter before the Ministry of Home
+Affairs (case no · title · summary · category · status · priority · task checklist ·
+officers · departments · dates) — **not** files/GB. Status tabs (All / In Progress /
+Under Review / On Hold / Resolved / Closed) over a **Block** (4-up card grid) or **List**
+(dense table) view, plus a secondary "Recent documents" section (case files) shown only on
+the All tab. Clicking a case opens a rich detail modal. Self-contained on **mock data**
+(`module.api.ts` — `MOCK_CASES` / `MOCK_FILES`, `fetchCases` / `fetchFiles`), no backend.
+Document clicks + New Case / Upload / Update case use the "Not connected yet" pattern.
+mintflow orange/paper tokens (loosely seeded by the `Files.dc.html` mock, since reframed).
 
 - `Cases.tsx` (`ModuleCases`) — chrome (`ModuleHeader` + Upload / New Case, `ManageHeader`,
-  Block/List `SegmentedControl`, sort menu, search) rendered once; the body swaps between
-  block and list, with shared loading / empty states.
+  status `SegmentedControl` tabs, Block/List toggle, sort menu, search) rendered once; body
+  swaps between block and list with shared loading / empty states; owns the detail modal.
 - `Cases.hooks.ts` — `useCases` / `useFiles` (React Query over the mock fetchers),
-  `useFilteredCases` / `useFilteredFiles` (search + `SortKey` sort), `useListRows`
-  (normalizes cases + files into one `ListRow[]` for the table).
-- `module.api.ts` — types (`WorkCase`, `WorkFile`, `Person`, `CaseCategory`, `FileKind`),
-  style maps (`CASE_STYLE` icon/tint per category, `FILE_STYLE` badge/thumb per kind), and
-  the mock data + fetchers.
-- `block-view/` — `BlockView` (Cases + Files card grids); `components/CaseCard` (folder
-  card via `CaseIcon`) + `components/FileCard` (thumbnail + ext badge).
-- `list-view/` — `ListView` (table over `ListView.module.css` grid);
-  `components/CaseFileRow` (one case-or-file row).
+  `useFilteredCases` (status + search + `SortKey` sort) / `useFilteredFiles` (search),
+  `STATUS_TABS` / `SORT_KEYS`, `formatDate`.
+- `module.api.ts` — types (`WorkCase`, `CaseFile`, `Officer`, `CaseTask`, `CaseStatus`,
+  `CasePriority`, `CaseCategory`), style maps (`STATUS_STYLE`, `PRIORITY_STYLE`,
+  `CATEGORY_STYLE` icon/tint, `FILE_STYLE`), `caseProgress`, mock data + fetchers.
+- `block-view/` — `BlockView` (case grid + documents grid via `SimpleGrid`);
+  `components/CaseCard` (identity · title/summary · progress bar · departments · officers ·
+  status) + `components/FileCard` (document card).
+- `list-view/` — `ListView` (cases table + documents table, `ListView.module.css` grids,
+  horizontal-scroll wrapped); `components/CaseRow` + `components/FileRow`.
+- `detail/CaseDetailModal/` — Mantine `Modal`: header, summary, meta grid, departments,
+  officers, and the task checklist (`CheckItem` + `Progress`). Read-only (no editable
+  fields → no unsaved-changes state).
 
 ## The app shell — `layouts/app-shell/`
 

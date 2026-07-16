@@ -1,37 +1,84 @@
 "use client";
 
-import { Box } from "@peppermint/ui";
+import { Box, Stack } from "@peppermint/ui";
 
+import { SectionLabel } from "@/components";
 import { tokens } from "@/config/design";
-import { CaseFileRow } from "./components/CaseFileRow";
+import { CaseRow } from "./components/CaseRow";
+import { FileRow } from "./components/FileRow";
 import type { ListViewProps } from "./ListView.types";
 import classes from "./ListView.module.css";
 
-const HEADERS = ["Name", "Type", "Size", "Modified", "Shared with", ""];
+const CASE_HEADERS = [
+  "Case",
+  "Status",
+  "Priority",
+  "Progress",
+  "Departments",
+  "Officers",
+  "Due",
+  "",
+];
+const FILE_HEADERS = ["Document", "Type", "Case", "Size", "Modified", ""];
 
-export function ListView({ rows, onOpenRow }: ListViewProps) {
+const cardStyle = {
+  background: tokens.paper,
+  border: `1px solid ${tokens.line}`,
+  borderRadius: tokens.radius.card,
+  overflow: "hidden",
+} as const;
+
+export function ListView({
+  cases,
+  files,
+  onOpenCase,
+  onOpenFile,
+}: ListViewProps) {
   return (
-    <Box p="md">
-      <Box
-        style={{
-          background: tokens.paper,
-          border: `1px solid ${tokens.line}`,
-          borderRadius: tokens.radius.card,
-          overflow: "hidden",
-        }}
-      >
-        <div className={`${classes.grid} ${classes.header}`}>
-          {HEADERS.map((label, i) => (
-            <span key={i} className={classes.headerLabel}>
-              {label}
-            </span>
-          ))}
-        </div>
+    <Stack gap="xl" p="md">
+      {cases.length > 0 && (
+        <Stack gap="sm">
+          <SectionLabel>Cases · {cases.length}</SectionLabel>
+          <Box style={cardStyle}>
+            <div className={classes.scroll}>
+              <div className={classes.table}>
+                <div className={`${classes.caseGrid} ${classes.header}`}>
+                  {CASE_HEADERS.map((label, i) => (
+                    <span key={i} className={classes.headerLabel}>
+                      {label}
+                    </span>
+                  ))}
+                </div>
+                {cases.map((c) => (
+                  <CaseRow key={c.id} workCase={c} onOpen={onOpenCase} />
+                ))}
+              </div>
+            </div>
+          </Box>
+        </Stack>
+      )}
 
-        {rows.map((row) => (
-          <CaseFileRow key={row.id} row={row} onOpen={onOpenRow} />
-        ))}
-      </Box>
-    </Box>
+      {files.length > 0 && (
+        <Stack gap="sm">
+          <SectionLabel>Recent documents · {files.length}</SectionLabel>
+          <Box style={cardStyle}>
+            <div className={classes.scroll}>
+              <div className={classes.table}>
+                <div className={`${classes.fileGrid} ${classes.header}`}>
+                  {FILE_HEADERS.map((label, i) => (
+                    <span key={i} className={classes.headerLabel}>
+                      {label}
+                    </span>
+                  ))}
+                </div>
+                {files.map((f) => (
+                  <FileRow key={f.id} file={f} onOpen={onOpenFile} />
+                ))}
+              </div>
+            </div>
+          </Box>
+        </Stack>
+      )}
+    </Stack>
   );
 }

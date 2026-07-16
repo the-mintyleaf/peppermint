@@ -1,6 +1,7 @@
 "use client";
 
-import { Avatar, Box, Group, Stack, Text } from "@peppermint/ui";
+import { Avatar, Box, Group, Paper, Text } from "@peppermint/ui";
+import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
 
 import { MonoText, StatusPill } from "@/components";
 import { tokens } from "@/config/design";
@@ -11,7 +12,11 @@ export function FileCard({ file, onOpen }: FileCardProps) {
   const style = FILE_STYLE[file.kind];
 
   return (
-    <Box
+    <Paper
+      withBorder
+      radius={tokens.radius.card}
+      p="sm"
+      bg={tokens.paper}
       role="button"
       tabIndex={0}
       onClick={() => onOpen(file)}
@@ -21,73 +26,46 @@ export function FileCard({ file, onOpen }: FileCardProps) {
           onOpen(file);
         }
       }}
-      p="sm"
-      style={{
-        background: tokens.paper,
-        border: `1px solid ${tokens.line}`,
-        borderRadius: tokens.radius.card,
-        cursor: "pointer",
-        transition: "transform 0.16s ease, box-shadow 0.16s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-3px)";
-        e.currentTarget.style.boxShadow = tokens.shadow.card;
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "none";
-        e.currentTarget.style.boxShadow = "none";
-      }}
+      style={{ cursor: "pointer" }}
     >
-      {/* Thumbnail: ext badge over a tinted preview */}
-      <Stack
-        justify="space-between"
-        gap={0}
-        p="sm"
-        style={{
-          height: 96,
-          borderRadius: tokens.radius.card - 6,
-          background: style.thumb,
-          overflow: "hidden",
-        }}
-      >
-        <StatusPill fg={style.fg} bg={style.bg} mono>
-          {file.ext}
-        </StatusPill>
-        <Stack gap={5}>
-          <Box
-            style={{
-              height: 5,
-              width: "70%",
-              borderRadius: 3,
-              background: style.line,
-            }}
-          />
-          <Box
-            style={{
-              height: 5,
-              width: "45%",
-              borderRadius: 3,
-              background: style.line,
-            }}
-          />
-        </Stack>
-      </Stack>
-
-      <Text fw={600} size="xs" mt="sm" lineClamp={1}>
-        {file.name}
-      </Text>
-      <Group gap={6} align="center" wrap="nowrap" mt={6}>
-        <Avatar size={20} radius="xl" color={file.owner.color}>
-          {file.owner.initials}
-        </Avatar>
-        <MonoText fz="10px" c={tokens.muted}>
-          {file.size}
-        </MonoText>
-        <Box style={{ flex: 1 }} />
-        <MonoText fz="10px" c={tokens.muted}>
-          {file.modified}
-        </MonoText>
+      <Group gap={10} wrap="nowrap" align="center">
+        <Box
+          style={{
+            width: 40,
+            height: 40,
+            flexShrink: 0,
+            borderRadius: 11,
+            background: style.bg,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <FileTextIcon size={20} color={style.fg} />
+        </Box>
+        <Box style={{ minWidth: 0, flex: 1 }}>
+          <Text fw={600} fz="xs" lineClamp={1}>
+            {file.name}
+          </Text>
+          <MonoText fz="10px" c={tokens.muted} mt={2}>
+            {file.caseNumber}
+          </MonoText>
+        </Box>
       </Group>
-    </Box>
+
+      <Group justify="space-between" align="center" mt="sm" wrap="nowrap">
+        <StatusPill fg={style.fg} bg={style.bg}>
+          {style.type}
+        </StatusPill>
+        <Group gap={7} wrap="nowrap" align="center">
+          <MonoText fz="10px" c={tokens.muted}>
+            {file.size}
+          </MonoText>
+          <Avatar size={20} radius="xl" color={file.owner.color}>
+            {file.owner.initials}
+          </Avatar>
+        </Group>
+      </Group>
+    </Paper>
   );
 }
