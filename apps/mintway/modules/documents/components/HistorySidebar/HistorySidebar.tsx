@@ -36,6 +36,7 @@ interface DocumentCustomizationsProps {
   document: Document | null;
   onUpdate: (content: DocumentContent) => void;
   editable: boolean;
+  isHistoryPreview: boolean;
 }
 
 const DocumentCustomizations = memo(function DocumentCustomizations({
@@ -43,6 +44,7 @@ const DocumentCustomizations = memo(function DocumentCustomizations({
   document,
   onUpdate,
   editable,
+  isHistoryPreview,
 }: DocumentCustomizationsProps) {
   if (!ConfigBar || !document) {
     return (
@@ -54,7 +56,9 @@ const DocumentCustomizations = memo(function DocumentCustomizations({
   if (!editable) {
     return (
       <Text size="xs" c="dimmed" ta="center" py="sm" px={8}>
-        This document is {document.status} and can no longer be edited.
+        {isHistoryPreview
+          ? "Viewing a past version — return to the current version to edit."
+          : `This document is ${document.status} and can no longer be edited.`}
       </Text>
     );
   }
@@ -263,8 +267,11 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
               document={activeDocument ?? null}
               onUpdate={handleUpdate}
               editable={
-                !!activeDocument && isEditableStatus(activeDocument.status)
+                !activeHistoricalLog &&
+                !!activeDocument &&
+                isEditableStatus(activeDocument.status)
               }
+              isHistoryPreview={!!activeHistoricalLog}
             />
           </ScrollArea>
         </div>

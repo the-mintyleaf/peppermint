@@ -77,6 +77,9 @@ export function useDocumentHistory(
       queryClient.invalidateQueries({
         queryKey: documentQueryKeys.revisions(updated.id),
       });
+      queryClient.invalidateQueries({
+        queryKey: documentQueryKeys.workspaces(),
+      });
       notifications.show({
         title: "Version restored",
         message: "A new revision was created from the selected version.",
