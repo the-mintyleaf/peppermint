@@ -1,1 +1,0 @@
-export { ModuleInvitations } from "./Invitations";
