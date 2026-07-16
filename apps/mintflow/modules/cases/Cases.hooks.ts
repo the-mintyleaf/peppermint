@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useQuery } from "@peppermint/ui";
+import { notifications, useQuery } from "@peppermint/ui";
 
 import { fetchCases, fetchFiles } from "./module.api";
 import type {
@@ -42,6 +42,11 @@ const PRIORITY_RANK: Record<CasePriority, number> = {
   normal: 2,
   low: 3,
 };
+
+/** Shared "no backend yet" feedback for inert actions across the module. */
+export function notConnected(): void {
+  notifications.show({ message: "Not connected yet", color: "gray" });
+}
 
 export function useCases() {
   return useQuery({ queryKey: ["cases"], queryFn: fetchCases });

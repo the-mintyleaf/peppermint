@@ -18,7 +18,7 @@ import {
   STATUS_STYLE,
   caseProgress,
 } from "../../../module.api";
-import { formatDate } from "../../../Cases.hooks";
+import { formatDate, notConnected } from "../../../Cases.hooks";
 import type { CaseRowProps } from "./CaseRow.types";
 import classes from "../../ListView.module.css";
 
@@ -128,9 +128,11 @@ export function CaseRow({ workCase, onOpen }: CaseRowProps) {
           </Menu.Target>
           <Menu.Dropdown onClick={(e) => e.stopPropagation()}>
             <Menu.Item onClick={() => onOpen(workCase)}>Open case</Menu.Item>
-            <Menu.Item>Assign officer</Menu.Item>
-            <Menu.Item>Change status</Menu.Item>
-            <Menu.Item color="red">Close case</Menu.Item>
+            <Menu.Item onClick={notConnected}>Assign officer</Menu.Item>
+            <Menu.Item onClick={notConnected}>Change status</Menu.Item>
+            <Menu.Item color="red" onClick={notConnected}>
+              Close case
+            </Menu.Item>
           </Menu.Dropdown>
         </Menu>
       </div>

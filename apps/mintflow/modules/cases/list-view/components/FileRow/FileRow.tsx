@@ -5,6 +5,7 @@ import { DotsThreeIcon } from "@phosphor-icons/react/dist/csr/DotsThree";
 import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
 
 import { StatusPill } from "@/components";
+import { notConnected } from "../../../Cases.hooks";
 import { FILE_STYLE } from "../../../module.api";
 import type { FileRowProps } from "./FileRow.types";
 import classes from "../../ListView.module.css";
@@ -71,9 +72,11 @@ export function FileRow({ file, onOpen }: FileRowProps) {
           </Menu.Target>
           <Menu.Dropdown onClick={(e) => e.stopPropagation()}>
             <Menu.Item onClick={() => onOpen(file)}>Open document</Menu.Item>
-            <Menu.Item>Download</Menu.Item>
-            <Menu.Item>Share</Menu.Item>
-            <Menu.Item color="red">Delete</Menu.Item>
+            <Menu.Item onClick={notConnected}>Download</Menu.Item>
+            <Menu.Item onClick={notConnected}>Share</Menu.Item>
+            <Menu.Item color="red" onClick={notConnected}>
+              Delete
+            </Menu.Item>
           </Menu.Dropdown>
         </Menu>
       </div>
