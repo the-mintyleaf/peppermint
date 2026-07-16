@@ -146,18 +146,6 @@ export interface AttentionItem {
   actionLabel: string;
 }
 
-// ── §9 Schedule ──────────────────────────────────────────────────────────────
-
-export type ScheduleKind = "meeting" | "focus_block" | "deadline" | "gap";
-
-export interface ScheduleItem {
-  id: string;
-  kind: ScheduleKind;
-  /** e.g. "9:00 AM" or "" for a gap row. */
-  time: string;
-  label: string;
-}
-
 // ── §10 KPIs + momentum ──────────────────────────────────────────────────────
 
 export type KpiKind = "count" | "ratio" | "rate";
@@ -184,6 +172,8 @@ export interface Kpi {
 }
 
 export interface Momentum {
+  /** Short bold headline, e.g. "Steady week so far". */
+  title: string;
   line: string;
   actionLabel: string;
 }
@@ -193,7 +183,6 @@ export interface DashboardData {
   flow: FlowTask[];
   workFiles: WorkFile[];
   attention: AttentionItem[];
-  schedule: ScheduleItem[];
   kpis: Kpi[];
   momentum: Momentum;
 }
@@ -440,35 +429,6 @@ const MOCK: DashboardData = {
     },
   ],
 
-  // §9 — timeline readout only; free-time as plain gaps, no capacity judgment.
-  schedule: [
-    {
-      id: "s1",
-      kind: "meeting",
-      time: "9:00 AM",
-      label: "Departmental stand-up",
-    },
-    { id: "s2", kind: "gap", time: "", label: "3 free hours until 2 PM" },
-    {
-      id: "s3",
-      kind: "deadline",
-      time: "2:00 PM",
-      label: "District deployment plan due",
-    },
-    {
-      id: "s4",
-      kind: "focus_block",
-      time: "3:00 PM",
-      label: "Focus block — grievance review",
-    },
-    {
-      id: "s5",
-      kind: "meeting",
-      time: "4:30 PM",
-      label: "Secretary briefing",
-    },
-  ],
-
   // §10 — what / trend / action; on-time ships in its empty state (§11).
   kpis: [
     {
@@ -508,7 +468,8 @@ const MOCK: DashboardData = {
   ],
 
   momentum: {
-    line: "Steady week so far — you've kept 8 of 10 focus commitments. Plan tomorrow when today's work is done.",
+    title: "Steady week so far",
+    line: "Plan tomorrow when today's work is done — no need to look further than that.",
     actionLabel: "Plan tomorrow",
   },
 };
@@ -519,7 +480,6 @@ const EMPTY: DashboardData = {
   flow: [],
   workFiles: [],
   attention: [],
-  schedule: [],
   kpis: [
     {
       id: "k1",
@@ -553,7 +513,8 @@ const EMPTY: DashboardData = {
     },
   ],
   momentum: {
-    line: "A fresh start. Pick up to three focus tasks and the day takes shape.",
+    title: "A fresh start",
+    line: "Pick up to three focus tasks and the day takes shape.",
     actionLabel: "Choose focus tasks",
   },
 };

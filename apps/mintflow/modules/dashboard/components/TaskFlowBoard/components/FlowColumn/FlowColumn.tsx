@@ -9,6 +9,7 @@ import {
 } from "@dnd-kit/sortable";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 
+import { StatusPill } from "@/components";
 import { tokens } from "@/config/design";
 import {
   AMBER,
@@ -50,13 +51,15 @@ export function FlowColumn({
         display: "flex",
         flexDirection: "column",
         borderRadius: tokens.radius.card,
-        background: "rgba(0,0,0,0.015)",
+        background: tokens.paper2,
         border:
           isDragging && isOver
             ? `1px solid ${tokens.lineStrong}`
             : `1px solid ${tokens.line}`,
         boxShadow:
-          isDragging && isOver ? `inset 0 0 0 1px ${tokens.line}` : undefined,
+          isDragging && isOver
+            ? `${tokens.shadow.card}, inset 0 0 0 1px ${tokens.line}`
+            : tokens.shadow.card,
         transition: "border-color .16s ease, box-shadow .16s ease",
       }}
     >
@@ -71,21 +74,20 @@ export function FlowColumn({
             <Text fz="12px" fw={700} c={tokens.ink}>
               {meta.label}
             </Text>
-            <Badge size="sm" variant="light" color="gray" radius="sm">
-              {tasks.length}
-            </Badge>
+            {isWip ? (
+              <StatusPill
+                mono
+                fg={wipFull ? AMBER : "rgba(0,0,0,0.45)"}
+                bg={wipFull ? AMBER_SOFT : "rgba(0,0,0,0.05)"}
+              >
+                {wipCount} / {WIP_LIMIT}
+              </StatusPill>
+            ) : (
+              <Badge size="sm" variant="light" color="gray" radius="sm">
+                {tasks.length}
+              </Badge>
+            )}
           </Group>
-
-          {isWip ? (
-            <Text
-              fz="10px"
-              fw={700}
-              ff="monospace"
-              c={wipFull ? AMBER : "rgba(0,0,0,0.4)"}
-            >
-              {wipCount} / {WIP_LIMIT} limit
-            </Text>
-          ) : null}
         </Group>
 
         {/* Calm amber board notice when In progress is full (spec §6). */}

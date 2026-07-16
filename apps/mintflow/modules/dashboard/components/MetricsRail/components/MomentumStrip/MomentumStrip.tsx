@@ -1,15 +1,15 @@
 "use client";
 
-import { Box, Button, Group, Stack, Text } from "@peppermint/ui";
-import { SunHorizonIcon } from "@phosphor-icons/react/dist/csr/SunHorizon";
+import { Box, Button, Group, Text } from "@peppermint/ui";
+import { TrendUpIcon } from "@phosphor-icons/react/dist/csr/TrendUp";
 
 import { tokens } from "@/config/design";
-import { MOSS } from "../../../../module.api";
 import type { MomentumStripProps } from "./MomentumStrip.types";
 
 /**
- * The weekly momentum line — one of only two motivation channels (spec §12).
- * Soft moss strip; rewards keeping commitments, not task volume.
+ * The weekly momentum card — one of only two motivation channels (spec §12).
+ * Dark tile surface (the app's signature); rewards keeping commitments, not
+ * task volume.
  */
 export function MomentumStrip({
   momentum,
@@ -17,45 +17,40 @@ export function MomentumStrip({
 }: MomentumStripProps) {
   return (
     <Box
-      p={16}
+      p={20}
       style={{
         borderRadius: tokens.radius.tile,
-        background:
-          "linear-gradient(135deg, rgba(16,130,85,0.12) 0%, rgba(143,226,182,0.14) 100%)",
-        border: `1px solid ${tokens.greenTint}`,
+        background: tokens.tile,
+        border: "1px solid rgba(255,255,255,0.08)",
       }}
     >
-      <Group gap={12} wrap="nowrap" align="flex-start">
-        <Box
-          w={38}
-          h={38}
-          style={{
-            flex: "0 0 auto",
-            borderRadius: 12,
-            background: "rgba(255,255,255,0.65)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+      <Group gap={10} wrap="nowrap" align="center" mb={11}>
+        <TrendUpIcon size={19} weight="bold" color={tokens.blue} />
+        <Text
+          fw={600}
+          c="#fff"
+          style={{ fontSize: 15, letterSpacing: "-0.2px" }}
         >
-          <SunHorizonIcon size={20} weight="duotone" color={MOSS} />
-        </Box>
-        <Stack gap={10} style={{ minWidth: 0 }}>
-          <Text fz="12.5px" fw={600} c={tokens.ink} style={{ lineHeight: 1.4 }}>
-            {momentum.line}
-          </Text>
-          <Button
-            size="compact-sm"
-            radius="xl"
-            color="green"
-            variant="light"
-            onClick={onPlanTomorrow}
-            style={{ alignSelf: "flex-start" }}
-          >
-            {momentum.actionLabel}
-          </Button>
-        </Stack>
+          {momentum.title}
+        </Text>
       </Group>
+      <Text
+        fz="12.5px"
+        fw={500}
+        c="rgba(255,255,255,0.62)"
+        mb={15}
+        style={{ lineHeight: 1.5 }}
+      >
+        {momentum.line}
+      </Text>
+      <Button
+        color="accent"
+        radius="md"
+        size="compact-sm"
+        onClick={onPlanTomorrow}
+      >
+        {momentum.actionLabel}
+      </Button>
     </Box>
   );
 }

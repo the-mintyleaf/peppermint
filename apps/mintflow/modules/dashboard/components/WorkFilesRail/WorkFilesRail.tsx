@@ -1,53 +1,63 @@
 "use client";
 
-import { Button, Group, Stack, Text } from "@peppermint/ui";
+import { Box, Group, Stack, Text, UnstyledButton } from "@peppermint/ui";
 
-import { SectionLabel } from "@/components";
 import { tokens } from "@/config/design";
 import { rankWorkFiles } from "../../Dashboard.hooks";
 import { WorkFileCard } from "./components/WorkFileCard";
 import type { WorkFilesRailProps } from "./WorkFilesRail.types";
 
 /**
- * "Active work files" rail (spec §7) — the ranked top three work files
- * (involvement → deadline → blockers → activity; never alphabetical).
- * Presentational: loading / error / permission handled by the parent
- * ModuleDashboard.
+ * "Active work files" rail (spec §7) — the ranked top files (involvement →
+ * deadline → blockers → activity; never alphabetical). Presentational:
+ * loading / error / permission handled by the parent ModuleDashboard.
  */
 export function WorkFilesRail({
   files,
   onOpenFile,
   onViewAll,
 }: WorkFilesRailProps) {
-  const ranked = rankWorkFiles(files).slice(0, 3);
+  const ranked = rankWorkFiles(files).slice(0, 2);
 
   return (
-    <Stack gap={12}>
-      <Group justify="space-between" align="center" wrap="nowrap">
-        <SectionLabel>Active work files</SectionLabel>
-        <Button
-          variant="subtle"
-          color="gray"
-          size="compact-xs"
-          onClick={onViewAll}
+    <Box
+      style={{
+        background: tokens.paper,
+        border: `1px solid ${tokens.line}`,
+        borderRadius: tokens.radius.tile,
+        boxShadow: tokens.shadow.card,
+        padding: 18,
+      }}
+    >
+      <Group justify="space-between" align="center" wrap="nowrap" mb={13}>
+        <Text
+          component="h3"
+          fw={700}
+          c={tokens.ink}
+          style={{ fontSize: 15, letterSpacing: "-0.2px" }}
         >
-          View all
-        </Button>
+          Active work files
+        </Text>
+        <UnstyledButton onClick={onViewAll}>
+          <Text fz="12px" fw={700} c={tokens.accentDark}>
+            View all
+          </Text>
+        </UnstyledButton>
       </Group>
 
       {ranked.length === 0 ? (
-        <Stack align="center" gap={4} py={28}>
-          <Text fz={13} fw={500} c={tokens.muted2}>
+        <Stack align="center" gap={4} py={24}>
+          <Text fz="13px" fw={500} c={tokens.muted2}>
             No active work files
           </Text>
         </Stack>
       ) : (
-        <Stack gap={12}>
+        <Stack gap={11}>
           {ranked.map((file) => (
             <WorkFileCard key={file.id} file={file} onOpenFile={onOpenFile} />
           ))}
         </Stack>
       )}
-    </Stack>
+    </Box>
   );
 }

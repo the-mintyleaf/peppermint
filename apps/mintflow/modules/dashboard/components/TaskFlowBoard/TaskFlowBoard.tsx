@@ -20,11 +20,10 @@ import {
 } from "@dnd-kit/core";
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
+import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/csr/ArrowUpRight";
 
 import { useMediaQuery } from "@peppermint/ui";
 
-import { SectionLabel } from "@/components";
 import { FLOW_COLUMN_META } from "../../module.api";
 import type { FlowColumn as FlowColumnKey, FlowTask } from "../../module.api";
 import { FlowCard } from "./components/FlowCard";
@@ -40,7 +39,7 @@ export function TaskFlowBoard({
   onMove,
   onOpen,
   onQuickComplete,
-  onQuickCreate,
+  onOpenTasks,
 }: TaskFlowBoardProps) {
   const [activeTask, setActiveTask] = useState<FlowTask | null>(null);
   const [mobileTab, setMobileTab] = useState<FlowColumnKey>("in_progress");
@@ -88,22 +87,24 @@ export function TaskFlowBoard({
 
   return (
     <Stack gap={14}>
-      <Group justify="space-between" align="center" wrap="nowrap">
-        <Stack gap={2}>
-          <SectionLabel>Today&rsquo;s task flow</SectionLabel>
-          <Text fz="13px" fw={500} c="rgba(0,0,0,0.5)">
-            Your personal board — everything you&rsquo;re moving today.
-          </Text>
-        </Stack>
+      <Group justify="space-between" align="flex-end" wrap="nowrap">
+        <Text
+          component="h2"
+          fw={700}
+          c="gray.0"
+          style={{ fontSize: 19, letterSpacing: "-0.4px" }}
+        >
+          Today&rsquo;s task flow
+        </Text>
         <Button
           size="compact-sm"
-          variant="light"
+          variant="default"
           color="gray"
-          radius="xl"
-          leftSection={<PlusIcon size={14} weight="bold" />}
-          onClick={onQuickCreate}
+          radius="md"
+          rightSection={<ArrowUpRightIcon size={13} weight="bold" />}
+          onClick={onOpenTasks}
         >
-          Quick add
+          Open Tasks
         </Button>
       </Group>
 

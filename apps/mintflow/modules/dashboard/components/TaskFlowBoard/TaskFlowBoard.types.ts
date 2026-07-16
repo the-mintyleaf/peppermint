@@ -8,6 +8,6 @@ export interface TaskFlowBoardProps {
   onMove: (taskId: string, to: FlowColumnKey) => void;
   onOpen: (task: FlowTask) => void;
   onQuickComplete: (id: string) => void;
-  /** Inert "quick create" affordance (spec §15 mobile) — persists. */
-  onQuickCreate: () => void;
+  /** Navigate to the full Tasks page. */
+  onOpenTasks: () => void;
 }

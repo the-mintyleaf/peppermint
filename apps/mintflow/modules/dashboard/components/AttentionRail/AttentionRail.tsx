@@ -1,12 +1,12 @@
 "use client";
 
-import { Box, Button, Group, Paper, Stack, Text } from "@peppermint/ui";
-import { SealCheckIcon } from "@phosphor-icons/react/dist/csr/SealCheck";
-import { PauseCircleIcon } from "@phosphor-icons/react/dist/csr/PauseCircle";
-import { ClockCountdownIcon } from "@phosphor-icons/react/dist/csr/ClockCountdown";
+import { Box, Group, Stack, Text, UnstyledButton } from "@peppermint/ui";
+import { CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
+import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
+import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
+import { ArrowRightIcon } from "@phosphor-icons/react/dist/csr/ArrowRight";
 
-import { SectionLabel } from "@/components";
 import { tokens } from "@/config/design";
 import {
   ATTENTION_TONE,
@@ -17,14 +17,14 @@ import type { AttentionRailProps } from "./AttentionRail.types";
 
 const TONE_ICON: Record<
   AttentionTone,
-  typeof SealCheckIcon | typeof PauseCircleIcon | typeof ClockCountdownIcon
+  typeof CheckIcon | typeof ClockIcon | typeof WarningIcon
 > = {
-  approval: SealCheckIcon,
-  hold: PauseCircleIcon,
-  deadline: ClockCountdownIcon,
+  approval: CheckIcon,
+  hold: ClockIcon,
+  deadline: WarningIcon,
 };
 
-/** One exception + its single next-action lever. */
+/** One exception + its single next-action link (spec §8 — exceptions only). */
 function AttentionRow({
   item,
   first,
@@ -39,17 +39,17 @@ function AttentionRow({
 
   return (
     <Group
-      gap={14}
+      gap={11}
       wrap="nowrap"
       align="flex-start"
-      py={13}
+      py={12}
       style={{ borderTop: first ? undefined : `1px solid ${tokens.line}` }}
     >
       <Box
-        w={38}
-        h={38}
+        w={32}
+        h={32}
         style={{
-          borderRadius: 11,
+          borderRadius: 10,
           background: tone.bg,
           display: "flex",
           alignItems: "center",
@@ -57,11 +57,11 @@ function AttentionRow({
           flex: "0 0 auto",
         }}
       >
-        <Icon size={18} color={tone.fg} weight="duotone" />
+        <Icon size={15} color={tone.fg} weight="bold" />
       </Box>
 
       <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
-        <Text fz="13px" fw={700} c={tokens.ink} style={{ lineHeight: 1.3 }}>
+        <Text fz="12.5px" fw={600} c={tokens.ink} style={{ lineHeight: 1.3 }}>
           {item.statement}
         </Text>
         <Text
@@ -72,18 +72,15 @@ function AttentionRow({
         >
           {item.detail}
         </Text>
+        <UnstyledButton onClick={() => onAction(item)} mt={4}>
+          <Group gap={4} wrap="nowrap" align="center">
+            <Text fz="12px" fw={700} c={tone.fg}>
+              {item.actionLabel}
+            </Text>
+            <ArrowRightIcon size={12} weight="bold" color={tone.fg} />
+          </Group>
+        </UnstyledButton>
       </Stack>
-
-      <Button
-        size="compact-sm"
-        variant="light"
-        color="gray"
-        radius="xl"
-        onClick={() => onAction(item)}
-        style={{ flex: "0 0 auto" }}
-      >
-        {item.actionLabel}
-      </Button>
     </Group>
   );
 }
@@ -106,20 +103,39 @@ function EmptyState() {
 }
 
 export function AttentionRail({ items, onAction }: AttentionRailProps) {
-  // loading/error/permission handled by the parent ModuleDashboard
+  // loading / error / permission handled by the parent ModuleDashboard.
   return (
-    <Paper
-      p={18}
-      radius={tokens.radius.tile}
-      withBorder
-      style={{ background: "#fff", boxShadow: tokens.shadow.card }}
+    <Box
+      style={{
+        background: tokens.paper,
+        border: `1px solid ${tokens.line}`,
+        borderRadius: tokens.radius.tile,
+        boxShadow: tokens.shadow.card,
+        padding: "18px 18px 8px",
+      }}
     >
-      <SectionLabel>Needs your attention</SectionLabel>
+      <Text
+        component="h3"
+        fw={700}
+        c={tokens.ink}
+        style={{ fontSize: 15, letterSpacing: "-0.2px" }}
+      >
+        Needs your attention
+      </Text>
+      <Text
+        fz="11.5px"
+        fw={500}
+        c={tokens.muted}
+        mt={3}
+        mb={items.length ? 6 : 0}
+      >
+        Exceptions only — not a re-list of your work.
+      </Text>
 
       {items.length === 0 ? (
         <EmptyState />
       ) : (
-        <Stack gap={0} mt={4}>
+        <Stack gap={0}>
           {items.map((item, i) => (
             <AttentionRow
               key={item.id}
@@ -130,6 +146,6 @@ export function AttentionRail({ items, onAction }: AttentionRailProps) {
           ))}
         </Stack>
       )}
-    </Paper>
+    </Box>
   );
 }

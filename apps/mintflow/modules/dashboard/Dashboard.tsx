@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Button,
@@ -23,19 +24,34 @@ import {
   notConnected,
 } from "./Dashboard.hooks";
 import type { DashboardVariant } from "./Dashboard.hooks";
-import { FocusPanel } from "./components/FocusPanel";
+import { FocusHero } from "./components/FocusHero";
 import { TaskFlowBoard } from "./components/TaskFlowBoard";
 import { WorkFilesRail } from "./components/WorkFilesRail";
 import { AttentionRail } from "./components/AttentionRail";
-import { ScheduleRail } from "./components/ScheduleRail";
 import { MetricsRail } from "./components/MetricsRail";
 import { TaskDrawer } from "./components/TaskDrawer";
-import type { FocusTask } from "./module.api";
+import type { DashboardData, FocusTask, Person } from "./module.api";
 
-const GREETING = "Good morning, Minister";
+const GREETING_NAME = "Minister";
 const TODAY = "Wednesday, 16 July";
 
+/** Distinct people across the day's work files — the hero's avatar cluster. */
+function collectTeam(data: DashboardData): Person[] {
+  const seen = new Set<string>();
+  const team: Person[] = [];
+  for (const file of data.workFiles) {
+    for (const person of file.team) {
+      // Dedup on name — initials collide (two "AS" people would collapse).
+      if (seen.has(person.name)) continue;
+      seen.add(person.name);
+      team.push(person);
+    }
+  }
+  return team;
+}
+
 export function ModuleDashboard() {
+  const router = useRouter();
   const [variant, setVariant] = useState<DashboardVariant>("populated");
   const { data, isLoading, isError, refetch } = useDashboard(variant);
   const board = useDashboardBoard(data);
@@ -46,44 +62,29 @@ export function ModuleDashboard() {
     notConnected();
   };
 
+  const doneThisWeekRaw = Number(data?.kpis.find((k) => k.id === "k1")?.value);
+  const doneThisWeek = Number.isFinite(doneThisWeekRaw) ? doneThisWeekRaw : 0;
+  const onHoldNow = Object.values(board.flowByColumn)
+    .flat()
+    .filter((t) => t.onHold).length;
+
+  const previewControl = (
+    <SegmentedControl
+      size="xs"
+      radius="md"
+      value={variant}
+      onChange={(v) => setVariant(v as DashboardVariant)}
+      data={[
+        { value: "populated", label: "Today" },
+        { value: "empty", label: "First run" },
+      ]}
+      aria-label="Preview populated or first-run dashboard"
+    />
+  );
+
   return (
     <>
-      <Box p={{ base: 20, sm: 40 }} mih="100%" bg={tokens.paper}>
-        {/* Page-level anchor (spec §14 — one primary anchor) */}
-        <Group
-          justify="space-between"
-          align="flex-end"
-          mb={22}
-          wrap="wrap"
-          gap="sm"
-        >
-          <Stack gap={2}>
-            <Text fz="12px" fw={600} c="rgba(0,0,0,0.42)" ff="monospace">
-              {TODAY}
-            </Text>
-            <Text
-              component="h1"
-              fz="24px"
-              fw={700}
-              c={tokens.ink}
-              style={{ letterSpacing: "-0.5px" }}
-            >
-              {GREETING}
-            </Text>
-          </Stack>
-          <SegmentedControl
-            size="xs"
-            radius="xl"
-            value={variant}
-            onChange={(v) => setVariant(v as DashboardVariant)}
-            data={[
-              { value: "populated", label: "Today" },
-              { value: "empty", label: "First run" },
-            ]}
-            aria-label="Preview populated or first-run dashboard"
-          />
-        </Group>
-
+      <Box mih="100%" style={{ padding: "20px 24px 40px" }}>
         {isLoading ? (
           <LoadingState />
         ) : isError || !data ? (
@@ -93,17 +94,23 @@ export function ModuleDashboard() {
             style={{
               display: "flex",
               flexWrap: "wrap",
-              gap: 20,
+              gap: 14,
               alignItems: "flex-start",
             }}
           >
-            {/* Main column — Focus first, then the flow board */}
-            <Stack gap={22} style={{ flex: "1 1 560px", minWidth: 0 }}>
-              <FocusPanel
+            {/* Primary column — focus hero, then the flow board */}
+            <Stack gap={14} style={{ flex: "1 1 560px", minWidth: 0 }}>
+              <FocusHero
+                greetingName={GREETING_NAME}
+                today={TODAY}
                 focus={board.focus}
+                team={collectTeam(data)}
+                doneThisWeek={doneThisWeek}
+                onHoldNow={onHoldNow}
                 onToggleDone={board.toggleFocusDone}
-                onStart={onStartFocus}
+                onContinue={onStartFocus}
                 onChooseFocus={notConnected}
+                previewControl={previewControl}
               />
               <TaskFlowBoard
                 flowByColumn={board.flowByColumn}
@@ -112,29 +119,27 @@ export function ModuleDashboard() {
                 onMove={board.moveFlow}
                 onOpen={drawer.open}
                 onQuickComplete={board.quickComplete}
-                onQuickCreate={notConnected}
+                onOpenTasks={() => router.push("/tasks")}
               />
             </Stack>
 
-            {/* Rail — priority order: work files → attention → schedule → metrics */}
+            {/* Rail — attention → work files → this week + momentum */}
             <Stack
-              gap={20}
-              style={{ flex: "1 1 320px", minWidth: 0, maxWidth: 380 }}
+              gap={12}
+              style={{ flex: "1 1 320px", minWidth: 0, maxWidth: 360 }}
             >
+              <AttentionRail
+                items={data.attention}
+                onAction={() => notConnected()}
+              />
               <WorkFilesRail
                 files={data.workFiles}
                 onOpenFile={() => notConnected()}
                 onViewAll={notConnected}
               />
-              <AttentionRail
-                items={data.attention}
-                onAction={() => notConnected()}
-              />
-              <ScheduleRail items={data.schedule} />
               <MetricsRail
                 kpis={data.kpis}
                 momentum={data.momentum}
-                onKpiAction={() => notConnected()}
                 onPlanTomorrow={notConnected}
               />
             </Stack>
@@ -170,7 +175,7 @@ export function ModuleDashboard() {
       >
         {board.swapOffer ? (
           <Stack gap={14}>
-            <Text fz="13px" fw={500} c="rgba(0,0,0,0.6)">
+            <Text fz="13px" fw={500} c={tokens.muted2}>
               <b>{board.swapOffer.incoming.title}</b> is high priority and due
               today. Pick a focus task to replace, or keep your current focus.
             </Text>
@@ -206,14 +211,14 @@ export function ModuleDashboard() {
 
 function LoadingState() {
   return (
-    <Box style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
-      <Stack gap={22} style={{ flex: "1 1 560px", minWidth: 0 }}>
-        <Skeleton height={220} radius={tokens.radius.tile} />
+    <Box style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
+      <Stack gap={14} style={{ flex: "1 1 560px", minWidth: 0 }}>
+        <Skeleton height={300} radius={tokens.radius.tile} />
         <Skeleton height={280} radius={tokens.radius.tile} />
       </Stack>
-      <Stack gap={20} style={{ flex: "1 1 320px", minWidth: 0, maxWidth: 380 }}>
-        <Skeleton height={160} radius={tokens.radius.tile} />
-        <Skeleton height={160} radius={tokens.radius.tile} />
+      <Stack gap={12} style={{ flex: "1 1 320px", minWidth: 0, maxWidth: 360 }}>
+        <Skeleton height={200} radius={tokens.radius.tile} />
+        <Skeleton height={220} radius={tokens.radius.tile} />
         <Skeleton height={200} radius={tokens.radius.tile} />
       </Stack>
     </Box>
@@ -223,11 +228,15 @@ function LoadingState() {
 function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
     <Stack align="center" gap={12} py={80}>
-      <WarningCircleIcon size={36} weight="duotone" color={tokens.muted2} />
-      <Text fz="15px" fw={700} c={tokens.ink}>
+      <WarningCircleIcon
+        size={36}
+        weight="duotone"
+        color="rgba(255,255,255,0.5)"
+      />
+      <Text fz="15px" fw={700} c="gray.0">
         Couldn&rsquo;t load your dashboard
       </Text>
-      <Text fz="13px" fw={500} c="rgba(0,0,0,0.5)" ta="center" maw={320}>
+      <Text fz="13px" fw={500} c="rgba(255,255,255,0.6)" ta="center" maw={320}>
         Something went wrong fetching today&rsquo;s focus. Try again.
       </Text>
       <Button
