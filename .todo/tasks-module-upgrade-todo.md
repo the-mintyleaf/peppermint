@@ -11,12 +11,14 @@ working toolbar, FormWrapper migration, file split, polish. Plan:
 - [x] Add async CRUD: `createTask`, `updateTask`, `deleteTask`, `setTaskStatus`, `reorderTasks`
 - [x] Add mutation hooks (`useCreateTask/Update/Delete/Move/Reorder`); optimistic for move/reorder, invalidate for the rest
 - [x] Drop the local-copy render-sync hack in `useKanbanBoard`; board reads from query data
-- [ ] Commit + dual adversarial review; apply fixes
+- [x] Commit + dual adversarial review; applied fixes (drag storm, field clearing, deps)
 
 ## Phase 2 — Store + derivation
 
-- [ ] `Tasks.store.ts` Zustand view-prefs store (view, boardFilter, search, member, sort, group, filters, columns)
-- [ ] `useDerivedTasks` — shared filter→sort pipeline returning list + board shapes
+- [x] `Tasks.types.ts` shared view vocabulary (SortBy/GroupBy/TaskFilters/VisibleColumns/DerivedTasks)
+- [x] `Tasks.store.ts` Zustand view-prefs store (view, boardFilter, search, member, sort, group, filters, columns)
+- [x] `useDerivedTasks` — shared filter→sort→group pipeline returning list + board shapes
+- [x] Wire store + derivation into `Tasks.tsx` (no-regression; toolbar menus still inert until Phase 3)
 - [ ] Commit + dual review
 
 ## Phase 3 — Toolbar

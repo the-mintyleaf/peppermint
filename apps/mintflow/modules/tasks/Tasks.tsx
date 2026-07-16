@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   AccessMenu,
   Box,
@@ -16,7 +16,6 @@ import {
   Stack,
   Text,
   TextInput,
-  useDebouncedValue,
 } from "@peppermint/ui";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
@@ -32,16 +31,12 @@ import { CreateTaskModal } from "./kanban/components/CreateTaskModal";
 import { TeamMembersPanel } from "./general-view/components/TeamMembersPanel";
 import { TaskGroupSection } from "./general-view/components/TaskGroupSection";
 import { useTasks, useKanbanBoard } from "./kanban/KanbanDashboard.hooks";
-import {
-  useTeamMembers,
-  useGroupedTasks,
-  DISPLAY_STATUS_ORDER,
-  DISPLAY_STATUS_LABELS,
-} from "./general-view/GeneralViewDashboard.hooks";
-import type { Task, TaskBoardFilter, TaskStatus } from "./kanban/module.api";
+import { useTeamMembers } from "./general-view/GeneralViewDashboard.hooks";
+import { useDerivedTasks } from "./Tasks.hooks";
+import { useTasksStore } from "./Tasks.store";
+import type { Task, TaskStatus } from "./kanban/module.api";
+import type { DisplayStatus, TaskBoardFilter, TaskView } from "./Tasks.types";
 import tableClasses from "./general-view/TaskTable.module.css";
-
-type TaskView = "list" | "board";
 
 const TABS: { value: TaskBoardFilter; label: string }[] = [
   { value: "all", label: "All Tasks" },
@@ -50,10 +45,9 @@ const TABS: { value: TaskBoardFilter; label: string }[] = [
   { value: "department", label: "Department Board" },
 ];
 
-const TAB_INDEX_MAP: TaskBoardFilter[] = TABS.map((t) => t.value);
-const TAB_SEGMENTS = TABS.map((tab, index) => ({
+const TAB_SEGMENTS = TABS.map((tab) => ({
   label: tab.label,
-  value: String(index),
+  value: tab.value,
 }));
 
 const VIEW_SEGMENTS = [
@@ -82,17 +76,17 @@ const TASKS_SUBHEADING =
   "View and filter tasks across boards, team members, and status.";
 
 export function ModuleTasks() {
-  const [view, setView] = useState<TaskView>("list");
+  const view = useTasksStore((s) => s.view);
+  const setView = useTasksStore((s) => s.setView);
+  const boardFilter = useTasksStore((s) => s.boardFilter);
+  const setBoardFilter = useTasksStore((s) => s.setBoardFilter);
+  const search = useTasksStore((s) => s.search);
+  const setSearch = useTasksStore((s) => s.setSearch);
+  const selectedMemberId = useTasksStore((s) => s.selectedMemberId);
+  const setSelectedMember = useTasksStore((s) => s.setSelectedMember);
+  const clearFilters = useTasksStore((s) => s.clearFilters);
 
-  const [activeTabIndex, setActiveTabIndex] = useState(0);
-  const activeFilter = TAB_INDEX_MAP[activeTabIndex];
-
-  const [searchInput, setSearchInput] = useState("");
-  const [debouncedSearch] = useDebouncedValue(searchInput, 300);
-
-  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
-
-  // Board-only: card detail + create/edit form state.
+  // Card detail + create/edit form state stays local to the module.
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [createStatus, setCreateStatus] = useState<TaskStatus | null>(null);
@@ -120,49 +114,12 @@ export function ModuleTasks() {
     setEditTask(null);
   }, []);
 
-  const { data: tasks, isLoading } = useTasks(activeFilter);
-  const { tasksByStatus, moveTask, previewReorder, commitReorder } =
-    useKanbanBoard(tasks);
+  const { data: tasks, isLoading } = useTasks(boardFilter);
+  const { moveTask, previewReorder, commitReorder } = useKanbanBoard(tasks);
   const { members, taskCountByMember } = useTeamMembers(tasks);
-  const groupedTasks = useGroupedTasks(
-    tasks,
-    debouncedSearch,
-    selectedMemberId,
-  );
+  const derived = useDerivedTasks(tasks);
 
-  // Board body applies search + member filters over the drag-ordered columns.
-  const filteredByStatus = useMemo(() => {
-    const q = debouncedSearch.trim().toLowerCase();
-    return Object.fromEntries(
-      Object.entries(tasksByStatus).map(([status, list]) => [
-        status,
-        list.filter((t) => {
-          const matchesSearch =
-            !q ||
-            t.title.toLowerCase().includes(q) ||
-            t.taskNumber.toLowerCase().includes(q);
-          const matchesMember =
-            !selectedMemberId ||
-            t.assignees?.some((a) => a.name === selectedMemberId) ||
-            t.assignee === selectedMemberId;
-          return matchesSearch && matchesMember;
-        }),
-      ]),
-    ) as typeof tasksByStatus;
-  }, [tasksByStatus, debouncedSearch, selectedMemberId]);
-
-  const totalVisible = useMemo(() => {
-    if (view === "board") {
-      return Object.values(filteredByStatus).reduce(
-        (sum, list) => sum + list.length,
-        0,
-      );
-    }
-    return DISPLAY_STATUS_ORDER.reduce(
-      (sum, s) => sum + groupedTasks[s].length,
-      0,
-    );
-  }, [view, filteredByStatus, groupedTasks]);
+  const hasActiveFilters = search.length > 0 || selectedMemberId !== null;
 
   return (
     <>
@@ -190,7 +147,7 @@ export function ModuleTasks() {
           <Box px="md">
             <ManageHeader
               title="Tasks"
-              count={isLoading ? undefined : totalVisible}
+              count={isLoading ? undefined : derived.total}
               description={TASKS_SUBHEADING}
             />
           </Box>
@@ -199,8 +156,8 @@ export function ModuleTasks() {
           <Group justify="space-between" px="md" gap="xs" wrap="nowrap">
             <SegmentedControl
               withItemsBorders={false}
-              value={String(activeTabIndex)}
-              onChange={(v) => setActiveTabIndex(Number(v))}
+              value={boardFilter}
+              onChange={(v) => setBoardFilter(v as TaskBoardFilter)}
               data={TAB_SEGMENTS}
               size="sm"
               color="white"
@@ -220,18 +177,18 @@ export function ModuleTasks() {
                 onChange={(v) => setView(v as TaskView)}
                 data={VIEW_SEGMENTS}
                 size="xs"
-                styles={{
-                  label: { paddingInline: 10 },
-                }}
+                styles={{ label: { paddingInline: 10 } }}
               />
 
               <TeamMembersPanel
                 members={members}
                 taskCountByMember={taskCountByMember}
                 selectedMemberId={selectedMemberId}
-                onSelect={setSelectedMemberId}
+                onSelect={setSelectedMember}
               />
 
+              {/* NOTE: Sort / Group / View / Filter menus are wired to the store
+                  in Phase 3 (TasksToolbar). They remain inert for this commit. */}
               {view === "list" && (
                 <Menu shadow="sm" width={180} position="bottom-end">
                   <Menu.Target>
@@ -335,8 +292,8 @@ export function ModuleTasks() {
                 leftSection={<MagnifyingGlassIcon size={13} />}
                 size="xs"
                 placeholder="Search tasks…"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.currentTarget.value)}
+                value={search}
+                onChange={(e) => setSearch(e.currentTarget.value)}
               />
             </Group>
           </Group>
@@ -358,7 +315,7 @@ export function ModuleTasks() {
                 </Text>
               ) : (
                 <KanbanBoard
-                  tasksByStatus={filteredByStatus}
+                  tasksByStatus={derived.board}
                   onMoveTask={moveTask}
                   onPreviewReorder={previewReorder}
                   onCommitReorder={commitReorder}
@@ -392,20 +349,17 @@ export function ModuleTasks() {
                       <Skeleton key={i} height={48} radius="sm" />
                     ))}
                   </Stack>
-                ) : totalVisible === 0 ? (
+                ) : derived.total === 0 ? (
                   <Stack align="center" justify="center" h={300} gap="xs">
                     <Text c="dimmed" size="sm">
                       No tasks found
                     </Text>
-                    {(debouncedSearch || selectedMemberId) && (
+                    {hasActiveFilters && (
                       <Text
                         size="xs"
                         c="blue"
                         style={{ cursor: "pointer" }}
-                        onClick={() => {
-                          setSearchInput("");
-                          setSelectedMemberId(null);
-                        }}
+                        onClick={clearFilters}
                       >
                         Clear filters
                       </Text>
@@ -413,12 +367,12 @@ export function ModuleTasks() {
                   </Stack>
                 ) : (
                   <Box>
-                    {DISPLAY_STATUS_ORDER.map((status) => (
+                    {derived.list.map((group) => (
                       <TaskGroupSection
-                        key={status}
-                        displayStatus={status}
-                        label={DISPLAY_STATUS_LABELS[status]}
-                        tasks={groupedTasks[status]}
+                        key={group.key}
+                        displayStatus={group.key as DisplayStatus}
+                        label={group.label}
+                        tasks={group.tasks}
                       />
                     ))}
                   </Box>
