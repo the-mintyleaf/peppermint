@@ -10,15 +10,15 @@
 
 ## Change History
 
-| Version | Date | Author | Summary |
-|---------|------|--------|---------|
-| 1.0.0 | 2026-07-15 | AI (Claude) | Initial contract — Phase 1 applicant core (aggregate, lifecycle, lock, media, audit, addresses). |
-| 1.1.0 | 2026-07-15 | AI (Claude) | Phase 2a — 12 admin-only profile children, extended media categories + general evidence pipeline, identity fingerprint, duplicate-detection expansion. |
-| 1.2.0 | 2026-07-15 | AI (Claude) | Phase 2b — 6 CRM/compliance children (interaction, qualification assessment, sponsor, travel, visa, consent), interaction follow-up projections, assessment supersede + lifecycle coupling. |
-| 1.3.0 | 2026-07-15 | AI (Claude) | Phase 3 — ApplicationCase (transition-only status + history), ApplicantAssignment, `application_case` FK on media/sponsor/interaction. |
-| 1.4.0 | 2026-07-15 | AI (Claude) | Phase 4 — ApplicantDocument (53-type registry, polymorphic validated content, status lifecycle), document prefill + workspaces. See `document-schemas.md`. |
-| 1.5.0 | 2026-07-15 | AI (Claude) | Phase 5 — DocumentRevision (immutable, auto-per-edit), DocumentPrintEvent (immutable evidence), Signature; document search + certificate signature resolution. |
-| 1.6.0 | 2026-07-15 | AI (Claude) | Phase 6 — duplicate merge: `Applicant.merged_into`/`merged_at`/`merged_by` + immutable `ApplicantMergeRecord`. |
+| Version | Date       | Author      | Summary                                                                                                                                                                                     |
+| ------- | ---------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-07-15 | AI (Claude) | Initial contract — Phase 1 applicant core (aggregate, lifecycle, lock, media, audit, addresses).                                                                                            |
+| 1.1.0   | 2026-07-15 | AI (Claude) | Phase 2a — 12 admin-only profile children, extended media categories + general evidence pipeline, identity fingerprint, duplicate-detection expansion.                                      |
+| 1.2.0   | 2026-07-15 | AI (Claude) | Phase 2b — 6 CRM/compliance children (interaction, qualification assessment, sponsor, travel, visa, consent), interaction follow-up projections, assessment supersede + lifecycle coupling. |
+| 1.3.0   | 2026-07-15 | AI (Claude) | Phase 3 — ApplicationCase (transition-only status + history), ApplicantAssignment, `application_case` FK on media/sponsor/interaction.                                                      |
+| 1.4.0   | 2026-07-15 | AI (Claude) | Phase 4 — ApplicantDocument (53-type registry, polymorphic validated content, status lifecycle), document prefill + workspaces. See `document-schemas.md`.                                  |
+| 1.5.0   | 2026-07-15 | AI (Claude) | Phase 5 — DocumentRevision (immutable, auto-per-edit), DocumentPrintEvent (immutable evidence), Signature; document search + certificate signature resolution.                              |
+| 1.6.0   | 2026-07-15 | AI (Claude) | Phase 6 — duplicate merge: `Applicant.merged_into`/`merged_at`/`merged_by` + immutable `ApplicantMergeRecord`.                                                                              |
 
 ---
 
@@ -42,41 +42,42 @@ Baseline is `.concept/applicant.md`; where it and CLAUDE.md conflict, CLAUDE.md 
 **`lead_source` choices:** `walk_in`, `referral`, `online`, `phone`, `social_media`, `event`, `agent`, `other`
 **`follow_up_priority` choices:** `low`, `normal`, `high`, `urgent`
 
-| Field | Type | Required | Nullable | Generated | Description |
-|-------|------|----------|----------|-----------|--------------|
-| id | UUID | — | No | Yes | Public primary key |
-| applicant_code | string(20) | Yes | No | Yes | Immutable `APP-YYYY-NNNNNN`, unique, ASCII |
-| first_name | string(150) | Yes | No | No | Given name |
-| middle_name | string(150) | No | No | No | — |
-| last_name | string(150) | No | No | No | — |
-| full_name | string(300) | No | No | Yes | Composed from components if not supplied; indexed |
-| name_native | string(300) | No | No | No | Devanagari/native-script name |
-| full_name_romanized | string(300) | No | No | Yes | ASCII search projection; never user-entered (§39.3) |
-| preferred_display_name | string(150) | No | No | No | Manual display override |
-| date_of_birth | date | No | Yes | No | Protected; cannot be future |
-| gender | enum | No | No | No | See choices |
-| nationality | string(100) | No | No | No | — |
-| religion | string(100) | No | No | No | Protected (§22.1) |
-| primary_email / alternate_email | email | No | No | No | Stored lowercased/normalized |
-| primary_phone / alternate_phone | string(32) | No | No | No | Original display form |
-| normalized_email | string(254) | No | No | Yes | Exact-dedupe projection; indexed |
-| normalized_phone | string(32) | No | No | Yes | Digits(+prefix) dedupe projection; indexed |
-| lifecycle_stage | enum | No | No | No | Default `interested`; transition-only |
-| engagement_status | enum | No | No | No | Default `active`; transition-only |
-| lead_source / lead_source_detail | enum / string(255) | No | No | No | — |
-| initial_interest / summary / eligibility_summary | text | No | No | No | — |
-| counselling_notes | text | No | No | No | Protected (§22.1) |
-| last_contacted_at / next_follow_up_at | datetime | No | Yes | No | Follow-up projections |
-| converted_at | datetime | No | Yes | Yes | Set when stage → `applicant` |
-| converted_by | FK→User | No | Yes | Yes | — |
-| is_locked / locked_at / lock_reason | bool / datetime / text | No | No/Yes | Yes | Lock state (lock service only) |
-| locked_by | FK→User | No | Yes | Yes | — |
-| record_version | positive int | No | No | Yes | Optimistic concurrency; starts at 1 |
-| created_at / updated_at | datetime | — | No | Yes | Audit timestamps |
-| created_by / updated_by | FK→User | No | Yes | No | Actor stamps |
-| archived_at / archived_by | datetime / FK→User | No | Yes | Yes | Soft-delete stamp |
+| Field                                            | Type                   | Required | Nullable | Generated | Description                                         |
+| ------------------------------------------------ | ---------------------- | -------- | -------- | --------- | --------------------------------------------------- |
+| id                                               | UUID                   | —        | No       | Yes       | Public primary key                                  |
+| applicant_code                                   | string(20)             | Yes      | No       | Yes       | Immutable `APP-YYYY-NNNNNN`, unique, ASCII          |
+| first_name                                       | string(150)            | Yes      | No       | No        | Given name                                          |
+| middle_name                                      | string(150)            | No       | No       | No        | —                                                   |
+| last_name                                        | string(150)            | No       | No       | No        | —                                                   |
+| full_name                                        | string(300)            | No       | No       | Yes       | Composed from components if not supplied; indexed   |
+| name_native                                      | string(300)            | No       | No       | No        | Devanagari/native-script name                       |
+| full_name_romanized                              | string(300)            | No       | No       | Yes       | ASCII search projection; never user-entered (§39.3) |
+| preferred_display_name                           | string(150)            | No       | No       | No        | Manual display override                             |
+| date_of_birth                                    | date                   | No       | Yes      | No        | Protected; cannot be future                         |
+| gender                                           | enum                   | No       | No       | No        | See choices                                         |
+| nationality                                      | string(100)            | No       | No       | No        | —                                                   |
+| religion                                         | string(100)            | No       | No       | No        | Protected (§22.1)                                   |
+| primary_email / alternate_email                  | email                  | No       | No       | No        | Stored lowercased/normalized                        |
+| primary_phone / alternate_phone                  | string(32)             | No       | No       | No        | Original display form                               |
+| normalized_email                                 | string(254)            | No       | No       | Yes       | Exact-dedupe projection; indexed                    |
+| normalized_phone                                 | string(32)             | No       | No       | Yes       | Digits(+prefix) dedupe projection; indexed          |
+| lifecycle_stage                                  | enum                   | No       | No       | No        | Default `interested`; transition-only               |
+| engagement_status                                | enum                   | No       | No       | No        | Default `active`; transition-only                   |
+| lead_source / lead_source_detail                 | enum / string(255)     | No       | No       | No        | —                                                   |
+| initial_interest / summary / eligibility_summary | text                   | No       | No       | No        | —                                                   |
+| counselling_notes                                | text                   | No       | No       | No        | Protected (§22.1)                                   |
+| last_contacted_at / next_follow_up_at            | datetime               | No       | Yes      | No        | Follow-up projections                               |
+| converted_at                                     | datetime               | No       | Yes      | Yes       | Set when stage → `applicant`                        |
+| converted_by                                     | FK→User                | No       | Yes      | Yes       | —                                                   |
+| is_locked / locked_at / lock_reason              | bool / datetime / text | No       | No/Yes   | Yes       | Lock state (lock service only)                      |
+| locked_by                                        | FK→User                | No       | Yes      | Yes       | —                                                   |
+| record_version                                   | positive int           | No       | No       | Yes       | Optimistic concurrency; starts at 1                 |
+| created_at / updated_at                          | datetime               | —        | No       | Yes       | Audit timestamps                                    |
+| created_by / updated_by                          | FK→User                | No       | Yes      | No        | Actor stamps                                        |
+| archived_at / archived_by                        | datetime / FK→User     | No       | Yes      | Yes       | Soft-delete stamp                                   |
 
 **Validation Rules:**
+
 - `applicant_code` matches `^APP-\d{4}-\d{6}$`, immutable after create.
 - At least one of `primary_email`/`primary_phone` for staff-created records; admin may bypass (imported).
 - `date_of_birth` not in the future (evaluated in NPT via `nepal_today`).
@@ -90,8 +91,17 @@ Baseline is `.concept/applicant.md`; where it and CLAUDE.md conflict, CLAUDE.md 
 **Soft Delete:** Archive via `archived_at`/`archived_by` set by `services.applicant.archive_applicant`; also sets `engagement_status=archived`. `DELETE` maps to archive — never a physical delete. Default querysets exclude archived unless `include_archived` (admin only).
 
 **Example:**
+
 ```json
-{ "id": "…", "applicant_code": "APP-2026-000142", "full_name": "Ramesh Shrestha", "lifecycle_stage": "interested", "engagement_status": "active", "is_locked": false, "record_version": 1 }
+{
+  "id": "…",
+  "applicant_code": "APP-2026-000142",
+  "full_name": "Ramesh Shrestha",
+  "lifecycle_stage": "interested",
+  "engagement_status": "active",
+  "is_locked": false,
+  "record_version": 1
+}
 ```
 
 **Cross-App Dependencies:** actor FKs → `authenticate.User` (`settings.AUTH_USER_MODEL`, `on_delete=PROTECT`).
@@ -105,14 +115,14 @@ Baseline is `.concept/applicant.md`; where it and CLAUDE.md conflict, CLAUDE.md 
 **Table:** `applicant_applicantsearchalias`
 **`alias_type` choices:** `alternate_spelling`, `previous_name`, `native_script`, `transliteration`
 
-| Field | Type | Required | Nullable | Generated | Description |
-|-------|------|----------|----------|-----------|--------------|
-| id | UUID | — | No | Yes | PK |
-| applicant | FK→Applicant | Yes | No | No | Parent |
-| alias | string(200) | Yes | No | No | — |
-| alias_type | enum | Yes | No | No | See choices |
-| normalized_alias | string(200) | No | No | Yes | Search projection; indexed (GIN trgm on PG) |
-| created_by | FK→User | No | Yes | No | — |
+| Field            | Type         | Required | Nullable | Generated | Description                                 |
+| ---------------- | ------------ | -------- | -------- | --------- | ------------------------------------------- |
+| id               | UUID         | —        | No       | Yes       | PK                                          |
+| applicant        | FK→Applicant | Yes      | No       | No        | Parent                                      |
+| alias            | string(200)  | Yes      | No       | No        | —                                           |
+| alias_type       | enum         | Yes      | No       | No        | See choices                                 |
+| normalized_alias | string(200)  | No       | No       | Yes       | Search projection; indexed (GIN trgm on PG) |
+| created_by       | FK→User      | No       | Yes      | No        | —                                           |
 
 **Soft Delete:** N/A — aliases are hard-deletable reference data with no independent retention requirement.
 
@@ -124,16 +134,16 @@ Baseline is `.concept/applicant.md`; where it and CLAUDE.md conflict, CLAUDE.md 
 **Table:** `applicant_applicantaddress`
 **`address_type` choices:** `current`, `permanent`, `mailing`, `foreign`, `other`
 
-| Field | Type | Required | Nullable | Generated | Description |
-|-------|------|----------|----------|-----------|--------------|
-| id | UUID | — | No | Yes | PK |
-| applicant | FK→Applicant | Yes | No | No | Parent |
-| address_type | enum | No | No | No | Default `current` |
-| country … postal_code | string | No | No | No | Structured components |
-| address_text | text | No | No | No | Undecomposable fallback (§7.3) |
-| is_primary | bool | No | No | No | Partial-unique: one primary per applicant |
-| valid_from / valid_to | date | No | Yes | No | — |
-| created_at/updated_at/created_by/updated_by | — | — | — | — | Actor stamps |
+| Field                                       | Type         | Required | Nullable | Generated | Description                               |
+| ------------------------------------------- | ------------ | -------- | -------- | --------- | ----------------------------------------- |
+| id                                          | UUID         | —        | No       | Yes       | PK                                        |
+| applicant                                   | FK→Applicant | Yes      | No       | No        | Parent                                    |
+| address_type                                | enum         | No       | No       | No        | Default `current`                         |
+| country … postal_code                       | string       | No       | No       | No        | Structured components                     |
+| address_text                                | text         | No       | No       | No        | Undecomposable fallback (§7.3)            |
+| is_primary                                  | bool         | No       | No       | No        | Partial-unique: one primary per applicant |
+| valid_from / valid_to                       | date         | No       | Yes      | No        | —                                         |
+| created_at/updated_at/created_by/updated_by | —            | —        | —        | —         | Actor stamps                              |
 
 **Constraints:** partial `UniqueConstraint(applicant) WHERE is_primary` — at most one primary address.
 **Soft Delete:** N/A — addresses are hard-deleted; the change is recorded via `AuditEvent applicant.address_changed`. Lock/archive of the parent applies (§10.6).
@@ -145,16 +155,16 @@ Baseline is `.concept/applicant.md`; where it and CLAUDE.md conflict, CLAUDE.md 
 **Purpose:** Append-only record of each lifecycle/engagement change (§6.4).
 **Table:** `applicant_applicantlifecyclehistory`
 
-| Field | Type | Required | Nullable | Generated | Description |
-|-------|------|----------|----------|-----------|--------------|
-| id | UUID | — | No | Yes | PK |
-| applicant | FK→Applicant | Yes | No | No | Parent |
-| from_stage / into_stage | enum(str) | No | No | No | Blank when only engagement changed |
-| from_engagement_status / into_engagement_status | enum(str) | No | No | No | Blank when only stage changed |
-| reason / notes | text | No | No | No | — |
-| changed_by | FK→User | No | Yes | No | — |
-| request_id | string(64) | No | No | No | Correlation |
-| created_at | datetime | — | No | Yes | — |
+| Field                                           | Type         | Required | Nullable | Generated | Description                        |
+| ----------------------------------------------- | ------------ | -------- | -------- | --------- | ---------------------------------- |
+| id                                              | UUID         | —        | No       | Yes       | PK                                 |
+| applicant                                       | FK→Applicant | Yes      | No       | No        | Parent                             |
+| from_stage / into_stage                         | enum(str)    | No       | No       | No        | Blank when only engagement changed |
+| from_engagement_status / into_engagement_status | enum(str)    | No       | No       | No        | Blank when only stage changed      |
+| reason / notes                                  | text         | No       | No       | No        | —                                  |
+| changed_by                                      | FK→User      | No       | Yes      | No        | —                                  |
+| request_id                                      | string(64)   | No       | No       | No        | Correlation                        |
+| created_at                                      | datetime     | —        | No       | Yes       | —                                  |
 
 **Indexes:** `(applicant, -created_at)`.
 **Soft Delete:** N/A — append-only; `save()` on an existing row and `delete()` both raise `HistoryImmutableError`.
@@ -167,15 +177,15 @@ Baseline is `.concept/applicant.md`; where it and CLAUDE.md conflict, CLAUDE.md 
 **Table:** `applicant_applicantlockhistory`
 **`action` choices:** `locked`, `unlocked`
 
-| Field | Type | Required | Nullable | Generated | Description |
-|-------|------|----------|----------|-----------|--------------|
-| id | UUID | — | No | Yes | PK |
-| applicant | FK→Applicant | Yes | No | No | Parent |
-| action | enum | Yes | No | No | See choices |
-| reason | text | Yes | No | No | Mandatory both directions |
-| performed_by | FK→User | No | Yes | No | — |
-| previous_lock_actor | FK→User | No | Yes | No | Who held the prior lock (on unlock) |
-| request_id | string(64) | No | No | No | — |
+| Field               | Type         | Required | Nullable | Generated | Description                         |
+| ------------------- | ------------ | -------- | -------- | --------- | ----------------------------------- |
+| id                  | UUID         | —        | No       | Yes       | PK                                  |
+| applicant           | FK→Applicant | Yes      | No       | No        | Parent                              |
+| action              | enum         | Yes      | No       | No        | See choices                         |
+| reason              | text         | Yes      | No       | No        | Mandatory both directions           |
+| performed_by        | FK→User      | No       | Yes      | No        | —                                   |
+| previous_lock_actor | FK→User      | No       | Yes      | No        | Who held the prior lock (on unlock) |
+| request_id          | string(64)   | No       | No       | No        | —                                   |
 
 **Indexes:** `(applicant, -created_at)`.
 **Soft Delete:** N/A — append-only (`HistoryImmutableError`).
@@ -189,21 +199,21 @@ Baseline is `.concept/applicant.md`; where it and CLAUDE.md conflict, CLAUDE.md 
 **`category` choices:** `profile_photo`, `other`
 **`confidentiality_level` choices:** `basic`, `protected`, `highly_protected`
 
-| Field | Type | Required | Nullable | Generated | Description |
-|-------|------|----------|----------|-----------|--------------|
-| id | UUID | — | No | Yes | PK |
-| applicant | FK→Applicant | Yes | No | No | Parent |
-| category | enum | Yes | No | No | See choices |
-| file | private FileField | Yes | No | No | Stored under `APPLICANT_PRIVATE_MEDIA_ROOT`; **no public URL** |
-| original_filename | string(255) | No | No | No | Not trusted for storage path |
-| mime_type | string(128) | No | No | Yes | Derived from decoded image, not client |
-| size_bytes | int | No | No | Yes | — |
-| checksum | string(64) | No | No | Yes | SHA-256 hex; indexed |
-| confidentiality_level | enum | No | No | No | Default `protected` |
-| is_current | bool | No | No | Yes | Prior current photo retired on new upload |
-| uploaded_by / archived_by | FK→User | No | Yes | — | — |
-| archived_at | datetime | No | Yes | — | — |
-| metadata | JSON | No | No | No | — |
+| Field                     | Type              | Required | Nullable | Generated | Description                                                    |
+| ------------------------- | ----------------- | -------- | -------- | --------- | -------------------------------------------------------------- |
+| id                        | UUID              | —        | No       | Yes       | PK                                                             |
+| applicant                 | FK→Applicant      | Yes      | No       | No        | Parent                                                         |
+| category                  | enum              | Yes      | No       | No        | See choices                                                    |
+| file                      | private FileField | Yes      | No       | No        | Stored under `APPLICANT_PRIVATE_MEDIA_ROOT`; **no public URL** |
+| original_filename         | string(255)       | No       | No       | No        | Not trusted for storage path                                   |
+| mime_type                 | string(128)       | No       | No       | Yes       | Derived from decoded image, not client                         |
+| size_bytes                | int               | No       | No       | Yes       | —                                                              |
+| checksum                  | string(64)        | No       | No       | Yes       | SHA-256 hex; indexed                                           |
+| confidentiality_level     | enum              | No       | No       | No        | Default `protected`                                            |
+| is_current                | bool              | No       | No       | Yes       | Prior current photo retired on new upload                      |
+| uploaded_by / archived_by | FK→User           | No       | Yes      | —         | —                                                              |
+| archived_at               | datetime          | No       | Yes      | —         | —                                                              |
+| metadata                  | JSON              | No       | No       | No        | —                                                              |
 
 **Indexes:** `(applicant, category, is_current)`, `checksum`.
 **Soft Delete:** `archived_at`/`archived_by` retire a media row; files are never cascade-deleted through ordinary applicant deletes (concept §16.6 spirit).
@@ -217,16 +227,16 @@ Baseline is `.concept/applicant.md`; where it and CLAUDE.md conflict, CLAUDE.md 
 **Table:** `applicant_auditevent`
 **`event_type` choices:** `applicant.created`, `applicant.updated`, `applicant.archived`, `applicant.lifecycle_changed`, `applicant.engagement_changed`, `applicant.locked`, `applicant.unlocked`, `applicant.duplicate_flagged`, `applicant.media_uploaded`, `applicant.address_changed`
 
-| Field | Type | Required | Nullable | Generated | Description |
-|-------|------|----------|----------|-----------|--------------|
-| id | UUID | — | No | Yes | PK |
-| event_type | enum | Yes | No | No | Indexed |
-| actor | FK→User | No | Yes | No | — |
-| applicant | FK→Applicant | No | Yes | No | — |
-| reason | text | No | No | No | — |
-| changed_fields | JSON(list) | No | No | No | Field *names* only |
-| metadata | JSON(dict) | No | No | Yes | Sanitized — never sensitive plaintext (§22.2) |
-| request_id | string(64) | No | No | No | — |
+| Field          | Type         | Required | Nullable | Generated | Description                                   |
+| -------------- | ------------ | -------- | -------- | --------- | --------------------------------------------- |
+| id             | UUID         | —        | No       | Yes       | PK                                            |
+| event_type     | enum         | Yes      | No       | No        | Indexed                                       |
+| actor          | FK→User      | No       | Yes      | No        | —                                             |
+| applicant      | FK→Applicant | No       | Yes      | No        | —                                             |
+| reason         | text         | No       | No       | No        | —                                             |
+| changed_fields | JSON(list)   | No       | No       | No        | Field _names_ only                            |
+| metadata       | JSON(dict)   | No       | No       | Yes       | Sanitized — never sensitive plaintext (§22.2) |
+| request_id     | string(64)   | No       | No       | No        | —                                             |
 
 **Indexes:** `(event_type, -created_at)`, `(applicant, -created_at)`.
 **Soft Delete:** N/A — append-only (`AuditEventImmutableError`).
@@ -238,10 +248,10 @@ Baseline is `.concept/applicant.md`; where it and CLAUDE.md conflict, CLAUDE.md 
 **Purpose:** Internal per-year monotonic counter backing `APP-YYYY-NNNNNN` generation (§5.1). Not exposed via any API.
 **Table:** `applicant_applicantcodecounter`
 
-| Field | Type | Required | Nullable | Generated | Description |
-|-------|------|----------|----------|-----------|--------------|
-| year | positive int | Yes | No | No | PK |
-| last_number | positive int | No | No | Yes | Last issued sequence; locked via `select_for_update` |
+| Field       | Type         | Required | Nullable | Generated | Description                                          |
+| ----------- | ------------ | -------- | -------- | --------- | ---------------------------------------------------- |
+| year        | positive int | Yes      | No       | No        | PK                                                   |
+| last_number | positive int | No       | No       | Yes       | Last issued sequence; locked via `select_for_update` |
 
 **Soft Delete:** N/A — internal counter.
 
@@ -288,19 +298,19 @@ Baseline is `.concept/applicant.md`; where it and CLAUDE.md conflict, CLAUDE.md 
 **11.1 `ApplicationCase`** (`applicant_applicationcase`) — one destination/institution/program pathway for an applicant, distinct from the person record (§2.1). Admin/superadmin-only.
 **`case_status` choices:** `planning`, `document_collection`, `application_preparation`, `submitted`, `offer_received`, `visa_preparation`, `visa_submitted`, `visa_approved`, `visa_refused`, `travel_preparation`, `completed`, `withdrawn`, `archived`
 
-| Field | Type | Req | Null | Gen | Description |
-|---|---|---|---|---|---|
-| id | UUID | — | No | Yes | PK |
-| applicant | FK→Applicant | Yes | No | No | Owner |
-| case_code | string(20) | Yes | No | Yes | Immutable `CASE-YYYY-NNNNNN`, unique, ASCII |
-| destination_country … application_reference | string | No | No | No | Pathway fields (concept §8.1) |
-| case_status | enum | No | No | No | Default `planning`; **transition-only** |
-| assigned_counsellor | FK→User | No | Yes | Yes | Current (set by assignment service) |
-| opened_at / closed_at | datetime | No | Yes | Yes | `opened_at` on create; `closed_at` on a closed status |
-| outcome / outcome_reason / notes | str/text | No | No | No | — |
-| record_version | positive int | No | No | Yes | Optimistic concurrency (§5.4); `>= 1` check |
-| archived_at / archived_by | datetime / FK | No | Yes | Yes | Soft delete |
-| created_at/updated_at/created_by/updated_by | — | — | — | — | Actor stamps |
+| Field                                       | Type          | Req | Null | Gen | Description                                           |
+| ------------------------------------------- | ------------- | --- | ---- | --- | ----------------------------------------------------- |
+| id                                          | UUID          | —   | No   | Yes | PK                                                    |
+| applicant                                   | FK→Applicant  | Yes | No   | No  | Owner                                                 |
+| case_code                                   | string(20)    | Yes | No   | Yes | Immutable `CASE-YYYY-NNNNNN`, unique, ASCII           |
+| destination_country … application_reference | string        | No  | No   | No  | Pathway fields (concept §8.1)                         |
+| case_status                                 | enum          | No  | No   | No  | Default `planning`; **transition-only**               |
+| assigned_counsellor                         | FK→User       | No  | Yes  | Yes | Current (set by assignment service)                   |
+| opened_at / closed_at                       | datetime      | No  | Yes  | Yes | `opened_at` on create; `closed_at` on a closed status |
+| outcome / outcome_reason / notes            | str/text      | No  | No   | No  | —                                                     |
+| record_version                              | positive int  | No  | No   | Yes | Optimistic concurrency (§5.4); `>= 1` check           |
+| archived_at / archived_by                   | datetime / FK | No  | Yes  | Yes | Soft delete                                           |
+| created_at/updated_at/created_by/updated_by | —             | —   | —    | —   | Actor stamps                                          |
 
 **Validation:** `case_code` matches `^CASE-\d{4}-\d{6}$`, immutable. Status changes only via `services.case.transition_case`; a reason is required into `visa_refused`/`withdrawn`/`archived`; reaching `completed`/`withdrawn`/`archived` stamps `closed_at`. Status graph is not rigidly encoded (concept lists statuses, not edges) — documented deviation.
 **Indexes:** `(applicant, case_status)`, `destination_country`, `intake`, `case_status`, `archived_at`.
@@ -322,21 +332,21 @@ Baseline is `.concept/applicant.md`; where it and CLAUDE.md conflict, CLAUDE.md 
 **`status` choices:** `draft`, `ready`, `finalized`, `submitted`, `superseded`, `archived`
 **`document_type` choices:** one of the 53 canonical slugs (see `document-schemas.md §1`).
 
-| Field | Type | Req | Null | Gen | Description |
-|---|---|---|---|---|---|
-| id | UUID | — | No | Yes | PK |
-| applicant | FK→Applicant | Yes | No | No | Owner |
-| application_case | FK→ApplicationCase | No | Yes | No | Optional case link (`SET_NULL`, same applicant) |
-| document_type | enum(53) | Yes | No | No | Validation family key |
-| label | string(255) | No | No | No | — |
-| status | enum | No | No | No | Default `draft`; transition-only via ready/finalize/submit/archive |
-| document_content | JSON | No | No | No | Validated by type+`schema_version` (§12.5); derived values never stored |
-| schema_version | positive int | No | No | No | Default 1 |
-| template_key / template_version | string | No | No | No | Renderer template metadata |
-| current_revision_number | positive int | No | No | Yes | Advances on each content edit (Phase-5 revisions key off it) |
-| record_version | positive int | No | No | Yes | Optimistic concurrency; `>= 1` check |
-| finalized_at/by, submitted_at/by, archived_at/by | datetime / FK | No | Yes | Yes | Lifecycle stamps |
-| created_at/updated_at/created_by/updated_by | — | — | — | — | Actor stamps |
+| Field                                            | Type               | Req | Null | Gen | Description                                                             |
+| ------------------------------------------------ | ------------------ | --- | ---- | --- | ----------------------------------------------------------------------- |
+| id                                               | UUID               | —   | No   | Yes | PK                                                                      |
+| applicant                                        | FK→Applicant       | Yes | No   | No  | Owner                                                                   |
+| application_case                                 | FK→ApplicationCase | No  | Yes  | No  | Optional case link (`SET_NULL`, same applicant)                         |
+| document_type                                    | enum(53)           | Yes | No   | No  | Validation family key                                                   |
+| label                                            | string(255)        | No  | No   | No  | —                                                                       |
+| status                                           | enum               | No  | No   | No  | Default `draft`; transition-only via ready/finalize/submit/archive      |
+| document_content                                 | JSON               | No  | No   | No  | Validated by type+`schema_version` (§12.5); derived values never stored |
+| schema_version                                   | positive int       | No  | No   | No  | Default 1                                                               |
+| template_key / template_version                  | string             | No  | No   | No  | Renderer template metadata                                              |
+| current_revision_number                          | positive int       | No  | No   | Yes | Advances on each content edit (Phase-5 revisions key off it)            |
+| record_version                                   | positive int       | No  | No   | Yes | Optimistic concurrency; `>= 1` check                                    |
+| finalized_at/by, submitted_at/by, archived_at/by | datetime / FK      | No  | Yes  | Yes | Lifecycle stamps                                                        |
+| created_at/updated_at/created_by/updated_by      | —                  | —   | —    | —   | Actor stamps                                                            |
 
 **Validation:** content passes JSON-safety (no NaN/Infinity, ≤256 KB / depth 12 / 2000 keys) + a family validator on every create/update (`APPLICANT_DOCUMENT_CONTENT_INVALID`); unknown type → `APPLICANT_DOCUMENT_TYPE_INVALID`. Editable only in `draft`/`ready` (`APPLICANT_DOCUMENT_NOT_EDITABLE`); status changes only through the action endpoints.
 **Indexes:** `(applicant, status)`, `document_type`, `application_case`, `archived_at`.

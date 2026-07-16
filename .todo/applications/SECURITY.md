@@ -11,15 +11,15 @@ This document is required per project rulebook §19 (Documentation Requirements)
 
 ## Change History
 
-| Version | Date | Author | Summary |
-|---------|------|--------|---------|
-| 1.0.0 | 2026-07-15 | AI (Claude) | Phase 1: access model, staff whitelist, disclosure projections, locking, concurrency, private media, audit. |
-| 1.1.0 | 2026-07-15 | AI (Claude) | Phase 2a: admin-only profile children, identity fingerprint, general evidence media (image/PDF sniff), cross-applicant media rejection. |
-| 1.2.0 | 2026-07-15 | AI (Claude) | Phase 2b: CRM/compliance children (protected financial/visa/consent data), assessment supersede, assessment↔lifecycle coupling. |
-| 1.3.0 | 2026-07-15 | AI (Claude) | Phase 3: application cases (transition-only status, own record_version), assignments, cross-applicant case-reference rejection. |
-| 1.4.0 | 2026-07-15 | AI (Claude) | Phase 4: documents — non-disclosing 404 for staff (§9.5), polymorphic content validation + JSON-safety, status lifecycle. |
-| 1.5.0 | 2026-07-15 | AI (Claude) | Phase 5: immutable revisions + print evidence (retained on archive), signatures, certificate signature resolution. |
-| 1.6.0 | 2026-07-15 | AI (Claude) | Phase 6: admin duplicate merge — safe transfer, retain-not-delete, immutable merge record, circular/repeat rejection. |
+| Version | Date       | Author      | Summary                                                                                                                                 |
+| ------- | ---------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-07-15 | AI (Claude) | Phase 1: access model, staff whitelist, disclosure projections, locking, concurrency, private media, audit.                             |
+| 1.1.0   | 2026-07-15 | AI (Claude) | Phase 2a: admin-only profile children, identity fingerprint, general evidence media (image/PDF sniff), cross-applicant media rejection. |
+| 1.2.0   | 2026-07-15 | AI (Claude) | Phase 2b: CRM/compliance children (protected financial/visa/consent data), assessment supersede, assessment↔lifecycle coupling.         |
+| 1.3.0   | 2026-07-15 | AI (Claude) | Phase 3: application cases (transition-only status, own record_version), assignments, cross-applicant case-reference rejection.         |
+| 1.4.0   | 2026-07-15 | AI (Claude) | Phase 4: documents — non-disclosing 404 for staff (§9.5), polymorphic content validation + JSON-safety, status lifecycle.               |
+| 1.5.0   | 2026-07-15 | AI (Claude) | Phase 5: immutable revisions + print evidence (retained on archive), signatures, certificate signature resolution.                      |
+| 1.6.0   | 2026-07-15 | AI (Claude) | Phase 6: admin duplicate merge — safe transfer, retain-not-delete, immutable merge record, circular/repeat rejection.                   |
 
 ---
 
@@ -82,14 +82,14 @@ Profile images are stored under `APPLICANT_PRIVATE_MEDIA_ROOT`, outside the publ
 - **Cross-applicant `evidence_media` is rejected** on visa/consent (same reusable ownership check as identity documents, §22.3).
 - **Consent withdrawal is server-authoritative:** the client sends `status=withdrawn`; the service stamps `withdrawn_at`/`withdrawn_by` — the client cannot backdate or spoof the actor.
 - **Qualification assessments are append-only/supersede** (no update/delete) — an assessment record can never be silently rewritten; a new one retires the prior current and history is preserved.
-- **Assessment↔lifecycle coupling:** a move to `potential` must cite a qualification assessment *of that applicant* or carry an admin override reason — the assessment reference is verified server-side (an id from another applicant is a `404`, never honoured).
+- **Assessment↔lifecycle coupling:** a move to `potential` must cite a qualification assessment _of that applicant_ or carry an admin override reason — the assessment reference is verified server-side (an id from another applicant is a `404`, never honoured).
 
 ## §10 Phase 3 — application cases & assignments
 
 - **Application cases, status transitions, history, and assignments are admin/superadmin-only** (staff `403`, asserted). A case is a distinct aggregate with its **own** `record_version` — a stale case update is a `409`, independent of the applicant's version.
 - **Case status is transition-only:** a raw `PATCH` cannot change `case_status` (the field is absent from the write serializer); status moves only through the transition service, which appends immutable history and requires a reason for adverse/terminal statuses. Archived cases reject further transitions/updates.
 - **Cross-applicant references are rejected server-side:** an `application_case` linked from media/sponsor/interaction, or supplied to an assignment, must belong to the same applicant (`APPLICANT_CASE_APPLICANT_MISMATCH`) — an id from the request body is never trusted (§22.3).
-- **Assignee validation:** the assignment target must be an existing *active* `authenticate.User` (`APPLICANT_ASSIGNEE_INVALID`); assignment is history (new ends prior current), not a silently mutated pointer.
+- **Assignee validation:** the assignment target must be an existing _active_ `authenticate.User` (`APPLICANT_ASSIGNEE_INVALID`); assignment is history (new ends prior current), not a silently mutated pointer.
 
 ## §11 Phase 4 — documents
 
@@ -102,7 +102,7 @@ Profile images are stored under `APPLICANT_PRIVATE_MEDIA_ROOT`, outside the publ
 ## §12 Phase 5 — revisions, print, signatures
 
 - **The document surface's non-disclosing 404 extends to revisions, print events, signatures, and document search** — every Phase-5 endpoint returns `404` (not `403`) to staff.
-- **Immutable audit trail:** `DocumentRevision` and `DocumentPrintEvent` are append-only (`save` on an existing row and `delete` both raise). A revision is snapshotted **in the same transaction** as each persisted content edit, so history can't diverge from the document. Restore replays a snapshot as a *new* revision — an old revision is never rewritten.
+- **Immutable audit trail:** `DocumentRevision` and `DocumentPrintEvent` are append-only (`save` on an existing row and `delete` both raise). A revision is snapshotted **in the same transaction** as each persisted content edit, so history can't diverge from the document. Restore replays a snapshot as a _new_ revision — an old revision is never rewritten.
 - **Print = evidence, not a claim:** `print_status` is limited to `rendered`/`print_initiated`/`artifact_downloaded`/`failed` — the backend never asserts physical printing (§16.2). The frontend-computed derived values (running balances, interest/tax, amount-in-words, USD) are stored verbatim so a later formula/template change can't retro-alter what was printed (§16.4).
 - **Retention:** print and revision records are retained when a document/applicant is archived (§16.6) — archival is a status change, never a cascade delete. `content_checksum`/`artifact_checksum` (sha-256) fix each snapshot.
 - **Signatures are archived, never deleted** (`DELETE` → `is_active=False`), so historical revisions/prints keep resolving the signatory. The image is private media (no public URL). Certificate `instructor_id`/`director_id` are verified to resolve to an **active, non-archived** signature at create/update (`APPLICANT_SIGNATURE_INVALID`) — a stale/inactive reference is rejected.

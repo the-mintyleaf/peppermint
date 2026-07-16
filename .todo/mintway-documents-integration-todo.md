@@ -69,8 +69,10 @@ identically; no view/layout was redesigned.
 ### C. Verify Phase 5
 
 - [x] format + check-types + lint green
-- [ ] Dual adversarial review over the fix diff; HIGH findings resolved
-- [ ] Commit; /visual-review /documents/[applicantId]
+- [x] Dual adversarial review (Codex + reviewer) over the fix diff — all confirmed findings
+      resolved across 346b757 + e864026 (409 whole-content last-write-wins kept per user choice)
+- [x] Commit fixes (6116878, 346b757, e864026)
+- [ ] /visual-review /documents/[applicantId] (needs a running backend — manual)
 
 ## Phase 4 — Verify
 
