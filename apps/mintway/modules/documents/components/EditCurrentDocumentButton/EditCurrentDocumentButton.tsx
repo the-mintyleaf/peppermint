@@ -4,6 +4,7 @@ import { Button } from "@peppermint/ui";
 import { PencilSimple as EditIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { useDocumentEditor } from "../../context";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
+import { isEditableStatus } from "../../documents.status";
 import styles from "../../pages/editor/DocumentEditor.module.css";
 
 interface EditCurrentDocumentButtonProps {
@@ -17,6 +18,11 @@ export function EditCurrentDocumentButton({
     useDocumentEditor();
 
   if (!activeDocument || activeHistoricalLog) {
+    return null;
+  }
+
+  // Read-only once finalized/submitted/archived — the content can no longer be edited.
+  if (!isEditableStatus(activeDocument.status)) {
     return null;
   }
 

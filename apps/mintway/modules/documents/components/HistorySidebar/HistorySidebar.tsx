@@ -19,6 +19,7 @@ import { useDocumentEditor } from "../../context";
 import { useDocumentHistory } from "../../hooks/useDocumentHistory";
 import { useDocumentActions } from "../../hooks/useDocumentActions";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
+import { isEditableStatus } from "../../documents.status";
 import type {
   Document,
   DocumentConfigBarProps,
@@ -34,17 +35,26 @@ interface DocumentCustomizationsProps {
   ConfigBar: ComponentType<DocumentConfigBarProps> | undefined;
   document: Document | null;
   onUpdate: (content: DocumentContent) => void;
+  editable: boolean;
 }
 
 const DocumentCustomizations = memo(function DocumentCustomizations({
   ConfigBar,
   document,
   onUpdate,
+  editable,
 }: DocumentCustomizationsProps) {
   if (!ConfigBar || !document) {
     return (
       <Text size="xs" c="dimmed" ta="center" py="sm" px={8}>
         No Customizations for this Document
+      </Text>
+    );
+  }
+  if (!editable) {
+    return (
+      <Text size="xs" c="dimmed" ta="center" py="sm" px={8}>
+        This document is {document.status} and can no longer be edited.
       </Text>
     );
   }
@@ -128,9 +138,9 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
               }}
               loading={isSavingHistory}
               disabled={!activeDocument}
-              aria-label="Save a new history snapshot"
+              aria-label="Save a snapshot of the current version"
             >
-              Save a new history
+              Save snapshot
             </Button>
 
             <ScrollArea style={{ flex: 1, minHeight: 0 }} type="auto">
@@ -252,6 +262,9 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
               ConfigBar={ConfigBar}
               document={activeDocument ?? null}
               onUpdate={handleUpdate}
+              editable={
+                !!activeDocument && isEditableStatus(activeDocument.status)
+              }
             />
           </ScrollArea>
         </div>

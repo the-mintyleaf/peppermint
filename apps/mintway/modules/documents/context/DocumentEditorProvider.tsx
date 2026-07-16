@@ -72,6 +72,7 @@ export function DocumentEditorProvider({
     null,
   );
   const [editFieldsModalOpen, setEditFieldsModalOpen] = useState(false);
+  const [isPrintingAll, setIsPrintingAll] = useState(false);
   const [hasPendingEdits, setHasPendingEdits] = useState(false);
 
   const { data: documents = [], isLoading: isLoadingDocuments } = useQuery({
@@ -114,33 +115,54 @@ export function DocumentEditorProvider({
   const updateMutation = useMutation({
     mutationFn: async ({
       id,
+      type,
       content,
       recordVersion,
     }: {
       id: string;
+      type: DocumentType;
       content: DocumentContent;
       recordVersion: number;
     }) => {
       try {
-        return await documentsApi.update(id, { content, recordVersion });
+        return {
+          doc: await documentsApi.update(id, { type, content, recordVersion }),
+          conflict: false,
+        };
       } catch (error) {
-        // Stale version → reload the document and retry once with the fresh version.
+        // Stale version → reload the document and retry with the fresh version so the
+        // operator's autosaved edit is preserved. Flag it so onSuccess can notify (not silent).
         if (getErrorCode(error) === "APPLICANT_DOCUMENT_VERSION_CONFLICT") {
           const fresh = await documentsApi.get(id);
-          return documentsApi.update(id, {
-            content,
-            recordVersion: fresh.recordVersion,
-          });
+          return {
+            doc: await documentsApi.update(id, {
+              type,
+              content,
+              recordVersion: fresh.recordVersion,
+            }),
+            conflict: true,
+          };
         }
         throw error;
       }
     },
-    onSuccess: (updated) => {
-      writeDocumentToCache(updated);
+    onSuccess: ({ doc, conflict }) => {
+      writeDocumentToCache(doc);
       queryClient.invalidateQueries({
-        queryKey: documentQueryKeys.revisions(updated.id),
+        queryKey: documentQueryKeys.revisions(doc.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: documentQueryKeys.workspaces(),
       });
       setHasPendingEdits(false);
+      if (conflict) {
+        notifications.show({
+          title: "Document had changed",
+          message:
+            "It was updated elsewhere — your change was re-applied on top.",
+          color: "yellow",
+        });
+      }
     },
     onError: (error) => {
       const code = getErrorCode(error);
@@ -193,6 +215,7 @@ export function DocumentEditorProvider({
       setHasPendingEdits(true);
       updateMutation.mutate({
         id: documentId,
+        type: doc.type,
         content,
         recordVersion: doc.recordVersion,
       });
@@ -251,6 +274,9 @@ export function DocumentEditorProvider({
     mutationFn: documentsApi.create,
     onSuccess: (doc) => {
       appendDocumentToCache(doc);
+      queryClient.invalidateQueries({
+        queryKey: documentQueryKeys.workspaces(),
+      });
       notifications.show({
         title: "Page added",
         message: doc.label,
@@ -300,6 +326,9 @@ export function DocumentEditorProvider({
     }) => documentsApi.runAction(id, action),
     onSuccess: (updated, { action }) => {
       writeDocumentToCache(updated);
+      queryClient.invalidateQueries({
+        queryKey: documentQueryKeys.workspaces(),
+      });
       notifications.show({
         title: `Document ${action === "finalize" ? "finalized" : action}d`,
         message: updated.label,
@@ -326,6 +355,9 @@ export function DocumentEditorProvider({
     [statusMutation, activeDocumentId],
   );
 
+  const beginPrintAll = useCallback(() => setIsPrintingAll(true), []);
+  const endPrintAll = useCallback(() => setIsPrintingAll(false), []);
+
   const value: DocumentEditorContextValue = {
     applicantId,
     studentFullData,
@@ -351,6 +383,9 @@ export function DocumentEditorProvider({
     isCreatingDocument: createMutation.isPending,
     runStatusAction,
     isRunningStatusAction: statusMutation.isPending,
+    isPrintingAll,
+    beginPrintAll,
+    endPrintAll,
     printableContentRef,
     hasUnsavedChanges,
     markUnsavedChanges,

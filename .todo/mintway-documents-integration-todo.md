@@ -46,6 +46,32 @@ identically; no view/layout was redesigned.
 - [x] "Prepare documents" link on admin applicant overview; "Manage signatures" in editor header
 - [x] Chrome tweaks: DocHeader routes + branding (zetsel→mintway) — NOT templates
 
+## Phase 5 — Ghost-functionality audit & fixes (dual-review + UX)
+
+### A. Correctness
+
+- [x] Certificate content mapper (camelCase ⇄ snake_case) in documents.api.ts — send + read-back
+- [x] Signature multipart Content-Type on create/update (mirror evidenceMedia.api.ts)
+- [x] 409 conflict: keep edit + informational notification (not silent)
+- [x] useSignatures: revoke prior object URLs inside queryFn (no revoked-URL reuse / leaks)
+- [x] Invalidate documentQueryKeys.workspaces() on create/status/remove success
+
+### B. Ghost / broken UI
+
+- [x] Status badge (words+color+position) + primary advance button + Archive overflow in DocToolbar
+- [x] Read-only enforcement for finalized/submitted/archived (disable edit/config/remove)
+- [x] PagesSidebar remove ActionIcon: add visible TrashIcon
+- [x] Print all: render every page into printable output
+- [x] EditFieldsModal: pass studentFullData for prefill parity
+- [x] Wording: "Student" → "Applicant" in DocToolbar meta + AddPageMenu label
+- [x] Relabel "Save a new history" → "Save snapshot"
+
+### C. Verify Phase 5
+
+- [x] format + check-types + lint green
+- [ ] Dual adversarial review over the fix diff; HIGH findings resolved
+- [ ] Commit; /visual-review /documents/[applicantId]
+
 ## Phase 4 — Verify
 
 - [x] `pnpm format && pnpm check-types && pnpm lint` (mintway) — all green (2 pre-existing App.tsx warnings)

@@ -11,6 +11,7 @@ import {
 } from "@peppermint/ui";
 import { Plus as PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { X as XIcon } from "@phosphor-icons/react/dist/csr/X";
+import { Trash as TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { FileText as FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
 import { modals } from "@peppermint/ui";
 import { useDocumentEditor } from "../../context";
@@ -100,12 +101,14 @@ export function PagesSidebar({ onClose }: PagesSidebarProps) {
               >
                 <ActionIcon
                   size="xs"
-                  variant="transparent"
-                  color="gray"
+                  variant="subtle"
+                  color="red"
                   style={{ position: "absolute", top: 2, right: 2, zIndex: 1 }}
                   onClick={() => confirmRemove(doc.id, doc.label)}
                   aria-label={`Remove ${doc.label}`}
-                />
+                >
+                  <TrashIcon size={12} aria-hidden />
+                </ActionIcon>
                 <UnstyledButton
                   w="100%"
                   onClick={() => setActiveDocumentId(doc.id)}

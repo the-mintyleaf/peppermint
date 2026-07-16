@@ -8,14 +8,23 @@ import {
   Button,
   Tooltip,
   Badge,
+  Menu,
+  modals,
 } from "@peppermint/ui";
 import { Sidebar as SidebarIcon } from "@phosphor-icons/react/dist/csr/Sidebar";
 import { CaretLeft as CaretLeftIcon } from "@phosphor-icons/react/dist/csr/CaretLeft";
 import { CaretRight as CaretRightIcon } from "@phosphor-icons/react/dist/csr/CaretRight";
 import { Printer as PrinterIcon } from "@phosphor-icons/react/dist/csr/Printer";
+import { DotsThree as DotsThreeIcon } from "@phosphor-icons/react/dist/csr/DotsThree";
+import { Archive as ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
 import { useDocumentEditor } from "../../context";
 import { useDocumentActions } from "../../hooks/useDocumentActions";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
+import {
+  STATUS_META,
+  getNextStatusAction,
+  canArchiveStatus,
+} from "../../documents.status";
 import styles from "../../pages/editor/DocumentEditor.module.css";
 
 interface DocToolbarProps {
@@ -41,6 +50,9 @@ export function DocToolbar({
     setActiveDocumentId,
     printableContentRef,
     removeDocumentFromList,
+    runStatusAction,
+    isRunningStatusAction,
+    beginPrintAll,
   } = useDocumentEditor();
 
   const resolvedActiveDocument =
@@ -52,9 +64,10 @@ export function DocToolbar({
     activeDocument: resolvedActiveDocument,
     printableContentRef,
     onDocumentRemoved: removeDocumentFromList,
+    beginPrintAll,
   });
 
-  const displayName = studentFullData?.fullName ?? `Student ${applicantId}`;
+  const displayName = studentFullData?.fullName ?? `Applicant ${applicantId}`;
   const lastUpdated = documents.reduce(
     (latest, doc) => (doc.updatedAt > latest ? doc.updatedAt : latest),
     documents[0]?.updatedAt ?? "",
@@ -67,6 +80,22 @@ export function DocToolbar({
   const activeTypeLabel = resolvedActiveDocument
     ? getDocumentTypeConfig(resolvedActiveDocument.type).label
     : null;
+
+  const status = resolvedActiveDocument?.status ?? null;
+  const statusMeta = status ? STATUS_META[status] : null;
+  const nextAction = status ? getNextStatusAction(status) : null;
+  const showArchive = status ? canArchiveStatus(status) : false;
+
+  const confirmArchive = () => {
+    modals.openConfirmModal({
+      title: "Archive document",
+      children:
+        "Archiving hides this document from active workspaces. History and prints are kept.",
+      labels: { confirm: "Archive", cancel: "Cancel" },
+      confirmProps: { color: "red" },
+      onConfirm: () => runStatusAction("archive"),
+    });
+  };
 
   const metaParts = [
     displayName,
@@ -92,6 +121,11 @@ export function DocToolbar({
         {activeTypeLabel ? (
           <Badge variant="light" size="xs">
             {activeTypeLabel}
+          </Badge>
+        ) : null}
+        {statusMeta ? (
+          <Badge variant="light" size="xs" color={statusMeta.color}>
+            {statusMeta.label}
           </Badge>
         ) : null}
         {activeHistoricalLog ? (
@@ -131,6 +165,45 @@ export function DocToolbar({
       </Group>
 
       <Group gap={4} wrap="nowrap" justify="flex-end" style={{ flex: 1 }}>
+        {nextAction ? (
+          <Button
+            variant="light"
+            size="xs"
+            h={28}
+            px="xs"
+            onClick={() => runStatusAction(nextAction.action)}
+            loading={isRunningStatusAction}
+            disabled={!activeDocumentId}
+            aria-label={nextAction.label}
+          >
+            {nextAction.label}
+          </Button>
+        ) : null}
+        {showArchive ? (
+          <Menu shadow="md" position="bottom-end" withinPortal>
+            <Menu.Target>
+              <ActionIcon
+                className={styles.iconBtn}
+                variant="subtle"
+                size="sm"
+                aria-label="More status actions"
+                disabled={!activeDocumentId || isRunningStatusAction}
+              >
+                <DotsThreeIcon size={16} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item
+                color="red"
+                leftSection={<ArchiveIcon size={14} aria-hidden />}
+                onClick={confirmArchive}
+              >
+                Archive document
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        ) : null}
+        <Divider orientation="vertical" mx={2} />
         <Button
           variant="subtle"
           size="xs"

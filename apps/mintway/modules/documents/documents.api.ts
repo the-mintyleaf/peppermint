@@ -44,6 +44,52 @@ function unwrapList<T>(raw: unknown): T[] {
   return Array.isArray(maybe) ? (maybe as T[]) : [];
 }
 
+// ── Certificate content key mapping ──────────────────────────────────────────
+// The certificate template family reads camelCase keys, but the backend `certificate`
+// validator requires snake_case (`study_type` is required; `instructor_id`/`director_id`
+// drive signature resolution — document-schemas §2). Translate only these keys, only for the
+// certificate type; every other family already agrees with the backend (or is open-schema).
+const CERT_CAMEL_TO_SNAKE: Record<string, string> = {
+  studyType: "study_type",
+  coursehour: "course_hours",
+  instructorId: "instructor_id",
+  directorId: "director_id",
+};
+const CERT_SNAKE_TO_CAMEL: Record<string, string> = Object.fromEntries(
+  Object.entries(CERT_CAMEL_TO_SNAKE).map(([camel, snake]) => [snake, camel]),
+);
+
+function remapKeys(
+  content: Document["content"],
+  map: Record<string, string>,
+): Document["content"] {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(content)) {
+    out[map[key] ?? key] = value;
+  }
+  return out as Document["content"];
+}
+
+/** Certificate content → backend snake_case on send; no-op for other families. */
+function toBackendContent(
+  type: DocumentType | undefined,
+  content: Document["content"],
+): Document["content"] {
+  return type === "student-certificate"
+    ? remapKeys(content, CERT_CAMEL_TO_SNAKE)
+    : content;
+}
+
+/** Backend certificate content → camelCase on read; no-op for other families. */
+function toFrontendContent(
+  type: DocumentType,
+  content: Document["content"],
+): Document["content"] {
+  return type === "student-certificate"
+    ? remapKeys(content, CERT_SNAKE_TO_CAMEL)
+    : content;
+}
+
 // ── Backend → frontend mappers ───────────────────────────────────────────────
 interface RawDocument {
   id: string;
@@ -61,12 +107,16 @@ interface RawDocument {
 }
 
 function toDocument(raw: RawDocument): Document {
+  const type = toFrontendType(raw.document_type);
   return {
     id: raw.id,
     applicantId: raw.applicant,
-    type: toFrontendType(raw.document_type),
+    type,
     label: raw.label,
-    content: (raw.document_content ?? {}) as Document["content"],
+    content: toFrontendContent(
+      type,
+      (raw.document_content ?? {}) as Document["content"],
+    ),
     status: raw.status,
     recordVersion: raw.record_version,
     currentRevisionNumber: raw.current_revision_number,
@@ -171,7 +221,7 @@ export async function createDocument(
     {
       document_type: toBackendType(input.type),
       label: input.label,
-      document_content: input.content,
+      document_content: toBackendContent(input.type, input.content),
       ...(input.applicationCaseId
         ? { application_case_id: input.applicationCaseId }
         : {}),
@@ -190,7 +240,7 @@ export async function updateDocument(
     {
       ...(input.label !== undefined ? { label: input.label } : {}),
       ...(input.content !== undefined
-        ? { document_content: input.content }
+        ? { document_content: toBackendContent(input.type, input.content) }
         : {}),
       ...(input.schemaVersion !== undefined
         ? { schema_version: input.schemaVersion }
@@ -335,6 +385,10 @@ function toSignatureFormData(input: SignatureInput): FormData {
   return fd;
 }
 
+// Override the client's default JSON Content-Type so axios sends multipart with a boundary
+// (otherwise it JSON-stringifies the FormData and drops the file). Mirrors evidenceMedia.api.ts.
+const MULTIPART = { headers: { "Content-Type": "multipart/form-data" } };
+
 /** `POST /api/v1/signatures/` — multipart. */
 export async function createSignature(
   input: SignatureInput,
@@ -342,6 +396,7 @@ export async function createSignature(
   const { data } = await api.post<Record<string, unknown>>(
     `/api/v1/signatures/`,
     toSignatureFormData(input),
+    MULTIPART,
   );
   return toSignature(data);
 }
@@ -354,6 +409,7 @@ export async function updateSignature(
   const { data } = await api.patch<Record<string, unknown>>(
     `/api/v1/signatures/${signatureId}/`,
     toSignatureFormData(input),
+    MULTIPART,
   );
   return toSignature(data);
 }

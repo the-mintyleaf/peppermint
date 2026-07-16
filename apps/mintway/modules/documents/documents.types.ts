@@ -356,6 +356,8 @@ export interface UpdateDocumentInput {
   content?: DocumentContent;
   schemaVersion?: number;
   recordVersion: number;
+  /** Frontend document type — used only to map certificate content keys; never sent. */
+  type?: DocumentType;
 }
 
 /**

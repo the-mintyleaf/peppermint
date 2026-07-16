@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useQuery } from "@peppermint/ui";
 import { documentsApi } from "../documents.api";
 import { documentQueryKeys } from "../documents.queryKeys";
@@ -8,8 +8,9 @@ import type { Signature } from "../documents.types";
 
 /**
  * Active signatories with their private images resolved to object URLs (the image endpoint is
- * auth-gated, so a plain `<img src>` to the API URL would 401). Object URLs are revoked on
- * unmount / when the set changes to avoid leaks.
+ * auth-gated, so a plain `<img src>` to the API URL would 401). Revocation is tied to the
+ * query lifecycle (prior URLs are revoked when the queryFn re-runs), not component unmount, so
+ * cached URLs stay valid across remounts within `staleTime`.
  */
 export function useSignatures() {
   const objectUrlsRef = useRef<string[]>([]);
@@ -17,6 +18,10 @@ export function useSignatures() {
   const query = useQuery({
     queryKey: documentQueryKeys.signatures(),
     queryFn: async (): Promise<Signature[]> => {
+      // Revoke URLs from a prior fetch before minting new ones so the cached data never holds
+      // a revoked URL and refetches don't leak.
+      objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      objectUrlsRef.current = [];
       const signatures = await documentsApi.listSignatures(true);
       const resolved = await Promise.all(
         signatures.map(async (sig) => {
@@ -35,13 +40,6 @@ export function useSignatures() {
     },
     staleTime: 5 * 60 * 1000,
   });
-
-  useEffect(() => {
-    return () => {
-      objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
-      objectUrlsRef.current = [];
-    };
-  }, []);
 
   return query;
 }

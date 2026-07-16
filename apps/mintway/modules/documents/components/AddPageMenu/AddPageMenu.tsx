@@ -61,7 +61,7 @@ export function AddPageMenu({ children, width = 220 }: AddPageMenuProps) {
         {studentTypes.length > 0 && (
           <Menu.Sub openDelay={80} closeDelay={120}>
             <Menu.Sub.Target>
-              <Menu.Sub.Item fz="xs">Student</Menu.Sub.Item>
+              <Menu.Sub.Item fz="xs">Applicant</Menu.Sub.Item>
             </Menu.Sub.Target>
             <Menu.Sub.Dropdown>
               {studentTypes.map((type) => (

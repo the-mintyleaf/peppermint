@@ -52,6 +52,9 @@ export interface DocumentEditorContextValue {
   isCreatingDocument: boolean;
   runStatusAction: (action: DocumentStatusAction) => void;
   isRunningStatusAction: boolean;
+  isPrintingAll: boolean;
+  beginPrintAll: () => void;
+  endPrintAll: () => void;
   printableContentRef: RefObject<HTMLDivElement | null>;
   hasUnsavedChanges: boolean;
   markUnsavedChanges: () => void;

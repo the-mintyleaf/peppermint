@@ -23,6 +23,8 @@ interface UseDocumentActionsOptions {
   activeDocument: Document | null;
   printableContentRef: RefObject<HTMLDivElement | null>;
   onDocumentRemoved: (documentId: string) => void;
+  /** Renders every page then prints (see DocumentContent); falls back to a plain print. */
+  beginPrintAll?: () => void;
 }
 
 /**
@@ -67,6 +69,7 @@ export function useDocumentActions({
   documents,
   activeDocument,
   onDocumentRemoved,
+  beginPrintAll,
 }: UseDocumentActionsOptions) {
   const queryClient = useQueryClient();
 
@@ -91,6 +94,9 @@ export function useDocumentActions({
     onSuccess: (_, documentId) => {
       queryClient.invalidateQueries({
         queryKey: documentQueryKeys.list(applicantId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: documentQueryKeys.workspaces(),
       });
       onDocumentRemoved(documentId);
       notifications.show({
@@ -134,7 +140,13 @@ export function useDocumentActions({
           input: buildPrintInput(doc),
         });
       }
-      triggerPrint();
+      // Render every page into the print output before printing so the browser dialog
+      // matches the recorded events. Falls back to printing the active page only.
+      if (beginPrintAll) {
+        beginPrintAll();
+      } else {
+        triggerPrint();
+      }
     } catch {
       notifications.show({
         title: "Failed to record prints",
@@ -142,7 +154,7 @@ export function useDocumentActions({
         color: "red",
       });
     }
-  }, [documents, createEventMutation]);
+  }, [documents, createEventMutation, beginPrintAll]);
 
   const handleRemoveDocument = useCallback(
     async (documentId: string) => {

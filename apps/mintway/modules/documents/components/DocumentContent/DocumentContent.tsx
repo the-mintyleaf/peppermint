@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import {
   Center,
   ScrollArea,
@@ -21,10 +22,49 @@ export function DocumentContent() {
     studentFullData,
     signatures,
     printableContentRef,
+    isPrintingAll,
+    endPrintAll,
   } = useDocumentEditor();
 
   const isDeleting =
     useIsMutating({ mutationKey: documentMutationKeys.remove() }) > 0;
+
+  // When a "Print all" is requested, every page is rendered (branch below); once painted, open
+  // the browser print dialog then reset so the browser output matches the recorded print events.
+  useEffect(() => {
+    if (!isPrintingAll) return;
+    const id = requestAnimationFrame(() => {
+      window.print();
+      endPrintAll();
+    });
+    return () => cancelAnimationFrame(id);
+  }, [isPrintingAll, endPrintAll]);
+
+  if (isPrintingAll && documents.length > 0) {
+    return (
+      <ScrollArea className={styles.centerContent} type="auto">
+        <Box style={{ padding: "12px 8px" }}>
+          <Center>
+            <div ref={printableContentRef} data-mantine-color-scheme="light">
+              {documents.map((doc) => {
+                const Template = getDocumentTypeConfig(doc.type).Template;
+                return (
+                  <Template
+                    key={doc.id}
+                    document={doc}
+                    studentFullData={studentFullData}
+                    signatures={signatures}
+                    historicalSnapshot={null}
+                    isHistorical={false}
+                  />
+                );
+              })}
+            </div>
+          </Center>
+        </Box>
+      </ScrollArea>
+    );
+  }
 
   if (documents.length === 0) {
     return (
