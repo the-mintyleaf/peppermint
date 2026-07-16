@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Button,
@@ -28,7 +29,6 @@ import { RowsIcon } from "@phosphor-icons/react/dist/csr/Rows";
 import { tokens } from "@/config/design";
 import { BlockView } from "./block-view";
 import { ListView } from "./list-view";
-import { CaseDetailModal } from "./detail/CaseDetailModal";
 import {
   SORT_KEYS,
   STATUS_TABS,
@@ -83,7 +83,7 @@ export function ModuleCases() {
   const [sort, setSort] = useState<SortKey>("recent");
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch] = useDebouncedValue(searchInput, 300);
-  const [selectedCase, setSelectedCase] = useState<WorkCase | null>(null);
+  const router = useRouter();
 
   const { data: cases, isLoading: casesLoading } = useCases();
   const { data: files, isLoading: filesLoading } = useFiles();
@@ -96,8 +96,10 @@ export function ModuleCases() {
 
   const totalVisible = filteredCases.length + visibleFiles.length;
 
-  const openCase = useCallback((c: WorkCase) => setSelectedCase(c), []);
-  const closeCase = useCallback(() => setSelectedCase(null), []);
+  const openCase = useCallback(
+    (c: WorkCase) => router.push(`/cases/${c.id}`),
+    [router],
+  );
   const clearFilters = useCallback(() => {
     setSearchInput("");
     setStatus("all");
@@ -259,8 +261,6 @@ export function ModuleCases() {
           </ScrollArea>
         </Stack>
       </ModalPaper>
-
-      <CaseDetailModal workCase={selectedCase} onClose={closeCase} />
     </>
   );
 }
