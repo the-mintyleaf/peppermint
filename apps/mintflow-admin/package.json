@@ -1,0 +1,41 @@
+{
+  "name": "mintflow-admin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@peppermint/admin": "workspace:*",
+    "@peppermint/api-client": "workspace:*",
+    "@peppermint/ui": "workspace:*",
+    "@peppermint/utils": "workspace:^",
+    "@phosphor-icons/react": "^2.1.10",
+    "@tanstack/react-query": "^5.100.9",
+    "@xyflow/react": "^12.11.0",
+    "axios": "^1.16.0",
+    "next": "16.2.7",
+    "qrcode.react": "^4.2.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.13"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.7",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

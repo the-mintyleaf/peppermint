@@ -1,0 +1,1 @@
+export { ModulePasswordChange } from "./PasswordChange";
