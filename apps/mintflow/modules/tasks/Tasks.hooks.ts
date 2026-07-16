@@ -123,10 +123,14 @@ function matchesDue(task: Task, window: DueWindow): boolean {
   return task.endDate >= today && task.endDate <= horizon;
 }
 
+// Local-time "YYYY-MM-DD" (not toISOString, which is UTC and can slip a day in
+// zones ahead of UTC).
 function isoDate(daysFromNow: number): string {
   const d = new Date();
   d.setDate(d.getDate() + daysFromNow);
-  return d.toISOString().slice(0, 10);
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}`;
 }
 
 // --- sorting -----------------------------------------------------------------
@@ -134,6 +138,15 @@ function isoDate(daysFromNow: number): string {
 function sortTasks(tasks: Task[], sortBy: SortBy, dir: SortDir): Task[] {
   if (sortBy === "manual") return tasks;
   const factor = dir === "asc" ? 1 : -1;
+
+  // Undated tasks always sink to the bottom, regardless of sort direction.
+  if (sortBy === "due") {
+    const dated = tasks.filter((t) => t.endDate);
+    const undated = tasks.filter((t) => !t.endDate);
+    dated.sort((a, b) => factor * a.endDate!.localeCompare(b.endDate!));
+    return [...dated, ...undated];
+  }
+
   return tasks.slice().sort((a, b) => factor * compareBy(a, b, sortBy));
 }
 
@@ -145,10 +158,6 @@ function compareBy(a: Task, b: Task, sortBy: SortBy): number {
       return PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
     case "created":
       return createdRank(a) - createdRank(b);
-    case "due":
-      return (a.endDate ?? "9999-99-99").localeCompare(
-        b.endDate ?? "9999-99-99",
-      );
     default:
       return 0;
   }
