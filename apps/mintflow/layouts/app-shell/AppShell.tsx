@@ -8,15 +8,16 @@ import { AppShell, Box, Burger, useDisclosure } from "@peppermint/ui";
 import { tokens } from "@/config/design";
 import { APP_SHELL_CONFIG } from "./nav.config";
 import { Sidebar } from "./components/Sidebar";
-import { RAIL_WIDTH, SHELL_INSET } from "./shell.constants";
+import { NAV_WIDTH, SHELL_INSET } from "./shell.constants";
 import type { AppShellConfig } from "./AppShell.types";
 
-const NAVBAR_WIDTH = RAIL_WIDTH + SHELL_INSET * 2;
+const NAVBAR_WIDTH = NAV_WIDTH + SHELL_INSET * 2;
 
 /**
- * mintflow-admin chrome — a single dark icon rail (no second-tier sub-nav) over
- * the warm-paper content area. Config is the placeholder in `nav.config.tsx`;
- * router-bound `onNavigate` / `linkComponent` are injected here.
+ * mintflow-admin chrome — a single always-open 280px navigation panel (no
+ * icon-rail / sub-nav split) over the warm-paper content area. Config is the
+ * placeholder in `nav.config.tsx`; router-bound `onNavigate` / `linkComponent`
+ * are injected here.
  */
 export function LayoutAppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "";
@@ -41,8 +42,8 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
 
   return (
     <>
-      {/* Mobile-only toggle — the rail collapses below `sm` and otherwise has no
-          way to open. Dark chip keeps it visible over the light content. */}
+      {/* Mobile-only toggle — the panel collapses below `sm` and otherwise has
+          no way to open. Dark chip keeps it visible over the light content. */}
       <Box
         hiddenFrom="sm"
         pos="fixed"

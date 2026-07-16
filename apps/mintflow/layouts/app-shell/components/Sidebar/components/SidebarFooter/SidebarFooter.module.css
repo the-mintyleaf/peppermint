@@ -1,24 +1,14 @@
-.divider {
-  width: 40%;
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-.aiButton {
-  width: 36px;
-  height: 36px;
+.cluster {
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: var(--mantine-radius-xl);
-  color: var(--mantine-color-accent-4);
-  transition: background-color 150ms ease;
+  gap: 2px;
+  padding: 0 2px;
 }
 
-.aiButton:hover {
-  background-color: rgba(255, 255, 255, 0.06);
+.spacer {
+  flex: 1;
 }
 
-.aiButton:focus-visible {
-  outline: 2px solid var(--mantine-color-accent-5);
-  outline-offset: 2px;
+.divider {
+  border-color: rgba(255, 255, 255, 0.08);
 }

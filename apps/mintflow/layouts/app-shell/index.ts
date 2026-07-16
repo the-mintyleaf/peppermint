@@ -1,8 +1,8 @@
 export { LayoutAppShell } from "./AppShell";
 export type {
   AppShellConfig,
+  AppShellNavGroup,
   AppShellNavItem,
-  AppShellAdditionalItem,
   AppShellBrand,
   AppShellAiButton,
   AppShellSettingsButton,

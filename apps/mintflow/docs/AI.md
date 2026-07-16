@@ -18,29 +18,58 @@ local mock data (the "not wired" pattern: `notifications.show("Not connected yet
 - Route group `app/(app)/` wraps authenticated routes in the app shell
   (`layouts/app-shell`); `(app)/layout.tsx` is a pure re-export of `LayoutAppShell`.
   - `/dashboard` → `ModuleDashboard` (placeholder content region).
+  - `/tasks` → `ModuleTasks` (`modules/tasks/`) — the imported Tasks page.
 - `app/` files are re-export only (the root redirect is the one allowed exception).
+
+## Modules
+
+### `modules/tasks/` — `ModuleTasks` (ContainedModule)
+
+Single Tasks page with a **List / Board** view toggle, ported verbatim from
+`mintflow-admin`'s `admin/tasks` (analytics view dropped). Self-contained on **mock data**
+(`kanban/module.api.ts` — `MOCK_TASKS`, `fetchTasks`), no backend.
+
+- `Tasks.tsx` (`ModuleTasks`) — the unified dashboard: shared chrome (`ModuleHeader` +
+  `AccessMenu` + New Task, `ManageHeader`, board-filter `SegmentedControl`, List/Board
+  toggle, team panel, search) rendered once; the body swaps between board and list.
+- `kanban/` — Board view: `KanbanBoard`/`KanbanColumn`/`KanbanCard` (drag via `@dnd-kit`),
+  `CreateTaskModal`, `TaskDetailModal`, `TaskModalShared`; hooks `useTasks` /
+  `useKanbanBoard` in `KanbanDashboard.hooks.ts`; data + types in `module.api.ts`.
+- `general-view/` — List view: `TaskGroupSection` / `TaskListRow` grouped by display
+  status (`TaskTable.module.css`), `TeamMembersPanel`; hooks `useTeamMembers` /
+  `useGroupedTasks` + `DISPLAY_STATUS_*` in `GeneralViewDashboard.hooks.ts`.
+
+> The `*Dashboard.hooks.ts` filenames are retained from the source; the per-route
+> `*Dashboard.tsx` themselves were replaced by the single `Tasks.tsx`.
 
 ## The app shell — `layouts/app-shell/`
 
-`LayoutAppShell` (client) is a **single dark icon rail** (no second-tier sub-nav) over
-the warm-paper content area — the in-app, mint-tuned counterpart of
-`@peppermint/admin`'s `AdminShell` MainNav.
+`LayoutAppShell` (client) is a **single always-open 280px navigation panel** (no
+icon-rail / sub-nav split) over the warm-paper content area — the in-app, mint-tuned
+counterpart of `@peppermint/admin`'s `AdminShell`, rendered as one full-width labeled panel.
 
 - **Config-driven.** `nav.config.tsx` (`APP_SHELL_CONFIG`) holds the static shape —
-  brand, `nav` destinations, `additional`, `aiButton`, `settingsButton`,
-  `notifications`, `user`. `LayoutAppShell` injects router-bound `onNavigate`
-  (`router.push`) and `linkComponent` (Next `Link`) at runtime. Types: `AppShell.types.ts`.
-- **Rail composition** (`components/Sidebar/`): `SidebarBrand` (accent chip) → search
-  (`spotlight.open()` opens the single `NavSpotlight`, also `mod+K`) → `NavIconButton`
-  destinations (mint-accent active pill, active resolved by `nav.utils.ts`
-  `resolveActiveNavItem` / `isActiveHref`) → optional `additional` → `SidebarFooter`
-  (AI, `BookmarksMenu` variant="sidenav", notifications bell, settings, `UserMenu`).
-- **Dark rail is explicit.** Unlike `AdminShell` (transparent rail over a dark app bg),
-  mintflow's body is light, so the rail Stack carries its own `tokens.tile` surface +
-  `tokens.shadow.nav` (see `shell.constants.ts` `railCardStyle`). Mobile (< `sm`): a
-  fixed `Burger` toggles the collapsed rail.
-- **Placeholder destinations** (`/cases`, `/calendar`, `/team`, `/notifications`, …)
-  have no routes yet and 404 until built — rewire `nav.config.tsx` as routes land.
+  `brand` (icon + wordmark + caption), `groups`, `aiButton`, `settingsButton`,
+  `notifications`, `user`. `groups` is an array of titled sections
+  (`AppShellNavGroup`): **Menu** (Dashboard, Tasks, Cases, Calendar, Team) and
+  **Work Files** (dummy kanban boards). `LayoutAppShell` injects router-bound
+  `onNavigate` (`router.push`) and `linkComponent` (Next `Link`) at runtime.
+  Types: `AppShell.types.ts`.
+- **Panel composition** (`components/Sidebar/`): `SidebarBrand` (accent chip + wordmark)
+  → `SearchField` (full-width, `spotlight.open()` opens the single `NavSpotlight`, also
+  `mod+K`) → scrollable groups, each an uppercase section label + `NavRow` items
+  (icon + label + optional count badge; active = accent-tinted, resolved by `nav.utils.ts`
+  `resolveActiveHref` / `isActiveHref`) → `SidebarFooter` (icon cluster: AI,
+  `BookmarksMenu` variant="sidenav", notifications bell, settings; then the full-width
+  `UserMenu` account row).
+- **Dark panel is explicit.** Unlike `AdminShell` (transparent over a dark app bg),
+  mintflow's body is light, so the panel Stack carries its own `tokens.tile` surface +
+  `tokens.shadow.nav` (see `shell.constants.ts` `navCardStyle`, `NAV_WIDTH = 280`).
+  Mobile (< `sm`): a fixed `Burger` toggles the collapsed panel; content reserves top
+  padding to clear it.
+- **Placeholder destinations** (`/cases`, `/calendar`, `/team`, `/work-files/*`,
+  `/notifications`, …) have no routes yet and 404 until built — rewire `nav.config.tsx`
+  as routes land. `/dashboard` and `/tasks` are real.
 
 > ⚠️ SSR lesson (still applies): `nav.config.tsx` is `"use client"` (it imports Phosphor
 > icons) and is imported **directly** by the client shell only — it is **not**

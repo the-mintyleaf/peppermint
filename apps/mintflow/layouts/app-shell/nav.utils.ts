@@ -1,28 +1,33 @@
-import type { AppShellNavItem } from "./AppShell.types";
+import type { AppShellNavGroup, AppShellNavItem } from "./AppShell.types";
 
 /** A route is active when the path equals its href or is nested under it. */
 export function isActiveHref(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-/**
- * Resolve the active destination for a pathname. The longest matching href wins
- * so that `/files/123/trail` highlights `Files`, not `/`.
- */
-export function resolveActiveNavItem(
-  items: AppShellNavItem[],
-  pathname: string,
-): AppShellNavItem | undefined {
-  let match: AppShellNavItem | undefined;
+/** Flatten every group's items into a single list. */
+export function flattenNavItems(groups: AppShellNavGroup[]): AppShellNavItem[] {
+  return groups.flatMap((group) => group.items);
+}
 
-  for (const item of items) {
+/**
+ * Resolve the active destination href across all groups. The longest matching
+ * href wins so `/files/123/trail` highlights `Files`, not a shorter prefix.
+ */
+export function resolveActiveHref(
+  groups: AppShellNavGroup[],
+  pathname: string,
+): string | undefined {
+  let best: string | undefined;
+
+  for (const item of flattenNavItems(groups)) {
     if (
       isActiveHref(pathname, item.href) &&
-      (!match || item.href.length > match.href.length)
+      (!best || item.href.length > best.length)
     ) {
-      match = item;
+      best = item.href;
     }
   }
 
-  return match;
+  return best;
 }

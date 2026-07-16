@@ -5,8 +5,8 @@ import { SquaresFourIcon } from "@phosphor-icons/react/dist/csr/SquaresFour";
 import { FolderOpenIcon } from "@phosphor-icons/react/dist/csr/FolderOpen";
 import { CheckSquareIcon } from "@phosphor-icons/react/dist/csr/CheckSquare";
 import { CalendarBlankIcon } from "@phosphor-icons/react/dist/csr/CalendarBlank";
-import { FilesIcon } from "@phosphor-icons/react/dist/csr/Files";
 import { UsersThreeIcon } from "@phosphor-icons/react/dist/csr/UsersThree";
+import { KanbanIcon } from "@phosphor-icons/react/dist/csr/Kanban";
 import { StarFourIcon } from "@phosphor-icons/react/dist/csr/StarFour";
 import { GearSixIcon } from "@phosphor-icons/react/dist/csr/GearSix";
 import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
@@ -17,38 +17,86 @@ import { notifications } from "@peppermint/ui";
 import type { AppShellConfig } from "./AppShell.types";
 
 /**
- * Placeholder shell configuration for mintflow-admin. Destinations, brand, and
- * footer are intentionally generic — rename/rewire them here as real routes
- * land. This file is `"use client"` and must be imported directly by the client
- * shell only: it pulls in Phosphor icons, and re-exporting it through a barrel
- * a Server Component evaluates caused an SSR 500 in the prior app-shell.
- *
- * Runtime navigation (`onNavigate`, `linkComponent`) is injected by
- * `LayoutAppShell` from the Next router — it is not part of this static config.
+ * Placeholder shell configuration for mintflow-admin. `/dashboard` and `/tasks`
+ * are real routes; the rest are placeholders to rewire as routes land. Work
+ * Files are dummy kanban boards. This file is `"use client"` and must be
+ * imported directly by the client shell only — re-exporting an icon-importing
+ * config through a barrel a Server Component evaluates caused an SSR 500 before.
+ * Runtime `onNavigate` / `linkComponent` are injected by `LayoutAppShell`.
  */
 export const APP_SHELL_CONFIG: Omit<
   AppShellConfig,
   "onNavigate" | "linkComponent"
 > = {
-  brand: { icon: LeafIcon, href: "/dashboard", label: "kamban." },
+  brand: {
+    icon: LeafIcon,
+    label: "kamban.",
+    caption: "Minister workspace",
+    href: "/dashboard",
+  },
 
-  nav: [
+  groups: [
     {
-      id: "dashboard",
-      label: "Dashboard",
-      href: "/dashboard",
-      icon: SquaresFourIcon,
+      id: "menu",
+      label: "Menu",
+      items: [
+        {
+          id: "dashboard",
+          label: "Dashboard",
+          href: "/dashboard",
+          icon: SquaresFourIcon,
+        },
+        { id: "tasks", label: "Tasks", href: "/tasks", icon: CheckSquareIcon },
+        { id: "cases", label: "Cases", href: "/cases", icon: FolderOpenIcon },
+        {
+          id: "calendar",
+          label: "Calendar",
+          href: "/calendar",
+          icon: CalendarBlankIcon,
+        },
+        { id: "team", label: "Team", href: "/team", icon: UsersThreeIcon },
+      ],
     },
-    { id: "cases", label: "Cases", href: "/cases", icon: FolderOpenIcon },
-    { id: "tasks", label: "Tasks", href: "/tasks", icon: CheckSquareIcon },
     {
-      id: "calendar",
-      label: "Calendar",
-      href: "/calendar",
-      icon: CalendarBlankIcon,
+      id: "work-files",
+      label: "Work Files",
+      // Dummy kanban boards — swap for the real board list when wired.
+      items: [
+        {
+          id: "cabinet",
+          label: "Cabinet Priorities",
+          href: "/work-files/cabinet-priorities",
+          icon: KanbanIcon,
+          badge: "12",
+        },
+        {
+          id: "press",
+          label: "Press & Comms",
+          href: "/work-files/press-comms",
+          icon: KanbanIcon,
+          badge: "5",
+        },
+        {
+          id: "budget",
+          label: "Budget 2026",
+          href: "/work-files/budget-2026",
+          icon: KanbanIcon,
+        },
+        {
+          id: "casework",
+          label: "Constituency Casework",
+          href: "/work-files/constituency-casework",
+          icon: KanbanIcon,
+          badge: "28",
+        },
+        {
+          id: "legislation",
+          label: "Legislation Tracker",
+          href: "/work-files/legislation-tracker",
+          icon: KanbanIcon,
+        },
+      ],
     },
-    { id: "files", label: "Files", href: "/files", icon: FilesIcon },
-    { id: "team", label: "Team", href: "/team", icon: UsersThreeIcon },
   ],
 
   aiButton: { href: "/ai", label: "Ask AI", icon: StarFourIcon },

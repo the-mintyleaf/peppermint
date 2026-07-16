@@ -1,128 +1,83 @@
 "use client";
 
-import {
-  ActionIcon,
-  Box,
-  Divider,
-  Stack,
-  Tooltip,
-  spotlight,
-} from "@peppermint/ui";
-import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
+import { Box, ScrollArea, Stack, Text } from "@peppermint/ui";
 
-import { isActiveHref, resolveActiveNavItem } from "../../nav.utils";
+import { resolveActiveHref } from "../../nav.utils";
+import { NAV_WIDTH, navCardStyle } from "../../shell.constants";
 import {
-  NAV_HEADER_HEIGHT,
-  RAIL_WIDTH,
-  railCardStyle,
-} from "../../shell.constants";
-import {
-  NavIconButton,
+  NavRow,
   NavSpotlight,
+  SearchField,
   SidebarBrand,
   SidebarFooter,
 } from "./components";
 import type { SidebarProps } from "./Sidebar.types";
 import classes from "./Sidebar.module.css";
 
-/** The single dark icon rail — brand, search, destinations, and footer cluster. */
+/**
+ * The full always-open navigation panel: brand → search → titled groups
+ * (Menu, Work Files, …) of labeled rows → footer cluster.
+ */
 export function Sidebar({ config, pathname }: SidebarProps) {
-  const activeItem = resolveActiveNavItem(config.nav, pathname);
+  const activeHref = resolveActiveHref(config.groups, pathname);
 
   return (
     <Stack
       gap={0}
-      align="center"
-      justify="space-between"
       h="100%"
-      w={RAIL_WIDTH}
-      style={{ flexShrink: 0, ...railCardStyle }}
+      w={NAV_WIDTH}
+      style={{ flexShrink: 0, ...navCardStyle }}
     >
-      <Stack gap={0} align="center" w="100%">
-        <Stack h={NAV_HEADER_HEIGHT} align="center" justify="center" w="100%">
-          <SidebarBrand
-            icon={config.brand.icon}
-            label={config.brand.label}
-            href={config.brand.href}
-            linkComponent={config.linkComponent}
-          />
-        </Stack>
+      <Box p="sm" pb={6}>
+        <SidebarBrand
+          icon={config.brand.icon}
+          label={config.brand.label}
+          caption={config.brand.caption}
+          href={config.brand.href}
+          linkComponent={config.linkComponent}
+        />
+      </Box>
 
-        <Divider className={classes.divider} />
+      <Box px="sm" pb="xs">
+        <SearchField />
+      </Box>
 
-        <Box py={8}>
-          <Tooltip label="Search" position="right" withArrow>
-            <ActionIcon
-              variant="subtle"
-              size="lg"
-              color="gray.0"
-              aria-label="Search"
-              onClick={() => spotlight.open()}
-            >
-              <MagnifyingGlassIcon size={16} weight="bold" />
-            </ActionIcon>
-          </Tooltip>
-        </Box>
-
-        <Divider className={classes.divider} />
-
-        <Stack gap={4} align="center" py="sm" w="100%">
-          {config.nav.map((item) => (
-            <NavIconButton
-              key={item.id}
-              icon={item.icon}
-              label={item.label}
-              href={item.href}
-              badge={item.badge}
-              active={activeItem?.id === item.id}
-              linkComponent={config.linkComponent}
-            />
-          ))}
-        </Stack>
-
-        {config.additional && config.additional.length > 0 && (
-          <>
-            <Divider className={classes.divider} />
-            <Stack gap={4} align="center" py="sm" w="100%">
-              {config.additional.map((item) => (
-                <NavIconButton
+      <ScrollArea style={{ flex: 1 }} scrollbarSize={6} type="hover">
+        <Stack gap="lg" px="sm" py="xs">
+          {config.groups.map((group) => (
+            <Stack key={group.id} gap={2}>
+              <Text component="span" className={classes.sectionLabel}>
+                {group.label}
+              </Text>
+              {group.items.map((item) => (
+                <NavRow
                   key={item.id}
                   icon={item.icon}
                   label={item.label}
-                  href={item.onClick ? undefined : item.href}
+                  href={item.href}
                   badge={item.badge}
-                  active={item.href ? isActiveHref(pathname, item.href) : false}
+                  active={activeHref === item.href}
                   linkComponent={config.linkComponent}
-                  onClick={
-                    item.onClick
-                      ? (event) => {
-                          event.preventDefault();
-                          item.onClick?.();
-                        }
-                      : undefined
-                  }
                 />
               ))}
             </Stack>
-          </>
-        )}
-      </Stack>
+          ))}
+        </Stack>
+      </ScrollArea>
 
-      <SidebarFooter
-        aiButton={config.aiButton}
-        settingsButton={config.settingsButton}
-        notifications={config.notifications}
-        user={config.user}
-        pathname={pathname}
-        linkComponent={config.linkComponent}
-        onNavigate={config.onNavigate}
-      />
+      <Box p="sm" pt={6}>
+        <SidebarFooter
+          aiButton={config.aiButton}
+          settingsButton={config.settingsButton}
+          notifications={config.notifications}
+          user={config.user}
+          pathname={pathname}
+          linkComponent={config.linkComponent}
+          onNavigate={config.onNavigate}
+        />
+      </Box>
 
-      <NavSpotlight
-        nav={config.nav}
-        additional={config.additional}
-        onNavigate={config.onNavigate}
-      />
+      <NavSpotlight groups={config.groups} onNavigate={config.onNavigate} />
     </Stack>
   );
 }

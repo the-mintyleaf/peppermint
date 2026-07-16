@@ -1,14 +1,15 @@
 "use client";
 
-import { Tooltip, UnstyledButton } from "@peppermint/ui";
+import { Box, Stack, Text, UnstyledButton } from "@peppermint/ui";
 
 import type { SidebarBrandProps } from "./SidebarBrand.types";
 import classes from "./SidebarBrand.module.css";
 
-/** The brand chip pinned at the top of the rail. */
+/** Brand header for the nav panel — accent chip + wordmark + caption. */
 export function SidebarBrand({
   icon: IconComponent,
-  label = "Home",
+  label = "kamban.",
+  caption,
   href,
   linkComponent,
 }: SidebarBrandProps) {
@@ -16,15 +17,25 @@ export function SidebarBrand({
   const Component = (href ? (linkComponent ?? "a") : "button") as "a";
 
   return (
-    <Tooltip label={label} position="right" withArrow>
-      <UnstyledButton
-        component={Component}
-        href={href}
-        aria-label={label}
-        className={classes.brand}
-      >
-        <IconComponent size={22} weight="fill" />
-      </UnstyledButton>
-    </Tooltip>
+    <UnstyledButton
+      component={Component}
+      href={href}
+      aria-label={label}
+      className={classes.brand}
+    >
+      <Box className={classes.chip}>
+        <IconComponent size={20} weight="fill" />
+      </Box>
+      <Stack gap={0} className={classes.text}>
+        <Text component="span" className={classes.word}>
+          {label}
+        </Text>
+        {caption && (
+          <Text component="span" className={classes.caption}>
+            {caption}
+          </Text>
+        )}
+      </Stack>
+    </UnstyledButton>
   );
 }

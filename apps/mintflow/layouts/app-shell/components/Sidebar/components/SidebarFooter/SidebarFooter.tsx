@@ -4,111 +4,25 @@ import type { MouseEvent } from "react";
 import {
   ActionIcon,
   BookmarksMenu,
+  Box,
   Divider,
   Indicator,
   Stack,
   Tooltip,
-  UnstyledButton,
 } from "@peppermint/ui";
 import { StarFourIcon } from "@phosphor-icons/react/dist/csr/StarFour";
 import { BellIcon } from "@phosphor-icons/react/dist/csr/Bell";
 import { GearSixIcon } from "@phosphor-icons/react/dist/csr/GearSix";
 
-import { NavIconButton } from "../NavIconButton";
 import { UserMenu } from "../UserMenu";
 import { isActiveHref } from "../../../../nav.utils";
 import type { SidebarFooterProps } from "./SidebarFooter.types";
-import type {
-  AppShellAiButton,
-  AppShellNotifications,
-} from "../../../../AppShell.types";
 import classes from "./SidebarFooter.module.css";
 
-function AiButton({
-  aiButton,
-  linkComponent,
-  onNavigate,
-}: {
-  aiButton: AppShellAiButton;
-  linkComponent?: SidebarFooterProps["linkComponent"];
-  onNavigate?: (href: string) => void;
-}) {
-  const label = aiButton.label ?? "AI Assistant";
-  const Icon = aiButton.icon ?? StarFourIcon;
-  const useButton = Boolean(aiButton.onClick);
-  // Cast narrows Mantine's polymorphic `component` from the broad `ElementType`.
-  const Component = (useButton ? "button" : (linkComponent ?? "a")) as "a";
-
-  return (
-    <Tooltip label={label} position="right" withArrow>
-      <UnstyledButton
-        component={Component}
-        href={useButton ? undefined : aiButton.href}
-        aria-label={label}
-        className={classes.aiButton}
-        onClick={(event: MouseEvent) => {
-          if (aiButton.onClick) {
-            event.preventDefault();
-            aiButton.onClick();
-          } else if (aiButton.href && onNavigate) {
-            event.preventDefault();
-            onNavigate(aiButton.href);
-          }
-        }}
-      >
-        <Icon size={18} weight="fill" />
-      </UnstyledButton>
-    </Tooltip>
-  );
-}
-
-function NotificationsBell({
-  notifications,
-  linkComponent,
-  onNavigate,
-}: {
-  notifications: AppShellNotifications;
-  linkComponent?: SidebarFooterProps["linkComponent"];
-  onNavigate?: (href: string) => void;
-}) {
-  const hasUnread = (notifications.count ?? 0) > 0;
-  const useButton = Boolean(notifications.onClick);
-  // Cast narrows Mantine's polymorphic `component` from the broad `ElementType`.
-  const Component = (useButton ? "button" : (linkComponent ?? "a")) as "a";
-
-  return (
-    <Indicator
-      inline
-      size={7}
-      offset={5}
-      position="top-end"
-      color="red"
-      disabled={!hasUnread}
-    >
-      <ActionIcon
-        component={Component}
-        href={useButton ? undefined : notifications.href}
-        variant="subtle"
-        size="lg"
-        color="gray.0"
-        aria-label="Notifications"
-        onClick={(event: MouseEvent) => {
-          if (notifications.onClick) {
-            event.preventDefault();
-            notifications.onClick();
-          } else if (notifications.href && onNavigate) {
-            event.preventDefault();
-            onNavigate(notifications.href);
-          }
-        }}
-      >
-        <BellIcon size={18} weight="fill" />
-      </ActionIcon>
-    </Indicator>
-  );
-}
-
-/** Bottom cluster of the rail: AI, bookmarks, notifications, settings, user. */
+/**
+ * Bottom cluster of the nav panel: a row of quick actions (AI, bookmarks,
+ * notifications, settings) above the full-width account row.
+ */
 export function SidebarFooter({
   aiButton,
   settingsButton,
@@ -119,47 +33,98 @@ export function SidebarFooter({
   onNavigate,
 }: SidebarFooterProps) {
   const settingsHref = settingsButton?.href ?? "/settings";
+  const settingsActive = isActiveHref(pathname, settingsHref);
+  const hasUnread = (notifications?.count ?? 0) > 0;
+
+  const navigate = (event: MouseEvent, onClick?: () => void, href?: string) => {
+    if (onClick) {
+      event.preventDefault();
+      onClick();
+    } else if (href && onNavigate) {
+      event.preventDefault();
+      onNavigate(href);
+    }
+  };
+
+  const AiIcon = aiButton?.icon ?? StarFourIcon;
+  const SettingsIcon = settingsButton?.icon ?? GearSixIcon;
 
   return (
-    <Stack gap={6} align="center" py="xs">
-      {aiButton && !aiButton.hidden && (
-        <>
-          <AiButton
-            aiButton={aiButton}
-            linkComponent={linkComponent}
-            onNavigate={onNavigate}
-          />
-          <Divider className={classes.divider} />
-        </>
-      )}
+    <Stack gap={8}>
+      <Divider className={classes.divider} />
 
-      <BookmarksMenu variant="sidenav" onNavigate={onNavigate} />
+      <Box className={classes.cluster}>
+        {aiButton && !aiButton.hidden && (
+          <Tooltip label={aiButton.label ?? "Ask AI"} withArrow>
+            <ActionIcon
+              component={aiButton.onClick ? "button" : "a"}
+              href={aiButton.onClick ? undefined : aiButton.href}
+              variant="subtle"
+              size="lg"
+              color="accent.4"
+              aria-label={aiButton.label ?? "Ask AI"}
+              onClick={(event: MouseEvent) =>
+                navigate(event, aiButton.onClick, aiButton.href)
+              }
+            >
+              <AiIcon size={18} weight="fill" />
+            </ActionIcon>
+          </Tooltip>
+        )}
 
-      {notifications && !notifications.hidden && (
-        <NotificationsBell
-          notifications={notifications}
-          linkComponent={linkComponent}
-          onNavigate={onNavigate}
-        />
-      )}
+        <BookmarksMenu variant="sidenav" onNavigate={onNavigate} />
 
-      {settingsButton && !settingsButton.hidden && (
-        <NavIconButton
-          icon={settingsButton.icon ?? GearSixIcon}
-          label={settingsButton.label ?? "Settings"}
-          href={settingsButton.onClick ? undefined : settingsHref}
-          active={isActiveHref(pathname, settingsHref)}
-          linkComponent={linkComponent}
-          onClick={
-            settingsButton.onClick
-              ? (event) => {
-                  event.preventDefault();
-                  settingsButton.onClick?.();
+        {notifications && !notifications.hidden && (
+          <Tooltip label="Notifications" withArrow>
+            <Indicator
+              inline
+              size={7}
+              offset={6}
+              position="top-end"
+              color="red"
+              disabled={!hasUnread}
+            >
+              <ActionIcon
+                component={notifications.onClick ? "button" : "a"}
+                href={notifications.onClick ? undefined : notifications.href}
+                variant="subtle"
+                size="lg"
+                color="gray.0"
+                aria-label="Notifications"
+                onClick={(event: MouseEvent) =>
+                  navigate(event, notifications.onClick, notifications.href)
                 }
-              : undefined
-          }
-        />
-      )}
+              >
+                <BellIcon size={18} weight="fill" />
+              </ActionIcon>
+            </Indicator>
+          </Tooltip>
+        )}
+
+        <Box className={classes.spacer} />
+
+        {settingsButton && !settingsButton.hidden && (
+          <Tooltip label={settingsButton.label ?? "Settings"} withArrow>
+            <ActionIcon
+              component={settingsButton.onClick ? "button" : "a"}
+              href={settingsButton.onClick ? undefined : settingsHref}
+              variant="subtle"
+              size="lg"
+              color={settingsActive ? "accent.4" : "gray.0"}
+              aria-label={settingsButton.label ?? "Settings"}
+              aria-current={settingsActive ? "page" : undefined}
+              onClick={(event: MouseEvent) =>
+                navigate(event, settingsButton.onClick, settingsHref)
+              }
+            >
+              <SettingsIcon
+                size={18}
+                weight={settingsActive ? "fill" : "regular"}
+              />
+            </ActionIcon>
+          </Tooltip>
+        )}
+      </Box>
 
       {user && (
         <UserMenu

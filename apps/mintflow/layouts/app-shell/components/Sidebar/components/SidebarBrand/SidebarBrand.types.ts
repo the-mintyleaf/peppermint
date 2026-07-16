@@ -4,6 +4,7 @@ import type { Icon } from "@phosphor-icons/react";
 export interface SidebarBrandProps {
   icon: Icon;
   label?: string;
+  caption?: string;
   href?: string;
   linkComponent?: ElementType;
 }

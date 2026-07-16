@@ -1,10 +1,6 @@
-import type {
-  AppShellAdditionalItem,
-  AppShellNavItem,
-} from "../../../../AppShell.types";
+import type { AppShellNavGroup } from "../../../../AppShell.types";
 
 export interface NavSpotlightProps {
-  nav: AppShellNavItem[];
-  additional?: AppShellAdditionalItem[];
+  groups: AppShellNavGroup[];
   onNavigate?: (href: string) => void;
 }

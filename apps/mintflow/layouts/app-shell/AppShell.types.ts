@@ -1,7 +1,7 @@
 import type { ElementType } from "react";
 import type { Icon } from "@phosphor-icons/react";
 
-/** A primary destination in the rail. */
+/** A single labeled destination row. */
 export interface AppShellNavItem {
   id: string;
   label: string;
@@ -10,20 +10,20 @@ export interface AppShellNavItem {
   badge?: string;
 }
 
-/** A secondary rail item below the divider (link or action). */
-export interface AppShellAdditionalItem {
+/** A titled section of the nav panel (e.g. "Menu", "Work Files"). */
+export interface AppShellNavGroup {
   id: string;
   label: string;
-  icon: Icon;
-  href?: string;
-  onClick?: () => void;
-  badge?: string;
+  items: AppShellNavItem[];
 }
 
 export interface AppShellBrand {
   icon: Icon;
-  href?: string;
+  /** Wordmark shown next to the brand chip. */
   label?: string;
+  /** Small caption under the wordmark (e.g. workspace/role). */
+  caption?: string;
+  href?: string;
 }
 
 export interface AppShellAiButton {
@@ -73,14 +73,13 @@ export interface AppShellUser {
  */
 export interface AppShellConfig {
   brand: AppShellBrand;
-  nav: AppShellNavItem[];
-  additional?: AppShellAdditionalItem[];
+  groups: AppShellNavGroup[];
   aiButton?: AppShellAiButton;
   settingsButton?: AppShellSettingsButton;
   notifications?: AppShellNotifications;
   user?: AppShellUser;
-  /** Anchor component for rail links (e.g. Next `Link`). Defaults to `"a"`. */
+  /** Anchor component for panel links (e.g. Next `Link`). Defaults to `"a"`. */
   linkComponent?: ElementType;
-  /** Programmatic navigation for spotlight/bookmark items fired via onClick. */
+  /** Programmatic navigation for spotlight/menu items fired via onClick. */
   onNavigate?: (href: string) => void;
 }

@@ -2,20 +2,19 @@ import type { CSSProperties } from "react";
 
 import { tokens } from "@/config/design";
 
-/** Fixed width of the single icon rail. */
-export const RAIL_WIDTH = 64;
-/** Outer inset around the rail inside the AppShell navbar slot. */
-export const SHELL_INSET = 6;
-/** Height of the brand header block at the top of the rail. */
-export const NAV_HEADER_HEIGHT = 48;
+/** Fixed width of the full (always-open) navigation panel. */
+export const NAV_WIDTH = 280;
+/** Outer inset around the panel inside the AppShell navbar slot. */
+export const SHELL_INSET = 8;
+/** Height of the brand header block at the top of the panel. */
+export const NAV_HEADER_HEIGHT = 56;
 
 /**
- * The single dark rail card. mintflow's body is a light gray and the main
- * content sits on the warm-paper surface, so — unlike the admin `AdminShell`,
- * which leaves the rail transparent over a dark app background — this rail must
- * carry its own dark ink/tile surface.
+ * The full nav panel card — a single always-open 280px sidebar (no icon-rail /
+ * sub-nav split). mintflow's body is light and the content sits on the paper
+ * surface, so the panel carries its own dark ink/tile surface.
  */
-export const railCardStyle: CSSProperties = {
+export const navCardStyle: CSSProperties = {
   backgroundColor: tokens.tile,
   borderRadius: tokens.radius.card,
   boxShadow: tokens.shadow.nav,

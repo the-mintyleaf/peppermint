@@ -23,10 +23,10 @@ export function ModuleDashboard() {
         </Stack>
 
         <Text c="dimmed" maw={560}>
-          The mintflow-admin app shell renders around this region — a single
-          dark icon rail on the left with brand, search, destinations, and the
-          footer cluster (AI, bookmarks, notifications, settings, and your
-          account). Real modules replace this content.
+          The mintflow-admin app shell renders around this region — a full 280px
+          navigation panel on the left with the brand, search, the Menu and Work
+          Files groups, and a footer cluster (AI, bookmarks, notifications,
+          settings, and your account). Real modules replace this content.
         </Text>
       </Stack>
     </Box>

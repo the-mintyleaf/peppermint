@@ -7,44 +7,26 @@ import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGl
 import type { NavSpotlightProps } from "./NavSpotlight.types";
 
 /**
- * Command-palette search over the rail destinations. Opened by the rail search
- * button (`spotlight.open()`) or the `mod + K` shortcut.
+ * Command palette over every nav destination, grouped by section. Opened by the
+ * panel search field (`spotlight.open()`) or the `mod + K` shortcut.
  */
-export function NavSpotlight({
-  nav,
-  additional,
-  onNavigate,
-}: NavSpotlightProps) {
-  const actions = useMemo<SpotlightActionData[]>(() => {
-    const items: SpotlightActionData[] = nav.map((item) => {
-      const Icon = item.icon;
-      return {
-        id: item.id,
-        label: item.label,
-        leftSection: <Icon size={20} weight="duotone" />,
-        onClick: () => onNavigate?.(item.href),
-      };
-    });
-
-    for (const item of additional ?? []) {
-      if (!item.href && !item.onClick) continue;
-      const Icon = item.icon;
-      items.push({
-        id: item.id,
-        label: item.label,
-        leftSection: <Icon size={20} weight="duotone" />,
-        onClick: () => {
-          if (item.onClick) {
-            item.onClick();
-            return;
-          }
-          if (item.href) onNavigate?.(item.href);
-        },
-      });
-    }
-
-    return items;
-  }, [nav, additional, onNavigate]);
+export function NavSpotlight({ groups, onNavigate }: NavSpotlightProps) {
+  const actions = useMemo<SpotlightActionData[]>(
+    () =>
+      groups.flatMap((group) =>
+        group.items.map((item) => {
+          const Icon = item.icon;
+          return {
+            id: item.id,
+            label: item.label,
+            group: group.label,
+            leftSection: <Icon size={20} weight="duotone" />,
+            onClick: () => onNavigate?.(item.href),
+          };
+        }),
+      ),
+    [groups, onNavigate],
+  );
 
   return (
     <Spotlight
