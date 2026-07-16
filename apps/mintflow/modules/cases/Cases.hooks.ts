@@ -101,11 +101,11 @@ export function useFilteredFiles(
   }, [files, search]);
 }
 
-/** "2026-08-15" → "15 Aug 2026". */
+/** "2026-08-15" → "15 Aug 2026" (parsed as a local date — no UTC day shift). */
 export function formatDate(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return iso;
-  return date.toLocaleDateString("en-GB", {
+  const [year, month, day] = iso.split("-").map(Number);
+  if (!year || !month || !day) return iso;
+  return new Date(year, month - 1, day).toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
     year: "numeric",

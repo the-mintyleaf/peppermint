@@ -105,15 +105,38 @@ export const STATUS_STYLE: Record<CaseStatus, StatusStyle> = {
   closed: { label: "Closed", fg: tokens.muted2, bg: "rgba(0,0,0,0.06)" },
 };
 
-/** Mantine `Badge` color name per priority. */
+/**
+ * Priority styling — `color` is the Mantine `Badge` color name (list/modal);
+ * `fg`/`bg` drive the soft flag pill on the card.
+ */
 export const PRIORITY_STYLE: Record<
   CasePriority,
-  { label: string; color: string }
+  { label: string; color: string; fg: string; bg: string }
 > = {
-  urgent: { label: "Urgent", color: "red" },
-  high: { label: "High", color: "orange" },
-  normal: { label: "Normal", color: "blue" },
-  low: { label: "Low", color: "gray" },
+  urgent: {
+    label: "Urgent",
+    color: "red",
+    fg: "rgb(201,42,42)",
+    bg: "rgba(201,42,42,0.1)",
+  },
+  high: {
+    label: "High",
+    color: "orange",
+    fg: tokens.accentDark,
+    bg: tokens.accentSoft,
+  },
+  normal: {
+    label: "Normal",
+    color: "blue",
+    fg: tokens.blueInk,
+    bg: tokens.blueSoft,
+  },
+  low: {
+    label: "Low",
+    color: "gray",
+    fg: tokens.muted2,
+    bg: "rgba(0,0,0,0.06)",
+  },
 };
 
 export const CATEGORY_STYLE: Record<
