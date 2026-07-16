@@ -35,7 +35,6 @@ export function CaseCard({ workCase, onOpen }: CaseCardProps) {
     <Paper
       radius={tokens.radius.card}
       p="lg"
-      bg={status.cardBg}
       role="button"
       tabIndex={0}
       onClick={() => onOpen(workCase)}
@@ -48,6 +47,8 @@ export function CaseCard({ workCase, onOpen }: CaseCardProps) {
       style={{
         cursor: "pointer",
         height: "100%",
+        // status gradient sheen over an opaque paper base
+        background: `${status.cardGradient}, ${tokens.paper}`,
         border: `1px solid ${status.cardBorder}`,
       }}
     >
