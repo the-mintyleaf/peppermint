@@ -1,1 +1,0 @@
-export { LocationChip } from "./LocationChip";

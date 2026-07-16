@@ -54,7 +54,6 @@ export const APP_SHELL_CONFIG: Omit<
           href: "/calendar",
           icon: CalendarBlankIcon,
         },
-        { id: "team", label: "Team", href: "/team", icon: UsersThreeIcon },
       ],
     },
     {

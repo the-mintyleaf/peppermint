@@ -1,1 +1,0 @@
-export { ModuleSettings } from "./Settings";

@@ -63,6 +63,7 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
       </Box>
 
       <AppShell
+        bg="dark.9"
         mode="static"
         h="100dvh"
         p={0}
@@ -94,7 +95,6 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
               minHeight: 0,
               minWidth: 0,
               overflow: "auto",
-              background: tokens.paper,
             }}
           >
             {children}

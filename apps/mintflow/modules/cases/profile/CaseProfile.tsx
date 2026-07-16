@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import {
+  AccessMenu,
   Avatar,
   Box,
   Button,
@@ -83,6 +84,7 @@ export function ModuleCaseProfile({
           ))}
         </Avatar.Group>
       ) : null}
+      <AccessMenu data={{ accounts: [], roles: [] }} />
       <Button
         size="xs"
         leftSection={<PlusIcon size={16} aria-label="Add task" />}

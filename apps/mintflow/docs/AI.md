@@ -17,50 +17,92 @@ local mock data (the "not wired" pattern: `notifications.show("Not connected yet
 - `/` → redirects to `/dashboard` (`app/page.tsx`).
 - Route group `app/(app)/` wraps authenticated routes in the app shell
   (`layouts/app-shell`); `(app)/layout.tsx` is a pure re-export of `LayoutAppShell`.
-  - `/dashboard` → `ModuleDashboard` (`modules/dashboard/`) — the "Today's Focus" dashboard.
+  - `/dashboard` → `ModuleDashboard` (`modules/dashboard/`) — the "Home Work Desk" dashboard (home).
   - `/tasks` → `ModuleTasks` (`modules/tasks/`) — the imported Tasks page.
   - `/cases` → `ModuleCases` (`modules/cases/`) — case-management board.
   - `/cases/[caseId]` → `ModuleCaseProfile` (`modules/cases/profile/`) — full case profile page.
+  - `/calendar` → `ModuleCalendar` (`modules/calendar/`) — tasks laid out by due date.
 - `app/` files are re-export only (the root redirect is the one allowed exception).
 
 ## Modules
 
 ### `modules/dashboard/` — `ModuleDashboard` (ContainedModule)
 
-The "Today's Focus" minister dashboard at `/dashboard` (design spec §5–16). Calm
-daily surface, self-contained on **mock data** (`module.api.ts` — `fetchDashboard`,
-`"populated" | "empty"` variants), no backend. moss/lavender/amber map onto the
-existing green/purple tokens + the cases amber (no new palette). A header
-`SegmentedControl` toggles the populated vs **first-run** (all-zero, no red) preview.
+The **"Home Work Desk"** minister dashboard at `/dashboard` (Claude Design _Home Work
+Desk v3_ mockup, adapted). Calm daily surface, self-contained on **mock data**
+(`module.api.ts` — `fetchDashboard`, `"populated" | "empty"` variants), no backend.
+The mockup's blue-on-grey palette is adapted to the app's fixed brand — blue → accent
+orange, white/grey surfaces → paper cards on the dark body; moss/lavender/amber map
+onto the existing green/purple + cases amber (no new palette). The **home** route: it
+is the one module left ungated. A **preview** `SegmentedControl` in the hero toggles the
+populated vs **first-run** (all-zero, no red) state. The mockup's own header + sidebar
+are dropped — the app shell provides them.
 
-- `Dashboard.tsx` (`ModuleDashboard`) — page anchor (greeting + date) then a wrapping
-  two-column flex: main (`FocusPanel` → `TaskFlowBoard`) + priority-ordered rail
-  (`WorkFilesRail` → `AttentionRail` → `ScheduleRail` → `MetricsRail`). Owns
-  loading/error(retry) states, the `TaskDrawer`, and the auto-focus swap `Modal`.
+- `Dashboard.tsx` (`ModuleDashboard`) — a wrapping two-column flex: primary
+  (`FocusHero` → `TaskFlowBoard`) + a 360px rail (`AttentionRail` → `WorkFilesRail` →
+  `MetricsRail`). Owns loading/error(retry) states, the `TaskDrawer`, the auto-focus
+  swap `Modal`, and derives the hero's team avatars / "done this week" / "on hold now".
 - `Dashboard.hooks.ts` — `useDashboard` (React Query), `useDashboardBoard`
   (drag-reorderable focus+flow copies; encodes the WIP limit §6 + auto-focus swap
   rule §5), `useDrawer`, `rankWorkFiles` (§7 involvement→deadline→blockers→activity,
   never alphabetical), `hasEnoughData`/`RATE_EMPTY_COPY` (rate empty-state gate §11),
   `notConnected`.
 - `module.api.ts` — types (`FocusTask`, `FlowTask`, `WorkFile`, `AttentionItem`,
-  `ScheduleItem`, `Kpi`, `Momentum`), style maps (`PRIORITY_STYLE`, `FLOW_COLUMN_META`,
+  `Kpi`, `Momentum` w/ `title`), style maps (`PRIORITY_STYLE`, `FLOW_COLUMN_META`,
   `ATTENTION_TONE`), color consts (`MOSS`/`LAVENDER`/`AMBER`), `FOCUS_LIMIT`/`WIP_LIMIT`,
-  §16 mock + empty payloads. `estimate?` is optional and never populated (§11 — the
+  mock + empty payloads. `estimate?` is optional and never populated (§11 — the
   estimate chip is render-guarded and never shows).
-- `components/FocusPanel/` — §5 hero: moss-gradient header + `RingProgress` + "N of 3",
-  `FocusRow` (done/overdue/in-progress honest states), empty "Choose focus tasks".
-- `components/TaskFlowBoard/` — §6 personal kanban (`@dnd-kit`, 3 columns), `FlowColumn`
-  (WIP "3/3 limit" + amber full-notice), `FlowCard` (on-hold = **lavender flag in its
-  real column**, overdue amber accent, quick-complete, open-in-drawer); mobile = tabs.
-- `components/WorkFilesRail/` (`WorkFileCard`), `AttentionRail`, `ScheduleRail` — §7/§8/§9
-  rails (ranked work files w/ "N yours"/"N overdue" badges; exceptions-only; timeline
-  readout w/ free-time gaps, no capacity judgment).
-- `components/MetricsRail/` — §10 `KpiTile`×4 (on-time ships in its **not-enough-data**
-  empty state; "focus kept" `Sparkline` from `@peppermint/ui/charts`) + `MomentumStrip`.
+- `components/FocusHero/` — §5 hero: folded-in greeting + team avatar cluster + preview
+  toggle; big-number readout row (`FocusStat` ×3: focus done · done this week · on hold);
+  `FocusPill` rows (accent-emphasised "next up", honest done/overdue/in-progress states,
+  Continue lever); empty "Choose focus tasks".
+- `components/TaskFlowBoard/` — §6 personal kanban (`@dnd-kit`, 3 columns) headed
+  "Today's task flow" + "Open Tasks" link (→ `/tasks`), `FlowColumn` (In-progress "3/3"
+  amber WIP pill + amber full-notice), `FlowCard` (on-hold = **lavender flag in its real
+  column**, overdue amber accent, quick-complete, open-in-drawer); mobile = tabs.
+- `components/AttentionRail`, `components/WorkFilesRail/` (`WorkFileCard`) — §8/§7 rails:
+  "Needs your attention" (exceptions only, tinted icon rows + tone-colored action link);
+  "Active work files" (ranked; swatch dot + open-count, dept·milestone, progress, square
+  avatars, "N yours"/"N overdue" badges, accent Open-work-file button).
+- `components/MetricsRail/` — §10 "This week" card, 2×2 `KpiTile` (on-time ships in its
+  **not-enough-data** empty state; "focus kept" `Sparkline` from `@peppermint/ui/charts`)
+  - the dark-tile `MomentumStrip` (title + line + accent Plan-tomorrow).
 - `components/TaskDrawer/` — §15 right `Drawer`: primary fields top, secondary lower
   (subtasks/deps/comments/attachments/on-hold/activity), complete/move/archive actions.
   Read-only detail (no editable fields → no unsaved-changes state). All inert actions →
   `notConnected`.
+
+### `modules/calendar/` — `ModuleCalendar` (ContainedModule)
+
+Full-page calendar at `/calendar` that plots the **Tasks** onto a month or week grid,
+one chip per task on its **due date** (`endDate`). Self-contained on the tasks module's
+**mock data** — it reuses `fetchTasks` / `Task` and the `TaskDetailModal`, owns no data
+of its own, no backend. The app uses fixed mid-2026 references, so the calendar seeds and
+highlights off a fixed `REFERENCE_TODAY` (16 Jul 2026), not the real clock — otherwise the
+Jun–Aug 2026 mock tasks would never line up with "today". New Task / edit actions use the
+"Not connected yet" pattern.
+
+- `Calendar.tsx` (`ModuleCalendar`) — chrome (`ModuleHeader` + New Task, `ManageHeader`,
+  `ModalPaper`) then a toolbar (`‹ / Today / ›` nav, month/week title, All/Mine board-filter
+  `SegmentedControl`, Month/Week `SegmentedControl`). Body swaps `MonthView` ⇄ `WeekView`;
+  owns loading (`Skeleton`), error+retry, the unscheduled-tasks note, the `DayTasksModal`,
+  and the reused `TaskDetailModal`.
+- `Calendar.hooks.ts` — `useCalendarTasks` (React Query over `fetchTasks(filter)`),
+  `useCalendarNav` (anchor date + view + prev/next/today), `useTasksByDay` (memoized
+  `Map<"YYYY-MM-DD", Task[]>` keyed on `endDate`) + `unscheduled`, `tasksForDay`,
+  `notConnected`.
+- `Calendar.utils.ts` — `REFERENCE_TODAY`, `WEEKDAY_LABELS` (Mon-first), `buildMonthMatrix`
+  (6×7 padded cells), `buildWeekDays`, `dayKey` (local Y/M/D — never `new Date("YYYY-MM-DD")`,
+  which drifts a day via UTC), `isReferenceToday`, `formatMonthTitle` / `formatWeekRange`.
+- `module.api.ts` — thin: re-exports the tasks fetch/types + `chipStyle(task)` (category →
+  `{ dot, tint, fg }` from the brand tokens) and `isUrgent` (accent treatment). No new mock data.
+- `components/MonthView/` — weekday header + CSS-grid 6×7 of `DayCell` (day number, accent
+  ring on today, dimmed out-of-month, up to 3 `EventChip`s then a "+N more" → `DayTasksModal`).
+- `components/WeekView/` — 7 taller day columns for the anchor week, each listing that day's
+  due tasks as stacked `EventChip`s (no truncation), today column highlighted.
+- `components/EventChip/` — category dot + title (+ accent for urgent); click opens the task.
+- `components/DayTasksModal/` — Mantine `Modal` listing every task due on a clicked day;
+  rows open the `TaskDetailModal`. Read-only (no editable fields → no unsaved-changes state).
 
 ### `modules/tasks/` — `ModuleTasks` (ContainedModule)
 
@@ -153,9 +195,9 @@ counterpart of `@peppermint/admin`'s `AdminShell`, rendered as one full-width la
   `tokens.shadow.nav` (see `shell.constants.ts` `navCardStyle`, `NAV_WIDTH = 280`).
   Mobile (< `sm`): a fixed `Burger` toggles the collapsed panel; content reserves top
   padding to clear it.
-- **Placeholder destinations** (`/cases`, `/calendar`, `/team`, `/work-files/*`,
-  `/notifications`, …) have no routes yet and 404 until built — rewire `nav.config.tsx`
-  as routes land. `/dashboard` and `/tasks` are real.
+- **Placeholder destinations** (`/team`, `/work-files/*`, `/notifications`, `/settings`,
+  `/ai`, …) have no routes yet and 404 until built — rewire `nav.config.tsx` as routes
+  land. `/dashboard`, `/tasks`, `/cases`, and `/calendar` are real.
 
 > ⚠️ SSR lesson (still applies): `nav.config.tsx` is `"use client"` (it imports Phosphor
 > icons) and is imported **directly** by the client shell only — it is **not**

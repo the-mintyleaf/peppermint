@@ -1,1 +1,0 @@
-export { OwnerCard } from "./OwnerCard";

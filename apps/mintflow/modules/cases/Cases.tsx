@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  AccessMenu,
   Box,
   Button,
   Group,
@@ -118,6 +119,7 @@ export function ModuleCases() {
         breadcrumbItems={BREADCRUMB}
         right={
           <Group gap="xs" mr="sm">
+            <AccessMenu data={{ accounts: [], roles: [] }} />
             <Button
               variant="light"
               color="gray"
