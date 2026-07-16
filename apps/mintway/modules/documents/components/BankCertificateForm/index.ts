@@ -1,0 +1,1 @@
+export { BankCertificateForm } from "./BankCertificateForm";

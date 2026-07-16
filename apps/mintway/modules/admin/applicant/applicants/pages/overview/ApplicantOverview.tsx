@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
-import { Modal } from "@peppermint/ui";
+import { useParams, useRouter } from "next/navigation";
+import { Button, Group, Modal } from "@peppermint/ui";
+import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
 
 import { RequireAuth } from "@/components/RequireAuth";
 import {
@@ -20,6 +21,7 @@ import { OverviewContent } from "./components/OverviewContent";
 
 function ApplicantOverviewContent() {
   const { applicantId } = useParams<{ applicantId: string }>();
+  const router = useRouter();
   const { applicant, isAdmin } = useApplicant(applicantId);
   const [editOpen, setEditOpen] = useState(false);
 
@@ -42,10 +44,22 @@ function ApplicantOverviewContent() {
       activeSection="overview"
       headerActions={
         applicant ? (
-          <ApplicantActionBar
-            applicant={applicant}
-            onEdit={() => setEditOpen(true)}
-          />
+          <Group gap="xs" wrap="nowrap">
+            {isAdmin && (
+              <Button
+                variant="light"
+                size="xs"
+                leftSection={<FileTextIcon size={14} aria-hidden />}
+                onClick={() => router.push(`/documents/${applicantId}`)}
+              >
+                Prepare documents
+              </Button>
+            )}
+            <ApplicantActionBar
+              applicant={applicant}
+              onEdit={() => setEditOpen(true)}
+            />
+          </Group>
         ) : null
       }
     >
