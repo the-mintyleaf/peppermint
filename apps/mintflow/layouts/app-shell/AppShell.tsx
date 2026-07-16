@@ -87,6 +87,8 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
         >
           <Box
             flex={1}
+            // Reserve top space on mobile so content clears the fixed burger.
+            pt={{ base: 52, sm: 0 }}
             style={{
               minHeight: 0,
               minWidth: 0,
