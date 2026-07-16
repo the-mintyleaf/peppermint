@@ -12,7 +12,7 @@ export function ManageHeader({
   return (
     <Stack gap={8} visibleFrom={visibleFrom} py="lg">
       <Group align="center" gap="xs">
-        <Text size="1.6rem" fw={500}>
+        <Text size="1.6rem" fw={600}>
           {title}
         </Text>
         {count != null && (
