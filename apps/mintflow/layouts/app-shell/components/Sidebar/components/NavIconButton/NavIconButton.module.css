@@ -1,0 +1,27 @@
+.button {
+  width: 48px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--mantine-radius-xl);
+  color: rgba(255, 255, 255, 0.5);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.button:hover:not([data-active]) {
+  color: rgba(255, 255, 255, 0.92);
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.button[data-active] {
+  color: var(--mantine-color-accent-5);
+  background-color: rgba(255, 255, 255, 0.09);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--mantine-color-accent-5);
+  outline-offset: 2px;
+}

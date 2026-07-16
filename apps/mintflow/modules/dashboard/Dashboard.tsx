@@ -1,48 +1,34 @@
 "use client";
 
-import { useState } from "react";
-
-import { useMediaQuery } from "@peppermint/ui";
-
-import { Screen } from "@/components";
-
-import { DASHBOARD_DATA } from "./Dashboard.data";
-import type { Period } from "./Dashboard.types";
-import { DashboardDesktop } from "./components/DashboardDesktop";
-import { DashboardMobile } from "./components/DashboardMobile";
+import { Badge, Box, Group, Stack, Text, Title } from "@peppermint/ui";
 
 /**
- * Reports dashboard — the one screen with distinct mobile and desktop layouts.
- * Dark surface, pure-CSS flex-bar charts (no chart library), Week/Month toggle
- * over two static mock datasets.
- *
- * States: this is a static mock, so loading / request-failed / empty / permission
- * / read-only / archived / conflicting-edit / long-running-job / async-error are
- * all N/A. Data-freshness is covered by the header cue ("MON · 28.03 · ALL ON
- * TRACK" + the period range) which acts as the "as of" indicator.
+ * Placeholder content region for mintflow-admin. Exists so the single-sidebar
+ * app shell renders around real content — swap for the true dashboard module.
  */
 export function ModuleDashboard() {
-  const [period, setPeriod] = useState<Period>("Week");
-  // useMediaQuery is undefined on the SSR/first paint — default to mobile.
-  const isDesktop = useMediaQuery("(min-width: 62em)") ?? false;
-
-  const data = DASHBOARD_DATA[period];
-
   return (
-    <Screen dark fluid px={0}>
-      {isDesktop ? (
-        <DashboardDesktop
-          period={period}
-          onPeriodChange={setPeriod}
-          data={data}
-        />
-      ) : (
-        <DashboardMobile
-          period={period}
-          onPeriodChange={setPeriod}
-          data={data}
-        />
-      )}
-    </Screen>
+    <Box p={{ base: 20, sm: 40 }} mih="100%">
+      <Stack gap="lg" maw={760}>
+        <Stack gap={4}>
+          <Text size="sm" c="dimmed" fw={500}>
+            Manage and track your work
+          </Text>
+          <Group gap="sm" align="center">
+            <Title order={1}>Dashboard</Title>
+            <Badge color="accent" variant="light" radius="sm">
+              Placeholder
+            </Badge>
+          </Group>
+        </Stack>
+
+        <Text c="dimmed" maw={560}>
+          The mintflow-admin app shell renders around this region — a single
+          dark icon rail on the left with brand, search, destinations, and the
+          footer cluster (AI, bookmarks, notifications, settings, and your
+          account). Real modules replace this content.
+        </Text>
+      </Stack>
+    </Box>
   );
 }

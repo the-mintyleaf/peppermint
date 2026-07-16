@@ -1,25 +1,103 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useMemo, type ReactNode } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { AppShell, Box, Burger, useDisclosure } from "@peppermint/ui";
 
-import { Box } from "@peppermint/ui";
+import { tokens } from "@/config/design";
+import { APP_SHELL_CONFIG } from "./nav.config";
+import { Sidebar } from "./components/Sidebar";
+import { RAIL_WIDTH, SHELL_INSET } from "./shell.constants";
+import type { AppShellConfig } from "./AppShell.types";
 
-import { BottomNav, CreateTaskHost, IconRail } from "./components";
-import classes from "./AppShell.module.css";
+const NAVBAR_WIDTH = RAIL_WIDTH + SHELL_INSET * 2;
 
 /**
- * The Kamban app shell: the shared navigation chrome wrapping every in-app
- * route. Desktop (≥ lg) shows the left icon rail; mobile shows the floating
- * bottom-nav pill. The Create Task sheet is hosted here so ＋ works from any
- * screen. Onboarding renders outside this shell.
+ * mintflow-admin chrome — a single dark icon rail (no second-tier sub-nav) over
+ * the warm-paper content area. Config is the placeholder in `nav.config.tsx`;
+ * router-bound `onNavigate` / `linkComponent` are injected here.
  */
 export function LayoutAppShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname() ?? "";
+  const router = useRouter();
+  const [opened, { toggle: toggleMobileNav, close: closeMobileNav }] =
+    useDisclosure();
+
+  // Close the mobile navbar on route change so a tap-through doesn't leave the
+  // overlay open on top of the new page.
+  useEffect(() => {
+    closeMobileNav();
+  }, [pathname, closeMobileNav]);
+
+  const config = useMemo<AppShellConfig>(
+    () => ({
+      ...APP_SHELL_CONFIG,
+      linkComponent: Link,
+      onNavigate: (href) => router.push(href),
+    }),
+    [router],
+  );
+
   return (
-    <Box className={classes.shell}>
-      <IconRail />
-      <main className={classes.main}>{children}</main>
-      <BottomNav />
-      <CreateTaskHost />
-    </Box>
+    <>
+      {/* Mobile-only toggle — the rail collapses below `sm` and otherwise has no
+          way to open. Dark chip keeps it visible over the light content. */}
+      <Box
+        hiddenFrom="sm"
+        pos="fixed"
+        top={12}
+        left={12}
+        p={4}
+        bg={tokens.tile}
+        style={{ zIndex: 1000, borderRadius: "var(--mantine-radius-sm)" }}
+      >
+        <Burger
+          opened={opened}
+          onClick={toggleMobileNav}
+          size="sm"
+          color="var(--mantine-color-gray-0)"
+          aria-label="Toggle navigation"
+        />
+      </Box>
+
+      <AppShell
+        mode="static"
+        h="100dvh"
+        p={0}
+        padding={0}
+        withBorder={false}
+        navbar={{
+          width: NAVBAR_WIDTH,
+          breakpoint: "sm",
+          collapsed: { mobile: !opened },
+        }}
+      >
+        <AppShell.Navbar
+          p={SHELL_INSET}
+          bg="transparent"
+          style={{ border: "none", overflow: "hidden" }}
+        >
+          <Sidebar config={config} pathname={pathname} />
+        </AppShell.Navbar>
+
+        <AppShell.Main
+          bg="transparent"
+          style={{ minHeight: 0, overflow: "hidden", display: "flex" }}
+        >
+          <Box
+            flex={1}
+            style={{
+              minHeight: 0,
+              minWidth: 0,
+              overflow: "auto",
+              background: tokens.paper,
+            }}
+          >
+            {children}
+          </Box>
+        </AppShell.Main>
+      </AppShell>
+    </>
   );
 }

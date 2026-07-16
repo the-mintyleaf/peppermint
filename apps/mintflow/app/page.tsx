@@ -1,3 +1,5 @@
-import { ModuleSignIn } from "@/modules/sign-in";
+import { redirect } from "next/navigation";
 
-export default ModuleSignIn;
+export default function RootPage() {
+  redirect("/dashboard");
+}
