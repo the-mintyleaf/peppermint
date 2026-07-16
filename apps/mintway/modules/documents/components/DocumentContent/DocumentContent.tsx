@@ -30,14 +30,25 @@ export function DocumentContent() {
     useIsMutating({ mutationKey: documentMutationKeys.remove() }) > 0;
 
   // When a "Print all" is requested, every page is rendered (branch below); once painted, open
-  // the browser print dialog then reset so the browser output matches the recorded print events.
+  // the browser print dialog. Reset from `afterprint` (with a fallback for browsers that don't
+  // fire it) so the all-pages DOM survives until the print snapshot is taken.
   useEffect(() => {
     if (!isPrintingAll) return;
-    const id = requestAnimationFrame(() => {
-      window.print();
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
       endPrintAll();
+    };
+    window.addEventListener("afterprint", finish, { once: true });
+    const frame = requestAnimationFrame(() => {
+      window.print();
+      window.setTimeout(finish, 800);
     });
-    return () => cancelAnimationFrame(id);
+    return () => {
+      window.removeEventListener("afterprint", finish);
+      cancelAnimationFrame(frame);
+    };
   }, [isPrintingAll, endPrintAll]);
 
   if (isPrintingAll && documents.length > 0) {

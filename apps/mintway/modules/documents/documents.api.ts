@@ -128,13 +128,19 @@ function toDocument(raw: RawDocument): Document {
 }
 
 function toRevision(raw: Record<string, unknown>): DocumentRevision {
+  const type = toFrontendType(String(raw.document_type_snapshot));
   return {
     id: String(raw.id ?? `${raw.document}-${raw.revision_number}`),
     revisionNumber: Number(raw.revision_number),
-    contentSnapshot: (raw.content_snapshot ?? {}) as Document["content"],
+    // Revisions store the backend content shape (snake_case for certificates); map it back so
+    // previewing/restoring a revision renders through the camelCase-reading templates.
+    contentSnapshot: toFrontendContent(
+      type,
+      (raw.content_snapshot ?? {}) as Document["content"],
+    ),
     labelSnapshot: String(raw.label_snapshot ?? ""),
     statusSnapshot: raw.status_snapshot as Document["status"],
-    documentTypeSnapshot: toFrontendType(String(raw.document_type_snapshot)),
+    documentTypeSnapshot: type,
     changeReason: (raw.change_reason as string) ?? undefined,
     changedBy: (raw.changed_by as string | null) ?? null,
     createdAt: String(raw.created_at),
