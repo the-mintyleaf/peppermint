@@ -10,8 +10,7 @@ export function LayoutApp({ children }: { children: React.ReactNode }) {
       lang="en"
       {...mantineHtmlProps}
       style={{
-        background:
-          "linear-gradient(160deg, var(--mantine-color-dark-9) 0%, var(--mantine-color-brand-9) 100%)",
+        background: "#e6e7ea",
       }}
     >
       <head>
@@ -36,6 +35,10 @@ export function LayoutApp({ children }: { children: React.ReactNode }) {
         />
         <link
           href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
       </head>

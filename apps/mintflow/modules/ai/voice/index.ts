@@ -1,0 +1,1 @@
+export { ModuleVoice } from "./Voice";

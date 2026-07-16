@@ -1,5 +1,22 @@
 :root {
   --font-special: "Bitcount Grid Single", sans-serif;
+
+  /* Kamban design tokens — fixed brand values, color-scheme independent.
+     Mirrors config/design/tokens.ts (keep the two in sync). */
+  --k-ink: rgb(10, 12, 14);
+  --k-paper: rgb(252, 251, 249);
+  --k-paper-2: rgb(244, 242, 238);
+  --k-accent: rgb(238, 87, 41);
+  --k-accent-dark: rgb(205, 66, 26);
+  --k-accent-soft: rgba(238, 87, 41, 0.1);
+  --k-blue: rgb(106, 168, 255);
+  --k-blue-ink: rgb(44, 110, 202);
+  --k-green: rgb(30, 120, 75);
+  --k-green-soft: rgb(143, 226, 182);
+  --k-tile: #171719;
+  --k-tile-deep: #0a0a0b;
+  --k-line: rgba(0, 0, 0, 0.07);
+  --k-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 html,
@@ -8,5 +25,16 @@ body {
 }
 
 body {
-  font-family: "Stack Sans Headline", sans-serif;
+  font-family:
+    "Space Grotesk",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+/* thin/hidden scrollbars for the app scroll regions */
+.k-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }

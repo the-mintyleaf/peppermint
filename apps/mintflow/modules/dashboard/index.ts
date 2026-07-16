@@ -1,0 +1,1 @@
+export { ModuleDashboard } from "./Dashboard";
