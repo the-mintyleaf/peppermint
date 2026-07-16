@@ -27,27 +27,44 @@ export function useTasks(filter: TaskBoardFilter) {
   });
 }
 
-// Board reads straight from the React Query cache; drag operations go through
-// the optimistic mutations below, so a move/reorder is instant and survives a
-// refetch or a board-filter switch (no local-copy shadow state).
+// Board reads straight from the React Query cache. Cross-column moves and the
+// final drop persist through the mutations below, so they survive a refetch or
+// a board-filter switch (no local-copy shadow state). Live drag reordering is a
+// cache-only preview — no network per hovered card — committed once on drop.
 export function useKanbanBoard(tasks: Task[] | undefined) {
   const tasksByStatus = useMemo(() => groupByStatus(tasks ?? []), [tasks]);
 
-  const move = useMoveTask();
-  const reorder = useReorderTasks();
+  const qc = useQueryClient();
+  const { mutate: moveMutate } = useMoveTask();
+  const { mutate: reorderMutate } = useReorderTasks();
 
   const moveTask = useCallback(
     (taskId: string, _from: string, toStatus: string) =>
-      move.mutate({ id: taskId, status: toStatus as TaskStatus }),
-    [move],
+      moveMutate({ id: taskId, status: toStatus as TaskStatus }),
+    [moveMutate],
   );
 
-  const reorderTask = useCallback(
-    (activeId: string, overId: string) => reorder.mutate({ activeId, overId }),
-    [reorder],
+  // Live drag feedback: reorder the cache synchronously, no mutation/refetch.
+  const previewReorder = useCallback(
+    (activeId: string, overId: string) => {
+      qc.setQueriesData<Task[]>({ queryKey: TASKS_KEY }, (old) => {
+        if (!old) return old;
+        const from = old.findIndex((t) => t.id === activeId);
+        const to = old.findIndex((t) => t.id === overId);
+        if (from === -1 || to === -1) return old;
+        return arrayMove(old, from, to);
+      });
+    },
+    [qc],
   );
 
-  return { tasksByStatus, moveTask, reorderTask };
+  // On drop: persist the final order to the store once, then invalidate.
+  const commitReorder = useCallback(
+    (activeId: string, overId: string) => reorderMutate({ activeId, overId }),
+    [reorderMutate],
+  );
+
+  return { tasksByStatus, moveTask, previewReorder, commitReorder };
 }
 
 export function useCreateTask() {
@@ -94,25 +111,14 @@ export function useMoveTask() {
   });
 }
 
+// Persist-only: the cache is already reordered by previewReorder during the
+// drag, so this just writes the final order to the store and invalidates. No
+// per-hover optimistic churn.
 export function useReorderTasks() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ activeId, overId }: { activeId: string; overId: string }) =>
       reorderTasks(activeId, overId),
-    onMutate: async ({ activeId, overId }) => {
-      await qc.cancelQueries({ queryKey: TASKS_KEY });
-      const prev = qc.getQueriesData<Task[]>({ queryKey: TASKS_KEY });
-      qc.setQueriesData<Task[]>({ queryKey: TASKS_KEY }, (old) => {
-        if (!old) return old;
-        const from = old.findIndex((t) => t.id === activeId);
-        const to = old.findIndex((t) => t.id === overId);
-        if (from === -1 || to === -1) return old;
-        return arrayMove(old, from, to);
-      });
-      return { prev };
-    },
-    onError: (_e, _vars, ctx) =>
-      ctx?.prev?.forEach(([key, data]) => qc.setQueryData(key, data)),
     onSettled: () => qc.invalidateQueries({ queryKey: TASKS_KEY }),
   });
 }

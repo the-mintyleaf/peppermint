@@ -121,7 +121,8 @@ export function ModuleTasks() {
   }, []);
 
   const { data: tasks, isLoading } = useTasks(activeFilter);
-  const { tasksByStatus, moveTask, reorderTask } = useKanbanBoard(tasks);
+  const { tasksByStatus, moveTask, previewReorder, commitReorder } =
+    useKanbanBoard(tasks);
   const { members, taskCountByMember } = useTeamMembers(tasks);
   const groupedTasks = useGroupedTasks(
     tasks,
@@ -359,7 +360,8 @@ export function ModuleTasks() {
                 <KanbanBoard
                   tasksByStatus={filteredByStatus}
                   onMoveTask={moveTask}
-                  onReorderTask={reorderTask}
+                  onPreviewReorder={previewReorder}
+                  onCommitReorder={commitReorder}
                   onCardClick={handleCardClick}
                   onAddTask={handleAddTask}
                 />

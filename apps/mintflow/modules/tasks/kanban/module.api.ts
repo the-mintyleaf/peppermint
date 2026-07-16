@@ -1574,15 +1574,20 @@ const AGE_UNIT_MINUTES: Record<string, number> = {
   hour: 60,
   day: 60 * 24,
   week: 60 * 24 * 7,
+  month: 60 * 24 * 30,
+  year: 60 * 24 * 365,
 };
 
 export function createdRank(task: Task): number {
   const label = task.createdAt.trim().toLowerCase();
   if (label === "just now") return 0;
   if (label === "yesterday") return AGE_UNIT_MINUTES.day;
-  const match = label.match(/^(\d+)\s+(minute|hour|day|week)s?\s+ago$/);
+  const match = label.match(
+    /^(\d+|an?)\s+(minute|hour|day|week|month|year)s?\s+ago$/,
+  );
   if (!match) return Number.MAX_SAFE_INTEGER;
-  return Number(match[1]) * AGE_UNIT_MINUTES[match[2]];
+  const qty = match[1] === "a" || match[1] === "an" ? 1 : Number(match[1]);
+  return qty * AGE_UNIT_MINUTES[match[2]];
 }
 
 export interface TaskInput {
@@ -1644,6 +1649,11 @@ export async function createTask(input: TaskInput): Promise<Task> {
   return task;
 }
 
+// Full replace of the form-owned fields: title/status/assignees/dates/tags/
+// description are taken straight from the input, so clearing them (empty
+// assignees, null dates, blank description) actually clears. priority, category
+// and subtasks aren't in the base form yet, so they fall back to the existing
+// value when the input omits them.
 export async function updateTask(id: string, patch: TaskInput): Promise<Task> {
   await delay();
   const assignees = buildAssignees(patch.assigneeNames);
@@ -1656,12 +1666,12 @@ export async function updateTask(id: string, patch: TaskInput): Promise<Task> {
       status: patch.status,
       priority: patch.priority ?? t.priority,
       category: patch.category ?? t.category,
-      assignee: assignees[0]?.name ?? t.assignee,
-      assignees: assignees.length ? assignees : t.assignees,
-      startDate: patch.startDate ?? t.startDate,
-      endDate: patch.endDate ?? t.endDate,
-      tags: patch.tags ?? t.tags,
-      description: patch.description?.trim() ?? t.description,
+      assignee: assignees[0]?.name ?? "Unassigned",
+      assignees: assignees.length ? assignees : undefined,
+      startDate: patch.startDate ?? undefined,
+      endDate: patch.endDate ?? undefined,
+      tags: patch.tags?.length ? patch.tags : undefined,
+      description: patch.description?.trim() || undefined,
       subtasks: patch.subtasks ?? t.subtasks,
     };
     return updated;

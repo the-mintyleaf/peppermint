@@ -93,7 +93,8 @@ function findStatusForTask(
 export function KanbanBoard({
   tasksByStatus,
   onMoveTask,
-  onReorderTask,
+  onPreviewReorder,
+  onCommitReorder,
   onCardClick,
   onAddTask,
 }: KanbanBoardProps) {
@@ -139,10 +140,10 @@ export function KanbanBoard({
       const toStatus = findStatusForTask(tasksByStatus, overId);
 
       if (fromStatus && toStatus && fromStatus === toStatus) {
-        onReorderTask(taskId, overId);
+        onPreviewReorder(taskId, overId);
       }
     },
-    [tasksByStatus, onReorderTask],
+    [tasksByStatus, onPreviewReorder],
   );
 
   const handleDragEnd = useCallback(
@@ -161,12 +162,16 @@ export function KanbanBoard({
       const toStatus = STATUS_SET.has(overId)
         ? overId
         : findStatusForTask(tasksByStatus, overId);
+      if (!toStatus) return;
 
-      if (toStatus && fromStatus !== toStatus) {
+      if (fromStatus !== toStatus) {
         onMoveTask(taskId, fromStatus, toStatus);
+      } else if (overId !== taskId) {
+        // Same column: the cache already shows the previewed order — persist it.
+        onCommitReorder(taskId, overId);
       }
     },
-    [tasksByStatus, onMoveTask],
+    [tasksByStatus, onMoveTask, onCommitReorder],
   );
 
   return (
