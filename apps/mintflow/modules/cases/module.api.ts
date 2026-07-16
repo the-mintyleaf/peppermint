@@ -81,28 +81,61 @@ export interface CaseFile {
 
 interface StatusStyle {
   label: string;
+  /** Foreground for the status pill. */
   fg: string;
+  /** Soft pill background. */
   bg: string;
+  /** Very light card-surface tint + hairline, keyed to the status. */
+  cardBg: string;
+  cardBorder: string;
 }
 
 const AMBER = "rgb(176,116,20)";
 const AMBER_SOFT = "rgba(176,116,20,0.12)";
 
 export const STATUS_STYLE: Record<CaseStatus, StatusStyle> = {
-  open: { label: "Open", fg: tokens.blueInk, bg: tokens.blueSoft },
+  open: {
+    label: "Open",
+    fg: tokens.blueInk,
+    bg: tokens.blueSoft,
+    cardBg: "rgba(44,110,202,0.05)",
+    cardBorder: "rgba(44,110,202,0.16)",
+  },
   in_progress: {
     label: "In Progress",
     fg: tokens.accentDark,
     bg: tokens.accentSoft,
+    cardBg: "rgba(238,87,41,0.05)",
+    cardBorder: "rgba(238,87,41,0.18)",
   },
   under_review: {
     label: "Under Review",
     fg: tokens.purpleInk,
     bg: tokens.purpleSoft,
+    cardBg: "rgba(120,90,200,0.05)",
+    cardBorder: "rgba(120,90,200,0.16)",
   },
-  on_hold: { label: "On Hold", fg: AMBER, bg: AMBER_SOFT },
-  resolved: { label: "Resolved", fg: tokens.green, bg: tokens.greenTint },
-  closed: { label: "Closed", fg: tokens.muted2, bg: "rgba(0,0,0,0.06)" },
+  on_hold: {
+    label: "On Hold",
+    fg: AMBER,
+    bg: AMBER_SOFT,
+    cardBg: "rgba(176,116,20,0.06)",
+    cardBorder: "rgba(176,116,20,0.18)",
+  },
+  resolved: {
+    label: "Resolved",
+    fg: tokens.green,
+    bg: tokens.greenTint,
+    cardBg: "rgba(16,130,85,0.05)",
+    cardBorder: "rgba(16,130,85,0.16)",
+  },
+  closed: {
+    label: "Closed",
+    fg: tokens.muted2,
+    bg: "rgba(0,0,0,0.06)",
+    cardBg: "rgba(0,0,0,0.025)",
+    cardBorder: "rgba(0,0,0,0.09)",
+  },
 };
 
 /**

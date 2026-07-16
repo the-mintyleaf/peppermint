@@ -33,10 +33,9 @@ export function CaseCard({ workCase, onOpen }: CaseCardProps) {
 
   return (
     <Paper
-      withBorder
       radius={tokens.radius.card}
       p="lg"
-      bg={tokens.paper}
+      bg={status.cardBg}
       role="button"
       tabIndex={0}
       onClick={() => onOpen(workCase)}
@@ -46,7 +45,11 @@ export function CaseCard({ workCase, onOpen }: CaseCardProps) {
           onOpen(workCase);
         }
       }}
-      style={{ cursor: "pointer", height: "100%" }}
+      style={{
+        cursor: "pointer",
+        height: "100%",
+        border: `1px solid ${status.cardBorder}`,
+      }}
     >
       {/* Row 1: priority · due date */}
       <Group justify="space-between" align="center" wrap="nowrap">
