@@ -1,0 +1,50 @@
+/* Three bouncing dots shown while the assistant reply is pending. */
+.typingDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgb(238, 87, 41);
+  animation: typing-bounce 1.2s infinite ease-in-out;
+}
+
+.typingDot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typingDot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes typing-bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-5px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typingDot {
+    animation: none;
+  }
+}
+
+/*
+ * Composer region padding. Clears the floating mobile bottom-nav pill by
+ * default; tightens on desktop where the nav is a left rail instead.
+ */
+.composerRegion {
+  flex: 0 0 auto;
+  padding: 10px 16px 96px;
+}
+
+@media (min-width: 62em) {
+  .composerRegion {
+    padding: 10px 20px 24px;
+  }
+}

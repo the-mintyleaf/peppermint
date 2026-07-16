@@ -1,0 +1,8 @@
+.card {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.card:hover {
+  background: rgba(0, 0, 0, 0.025);
+}
