@@ -19,7 +19,8 @@ local mock data (the "not wired" pattern: `notifications.show("Not connected yet
   (`layouts/app-shell`); `(app)/layout.tsx` is a pure re-export of `LayoutAppShell`.
   - `/dashboard` → `ModuleDashboard` (placeholder content region).
   - `/tasks` → `ModuleTasks` (`modules/tasks/`) — the imported Tasks page.
-  - `/cases` → `ModuleCases` (`modules/cases/`) — work-files listing.
+  - `/cases` → `ModuleCases` (`modules/cases/`) — case-management board.
+  - `/cases/[caseId]` → `ModuleCaseProfile` (`modules/cases/profile/`) — full case profile page.
 - `app/` files are re-export only (the root redirect is the one allowed exception).
 
 ## Modules
@@ -71,7 +72,24 @@ mintflow orange/paper tokens (loosely seeded by the `Files.dc.html` mock, since 
   horizontal-scroll wrapped); `components/CaseRow` + `components/FileRow`.
 - `detail/CaseDetailModal/` — Mantine `Modal`: header, summary, meta grid, departments,
   officers, and the task checklist (`CheckItem` + `Progress`). Read-only (no editable
-  fields → no unsaved-changes state).
+  fields → no unsaved-changes state). Footer "Open full profile" routes to
+  `/cases/[caseId]`.
+- `profile/` — `ModuleCaseProfile`, the full-page case profile at `/cases/[caseId]`
+  (adapted from the Claude Design `Work.dc.html` layout, re-skinned to orange/paper and
+  mapped onto the police-case model). Reads `caseId` from `useParams`; handles
+  loading / error+retry / not-found / empty states. `ModuleHeader` breadcrumb
+  (Cases / {title}) + officer avatars + Add task, then a 70/30 split:
+  - `profile.api.ts` — derives a `CaseProfileData` (case + its filed `CaseFile`s + a
+    synthesized `activity` feed) from `MOCK_CASES`/`MOCK_FILES`; extra presentational maps
+    (`PRIORITY_METER`, `TASK_STATE_STYLE`, `ACTIVITY_STYLE`) + `taskBreakdown`; re-exports
+    the domain style maps. `CaseProfile.utils.ts` — `formatDate` / `dueRelative` (fixed
+    mid-2026 reference). `CaseProfile.hooks.ts` — `useCaseProfile`, `useProfileView`
+    (selected checklist task + tab), `useVisibleActivity` (filters the feed to the task).
+  - `components/TaskStrip` (checklist chips that filter the activity feed),
+    `components/WorkDetail` (status/priority/category badges + progress/tasks/due/opened
+    metric strip), `components/ActivityTimeline` (icon-rail feed), `components/WorkTabs`
+    (Activity / Files / People tabs), `components/InsightsRail` (dark case-lead card,
+    priority meter, progress breakdown, officers brief).
 
 ## The app shell — `layouts/app-shell/`
 

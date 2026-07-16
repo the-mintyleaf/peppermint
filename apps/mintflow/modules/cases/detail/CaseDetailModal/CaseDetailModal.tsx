@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   Avatar,
   Badge,
@@ -15,6 +16,7 @@ import {
   Text,
   notifications,
 } from "@peppermint/ui";
+import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/csr/ArrowUpRight";
 
 import {
   CaseIcon,
@@ -197,8 +199,15 @@ function Body({ workCase }: { workCase: WorkCase }) {
 }
 
 export function CaseDetailModal({ workCase, onClose }: CaseDetailModalProps) {
+  const router = useRouter();
   const notConnected = () =>
     notifications.show({ message: "Not connected yet", color: "gray" });
+
+  const openProfile = () => {
+    if (!workCase) return;
+    onClose();
+    router.push(`/cases/${workCase.id}`);
+  };
 
   return (
     <Modal
@@ -218,11 +227,21 @@ export function CaseDetailModal({ workCase, onClose }: CaseDetailModalProps) {
       {workCase && (
         <>
           <Body workCase={workCase} />
-          <Group justify="flex-end" gap="sm" mt="xl">
-            <Button variant="default" onClick={onClose}>
-              Close
+          <Group justify="space-between" gap="sm" mt="xl">
+            <Button
+              variant="subtle"
+              color="accent"
+              leftSection={<ArrowUpRightIcon size={15} weight="bold" />}
+              onClick={openProfile}
+            >
+              Open full profile
             </Button>
-            <Button onClick={notConnected}>Update case</Button>
+            <Group gap="sm">
+              <Button variant="default" onClick={onClose}>
+                Close
+              </Button>
+              <Button onClick={notConnected}>Update case</Button>
+            </Group>
           </Group>
         </>
       )}
