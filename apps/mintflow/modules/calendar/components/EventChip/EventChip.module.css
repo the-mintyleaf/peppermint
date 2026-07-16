@@ -1,0 +1,31 @@
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 3px 7px;
+  border-radius: 7px;
+  text-align: left;
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.chip:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.97);
+}
+
+.dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
