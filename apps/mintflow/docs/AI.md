@@ -17,13 +17,50 @@ local mock data (the "not wired" pattern: `notifications.show("Not connected yet
 - `/` → redirects to `/dashboard` (`app/page.tsx`).
 - Route group `app/(app)/` wraps authenticated routes in the app shell
   (`layouts/app-shell`); `(app)/layout.tsx` is a pure re-export of `LayoutAppShell`.
-  - `/dashboard` → `ModuleDashboard` (placeholder content region).
+  - `/dashboard` → `ModuleDashboard` (`modules/dashboard/`) — the "Today's Focus" dashboard.
   - `/tasks` → `ModuleTasks` (`modules/tasks/`) — the imported Tasks page.
   - `/cases` → `ModuleCases` (`modules/cases/`) — case-management board.
   - `/cases/[caseId]` → `ModuleCaseProfile` (`modules/cases/profile/`) — full case profile page.
 - `app/` files are re-export only (the root redirect is the one allowed exception).
 
 ## Modules
+
+### `modules/dashboard/` — `ModuleDashboard` (ContainedModule)
+
+The "Today's Focus" minister dashboard at `/dashboard` (design spec §5–16). Calm
+daily surface, self-contained on **mock data** (`module.api.ts` — `fetchDashboard`,
+`"populated" | "empty"` variants), no backend. moss/lavender/amber map onto the
+existing green/purple tokens + the cases amber (no new palette). A header
+`SegmentedControl` toggles the populated vs **first-run** (all-zero, no red) preview.
+
+- `Dashboard.tsx` (`ModuleDashboard`) — page anchor (greeting + date) then a wrapping
+  two-column flex: main (`FocusPanel` → `TaskFlowBoard`) + priority-ordered rail
+  (`WorkFilesRail` → `AttentionRail` → `ScheduleRail` → `MetricsRail`). Owns
+  loading/error(retry) states, the `TaskDrawer`, and the auto-focus swap `Modal`.
+- `Dashboard.hooks.ts` — `useDashboard` (React Query), `useDashboardBoard`
+  (drag-reorderable focus+flow copies; encodes the WIP limit §6 + auto-focus swap
+  rule §5), `useDrawer`, `rankWorkFiles` (§7 involvement→deadline→blockers→activity,
+  never alphabetical), `hasEnoughData`/`RATE_EMPTY_COPY` (rate empty-state gate §11),
+  `notConnected`.
+- `module.api.ts` — types (`FocusTask`, `FlowTask`, `WorkFile`, `AttentionItem`,
+  `ScheduleItem`, `Kpi`, `Momentum`), style maps (`PRIORITY_STYLE`, `FLOW_COLUMN_META`,
+  `ATTENTION_TONE`), color consts (`MOSS`/`LAVENDER`/`AMBER`), `FOCUS_LIMIT`/`WIP_LIMIT`,
+  §16 mock + empty payloads. `estimate?` is optional and never populated (§11 — the
+  estimate chip is render-guarded and never shows).
+- `components/FocusPanel/` — §5 hero: moss-gradient header + `RingProgress` + "N of 3",
+  `FocusRow` (done/overdue/in-progress honest states), empty "Choose focus tasks".
+- `components/TaskFlowBoard/` — §6 personal kanban (`@dnd-kit`, 3 columns), `FlowColumn`
+  (WIP "3/3 limit" + amber full-notice), `FlowCard` (on-hold = **lavender flag in its
+  real column**, overdue amber accent, quick-complete, open-in-drawer); mobile = tabs.
+- `components/WorkFilesRail/` (`WorkFileCard`), `AttentionRail`, `ScheduleRail` — §7/§8/§9
+  rails (ranked work files w/ "N yours"/"N overdue" badges; exceptions-only; timeline
+  readout w/ free-time gaps, no capacity judgment).
+- `components/MetricsRail/` — §10 `KpiTile`×4 (on-time ships in its **not-enough-data**
+  empty state; "focus kept" `Sparkline` from `@peppermint/ui/charts`) + `MomentumStrip`.
+- `components/TaskDrawer/` — §15 right `Drawer`: primary fields top, secondary lower
+  (subtasks/deps/comments/attachments/on-hold/activity), complete/move/archive actions.
+  Read-only detail (no editable fields → no unsaved-changes state). All inert actions →
+  `notConnected`.
 
 ### `modules/tasks/` — `ModuleTasks` (ContainedModule)
 
