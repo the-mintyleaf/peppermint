@@ -1,6 +1,16 @@
 "use client";
 
-import { Divider, Group, Select, Textarea, TextInput } from "@peppermint/ui";
+import { useState } from "react";
+
+import {
+  Accordion,
+  Divider,
+  Group,
+  Select,
+  Stack,
+  Textarea,
+  TextInput,
+} from "@peppermint/ui";
 import { useFormInstance } from "@peppermint/admin";
 
 import {
@@ -15,22 +25,61 @@ const LEAD_SOURCE_OPTIONS = toOptions(LEAD_SOURCE_LABELS);
 const GENDER_OPTIONS = toOptions(GENDER_LABELS);
 const FOLLOW_UP_PRIORITY_OPTIONS = toOptions(FOLLOW_UP_PRIORITY_LABELS);
 
+/** Optional-panel keys, one per collapsible Accordion section. */
+const PANEL = {
+  altContact: "alt-contact",
+  additional: "additional",
+  summaries: "summaries",
+} as const;
+
+/** Fields backing each panel — drives auto-open when the form arrives prefilled (edit). */
+const PANEL_FIELDS: Record<string, (keyof ApplicantFormValues)[]> = {
+  [PANEL.altContact]: ["alternate_email", "alternate_phone"],
+  [PANEL.additional]: [
+    "date_of_birth",
+    "gender",
+    "religion",
+    "next_follow_up_at",
+    "follow_up_priority",
+  ],
+  [PANEL.summaries]: ["summary", "eligibility_summary", "counselling_notes"],
+};
+
 interface ApplicantFieldsProps {
   isAdmin: boolean;
   isLoading: boolean;
 }
 
 /**
- * Role-aware applicant field layout. Staff see identity/contact/lead fields; admin
- * additionally sees the protected block (DOB, gender, religion, summaries, follow-up).
- * The api layer re-enforces the whitelist, so hiding here is UX, not the security
- * boundary.
+ * Role-aware applicant field layout. The essentials (identity, primary contact, lead)
+ * are always visible; alternate contact and the admin-only additional/summary blocks
+ * live in collapsible Accordion panels so create stays short and only expands when
+ * needed. A panel auto-opens on mount when any of its fields already holds a value, so
+ * prefilled data (edit) is never hidden behind a closed panel. Admin additionally sees
+ * the protected block (DOB, gender, religion, summaries, follow-up); the api layer
+ * re-enforces the whitelist, so hiding here is UX, not the security boundary.
  */
 export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
   const { form } = useFormInstance<ApplicantFormValues>();
 
+  // Controlled open-state, seeded once from the (possibly prefilled) initial values so
+  // edit records with data in a panel start expanded.
+  const [openPanels, setOpenPanels] = useState(() => {
+    const values = form.getValues();
+    return Object.keys(PANEL_FIELDS).filter((panel) =>
+      PANEL_FIELDS[panel].some((field) => Boolean(values[field])),
+    );
+  });
+
+  // A panel holding a field with a validation error is force-opened: an alternate-email
+  // error must never hide behind a collapsed control (blur/submit validation can set it).
+  const erroredPanels = Object.keys(PANEL_FIELDS).filter((panel) =>
+    PANEL_FIELDS[panel].some((field) => Boolean(form.errors[field])),
+  );
+  const value = Array.from(new Set([...openPanels, ...erroredPanels]));
+
   return (
-    <>
+    <Stack gap="md">
       <Group grow align="flex-start">
         <TextInput
           label="First name"
@@ -81,19 +130,6 @@ export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
           {...form.getInputProps("primary_phone")}
         />
       </Group>
-      <Group grow align="flex-start">
-        <TextInput
-          label="Alternate email"
-          type="email"
-          disabled={isLoading}
-          {...form.getInputProps("alternate_email")}
-        />
-        <TextInput
-          label="Alternate phone"
-          disabled={isLoading}
-          {...form.getInputProps("alternate_phone")}
-        />
-      </Group>
 
       <Divider label="Lead" labelPosition="left" />
       <Group grow align="flex-start">
@@ -118,67 +154,102 @@ export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
         {...form.getInputProps("initial_interest")}
       />
 
-      {isAdmin && (
-        <>
-          <Divider label="Additional (admin)" labelPosition="left" />
-          <Group grow align="flex-start">
-            <TextInput
-              label="Date of birth"
-              type="date"
-              disabled={isLoading}
-              {...form.getInputProps("date_of_birth")}
-            />
-            <Select
-              label="Gender"
-              clearable
-              data={GENDER_OPTIONS}
-              disabled={isLoading}
-              {...form.getInputProps("gender")}
-            />
-            <TextInput
-              label="Religion"
-              disabled={isLoading}
-              {...form.getInputProps("religion")}
-            />
-          </Group>
-          <Group grow align="flex-start">
-            <TextInput
-              label="Next follow-up"
-              type="datetime-local"
-              disabled={isLoading}
-              {...form.getInputProps("next_follow_up_at")}
-            />
-            <Select
-              label="Follow-up priority"
-              clearable
-              data={FOLLOW_UP_PRIORITY_OPTIONS}
-              disabled={isLoading}
-              {...form.getInputProps("follow_up_priority")}
-            />
-          </Group>
-          <Textarea
-            label="Summary"
-            autosize
-            minRows={2}
-            disabled={isLoading}
-            {...form.getInputProps("summary")}
-          />
-          <Textarea
-            label="Eligibility summary"
-            autosize
-            minRows={2}
-            disabled={isLoading}
-            {...form.getInputProps("eligibility_summary")}
-          />
-          <Textarea
-            label="Counselling notes"
-            autosize
-            minRows={2}
-            disabled={isLoading}
-            {...form.getInputProps("counselling_notes")}
-          />
-        </>
-      )}
-    </>
+      <Accordion multiple value={value} onChange={setOpenPanels}>
+        <Accordion.Item value={PANEL.altContact}>
+          <Accordion.Control>Alternate contact</Accordion.Control>
+          <Accordion.Panel>
+            <Group grow align="flex-start">
+              <TextInput
+                label="Alternate email"
+                type="email"
+                disabled={isLoading}
+                {...form.getInputProps("alternate_email")}
+              />
+              <TextInput
+                label="Alternate phone"
+                disabled={isLoading}
+                {...form.getInputProps("alternate_phone")}
+              />
+            </Group>
+          </Accordion.Panel>
+        </Accordion.Item>
+
+        {isAdmin && (
+          <>
+            <Accordion.Item value={PANEL.additional}>
+              <Accordion.Control>Additional details</Accordion.Control>
+              <Accordion.Panel>
+                <Stack gap="md">
+                  <Group grow align="flex-start">
+                    <TextInput
+                      label="Date of birth"
+                      type="date"
+                      disabled={isLoading}
+                      {...form.getInputProps("date_of_birth")}
+                    />
+                    <Select
+                      label="Gender"
+                      clearable
+                      data={GENDER_OPTIONS}
+                      disabled={isLoading}
+                      {...form.getInputProps("gender")}
+                    />
+                    <TextInput
+                      label="Religion"
+                      disabled={isLoading}
+                      {...form.getInputProps("religion")}
+                    />
+                  </Group>
+                  <Group grow align="flex-start">
+                    <TextInput
+                      label="Next follow-up"
+                      type="datetime-local"
+                      disabled={isLoading}
+                      {...form.getInputProps("next_follow_up_at")}
+                    />
+                    <Select
+                      label="Follow-up priority"
+                      clearable
+                      data={FOLLOW_UP_PRIORITY_OPTIONS}
+                      disabled={isLoading}
+                      {...form.getInputProps("follow_up_priority")}
+                    />
+                  </Group>
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
+
+            <Accordion.Item value={PANEL.summaries}>
+              <Accordion.Control>Summaries</Accordion.Control>
+              <Accordion.Panel>
+                <Stack gap="md">
+                  <Textarea
+                    label="Summary"
+                    autosize
+                    minRows={2}
+                    disabled={isLoading}
+                    {...form.getInputProps("summary")}
+                  />
+                  <Textarea
+                    label="Eligibility summary"
+                    autosize
+                    minRows={2}
+                    disabled={isLoading}
+                    {...form.getInputProps("eligibility_summary")}
+                  />
+                  <Textarea
+                    label="Counselling notes"
+                    autosize
+                    minRows={2}
+                    disabled={isLoading}
+                    {...form.getInputProps("counselling_notes")}
+                  />
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
+          </>
+        )}
+      </Accordion>
+    </Stack>
   );
 }
