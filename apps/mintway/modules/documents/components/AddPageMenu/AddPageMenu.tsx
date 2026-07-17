@@ -7,7 +7,6 @@ import { getDocumentTypeConfig } from "../../documentTypeConfig";
 import type { DocumentType } from "../../documents.types";
 import {
   getBankMenuInstitutions,
-  getBankVariantLabel,
   getLorMenuLabel,
   getLorMenuTypes,
   getMoiMenuLabel,
@@ -24,8 +23,13 @@ interface AddPageMenuProps {
 }
 
 export function AddPageMenu({ children, width = 220 }: AddPageMenuProps) {
-  const { applicantId, documents, openCreateModal, quickCreateDocument } =
-    useDocumentEditor();
+  const {
+    applicantId,
+    documents,
+    openCreateModal,
+    quickCreateDocument,
+    createBankPair,
+  } = useDocumentEditor();
 
   const studentTypes = getStudentMenuTypes(applicantId, documents);
   const wodaTypes = getWodaMenuTypes(applicantId, documents);
@@ -141,29 +145,13 @@ export function AddPageMenu({ children, width = 220 }: AddPageMenuProps) {
             </Menu.Sub.Target>
             <Menu.Sub.Dropdown>
               {bankInstitutions.map((bank) => (
-                <Menu.Sub key={bank.slugKey} openDelay={80} closeDelay={120}>
-                  <Menu.Sub.Target>
-                    <Menu.Sub.Item fz="xs">{bank.label}</Menu.Sub.Item>
-                  </Menu.Sub.Target>
-                  <Menu.Sub.Dropdown>
-                    {bank.certificateAvailable && (
-                      <Menu.Item
-                        fz="xs"
-                        onClick={() => handleSelect(bank.certificateType)}
-                      >
-                        {getBankVariantLabel(bank.certificateType)}
-                      </Menu.Item>
-                    )}
-                    {bank.statementAvailable && (
-                      <Menu.Item
-                        fz="xs"
-                        onClick={() => handleSelect(bank.statementType)}
-                      >
-                        {getBankVariantLabel(bank.statementType)}
-                      </Menu.Item>
-                    )}
-                  </Menu.Sub.Dropdown>
-                </Menu.Sub>
+                <Menu.Item
+                  key={bank.slugKey}
+                  fz="xs"
+                  onClick={() => createBankPair(bank.slugKey)}
+                >
+                  {bank.label}
+                </Menu.Item>
               ))}
             </Menu.Sub.Dropdown>
           </Menu.Sub>

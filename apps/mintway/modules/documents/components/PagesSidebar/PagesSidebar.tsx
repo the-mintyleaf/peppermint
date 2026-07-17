@@ -18,7 +18,11 @@ import { useDocumentEditor } from "../../context";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
 import { useDocumentActions } from "../../hooks/useDocumentActions";
 import { AddPageMenu } from "../AddPageMenu";
-import { getAvailableDocumentTypes } from "../../utils/documentTypeMenu";
+import {
+  getAvailableDocumentTypes,
+  getBankPartnerType,
+} from "../../utils/documentTypeMenu";
+import type { Document } from "../../documents.types";
 import styles from "../../pages/editor/DocumentEditor.module.css";
 
 interface PagesSidebarProps {
@@ -46,13 +50,18 @@ export function PagesSidebar({ onClose }: PagesSidebarProps) {
 
   const availableTypes = getAvailableDocumentTypes(applicantId, documents);
 
-  const confirmRemove = (documentId: string, label: string) => {
+  const confirmRemove = (doc: Document) => {
+    const partnerType = getBankPartnerType(doc.type);
+    const hasPartner =
+      partnerType != null && documents.some((d) => d.type === partnerType);
     modals.openConfirmModal({
       title: "Remove page",
-      children: `Remove "${label}" from this workspace?`,
+      children: hasPartner
+        ? `Remove "${doc.label}"? Its paired bank certificate and statement are removed together.`
+        : `Remove "${doc.label}" from this workspace?`,
       labels: { confirm: "Remove", cancel: "Cancel" },
       confirmProps: { color: "red" },
-      onConfirm: () => handleRemoveDocument(documentId),
+      onConfirm: () => handleRemoveDocument(doc.id),
     });
   };
 
@@ -104,7 +113,7 @@ export function PagesSidebar({ onClose }: PagesSidebarProps) {
                   variant="subtle"
                   color="red"
                   style={{ position: "absolute", top: 2, right: 2, zIndex: 1 }}
-                  onClick={() => confirmRemove(doc.id, doc.label)}
+                  onClick={() => confirmRemove(doc)}
                   aria-label={`Remove ${doc.label}`}
                 >
                   <TrashIcon size={12} aria-hidden />

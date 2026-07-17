@@ -1,4 +1,4 @@
-import { documentTypeList, getDocumentTypeConfig } from "../documentTypeConfig";
+import { documentTypeList } from "../documentTypeConfig";
 import {
   BANK_INSTITUTIONS,
   LOR_INSTITUTIONS,
@@ -60,6 +60,11 @@ export function getWodaMenuTypes(
   return WODA_VARIANTS.filter((v) => available.has(v.slug));
 }
 
+/**
+ * A bank certificate and statement live and die as a pair, so the menu offers one entry
+ * per bank and only while the *whole* pair can be added — i.e. neither half exists yet.
+ * (An orphaned single half, from legacy data, is intentionally not re-pairable here.)
+ */
 export function getBankMenuInstitutions(
   applicantId: string | null,
   documents: Document[],
@@ -68,12 +73,25 @@ export function getBankMenuInstitutions(
     getAvailableDocumentTypes(applicantId, documents).map((c) => c.type),
   );
   return BANK_INSTITUTIONS.map((bank) => ({
-    ...bank,
+    slugKey: bank.slugKey,
+    label: bank.label,
     certificateType: `bank-${bank.slugKey}-certificate` as DocumentType,
     statementType: `bank-${bank.slugKey}-statement` as DocumentType,
-    certificateAvailable: available.has(`bank-${bank.slugKey}-certificate`),
-    statementAvailable: available.has(`bank-${bank.slugKey}-statement`),
-  })).filter((b) => b.certificateAvailable || b.statementAvailable);
+  })).filter(
+    (b) => available.has(b.certificateType) && available.has(b.statementType),
+  );
+}
+
+/**
+ * The other half of a bank pair: certificate ⇄ statement for the same bank. Returns null
+ * for any non-bank type. Used to create and delete the two documents together.
+ */
+export function getBankPartnerType(type: DocumentType): DocumentType | null {
+  const match = type.match(/^bank-(.+)-(certificate|statement)$/);
+  if (!match) return null;
+  const [, slugKey, variant] = match;
+  const partner = variant === "certificate" ? "statement" : "certificate";
+  return `bank-${slugKey}-${partner}` as DocumentType;
 }
 
 export function getLorMenuTypes(
@@ -106,11 +124,4 @@ export function getMoiMenuLabel(label: string) {
 
 export function getWodaMenuLabel(label: string) {
   return label.replace(/^WODA — /, "");
-}
-
-export function getBankVariantLabel(type: DocumentType) {
-  return getDocumentTypeConfig(type).label.replace(
-    /^.+ (Certificate|Statement)$/,
-    "$1",
-  );
 }

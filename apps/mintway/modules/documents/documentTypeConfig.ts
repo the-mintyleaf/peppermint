@@ -365,7 +365,8 @@ const bankRegistry = Object.fromEntries(
         {
           type: certificateSlug,
           label: `${bank.label} Certificate`,
-          uniquePerStudent: false,
+          // Statement & certificate are created and deleted as a pair — one per bank.
+          uniquePerStudent: true,
           requiresStudent: false,
           Form: certComponents.Form,
           Template: certComponents.Template,
@@ -377,7 +378,8 @@ const bankRegistry = Object.fromEntries(
         {
           type: statementSlug,
           label: `${bank.label} Statement`,
-          uniquePerStudent: false,
+          // Statement & certificate are created and deleted as a pair — one per bank.
+          uniquePerStudent: true,
           requiresStudent: false,
           Form: stmtComponents.Form,
           Template: stmtComponents.Template,

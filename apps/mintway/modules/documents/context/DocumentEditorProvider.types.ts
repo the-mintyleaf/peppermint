@@ -58,6 +58,8 @@ export interface DocumentEditorContextValue {
     content: DocumentContent,
     label?: string,
   ) => void;
+  /** Creates a bank's certificate + statement together (they live and die as a pair). */
+  createBankPair: (slugKey: string) => void;
   isCreatingDocument: boolean;
   runStatusAction: (action: DocumentStatusAction) => void;
   isRunningStatusAction: boolean;

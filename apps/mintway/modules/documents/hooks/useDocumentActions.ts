@@ -8,6 +8,7 @@ import {
   documentMutationKeys,
 } from "../documents.queryKeys";
 import { triggerPrint } from "../utils/print.utils";
+import { getBankPartnerType } from "../utils/documentTypeMenu";
 import { computeBankStatement } from "../utils/bankStatement";
 import { currencyInWords } from "../utils/numberToWords";
 import type {
@@ -88,20 +89,26 @@ export function useDocumentActions({
     },
   });
 
+  // Accepts one or two ids so a bank certificate + statement are archived together (§combo).
   const removeMutation = useMutation({
     mutationKey: documentMutationKeys.remove(),
-    mutationFn: documentsApi.remove,
-    onSuccess: (_, documentId) => {
+    mutationFn: (documentIds: string[]) =>
+      Promise.all(documentIds.map((id) => documentsApi.remove(id))),
+    onSuccess: (_, documentIds) => {
       queryClient.invalidateQueries({
         queryKey: documentQueryKeys.list(applicantId),
       });
       queryClient.invalidateQueries({
         queryKey: documentQueryKeys.workspaces(),
       });
-      onDocumentRemoved(documentId);
+      documentIds.forEach(onDocumentRemoved);
       notifications.show({
-        title: "Document removed",
-        message: "The document was archived.",
+        title:
+          documentIds.length > 1 ? "Documents removed" : "Document removed",
+        message:
+          documentIds.length > 1
+            ? "The bank certificate and statement were archived."
+            : "The document was archived.",
         color: "green",
       });
     },
@@ -158,9 +165,15 @@ export function useDocumentActions({
 
   const handleRemoveDocument = useCallback(
     async (documentId: string) => {
-      await removeMutation.mutateAsync(documentId);
+      const doc = documents.find((d) => d.id === documentId);
+      const partnerType = doc ? getBankPartnerType(doc.type) : null;
+      const partner = partnerType
+        ? documents.find((d) => d.type === partnerType)
+        : null;
+      const ids = partner ? [documentId, partner.id] : [documentId];
+      await removeMutation.mutateAsync(ids);
     },
-    [removeMutation],
+    [documents, removeMutation],
   );
 
   const handleSaveHistory = useCallback(async () => {

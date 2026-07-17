@@ -328,6 +328,60 @@ export function DocumentEditorProvider({
     [createMutation, applicantId],
   );
 
+  // A bank certificate and statement are always created together. The certificate is created
+  // first and becomes the active page (matching the auto-select preference above).
+  const createBankPairMutation = useMutation({
+    mutationFn: async (slugKey: string) => {
+      const certificateType = `bank-${slugKey}-certificate` as DocumentType;
+      const statementType = `bank-${slugKey}-statement` as DocumentType;
+      const certificate = await documentsApi.create({
+        applicantId,
+        type: certificateType,
+        label: getDefaultLabel(certificateType),
+        content: getDefaultDocumentContent(certificateType),
+      });
+      const statement = await documentsApi.create({
+        applicantId,
+        type: statementType,
+        label: getDefaultLabel(statementType),
+        content: getDefaultDocumentContent(statementType),
+      });
+      return { certificate, statement };
+    },
+    onSuccess: ({ certificate, statement }) => {
+      appendDocumentToCache(certificate);
+      appendDocumentToCache(statement);
+      setActiveDocumentId(certificate.id);
+      queryClient.invalidateQueries({
+        queryKey: documentQueryKeys.workspaces(),
+      });
+      notifications.show({
+        title: "Bank pages added",
+        message: `${certificate.label} & ${statement.label}`,
+        color: "green",
+      });
+    },
+    onError: () => {
+      // A half-created pair (certificate saved, statement failed) would violate the combo, so
+      // refetch to surface whatever persisted rather than trust the optimistic cache.
+      queryClient.invalidateQueries({
+        queryKey: documentQueryKeys.list(applicantId),
+      });
+      notifications.show({
+        title: "Failed to add bank pages",
+        message: "Please try again.",
+        color: "red",
+      });
+    },
+  });
+
+  const createBankPair = useCallback(
+    (slugKey: string) => {
+      createBankPairMutation.mutate(slugKey);
+    },
+    [createBankPairMutation],
+  );
+
   const statusMutation = useMutation({
     mutationFn: ({
       id,
@@ -393,7 +447,9 @@ export function DocumentEditorProvider({
     addDocumentToList,
     quickCreateDocument,
     createDocumentWithContent,
-    isCreatingDocument: createMutation.isPending,
+    createBankPair,
+    isCreatingDocument:
+      createMutation.isPending || createBankPairMutation.isPending,
     runStatusAction,
     isRunningStatusAction: statusMutation.isPending,
     isPrintingAll,
