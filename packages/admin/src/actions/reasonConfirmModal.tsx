@@ -2,11 +2,48 @@
 
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { Button, Group, Stack, Text, Textarea, modals } from "@peppermint/ui";
+import {
+  Alert,
+  Button,
+  Group,
+  Stack,
+  Text,
+  Textarea,
+  modals,
+} from "@peppermint/ui";
+import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
+import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
+import { InfoIcon } from "@phosphor-icons/react/dist/csr/Info";
+
+/** Visual severity of the confirmation's consequence message. */
+export type ReasonConfirmTone = "danger" | "warning" | "info";
+
+const TONE_CONFIG: Record<
+  ReasonConfirmTone,
+  { color: string; icon: ReactNode }
+> = {
+  danger: {
+    color: "red",
+    icon: <ProhibitIcon size={18} weight="fill" aria-hidden />,
+  },
+  warning: {
+    color: "yellow",
+    icon: <WarningIcon size={18} weight="fill" aria-hidden />,
+  },
+  info: {
+    color: "blue",
+    icon: <InfoIcon size={18} weight="fill" aria-hidden />,
+  },
+};
 
 export interface ReasonConfirmOptions {
   title: string;
   description?: ReactNode;
+  /**
+   * When set, render `description` as an `<Alert>` (icon + color) instead of plain
+   * text — for destructive/consequential confirmations. Omit for a neutral message.
+   */
+  tone?: ReasonConfirmTone;
   /** Label above the reason textarea. */
   reasonLabel?: string;
   reasonPlaceholder?: string;
@@ -30,6 +67,7 @@ interface ReasonConfirmContentProps extends ReasonConfirmOptions {
 
 function ReasonConfirmContent({
   description,
+  tone,
   reasonLabel = "Reason",
   reasonPlaceholder,
   reasonRequired = true,
@@ -57,9 +95,18 @@ function ReasonConfirmContent({
     }
   };
 
+  const toneConfig = tone ? TONE_CONFIG[tone] : null;
+
   return (
     <Stack gap="sm">
-      {description && <Text size="sm">{description}</Text>}
+      {description &&
+        (toneConfig ? (
+          <Alert color={toneConfig.color} icon={toneConfig.icon}>
+            {description}
+          </Alert>
+        ) : (
+          <Text size="sm">{description}</Text>
+        ))}
       <Textarea
         label={reasonLabel}
         placeholder={reasonPlaceholder}

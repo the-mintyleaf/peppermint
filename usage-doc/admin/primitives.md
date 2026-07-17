@@ -98,10 +98,15 @@ Confirmation modal with a required reason textarea (the `revoke/deactivate/end`
 flow). Confirm is disabled until a reason is entered and shows a spinner while
 `onConfirm` runs; the modal closes when it resolves.
 
+Pass `tone` (`"danger" | "warning" | "info"`) to render the `description` as an
+`<Alert>` with a matching icon and color instead of plain text — use it for
+destructive or consequential confirmations. Omit `tone` for a neutral message.
+
 ```ts
 openReasonConfirmModal({
   title: "Revoke delegation",
   description: "This delegation will stop applying immediately.",
+  tone: "danger", // renders the message as a red Alert with a Prohibit icon
   confirmLabel: "Revoke",
   confirmColor: "red",
   onConfirm: (reason) => revoke.mutateAsync({ id, reason }),
