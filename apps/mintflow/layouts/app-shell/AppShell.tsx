@@ -6,11 +6,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { AppShell, Box, Burger, useDisclosure } from "@peppermint/ui";
 
 import { tokens } from "@/config/design";
-import { useSidebarStore } from "./AppShell.store";
+import { useRailCollapsed } from "./AppShell.hooks";
 import { APP_SHELL_CONFIG } from "./nav.config";
 import { Sidebar } from "./components/Sidebar";
 import { NAV_WIDTH, NAV_WIDTH_COLLAPSED, SHELL_INSET } from "./shell.constants";
 import type { AppShellConfig } from "./AppShell.types";
+import classes from "./AppShell.module.css";
 
 /**
  * mintflow-admin chrome — a single always-open 280px navigation panel (no
@@ -24,9 +25,8 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
   const [opened, { toggle: toggleMobileNav, close: closeMobileNav }] =
     useDisclosure();
 
-  const { collapsed, hasHydrated } = useSidebarStore();
-  // Reserve the expanded width until rehydration so SSR and first paint agree.
-  const isCollapsed = hasHydrated && collapsed;
+  // Desktop-only; below `sm` the panel is the Burger overlay and stays full-width.
+  const isCollapsed = useRailCollapsed();
   const navbarWidth =
     (isCollapsed ? NAV_WIDTH_COLLAPSED : NAV_WIDTH) + SHELL_INSET * 2;
 
@@ -83,6 +83,7 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
         <AppShell.Navbar
           p={SHELL_INSET}
           bg="transparent"
+          className={classes.navbar}
           style={{ border: "none", overflow: "hidden" }}
         >
           <Sidebar config={config} pathname={pathname} />

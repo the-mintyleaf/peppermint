@@ -3,6 +3,7 @@
 import { Box, Group, ScrollArea, Stack, Text } from "@peppermint/ui";
 
 import { useSidebarStore } from "../../AppShell.store";
+import { useRailCollapsed } from "../../AppShell.hooks";
 import { resolveActiveHref } from "../../nav.utils";
 import {
   NAV_WIDTH,
@@ -28,9 +29,9 @@ import classes from "./Sidebar.module.css";
  */
 export function Sidebar({ config, pathname }: SidebarProps) {
   const activeHref = resolveActiveHref(config.groups, pathname);
-  const { collapsed, hasHydrated, toggle } = useSidebarStore();
-  // Render expanded until rehydration so SSR and first client paint agree.
-  const isCollapsed = hasHydrated && collapsed;
+  const toggle = useSidebarStore((s) => s.toggle);
+  // Desktop-only, hydration-gated — see useRailCollapsed.
+  const isCollapsed = useRailCollapsed();
 
   return (
     <Stack

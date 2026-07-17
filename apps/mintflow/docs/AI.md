@@ -211,10 +211,13 @@ rendered as one full-width labeled panel that collapses to a narrow icon rail on
   icon-only trigger), section labels are hidden, and `NavRow`/`UserMenu` become icon-only
   with hover tooltips and a vertical footer cluster. Each part takes a `collapsed` prop.
   State lives in `AppShell.store.ts` (`useSidebarStore`, `zustand/persist` →
-  `localStorage["mintflow-sidebar"]`); a `hasHydrated` flag gates the effective value
-  (`hasHydrated ? collapsed : false`) so SSR and first paint render expanded — no hydration
-  mismatch. `AppShell.tsx` reads the same value for the navbar width; the panel width
-  transition is reduced-motion-guarded (`Sidebar.module.css`).
+  `localStorage["mintflow-sidebar"]`). The effective value comes from `useRailCollapsed`
+  (`AppShell.hooks.ts`): `hasHydrated && collapsed && matches(min-width:48em)` — the
+  `hasHydrated` flag keeps SSR/first paint expanded (no hydration mismatch), and the `sm`
+  media query keeps collapse **desktop-only** so the mobile Burger overlay always renders
+  in full. Both `AppShell.tsx` (navbar width) and `Sidebar.tsx` read that hook; the navbar
+  and panel width transitions are reduced-motion-guarded (`AppShell.module.css` /
+  `Sidebar.module.css`).
 - **Dark panel is explicit.** Unlike `AdminShell` (transparent over a dark app bg),
   mintflow's body is light, so the panel Stack carries its own `tokens.tile` surface +
   `tokens.shadow.nav` (see `shell.constants.ts` `navCardStyle`, `NAV_WIDTH = 280`).

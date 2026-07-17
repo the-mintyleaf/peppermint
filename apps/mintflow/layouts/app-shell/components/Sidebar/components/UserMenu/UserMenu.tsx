@@ -1,14 +1,7 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import {
-  Avatar,
-  Menu,
-  Stack,
-  Text,
-  Tooltip,
-  UnstyledButton,
-} from "@peppermint/ui";
+import { Avatar, Menu, Stack, Text, UnstyledButton } from "@peppermint/ui";
 import { CaretUpDownIcon } from "@phosphor-icons/react/dist/csr/CaretUpDown";
 
 import type { AppShellUserMenuItem } from "../../../../AppShell.types";
@@ -68,14 +61,17 @@ export function UserMenu({
     >
       <Menu.Target>
         {collapsed ? (
-          <Tooltip label={user.name} withArrow position="right">
-            <UnstyledButton
-              className={classes.triggerCollapsed}
-              aria-label={`Account: ${user.name}`}
-            >
-              {avatar}
-            </UnstyledButton>
-          </Tooltip>
+          // No Tooltip wrapper here: Menu.Target clones its direct child to
+          // attach the menu's aria-haspopup/expanded, and Mantine's Tooltip
+          // would divert those onto the tooltip bubble. The `aria-label` (and
+          // `title`) carry the account name instead.
+          <UnstyledButton
+            className={classes.triggerCollapsed}
+            title={user.name}
+            aria-label={`Account: ${user.name}`}
+          >
+            {avatar}
+          </UnstyledButton>
         ) : (
           <UnstyledButton
             className={classes.trigger}
