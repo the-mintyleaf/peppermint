@@ -1,6 +1,11 @@
 "use client";
 
-import { notifications, useMutation, useQueryClient } from "@peppermint/ui";
+import {
+  modals,
+  notifications,
+  useMutation,
+  useQueryClient,
+} from "@peppermint/ui";
 import { openReasonConfirmModal } from "@peppermint/admin";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import {
@@ -108,7 +113,17 @@ export function useUserLifecycleActions(
         confirmColor: "red",
         onConfirm: (reason) => deactivateMutation.mutateAsync(reason),
       }),
-    reactivate: () => reactivateMutation.mutate(),
+    reactivate: () =>
+      // Simple yes/no confirm (Mantine's built-in) — reactivation is low-risk
+      // and reversible, so it doesn't need a reason.
+      modals.openConfirmModal({
+        title: "Reactivate account",
+        styles: { body: { padding: "var(--mantine-spacing-md)" } },
+        children: `Restore access for @${user.username}? They'll be able to sign in again.`,
+        labels: { confirm: "Reactivate", cancel: "Cancel" },
+        confirmProps: { color: "teal" },
+        onConfirm: () => reactivateMutation.mutate(),
+      }),
     openSuspend: () =>
       openReasonConfirmModal({
         title: "Suspend account",
@@ -121,6 +136,15 @@ export function useUserLifecycleActions(
         confirmColor: "orange",
         onConfirm: (reason) => suspendMutation.mutateAsync(reason),
       }),
-    unsuspend: () => unsuspendMutation.mutate(),
+    unsuspend: () =>
+      // Simple yes/no confirm — unsuspension restores access and is reversible.
+      modals.openConfirmModal({
+        title: "Unsuspend account",
+        styles: { body: { padding: "var(--mantine-spacing-md)" } },
+        children: `Lift the suspension on @${user.username}? They'll be able to sign in again.`,
+        labels: { confirm: "Unsuspend", cancel: "Cancel" },
+        confirmProps: { color: "teal" },
+        onConfirm: () => unsuspendMutation.mutate(),
+      }),
   };
 }

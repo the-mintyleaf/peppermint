@@ -49,7 +49,7 @@ export function SetTemporaryPasswordModal({
           icon={<WarningIcon size={18} weight="fill" aria-hidden />}
           title="This forces a password change"
         >
-          <Text size="sm">
+          <Text size="xs">
             You&apos;re setting a temporary password for @{username}. They must
             change it the next time they sign in, and all their active sessions
             are revoked immediately.

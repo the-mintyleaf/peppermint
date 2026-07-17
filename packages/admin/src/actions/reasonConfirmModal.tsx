@@ -114,7 +114,7 @@ function ReasonConfirmContent({
             icon={toneConfig.icon}
             title={alertTitle}
           >
-            {description}
+            {description && <Text size="xs">{description}</Text>}
           </Alert>
         ) : (
           <Stack gap={2}>
@@ -124,7 +124,7 @@ function ReasonConfirmContent({
               </Text>
             )}
             {description && (
-              <Text size="sm" c="dimmed">
+              <Text size="xs" c="dimmed">
                 {description}
               </Text>
             )}

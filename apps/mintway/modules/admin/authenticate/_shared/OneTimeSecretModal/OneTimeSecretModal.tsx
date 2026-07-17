@@ -39,7 +39,9 @@ export function OneTimeSecretModal({
           icon={<WarningIcon size={18} weight="fill" aria-hidden />}
           title="Copy this now — it won't be shown again"
         >
-          {description} Once you close this, it can&apos;t be retrieved.
+          <Text size="xs">
+            {description} Once you close this, it can&apos;t be retrieved.
+          </Text>
         </Alert>
 
         <Stack

@@ -91,7 +91,7 @@ export function UserRowActionsMenu({
           icon={<WarningIcon size={18} weight="fill" aria-hidden />}
           title="Signs them out everywhere"
         >
-          <Text size="sm">
+          <Text size="xs">
             @{user.username} is signed out of every device right now. They can
             sign back in with their current password.
           </Text>
