@@ -16,8 +16,12 @@ shells + primitives. Backend contracts: `.todo/auth_doc_grandway/` (auth) and
 Base APIs: `/api/v1/auth/` (auth) and `/api/v1/applicants/` · `/api/v1/application-cases/`
 (applicant) at `NEXT_PUBLIC_API_URL`.
 
-> The `modules/documents/` module and `components/templates/` are a separate in-progress
-> effort — not part of the applicant CRM.
+> The document generator is a separate effort from the applicant CRM. Its list and
+> signatory admin surfaces are the `modules/admin/documents` + `modules/admin/signatures`
+> modules (`/admin/documents`, `/admin/signatures`); the full-screen editor engine
+> (`modules/documents/` + `components/templates/`) stays outside the admin shell at
+> `/documents/[applicantId]` and is consumed by those modules via the `modules/documents`
+> barrel (`documentsApi`, `documentQueryKeys`, shared types).
 
 ---
 
@@ -69,13 +73,15 @@ apps/mintway/
 
 ## Modules
 
-| Module           | Path                                          | Route(s)                              | Notes                                                                           |
-| ---------------- | --------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------- |
-| Sign In          | `modules/sign-in`                             | `/`                                   | `SignInPage`; `onPasswordChangeRequired` stashes challenge → `/password-change` |
-| Password Change  | `modules/password-change`                     | `/password-change`                    | first-login mode (challenge); voluntary change lives in account-settings        |
-| Account Settings | `modules/admin/authenticate/account-settings` | modal (avatar menu)                   | Profile (read-only), Security (change password), Sessions (+ logout-all)        |
-| Users            | `modules/admin/authenticate/users`            | `/admin/authenticate/users`           | `ModalTableShell`; create/profile-edit; role-gated lifecycle; detail drawer     |
-| Security Events  | `modules/admin/authenticate/security-events`  | `/admin/authenticate/security-events` | superadmin-only read-only `DataTableShell` feed                                 |
+| Module           | Path                                          | Route(s)                              | Notes                                                                                                                                    |
+| ---------------- | --------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Sign In          | `modules/sign-in`                             | `/`                                   | `SignInPage`; `onPasswordChangeRequired` stashes challenge → `/password-change`                                                          |
+| Password Change  | `modules/password-change`                     | `/password-change`                    | first-login mode (challenge); voluntary change lives in account-settings                                                                 |
+| Account Settings | `modules/admin/authenticate/account-settings` | modal (avatar menu)                   | Profile (read-only), Security (change password), Sessions (+ logout-all)                                                                 |
+| Users            | `modules/admin/authenticate/users`            | `/admin/authenticate/users`           | `ModalTableShell`; create/profile-edit; role-gated lifecycle; detail drawer                                                              |
+| Security Events  | `modules/admin/authenticate/security-events`  | `/admin/authenticate/security-events` | superadmin-only read-only `DataTableShell` feed                                                                                          |
+| Documents        | `modules/admin/documents`                     | `/admin/documents`                    | admin-only workspaces `DataTableShell`; `NewDocumentModal` applicant picker → opens the full-screen editor at `/documents/[applicantId]` |
+| Signatures       | `modules/admin/signatures`                    | `/admin/signatures`                   | admin-only signatory CRUD (`DataTableShell` + `SignatureFormModal`); deactivate row action; shares `documentsApi` with the editor        |
 
 ---
 
@@ -132,7 +138,8 @@ tells the user to reload.
 
 **v1 deferrals:** identity media-ref linking + identity dup-fingerprint warning; clearing an
 optional field on an agent-built child record (delete + recreate). Documents/signatures are
-out of scope (separate module).
+their own admin modules (`modules/admin/documents`, `modules/admin/signatures`), not part of
+the applicant CRM.
 
 ## Conventions
 
