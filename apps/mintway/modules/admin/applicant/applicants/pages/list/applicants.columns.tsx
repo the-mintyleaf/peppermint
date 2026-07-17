@@ -79,6 +79,7 @@ export function getApplicantColumns(
     {
       accessor: "lifecycle_stage",
       title: "Stage",
+      width: 200,
       render: (a) => (
         <ApplicantLifecycleSwitch
           applicant={a}
@@ -90,6 +91,7 @@ export function getApplicantColumns(
     {
       accessor: "engagement_status",
       title: "Engagement",
+      width: 200,
       render: (a) => (
         <ApplicantLifecycleSwitch
           applicant={a}

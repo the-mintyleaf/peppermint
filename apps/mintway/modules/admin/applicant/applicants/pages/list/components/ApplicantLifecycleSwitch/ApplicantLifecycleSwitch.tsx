@@ -72,6 +72,7 @@ export function ApplicantLifecycleSwitch({
       <Menu position="bottom-start" withinPortal>
         <Menu.Target>
           <StatusSwitchButton
+            fullWidth
             label={labels[current] ?? current}
             color={colors[current] ?? "gray"}
             aria-label={`Change ${isStage ? "stage" : "engagement"} for ${applicant.full_name}, currently ${labels[current] ?? current}`}
