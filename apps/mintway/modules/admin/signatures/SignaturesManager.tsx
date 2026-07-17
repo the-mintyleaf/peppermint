@@ -111,6 +111,8 @@ export function SignaturesManager() {
         />
       </ModalPaper>
 
+      {/* Conditionally mounted so each open re-seeds the form from `signature` (a persistent
+          instance would keep stale edits when reopening the same row). */}
       {modalOpen && (
         <SignatureFormModal
           key={editing?.id ?? "new"}

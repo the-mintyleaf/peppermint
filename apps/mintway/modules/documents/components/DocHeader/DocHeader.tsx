@@ -24,11 +24,11 @@ export function DocHeader() {
   const currentDate = formatHeaderDate(new Date());
 
   const handleClose = () => {
-    confirmLeave(() => router.push("/documents"));
+    confirmLeave(() => router.push("/admin/documents"));
   };
 
   const handleManageSignatures = () => {
-    confirmLeave(() => router.push("/documents/signatures"));
+    confirmLeave(() => router.push("/admin/signatures"));
   };
 
   const fileName =
