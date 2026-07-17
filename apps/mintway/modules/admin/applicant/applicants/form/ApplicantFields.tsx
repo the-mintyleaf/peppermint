@@ -4,14 +4,19 @@ import { useState } from "react";
 
 import {
   Accordion,
+  Box,
   Divider,
   Group,
   Select,
   Stack,
+  Text,
   Textarea,
   TextInput,
 } from "@peppermint/ui";
 import { useFormInstance } from "@peppermint/admin";
+import { AddressBookIcon } from "@phosphor-icons/react/dist/csr/AddressBook";
+import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
+import { NotepadIcon } from "@phosphor-icons/react/dist/csr/Notepad";
 
 import {
   FOLLOW_UP_PRIORITY_LABELS,
@@ -45,9 +50,26 @@ const PANEL_FIELDS: Record<string, (keyof ApplicantFormValues)[]> = {
   [PANEL.summaries]: ["summary", "eligibility_summary", "counselling_notes"],
 };
 
+/** Zero the accordion's own inset so header + fields align with the block above. */
+const ACCORDION_STYLES = {
+  control: { paddingInline: 0 },
+  content: { paddingInline: 0 },
+} as const;
+
+const ICON_SIZE = 16;
+
 interface ApplicantFieldsProps {
   isAdmin: boolean;
   isLoading: boolean;
+}
+
+/** Section heading: xs label with a leading Phosphor glyph for quick recognition. */
+function SectionLabel({ children }: { children: string }) {
+  return (
+    <Text size="xs" fw={600}>
+      {children}
+    </Text>
+  );
 }
 
 /**
@@ -80,83 +102,103 @@ export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
 
   return (
     <Stack gap="md">
-      <Group grow align="flex-start">
-        <TextInput
-          label="First name"
-          required
-          disabled={isLoading}
-          {...form.getInputProps("first_name")}
-        />
-        <TextInput
-          label="Middle name"
-          disabled={isLoading}
-          {...form.getInputProps("middle_name")}
-        />
-        <TextInput
-          label="Last name"
-          disabled={isLoading}
-          {...form.getInputProps("last_name")}
-        />
-      </Group>
-      <Group grow align="flex-start">
-        <TextInput
-          label="Preferred display name"
-          disabled={isLoading}
-          {...form.getInputProps("preferred_display_name")}
-        />
-        <TextInput
-          label="Name (native script)"
-          disabled={isLoading}
-          {...form.getInputProps("name_native")}
-        />
-        <TextInput
-          label="Nationality"
-          disabled={isLoading}
-          {...form.getInputProps("nationality")}
-        />
-      </Group>
+      <Box>
+        <Stack gap="md">
+          <Group grow align="flex-start">
+            <TextInput
+              label="First name"
+              required
+              disabled={isLoading}
+              {...form.getInputProps("first_name")}
+            />
+            <TextInput
+              label="Middle name"
+              disabled={isLoading}
+              {...form.getInputProps("middle_name")}
+            />
+            <TextInput
+              label="Last name"
+              disabled={isLoading}
+              {...form.getInputProps("last_name")}
+            />
+          </Group>
+          <Group grow align="flex-start">
+            <TextInput
+              label="Preferred display name"
+              disabled={isLoading}
+              {...form.getInputProps("preferred_display_name")}
+            />
+            <TextInput
+              label="Name (native script)"
+              disabled={isLoading}
+              {...form.getInputProps("name_native")}
+            />
+            <TextInput
+              label="Nationality"
+              disabled={isLoading}
+              {...form.getInputProps("nationality")}
+            />
+          </Group>
 
-      <Divider label="Contact" labelPosition="left" />
-      <Group grow align="flex-start">
-        <TextInput
-          label="Primary email"
-          type="email"
-          disabled={isLoading}
-          {...form.getInputProps("primary_email")}
-        />
-        <TextInput
-          label="Primary phone"
-          disabled={isLoading}
-          {...form.getInputProps("primary_phone")}
-        />
-      </Group>
+          <Divider label="Contact" labelPosition="left" />
+          <Group grow align="flex-start">
+            <TextInput
+              label="Primary email"
+              type="email"
+              disabled={isLoading}
+              {...form.getInputProps("primary_email")}
+            />
+            <TextInput
+              label="Primary phone"
+              disabled={isLoading}
+              {...form.getInputProps("primary_phone")}
+            />
+          </Group>
 
-      <Divider label="Lead" labelPosition="left" />
-      <Group grow align="flex-start">
-        <Select
-          label="Lead source"
-          clearable
-          data={LEAD_SOURCE_OPTIONS}
-          disabled={isLoading}
-          {...form.getInputProps("lead_source")}
-        />
-        <TextInput
-          label="Lead source detail"
-          disabled={isLoading}
-          {...form.getInputProps("lead_source_detail")}
-        />
-      </Group>
-      <Textarea
-        label="Initial interest"
-        autosize
-        minRows={2}
-        disabled={isLoading}
-        {...form.getInputProps("initial_interest")}
-      />
+          <Divider label="Lead" labelPosition="left" />
+          <Group grow align="flex-start">
+            <Select
+              label="Lead source"
+              clearable
+              data={LEAD_SOURCE_OPTIONS}
+              disabled={isLoading}
+              {...form.getInputProps("lead_source")}
+            />
+            <TextInput
+              label="Lead source detail"
+              disabled={isLoading}
+              {...form.getInputProps("lead_source_detail")}
+            />
+          </Group>
+          <Textarea
+            label="Initial interest"
+            autosize
+            minRows={2}
+            disabled={isLoading}
+            {...form.getInputProps("initial_interest")}
+          />
+        </Stack>
+      </Box>
 
-      <Accordion multiple value={value} onChange={setOpenPanels}>
+      <Accordion
+        multiple
+        value={value}
+        onChange={setOpenPanels}
+        variant="filled"
+        radius="sm"
+        styles={ACCORDION_STYLES}
+      >
         <Accordion.Item value={PANEL.altContact}>
-          <Accordion.Control>Alternate contact</Accordion.Control>
+          <Accordion.Control
+            icon={
+              <AddressBookIcon
+                size={ICON_SIZE}
+                aria-label="Alternate contact"
+              />
+            }
+          >
+            <SectionLabel>Alternate contact</SectionLabel>
+          </Accordion.Control>
           <Accordion.Panel>
             <Group grow align="flex-start">
               <TextInput
@@ -177,7 +219,16 @@ export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
         {isAdmin && (
           <>
             <Accordion.Item value={PANEL.additional}>
-              <Accordion.Control>Additional details</Accordion.Control>
+              <Accordion.Control
+                icon={
+                  <IdentificationCardIcon
+                    size={ICON_SIZE}
+                    aria-label="Additional details"
+                  />
+                }
+              >
+                <SectionLabel>Additional details</SectionLabel>
+              </Accordion.Control>
               <Accordion.Panel>
                 <Stack gap="md">
                   <Group grow align="flex-start">
@@ -220,7 +271,11 @@ export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
             </Accordion.Item>
 
             <Accordion.Item value={PANEL.summaries}>
-              <Accordion.Control>Summaries</Accordion.Control>
+              <Accordion.Control
+                icon={<NotepadIcon size={ICON_SIZE} aria-label="Summaries" />}
+              >
+                <SectionLabel>Summaries</SectionLabel>
+              </Accordion.Control>
               <Accordion.Panel>
                 <Stack gap="md">
                   <Textarea
