@@ -33,7 +33,7 @@ export interface CalendarNav {
  */
 export function useCalendarNav(): CalendarNav {
   const [anchor, setAnchor] = useState<Date>(REFERENCE_TODAY);
-  const [view, setView] = useState<CalendarView>("month");
+  const [view, setView] = useState<CalendarView>("week");
 
   const step = useCallback(
     (dir: 1 | -1) =>
@@ -79,6 +79,34 @@ export function useTasksByDay(tasks: Task[] | undefined): TasksByDay {
 
 export function tasksForDay(byDay: Map<string, Task[]>, date: Date): Task[] {
   return byDay.get(dayKey(date)) ?? [];
+}
+
+const PRIORITY_RANK: Record<string, number> = {
+  urgent: 3,
+  important: 2,
+  normal: 1,
+};
+
+/**
+ * The focus strip's top tasks. Rule: the first card is always an ongoing task,
+ * or — if nothing is ongoing — the highest-priority one. Then ordered by
+ * priority, then soonest due. Returns up to `count` (default 4).
+ */
+export function useFocusTasks(tasks: Task[] | undefined, count = 4): Task[] {
+  return useMemo(() => {
+    return [...(tasks ?? [])]
+      .sort((a, b) => {
+        const ao = a.status === "ongoing" ? 1 : 0;
+        const bo = b.status === "ongoing" ? 1 : 0;
+        if (ao !== bo) return bo - ao;
+        const pr = PRIORITY_RANK[b.priority] - PRIORITY_RANK[a.priority];
+        if (pr !== 0) return pr;
+        return (a.endDate ?? "9999-99-99").localeCompare(
+          b.endDate ?? "9999-99-99",
+        );
+      })
+      .slice(0, count);
+  }, [tasks, count]);
 }
 
 export function notConnected() {

@@ -8,6 +8,7 @@ import {
   ManageHeader,
   ModalPaper,
   ModuleHeader,
+  ScrollArea,
   SegmentedControl,
   Skeleton,
   Stack,
@@ -30,6 +31,7 @@ import {
   tasksForDay,
   useCalendarNav,
   useCalendarTasks,
+  useFocusTasks,
   useTasksByDay,
 } from "./Calendar.hooks";
 import {
@@ -38,8 +40,9 @@ import {
   REFERENCE_TODAY,
 } from "./Calendar.utils";
 import { DayTasksModal } from "./components/DayTasksModal";
+import { FocusStrip } from "./components/FocusStrip";
 import { MonthView } from "./components/MonthView";
-import { WeekView } from "./components/WeekView";
+import { WeekGrid } from "./components/WeekGrid";
 import type { Task, TaskBoardFilter } from "./module.api";
 
 const BREADCRUMB = [{ label: "Calendar", href: "/calendar" }];
@@ -80,6 +83,7 @@ export function ModuleCalendar() {
 
   const { data: tasks, isLoading, isError, refetch } = useCalendarTasks(filter);
   const { byDay, unscheduled } = useTasksByDay(tasks);
+  const focusTasks = useFocusTasks(tasks);
 
   const title =
     nav.view === "month"
@@ -177,13 +181,15 @@ export function ModuleCalendar() {
             </Group>
           </Group>
 
-          <Box px="md" py="md" style={{ flex: 1, minHeight: 0 }}>
+          <ScrollArea px="md" py="md" style={{ flex: 1, minHeight: 0 }}>
             {isLoading ? (
               <Skeleton height={520} radius="lg" />
             ) : isError || !tasks ? (
               <ErrorState onRetry={() => refetch()} />
             ) : (
-              <Stack gap="sm">
+              <Stack gap="lg">
+                <FocusStrip tasks={focusTasks} onOpenTask={openTask} />
+
                 {nav.view === "month" ? (
                   <MonthView
                     anchor={nav.anchor}
@@ -192,7 +198,7 @@ export function ModuleCalendar() {
                     onOpenDay={setSelectedDay}
                   />
                 ) : (
-                  <WeekView
+                  <WeekGrid
                     anchor={nav.anchor}
                     byDay={byDay}
                     onOpenTask={openTask}
@@ -208,7 +214,7 @@ export function ModuleCalendar() {
                 )}
               </Stack>
             )}
-          </Box>
+          </ScrollArea>
         </Stack>
       </ModalPaper>
 

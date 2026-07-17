@@ -1,52 +1,25 @@
 "use client";
 
-import { Box, Button, Group, Text, UnstyledButton } from "@peppermint/ui";
-import { CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
+import { Box, Group, Text } from "@peppermint/ui";
 import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
 
 import { StatusPill } from "@/components";
 import { tokens } from "@/config/design";
 import { AMBER, AMBER_SOFT, PRIORITY_STYLE } from "../../../../module.api";
+import { FocusActions } from "../FocusActions";
+import { SquareCheck } from "../SquareCheck";
 import type { FocusPillProps } from "./FocusPill.types";
 
-/** 24px rounded-square completion checkbox (spec §5 honest states). */
-function SquareCheck({
-  done,
-  onToggle,
-}: {
-  done: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <UnstyledButton
-      onClick={onToggle}
-      aria-pressed={done}
-      aria-label={done ? "Mark focus incomplete" : "Mark focus complete"}
-      style={{
-        width: 24,
-        height: 24,
-        flex: "0 0 auto",
-        borderRadius: 8,
-        background: done ? tokens.accent : tokens.paper,
-        border: done
-          ? `1px solid ${tokens.accent}`
-          : "2px solid rgba(0,0,0,0.2)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        transition: "all .14s ease",
-      }}
-    >
-      {done ? <CheckIcon size={14} weight="bold" color="#fff" /> : null}
-    </UnstyledButton>
-  );
-}
-
+/**
+ * A secondary focus task — the compact row beneath the FocusSpotlight card.
+ * Quiet by design (translucent surface over the hero's warm wash) so the
+ * spotlighted "next up" task keeps the eye (spec §5).
+ */
 export function FocusPill({
   task,
-  highlighted,
   onToggleDone,
   onContinue,
+  onSetState,
 }: FocusPillProps) {
   const done = task.state === "done";
   const prio = PRIORITY_STYLE[task.priority];
@@ -58,20 +31,17 @@ export function FocusPill({
       wrap="nowrap"
       align="center"
       style={{
-        padding: highlighted ? "15px 16px" : "14px 16px",
+        padding: "14px 16px",
         borderRadius: 12,
-        background: done || !highlighted ? "rgba(0,0,0,0.02)" : tokens.paper,
-        border: highlighted
-          ? `1.5px solid ${tokens.accent}`
-          : `1px solid ${tokens.line}`,
-        boxShadow: highlighted ? `0 6px 18px ${tokens.accentSoft}` : undefined,
+        background: done ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.5)",
+        border: `1px solid ${tokens.line}`,
       }}
     >
       <SquareCheck done={done} onToggle={() => onToggleDone(task.id)} />
 
       <Box style={{ flex: 1, minWidth: 0 }}>
         <Text
-          fz="14px"
+          fz="xs"
           fw={600}
           mb={6}
           style={{
@@ -133,18 +103,12 @@ export function FocusPill({
         </Group>
       </Box>
 
-      {!done ? (
-        <Button
-          size="xs"
-          radius="md"
-          variant={highlighted ? "filled" : "default"}
-          color={highlighted ? "accent" : "gray"}
-          onClick={() => onContinue(task)}
-          style={{ flex: "0 0 auto" }}
-        >
-          {task.state === "in_progress" ? "Continue" : "Start"}
-        </Button>
-      ) : null}
+      <FocusActions
+        state={task.state}
+        size={26}
+        onContinue={() => onContinue(task)}
+        onSetState={(state) => onSetState(task.id, state)}
+      />
     </Group>
   );
 }

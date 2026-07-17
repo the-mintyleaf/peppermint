@@ -20,15 +20,7 @@ export function WorkFilesRail({
   const ranked = rankWorkFiles(files).slice(0, 2);
 
   return (
-    <Box
-      style={{
-        background: tokens.paper,
-        border: `1px solid ${tokens.line}`,
-        borderRadius: tokens.radius.tile,
-        boxShadow: tokens.shadow.card,
-        padding: 18,
-      }}
-    >
+    <Box style={{ padding: 18 }}>
       <Group justify="space-between" align="center" wrap="nowrap" mb={13}>
         <Text
           component="h3"

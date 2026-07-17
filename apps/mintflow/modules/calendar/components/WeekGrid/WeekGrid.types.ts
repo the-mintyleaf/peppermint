@@ -1,6 +1,6 @@
 import type { Task } from "../../module.api";
 
-export interface WeekViewProps {
+export interface WeekGridProps {
   anchor: Date;
   /** dayKey → tasks due that day. */
   byDay: Map<string, Task[]>;

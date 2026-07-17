@@ -8,6 +8,7 @@ import type {
   DashboardData,
   FlowColumn,
   FlowTask,
+  FocusState,
   FocusTask,
   Kpi,
   WorkFile,
@@ -72,6 +73,7 @@ export interface DashboardBoard {
   wipFull: boolean;
   swapOffer: SwapOffer | null;
   toggleFocusDone: (id: string) => void;
+  setFocusState: (id: string, state: FocusState) => void;
   moveFlow: (taskId: string, to: FlowColumn) => void;
   quickComplete: (taskId: string) => void;
   acceptSwap: (replaceFocusId: string) => void;
@@ -179,6 +181,20 @@ export function useDashboardBoard(
     );
   }, []);
 
+  const setFocusState = useCallback((id: string, state: FocusState) => {
+    setFocus((prev) =>
+      prev.map((f) =>
+        f.id === id
+          ? {
+              ...f,
+              state,
+              completedAt: state === "done" ? "Completed now" : undefined,
+            }
+          : f,
+      ),
+    );
+  }, []);
+
   const acceptSwap = useCallback(
     (replaceFocusId: string) => {
       setSwapOffer((offer) => {
@@ -202,6 +218,7 @@ export function useDashboardBoard(
     wipFull,
     swapOffer,
     toggleFocusDone,
+    setFocusState,
     moveFlow,
     quickComplete,
     acceptSwap,

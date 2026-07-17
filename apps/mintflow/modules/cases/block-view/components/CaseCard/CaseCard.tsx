@@ -47,9 +47,9 @@ export function CaseCard({ workCase, onOpen }: CaseCardProps) {
       style={{
         cursor: "pointer",
         height: "100%",
-        // status gradient sheen over an opaque paper base
-        background: `${status.cardGradient}, ${tokens.paper}`,
-        border: `1px solid ${status.cardBorder}`,
+        // flat status tint over an opaque paper base
+        background: `linear-gradient(${status.cardTint}, ${status.cardTint}), ${tokens.paper}`,
+        border: `1px solid ${tokens.line}`,
       }}
     >
       {/* Row 1: priority · due date */}

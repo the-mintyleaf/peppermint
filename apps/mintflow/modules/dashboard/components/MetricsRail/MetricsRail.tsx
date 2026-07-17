@@ -13,16 +13,8 @@ export function MetricsRail({
   onPlanTomorrow,
 }: MetricsRailProps) {
   return (
-    <Stack gap={12}>
-      <Box
-        style={{
-          background: tokens.paper,
-          border: `1px solid ${tokens.line}`,
-          borderRadius: tokens.radius.tile,
-          boxShadow: tokens.shadow.card,
-          padding: 18,
-        }}
-      >
+    <Stack gap={16} style={{ padding: 18 }}>
+      <Box>
         <Text
           component="h3"
           fw={700}

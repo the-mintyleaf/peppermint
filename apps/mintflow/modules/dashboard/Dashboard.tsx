@@ -5,13 +5,18 @@ import { useRouter } from "next/navigation";
 import {
   Box,
   Button,
+  Divider,
   Group,
   Modal,
+  ModalPaper,
+  ModuleHeader,
+  ScrollArea,
   SegmentedControl,
   Skeleton,
   Stack,
   Text,
   UnstyledButton,
+  useMediaQuery,
 } from "@peppermint/ui";
 import { ArrowClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowClockwise";
 import { WarningCircleIcon } from "@phosphor-icons/react/dist/csr/WarningCircle";
@@ -31,6 +36,7 @@ import { AttentionRail } from "./components/AttentionRail";
 import { MetricsRail } from "./components/MetricsRail";
 import { TaskDrawer } from "./components/TaskDrawer";
 import type { DashboardData, FocusTask, Person } from "./module.api";
+import { PlusIcon } from "@phosphor-icons/react";
 
 const GREETING_NAME = "Minister";
 const TODAY = "Wednesday, 16 July";
@@ -56,6 +62,7 @@ export function ModuleDashboard() {
   const { data, isLoading, isError, refetch } = useDashboard(variant);
   const board = useDashboardBoard(data);
   const drawer = useDrawer();
+  const isNarrow = useMediaQuery("(max-width: 60em)");
 
   const onStartFocus = (_task: FocusTask) => {
     void _task;
@@ -84,68 +91,108 @@ export function ModuleDashboard() {
 
   return (
     <>
-      <Box mih="100%" style={{ padding: "20px 24px 40px" }}>
+      <ModuleHeader
+        breadcrumbItems={[{ label: "Dashboard", href: "/dashboard" }]}
+        right={
+          <Group gap="xs" mr="sm">
+            <Button
+              size="xs"
+              leftSection={<PlusIcon size={16} aria-label="Add task" />}
+              onClick={() => {}}
+            >
+              New Task
+            </Button>
+          </Group>
+        }
+      />
+
+      <ModalPaper withBorder>
         {isLoading ? (
           <LoadingState />
         ) : isError || !data ? (
           <ErrorState onRetry={() => refetch()} />
         ) : (
-          <Box
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 14,
-              alignItems: "flex-start",
-            }}
-          >
-            {/* Primary column — focus hero, then the flow board */}
-            <Stack gap={14} style={{ flex: "1 1 560px", minWidth: 0 }}>
-              <FocusHero
-                greetingName={GREETING_NAME}
-                today={TODAY}
-                focus={board.focus}
-                team={collectTeam(data)}
-                doneThisWeek={doneThisWeek}
-                onHoldNow={onHoldNow}
-                onToggleDone={board.toggleFocusDone}
-                onContinue={onStartFocus}
-                onChooseFocus={notConnected}
-                previewControl={previewControl}
-              />
-              <TaskFlowBoard
-                flowByColumn={board.flowByColumn}
-                wipCount={board.wipCount}
-                wipFull={board.wipFull}
-                onMove={board.moveFlow}
-                onOpen={drawer.open}
-                onQuickComplete={board.quickComplete}
-                onOpenTasks={() => router.push("/tasks")}
-              />
-            </Stack>
-
-            {/* Rail — attention → work files → this week + momentum */}
-            <Stack
-              gap={12}
-              style={{ flex: "1 1 320px", minWidth: 0, maxWidth: 360 }}
+          <ScrollArea h="100%">
+            <Box
+              style={{
+                display: "flex",
+                flexDirection: isNarrow ? "column" : "row",
+                alignItems: "stretch",
+              }}
             >
-              <AttentionRail
-                items={data.attention}
-                onAction={() => notConnected()}
-              />
-              <WorkFilesRail
-                files={data.workFiles}
-                onOpenFile={() => notConnected()}
-                onViewAll={notConnected}
-              />
-              <MetricsRail
-                kpis={data.kpis}
-                momentum={data.momentum}
-                onPlanTomorrow={notConnected}
-              />
-            </Stack>
-          </Box>
+              {/* Primary column — focus hero, a line, then the flow board */}
+              <Stack gap={0} style={{ flex: "1 1 560px", minWidth: 0 }}>
+                <FocusHero
+                  greetingName={GREETING_NAME}
+                  today={TODAY}
+                  focus={board.focus}
+                  team={collectTeam(data)}
+                  doneThisWeek={doneThisWeek}
+                  onHoldNow={onHoldNow}
+                  onToggleDone={board.toggleFocusDone}
+                  onContinue={onStartFocus}
+                  onSetState={board.setFocusState}
+                  onChooseFocus={notConnected}
+                  previewControl={previewControl}
+                />
+                <Divider color={tokens.line} />
+                <Box style={{ padding: "18px 20px 22px" }}>
+                  <TaskFlowBoard
+                    flowByColumn={board.flowByColumn}
+                    wipCount={board.wipCount}
+                    wipFull={board.wipFull}
+                    onMove={board.moveFlow}
+                    onOpen={drawer.open}
+                    onQuickComplete={board.quickComplete}
+                    onOpenTasks={() => router.push("/tasks")}
+                  />
+                </Box>
+              </Stack>
+
+              {/* Vertical line between columns (horizontal when stacked) */}
+              {isNarrow ? (
+                <Divider color={tokens.line} />
+              ) : (
+                <Box
+                  style={{
+                    width: 1,
+                    background: tokens.line,
+                    alignSelf: "stretch",
+                    flex: "0 0 auto",
+                  }}
+                />
+              )}
+
+              {/* Rail — attention → work files → this week + momentum */}
+              <Stack
+                gap={0}
+                style={{
+                  flex: "1 1 320px",
+                  minWidth: 0,
+                  maxWidth: isNarrow ? undefined : 380,
+                }}
+              >
+                <AttentionRail
+                  items={data.attention}
+                  onAction={() => notConnected()}
+                />
+                <Divider color={tokens.line} />
+                <WorkFilesRail
+                  files={data.workFiles}
+                  onOpenFile={() => notConnected()}
+                  onViewAll={notConnected}
+                />
+                <Divider color={tokens.line} />
+                <MetricsRail
+                  kpis={data.kpis}
+                  momentum={data.momentum}
+                  onPlanTomorrow={notConnected}
+                />
+              </Stack>
+            </Box>
+          </ScrollArea>
         )}
-      </Box>
+      </ModalPaper>
 
       <TaskDrawer
         task={drawer.task}
@@ -211,15 +258,15 @@ export function ModuleDashboard() {
 
 function LoadingState() {
   return (
-    <Box style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
+    <Box p="md" style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
       <Stack gap={14} style={{ flex: "1 1 560px", minWidth: 0 }}>
-        <Skeleton height={300} radius={tokens.radius.tile} />
-        <Skeleton height={280} radius={tokens.radius.tile} />
+        <Skeleton height={300} radius="md" />
+        <Skeleton height={280} radius="md" />
       </Stack>
-      <Stack gap={12} style={{ flex: "1 1 320px", minWidth: 0, maxWidth: 360 }}>
-        <Skeleton height={200} radius={tokens.radius.tile} />
-        <Skeleton height={220} radius={tokens.radius.tile} />
-        <Skeleton height={200} radius={tokens.radius.tile} />
+      <Stack gap={12} style={{ flex: "1 1 320px", minWidth: 0, maxWidth: 380 }}>
+        <Skeleton height={200} radius="md" />
+        <Skeleton height={220} radius="md" />
+        <Skeleton height={200} radius="md" />
       </Stack>
     </Box>
   );
@@ -228,15 +275,11 @@ function LoadingState() {
 function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
     <Stack align="center" gap={12} py={80}>
-      <WarningCircleIcon
-        size={36}
-        weight="duotone"
-        color="rgba(255,255,255,0.5)"
-      />
-      <Text fz="15px" fw={700} c="gray.0">
+      <WarningCircleIcon size={36} weight="duotone" color={tokens.muted} />
+      <Text fz="15px" fw={700} c={tokens.ink}>
         Couldn&rsquo;t load your dashboard
       </Text>
-      <Text fz="13px" fw={500} c="rgba(255,255,255,0.6)" ta="center" maw={320}>
+      <Text fz="13px" fw={500} c={tokens.muted2} ta="center" maw={320}>
         Something went wrong fetching today&rsquo;s focus. Try again.
       </Text>
       <Button

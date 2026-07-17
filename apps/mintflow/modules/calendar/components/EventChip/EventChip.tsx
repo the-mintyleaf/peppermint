@@ -4,12 +4,12 @@ import { Box, Text, UnstyledButton } from "@peppermint/ui";
 
 import { tokens } from "@/config/design";
 
-import { chipStyle, isUrgent } from "../../module.api";
+import { isUrgent, statusStyle } from "../../module.api";
 import type { EventChipProps } from "./EventChip.types";
 import classes from "./EventChip.module.css";
 
 export function EventChip({ task, onOpen, dense = true }: EventChipProps) {
-  const style = chipStyle(task);
+  const style = statusStyle(task);
   const urgent = isUrgent(task);
 
   return (
@@ -24,7 +24,7 @@ export function EventChip({ task, onOpen, dense = true }: EventChipProps) {
     >
       <Box
         className={classes.dot}
-        style={{ backgroundColor: urgent ? tokens.accent : style.dot }}
+        style={{ backgroundColor: urgent ? tokens.accent : style.accent }}
         aria-hidden
       />
       <Text

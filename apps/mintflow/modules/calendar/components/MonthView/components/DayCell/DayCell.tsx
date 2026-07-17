@@ -20,7 +20,11 @@ export function DayCell({
   const overflow = tasks.length - visible.length;
 
   return (
-    <Box className={`${classes.cell} ${inMonth ? "" : classes.outMonth}`}>
+    <Box
+      className={`${classes.cell} ${inMonth ? "" : classes.outMonth} ${
+        isToday ? classes.todayCell : ""
+      }`}
+    >
       <div className={classes.head}>
         <Text
           component="span"

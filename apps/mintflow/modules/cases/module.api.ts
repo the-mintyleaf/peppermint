@@ -85,9 +85,8 @@ interface StatusStyle {
   fg: string;
   /** Soft pill background. */
   bg: string;
-  /** Subtle status-keyed gradient sheen for the card surface (over paper). */
-  cardGradient: string;
-  cardBorder: string;
+  /** Flat status-keyed tint for the card surface (over paper). */
+  cardTint: string;
 }
 
 const AMBER = "rgb(176,116,20)";
@@ -98,49 +97,37 @@ export const STATUS_STYLE: Record<CaseStatus, StatusStyle> = {
     label: "Open",
     fg: tokens.blueInk,
     bg: tokens.blueSoft,
-    cardGradient:
-      "linear-gradient(135deg, rgba(44,110,202,0.13), rgba(44,110,202,0.02) 62%)",
-    cardBorder: "rgba(44,110,202,0.16)",
+    cardTint: "rgba(44,110,202,0.08)",
   },
   in_progress: {
     label: "In Progress",
     fg: tokens.accentDark,
     bg: tokens.accentSoft,
-    cardGradient:
-      "linear-gradient(135deg, rgba(238,87,41,0.14), rgba(238,87,41,0.02) 62%)",
-    cardBorder: "rgba(238,87,41,0.18)",
+    cardTint: "rgba(238,87,41,0.08)",
   },
   under_review: {
     label: "Under Review",
     fg: tokens.purpleInk,
     bg: tokens.purpleSoft,
-    cardGradient:
-      "linear-gradient(135deg, rgba(120,90,200,0.13), rgba(120,90,200,0.02) 62%)",
-    cardBorder: "rgba(120,90,200,0.16)",
+    cardTint: "rgba(120,90,200,0.08)",
   },
   on_hold: {
     label: "On Hold",
     fg: AMBER,
     bg: AMBER_SOFT,
-    cardGradient:
-      "linear-gradient(135deg, rgba(176,116,20,0.15), rgba(176,116,20,0.03) 62%)",
-    cardBorder: "rgba(176,116,20,0.18)",
+    cardTint: "rgba(176,116,20,0.09)",
   },
   resolved: {
     label: "Resolved",
     fg: tokens.green,
     bg: tokens.greenTint,
-    cardGradient:
-      "linear-gradient(135deg, rgba(16,130,85,0.13), rgba(16,130,85,0.02) 62%)",
-    cardBorder: "rgba(16,130,85,0.16)",
+    cardTint: "rgba(16,130,85,0.08)",
   },
   closed: {
     label: "Closed",
     fg: tokens.muted2,
     bg: "rgba(0,0,0,0.06)",
-    cardGradient:
-      "linear-gradient(135deg, rgba(0,0,0,0.05), rgba(0,0,0,0.01) 62%)",
-    cardBorder: "rgba(0,0,0,0.09)",
+    cardTint: "rgba(0,0,0,0.035)",
   },
 };
 

@@ -105,15 +105,7 @@ function EmptyState() {
 export function AttentionRail({ items, onAction }: AttentionRailProps) {
   // loading / error / permission handled by the parent ModuleDashboard.
   return (
-    <Box
-      style={{
-        background: tokens.paper,
-        border: `1px solid ${tokens.line}`,
-        borderRadius: tokens.radius.tile,
-        boxShadow: tokens.shadow.card,
-        padding: "18px 18px 8px",
-      }}
-    >
+    <Box style={{ padding: "18px 18px 8px" }}>
       <Text
         component="h3"
         fw={700}

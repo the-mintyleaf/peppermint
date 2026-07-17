@@ -6,6 +6,7 @@ import { TargetIcon } from "@phosphor-icons/react/dist/csr/Target";
 import { tokens } from "@/config/design";
 import { FOCUS_LIMIT, LAVENDER } from "../../module.api";
 import { FocusPill } from "./components/FocusPill";
+import { FocusSpotlight } from "./components/FocusSpotlight";
 import { FocusStat } from "./components/FocusStat";
 import type { FocusHeroProps } from "./FocusHero.types";
 
@@ -30,6 +31,7 @@ export function FocusHero({
   onHoldNow,
   onToggleDone,
   onContinue,
+  onSetState,
   onChooseFocus,
   previewControl,
 }: FocusHeroProps) {
@@ -37,11 +39,16 @@ export function FocusHero({
   const total = tasks.length;
   const done = tasks.filter((t) => t.state === "done").length;
 
-  // The single emphasised pill: the overdue one, else the first unfinished.
+  // The single "next up" task — the overdue one, else the first unfinished —
+  // gets spotlighted; the rest fall back to compact rows.
   const highlightId =
     tasks.find((t) => t.state !== "done" && t.overdue)?.id ??
     tasks.find((t) => t.state !== "done")?.id ??
     null;
+  const spotlight = highlightId
+    ? (tasks.find((t) => t.id === highlightId) ?? null)
+    : null;
+  const rest = tasks.filter((t) => t.id !== spotlight?.id);
 
   const shownTeam = team.slice(0, 3);
   const extra = team.length - shownTeam.length;
@@ -49,11 +56,8 @@ export function FocusHero({
   return (
     <Box
       style={{
-        background: tokens.paper,
-        border: `1px solid ${tokens.line}`,
-        borderRadius: tokens.radius.tile,
-        overflow: "hidden",
-        boxShadow: tokens.shadow.card,
+        background:
+          "linear-gradient(180deg, rgba(238,87,41,0.09) 0%, rgba(238,87,41,0.035) 100%)",
       }}
     >
       {/* Header — greeting, preview control, team */}
@@ -70,15 +74,25 @@ export function FocusHero({
           gap="lg"
         >
           <Stack gap={8} style={{ minWidth: 0 }}>
-            <Text fz="12px" fw={600} c={tokens.muted2}>
-              {today} · Today&rsquo;s commitment
-            </Text>
+            <Group gap={8} align="center" wrap="nowrap">
+              <Text
+                fz="11px"
+                fw={700}
+                c={tokens.accent}
+                style={{ letterSpacing: "1.2px", textTransform: "uppercase" }}
+              >
+                Today&rsquo;s Focus
+              </Text>
+              <Text fz="11px" fw={500} c={tokens.muted}>
+                · {today}
+              </Text>
+            </Group>
             <Text
               component="h1"
               fw={700}
               c={tokens.ink}
               style={{
-                fontSize: 28,
+                fontSize: 31,
                 lineHeight: 1.05,
                 letterSpacing: "-0.5px",
               }}
@@ -143,15 +157,27 @@ export function FocusHero({
       <Box style={{ padding: total > 0 ? "16px 20px 20px" : "24px 20px" }}>
         {total > 0 ? (
           <Stack gap={10}>
-            {tasks.map((task) => (
-              <FocusPill
-                key={task.id}
-                task={task}
-                highlighted={task.id === highlightId}
+            {spotlight ? (
+              <FocusSpotlight
+                task={spotlight}
                 onToggleDone={onToggleDone}
                 onContinue={onContinue}
+                onSetState={onSetState}
               />
-            ))}
+            ) : null}
+            {rest.length > 0 ? (
+              <Stack gap={8}>
+                {rest.map((task) => (
+                  <FocusPill
+                    key={task.id}
+                    task={task}
+                    onToggleDone={onToggleDone}
+                    onContinue={onContinue}
+                    onSetState={onSetState}
+                  />
+                ))}
+              </Stack>
+            ) : null}
             <Text ff="monospace" fz="11.5px" c={tokens.muted2} px={4}>
               {done} of {total} done today
             </Text>

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import type { FocusTask, Person } from "../../module.api";
+import type { FocusState, FocusTask, Person } from "../../module.api";
 
 export interface FocusHeroProps {
   greetingName: string;
@@ -12,6 +12,7 @@ export interface FocusHeroProps {
   onHoldNow: number;
   onToggleDone: (id: string) => void;
   onContinue: (task: FocusTask) => void;
+  onSetState: (id: string, state: FocusState) => void;
   /** Empty / first-run CTA. */
   onChooseFocus: () => void;
   /** Slot for the populated / first-run preview control. */
