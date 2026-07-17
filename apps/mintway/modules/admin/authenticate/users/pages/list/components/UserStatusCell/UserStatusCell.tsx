@@ -92,16 +92,25 @@ export function UserStatusCell({
 
   if (transitions.length === 0) return badge;
 
+  const statusColor = STATUS_COLORS[status] ?? "gray";
+
   return (
     <Menu position="bottom-start" width="target" withinPortal>
       <Menu.Target>
         <Button
-          variant="subtle"
-          color={STATUS_COLORS[status] ?? "gray"}
+          variant="light"
+          color={statusColor}
           size="xs"
           fullWidth
           maw={200}
           justify="space-between"
+          // A paler tint of the status color than the default light variant.
+          styles={{
+            root: {
+              backgroundColor: `var(--mantine-color-${statusColor}-0)`,
+              color: `var(--mantine-color-${statusColor}-9)`,
+            },
+          }}
           rightSection={<CaretDownIcon size={12} aria-hidden />}
           aria-label={`Change status for ${user.username}`}
         >

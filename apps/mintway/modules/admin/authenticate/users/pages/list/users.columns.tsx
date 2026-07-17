@@ -1,6 +1,6 @@
 "use client";
 
-import { Stack, Text, dayjs } from "@peppermint/ui";
+import { Stack, Text, Tooltip, dayjs } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
 import { StatusBadge } from "@peppermint/admin";
 import type { Role } from "@/modules/admin/authenticate/_shared/authenticate.types";
@@ -25,6 +25,21 @@ function fullName(p: UserAdmin["employee_profile"]): string {
     [p.preferred_name || p.first_name, p.last_name].filter(Boolean).join(" ") ||
     p.employee_code
   );
+}
+
+/** Compact "how long ago" — days+hours past a day, else hours+minutes. */
+function timeAgo(value: string): string {
+  const then = dayjs(value);
+  const totalMinutes = dayjs().diff(then, "minute");
+  if (totalMinutes < 1) return "just now";
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = totalMinutes % 60;
+  const parts: string[] = [];
+  if (days) parts.push(`${days}d`);
+  if (hours) parts.push(`${hours}h`);
+  if (minutes && days === 0) parts.push(`${minutes}m`);
+  return `${parts.join(" ")} ago`;
 }
 
 export function getUsersColumns({
@@ -92,12 +107,16 @@ export function getUsersColumns({
       title: "Last login",
       render: (user: UserAdmin) => {
         const d = user.last_login_at ? dayjs(user.last_login_at) : null;
-        return d && d.isValid() ? (
-          <Text size="xs">{d.format("MMM D, YYYY")}</Text>
-        ) : (
-          <Text size="xs" c="dimmed">
-            —
-          </Text>
+        if (!d || !d.isValid())
+          return (
+            <Text size="xs" c="dimmed">
+              Never
+            </Text>
+          );
+        return (
+          <Tooltip label={d.format("MMM D, YYYY h:mm A")} withArrow>
+            <Text size="xs">{timeAgo(user.last_login_at as string)}</Text>
+          </Tooltip>
         );
       },
     },
