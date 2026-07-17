@@ -100,7 +100,7 @@ export function UserStatusCell({
           color={STATUS_COLORS[status] ?? "gray"}
           size="xs"
           fullWidth
-          justify="flex-start"
+          justify="space-between"
           rightSection={<CaretDownIcon size={12} aria-hidden />}
           aria-label={`Change status for ${user.username}`}
         >
