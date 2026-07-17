@@ -83,6 +83,7 @@ export function SidebarFooter({
   pathname,
   linkComponent,
   onNavigate,
+  collapsed = false,
 }: SidebarFooterProps) {
   const settingsHref = settingsButton?.href ?? "/settings";
   const settingsActive = isActiveHref(pathname, settingsHref);
@@ -92,7 +93,7 @@ export function SidebarFooter({
     <Stack gap={8}>
       <Divider className={classes.divider} />
 
-      <Box className={classes.cluster}>
+      <Box className={collapsed ? classes.clusterCollapsed : classes.cluster}>
         {aiButton && !aiButton.hidden && (
           <QuickAction
             icon={aiButton.icon ?? StarFourIcon}
@@ -127,7 +128,7 @@ export function SidebarFooter({
           </Indicator>
         )}
 
-        <Box className={classes.spacer} />
+        {!collapsed && <Box className={classes.spacer} />}
 
         {settingsButton && !settingsButton.hidden && (
           <QuickAction
@@ -147,6 +148,7 @@ export function SidebarFooter({
           user={user}
           linkComponent={linkComponent}
           onNavigate={onNavigate}
+          collapsed={collapsed}
         />
       )}
     </Stack>

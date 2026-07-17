@@ -12,6 +12,7 @@ export function SidebarBrand({
   caption,
   href,
   linkComponent,
+  collapsed = false,
 }: SidebarBrandProps) {
   // Cast narrows Mantine's polymorphic `component` from the broad `ElementType`.
   const Component = (href ? (linkComponent ?? "a") : "button") as "a";
@@ -21,21 +22,23 @@ export function SidebarBrand({
       component={Component}
       href={href}
       aria-label={label}
-      className={classes.brand}
+      className={collapsed ? classes.brandCollapsed : classes.brand}
     >
       <Box className={classes.chip}>
         <IconComponent size={20} weight="fill" />
       </Box>
-      <Stack gap={0} className={classes.text}>
-        <Text component="span" className={classes.word}>
-          {label}
-        </Text>
-        {caption && (
-          <Text component="span" className={classes.caption}>
-            {caption}
+      {!collapsed && (
+        <Stack gap={0} className={classes.text}>
+          <Text component="span" className={classes.word}>
+            {label}
           </Text>
-        )}
-      </Stack>
+          {caption && (
+            <Text component="span" className={classes.caption}>
+              {caption}
+            </Text>
+          )}
+        </Stack>
+      )}
     </UnstyledButton>
   );
 }

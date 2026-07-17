@@ -74,33 +74,48 @@ are dropped — the app shell provides them.
 
 ### `modules/calendar/` — `ModuleCalendar` (ContainedModule)
 
-Full-page calendar at `/calendar` that plots the **Tasks** onto a month or week grid,
-one chip per task on its **due date** (`endDate`). Self-contained on the tasks module's
-**mock data** — it reuses `fetchTasks` / `Task` and the `TaskDetailModal`, owns no data
-of its own, no backend. The app uses fixed mid-2026 references, so the calendar seeds and
-highlights off a fixed `REFERENCE_TODAY` (16 Jul 2026), not the real clock — otherwise the
-Jun–Aug 2026 mock tasks would never line up with "today". New Task / edit actions use the
-"Not connected yet" pattern.
+Full-page calendar at `/calendar` (AlignUI week-timeline look) that plots the **Tasks**
+by **due date** (`endDate`). A **focus strip** of 4 ranked cards sits on top, then a
+**week time-grid** (default) or a **month grid**. Cards are colored by **status**
+(In Progress = blue, New = violet, On Hold = amber, Rejected = rose); urgent adds an
+orange accent. Self-contained on the tasks module's **mock data** — reuses `fetchTasks` /
+`Task` and the `TaskDetailModal`, owns no data, no backend.
+
+Two fixed-data conventions to know: (1) the app has no real clock, so the calendar seeds
+and highlights off `REFERENCE_TODAY` (16 Jul 2026) — otherwise the Jun–Aug 2026 mock tasks
+would never line up with "today". (2) Tasks carry only a due **date**, no clock time, so the
+week grid **synthesizes** a stable per-task time slot from its id (`taskSlot`), with longer
+slots — and thus taller cards — for tasks with more assignees + subtasks (`taskWeight`).
+New Task / edit actions use the "Not connected yet" pattern.
 
 - `Calendar.tsx` (`ModuleCalendar`) — chrome (`ModuleHeader` + New Task, `ManageHeader`,
   `ModalPaper`) then a toolbar (`‹ / Today / ›` nav, month/week title, All/Mine board-filter
-  `SegmentedControl`, Month/Week `SegmentedControl`). Body swaps `MonthView` ⇄ `WeekView`;
-  owns loading (`Skeleton`), error+retry, the unscheduled-tasks note, the `DayTasksModal`,
-  and the reused `TaskDetailModal`.
+  `SegmentedControl`, Month/Week toggle — **defaults to Week**). Body: `FocusStrip` then
+  `WeekGrid` ⇄ `MonthView`; owns loading (`Skeleton`), error+retry, the unscheduled-tasks
+  note, the `DayTasksModal`, and the reused `TaskDetailModal`.
 - `Calendar.hooks.ts` — `useCalendarTasks` (React Query over `fetchTasks(filter)`),
-  `useCalendarNav` (anchor date + view + prev/next/today), `useTasksByDay` (memoized
-  `Map<"YYYY-MM-DD", Task[]>` keyed on `endDate`) + `unscheduled`, `tasksForDay`,
+  `useCalendarNav` (anchor + view + prev/next/today; **week by default**), `useTasksByDay`
+  (`Map<"YYYY-MM-DD", Task[]>` keyed on `endDate` + `unscheduled`), `useFocusTasks`
+  (rank: ongoing first, else highest priority, then soonest due — top 4), `tasksForDay`,
   `notConnected`.
-- `Calendar.utils.ts` — `REFERENCE_TODAY`, `WEEKDAY_LABELS` (Mon-first), `buildMonthMatrix`
-  (6×7 padded cells), `buildWeekDays`, `dayKey` (local Y/M/D — never `new Date("YYYY-MM-DD")`,
-  which drifts a day via UTC), `isReferenceToday`, `formatMonthTitle` / `formatWeekRange`.
-- `module.api.ts` — thin: re-exports the tasks fetch/types + `chipStyle(task)` (category →
-  `{ dot, tint, fg }` from the brand tokens) and `isUrgent` (accent treatment). No new mock data.
+- `Calendar.utils.ts` — date helpers (`REFERENCE_TODAY`, `buildMonthMatrix`, `buildWeekDays`,
+  `dayKey` local Y/M/D never UTC, `dueRelative` / `formatDueShort` / `isDueToday`) **plus the
+  week-grid geometry**: `DAY_START_HOUR`/`DAY_END_HOUR`/`HOUR_PX`/`GRID_HEIGHT`, `taskSlot`
+  (deterministic hash → slot), `taskWeight`, `formatSlotRange`, `HOUR_MARKS`/`hourMarkLabel`,
+  and `packDay` (column-packs overlapping cards into side-by-side lanes).
+- `module.api.ts` — thin: re-exports the tasks fetch/types + `statusStyle(task)` (status →
+  `{ accent, tint, fg }`), `isUrgent`, `assigneeList`. No new mock data.
+- `components/FocusStrip/` — top row of `FocusCard`s (4-up → 2-up → snap-scroll); lead card
+  (index 0) is tinted; each shows title, synthesized time, a status pill (or green "Due today")
+  and the relative due. Hidden when there are no tasks.
+- `components/WeekGrid/` — sticky weekday header + a time gutter (`HOUR_MARKS`) and 7 day
+  columns with hour gridlines; `EventCard`s are absolutely positioned by `taskSlot` and
+  `packDay` lanes, colored by status, taller cards adding an avatar group + status label.
+  Today's column/header is accent-tinted. Wrapped in `ScrollArea.Autosize`.
 - `components/MonthView/` — weekday header + CSS-grid 6×7 of `DayCell` (day number, accent
   ring on today, dimmed out-of-month, up to 3 `EventChip`s then a "+N more" → `DayTasksModal`).
-- `components/WeekView/` — 7 taller day columns for the anchor week, each listing that day's
-  due tasks as stacked `EventChip`s (no truncation), today column highlighted.
-- `components/EventChip/` — category dot + title (+ accent for urgent); click opens the task.
+- `components/EventChip/` — status dot + title (+ accent for urgent); click opens the task.
+  Used by month cells and `DayTasksModal`.
 - `components/DayTasksModal/` — Mantine `Modal` listing every task due on a clicked day;
   rows open the `TaskDetailModal`. Read-only (no editable fields → no unsaved-changes state).
 
@@ -172,9 +187,9 @@ mintflow orange/paper tokens (loosely seeded by the `Files.dc.html` mock, since 
 
 ## The app shell — `layouts/app-shell/`
 
-`LayoutAppShell` (client) is a **single always-open 280px navigation panel** (no
-icon-rail / sub-nav split) over the warm-paper content area — the in-app, mint-tuned
-counterpart of `@peppermint/admin`'s `AdminShell`, rendered as one full-width labeled panel.
+`LayoutAppShell` (client) is a **collapsible 280px navigation panel** over the warm-paper
+content area — the in-app, mint-tuned counterpart of `@peppermint/admin`'s `AdminShell`,
+rendered as one full-width labeled panel that collapses to a narrow icon rail on desktop.
 
 - **Config-driven.** `nav.config.tsx` (`APP_SHELL_CONFIG`) holds the static shape —
   `brand` (icon + wordmark + caption), `groups`, `aiButton`, `settingsButton`,
@@ -190,11 +205,21 @@ counterpart of `@peppermint/admin`'s `AdminShell`, rendered as one full-width la
   `resolveActiveHref` / `isActiveHref`) → `SidebarFooter` (icon cluster: AI,
   `BookmarksMenu` variant="sidenav", notifications bell, settings; then the full-width
   `UserMenu` account row).
+- **Collapsible icon rail (desktop).** `SidebarToggle` (a `CaretDouble` `ActionIcon`) sits
+  top-right of the brand header when expanded; collapsing shrinks the panel to
+  `NAV_WIDTH_COLLAPSED = 72` where the **expand button sits above the search** (now an
+  icon-only trigger), section labels are hidden, and `NavRow`/`UserMenu` become icon-only
+  with hover tooltips and a vertical footer cluster. Each part takes a `collapsed` prop.
+  State lives in `AppShell.store.ts` (`useSidebarStore`, `zustand/persist` →
+  `localStorage["mintflow-sidebar"]`); a `hasHydrated` flag gates the effective value
+  (`hasHydrated ? collapsed : false`) so SSR and first paint render expanded — no hydration
+  mismatch. `AppShell.tsx` reads the same value for the navbar width; the panel width
+  transition is reduced-motion-guarded (`Sidebar.module.css`).
 - **Dark panel is explicit.** Unlike `AdminShell` (transparent over a dark app bg),
   mintflow's body is light, so the panel Stack carries its own `tokens.tile` surface +
   `tokens.shadow.nav` (see `shell.constants.ts` `navCardStyle`, `NAV_WIDTH = 280`).
-  Mobile (< `sm`): a fixed `Burger` toggles the collapsed panel; content reserves top
-  padding to clear it.
+  Mobile (< `sm`): a fixed `Burger` toggles the panel overlay (independent of the desktop
+  collapse); content reserves top padding to clear it.
 - **Placeholder destinations** (`/team`, `/work-files/*`, `/notifications`, `/settings`,
   `/ai`, …) have no routes yet and 404 until built — rewire `nav.config.tsx` as routes
   land. `/dashboard`, `/tasks`, `/cases`, and `/calendar` are real.

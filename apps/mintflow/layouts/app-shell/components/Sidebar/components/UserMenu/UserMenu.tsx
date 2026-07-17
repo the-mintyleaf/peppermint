@@ -1,7 +1,14 @@
 "use client";
 
 import type { MouseEvent } from "react";
-import { Avatar, Menu, Stack, Text, UnstyledButton } from "@peppermint/ui";
+import {
+  Avatar,
+  Menu,
+  Stack,
+  Text,
+  Tooltip,
+  UnstyledButton,
+} from "@peppermint/ui";
 import { CaretUpDownIcon } from "@phosphor-icons/react/dist/csr/CaretUpDown";
 
 import type { AppShellUserMenuItem } from "../../../../AppShell.types";
@@ -21,7 +28,12 @@ function getInitials(name: string): string {
  * Full-width account row (avatar + name + email) that opens a menu. Replaces the
  * admin package's internal `UserInfoPopover` with an in-app Mantine `Menu`.
  */
-export function UserMenu({ user, linkComponent, onNavigate }: UserMenuProps) {
+export function UserMenu({
+  user,
+  linkComponent,
+  onNavigate,
+  collapsed = false,
+}: UserMenuProps) {
   const handleItemClick =
     (item: AppShellUserMenuItem) => (event: MouseEvent) => {
       if (item.onClick) {
@@ -35,34 +47,54 @@ export function UserMenu({ user, linkComponent, onNavigate }: UserMenuProps) {
       }
     };
 
+  const avatar = (
+    <Avatar
+      src={user.avatarUrl}
+      size={36}
+      radius="xl"
+      color="accent"
+      variant="filled"
+    >
+      {getInitials(user.name)}
+    </Avatar>
+  );
+
   return (
-    <Menu position="top" withArrow shadow="md" width="target">
+    <Menu
+      position={collapsed ? "right-end" : "top"}
+      withArrow
+      shadow="md"
+      width={collapsed ? 220 : "target"}
+    >
       <Menu.Target>
-        <UnstyledButton
-          className={classes.trigger}
-          aria-label={`Account: ${user.name}`}
-        >
-          <Avatar
-            src={user.avatarUrl}
-            size={36}
-            radius="xl"
-            color="accent"
-            variant="filled"
+        {collapsed ? (
+          <Tooltip label={user.name} withArrow position="right">
+            <UnstyledButton
+              className={classes.triggerCollapsed}
+              aria-label={`Account: ${user.name}`}
+            >
+              {avatar}
+            </UnstyledButton>
+          </Tooltip>
+        ) : (
+          <UnstyledButton
+            className={classes.trigger}
+            aria-label={`Account: ${user.name}`}
           >
-            {getInitials(user.name)}
-          </Avatar>
-          <Stack gap={0} className={classes.text}>
-            <Text component="span" className={classes.name}>
-              {user.name}
-            </Text>
-            {user.email && (
-              <Text component="span" className={classes.email}>
-                {user.email}
+            {avatar}
+            <Stack gap={0} className={classes.text}>
+              <Text component="span" className={classes.name}>
+                {user.name}
               </Text>
-            )}
-          </Stack>
-          <CaretUpDownIcon size={14} className={classes.caret} />
-        </UnstyledButton>
+              {user.email && (
+                <Text component="span" className={classes.email}>
+                  {user.email}
+                </Text>
+              )}
+            </Stack>
+            <CaretUpDownIcon size={14} className={classes.caret} />
+          </UnstyledButton>
+        )}
       </Menu.Target>
 
       <Menu.Dropdown>

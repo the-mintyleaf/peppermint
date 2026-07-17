@@ -7,7 +7,14 @@
   border-radius: var(--mantine-radius-md);
 }
 
-.brand:focus-visible {
+.brandCollapsed {
+  composes: brand;
+  justify-content: center;
+  gap: 0;
+}
+
+.brand:focus-visible,
+.brandCollapsed:focus-visible {
   outline: 2px solid var(--mantine-color-accent-3);
   outline-offset: 2px;
 }

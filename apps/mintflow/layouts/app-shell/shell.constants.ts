@@ -2,8 +2,10 @@ import type { CSSProperties } from "react";
 
 import { tokens } from "@/config/design";
 
-/** Fixed width of the full (always-open) navigation panel. */
+/** Fixed width of the full (expanded) navigation panel. */
 export const NAV_WIDTH = 280;
+/** Width of the panel when collapsed to the desktop icon rail. */
+export const NAV_WIDTH_COLLAPSED = 72;
 /** Outer inset around the panel inside the AppShell navbar slot. */
 export const SHELL_INSET = 8;
 /** Height of the brand header block at the top of the panel. */

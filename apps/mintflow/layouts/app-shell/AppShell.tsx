@@ -6,12 +6,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { AppShell, Box, Burger, useDisclosure } from "@peppermint/ui";
 
 import { tokens } from "@/config/design";
+import { useSidebarStore } from "./AppShell.store";
 import { APP_SHELL_CONFIG } from "./nav.config";
 import { Sidebar } from "./components/Sidebar";
-import { NAV_WIDTH, SHELL_INSET } from "./shell.constants";
+import { NAV_WIDTH, NAV_WIDTH_COLLAPSED, SHELL_INSET } from "./shell.constants";
 import type { AppShellConfig } from "./AppShell.types";
-
-const NAVBAR_WIDTH = NAV_WIDTH + SHELL_INSET * 2;
 
 /**
  * mintflow-admin chrome — a single always-open 280px navigation panel (no
@@ -24,6 +23,12 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [opened, { toggle: toggleMobileNav, close: closeMobileNav }] =
     useDisclosure();
+
+  const { collapsed, hasHydrated } = useSidebarStore();
+  // Reserve the expanded width until rehydration so SSR and first paint agree.
+  const isCollapsed = hasHydrated && collapsed;
+  const navbarWidth =
+    (isCollapsed ? NAV_WIDTH_COLLAPSED : NAV_WIDTH) + SHELL_INSET * 2;
 
   // Close the mobile navbar on route change so a tap-through doesn't leave the
   // overlay open on top of the new page.
@@ -70,7 +75,7 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
         padding={0}
         withBorder={false}
         navbar={{
-          width: NAVBAR_WIDTH,
+          width: navbarWidth,
           breakpoint: "sm",
           collapsed: { mobile: !opened },
         }}

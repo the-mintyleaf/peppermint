@@ -8,11 +8,19 @@
   transition: background-color 150ms ease;
 }
 
-.trigger:hover {
+.triggerCollapsed {
+  composes: trigger;
+  justify-content: center;
+  gap: 0;
+}
+
+.trigger:hover,
+.triggerCollapsed:hover {
   background-color: rgba(255, 255, 255, 0.06);
 }
 
-.trigger:focus-visible {
+.trigger:focus-visible,
+.triggerCollapsed:focus-visible {
   outline: 2px solid var(--mantine-color-accent-5);
   outline-offset: 2px;
 }

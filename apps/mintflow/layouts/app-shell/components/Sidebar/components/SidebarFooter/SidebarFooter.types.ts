@@ -14,4 +14,6 @@ export interface SidebarFooterProps {
   pathname: string;
   linkComponent?: ElementType;
   onNavigate?: (href: string) => void;
+  /** Stack quick actions vertically for the collapsed icon rail. */
+  collapsed?: boolean;
 }

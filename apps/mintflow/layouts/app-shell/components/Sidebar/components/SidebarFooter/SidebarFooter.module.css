@@ -5,6 +5,12 @@
   padding: 0 2px;
 }
 
+.clusterCollapsed {
+  composes: cluster;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .spacer {
   flex: 1;
 }

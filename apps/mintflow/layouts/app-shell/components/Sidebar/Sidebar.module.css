@@ -1,3 +1,18 @@
+.panel {
+  transition: width 180ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    transition: none;
+  }
+}
+
+.toggleRow {
+  display: flex;
+  justify-content: center;
+}
+
 .sectionLabel {
   font-size: 10px;
   font-weight: 600;

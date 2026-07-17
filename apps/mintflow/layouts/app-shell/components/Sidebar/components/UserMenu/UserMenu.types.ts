@@ -5,4 +5,6 @@ export interface UserMenuProps {
   user: AppShellUser;
   linkComponent?: ElementType;
   onNavigate?: (href: string) => void;
+  /** Avatar-only trigger for the collapsed icon rail. */
+  collapsed?: boolean;
 }

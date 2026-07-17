@@ -10,4 +10,6 @@ export interface NavRowProps {
   badge?: string;
   linkComponent?: ElementType;
   onClick?: (event: MouseEvent) => void;
+  /** Icon-only, centered rendering with a tooltip for the collapsed icon rail. */
+  collapsed?: boolean;
 }

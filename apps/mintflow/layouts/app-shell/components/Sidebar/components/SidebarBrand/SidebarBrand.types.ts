@@ -7,4 +7,6 @@ export interface SidebarBrandProps {
   caption?: string;
   href?: string;
   linkComponent?: ElementType;
+  /** Chip-only, centered rendering for the collapsed icon rail. */
+  collapsed?: boolean;
 }
