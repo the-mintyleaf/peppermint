@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  Alert,
   Button,
   Group,
   Modal,
@@ -9,6 +10,7 @@ import {
   Stack,
   Text,
 } from "@peppermint/ui";
+import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { PASSWORD_MIN_LENGTH } from "@/modules/admin/authenticate/_shared/password";
 import type { SetTemporaryPasswordModalProps } from "./SetTemporaryPasswordModal.types";
 
@@ -40,13 +42,19 @@ export function SetTemporaryPasswordModal({
       centered
     >
       <Stack gap="md">
-        <Text size="sm">
-          Set a temporary password for <strong>{username}</strong>. They&apos;ll
-          be required to change it the next time they sign in, and all their
-          sessions will be revoked.
-        </Text>
+        <Alert
+          color="yellow"
+          icon={<WarningIcon size={18} weight="fill" aria-hidden />}
+        >
+          <Text size="sm">
+            Set a temporary password for <strong>{username}</strong>.
+            They&apos;ll be required to change it the next time they sign in,
+            and all their sessions will be revoked.
+          </Text>
+        </Alert>
         <PasswordInput
           label="Temporary password"
+          placeholder={`At least ${PASSWORD_MIN_LENGTH} characters`}
           value={value}
           onChange={(e) => setValue(e.currentTarget.value)}
           error={tooShort ? `At least ${PASSWORD_MIN_LENGTH} characters` : null}
