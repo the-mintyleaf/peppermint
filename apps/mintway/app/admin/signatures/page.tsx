@@ -1,3 +1,3 @@
-import { SignaturesManager } from "@/modules/admin/signatures";
+import { SignaturesList } from "@/modules/admin/signatures";
 
-export default SignaturesManager;
+export default SignaturesList;
