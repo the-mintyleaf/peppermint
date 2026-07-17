@@ -75,13 +75,22 @@ export function BankStatementForm({
   const transactions = form.getValues().transactions ?? [];
 
   // Default the date so a forgotten date never renders "Invalid Date" on the statement.
+  // Interest/tax rows land at the period END; the opening row seeds the interest
+  // checkpoint, so it lands at the period START — otherwise a same-day opening and
+  // interest row make days = 0 and interest computes to 0.
   const fallbackDate = () =>
     form.getValues().statement_end_date ||
     new Date().toISOString().split("T")[0];
 
+  const openingDate = () =>
+    form.getValues().statement_start_date ||
+    form.getValues().statement_end_date ||
+    new Date().toISOString().split("T")[0];
+
   const addTransaction = () => {
+    const isOpening = (form.getValues().transactions ?? []).length === 0;
     form.insertListItem("transactions", {
-      date: fallbackDate(),
+      date: isOpening ? openingDate() : fallbackDate(),
       description: "",
       debit: 0,
       credit: 0,
@@ -338,7 +347,7 @@ export function BankStatementForm({
                           hideControls
                           decimalScale={2}
                           thousandSeparator=","
-                          value={derived?.debit || ""}
+                          value={derived ? derived.debit : ""}
                           readOnly
                           disabled
                         />
@@ -362,7 +371,7 @@ export function BankStatementForm({
                           hideControls
                           decimalScale={2}
                           thousandSeparator=","
-                          value={derived?.credit || ""}
+                          value={derived ? derived.credit : ""}
                           readOnly
                           disabled
                         />

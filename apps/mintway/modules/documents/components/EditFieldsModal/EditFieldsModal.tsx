@@ -20,9 +20,6 @@ export function EditFieldsModal() {
   const config = getDocumentTypeConfig(activeDocument.type);
   const Form = config.Form;
 
-  // Bank statements carry a transactions table — give them a wider modal.
-  const isWide = activeDocument.type.endsWith("-statement");
-
   const handleSubmit = (content: DocumentContent) => {
     updateDocumentContent(activeDocument.id, content);
     setEditFieldsModalOpen(false);
@@ -33,7 +30,7 @@ export function EditFieldsModal() {
       opened={editFieldsModalOpen}
       onClose={() => setEditFieldsModalOpen(false)}
       title={`Edit ${config.label} Fields`}
-      size={isWide ? "xl" : "md"}
+      size="xl"
     >
       {Form && (
         <Form

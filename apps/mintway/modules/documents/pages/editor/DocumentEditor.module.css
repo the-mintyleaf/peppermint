@@ -267,7 +267,9 @@
   border-radius: var(--mantine-radius-xs);
   background: #fff;
   cursor: pointer;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .historyCard:hover {
@@ -290,4 +292,92 @@
   z-index: 15;
   box-shadow: var(--mantine-shadow-md);
   transition: right 0.15s ease;
+}
+
+/* Print: isolate the document paper. The editor shell is a fixed, overflow-hidden,
+   background-painted full-screen layout, so without these rules the browser captures the
+   whole viewport (chrome + sidebars + shell backgrounds + one clipped screen) instead of
+   the flowing A4 paper. */
+@media print {
+  /* Each template renders a fixed A4 paper (210 × 297mm) with its own internal padding,
+     so the sheet itself must have zero margin. */
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  /* Strip every shell/app background — otherwise, with "background graphics" enabled, the
+     gray editor surface and the dark app gradient (inline on <html>) paint onto pages.
+     The <html> gradient is an inline style, which a plain declaration cannot beat, so use
+     !important. */
+  html,
+  body,
+  .root,
+  .workspace,
+  .centerPanel,
+  .centerContent {
+    background: #fff !important;
+    background-image: none !important;
+  }
+
+  /* Collapse the fixed, overflow-clipped shell into natural static flow with no forced
+     height, so total height is exactly the sum of the pages and nothing bleeds past them. */
+  .root,
+  .workspace,
+  .centerPanel,
+  .centerContent {
+    position: static !important;
+    display: block !important;
+    flex: none !important;
+    overflow: visible !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  /* Hide every non-document surface (activates the existing no-print markers too). */
+  .mainHeader,
+  .subHeader,
+  .resizablePanel,
+  .editDocumentBtn,
+  :global(.no-print) {
+    display: none !important;
+  }
+
+  /* The Mantine ScrollArea clips the paper to one screen and its viewport-wrapper adds
+     padding/min-height. Neutralize the viewport, its scrollbars, and the direct wrapper. */
+  .centerContent :global(.mantine-ScrollArea-viewport) {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .centerContent :global(.mantine-ScrollArea-scrollbar) {
+    display: none !important;
+  }
+
+  .centerContent :global(.mantine-ScrollArea-viewport) > * {
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+  }
+
+  /* Force each document (a direct child of the print root) to be EXACTLY one A4 page and
+     clip any hairline overflow — templates size themselves with aspect-ratio / min-height,
+     which can tip a page past the boundary and emit a trailing blank page. Fixing the height
+     (a hair under a full sheet) makes the flow deterministically N clean pages. */
+  :global([data-print-root]) > * {
+    box-sizing: border-box !important;
+    display: block !important;
+    width: 210mm !important;
+    height: calc(297mm - 1px) !important;
+    min-height: 0 !important;
+    max-height: calc(297mm - 1px) !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    break-inside: avoid;
+  }
+
+  :global([data-print-root]) > * + * {
+    break-before: page;
+  }
 }

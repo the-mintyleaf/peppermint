@@ -56,7 +56,11 @@ export function DocumentContent() {
       <ScrollArea className={styles.centerContent} type="auto">
         <Box style={{ padding: "12px 8px" }}>
           <Center>
-            <div ref={printableContentRef} data-mantine-color-scheme="light">
+            <div
+              ref={printableContentRef}
+              data-print-root
+              data-mantine-color-scheme="light"
+            >
               {documents.map((doc) => {
                 const Template = getDocumentTypeConfig(doc.type).Template;
                 return (
@@ -112,7 +116,11 @@ export function DocumentContent() {
         <LoadingOverlay visible={isDeleting} zIndex={100} />
 
         <Center>
-          <div ref={printableContentRef} data-mantine-color-scheme="light">
+          <div
+            ref={printableContentRef}
+            data-print-root
+            data-mantine-color-scheme="light"
+          >
             <Template
               document={activeDocument}
               studentFullData={studentFullData}
