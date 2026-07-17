@@ -96,11 +96,11 @@ export function UserStatusCell({
     <Menu position="bottom-start" width="target" withinPortal>
       <Menu.Target>
         <Button
-          variant="light"
+          variant="subtle"
           color={STATUS_COLORS[status] ?? "gray"}
           size="xs"
           fullWidth
-          maw={300}
+          maw={200}
           justify="space-between"
           rightSection={<CaretDownIcon size={12} aria-hidden />}
           aria-label={`Change status for ${user.username}`}
