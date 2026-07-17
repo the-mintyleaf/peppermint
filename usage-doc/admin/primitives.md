@@ -98,22 +98,43 @@ Confirmation modal with a required reason textarea (the `revoke/deactivate/end`
 flow). Confirm is disabled until a reason is entered and shows a spinner while
 `onConfirm` runs; the modal closes when it resolves.
 
+The modal owns its chrome: it renders a `ShellModalHeader` (matching the shell's
+create/edit modals) and a single padded body, so it stays consistent everywhere.
+Pass `parentLabel` for the breadcrumb parent shown before `title` in the header.
+
 Pass `tone` (`"danger" | "warning" | "info"`) to render the message as an
 `<Alert>` with a matching icon and color instead of plain text — use it for
 destructive or consequential confirmations. Omit `tone` for a neutral message.
 `alertTitle` is the bold heading of that message; `description` is its supporting
-sub-heading. The modal body padding is restored per-instance, so it stays padded
-even when the app zeroes Modal body padding globally.
+sub-heading (rendered a size smaller).
+
+Pass `hideReason: true` to drop the reason textarea entirely — turns this into a
+plain yes/no confirm (e.g. reactivate/unsuspend) while keeping the same header,
+Alert, and padded layout as the reason-required flows.
 
 ```ts
 openReasonConfirmModal({
-  title: "Revoke delegation", // modal header
+  title: "Revoke delegation", // modal header (current)
+  parentLabel: "Delegations", // modal header (breadcrumb parent)
   alertTitle: "This stops the delegation immediately", // message heading
   description: "The delegate loses access on their next request.", // sub-heading
   tone: "danger", // renders the message as a red Alert with a Prohibit icon
   confirmLabel: "Revoke",
   confirmColor: "red",
   onConfirm: (reason) => revoke.mutateAsync({ id, reason }),
+});
+
+// Plain yes/no confirm — no reason field:
+openReasonConfirmModal({
+  title: "Reactivate account",
+  parentLabel: "Users",
+  hideReason: true,
+  tone: "info",
+  alertTitle: "This restores access",
+  description: "They'll be able to sign in again.",
+  confirmLabel: "Reactivate",
+  confirmColor: "teal",
+  onConfirm: () => reactivate.mutateAsync(id),
 });
 ```
 

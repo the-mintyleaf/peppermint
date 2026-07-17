@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import {
   Alert,
+  Box,
   Button,
   Group,
   Stack,
@@ -14,6 +15,7 @@ import {
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { InfoIcon } from "@phosphor-icons/react/dist/csr/Info";
+import { ShellModalHeader } from "../shells/ModalTableShell/components/ShellModalHeader";
 
 /** Visual severity of the confirmation's consequence message. */
 export type ReasonConfirmTone = "danger" | "warning" | "info";
@@ -38,6 +40,8 @@ const TONE_CONFIG: Record<
 
 export interface ReasonConfirmOptions {
   title: string;
+  /** Optional breadcrumb parent shown before `title` in the modal header. */
+  parentLabel?: string;
   /**
    * Bold heading for the consequence message (the Alert title when `tone` is set).
    * Pair with `description` as the supporting sub-heading.
@@ -54,6 +58,8 @@ export interface ReasonConfirmOptions {
   reasonPlaceholder?: string;
   /** Require a non-empty reason before confirm is enabled. Defaults to true. */
   reasonRequired?: boolean;
+  /** Hide the reason textarea entirely — turns this into a plain yes/no confirm. */
+  hideReason?: boolean;
   confirmLabel?: string;
   cancelLabel?: string;
   /** Mantine color for the confirm button (e.g. "red"). */
@@ -77,6 +83,7 @@ function ReasonConfirmContent({
   reasonLabel = "Reason",
   reasonPlaceholder,
   reasonRequired = true,
+  hideReason = false,
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   confirmColor,
@@ -86,7 +93,7 @@ function ReasonConfirmContent({
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const disabled = reasonRequired && reason.trim().length === 0;
+  const disabled = !hideReason && reasonRequired && reason.trim().length === 0;
 
   const handleConfirm = async () => {
     setSubmitting(true);
@@ -130,16 +137,18 @@ function ReasonConfirmContent({
             )}
           </Stack>
         ))}
-      <Textarea
-        label={reasonLabel}
-        placeholder={reasonPlaceholder}
-        value={reason}
-        onChange={(event) => setReason(event.currentTarget.value)}
-        autosize
-        minRows={2}
-        required={reasonRequired}
-        data-autofocus
-      />
+      {!hideReason && (
+        <Textarea
+          label={reasonLabel}
+          placeholder={reasonPlaceholder}
+          value={reason}
+          onChange={(event) => setReason(event.currentTarget.value)}
+          autosize
+          minRows={2}
+          required={reasonRequired}
+          data-autofocus
+        />
+      )}
       <Group justify="flex-end" gap="xs">
         <Button
           size="xs"
@@ -173,15 +182,22 @@ export function openReasonConfirmModal(options: ReasonConfirmOptions): void {
   const modalId = `reason-confirm-modal-${(modalCounter += 1)}`;
   modals.open({
     modalId,
-    title: (
-      <Text size="sm" fw={600}>
-        {options.title}
-      </Text>
+    // Own the header (ShellModalHeader) and body padding so this matches the
+    // shell's create/edit modals: edge-to-edge header + one padded body (no
+    // double top padding from a themed Modal header stacked over body padding).
+    withCloseButton: false,
+    padding: 0,
+    children: (
+      <>
+        <ShellModalHeader
+          parentLabel={options.parentLabel}
+          currentLabel={options.title}
+          onClose={() => modals.close(modalId)}
+        />
+        <Box p="md">
+          <ReasonConfirmContent {...options} modalId={modalId} />
+        </Box>
+      </>
     ),
-    // Restore body padding per-instance: apps may zero Modal body padding
-    // globally (e.g. for edge-to-edge shell modals), which would otherwise leave
-    // this confirm content flush against the border.
-    styles: { body: { padding: "var(--mantine-spacing-md)" } },
-    children: <ReasonConfirmContent {...options} modalId={modalId} />,
   });
 }

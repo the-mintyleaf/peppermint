@@ -24,10 +24,14 @@ export function ShellModalHeader({
       >
         <Group gap={8} wrap="nowrap">
           <Text size="xs" c="dimmed">
-            {parentLabel}
-            <Text span c="dimmed" mx={6}>
-              /
-            </Text>
+            {parentLabel && (
+              <>
+                {parentLabel}
+                <Text span c="dimmed" mx={6}>
+                  /
+                </Text>
+              </>
+            )}
             <Text span c="dark">
               {currentLabel}
             </Text>

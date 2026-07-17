@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  modals,
-  notifications,
-  useMutation,
-  useQueryClient,
-} from "@peppermint/ui";
+import { notifications, useMutation, useQueryClient } from "@peppermint/ui";
 import { openReasonConfirmModal } from "@peppermint/admin";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import {
@@ -104,6 +99,7 @@ export function useUserLifecycleActions(
     openDeactivate: () =>
       openReasonConfirmModal({
         title: "Deactivate account",
+        parentLabel: "Users",
         alertTitle: "This revokes access immediately",
         description: `@${user.username} is signed out of every device and can no longer sign in. You can reactivate the account later.`,
         tone: "danger",
@@ -114,19 +110,22 @@ export function useUserLifecycleActions(
         onConfirm: (reason) => deactivateMutation.mutateAsync(reason),
       }),
     reactivate: () =>
-      // Simple yes/no confirm (Mantine's built-in) — reactivation is low-risk
-      // and reversible, so it doesn't need a reason.
-      modals.openConfirmModal({
+      // Simple yes/no confirm (no reason) — reactivation is low-risk and reversible.
+      openReasonConfirmModal({
         title: "Reactivate account",
-        styles: { body: { padding: "var(--mantine-spacing-md)" } },
-        children: `Restore access for @${user.username}? They'll be able to sign in again.`,
-        labels: { confirm: "Reactivate", cancel: "Cancel" },
-        confirmProps: { color: "teal" },
-        onConfirm: () => reactivateMutation.mutate(),
+        parentLabel: "Users",
+        hideReason: true,
+        tone: "info",
+        alertTitle: "This restores access",
+        description: `@${user.username} will be able to sign in again.`,
+        confirmLabel: "Reactivate account",
+        confirmColor: "teal",
+        onConfirm: () => reactivateMutation.mutateAsync(),
       }),
     openSuspend: () =>
       openReasonConfirmModal({
         title: "Suspend account",
+        parentLabel: "Users",
         alertTitle: "They won't be able to sign in",
         description: `@${user.username} stays on the roster but is blocked from signing in until you unsuspend them. Active sessions end immediately.`,
         tone: "warning",
@@ -137,14 +136,17 @@ export function useUserLifecycleActions(
         onConfirm: (reason) => suspendMutation.mutateAsync(reason),
       }),
     unsuspend: () =>
-      // Simple yes/no confirm — unsuspension restores access and is reversible.
-      modals.openConfirmModal({
+      // Simple yes/no confirm (no reason) — unsuspension restores access and is reversible.
+      openReasonConfirmModal({
         title: "Unsuspend account",
-        styles: { body: { padding: "var(--mantine-spacing-md)" } },
-        children: `Lift the suspension on @${user.username}? They'll be able to sign in again.`,
-        labels: { confirm: "Unsuspend", cancel: "Cancel" },
-        confirmProps: { color: "teal" },
-        onConfirm: () => unsuspendMutation.mutate(),
+        parentLabel: "Users",
+        hideReason: true,
+        tone: "info",
+        alertTitle: "This lifts the suspension",
+        description: `@${user.username} will be able to sign in again.`,
+        confirmLabel: "Unsuspend account",
+        confirmColor: "teal",
+        onConfirm: () => unsuspendMutation.mutateAsync(),
       }),
   };
 }

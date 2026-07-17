@@ -1,15 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { notifications, useMutation, useQueryClient } from "@peppermint/ui";
 import {
-  Alert,
-  Text,
-  notifications,
-  useMutation,
-  useQueryClient,
-} from "@peppermint/ui";
-import { RowActionsMenu, useModalTableShellContext } from "@peppermint/admin";
-import { modals } from "@peppermint/ui";
+  RowActionsMenu,
+  openReasonConfirmModal,
+  useModalTableShellContext,
+} from "@peppermint/admin";
 import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
@@ -18,7 +15,6 @@ import { PauseCircleIcon } from "@phosphor-icons/react/dist/csr/PauseCircle";
 import { PlayCircleIcon } from "@phosphor-icons/react/dist/csr/PlayCircle";
 import { KeyIcon } from "@phosphor-icons/react/dist/csr/Key";
 import { SignOutIcon } from "@phosphor-icons/react/dist/csr/SignOut";
-import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { OneTimeSecretModal } from "@/modules/admin/authenticate/_shared/OneTimeSecretModal";
 import { resetUserPassword, revokeUserSessions } from "../../../../users.api";
@@ -81,25 +77,18 @@ export function UserRowActionsMenu({
   });
 
   const openRevokeConfirm = () =>
-    modals.openConfirmModal({
+    openReasonConfirmModal({
       title: "Revoke sessions",
-      // Restore body padding — the app zeroes Modal body padding globally.
-      styles: { body: { padding: "var(--mantine-spacing-md)" } },
-      children: (
-        <Alert
-          color="orange"
-          icon={<WarningIcon size={18} weight="fill" aria-hidden />}
-          title="Signs them out everywhere"
-        >
-          <Text size="xs">
-            @{user.username} is signed out of every device right now. They can
-            sign back in with their current password.
-          </Text>
-        </Alert>
-      ),
-      labels: { confirm: "Revoke sessions", cancel: "Cancel" },
-      confirmProps: { color: "orange" },
-      onConfirm: () => revokeMutation.mutate(),
+      parentLabel: "Users",
+      hideReason: true,
+      tone: "warning",
+      alertTitle: "Signs them out everywhere",
+      description: `@${user.username} is signed out of every device right now. They can sign back in with their current password.`,
+      confirmLabel: "Revoke sessions",
+      confirmColor: "orange",
+      onConfirm: async () => {
+        await revokeMutation.mutateAsync();
+      },
     });
 
   return (

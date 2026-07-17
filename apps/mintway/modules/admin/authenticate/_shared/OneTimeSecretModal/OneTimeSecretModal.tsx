@@ -9,6 +9,7 @@ import {
   Stack,
   Text,
 } from "@peppermint/ui";
+import { ShellModalHeader } from "@peppermint/admin";
 import { CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
 import { CopyIcon } from "@phosphor-icons/react/dist/csr/Copy";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
@@ -27,13 +28,17 @@ export function OneTimeSecretModal({
     <Modal
       opened={opened}
       onClose={onClose}
-      title={title}
       closeOnClickOutside={false}
       closeOnEscape={false}
-      // Restore body padding — the app zeroes Modal body padding globally.
-      styles={{ body: { padding: "var(--mantine-spacing-md)" } }}
+      withCloseButton={false}
+      padding={0}
     >
-      <Stack gap="md">
+      <ShellModalHeader
+        parentLabel="Users"
+        currentLabel={title}
+        onClose={onClose}
+      />
+      <Stack gap="md" p="md">
         <Alert
           color="yellow"
           icon={<WarningIcon size={18} weight="fill" aria-hidden />}

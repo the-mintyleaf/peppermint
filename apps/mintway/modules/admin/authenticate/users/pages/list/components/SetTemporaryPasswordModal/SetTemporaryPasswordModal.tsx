@@ -10,6 +10,7 @@ import {
   Stack,
   Text,
 } from "@peppermint/ui";
+import { ShellModalHeader } from "@peppermint/admin";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { PASSWORD_MIN_LENGTH } from "@/modules/admin/authenticate/_shared/password";
 import type { SetTemporaryPasswordModalProps } from "./SetTemporaryPasswordModal.types";
@@ -38,12 +39,16 @@ export function SetTemporaryPasswordModal({
     <Modal
       opened={opened}
       onClose={handleClose}
-      title="Reset password"
       centered
-      // Restore body padding — the app zeroes Modal body padding globally.
-      styles={{ body: { padding: "var(--mantine-spacing-md)" } }}
+      withCloseButton={false}
+      padding={0}
     >
-      <Stack gap="md">
+      <ShellModalHeader
+        parentLabel="Users"
+        currentLabel="Reset password"
+        onClose={handleClose}
+      />
+      <Stack gap="md" p="md">
         <Alert
           color="yellow"
           icon={<WarningIcon size={18} weight="fill" aria-hidden />}
