@@ -23,7 +23,7 @@ interface UseDocumentActionsOptions {
   documents: Document[];
   activeDocument: Document | null;
   printableContentRef: RefObject<HTMLDivElement | null>;
-  onDocumentRemoved: (documentId: string) => void;
+  onDocumentRemoved: (documentIds: string[]) => void;
   /** Renders every page then prints (see DocumentContent); falls back to a plain print. */
   beginPrintAll?: () => void;
 }
@@ -101,7 +101,7 @@ export function useDocumentActions({
       queryClient.invalidateQueries({
         queryKey: documentQueryKeys.workspaces(),
       });
-      documentIds.forEach(onDocumentRemoved);
+      onDocumentRemoved(documentIds);
       notifications.show({
         title:
           documentIds.length > 1 ? "Documents removed" : "Document removed",
@@ -113,6 +113,14 @@ export function useDocumentActions({
       });
     },
     onError: () => {
+      // A pair delete is two independent requests; if one fails the other may have
+      // succeeded, so refetch to show the true backend state rather than a stale pair.
+      queryClient.invalidateQueries({
+        queryKey: documentQueryKeys.list(applicantId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: documentQueryKeys.workspaces(),
+      });
       notifications.show({
         title: "Failed to remove document",
         message: "Please try again.",

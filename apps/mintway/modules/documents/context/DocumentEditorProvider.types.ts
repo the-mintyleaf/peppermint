@@ -50,7 +50,7 @@ export interface DocumentEditorContextValue {
     documentId: string,
     content: DocumentContent,
   ) => void;
-  removeDocumentFromList: (documentId: string) => void;
+  removeDocumentFromList: (documentIds: string[]) => void;
   addDocumentToList: (doc: Document) => void;
   quickCreateDocument: (type: DocumentType) => void;
   createDocumentWithContent: (

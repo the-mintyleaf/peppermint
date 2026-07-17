@@ -29,6 +29,7 @@ export function AddPageMenu({ children, width = 220 }: AddPageMenuProps) {
     openCreateModal,
     quickCreateDocument,
     createBankPair,
+    isCreatingDocument,
   } = useDocumentEditor();
 
   const studentTypes = getStudentMenuTypes(applicantId, documents);
@@ -148,6 +149,7 @@ export function AddPageMenu({ children, width = 220 }: AddPageMenuProps) {
                 <Menu.Item
                   key={bank.slugKey}
                   fz="xs"
+                  disabled={isCreatingDocument}
                   onClick={() => createBankPair(bank.slugKey)}
                 >
                   {bank.label}

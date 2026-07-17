@@ -249,10 +249,13 @@ export function DocumentEditorProvider({
   );
 
   const removeDocumentFromList = useCallback(
-    (documentId: string) => {
-      if (activeDocumentId === documentId) {
+    (documentIds: string[]) => {
+      // Reselect only if the active page is among those removed, and never onto another
+      // removed page — a pair delete removes two ids in one call.
+      const removed = new Set(documentIds);
+      if (activeDocumentId && removed.has(activeDocumentId)) {
         const remaining = documentsRef.current.filter(
-          (d) => d.id !== documentId,
+          (d) => !removed.has(d.id),
         );
         setActiveDocumentId(remaining[0]?.id ?? null);
       }
@@ -340,13 +343,20 @@ export function DocumentEditorProvider({
         label: getDefaultLabel(certificateType),
         content: getDefaultDocumentContent(certificateType),
       });
-      const statement = await documentsApi.create({
-        applicantId,
-        type: statementType,
-        label: getDefaultLabel(statementType),
-        content: getDefaultDocumentContent(statementType),
-      });
-      return { certificate, statement };
+      try {
+        const statement = await documentsApi.create({
+          applicantId,
+          type: statementType,
+          label: getDefaultLabel(statementType),
+          content: getDefaultDocumentContent(statementType),
+        });
+        return { certificate, statement };
+      } catch (error) {
+        // Roll back the certificate so a half-created pair never persists — otherwise the
+        // menu (which needs both halves free) would hide the bank, leaving it unrepairable.
+        await documentsApi.remove(certificate.id).catch(() => {});
+        throw error;
+      }
     },
     onSuccess: ({ certificate, statement }) => {
       appendDocumentToCache(certificate);
