@@ -1,6 +1,7 @@
 import type { QueryParams } from "@peppermint/admin";
 import api from "@/lib/api";
 import type {
+  Role,
   SessionDevice,
   UserAdmin,
 } from "@/modules/admin/authenticate/_shared/authenticate.types";
@@ -71,6 +72,17 @@ export async function updateUserProfile(
     `/api/v1/auth/users/${id}/profile/`,
     payload,
   );
+  return data;
+}
+
+/** `PATCH /api/v1/auth/users/<id>/` — change a user's role (superadmin only). */
+export async function changeUserRole(
+  id: string,
+  role: Role,
+): Promise<UserAdmin> {
+  const { data } = await api.patch<UserAdmin>(`/api/v1/auth/users/${id}/`, {
+    role,
+  });
   return data;
 }
 

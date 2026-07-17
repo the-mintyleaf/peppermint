@@ -2,9 +2,8 @@
 
 import { Stack, Text, Tooltip, dayjs } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
-import { StatusBadge } from "@peppermint/admin";
-import type { Role } from "@/modules/admin/authenticate/_shared/authenticate.types";
 import type { UserAdmin } from "../../users.types";
+import { UserRoleCell } from "./components/UserRoleCell";
 import { UserRowActionsMenu } from "./components/UserRowActionsMenu";
 import { UserStatusCell } from "./components/UserStatusCell";
 
@@ -13,12 +12,6 @@ interface UsersColumnsOptions {
   isSuperadmin: boolean;
   onViewDetails: (user: UserAdmin) => void;
 }
-
-const ROLE_COLORS: Partial<Record<Role, string>> = {
-  superadmin: "grape",
-  admin: "blue",
-  staff: "gray",
-};
 
 function fullName(p: UserAdmin["employee_profile"]): string {
   return (
@@ -80,14 +73,10 @@ export function getUsersColumns({
       accessor: "role",
       title: "Role",
       render: (user: UserAdmin) => (
-        <StatusBadge<Role>
-          value={user.role}
-          colorMap={ROLE_COLORS}
-          labelMap={{
-            superadmin: "Superadmin",
-            admin: "Admin",
-            staff: "Staff",
-          }}
+        <UserRoleCell
+          user={user}
+          currentUserId={currentUserId}
+          isSuperadmin={isSuperadmin}
         />
       ),
     },
