@@ -35,8 +35,10 @@ const schema = z.object({
 
 /**
  * `Signature` (the read row) carries `is_active` and no email/phone, so the edit prefill is
- * mapped explicitly. Email/phone can't be prefilled on edit — the entity doesn't expose them
- * (known limitation; a save leaves them blank unless re-entered).
+ * mapped explicitly. Email/phone can't be prefilled on edit — the entity doesn't expose them.
+ * Because `toSignatureInput` maps blank → `undefined` and the API omits undefined fields, a save
+ * that leaves them blank *retains* the server's existing values (it does not wipe them) — the
+ * flip side being this form can't clear an already-set email/phone.
  */
 function toInitial(record?: Partial<Signature>): SignatureFormValues {
   return {

@@ -60,6 +60,9 @@ export function SignatureRowActionsMenu({
           color: "red",
           dividerBefore: true,
           hidden: () => !signature.is_active,
+          // Block a second confirm while the first request is in flight (the row still
+          // reads is_active until the refetch resolves).
+          disabled: () => deactivateMutation.isPending,
           onClick: () =>
             modals.openConfirmModal({
               title: "Deactivate signature",
