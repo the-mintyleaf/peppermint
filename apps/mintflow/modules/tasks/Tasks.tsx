@@ -65,7 +65,7 @@ export function ModuleTasks() {
     setEditTask(null);
   }, []);
 
-  const { data: tasks, isLoading } = useTasks(boardFilter);
+  const { data: tasks, isLoading, isError, refetch } = useTasks(boardFilter);
   const { moveTask, previewReorder, commitReorder } = useKanbanBoard(tasks);
   const { members, taskCountByMember } = useTeamMembers(tasks);
   const derived = useDerivedTasks(tasks);
@@ -113,7 +113,24 @@ export function ModuleTasks() {
             taskCountByMember={taskCountByMember}
           />
 
-          {view === "board" ? (
+          {isError ? (
+            <Stack align="center" justify="center" flex={1} gap="xs" p="md">
+              <Text size="sm" fw={600}>
+                Couldn&rsquo;t load tasks
+              </Text>
+              <Text size="xs" c="dimmed">
+                Something went wrong fetching this board.
+              </Text>
+              <Button
+                size="xs"
+                variant="light"
+                mt={4}
+                onClick={() => refetch()}
+              >
+                Retry
+              </Button>
+            </Stack>
+          ) : view === "board" ? (
             <Box
               p="md"
               style={{
