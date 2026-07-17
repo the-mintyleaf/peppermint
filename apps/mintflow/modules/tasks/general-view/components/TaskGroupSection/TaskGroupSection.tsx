@@ -73,13 +73,32 @@ const ICON_COLOR: Record<DisplayStatus, string> = {
   rejected: "var(--mantine-color-red-5)",
 };
 
+// Fallback for non-status groupings (priority / assignee / list). Header text
+// comes from the `label` prop; colours stay neutral.
+const NEUTRAL_CONFIG: StatusConfig = {
+  icon: <TrayIcon size={13} weight="fill" />,
+  label: "",
+  headerBg: "var(--mantine-color-gray-0)",
+  headerBorder: "var(--mantine-color-gray-2)",
+  countBg: "var(--mantine-color-gray-2)",
+  countColor: "var(--mantine-color-gray-7)",
+};
+
+function isDisplayStatus(key: string): key is DisplayStatus {
+  return key in STATUS_CONFIG;
+}
+
 export function TaskGroupSection({
-  displayStatus,
+  groupKey,
+  label,
   tasks,
 }: TaskGroupSectionProps) {
   const [open, setOpen] = useState(true);
-  const cfg = STATUS_CONFIG[displayStatus];
-  const iconColor = ICON_COLOR[displayStatus];
+  const known = isDisplayStatus(groupKey);
+  const cfg = known ? STATUS_CONFIG[groupKey] : NEUTRAL_CONFIG;
+  const iconColor = known
+    ? ICON_COLOR[groupKey]
+    : "var(--mantine-color-gray-5)";
 
   if (tasks.length === 0) return null;
 
@@ -107,7 +126,7 @@ export function TaskGroupSection({
         </Box>
 
         <Text size="xs" fw={600} c="dark.6">
-          {cfg.label}
+          {cfg.label || label}
         </Text>
 
         <Box
@@ -152,11 +171,7 @@ export function TaskGroupSection({
 
       <Collapse expanded={open}>
         {tasks.map((task) => (
-          <TaskListRow
-            key={task.id}
-            task={task}
-            displayStatus={displayStatus}
-          />
+          <TaskListRow key={task.id} task={task} />
         ))}
       </Collapse>
     </Box>

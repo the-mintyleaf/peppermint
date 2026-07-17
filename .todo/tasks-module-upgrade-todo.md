@@ -19,22 +19,25 @@ working toolbar, FormWrapper migration, file split, polish. Plan:
 - [x] `Tasks.store.ts` Zustand view-prefs store (view, boardFilter, search, member, sort, group, filters, columns)
 - [x] `useDerivedTasks` — shared filter→sort→group pipeline returning list + board shapes
 - [x] Wire store + derivation into `Tasks.tsx` (no-regression; toolbar menus still inert until Phase 3)
+- [x] Commit + dual review (Phase 2 clean; 2 latent items to handle in Phase 3)
+
+## Phase 3 — Toolbar (Sort / Group / Filter)
+
+- [x] Harden group header for any group key (safe fallback); drop dead `displayStatus` row prop
+- [x] Extract `components/TasksToolbar/`
+- [x] Sort menu (Manual/Due/Priority/Name/Created + asc/desc toggle)
+- [x] Group by (Status/Priority/Assignee/List, list only)
+- [x] Filter by (Assignee/Priority/Due) + active count badge + clear
+- [x] Fix `hasActiveFilters` to include the filters object; remove dead `useGroupedTasks`
+- [x] Wire toolbar into `Tasks.tsx` (now ~215 lines)
 - [ ] Commit + dual review
 
-## Phase 3 — Toolbar
+## Phase 4 — Columns + list-row rebuild + create/edit/delete
 
-- [ ] Extract `components/TasksToolbar/`
-- [ ] Sort menu (Due/Priority/Name/Created + asc/desc)
-- [ ] Group by (Status/Priority/Assignee/List, list only)
-- [ ] Filter by (Assignee/Priority/Due) + active count badge
-- [ ] Columns (Priority/Due/Assignee toggles, list only)
-- [ ] Commit + dual review
-
-## Phase 4 — List view + create/edit/delete
-
-- [ ] Extract `general-view/components/TaskListView/` (header + groups + states, respects group/columns)
-- [ ] Migrate `CreateTaskModal` to `FormWrapper` (Zod, finalSubmitFn → mutation)
-- [ ] Wire create/update end-to-end; remove PLACEHOLDER\_\*; editable subtasks
+- [ ] Extract `general-view/components/TaskListView/`; dynamic grid respecting `visibleColumns`
+- [ ] Columns (Priority/Due/Assignee toggles) wired to store + render
+- [ ] Migrate `CreateTaskModal` to `FormWrapper`; fix assignee slug→name
+- [ ] Wire create/update end-to-end; remove placeholders; editable subtasks
 - [ ] Delete action in `TaskDetailModal` (confirm → useDeleteTask)
 - [ ] Row/card Edit-Delete action menu on `TaskListRow` + `KanbanCard`
 - [ ] Slim `Tasks.tsx` to orchestrator (<200 lines)
