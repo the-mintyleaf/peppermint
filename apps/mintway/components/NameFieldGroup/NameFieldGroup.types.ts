@@ -16,8 +16,14 @@ export interface NameInputBinding {
 export interface NameFieldGroupProps {
   /** Label for the joined control. Defaults to "Name". */
   label?: string;
-  /** Show the required asterisk (first + last are the required segments). */
+  /** Show the group asterisk and mark the first-name segment required. */
   required?: boolean;
+  /**
+   * Whether the last-name segment is required. Defaults to `required`, so a
+   * caller that only needs the common "first + last required" shape passes
+   * `required` alone; forms where the surname is optional pass `false`.
+   */
+  lastNameRequired?: boolean;
   disabled?: boolean;
   firstName: NameInputBinding;
   middleName: NameInputBinding;

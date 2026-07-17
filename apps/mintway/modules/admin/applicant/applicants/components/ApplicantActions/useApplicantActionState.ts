@@ -55,9 +55,12 @@ export function useApplicantActionState(applicant: Applicant) {
   const openLock = () =>
     openReasonConfirmModal({
       title: "Lock applicant",
+      alertTitle: "Staff can no longer edit this record",
       description:
         "While locked, staff can't edit this applicant or its addresses. Admins can still make changes.",
+      tone: "warning",
       confirmLabel: "Lock",
+      confirmColor: "orange",
       onConfirm: async (reason) => {
         await lock.mutateAsync(reason);
       },
@@ -76,8 +79,10 @@ export function useApplicantActionState(applicant: Applicant) {
   const openArchive = () =>
     openReasonConfirmModal({
       title: "Archive applicant",
+      alertTitle: "This removes them from active lists",
       description:
-        "Archiving removes this applicant from active lists. It can be reactivated later. This is not a permanent delete.",
+        "Archiving takes this applicant off active lists. You can reactivate them later — this isn't a permanent delete.",
+      tone: "warning",
       confirmLabel: "Archive",
       confirmColor: "red",
       onConfirm: async (reason) => {

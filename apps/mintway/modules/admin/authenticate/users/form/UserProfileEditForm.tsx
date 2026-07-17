@@ -15,8 +15,8 @@ import {
   useFormInstance,
 } from "@peppermint/admin";
 import { z } from "zod";
+import { NameFieldGroup } from "@/components/NameFieldGroup";
 import type { ProfileUpdateValues } from "../users.types";
-import { NameFieldGroup } from "./NameFieldGroup";
 import type { UserProfileEditFormProps } from "./UserProfileEditForm.types";
 
 const schema = z.object({

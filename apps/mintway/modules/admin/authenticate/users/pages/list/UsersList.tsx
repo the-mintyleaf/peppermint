@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ModalTableShell } from "@peppermint/admin";
 import type { DataTableShellTab } from "@peppermint/admin";
-import { ModalPaper, ModuleHeader } from "@peppermint/ui";
+import { ModalPaper } from "@peppermint/ui";
 import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { PauseCircleIcon } from "@phosphor-icons/react/dist/csr/PauseCircle";
@@ -51,47 +51,42 @@ function UsersListContent() {
 
   return (
     <>
-      <ModuleHeader
-        breadcrumbItems={[
-          { label: "Users", href: "/admin/authenticate/users" },
-        ]}
+      <ModalTableShell<UserAdmin, CreateUserValues, ProfileUpdateValues>
+        queryKey={usersQueryKeys.lists()}
+        queryGetFn={fetchUsers}
+        enableServerQuery
+        dataKey="data"
+        paginationKey="meta"
+        idAccessor="id"
+        columns={columns}
+        moduleInfo={{
+          name: "user",
+          label: "Users",
+          description: "Manage accounts, roles, and employee profiles",
+        }}
+        createModalTitle="Create user"
+        editModalTitle="Edit profile"
+        createFormComponent={UserForm}
+        editFormComponent={UserProfileEditForm}
+        onCreateApi={(values) => {
+          // Capture the admin-set temporary password so it can be re-shown once
+          // after creation (the backend never returns it).
+          const temp = values.temporary_password;
+          return createUser(values).then((created) => {
+            setIssuedPassword(temp);
+            return created;
+          });
+        }}
+        onEditApi={(values, record) => updateUserProfile(record.id, values)}
+        getErrorMessage={getApiErrorMessage}
+        disableReviewButton
+        pageSizes={[10, 20, 30, 50]}
+        defaultPageSize={20}
+        tabs={TABS}
+        basePath="/admin/authenticate/users"
+        mainComponent={ModalPaper}
+        mainComponentProps={{ withBorder: true }}
       />
-      <ModalPaper withBorder>
-        <ModalTableShell<UserAdmin, CreateUserValues, ProfileUpdateValues>
-          queryKey={usersQueryKeys.lists()}
-          queryGetFn={fetchUsers}
-          enableServerQuery
-          dataKey="data"
-          paginationKey="meta"
-          idAccessor="id"
-          columns={columns}
-          moduleInfo={{
-            name: "user",
-            label: "Users",
-            description: "Manage accounts, roles, and employee profiles",
-          }}
-          createModalTitle="Create user"
-          editModalTitle="Edit profile"
-          createFormComponent={UserForm}
-          editFormComponent={UserProfileEditForm}
-          onCreateApi={(values) => {
-            // Capture the admin-set temporary password so it can be re-shown once
-            // after creation (the backend never returns it).
-            const temp = values.temporary_password;
-            return createUser(values).then((created) => {
-              setIssuedPassword(temp);
-              return created;
-            });
-          }}
-          onEditApi={(values, record) => updateUserProfile(record.id, values)}
-          getErrorMessage={getApiErrorMessage}
-          disableReviewButton
-          pageSizes={[10, 20, 30, 50]}
-          defaultPageSize={20}
-          tabs={TABS}
-          basePath="/admin/authenticate/users"
-        />
-      </ModalPaper>
 
       <UserDetailDrawer
         user={detailUser}

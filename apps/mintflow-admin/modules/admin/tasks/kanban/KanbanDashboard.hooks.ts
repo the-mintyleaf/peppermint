@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useQuery } from "@peppermint/ui";
 import { arrayMove } from "@dnd-kit/sortable";
 import { fetchTasks } from "./module.api";
@@ -19,9 +19,17 @@ export function useKanbanBoard(
 ) {
   const [localTasks, setLocalTasks] = useState<Task[]>(tasks ?? []);
 
-  useEffect(() => {
+  // Reset the local (drag-reorderable) copy whenever the source tasks or the active
+  // tab change. Done during render via a stored key — React's documented replacement
+  // for a setState-in-effect sync, avoiding the extra commit + cascading render.
+  const [syncKey, setSyncKey] = useState<{
+    activeTab: TaskBoardFilter;
+    tasks: Task[] | undefined;
+  }>({ activeTab, tasks });
+  if (syncKey.activeTab !== activeTab || syncKey.tasks !== tasks) {
+    setSyncKey({ activeTab, tasks });
     setLocalTasks(tasks ?? []);
-  }, [activeTab, tasks]);
+  }
 
   const tasksByStatus = useMemo(() => groupByStatus(localTasks), [localTasks]);
 

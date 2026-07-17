@@ -6,7 +6,6 @@ import {
   Button,
   Group,
   ModalPaper,
-  ModuleHeader,
   Stack,
   Text,
   Textarea,
@@ -131,34 +130,30 @@ function BindingsListContent() {
 
   return (
     <>
-      <ModuleHeader
-        breadcrumbItems={[
-          { label: "Bindings", href: "/admin/authenticate/bindings" },
-        ]}
+      <ModalTableShell<RoleBinding, RoleBindingFormValues>
+        queryKey={roleBindingQueryKeys.list()}
+        queryGetFn={fetchRoleBindings}
+        dataKey="data"
+        paginationKey="meta"
+        enableServerQuery
+        columns={columns}
+        moduleInfo={{
+          name: "role binding",
+          label: "Bindings",
+          description: "Assign a role to a user under a scope.",
+        }}
+        idAccessor="id"
+        createFormComponent={RoleBindingForm}
+        onCreateApi={(values) =>
+          createRoleBinding(values as CreateRoleBindingPayload)
+        }
+        getErrorMessage={getApiErrorMessage}
+        pageSizes={[10, 20, 30, 50]}
+        defaultPageSize={20}
+        basePath="/admin/authenticate/bindings"
+        mainComponent={ModalPaper}
+        mainComponentProps={{ withBorder: true }}
       />
-      <ModalPaper withBorder>
-        <ModalTableShell<RoleBinding, RoleBindingFormValues>
-          queryKey={roleBindingQueryKeys.list()}
-          queryGetFn={fetchRoleBindings}
-          dataKey="data"
-          paginationKey="meta"
-          enableServerQuery
-          columns={columns}
-          moduleInfo={{
-            name: "role binding",
-            label: "Bindings",
-            description: "Assign a role to a user under a scope.",
-          }}
-          idAccessor="id"
-          createFormComponent={RoleBindingForm}
-          onCreateApi={(values) =>
-            createRoleBinding(values as CreateRoleBindingPayload)
-          }
-          getErrorMessage={getApiErrorMessage}
-          pageSizes={[10, 20, 30, 50]}
-          defaultPageSize={20}
-        />
-      </ModalPaper>
     </>
   );
 }

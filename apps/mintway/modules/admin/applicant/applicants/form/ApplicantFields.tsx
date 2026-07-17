@@ -18,6 +18,8 @@ import { AddressBookIcon } from "@phosphor-icons/react/dist/csr/AddressBook";
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
 import { NotepadIcon } from "@phosphor-icons/react/dist/csr/Notepad";
 
+import { NameFieldGroup } from "@/components/NameFieldGroup";
+
 import {
   FOLLOW_UP_PRIORITY_LABELS,
   GENDER_LABELS,
@@ -58,7 +60,20 @@ const ACCORDION_STYLES = {
 
 const ICON_SIZE = 16;
 
+/** Form intro copy, keyed by mode — heading orients the task, sub explains the rule that trips people up. */
+const INTRO: Record<"create" | "edit", { heading: string; sub: string }> = {
+  create: {
+    heading: "Add a new applicant",
+    sub: "Only a first name is required. Capture whatever contact details and context you have now — the rest can wait.",
+  },
+  edit: {
+    heading: "Edit applicant",
+    sub: "Update this person's profile. Clearing a text field saves it as blank, so only empty what you mean to remove.",
+  },
+};
+
 interface ApplicantFieldsProps {
+  mode: "create" | "edit";
   isAdmin: boolean;
   isLoading: boolean;
 }
@@ -72,6 +87,19 @@ function SectionLabel({ children }: { children: string }) {
   );
 }
 
+/** Modal-body lead-in: a task heading + one guidance line above the fields. */
+function FormIntro({ mode }: { mode: "create" | "edit" }) {
+  const { heading, sub } = INTRO[mode];
+  return (
+    <Stack gap={2}>
+      <Text fw={600}>{heading}</Text>
+      <Text size="xs" c="dimmed">
+        {sub}
+      </Text>
+    </Stack>
+  );
+}
+
 /**
  * Role-aware applicant field layout. The essentials (identity, primary contact, lead)
  * are always visible; alternate contact and the admin-only additional/summary blocks
@@ -81,7 +109,11 @@ function SectionLabel({ children }: { children: string }) {
  * the protected block (DOB, gender, religion, summaries, follow-up); the api layer
  * re-enforces the whitelist, so hiding here is UX, not the security boundary.
  */
-export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
+export function ApplicantFields({
+  mode,
+  isAdmin,
+  isLoading,
+}: ApplicantFieldsProps) {
   const { form } = useFormInstance<ApplicantFormValues>();
 
   // Controlled open-state, seeded once from the (possibly prefilled) initial values so
@@ -102,39 +134,35 @@ export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
 
   return (
     <Stack gap="md">
+      <FormIntro mode={mode} />
+
       <Box>
         <Stack gap="md">
-          <Group grow align="flex-start">
-            <TextInput
-              label="First name"
-              required
-              disabled={isLoading}
-              {...form.getInputProps("first_name")}
-            />
-            <TextInput
-              label="Middle name"
-              disabled={isLoading}
-              {...form.getInputProps("middle_name")}
-            />
-            <TextInput
-              label="Last name"
-              disabled={isLoading}
-              {...form.getInputProps("last_name")}
-            />
-          </Group>
+          <Divider label="Identity" labelPosition="left" />
+          <NameFieldGroup
+            required
+            lastNameRequired={false}
+            disabled={isLoading}
+            firstName={form.getInputProps("first_name")}
+            middleName={form.getInputProps("middle_name")}
+            lastName={form.getInputProps("last_name")}
+          />
           <Group grow align="flex-start">
             <TextInput
               label="Preferred display name"
+              placeholder="What they go by, e.g. Manny"
               disabled={isLoading}
               {...form.getInputProps("preferred_display_name")}
             />
             <TextInput
               label="Name (native script)"
+              placeholder="e.g. मारिया गुरुङ"
               disabled={isLoading}
               {...form.getInputProps("name_native")}
             />
             <TextInput
               label="Nationality"
+              placeholder="e.g. Nepali"
               disabled={isLoading}
               {...form.getInputProps("nationality")}
             />
@@ -145,11 +173,13 @@ export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
             <TextInput
               label="Primary email"
               type="email"
+              placeholder="name@example.com"
               disabled={isLoading}
               {...form.getInputProps("primary_email")}
             />
             <TextInput
               label="Primary phone"
+              placeholder="+977 98XXXXXXXX"
               disabled={isLoading}
               {...form.getInputProps("primary_phone")}
             />
@@ -159,6 +189,7 @@ export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
           <Group grow align="flex-start">
             <Select
               label="Lead source"
+              placeholder="Where they came from"
               clearable
               data={LEAD_SOURCE_OPTIONS}
               disabled={isLoading}
@@ -166,12 +197,14 @@ export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
             />
             <TextInput
               label="Lead source detail"
+              placeholder="e.g. Referred by an existing applicant"
               disabled={isLoading}
               {...form.getInputProps("lead_source_detail")}
             />
           </Group>
           <Textarea
             label="Initial interest"
+            placeholder="What are they after? e.g. BSc Nursing, planning to apply next intake"
             autosize
             minRows={2}
             disabled={isLoading}
@@ -204,11 +237,13 @@ export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
               <TextInput
                 label="Alternate email"
                 type="email"
+                placeholder="backup@example.com"
                 disabled={isLoading}
                 {...form.getInputProps("alternate_email")}
               />
               <TextInput
                 label="Alternate phone"
+                placeholder="+977 98XXXXXXXX"
                 disabled={isLoading}
                 {...form.getInputProps("alternate_phone")}
               />
@@ -240,6 +275,7 @@ export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
                     />
                     <Select
                       label="Gender"
+                      placeholder="Select gender"
                       clearable
                       data={GENDER_OPTIONS}
                       disabled={isLoading}
@@ -247,6 +283,7 @@ export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
                     />
                     <TextInput
                       label="Religion"
+                      placeholder="e.g. Hindu"
                       disabled={isLoading}
                       {...form.getInputProps("religion")}
                     />
@@ -260,6 +297,7 @@ export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
                     />
                     <Select
                       label="Follow-up priority"
+                      placeholder="Set a priority"
                       clearable
                       data={FOLLOW_UP_PRIORITY_OPTIONS}
                       disabled={isLoading}
@@ -280,6 +318,7 @@ export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
                 <Stack gap="md">
                   <Textarea
                     label="Summary"
+                    placeholder="Short profile — background, current status, what stands out"
                     autosize
                     minRows={2}
                     disabled={isLoading}
@@ -287,6 +326,7 @@ export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
                   />
                   <Textarea
                     label="Eligibility summary"
+                    placeholder="Do they meet the requirements? Note any gaps or conditions"
                     autosize
                     minRows={2}
                     disabled={isLoading}
@@ -294,6 +334,7 @@ export function ApplicantFields({ isAdmin, isLoading }: ApplicantFieldsProps) {
                   />
                   <Textarea
                     label="Counselling notes"
+                    placeholder="Notes from calls or meetings — kept internal"
                     autosize
                     minRows={2}
                     disabled={isLoading}

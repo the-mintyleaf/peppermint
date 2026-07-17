@@ -17,8 +17,8 @@ import {
   useFormInstance,
 } from "@peppermint/admin";
 import { z } from "zod";
+import { NameFieldGroup } from "@/components/NameFieldGroup";
 import type { CreateUserValues } from "../users.types";
-import { NameFieldGroup } from "./NameFieldGroup";
 import type { UserFormProps } from "./UserForm.types";
 
 const schema = z.object({
@@ -89,7 +89,6 @@ export function UserForm({ onSubmit, isLoading }: UserFormProps) {
       }}
     >
       <Stack gap="md" p="md">
-        <Divider label="Employee" labelPosition="left" />
         <EmployeeSection isLoading={isLoading} />
         <Divider label="Employment" labelPosition="left" />
         <EmploymentSection isLoading={isLoading} />
@@ -197,23 +196,21 @@ function AccountSection({ isLoading }: { isLoading: boolean }) {
         disabled={isLoading}
         {...form.getInputProps("username")}
       />
-      <Group grow align="flex-start">
-        <Select
-          label="Role"
-          required
-          data={ROLE_OPTIONS}
-          disabled={isLoading}
-          {...form.getInputProps("role")}
-        />
-        <PasswordInput
-          label="Temporary password"
-          placeholder="At least 8 characters"
-          required
-          description="The user must change it on first sign-in."
-          disabled={isLoading}
-          {...form.getInputProps("temporary_password")}
-        />
-      </Group>
+      <PasswordInput
+        label="Temporary password"
+        placeholder="At least 8 characters"
+        required
+        description="The user must change it on first sign-in."
+        disabled={isLoading}
+        {...form.getInputProps("temporary_password")}
+      />
+      <Select
+        label="Role"
+        required
+        data={ROLE_OPTIONS}
+        disabled={isLoading}
+        {...form.getInputProps("role")}
+      />
     </>
   );
 }

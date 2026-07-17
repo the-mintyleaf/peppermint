@@ -15,8 +15,10 @@ import {
 
 import {
   applicantKeys,
+  engagementTargets,
   ENGAGEMENT_REASON_REQUIRED,
   ENGAGEMENT_STATUS_LABELS,
+  FORWARD_STAGES,
   LIFECYCLE_STAGE_LABELS,
   transitionApplicant,
   useApplicantMutation,
@@ -28,18 +30,15 @@ import type {
   TransitionPayload,
 } from "../../../_shared";
 
-interface TransitionModalProps {
+export interface TransitionModalProps {
   applicant: Applicant;
   opened: boolean;
   onClose: () => void;
+  /** Pre-select the "Move to stage" field when opened from the Stage switch. */
+  initialStage?: LifecycleStage;
+  /** Pre-select the "Engagement status" field when opened from the Engagement switch. */
+  initialEngagement?: EngagementStatus;
 }
-
-/** Forward-only stage targets from the current stage (§1.6). */
-const FORWARD_STAGES: Record<LifecycleStage, LifecycleStage[]> = {
-  interested: ["potential", "applicant"],
-  potential: ["applicant"],
-  applicant: [],
-};
 
 /**
  * Move an applicant through the funnel and/or change engagement status. Encodes the
@@ -52,9 +51,14 @@ export function TransitionModal({
   applicant,
   opened,
   onClose,
+  initialStage,
+  initialEngagement,
 }: TransitionModalProps) {
-  const [stage, setStage] = useState<string>("");
-  const [engagement, setEngagement] = useState<string>("");
+  // Seeded once on mount from the picked target. Opening from a Stage/Engagement switch
+  // pre-selects that choice; the row menu opens blank. Callers force a fresh seed per
+  // open by remounting with a changing `key` (uncontrolled-with-key over an effect).
+  const [stage, setStage] = useState<string>(initialStage ?? "");
+  const [engagement, setEngagement] = useState<string>(initialEngagement ?? "");
   const [reason, setReason] = useState("");
   const [notes, setNotes] = useState("");
   const [assessmentId, setAssessmentId] = useState("");
@@ -86,11 +90,9 @@ export function TransitionModal({
     label: LIFECYCLE_STAGE_LABELS[s],
   }));
 
-  const engagementOptions = (
-    Object.keys(ENGAGEMENT_STATUS_LABELS) as EngagementStatus[]
-  )
-    .filter((s) => s !== applicant.engagement_status && s !== "archived")
-    .map((s) => ({ value: s, label: ENGAGEMENT_STATUS_LABELS[s] }));
+  const engagementOptions = engagementTargets(applicant.engagement_status).map(
+    (s) => ({ value: s, label: ENGAGEMENT_STATUS_LABELS[s] }),
+  );
 
   const { reasonRequired, hint } = useMemo(() => {
     const messages: string[] = [];
@@ -138,6 +140,7 @@ export function TransitionModal({
       onClose={handleClose}
       title="Change lifecycle"
       centered
+      styles={{ body: { padding: "var(--mantine-spacing-md)" } }}
     >
       <Stack gap="sm">
         <Text size="xs" c="dimmed">

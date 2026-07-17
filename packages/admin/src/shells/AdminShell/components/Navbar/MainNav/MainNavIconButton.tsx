@@ -1,6 +1,6 @@
 "use client";
 
-import type { MouseEvent } from "react";
+import type { ElementType, MouseEvent } from "react";
 import { Box, Tooltip, UnstyledButton } from "@peppermint/ui";
 import type { BoxProps } from "@peppermint/ui";
 import type { Icon } from "@phosphor-icons/react";
@@ -11,6 +11,7 @@ type MainNavIconButtonProps = {
   icon: Icon;
   label: string;
   href?: string;
+  linkComponent?: ElementType;
   onClick?: (event: MouseEvent) => void;
   active?: boolean;
   iconColor?: string;
@@ -24,6 +25,7 @@ export function MainNavIconButton({
   icon: IconComponent,
   label,
   href,
+  linkComponent,
   onClick,
   active = false,
   iconColor,
@@ -34,7 +36,9 @@ export function MainNavIconButton({
     <Box {...boxProps}>
       <Tooltip label={label} position="right" withArrow>
         <UnstyledButton
-          component={href ? "a" : "button"}
+          // `as any`: UnstyledButton's polymorphic `component` prop can't infer a
+          // runtime-chosen element type (Link | "a" | "button"); same cast as SubNavLinks.
+          component={(href ? (linkComponent ?? "a") : "button") as any}
           href={href}
           onClick={(event: MouseEvent) => onClick?.(event)}
           aria-label={label}

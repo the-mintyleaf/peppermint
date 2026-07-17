@@ -10,7 +10,7 @@ import type { GrantFormValues } from "../form/GrantForm.types";
 import { GrantForm } from "../form";
 
 export const GrantsList = createListModule<Grant, GrantFormValues>({
-  breadcrumb: [{ label: "Grants", href: "/admin/authenticate/grants" }],
+  basePath: "/admin/authenticate/grants",
   queryKey: grantQueryKeys.list(),
   queryGetFn: fetchGrants,
   columns: grantsColumns,

@@ -50,7 +50,9 @@ function SignaturesListContent() {
       editModalTitle="Edit signature"
       createFormComponent={SignatureForm}
       editFormComponent={SignatureForm}
-      onCreateApi={(values) => createSignature(toSignatureInput(values))}
+      onCreateApi={(values) =>
+        createSignature({ ...toSignatureInput(values), isActive: true })
+      }
       onEditApi={(values, record) =>
         updateSignature(record.id, toSignatureInput(values))
       }

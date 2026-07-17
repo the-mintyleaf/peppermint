@@ -57,6 +57,7 @@ export function AdminShellNavbar({
           subNavCollapsed={subNavCollapsed}
           onSubNavExpand={onSubNavExpand}
           onNavigate={config.onNavigate}
+          linkComponent={config.linkComponent}
           userMenu={config.userMenu}
         />
 

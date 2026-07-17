@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Button,
-  FileInput,
-  Group,
-  Stack,
-  Switch,
-  TextInput,
-} from "@peppermint/ui";
+import { Button, Group, Stack, TextInput } from "@peppermint/ui";
 import {
   FormWrapper,
   useFormControls,
@@ -15,6 +8,7 @@ import {
 } from "@peppermint/admin";
 import { z } from "zod";
 import type { Signature } from "@/modules/documents";
+import { SignatureImageField } from "./SignatureImageField";
 import type {
   SignatureFormProps,
   SignatureFormValues,
@@ -28,17 +22,17 @@ const schema = z.object({
     .string()
     .refine((v) => !v || /^\S+@\S+\.\S+$/.test(v), "Invalid email"),
   phone: z.string(),
-  isActive: z.boolean(),
   // File | null — kept loose; the shell/API validate the upload itself.
   imageFile: z.any(),
 });
 
 /**
- * `Signature` (the read row) carries `is_active` and no email/phone, so the edit prefill is
- * mapped explicitly. Email/phone can't be prefilled on edit — the entity doesn't expose them.
- * Because `toSignatureInput` maps blank → `undefined` and the API omits undefined fields, a save
- * that leaves them blank *retains* the server's existing values (it does not wipe them) — the
- * flip side being this form can't clear an already-set email/phone.
+ * `Signature` (the read row) carries no email/phone, so the edit prefill maps only the fields it
+ * exposes. Email/phone can't be prefilled on edit — the entity doesn't expose them. Because
+ * `toSignatureInput` maps blank → `undefined` and the API omits undefined fields, a save that
+ * leaves them blank *retains* the server's existing values (it does not wipe them) — the flip
+ * side being this form can't clear an already-set email/phone. Lifecycle (`is_active`) is not a
+ * form field: new signatures are created active, and status is toggled from the list.
  */
 function toInitial(record?: Partial<Signature>): SignatureFormValues {
   return {
@@ -47,7 +41,6 @@ function toInitial(record?: Partial<Signature>): SignatureFormValues {
     organization: record?.organization ?? "",
     email: "",
     phone: "",
-    isActive: record?.is_active ?? true,
     imageFile: null,
   };
 }
@@ -67,7 +60,12 @@ export function SignatureForm({
         return { ok: true };
       }}
     >
-      <SignatureFields isLoading={isLoading} isEditing={isEditing} />
+      <SignatureFields
+        isLoading={isLoading}
+        isEditing={isEditing}
+        existingImageUrl={initialValues?.signature_image}
+        hasExistingImage={initialValues?.has_image ?? false}
+      />
     </FormWrapper>
   );
 }
@@ -75,27 +73,39 @@ export function SignatureForm({
 function SignatureFields({
   isLoading,
   isEditing,
+  existingImageUrl,
+  hasExistingImage,
 }: {
   isLoading: boolean;
   isEditing: boolean;
+  existingImageUrl?: string;
+  hasExistingImage: boolean;
 }) {
   const { form } = useFormInstance<SignatureFormValues>();
   const { handleSubmit, isLoading: submitting } = useFormControls();
   return (
     <Stack gap="md" p="md">
+      <SignatureImageField
+        disabled={isLoading}
+        existingImageUrl={existingImageUrl}
+        hasExistingImage={hasExistingImage}
+      />
       <TextInput
         label="Name"
         required
+        placeholder="e.g. Dr. Jane Doe"
         disabled={isLoading}
         {...form.getInputProps("name")}
       />
       <TextInput
         label="Title"
+        placeholder="e.g. Program Director"
         disabled={isLoading}
         {...form.getInputProps("title")}
       />
       <TextInput
         label="Organization"
+        placeholder="e.g. Peppermint Institute"
         disabled={isLoading}
         {...form.getInputProps("organization")}
       />
@@ -103,30 +113,17 @@ function SignatureFields({
         <TextInput
           label="Email"
           type="email"
+          placeholder="name@example.com"
           disabled={isLoading}
           {...form.getInputProps("email")}
         />
         <TextInput
           label="Phone"
+          placeholder="+1 555 000 1234"
           disabled={isLoading}
           {...form.getInputProps("phone")}
         />
       </Group>
-      <FileInput
-        label="Signature image"
-        placeholder={
-          isEditing ? "Replace image (optional)" : "Upload image (optional)"
-        }
-        accept="image/png,image/jpeg,image/webp"
-        clearable
-        disabled={isLoading}
-        {...form.getInputProps("imageFile")}
-      />
-      <Switch
-        label="Active"
-        disabled={isLoading}
-        {...form.getInputProps("isActive", { type: "checkbox" })}
-      />
       <Button
         onClick={handleSubmit}
         loading={isLoading || submitting}

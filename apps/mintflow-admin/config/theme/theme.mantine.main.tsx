@@ -1,4 +1,6 @@
-export const configThemeMantineMain: any = {
+import type { MantineThemeOverride } from "@peppermint/ui";
+
+export const configThemeMantineMain: MantineThemeOverride = {
   colors: {
     brand: [
       "#effaf4",

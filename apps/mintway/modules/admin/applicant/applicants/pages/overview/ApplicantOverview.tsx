@@ -70,6 +70,7 @@ function ApplicantOverviewContent() {
         onClose={() => setEditOpen(false)}
         title="Edit applicant"
         size="lg"
+        styles={{ body: { padding: "var(--mantine-spacing-md)" } }}
       >
         {applicant && (
           <ApplicantEditForm

@@ -17,6 +17,7 @@ import {
   DateInput,
   MonthPickerInput,
   YearPickerInput,
+  Input,
 } from "@peppermint/ui";
 import type { MantineThemeOverride } from "@peppermint/ui";
 

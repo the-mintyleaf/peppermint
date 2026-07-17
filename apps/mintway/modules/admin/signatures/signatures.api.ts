@@ -12,7 +12,22 @@ export const createSignature = documentsApi.createSignature;
 export const updateSignature = documentsApi.updateSignature;
 export const deactivateSignature = documentsApi.deactivateSignature;
 
-/** Map the form's value shape to the API input (trims + drops empty optionals). */
+/**
+ * Re-enable a deactivated signature. Lifecycle is owned by the list (status cell + row menu),
+ * not the form, so reactivation rides the `is_active` field of the update endpoint — `name` is
+ * required by the multipart body and is taken from the existing row.
+ */
+export function reactivateSignature(
+  id: string,
+  name: string,
+): Promise<Signature> {
+  return updateSignature(id, { name, isActive: true });
+}
+
+/**
+ * Map the form's value shape to the API input (trims + drops empty optionals). Lifecycle
+ * (`is_active`) is intentionally omitted — create sends it explicitly, edit never touches it.
+ */
 export function toSignatureInput(values: SignatureFormValues): SignatureInput {
   return {
     name: values.name.trim(),
@@ -20,7 +35,6 @@ export function toSignatureInput(values: SignatureFormValues): SignatureInput {
     organization: values.organization.trim() || undefined,
     email: values.email.trim() || undefined,
     phone: values.phone.trim() || undefined,
-    isActive: values.isActive,
     imageFile: values.imageFile,
   };
 }

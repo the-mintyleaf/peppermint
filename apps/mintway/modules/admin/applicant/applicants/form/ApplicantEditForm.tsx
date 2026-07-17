@@ -36,7 +36,7 @@ export function ApplicantEditForm({
       }}
     >
       <Stack gap="md" p="md">
-        <ApplicantFields isAdmin={isAdmin} isLoading={isLoading} />
+        <ApplicantFields mode="edit" isAdmin={isAdmin} isLoading={isLoading} />
         <SubmitButton isLoading={isLoading} />
       </Stack>
     </FormWrapper>

@@ -81,6 +81,7 @@ export function getUsersColumns({
       ),
     },
     {
+      width: 200,
       accessor: "account_status",
       title: "Status",
       render: (user: UserAdmin) => (

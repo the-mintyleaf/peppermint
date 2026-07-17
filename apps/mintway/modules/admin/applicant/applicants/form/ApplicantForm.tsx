@@ -18,17 +18,19 @@ import type {
  * Create-applicant form. Staff must supply an email or phone (contact-required);
  * admin may bypass it (imported records) and additionally fills the protected block.
  * `finalSubmitFn` hands validated values to the shell's create mutation, which maps
- * them to the role-scoped payload.
+ * them to the role-scoped payload. `initial` lets a caller prefill fields (e.g. the
+ * Documents "create student" flow seeds the name from the search box).
  */
 export function ApplicantForm({
   onSubmit,
   isLoading,
+  initial,
 }: ApplicantCreateFormProps) {
   const { isAdmin } = useCurrentUser();
 
   return (
     <FormWrapper<ApplicantFormValues>
-      initial={APPLICANT_FORM_INITIAL}
+      initial={{ ...APPLICANT_FORM_INITIAL, ...initial }}
       validation={[buildApplicantSchema(!isAdmin)]}
       finalSubmitFn={async (values) => {
         onSubmit(values);
@@ -36,7 +38,11 @@ export function ApplicantForm({
       }}
     >
       <Stack gap="md" p="md">
-        <ApplicantFields isAdmin={isAdmin} isLoading={isLoading} />
+        <ApplicantFields
+          mode="create"
+          isAdmin={isAdmin}
+          isLoading={isLoading}
+        />
         <SubmitButton isLoading={isLoading} />
       </Stack>
     </FormWrapper>

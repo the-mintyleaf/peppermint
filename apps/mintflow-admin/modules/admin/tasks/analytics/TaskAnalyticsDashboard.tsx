@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Box,
   ModalPaper,
@@ -48,14 +48,20 @@ export function TaskAnalyticsDashboard() {
   const monthKey = formatMonthKey(selectedMonth);
   const { data, isLoading } = useTaskAnalyticsDashboard(monthKey);
 
-  useEffect(() => {
+  // Seed the active-category filter from the freshly loaded data's defaults. Done
+  // during render via a stored reference — React's documented replacement for a
+  // setState-in-effect sync, avoiding the extra commit + cascading render.
+  const [prevData, setPrevData] = useState(data);
+  if (data !== prevData) {
+    setPrevData(data);
     if (data) {
-      const defaults = data.categories
-        .filter((c) => c.defaultChecked)
-        .map((c) => c.id);
-      setActiveCategories(new Set(defaults));
+      setActiveCategories(
+        new Set(
+          data.categories.filter((c) => c.defaultChecked).map((c) => c.id),
+        ),
+      );
     }
-  }, [data]);
+  }
 
   const handleCategoryToggle = useCallback((id: TaskCategoryFilter) => {
     setActiveCategories((prev) => {

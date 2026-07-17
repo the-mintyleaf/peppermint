@@ -1,13 +1,13 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Button, Menu } from "@peppermint/ui";
+import { Menu } from "@peppermint/ui";
 import { StatusBadge } from "@peppermint/admin";
-import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
 import { PauseCircleIcon } from "@phosphor-icons/react/dist/csr/PauseCircle";
 import { PlayCircleIcon } from "@phosphor-icons/react/dist/csr/PlayCircle";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
+import { StatusSwitchButton } from "@/components/StatusSwitchButton";
 import type { AccountStatus } from "@/modules/admin/authenticate/_shared/authenticate.types";
 import { useUserLifecycleActions } from "../useUserLifecycleActions";
 import type { UserStatusCellProps } from "./UserStatusCell.types";
@@ -97,25 +97,12 @@ export function UserStatusCell({
   return (
     <Menu position="bottom-start" width="target" withinPortal>
       <Menu.Target>
-        <Button
-          variant="light"
+        <StatusSwitchButton
+          label={STATUS_LABELS[status]}
           color={statusColor}
-          size="xs"
           fullWidth
-          maw={200}
-          justify="space-between"
-          // A paler tint of the status color than the default light variant.
-          styles={{
-            root: {
-              backgroundColor: `var(--mantine-color-${statusColor}-0)`,
-              color: `var(--mantine-color-${statusColor}-9)`,
-            },
-          }}
-          rightSection={<CaretDownIcon size={12} aria-hidden />}
-          aria-label={`Change status for ${user.username}`}
-        >
-          {STATUS_LABELS[status]}
-        </Button>
+          aria-label={`Change status for ${user.username}, currently ${STATUS_LABELS[status]}`}
+        />
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Label>Change status</Menu.Label>

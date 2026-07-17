@@ -4,7 +4,6 @@ import { useState } from "react";
 import { ModalTableShell } from "@peppermint/admin";
 import {
   ModalPaper,
-  ModuleHeader,
   modals,
   notifications,
   useMutation,
@@ -87,36 +86,32 @@ function RolesListContent() {
 
   return (
     <>
-      <ModuleHeader
-        breadcrumbItems={[
-          { label: "Roles", href: "/admin/authenticate/roles" },
-        ]}
+      <ModalTableShell<Role, RoleFormValues, RoleEditFormValues>
+        queryKey={roleQueryKeys.list()}
+        queryGetFn={fetchRoles}
+        dataKey="data"
+        paginationKey="meta"
+        enableServerQuery
+        columns={columns}
+        moduleInfo={{
+          name: "role",
+          label: "Roles",
+          description: "Reusable permission-key packages.",
+        }}
+        idAccessor="id"
+        createFormComponent={RoleForm}
+        editFormComponent={RoleEditForm}
+        onCreateApi={(values) => createRole(values as CreateRolePayload)}
+        onEditApi={(values, record) =>
+          updateRole(record.id, values as UpdateRolePayload)
+        }
+        getErrorMessage={getApiErrorMessage}
+        pageSizes={[10, 20, 30, 50]}
+        defaultPageSize={20}
+        basePath="/admin/authenticate/roles"
+        mainComponent={ModalPaper}
+        mainComponentProps={{ withBorder: true }}
       />
-      <ModalPaper withBorder>
-        <ModalTableShell<Role, RoleFormValues, RoleEditFormValues>
-          queryKey={roleQueryKeys.list()}
-          queryGetFn={fetchRoles}
-          dataKey="data"
-          paginationKey="meta"
-          enableServerQuery
-          columns={columns}
-          moduleInfo={{
-            name: "role",
-            label: "Roles",
-            description: "Reusable permission-key packages.",
-          }}
-          idAccessor="id"
-          createFormComponent={RoleForm}
-          editFormComponent={RoleEditForm}
-          onCreateApi={(values) => createRole(values as CreateRolePayload)}
-          onEditApi={(values, record) =>
-            updateRole(record.id, values as UpdateRolePayload)
-          }
-          getErrorMessage={getApiErrorMessage}
-          pageSizes={[10, 20, 30, 50]}
-          defaultPageSize={20}
-        />
-      </ModalPaper>
       <RolePermissionsDrawer
         role={permissionsRole}
         opened={Boolean(permissionsRole)}

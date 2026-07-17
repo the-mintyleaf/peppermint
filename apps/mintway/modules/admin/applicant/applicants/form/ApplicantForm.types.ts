@@ -35,7 +35,10 @@ export interface ApplicantFormValues extends Record<string, unknown> {
 export type ApplicantCreateFormProps = ModalFormComponentProps<
   Applicant,
   ApplicantFormValues
->;
+> & {
+  /** Optional field prefill merged over the empty defaults (e.g. seed `first_name`). */
+  initial?: Partial<ApplicantFormValues>;
+};
 
 export type ApplicantEditFormProps = ModalFormComponentProps<
   Applicant,

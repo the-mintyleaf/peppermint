@@ -134,6 +134,7 @@ export function MergeModal({ applicant, opened, onClose }: MergeModalProps) {
       title="Merge into another applicant"
       centered
       size="lg"
+      styles={{ body: { padding: "var(--mantine-spacing-md)" } }}
     >
       <Stack gap="sm">
         <Alert color="orange" variant="light" py="xs">

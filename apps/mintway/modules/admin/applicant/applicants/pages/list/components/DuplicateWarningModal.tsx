@@ -34,6 +34,7 @@ export function DuplicateWarningModal({
       onClose={onClose}
       title="Possible duplicate"
       centered
+      styles={{ body: { padding: "var(--mantine-spacing-md)" } }}
     >
       <Stack gap="sm">
         <Text size="sm">

@@ -86,37 +86,27 @@ export function SecurityEventsList() {
   }
 
   return (
-    <>
-      <ModuleHeader
-        breadcrumbItems={[
-          {
-            label: "Security Events",
-            href: "/admin/authenticate/security-events",
-          },
-        ]}
-      />
-      <ModalPaper withBorder>
-        <DataTableShell<SecurityEvent>
-          queryKey={securityEventsQueryKeys.lists()}
-          queryGetFn={fetchSecurityEvents}
-          enableServerQuery
-          dataKey="data"
-          paginationKey="meta"
-          idAccessor="id"
-          columns={getSecurityEventsColumns()}
-          moduleInfo={{
-            name: "security-event",
-            label: "Security Events",
-            description: "Append-only authentication audit feed, newest first",
-          }}
-          disableActions
-          disableCreateButton
-          pageSizes={[10, 20, 30, 50]}
-          defaultPageSize={20}
-          tabs={TABS}
-          basePath="/admin/authenticate/security-events"
-        />
-      </ModalPaper>
-    </>
+    <DataTableShell<SecurityEvent>
+      queryKey={securityEventsQueryKeys.lists()}
+      queryGetFn={fetchSecurityEvents}
+      enableServerQuery
+      dataKey="data"
+      paginationKey="meta"
+      idAccessor="id"
+      columns={getSecurityEventsColumns()}
+      moduleInfo={{
+        name: "security-event",
+        label: "Security Events",
+        description: "Append-only authentication audit feed, newest first",
+      }}
+      disableActions
+      disableCreateButton
+      pageSizes={[10, 20, 30, 50]}
+      defaultPageSize={20}
+      tabs={TABS}
+      basePath="/admin/authenticate/security-events"
+      mainComponent={ModalPaper}
+      mainComponentProps={{ withBorder: true }}
+    />
   );
 }

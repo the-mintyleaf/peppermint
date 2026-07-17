@@ -19,9 +19,11 @@ export { documentQueryKeys } from "./documents.queryKeys";
 export type {
   Document,
   DocumentType,
+  DocumentStatus,
   DocumentContent,
   LorContent,
   PrintEvent,
+  PrintStatus,
   DocumentRevision,
   DocumentFormProps,
   DocumentTemplateProps,

@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 import {
   Center,
   ModalPaper,
-  ModuleHeader,
   Stack,
   Text,
   ThemeIcon,
@@ -99,6 +98,7 @@ function PositionsListContent() {
           defaultPageSize={20}
           basePath={`/org/${orgId}/positions`}
           mainComponent={ModalPaper}
+          mainComponentProps={{ withBorder: true }}
         />
       )}
 

@@ -1,12 +1,10 @@
 "use client";
 
 import { Text } from "@peppermint/ui";
-import { StatusBadge } from "@peppermint/admin";
 import type { DataTableShellColumn } from "@peppermint/admin";
 import type { Signature } from "@/modules/documents";
 import { SignatureRowActionsMenu } from "./components/SignatureRowActionsMenu";
-
-type ActiveState = "active" | "inactive";
+import { SignatureStatusCell } from "./components/SignatureStatusCell";
 
 export const signaturesColumns: DataTableShellColumn<Signature>[] = [
   { accessor: "name", title: "Name", sortable: true },
@@ -23,13 +21,7 @@ export const signaturesColumns: DataTableShellColumn<Signature>[] = [
   {
     accessor: "is_active",
     title: "Status",
-    render: (r) => (
-      <StatusBadge<ActiveState>
-        value={r.is_active ? "active" : "inactive"}
-        colorMap={{ active: "teal", inactive: "gray" }}
-        labelMap={{ active: "Active", inactive: "Inactive" }}
-      />
-    ),
+    render: (r) => <SignatureStatusCell signature={r} />,
   },
   {
     accessor: "has_image",

@@ -6,20 +6,15 @@ import { StatusBadge } from "@peppermint/admin";
 import { LockKeyIcon } from "@phosphor-icons/react/dist/csr/LockKey";
 
 import {
-  ENGAGEMENT_STATUS_COLORS,
-  ENGAGEMENT_STATUS_LABELS,
   FOLLOW_UP_PRIORITY_COLORS,
   FOLLOW_UP_PRIORITY_LABELS,
-  LIFECYCLE_STAGE_COLORS,
-  LIFECYCLE_STAGE_LABELS,
 } from "../../../_shared";
-import type {
-  ApplicantListRow,
-  EngagementStatus,
-  FollowUpPriority,
-  LifecycleStage,
-} from "../../../_shared";
-import { ApplicantActionsMenu } from "../../components/ApplicantActions";
+import type { ApplicantListRow, FollowUpPriority } from "../../../_shared";
+import {
+  ApplicantActionsMenu,
+  ApplicantLockToggle,
+} from "../../components/ApplicantActions";
+import { ApplicantLifecycleSwitch } from "./components/ApplicantLifecycleSwitch";
 
 function contactLine(value?: string) {
   return value ? (
@@ -44,24 +39,30 @@ export function getApplicantColumns(
       accessor: "full_name",
       title: "Applicant",
       render: (a) => (
-        <Stack gap={0}>
-          <Group gap={6} align="center">
-            <Text size="xs" fw={500}>
-              {a.full_name}
-            </Text>
-            {a.is_locked && (
+        <Group gap={8} align="center" wrap="nowrap">
+          {isAdmin ? (
+            // Admins get an inline lock/unlock lever (reason-confirm modal on click).
+            <ApplicantLockToggle applicant={a} />
+          ) : (
+            // Staff can't toggle — show the lock only as a read-only state marker.
+            a.is_locked && (
               <LockKeyIcon
-                size={12}
+                size={14}
                 weight="fill"
                 color="var(--mantine-color-orange-6)"
                 aria-label="Locked"
               />
-            )}
-          </Group>
-          <Text size="xs" c="dimmed">
-            {a.applicant_code}
-          </Text>
-        </Stack>
+            )
+          )}
+          <Stack gap={0}>
+            <Text size="xs" fw={500}>
+              {a.full_name}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {a.applicant_code}
+            </Text>
+          </Stack>
+        </Group>
       ),
     },
     {
@@ -78,10 +79,10 @@ export function getApplicantColumns(
       accessor: "lifecycle_stage",
       title: "Stage",
       render: (a) => (
-        <StatusBadge<LifecycleStage>
-          value={a.lifecycle_stage}
-          colorMap={LIFECYCLE_STAGE_COLORS}
-          labelMap={LIFECYCLE_STAGE_LABELS}
+        <ApplicantLifecycleSwitch
+          applicant={a}
+          field="stage"
+          isAdmin={isAdmin}
         />
       ),
     },
@@ -89,10 +90,10 @@ export function getApplicantColumns(
       accessor: "engagement_status",
       title: "Engagement",
       render: (a) => (
-        <StatusBadge<EngagementStatus>
-          value={a.engagement_status}
-          colorMap={ENGAGEMENT_STATUS_COLORS}
-          labelMap={ENGAGEMENT_STATUS_LABELS}
+        <ApplicantLifecycleSwitch
+          applicant={a}
+          field="engagement"
+          isAdmin={isAdmin}
         />
       ),
     },

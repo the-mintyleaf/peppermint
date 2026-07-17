@@ -11,6 +11,7 @@ import {
   Box,
   Button,
   Badge,
+  Menu,
 } from "@peppermint/ui";
 import { X as XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { FloppyDisk as SaveIcon } from "@phosphor-icons/react/dist/csr/FloppyDisk";
@@ -195,7 +196,7 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
                         <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
                           <Group justify="space-between" wrap="nowrap" gap={4}>
                             <Group gap={4} wrap="nowrap">
-                              <Text size="xs" fw={500} lh={1.2}>
+                              <Text fz={10} fw={500} lh={1.2}>
                                 {title}
                               </Text>
                               <Badge
@@ -210,27 +211,49 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
                               {new Date(entry.at).toLocaleDateString()}
                             </Text>
                           </Group>
-                          <Text size="xs" c="dimmed" lh={1.2}>
+                          <Text fz={10} c="dimmed" lh={1.2}>
                             {typeLabel} ·{" "}
                             {new Date(entry.at).toLocaleTimeString()}
                           </Text>
                           {isRevision && entry.revisionNumber !== undefined && (
-                            <Button
-                              variant="subtle"
-                              size="compact-xs"
-                              w="fit-content"
-                              leftSection={
-                                <RestoreIcon size={12} aria-hidden />
-                              }
-                              loading={isRestoring}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                restore(entry.revisionNumber as number);
-                              }}
-                              aria-label={`Restore version ${entry.revisionNumber}`}
+                            <Menu
+                              shadow="md"
+                              position="bottom-start"
+                              withinPortal
                             >
-                              Restore
-                            </Button>
+                              <Menu.Target>
+                                <Button
+                                  variant="subtle"
+                                  size="compact-xs"
+                                  w="fit-content"
+                                  leftSection={
+                                    <RestoreIcon size={12} aria-hidden />
+                                  }
+                                  loading={isRestoring}
+                                  onClick={(e) => e.stopPropagation()}
+                                  aria-label={`Restore version ${entry.revisionNumber}`}
+                                >
+                                  Restore
+                                </Button>
+                              </Menu.Target>
+                              <Menu.Dropdown
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Menu.Label>Restore this version?</Menu.Label>
+                                <Menu.Item
+                                  color="brand"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    restore(entry.revisionNumber as number);
+                                  }}
+                                >
+                                  Yes, restore
+                                </Menu.Item>
+                                <Menu.Item onClick={(e) => e.stopPropagation()}>
+                                  No
+                                </Menu.Item>
+                              </Menu.Dropdown>
+                            </Menu>
                           )}
                         </Stack>
                       </Group>

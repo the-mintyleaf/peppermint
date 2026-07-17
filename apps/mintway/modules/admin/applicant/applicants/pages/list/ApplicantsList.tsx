@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ModalTableShell } from "@peppermint/admin";
 import type { DataTableShellTab } from "@peppermint/admin";
-import { ModalPaper, ModuleHeader } from "@peppermint/ui";
+import { ModalPaper } from "@peppermint/ui";
 import { UsersThreeIcon } from "@phosphor-icons/react/dist/csr/UsersThree";
 import { SparkleIcon } from "@phosphor-icons/react/dist/csr/Sparkle";
 import { TrendUpIcon } from "@phosphor-icons/react/dist/csr/TrendUp";
@@ -53,56 +53,59 @@ function ApplicantsListContent() {
 
   return (
     <>
-      <ModuleHeader
-        breadcrumbItems={[{ label: "Applicants", href: "/admin/applicants" }]}
+      <ModalTableShell<Applicant, ApplicantFormValues, ApplicantFormValues>
+        queryKey={applicantKeys.lists()}
+        queryGetFn={fetchApplicants}
+        enableServerQuery
+        dataKey="data"
+        paginationKey="meta"
+        idAccessor="id"
+        columns={columns}
+        // Dim locked applicants so their inactive/read-only state reads at a glance.
+        rowStyle={(a) =>
+          a.is_locked
+            ? { backgroundColor: "var(--mantine-color-gray-light)" }
+            : {}
+        }
+        moduleInfo={{
+          name: "applicant",
+          label: "Applicants",
+          description: "Leads and applicants across the funnel",
+        }}
+        createModalTitle="New applicant"
+        editModalTitle="Edit applicant"
+        modalWidth={720}
+        createFormComponent={ApplicantForm}
+        editFormComponent={ApplicantEditForm}
+        // The staff list projection omits record_version + protected fields, so
+        // fetch the full record before editing (needed for the mandatory
+        // record_version and a complete prefill).
+        onEditTrigger={(record) => getApplicant(record.id)}
+        onCreateApi={(values) =>
+          createApplicant(toCreatePayload(values, isAdmin)).then(
+            ({ data, meta }) => {
+              if (meta.possible_duplicate && meta.matches?.length) {
+                setDupMatches(meta.matches);
+              }
+              return data;
+            },
+          )
+        }
+        onEditApi={(values, record) =>
+          updateApplicant(
+            record.id,
+            toUpdatePayload(values, isAdmin, record.record_version),
+          )
+        }
+        getErrorMessage={getApiErrorMessage}
+        disableReviewButton
+        pageSizes={[10, 20, 30, 50]}
+        defaultPageSize={20}
+        tabs={TABS}
+        basePath="/admin/applicants"
+        mainComponent={ModalPaper}
+        mainComponentProps={{ withBorder: true }}
       />
-      <ModalPaper withBorder>
-        <ModalTableShell<Applicant, ApplicantFormValues, ApplicantFormValues>
-          queryKey={applicantKeys.lists()}
-          queryGetFn={fetchApplicants}
-          enableServerQuery
-          dataKey="data"
-          paginationKey="meta"
-          idAccessor="id"
-          columns={columns}
-          moduleInfo={{
-            name: "applicant",
-            label: "Applicants",
-            description: "Leads and applicants across the funnel",
-          }}
-          createModalTitle="New applicant"
-          editModalTitle="Edit applicant"
-          modalWidth={720}
-          createFormComponent={ApplicantForm}
-          editFormComponent={ApplicantEditForm}
-          // The staff list projection omits record_version + protected fields, so
-          // fetch the full record before editing (needed for the mandatory
-          // record_version and a complete prefill).
-          onEditTrigger={(record) => getApplicant(record.id)}
-          onCreateApi={(values) =>
-            createApplicant(toCreatePayload(values, isAdmin)).then(
-              ({ data, meta }) => {
-                if (meta.possible_duplicate && meta.matches?.length) {
-                  setDupMatches(meta.matches);
-                }
-                return data;
-              },
-            )
-          }
-          onEditApi={(values, record) =>
-            updateApplicant(
-              record.id,
-              toUpdatePayload(values, isAdmin, record.record_version),
-            )
-          }
-          getErrorMessage={getApiErrorMessage}
-          disableReviewButton
-          pageSizes={[10, 20, 30, 50]}
-          defaultPageSize={20}
-          tabs={TABS}
-          basePath="/admin/applicants"
-        />
-      </ModalPaper>
 
       <DuplicateWarningModal
         matches={dupMatches}

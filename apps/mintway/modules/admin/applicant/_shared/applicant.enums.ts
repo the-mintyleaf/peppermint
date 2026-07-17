@@ -77,6 +77,26 @@ export const ENGAGEMENT_REASON_REQUIRED: EngagementStatus[] = [
   "archived",
 ];
 
+/** Forward-only stage targets reachable from the current stage (§1.6). */
+export const FORWARD_STAGES: Record<LifecycleStage, LifecycleStage[]> = {
+  interested: ["potential", "applicant"],
+  potential: ["applicant"],
+  applicant: [],
+};
+
+/**
+ * Engagement statuses selectable as a transition target from `current`: every status
+ * except the current one and `archived` (archiving is a distinct row action, not an
+ * engagement switch). Mirrors the modal's own option filter.
+ */
+export function engagementTargets(
+  current: EngagementStatus,
+): EngagementStatus[] {
+  return (Object.keys(ENGAGEMENT_STATUS_LABELS) as EngagementStatus[]).filter(
+    (s) => s !== current && s !== "archived",
+  );
+}
+
 export const GENDER_LABELS: Record<Gender, string> = {
   male: "Male",
   female: "Female",

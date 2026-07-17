@@ -2,7 +2,7 @@
 
 import type { ComponentType } from "react";
 import { ModalTableShell } from "@peppermint/admin";
-import { ModalPaper, ModuleHeader } from "@peppermint/ui";
+import { ModalPaper } from "@peppermint/ui";
 
 import { RequireStaff } from "@/components/RequireStaff";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
@@ -11,14 +11,16 @@ import type { ListModuleConfig } from "./createListModule.types";
 export type { ListModuleConfig };
 
 /**
- * Collapses the identical `RequireStaff → ModuleHeader → ModalPaper →
- * ModalTableShell` list-module skeleton into a config. Applies the app's
- * `getApiErrorMessage` resolver and the common shell defaults (id/data/meta keys,
- * page sizes) — all overridable via the config.
+ * Collapses the identical `RequireStaff → ModalTableShell` list-module skeleton
+ * into a config. The shell owns its own `ModuleHeader` (breadcrumbs derived from
+ * `basePath`) and the toolbar's Add button, and `ModalPaper` is passed as the
+ * shell body surface — so no outer header/wrapper is rendered here. Applies the
+ * app's `getApiErrorMessage` resolver and the common shell defaults (id/data/meta
+ * keys, page sizes) — all overridable via the config.
  *
  * @example
  * export const GrantsList = createListModule<Grant, GrantFormValues>({
- *   breadcrumb: [{ label: "Grants", href: "/admin/authenticate/grants" }],
+ *   basePath: "/admin/authenticate/grants",
  *   queryKey: grantQueryKeys.list(),
  *   queryGetFn: fetchGrants,
  *   columns: grantsColumns,
@@ -33,24 +35,21 @@ export function createListModule<
   TCreate = TRow,
   TEdit = TCreate,
 >(config: ListModuleConfig<TRow, TCreate, TEdit>): ComponentType {
-  const { breadcrumb, requireStaff = true, ...shellProps } = config;
+  const { requireStaff = true, ...shellProps } = config;
 
   function ListModule() {
     const body = (
-      <>
-        <ModuleHeader breadcrumbItems={breadcrumb} />
-        <ModalPaper withBorder>
-          <ModalTableShell<TRow, TCreate, TEdit>
-            getErrorMessage={getApiErrorMessage}
-            idAccessor="id"
-            dataKey="data"
-            paginationKey="meta"
-            pageSizes={[10, 20, 30, 50]}
-            defaultPageSize={20}
-            {...shellProps}
-          />
-        </ModalPaper>
-      </>
+      <ModalTableShell<TRow, TCreate, TEdit>
+        getErrorMessage={getApiErrorMessage}
+        idAccessor="id"
+        dataKey="data"
+        paginationKey="meta"
+        pageSizes={[10, 20, 30, 50]}
+        defaultPageSize={20}
+        mainComponent={ModalPaper}
+        mainComponentProps={{ withBorder: true }}
+        {...shellProps}
+      />
     );
     return requireStaff ? <RequireStaff>{body}</RequireStaff> : body;
   }

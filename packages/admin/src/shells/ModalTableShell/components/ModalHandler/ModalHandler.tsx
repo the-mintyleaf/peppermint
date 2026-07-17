@@ -16,7 +16,7 @@ export function ModalHandler<
 >({
   queryKey,
   moduleInfo,
-  modalWidth = "md",
+  modalWidth = "lg",
   createModalTitle,
   editModalTitle,
   createFormComponent: CreateFormComponent,

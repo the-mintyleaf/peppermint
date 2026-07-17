@@ -10,7 +10,7 @@ import type { DenialFormValues } from "../form/DenialForm.types";
 import { DenialForm } from "../form";
 
 export const DenialsList = createListModule<Denial, DenialFormValues>({
-  breadcrumb: [{ label: "Denials", href: "/admin/authenticate/denials" }],
+  basePath: "/admin/authenticate/denials",
   queryKey: denialQueryKeys.list(),
   queryGetFn: fetchDenials,
   columns: denialsColumns,

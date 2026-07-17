@@ -8,7 +8,6 @@ export interface SignatureFormValues extends Record<string, unknown> {
   organization: string;
   email: string;
   phone: string;
-  isActive: boolean;
   imageFile: File | null;
 }
 

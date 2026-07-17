@@ -1,5 +1,6 @@
 "use client";
 
+import type { ElementType } from "react";
 import { ActionIcon, Box, Divider, Stack } from "@peppermint/ui";
 import { MagnifyingGlass, type Icon } from "@phosphor-icons/react";
 import { MinusIcon } from "@phosphor-icons/react/dist/ssr";
@@ -30,6 +31,7 @@ interface MainNavProps {
   subNavCollapsed?: boolean;
   onSubNavExpand?: () => void;
   onNavigate?: (href: string) => void;
+  linkComponent?: ElementType;
   userMenu?: UserInfoPopoverProps;
 }
 
@@ -44,6 +46,7 @@ export function MainNav({
   subNavCollapsed = false,
   onSubNavExpand,
   onNavigate,
+  linkComponent,
   userMenu,
 }: MainNavProps) {
   return (
@@ -109,6 +112,7 @@ export function MainNav({
                 icon={item.icon}
                 label={item.label}
                 href={href}
+                linkComponent={linkComponent}
                 active={isActive}
                 onClick={(event) => {
                   if (
@@ -136,6 +140,7 @@ export function MainNav({
                   icon={item.icon}
                   label={item.label}
                   href={item.href}
+                  linkComponent={linkComponent}
                   onClick={item.onClick}
                 />
               ))}

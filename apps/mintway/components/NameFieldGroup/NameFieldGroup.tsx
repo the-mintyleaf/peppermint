@@ -13,6 +13,7 @@ import type { NameFieldGroupProps } from "./NameFieldGroup.types";
 export function NameFieldGroup({
   label = "Name",
   required,
+  lastNameRequired = required,
   disabled,
   firstName,
   middleName,
@@ -36,12 +37,15 @@ export function NameFieldGroup({
       label={label}
       required={required}
       error={error}
+      styles={{ label: { fontSize: "var(--mantine-font-size-xs)" } }}
     >
       <div className={groupClassName}>
         <Input
+          size="xs"
           variant="unstyled"
           className={classes.segment}
           px="sm"
+          py={2}
           placeholder="First"
           disabled={disabled}
           required={required}
@@ -51,9 +55,11 @@ export function NameFieldGroup({
         />
         <div className={classes.divider} aria-hidden />
         <Input
+          size="xs"
           variant="unstyled"
           className={classes.segment}
           px="sm"
+          py={2}
           placeholder="Middle (optional)"
           disabled={disabled}
           aria-label="Middle name"
@@ -61,14 +67,16 @@ export function NameFieldGroup({
         />
         <div className={classes.divider} aria-hidden />
         <Input
+          size="xs"
           variant="unstyled"
           className={classes.segment}
           px="sm"
-          placeholder="Last"
+          py={2}
+          placeholder={lastNameRequired ? "Last" : "Last (optional)"}
           disabled={disabled}
-          required={required}
+          required={lastNameRequired}
           aria-label="Last name"
-          aria-required={required}
+          aria-required={lastNameRequired}
           {...lastName}
         />
       </div>

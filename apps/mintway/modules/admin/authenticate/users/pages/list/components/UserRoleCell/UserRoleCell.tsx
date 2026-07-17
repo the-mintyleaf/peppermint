@@ -80,11 +80,10 @@ export function UserRoleCell({
     <Menu position="bottom-start" width="target" withinPortal>
       <Menu.Target>
         <Button
-          variant="light"
+          variant="subtle"
           color={roleColor}
           size="xs"
           fullWidth
-          maw={200}
           justify="space-between"
           loading={mutation.isPending}
           // Paler tint of the role color, matching the status cell.
