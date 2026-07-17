@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Box, Button, Menu } from "@peppermint/ui";
+import { Button, Menu } from "@peppermint/ui";
 import { StatusBadge } from "@peppermint/admin";
 import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
@@ -96,22 +96,11 @@ export function UserStatusCell({
     <Menu position="bottom-start" width="target" withinPortal>
       <Menu.Target>
         <Button
-          variant="default"
+          variant="light"
+          color={STATUS_COLORS[status] ?? "gray"}
           size="xs"
           fullWidth
-          justify="space-between"
-          leftSection={
-            <Box
-              w={8}
-              h={8}
-              style={{
-                borderRadius: "50%",
-                backgroundColor: `var(--mantine-color-${
-                  STATUS_COLORS[status] ?? "gray"
-                }-6)`,
-              }}
-            />
-          }
+          justify="flex-start"
           rightSection={<CaretDownIcon size={12} aria-hidden />}
           aria-label={`Change status for ${user.username}`}
         >
