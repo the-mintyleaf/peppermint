@@ -1,23 +1,30 @@
 "use client";
 
-import { useEffect } from "react";
 import {
   Button,
+  DatePickerInput,
   Group,
   Modal,
   MultiSelect,
   Select,
   Stack,
   TextInput,
-  useForm,
 } from "@peppermint/ui";
-import { DatePickerInput } from "@peppermint/ui";
+import {
+  FormWrapper,
+  useFormControls,
+  useFormInstance,
+} from "@peppermint/admin";
+import { z } from "zod";
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/csr/ArrowRight";
 import { CalendarBlankIcon } from "@phosphor-icons/react/dist/csr/CalendarBlank";
 import { SparkleIcon } from "@phosphor-icons/react/dist/csr/Sparkle";
 import { TagIcon } from "@phosphor-icons/react/dist/csr/Tag";
 import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
-import { STATUS_LABELS } from "../../module.api";
+
+import { STATUS_LABELS, TEAM_MEMBERS } from "../../module.api";
+import type { Task, TaskInput, TaskStatus, TaskTag } from "../../module.api";
+import { useCreateTask, useUpdateTask } from "../../KanbanDashboard.hooks";
 import {
   TaskAttachmentsSection,
   TaskDescriptionBlock,
@@ -28,8 +35,8 @@ import {
   TASK_MODAL,
 } from "../TaskModalShared";
 import type {
-  CreateTaskModalProps,
   CreateTaskFormValues,
+  CreateTaskModalProps,
 } from "./CreateTaskModal.types";
 
 const STATUS_OPTIONS = Object.entries(STATUS_LABELS).map(([value, label]) => ({
@@ -37,243 +44,293 @@ const STATUS_OPTIONS = Object.entries(STATUS_LABELS).map(([value, label]) => ({
   label,
 }));
 
-const ASSIGNEE_OPTIONS = [
-  { value: "achmad_hakim", label: "Achmad Hakim" },
-  { value: "samantha_emanuel", label: "Samantha Emanuel" },
-  { value: "sudhan_grg", label: "Sudhan Grg." },
-  { value: "anamol_m", label: "Anamol M." },
+const ASSIGNEE_OPTIONS = TEAM_MEMBERS.map((m) => ({
+  value: m.name,
+  label: m.name,
+}));
+
+const COMMON_TAGS = [
+  "Design",
+  "Client Work",
+  "Review",
+  "Internal",
+  "Finance",
+  "Legal",
+  "Marketing",
+  "HR",
+  "Compliance",
+  "Urgent",
 ];
 
-const TAG_OPTIONS = [
-  { value: "design", label: "Design" },
-  { value: "client_work", label: "Client Work" },
-  { value: "review", label: "Review" },
-  { value: "internal", label: "Internal" },
-];
+const TAG_COLOR: Record<string, string> = {
+  Design: "pink",
+  "Client Work": "teal",
+  Review: "violet",
+  Internal: "gray",
+  Finance: "yellow",
+  Legal: "grape",
+  Marketing: "orange",
+  HR: "cyan",
+  Compliance: "red",
+  Urgent: "red",
+};
 
-const PLACEHOLDER_ATTACHMENTS = [
-  { name: "Brief_v1.pdf", size: "4.8 Mb", fileType: "pdf" as const },
-  { name: "Workflow.fig", size: "12.4 Mb", fileType: "fig" as const },
-];
+const schema = z.object({
+  title: z.string().min(1, "Title is required"),
+  status: z.string(),
+  assignees: z.array(z.string()),
+  startDate: z.string().nullable(),
+  endDate: z.string().nullable(),
+  tags: z.array(z.string()),
+  description: z.string(),
+});
 
-const PLACEHOLDER_SUBTASKS = [
-  {
-    id: "new-1",
-    title: "Schedule kickoff meeting",
-    category: "Discovery",
-    status: "completed" as const,
-    dueDate: "June 3, 2025",
-  },
-  {
-    id: "new-2",
-    title: "Gather requirements",
-    category: "Discovery",
-    status: "completed" as const,
-    dueDate: "June 4, 2025",
-  },
-  {
-    id: "new-3",
-    title: "Create wireframes",
-    category: "Discovery",
-    status: "in_progress" as const,
-    dueDate: "June 5, 2025",
-  },
-];
+function tagColor(label: string): string {
+  return TAG_COLOR[label] ?? "gray";
+}
+
+function buildInitial(
+  editTask: Task | null | undefined,
+  initialStatus: TaskStatus | undefined,
+): CreateTaskFormValues {
+  if (editTask) {
+    return {
+      title: editTask.title,
+      status: editTask.status,
+      assignees:
+        editTask.assignees?.map((a) => a.name) ??
+        (editTask.assignee ? [editTask.assignee] : []),
+      startDate: editTask.startDate ?? null,
+      endDate: editTask.endDate ?? null,
+      tags: editTask.tags?.map((t) => t.label) ?? [],
+      description: editTask.description ?? "",
+    };
+  }
+  return {
+    title: "",
+    status: initialStatus ?? "ongoing",
+    assignees: [],
+    startDate: null,
+    endDate: null,
+    tags: [],
+    description: "",
+  };
+}
+
+function toTaskInput(values: CreateTaskFormValues): TaskInput {
+  const tags: TaskTag[] = values.tags.map((label) => ({
+    label,
+    color: tagColor(label),
+  }));
+  return {
+    title: values.title,
+    status: values.status as TaskStatus,
+    assigneeNames: values.assignees,
+    startDate: values.startDate,
+    endDate: values.endDate,
+    tags,
+    description: values.description,
+  };
+}
 
 export function CreateTaskModal({
   opened,
   onClose,
-  onSubmit,
   editTask,
   initialStatus,
 }: CreateTaskModalProps) {
   const isEdit = !!editTask;
+  const create = useCreateTask();
+  const update = useUpdateTask();
 
-  const form = useForm<CreateTaskFormValues>({
-    initialValues: {
-      title: "",
-      status: "ongoing",
-      assignees: [],
-      startDate: null,
-      endDate: null,
-      tags: [],
-      description: "",
-    },
-    validate: {
-      title: (v) => (v.trim().length === 0 ? "Title is required" : null),
-    },
-  });
+  // Remount FormWrapper (fresh `initial`) whenever the target record changes.
+  const formKey = editTask
+    ? `edit-${editTask.id}`
+    : `new-${initialStatus ?? "any"}`;
 
-  useEffect(() => {
-    if (!opened) return;
+  const tagOptions = [
+    ...new Set([
+      ...COMMON_TAGS,
+      ...(editTask?.tags?.map((t) => t.label) ?? []),
+    ]),
+  ];
 
-    if (editTask) {
-      form.setValues({
-        title: editTask.title,
-        status: editTask.status,
-        assignees: editTask.assignees?.map((a) => a.name) ?? [],
-        startDate: null,
-        endDate: null,
-        tags:
-          editTask.tags?.map((t) => t.label.toLowerCase().replace(" ", "_")) ??
-          [],
-        description: editTask.description ?? "",
-      });
-      return;
+  async function submit(values: CreateTaskFormValues) {
+    const input = toTaskInput(values);
+    try {
+      if (editTask) await update.mutateAsync({ id: editTask.id, input });
+      else await create.mutateAsync(input);
+      onClose();
+      return { ok: true };
+    } catch (e) {
+      return {
+        ok: false,
+        message: e instanceof Error ? e.message : "Could not save task",
+      };
     }
-
-    form.setValues({
-      title: "",
-      status: initialStatus ?? "ongoing",
-      assignees: [],
-      startDate: null,
-      endDate: null,
-      tags: [],
-      description: "",
-    });
-  }, [opened, editTask, initialStatus]);
-
-  function handleSubmit(values: CreateTaskFormValues) {
-    onSubmit?.(values);
-    form.reset();
-    onClose();
-  }
-
-  function handleClose() {
-    form.reset();
-    onClose();
   }
 
   return (
     <Modal
       opened={opened}
-      onClose={handleClose}
+      onClose={onClose}
       size={720}
       padding={0}
       withCloseButton={false}
       radius="md"
     >
-      <form onSubmit={form.onSubmit(handleSubmit)}>
+      <FormWrapper<CreateTaskFormValues>
+        key={formKey}
+        initial={buildInitial(editTask, initialStatus)}
+        validation={[schema]}
+        finalSubmitFn={submit}
+      >
         <Stack gap={0}>
           <TaskModalHeader
-            parentLabel="Client Projects"
+            parentLabel="Tasks"
             currentLabel={
               isEdit ? (editTask?.title ?? "Edit Task") : "New Task"
             }
-            onClose={handleClose}
+            onClose={onClose}
+            showActions={false}
           />
-
-          <TaskModalBody>
-            <TextInput
-              placeholder="New Task"
-              variant="unstyled"
-              styles={{
-                input: {
-                  fontSize: 24,
-                  fontWeight: 700,
-                  padding: 0,
-                  lineHeight: 1.3,
-                  height: "auto",
-                },
-              }}
-              {...form.getInputProps("title")}
-            />
-
-            <Stack gap={TASK_MODAL.fieldGap}>
-              <TaskModalFieldRow
-                icon={<SparkleIcon size={14} />}
-                label="Status"
-              >
-                <Select
-                  size="xs"
-                  data={STATUS_OPTIONS}
-                  styles={{
-                    input: {
-                      maxWidth: 180,
-                      fontSize: "var(--mantine-font-size-xs)",
-                    },
-                  }}
-                  {...form.getInputProps("status")}
-                />
-              </TaskModalFieldRow>
-
-              <TaskModalFieldRow icon={<UserIcon size={14} />} label="Assignee">
-                <MultiSelect
-                  size="xs"
-                  placeholder="Add assignee"
-                  data={ASSIGNEE_OPTIONS}
-                  styles={{
-                    input: { fontSize: "var(--mantine-font-size-xs)" },
-                  }}
-                  {...form.getInputProps("assignees")}
-                />
-              </TaskModalFieldRow>
-
-              <TaskModalFieldRow
-                icon={<CalendarBlankIcon size={14} />}
-                label="Date"
-              >
-                <Group gap={8} wrap="nowrap" align="center">
-                  <DatePickerInput
-                    size="xs"
-                    placeholder="June 3, 2025"
-                    style={{ flex: 1 }}
-                    styles={{
-                      input: { fontSize: "var(--mantine-font-size-xs)" },
-                    }}
-                    {...form.getInputProps("startDate")}
-                  />
-                  <ArrowRightIcon
-                    size={12}
-                    color="var(--mantine-color-gray-5)"
-                    aria-label="to"
-                  />
-                  <DatePickerInput
-                    size="xs"
-                    placeholder="June 28, 2025"
-                    style={{ flex: 1 }}
-                    styles={{
-                      input: { fontSize: "var(--mantine-font-size-xs)" },
-                    }}
-                    {...form.getInputProps("endDate")}
-                  />
-                </Group>
-              </TaskModalFieldRow>
-
-              <TaskModalFieldRow icon={<TagIcon size={14} />} label="Tags">
-                <MultiSelect
-                  size="xs"
-                  placeholder="Add tags"
-                  data={TAG_OPTIONS}
-                  styles={{
-                    input: { fontSize: "var(--mantine-font-size-xs)" },
-                  }}
-                  {...form.getInputProps("tags")}
-                />
-              </TaskModalFieldRow>
-            </Stack>
-
-            <TaskDescriptionBlock
-              value={form.values.description}
-              readOnly={false}
-              onChange={(value) => form.setFieldValue("description", value)}
-            />
-
-            <TaskAttachmentsSection attachments={PLACEHOLDER_ATTACHMENTS} />
-
-            <TaskListSection subtasks={PLACEHOLDER_SUBTASKS} />
-
-            <Group justify="flex-end" gap="sm">
-              <Button variant="default" size="xs" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button type="submit" size="xs" color="dark">
-                {isEdit ? "Save Changes" : "Create Task"}
-              </Button>
-            </Group>
-          </TaskModalBody>
+          <TaskFormBody
+            isEdit={isEdit}
+            editTask={editTask ?? null}
+            tagOptions={tagOptions}
+            onCancel={onClose}
+          />
         </Stack>
-      </form>
+      </FormWrapper>
     </Modal>
+  );
+}
+
+function TaskFormBody({
+  isEdit,
+  editTask,
+  tagOptions,
+  onCancel,
+}: {
+  isEdit: boolean;
+  editTask: Task | null;
+  tagOptions: string[];
+  onCancel: () => void;
+}) {
+  const { form } = useFormInstance<CreateTaskFormValues>();
+  const { handleSubmit, isLoading } = useFormControls();
+
+  return (
+    <TaskModalBody>
+      <TextInput
+        placeholder="Task title"
+        variant="unstyled"
+        styles={{
+          input: {
+            fontSize: 24,
+            fontWeight: 700,
+            padding: 0,
+            lineHeight: 1.3,
+            height: "auto",
+          },
+        }}
+        {...form.getInputProps("title")}
+      />
+
+      <Stack gap={TASK_MODAL.fieldGap}>
+        <TaskModalFieldRow icon={<SparkleIcon size={14} />} label="Status">
+          <Select
+            size="xs"
+            data={STATUS_OPTIONS}
+            allowDeselect={false}
+            styles={{
+              input: {
+                maxWidth: 180,
+                fontSize: "var(--mantine-font-size-xs)",
+              },
+            }}
+            {...form.getInputProps("status")}
+          />
+        </TaskModalFieldRow>
+
+        <TaskModalFieldRow icon={<UserIcon size={14} />} label="Assignee">
+          <MultiSelect
+            size="xs"
+            placeholder="Add assignee"
+            data={ASSIGNEE_OPTIONS}
+            styles={{ input: { fontSize: "var(--mantine-font-size-xs)" } }}
+            {...form.getInputProps("assignees")}
+          />
+        </TaskModalFieldRow>
+
+        <TaskModalFieldRow icon={<CalendarBlankIcon size={14} />} label="Date">
+          <Group gap={8} wrap="nowrap" align="center">
+            <DatePickerInput
+              size="xs"
+              placeholder="Start date"
+              clearable
+              style={{ flex: 1 }}
+              styles={{ input: { fontSize: "var(--mantine-font-size-xs)" } }}
+              {...form.getInputProps("startDate")}
+            />
+            <ArrowRightIcon
+              size={12}
+              color="var(--mantine-color-gray-5)"
+              aria-label="to"
+            />
+            <DatePickerInput
+              size="xs"
+              placeholder="Due date"
+              clearable
+              style={{ flex: 1 }}
+              styles={{ input: { fontSize: "var(--mantine-font-size-xs)" } }}
+              {...form.getInputProps("endDate")}
+            />
+          </Group>
+        </TaskModalFieldRow>
+
+        <TaskModalFieldRow icon={<TagIcon size={14} />} label="Tags">
+          <MultiSelect
+            size="xs"
+            placeholder="Add tags"
+            data={tagOptions}
+            searchable
+            styles={{ input: { fontSize: "var(--mantine-font-size-xs)" } }}
+            {...form.getInputProps("tags")}
+          />
+        </TaskModalFieldRow>
+      </Stack>
+
+      <TaskDescriptionBlock
+        value={form.values.description}
+        readOnly={false}
+        onChange={(value) => form.setFieldValue("description", value)}
+      />
+
+      {isEdit && editTask?.attachments?.length ? (
+        <TaskAttachmentsSection
+          attachments={editTask.attachments}
+          showAdd={false}
+        />
+      ) : null}
+
+      {isEdit && editTask?.subtasks?.length ? (
+        <TaskListSection subtasks={editTask.subtasks} />
+      ) : null}
+
+      <Group justify="flex-end" gap="sm">
+        <Button variant="default" size="xs" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          size="xs"
+          color="dark"
+          loading={isLoading}
+          onClick={handleSubmit}
+        >
+          {isEdit ? "Save Changes" : "Create Task"}
+        </Button>
+      </Group>
+    </TaskModalBody>
   );
 }

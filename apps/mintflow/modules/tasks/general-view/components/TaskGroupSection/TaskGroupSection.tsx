@@ -92,6 +92,7 @@ export function TaskGroupSection({
   groupKey,
   label,
   tasks,
+  onOpenTask,
 }: TaskGroupSectionProps) {
   const [open, setOpen] = useState(true);
   const known = isDisplayStatus(groupKey);
@@ -171,7 +172,7 @@ export function TaskGroupSection({
 
       <Collapse expanded={open}>
         {tasks.map((task) => (
-          <TaskListRow key={task.id} task={task} />
+          <TaskListRow key={task.id} task={task} onOpenTask={onOpenTask} />
         ))}
       </Collapse>
     </Box>

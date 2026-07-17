@@ -38,15 +38,15 @@ working toolbar, FormWrapper migration, file split, polish. Plan:
 - [x] Persist TaskListRow inline edits (priority/list/due) via the patch (dropped local-only state)
 - [x] Extract `general-view/components/TaskListView/` + `taskGrid.ts`; dynamic grid respecting `visibleColumns`
 - [x] Columns (Priority/Due/Assignee toggles) wired to store + render (header + rows + subtasks)
-- [ ] Commit + dual review
+- [x] Commit + dual review (Codex clean; 2 MINOR latent optimistic-mutation notes accepted, mirror existing pattern)
 
 ## Phase 5 — Create / edit / delete via UI
 
-- [ ] Migrate `CreateTaskModal` to `FormWrapper`; fix assignee slug→name; remove placeholders
-- [ ] Wire create/update end-to-end (finalSubmitFn → mutation); show real subtasks/attachments on edit
-- [ ] Delete action in `TaskDetailModal` (confirm → useDeleteTask)
-- [ ] Row/card Edit-Delete action menu on `TaskListRow` + `KanbanCard`
-- [ ] Slim `Tasks.tsx`; check module barrels
+- [x] Migrate `CreateTaskModal` to `FormWrapper`; fix assignee slug→name; remove placeholders (added @peppermint/admin dep)
+- [x] Wire create/update end-to-end (finalSubmitFn → mutation); show real subtasks/attachments on edit
+- [x] Delete action in `TaskDetailModal` (inline two-step confirm → useDeleteTask)
+- [x] List rows now open the detail modal (onOpenTask); caret still toggles subtasks — edit/delete reachable from both views. Dedicated dots menu deferred as redundant.
+- [x] Slim `Tasks.tsx` (168 lines); barrels ok
 - [ ] Commit + dual review
 
 ## Phase 6 — Polish + docs

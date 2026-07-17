@@ -322,7 +322,7 @@ function SubtaskRow({
   );
 }
 
-export function TaskListRow({ task }: TaskListRowProps) {
+export function TaskListRow({ task, onOpenTask }: TaskListRowProps) {
   const [expanded, setExpanded] = useState(false);
   const hasSubtasks = (task.subtasks?.length ?? 0) > 0;
 
@@ -335,18 +335,26 @@ export function TaskListRow({ task }: TaskListRowProps) {
   return (
     <>
       <div
-        className={`${tableClasses.grid} ${tableClasses.row} ${!hasSubtasks ? tableClasses.rowNoExpand : ""}`}
+        className={`${tableClasses.grid} ${tableClasses.row}`}
         style={gridStyle}
-        onClick={() => hasSubtasks && setExpanded((v) => !v)}
+        onClick={() => onOpenTask(task)}
       >
-        {/* Col 1: caret + task number */}
+        {/* Col 1: caret (toggles subtasks) + task number */}
         <div className={tableClasses.leftCell}>
-          <span className={tableClasses.expandIcon}>
+          <span
+            className={tableClasses.expandIcon}
+            onClick={(e) => {
+              if (!hasSubtasks) return;
+              e.stopPropagation();
+              setExpanded((v) => !v);
+            }}
+            style={{ cursor: hasSubtasks ? "pointer" : "default" }}
+          >
             {hasSubtasks &&
               (expanded ? (
-                <CaretDownIcon size={11} aria-label="Collapse" />
+                <CaretDownIcon size={11} aria-label="Collapse subtasks" />
               ) : (
-                <CaretRightIcon size={11} aria-label="Expand" />
+                <CaretRightIcon size={11} aria-label="Expand subtasks" />
               ))}
           </span>
           <span className={tableClasses.idText}>{task.taskNumber}</span>

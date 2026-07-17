@@ -1,13 +1,16 @@
 "use client";
 
-import { Group, Modal, Stack, Text } from "@peppermint/ui";
+import { useState } from "react";
+import { Button, Divider, Group, Modal, Stack, Text } from "@peppermint/ui";
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/csr/ArrowRight";
 import { CalendarBlankIcon } from "@phosphor-icons/react/dist/csr/CalendarBlank";
 import { SparkleIcon } from "@phosphor-icons/react/dist/csr/Sparkle";
 import { TagIcon } from "@phosphor-icons/react/dist/csr/Tag";
+import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
 import { STATUS_COLORS, STATUS_LABELS } from "../../module.api";
 import type { Task } from "../../module.api";
+import { useDeleteTask } from "../../KanbanDashboard.hooks";
 import {
   TaskAssigneePills,
   TaskAttachmentsSection,
@@ -33,6 +36,14 @@ function TaskDetailContent({
 }) {
   const statusColor = STATUS_COLORS[task.status];
   const statusLabel = STATUS_LABELS[task.status];
+
+  const del = useDeleteTask();
+  const [confirming, setConfirming] = useState(false);
+
+  async function handleDelete() {
+    await del.mutateAsync(task.id);
+    onClose();
+  }
 
   return (
     <Stack gap={0}>
@@ -95,6 +106,42 @@ function TaskDetailContent({
         {task.subtasks?.length ? (
           <TaskListSection subtasks={task.subtasks} />
         ) : null}
+
+        <Divider mt={TASK_MODAL.majorSectionGap} />
+        <Group justify="flex-start">
+          {confirming ? (
+            <Group gap="xs">
+              <Text size="xs" c="red.7">
+                Delete this task permanently?
+              </Text>
+              <Button
+                size="xs"
+                color="red"
+                loading={del.isPending}
+                onClick={handleDelete}
+              >
+                Delete
+              </Button>
+              <Button
+                size="xs"
+                variant="default"
+                onClick={() => setConfirming(false)}
+              >
+                Cancel
+              </Button>
+            </Group>
+          ) : (
+            <Button
+              size="xs"
+              variant="light"
+              color="red"
+              leftSection={<TrashIcon size={14} />}
+              onClick={() => setConfirming(true)}
+            >
+              Delete task
+            </Button>
+          )}
+        </Group>
       </TaskModalBody>
     </Stack>
   );
@@ -115,7 +162,12 @@ export function TaskDetailModal({
       radius="md"
     >
       {task && (
-        <TaskDetailContent task={task} onClose={onClose} onEdit={onEdit} />
+        <TaskDetailContent
+          key={task.id}
+          task={task}
+          onClose={onClose}
+          onEdit={onEdit}
+        />
       )}
     </Modal>
   );

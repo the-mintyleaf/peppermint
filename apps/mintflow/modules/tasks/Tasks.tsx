@@ -146,6 +146,7 @@ export function ModuleTasks() {
               total={derived.total}
               hasActiveFilters={hasActiveFilters}
               onReset={resetAll}
+              onOpenTask={handleCardClick}
             />
           )}
         </Stack>

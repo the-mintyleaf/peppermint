@@ -14,6 +14,7 @@ export function TaskListView({
   total,
   hasActiveFilters,
   onReset,
+  onOpenTask,
 }: TaskListViewProps) {
   const columns = useTasksStore((s) => s.visibleColumns);
   const gridStyle = taskGridStyle(columns);
@@ -72,6 +73,7 @@ export function TaskListView({
                 groupKey={group.key}
                 label={group.label}
                 tasks={group.tasks}
+                onOpenTask={onOpenTask}
               />
             ))}
           </Box>

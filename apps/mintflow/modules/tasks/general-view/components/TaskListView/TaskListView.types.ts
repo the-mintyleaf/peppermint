@@ -1,3 +1,4 @@
+import type { Task } from "../../../kanban/module.api";
 import type { TaskGroup } from "../../../Tasks.types";
 
 export interface TaskListViewProps {
@@ -6,4 +7,5 @@ export interface TaskListViewProps {
   total: number;
   hasActiveFilters: boolean;
   onReset: () => void;
+  onOpenTask: (task: Task) => void;
 }

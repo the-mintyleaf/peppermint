@@ -9,4 +9,5 @@ export interface TaskGroupSectionProps {
   groupKey: string;
   label: string;
   tasks: Task[];
+  onOpenTask: (task: Task) => void;
 }
