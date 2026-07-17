@@ -2,7 +2,7 @@
 
 import { Badge, Group } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
-import type { DocumentWorkspaceSummary } from "../../documents.types";
+import type { DocumentWorkspaceSummary } from "@/modules/documents";
 
 export const documentsColumns: DataTableShellColumn<DocumentWorkspaceSummary>[] =
   [

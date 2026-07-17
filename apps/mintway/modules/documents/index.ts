@@ -1,19 +1,20 @@
 import { DocumentEditor } from "./pages/editor/DocumentEditor";
-import { DocumentsList } from "./pages/list/DocumentsList";
-import { DocumentsNew } from "./pages/new/DocumentsNew";
-import { SignaturesManager } from "./pages/signatures/SignaturesManager";
 
+// The list, "new", and signatures screens moved to admin-scoped modules
+// (`@/modules/admin/documents`, `@/modules/admin/signatures`). Only the full-screen
+// editor stays here — it needs the standalone `/documents/[applicantId]` layout.
 export const ModuleDocuments = {
-  list: DocumentsList,
-  new: DocumentsNew,
   editor: DocumentEditor,
-  signatures: SignaturesManager,
 };
 
 export { DocumentEditorProvider, useDocumentEditor } from "./context";
 export { useDocumentActions } from "./hooks/useDocumentActions";
 export { useDocumentHistory } from "./hooks/useDocumentHistory";
 export { useSignatures } from "./hooks/useSignatures";
+
+// Shared engine surface consumed by the admin-scoped Documents and Signatures modules.
+export { documentsApi } from "./documents.api";
+export { documentQueryKeys } from "./documents.queryKeys";
 
 export type {
   Document,
@@ -25,4 +26,7 @@ export type {
   DocumentFormProps,
   DocumentTemplateProps,
   DocumentConfigBarProps,
+  DocumentWorkspaceSummary,
+  Signature,
+  SignatureInput,
 } from "./documents.types";

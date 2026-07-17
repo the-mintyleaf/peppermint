@@ -4,6 +4,8 @@ import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/Identific
 import { UserListIcon } from "@phosphor-icons/react/dist/csr/UserList";
 import { UsersThreeIcon } from "@phosphor-icons/react/dist/csr/UsersThree";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
+import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
+import { SignatureIcon } from "@phosphor-icons/react/dist/csr/Signature";
 
 /**
  * Admin navigation. The Identity & Access module is admin/superadmin only; the
@@ -37,6 +39,22 @@ export function buildAdminConfig(
       },
       ...(isAdmin
         ? [
+            {
+              // Admin/superadmin-only server-side (staff get a 404). Rows open the
+              // full-screen editor, which lives outside the admin shell.
+              kind: "page" as const,
+              id: "documents",
+              icon: FileTextIcon,
+              label: "Documents",
+              href: "/admin/documents",
+            },
+            {
+              kind: "page" as const,
+              id: "signatures",
+              icon: SignatureIcon,
+              label: "Signatures",
+              href: "/admin/signatures",
+            },
             {
               kind: "module" as const,
               id: "authenticate",
