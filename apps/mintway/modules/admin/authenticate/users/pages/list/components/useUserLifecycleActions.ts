@@ -99,10 +99,12 @@ export function useUserLifecycleActions(
     openDeactivate: () =>
       openReasonConfirmModal({
         title: "Deactivate account",
-        description: `${user.username} will lose access and all their sessions will be revoked.`,
+        alertTitle: "This revokes access immediately",
+        description: `@${user.username} is signed out of every device and can no longer sign in. You can reactivate the account later.`,
         tone: "danger",
-        reasonPlaceholder: "Why is this account being deactivated?",
-        confirmLabel: "Deactivate",
+        reasonLabel: "Reason for deactivation",
+        reasonPlaceholder: "e.g. Left the company on 2026-07-17",
+        confirmLabel: "Deactivate account",
         confirmColor: "red",
         onConfirm: (reason) => deactivateMutation.mutateAsync(reason),
       }),
@@ -110,10 +112,12 @@ export function useUserLifecycleActions(
     openSuspend: () =>
       openReasonConfirmModal({
         title: "Suspend account",
-        description: `${user.username} will be blocked from signing in until unsuspended.`,
+        alertTitle: "They won't be able to sign in",
+        description: `@${user.username} stays on the roster but is blocked from signing in until you unsuspend them. Active sessions end immediately.`,
         tone: "warning",
-        reasonPlaceholder: "Why is this account being suspended?",
-        confirmLabel: "Suspend",
+        reasonLabel: "Reason for suspension",
+        reasonPlaceholder: "e.g. Under investigation — access paused",
+        confirmLabel: "Suspend account",
         confirmColor: "orange",
         onConfirm: (reason) => suspendMutation.mutateAsync(reason),
       }),

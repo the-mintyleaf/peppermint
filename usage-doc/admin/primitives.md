@@ -98,14 +98,18 @@ Confirmation modal with a required reason textarea (the `revoke/deactivate/end`
 flow). Confirm is disabled until a reason is entered and shows a spinner while
 `onConfirm` runs; the modal closes when it resolves.
 
-Pass `tone` (`"danger" | "warning" | "info"`) to render the `description` as an
+Pass `tone` (`"danger" | "warning" | "info"`) to render the message as an
 `<Alert>` with a matching icon and color instead of plain text — use it for
 destructive or consequential confirmations. Omit `tone` for a neutral message.
+`alertTitle` is the bold heading of that message; `description` is its supporting
+sub-heading. The modal body padding is restored per-instance, so it stays padded
+even when the app zeroes Modal body padding globally.
 
 ```ts
 openReasonConfirmModal({
-  title: "Revoke delegation",
-  description: "This delegation will stop applying immediately.",
+  title: "Revoke delegation", // modal header
+  alertTitle: "This stops the delegation immediately", // message heading
+  description: "The delegate loses access on their next request.", // sub-heading
   tone: "danger", // renders the message as a red Alert with a Prohibit icon
   confirmLabel: "Revoke",
   confirmColor: "red",

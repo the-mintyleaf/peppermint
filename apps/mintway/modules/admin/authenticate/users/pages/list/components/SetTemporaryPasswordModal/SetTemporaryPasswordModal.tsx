@@ -40,16 +40,19 @@ export function SetTemporaryPasswordModal({
       onClose={handleClose}
       title="Reset password"
       centered
+      // Restore body padding — the app zeroes Modal body padding globally.
+      styles={{ body: { padding: "var(--mantine-spacing-md)" } }}
     >
       <Stack gap="md">
         <Alert
           color="yellow"
           icon={<WarningIcon size={18} weight="fill" aria-hidden />}
+          title="This forces a password change"
         >
           <Text size="sm">
-            Set a temporary password for <strong>{username}</strong>.
-            They&apos;ll be required to change it the next time they sign in,
-            and all their sessions will be revoked.
+            You&apos;re setting a temporary password for @{username}. They must
+            change it the next time they sign in, and all their active sessions
+            are revoked immediately.
           </Text>
         </Alert>
         <PasswordInput

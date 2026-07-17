@@ -83,18 +83,21 @@ export function UserRowActionsMenu({
   const openRevokeConfirm = () =>
     modals.openConfirmModal({
       title: "Revoke sessions",
+      // Restore body padding — the app zeroes Modal body padding globally.
+      styles: { body: { padding: "var(--mantine-spacing-md)" } },
       children: (
         <Alert
           color="orange"
           icon={<WarningIcon size={18} weight="fill" aria-hidden />}
+          title="Signs them out everywhere"
         >
           <Text size="sm">
-            Sign <strong>{user.username}</strong> out of every device? They can
+            @{user.username} is signed out of every device right now. They can
             sign back in with their current password.
           </Text>
         </Alert>
       ),
-      labels: { confirm: "Revoke", cancel: "Cancel" },
+      labels: { confirm: "Revoke sessions", cancel: "Cancel" },
       confirmProps: { color: "orange" },
       onConfirm: () => revokeMutation.mutate(),
     });

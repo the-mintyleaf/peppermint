@@ -38,9 +38,14 @@ const TONE_CONFIG: Record<
 
 export interface ReasonConfirmOptions {
   title: string;
+  /**
+   * Bold heading for the consequence message (the Alert title when `tone` is set).
+   * Pair with `description` as the supporting sub-heading.
+   */
+  alertTitle?: ReactNode;
   description?: ReactNode;
   /**
-   * When set, render `description` as an `<Alert>` (icon + color) instead of plain
+   * When set, render the message as an `<Alert>` (icon + color) instead of plain
    * text — for destructive/consequential confirmations. Omit for a neutral message.
    */
   tone?: ReasonConfirmTone;
@@ -66,6 +71,7 @@ interface ReasonConfirmContentProps extends ReasonConfirmOptions {
 }
 
 function ReasonConfirmContent({
+  alertTitle,
   description,
   tone,
   reasonLabel = "Reason",
@@ -97,15 +103,32 @@ function ReasonConfirmContent({
 
   const toneConfig = tone ? TONE_CONFIG[tone] : null;
 
+  const hasMessage = Boolean(alertTitle || description);
+
   return (
     <Stack gap="sm">
-      {description &&
+      {hasMessage &&
         (toneConfig ? (
-          <Alert color={toneConfig.color} icon={toneConfig.icon}>
+          <Alert
+            color={toneConfig.color}
+            icon={toneConfig.icon}
+            title={alertTitle}
+          >
             {description}
           </Alert>
         ) : (
-          <Text size="sm">{description}</Text>
+          <Stack gap={2}>
+            {alertTitle && (
+              <Text size="sm" fw={600}>
+                {alertTitle}
+              </Text>
+            )}
+            {description && (
+              <Text size="sm" c="dimmed">
+                {description}
+              </Text>
+            )}
+          </Stack>
         ))}
       <Textarea
         label={reasonLabel}
@@ -155,6 +178,10 @@ export function openReasonConfirmModal(options: ReasonConfirmOptions): void {
         {options.title}
       </Text>
     ),
+    // Restore body padding per-instance: apps may zero Modal body padding
+    // globally (e.g. for edge-to-edge shell modals), which would otherwise leave
+    // this confirm content flush against the border.
+    styles: { body: { padding: "var(--mantine-spacing-md)" } },
     children: <ReasonConfirmContent {...options} modalId={modalId} />,
   });
 }

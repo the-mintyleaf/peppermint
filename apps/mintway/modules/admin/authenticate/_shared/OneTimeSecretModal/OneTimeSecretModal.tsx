@@ -30,14 +30,16 @@ export function OneTimeSecretModal({
       title={title}
       closeOnClickOutside={false}
       closeOnEscape={false}
+      // Restore body padding — the app zeroes Modal body padding globally.
+      styles={{ body: { padding: "var(--mantine-spacing-md)" } }}
     >
       <Stack gap="md">
         <Alert
           color="yellow"
           icon={<WarningIcon size={18} weight="fill" aria-hidden />}
+          title="Copy this now — it won't be shown again"
         >
-          {description} This is shown once and cannot be retrieved again — copy
-          it now.
+          {description} Once you close this, it can&apos;t be retrieved.
         </Alert>
 
         <Stack
