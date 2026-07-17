@@ -19,3 +19,10 @@ export interface CreateTaskFormValues extends Record<string, unknown> {
   tags: string[];
   description: string;
 }
+
+export interface TaskFormBodyProps {
+  isEdit: boolean;
+  editTask: Task | null;
+  tagOptions: string[];
+  onCancel: () => void;
+}

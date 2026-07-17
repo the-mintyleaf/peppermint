@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Divider, Group, Modal, Stack, Text } from "@peppermint/ui";
+import {
+  Button,
+  Divider,
+  Group,
+  Modal,
+  Stack,
+  Text,
+  notifications,
+} from "@peppermint/ui";
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/csr/ArrowRight";
 import { CalendarBlankIcon } from "@phosphor-icons/react/dist/csr/CalendarBlank";
 import { SparkleIcon } from "@phosphor-icons/react/dist/csr/Sparkle";
@@ -41,8 +49,16 @@ function TaskDetailContent({
   const [confirming, setConfirming] = useState(false);
 
   async function handleDelete() {
-    await del.mutateAsync(task.id);
-    onClose();
+    try {
+      await del.mutateAsync(task.id);
+      onClose();
+    } catch (e) {
+      notifications.show({
+        color: "red",
+        title: "Delete failed",
+        message: e instanceof Error ? e.message : "Could not delete task",
+      });
+    }
   }
 
   return (

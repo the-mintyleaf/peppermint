@@ -37,6 +37,7 @@ import {
 import type {
   CreateTaskFormValues,
   CreateTaskModalProps,
+  TaskFormBodyProps,
 } from "./CreateTaskModal.types";
 
 const STATUS_OPTIONS = Object.entries(STATUS_LABELS).map(([value, label]) => ({
@@ -76,7 +77,7 @@ const TAG_COLOR: Record<string, string> = {
 };
 
 const schema = z.object({
-  title: z.string().min(1, "Title is required"),
+  title: z.string().trim().min(1, "Title is required"),
   status: z.string(),
   assignees: z.array(z.string()),
   startDate: z.string().nullable(),
@@ -84,10 +85,6 @@ const schema = z.object({
   tags: z.array(z.string()),
   description: z.string(),
 });
-
-function tagColor(label: string): string {
-  return TAG_COLOR[label] ?? "gray";
-}
 
 function buildInitial(
   editTask: Task | null | undefined,
@@ -117,10 +114,13 @@ function buildInitial(
   };
 }
 
-function toTaskInput(values: CreateTaskFormValues): TaskInput {
+function toTaskInput(
+  values: CreateTaskFormValues,
+  colorFor: (label: string) => string,
+): TaskInput {
   const tags: TaskTag[] = values.tags.map((label) => ({
     label,
-    color: tagColor(label),
+    color: colorFor(label),
   }));
   return {
     title: values.title,
@@ -155,8 +155,15 @@ export function CreateTaskModal({
     ]),
   ];
 
+  // Keep a tag's existing colour on edit; fall back to the palette, then gray.
+  const existingTagColors = new Map(
+    editTask?.tags?.map((t) => [t.label, t.color]) ?? [],
+  );
+  const colorFor = (label: string) =>
+    existingTagColors.get(label) ?? TAG_COLOR[label] ?? "gray";
+
   async function submit(values: CreateTaskFormValues) {
-    const input = toTaskInput(values);
+    const input = toTaskInput(values, colorFor);
     try {
       if (editTask) await update.mutateAsync({ id: editTask.id, input });
       else await create.mutateAsync(input);
@@ -211,12 +218,7 @@ function TaskFormBody({
   editTask,
   tagOptions,
   onCancel,
-}: {
-  isEdit: boolean;
-  editTask: Task | null;
-  tagOptions: string[];
-  onCancel: () => void;
-}) {
+}: TaskFormBodyProps) {
   const { form } = useFormInstance<CreateTaskFormValues>();
   const { handleSubmit, isLoading } = useFormControls();
 

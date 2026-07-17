@@ -11,6 +11,7 @@ import {
   Menu,
   Popover,
   Text,
+  UnstyledButton,
 } from "@peppermint/ui";
 import { CaretRightIcon } from "@phosphor-icons/react/dist/csr/CaretRight";
 import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
@@ -341,28 +342,40 @@ export function TaskListRow({ task, onOpenTask }: TaskListRowProps) {
       >
         {/* Col 1: caret (toggles subtasks) + task number */}
         <div className={tableClasses.leftCell}>
-          <span
-            className={tableClasses.expandIcon}
-            onClick={(e) => {
-              if (!hasSubtasks) return;
-              e.stopPropagation();
-              setExpanded((v) => !v);
-            }}
-            style={{ cursor: hasSubtasks ? "pointer" : "default" }}
-          >
-            {hasSubtasks &&
-              (expanded ? (
-                <CaretDownIcon size={11} aria-label="Collapse subtasks" />
+          {hasSubtasks ? (
+            <UnstyledButton
+              className={tableClasses.expandIcon}
+              style={{ cursor: "pointer" }}
+              aria-label={expanded ? "Collapse subtasks" : "Expand subtasks"}
+              aria-expanded={expanded}
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded((v) => !v);
+              }}
+            >
+              {expanded ? (
+                <CaretDownIcon size={11} />
               ) : (
-                <CaretRightIcon size={11} aria-label="Expand subtasks" />
-              ))}
-          </span>
+                <CaretRightIcon size={11} />
+              )}
+            </UnstyledButton>
+          ) : (
+            <span className={tableClasses.expandIcon} />
+          )}
           <span className={tableClasses.idText}>{task.taskNumber}</span>
         </div>
 
-        {/* Col 2: name + subtask count chip */}
+        {/* Col 2: name (opens detail) + subtask count chip */}
         <div className={tableClasses.nameCell}>
-          <span className={tableClasses.nameText}>{task.title}</span>
+          <UnstyledButton
+            className={tableClasses.nameText}
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenTask(task);
+            }}
+          >
+            {task.title}
+          </UnstyledButton>
           {hasSubtasks && (
             <span className={tableClasses.subtaskChip}>
               <TreeStructureIcon size={9} weight="fill" />
