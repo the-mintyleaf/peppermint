@@ -1693,6 +1693,15 @@ export async function setTaskStatus(
   taskStore = taskStore.map((t) => (t.id === id ? { ...t, status } : t));
 }
 
+// Shallow field patch for inline row edits (priority / list / due date).
+export async function patchTask(
+  id: string,
+  patch: Partial<Task>,
+): Promise<void> {
+  await delay();
+  taskStore = taskStore.map((t) => (t.id === id ? { ...t, ...patch } : t));
+}
+
 export async function reorderTasks(
   activeId: string,
   overId: string,

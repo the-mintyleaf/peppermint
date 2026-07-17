@@ -7,6 +7,7 @@ import {
   createTask,
   deleteTask,
   fetchTasks,
+  patchTask,
   reorderTasks,
   setTaskStatus,
   updateTask,
@@ -89,6 +90,26 @@ export function useDeleteTask() {
   return useMutation({
     mutationFn: (id: string) => deleteTask(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: TASKS_KEY }),
+  });
+}
+
+// Optimistic single/partial-field update for inline row edits.
+export function useUpdateTaskFields() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: Partial<Task> }) =>
+      patchTask(id, patch),
+    onMutate: async ({ id, patch }) => {
+      await qc.cancelQueries({ queryKey: TASKS_KEY });
+      const prev = qc.getQueriesData<Task[]>({ queryKey: TASKS_KEY });
+      qc.setQueriesData<Task[]>({ queryKey: TASKS_KEY }, (old) =>
+        old ? old.map((t) => (t.id === id ? { ...t, ...patch } : t)) : old,
+      );
+      return { prev };
+    },
+    onError: (_e, _vars, ctx) =>
+      ctx?.prev?.forEach(([key, data]) => qc.setQueryData(key, data)),
+    onSettled: () => qc.invalidateQueries({ queryKey: TASKS_KEY }),
   });
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { CSSProperties } from "react";
 import {
   Avatar,
   Badge,
@@ -22,6 +23,10 @@ import type {
   TaskAssignee,
   TaskPriority,
 } from "../../../kanban/module.api";
+import { useUpdateTaskFields } from "../../../kanban/KanbanDashboard.hooks";
+import { useTasksStore } from "../../../Tasks.store";
+import { taskGridStyle } from "../../taskGrid";
+import type { VisibleColumns } from "../../../Tasks.types";
 import type { TaskListRowProps } from "./TaskListRow.types";
 import tableClasses from "../../TaskTable.module.css";
 
@@ -249,15 +254,20 @@ function DueDateCell({
 function SubtaskRow({
   subtask,
   index,
+  columns,
+  gridStyle,
 }: {
   subtask: NonNullable<Task["subtasks"]>[number];
   index: number;
+  columns: VisibleColumns;
+  gridStyle: CSSProperties;
 }) {
   const dueDate = parseDateStr(subtask.dueDate);
 
   return (
     <div
       className={`${tableClasses.grid} ${tableClasses.row} ${tableClasses.subtaskRow}`}
+      style={gridStyle}
     >
       <div className={tableClasses.leftCell}>
         <span className={tableClasses.expandIcon} />
@@ -266,44 +276,48 @@ function SubtaskRow({
       <div className={tableClasses.nameCell}>
         <span className={tableClasses.subtaskNameText}>{subtask.title}</span>
       </div>
-      <div>
-        <Badge
-          variant="light"
-          color={
-            subtask.status === "completed"
-              ? "green"
+      {columns.priority && (
+        <div>
+          <Badge
+            variant="light"
+            color={
+              subtask.status === "completed"
+                ? "green"
+                : subtask.status === "in_progress"
+                  ? "blue"
+                  : "gray"
+            }
+            size="xs"
+            radius="sm"
+          >
+            {subtask.status === "completed"
+              ? "Done"
               : subtask.status === "in_progress"
-                ? "blue"
-                : "gray"
-          }
-          size="xs"
-          radius="sm"
-        >
-          {subtask.status === "completed"
-            ? "Done"
-            : subtask.status === "in_progress"
-              ? "In progress"
-              : "Pending"}
-        </Badge>
-      </div>
+                ? "In progress"
+                : "Pending"}
+          </Badge>
+        </div>
+      )}
       <div className={tableClasses.listCell}>
         <Text size="xs" c="dimmed">
           {subtask.category}
         </Text>
       </div>
-      <div>
-        {dueDate ? (
-          <span className={tableClasses.dueText}>
-            {formatDisplayDate(dueDate)}
-          </span>
-        ) : (
-          <span className={tableClasses.duePlaceholder}>
-            <CalendarBlankIcon size={10} weight="fill" />
-            Add date
-          </span>
-        )}
-      </div>
-      <div />
+      {columns.due && (
+        <div>
+          {dueDate ? (
+            <span className={tableClasses.dueText}>
+              {formatDisplayDate(dueDate)}
+            </span>
+          ) : (
+            <span className={tableClasses.duePlaceholder}>
+              <CalendarBlankIcon size={10} weight="fill" />
+              Add date
+            </span>
+          )}
+        </div>
+      )}
+      {columns.assignee && <div />}
     </div>
   );
 }
@@ -312,11 +326,9 @@ export function TaskListRow({ task }: TaskListRowProps) {
   const [expanded, setExpanded] = useState(false);
   const hasSubtasks = (task.subtasks?.length ?? 0) > 0;
 
-  const [priority, setPriority] = useState<TaskPriority>(task.priority);
-  const [group, setGroup] = useState(task.group);
-  const [dueDate, setDueDate] = useState<Date | null>(
-    parseDateStr(task.endDate),
-  );
+  const columns = useTasksStore((s) => s.visibleColumns);
+  const gridStyle = taskGridStyle(columns);
+  const { mutate: patchTask } = useUpdateTaskFields();
 
   const assignees = resolveAssignees(task);
 
@@ -324,6 +336,7 @@ export function TaskListRow({ task }: TaskListRowProps) {
     <>
       <div
         className={`${tableClasses.grid} ${tableClasses.row} ${!hasSubtasks ? tableClasses.rowNoExpand : ""}`}
+        style={gridStyle}
         onClick={() => hasSubtasks && setExpanded((v) => !v)}
       >
         {/* Col 1: caret + task number */}
@@ -351,36 +364,62 @@ export function TaskListRow({ task }: TaskListRowProps) {
         </div>
 
         {/* Col 3: priority — inline editable */}
-        <PriorityCell priority={priority} onChange={setPriority} />
+        {columns.priority && (
+          <PriorityCell
+            priority={task.priority}
+            onChange={(p) => patchTask({ id: task.id, patch: { priority: p } })}
+          />
+        )}
 
         {/* Col 4: list — inline editable */}
-        <ListCell group={group} onChange={setGroup} />
+        <ListCell
+          group={task.group}
+          onChange={(g) => patchTask({ id: task.id, patch: { group: g } })}
+        />
 
         {/* Col 5: due date — inline editable */}
-        <DueDateCell date={dueDate} onChange={setDueDate} />
+        {columns.due && (
+          <DueDateCell
+            date={parseDateStr(task.endDate)}
+            onChange={(d) =>
+              patchTask({
+                id: task.id,
+                patch: { endDate: toDateValue(d) ?? undefined },
+              })
+            }
+          />
+        )}
 
         {/* Col 6: assignee avatars */}
-        <div className={tableClasses.assigneeCell}>
-          <Avatar.Group spacing="xs">
-            {assignees.slice(0, 4).map((a) => (
-              <Avatar key={a.name} size="xs" color={a.color} radius="xl">
-                {a.initials}
-              </Avatar>
-            ))}
-            {assignees.length > 4 && (
-              <Avatar size="xs" radius="xl" color="gray">
-                +{assignees.length - 4}
-              </Avatar>
-            )}
-          </Avatar.Group>
-        </div>
+        {columns.assignee && (
+          <div className={tableClasses.assigneeCell}>
+            <Avatar.Group spacing="xs">
+              {assignees.slice(0, 4).map((a) => (
+                <Avatar key={a.name} size="xs" color={a.color} radius="xl">
+                  {a.initials}
+                </Avatar>
+              ))}
+              {assignees.length > 4 && (
+                <Avatar size="xs" radius="xl" color="gray">
+                  +{assignees.length - 4}
+                </Avatar>
+              )}
+            </Avatar.Group>
+          </div>
+        )}
       </div>
 
       {hasSubtasks && (
         <Collapse expanded={expanded}>
           <Box className={tableClasses.subtaskBlock}>
             {task.subtasks!.map((sub, i) => (
-              <SubtaskRow key={sub.id} subtask={sub} index={i} />
+              <SubtaskRow
+                key={sub.id}
+                subtask={sub}
+                index={i}
+                columns={columns}
+                gridStyle={gridStyle}
+              />
             ))}
           </Box>
         </Collapse>

@@ -30,22 +30,28 @@ working toolbar, FormWrapper migration, file split, polish. Plan:
 - [x] Filter by (Assignee/Priority/Due) + active count badge + clear
 - [x] Fix `hasActiveFilters` to include the filters object; remove dead `useGroupedTasks`
 - [x] Wire toolbar into `Tasks.tsx` (now ~215 lines)
+- [x] Commit + dual review (Codex clean; a11y roles + filter-clear scope fixed)
+
+## Phase 4 — Columns + inline-edit persistence + TaskListView
+
+- [x] `patchTask` + `useUpdateTaskFields` optimistic mutation
+- [x] Persist TaskListRow inline edits (priority/list/due) via the patch (dropped local-only state)
+- [x] Extract `general-view/components/TaskListView/` + `taskGrid.ts`; dynamic grid respecting `visibleColumns`
+- [x] Columns (Priority/Due/Assignee toggles) wired to store + render (header + rows + subtasks)
 - [ ] Commit + dual review
 
-## Phase 4 — Columns + list-row rebuild + create/edit/delete
+## Phase 5 — Create / edit / delete via UI
 
-- [ ] Extract `general-view/components/TaskListView/`; dynamic grid respecting `visibleColumns`
-- [ ] Columns (Priority/Due/Assignee toggles) wired to store + render
-- [ ] Migrate `CreateTaskModal` to `FormWrapper`; fix assignee slug→name
-- [ ] Wire create/update end-to-end; remove placeholders; editable subtasks
+- [ ] Migrate `CreateTaskModal` to `FormWrapper`; fix assignee slug→name; remove placeholders
+- [ ] Wire create/update end-to-end (finalSubmitFn → mutation); show real subtasks/attachments on edit
 - [ ] Delete action in `TaskDetailModal` (confirm → useDeleteTask)
 - [ ] Row/card Edit-Delete action menu on `TaskListRow` + `KanbanCard`
-- [ ] Slim `Tasks.tsx` to orchestrator (<200 lines)
+- [ ] Slim `Tasks.tsx`; check module barrels
 - [ ] Commit + dual review
 
-## Phase 5 — Polish + docs
+## Phase 6 — Polish + docs
 
-- [ ] States + tokens/spacing against `.claude/DESIGN.md` + design-system
+- [ ] States (incl. query error + retry) + tokens/spacing against `.claude/DESIGN.md`
 - [ ] `/visual-review /tasks` (light + dark, both views)
 - [ ] `modules/tasks/docs/AI.md` + update app `docs/AI.md` tasks section
 - [ ] Verify: `pnpm format && pnpm --filter mintflow check-types && lint`

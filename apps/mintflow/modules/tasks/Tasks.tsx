@@ -9,8 +9,6 @@ import {
   ManageHeader,
   ModalPaper,
   ModuleHeader,
-  ScrollArea,
-  Skeleton,
   Stack,
   Text,
 } from "@peppermint/ui";
@@ -19,14 +17,13 @@ import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { KanbanBoard } from "./kanban/components/KanbanBoard";
 import { TaskDetailModal } from "./kanban/components/TaskDetailModal";
 import { CreateTaskModal } from "./kanban/components/CreateTaskModal";
-import { TaskGroupSection } from "./general-view/components/TaskGroupSection";
+import { TaskListView } from "./general-view/components/TaskListView";
 import { TasksToolbar } from "./components/TasksToolbar";
 import { useTasks, useKanbanBoard } from "./kanban/KanbanDashboard.hooks";
 import { useTeamMembers } from "./general-view/GeneralViewDashboard.hooks";
 import { useDerivedTasks } from "./Tasks.hooks";
 import { useTasksStore } from "./Tasks.store";
 import type { Task, TaskStatus } from "./kanban/module.api";
-import tableClasses from "./general-view/TaskTable.module.css";
 
 const BREADCRUMB = [{ label: "Tasks", href: "/tasks" }];
 const TASKS_SUBHEADING =
@@ -143,60 +140,13 @@ export function ModuleTasks() {
               )}
             </Box>
           ) : (
-            <>
-              {/* Column headers */}
-              <Box
-                className={`${tableClasses.table} ${tableClasses.header} ${tableClasses.grid}`}
-              >
-                <span className={tableClasses.headerLabel}>Name</span>
-                <span />
-                <span className={tableClasses.headerLabel}>Priority</span>
-                <span className={tableClasses.headerLabel}>List</span>
-                <span className={tableClasses.headerLabel}>Due date</span>
-                <span className={tableClasses.headerLabel}>Assignee</span>
-              </Box>
-
-              {/* Task list */}
-              <ScrollArea
-                className={tableClasses.table}
-                style={{ flex: 1, minHeight: 0 }}
-              >
-                {isLoading ? (
-                  <Stack p="md" gap="xs">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Skeleton key={i} height={48} radius="sm" />
-                    ))}
-                  </Stack>
-                ) : derived.total === 0 ? (
-                  <Stack align="center" justify="center" h={300} gap="xs">
-                    <Text c="dimmed" size="sm">
-                      No tasks found
-                    </Text>
-                    {hasActiveFilters && (
-                      <Text
-                        size="xs"
-                        c="blue"
-                        style={{ cursor: "pointer" }}
-                        onClick={resetAll}
-                      >
-                        Clear filters
-                      </Text>
-                    )}
-                  </Stack>
-                ) : (
-                  <Box>
-                    {derived.list.map((group) => (
-                      <TaskGroupSection
-                        key={group.key}
-                        groupKey={group.key}
-                        label={group.label}
-                        tasks={group.tasks}
-                      />
-                    ))}
-                  </Box>
-                )}
-              </ScrollArea>
-            </>
+            <TaskListView
+              groups={derived.list}
+              isLoading={isLoading}
+              total={derived.total}
+              hasActiveFilters={hasActiveFilters}
+              onReset={resetAll}
+            />
           )}
         </Stack>
       </ModalPaper>

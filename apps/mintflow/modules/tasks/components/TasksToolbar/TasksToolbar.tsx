@@ -19,6 +19,7 @@ import { FunnelIcon } from "@phosphor-icons/react/dist/csr/Funnel";
 import { RowsIcon } from "@phosphor-icons/react/dist/csr/Rows";
 import { KanbanIcon } from "@phosphor-icons/react/dist/csr/Kanban";
 import { StackIcon } from "@phosphor-icons/react/dist/csr/Stack";
+import { ColumnsIcon } from "@phosphor-icons/react/dist/csr/Columns";
 import { CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
 
 import { TeamMembersPanel } from "../../general-view/components/TeamMembersPanel";
@@ -30,6 +31,7 @@ import type {
   TaskBoardFilter,
   TaskPriority,
   TaskView,
+  VisibleColumns,
 } from "../../Tasks.types";
 import type { TasksToolbarProps } from "./TasksToolbar.types";
 
@@ -89,6 +91,12 @@ const DUE_OPTIONS: { value: DueWindow | null; label: string }[] = [
   { value: "month", label: "Due this month" },
 ];
 
+const COLUMN_OPTIONS: { value: keyof VisibleColumns; label: string }[] = [
+  { value: "priority", label: "Priority" },
+  { value: "due", label: "Due date" },
+  { value: "assignee", label: "Assignee" },
+];
+
 const secondaryButton = {
   variant: "light" as const,
   color: "gray" as const,
@@ -114,6 +122,8 @@ export function TasksToolbar({
   const toggleSortDir = useTasksStore((s) => s.toggleSortDir);
   const groupBy = useTasksStore((s) => s.groupBy);
   const setGroupBy = useTasksStore((s) => s.setGroupBy);
+  const visibleColumns = useTasksStore((s) => s.visibleColumns);
+  const toggleColumn = useTasksStore((s) => s.toggleColumn);
   const filters = useTasksStore((s) => s.filters);
   const setFilters = useTasksStore((s) => s.setFilters);
   const clearFilters = useTasksStore((s) => s.clearFilters);
@@ -239,6 +249,46 @@ export function TasksToolbar({
             <SortDescendingIcon size={15} />
           )}
         </ActionIcon>
+
+        {view === "list" && (
+          <Menu
+            shadow="sm"
+            width={180}
+            position="bottom-end"
+            closeOnItemClick={false}
+          >
+            <Menu.Target>
+              <Button
+                {...secondaryButton}
+                leftSection={<ColumnsIcon size={13} weight="duotone" />}
+              >
+                Columns
+              </Button>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Label>Show columns</Menu.Label>
+              {COLUMN_OPTIONS.map((opt) => (
+                <Menu.Item
+                  key={opt.value}
+                  role="menuitemcheckbox"
+                  aria-checked={visibleColumns[opt.value]}
+                  onClick={() => toggleColumn(opt.value)}
+                  leftSection={
+                    <Checkbox
+                      size="xs"
+                      checked={visibleColumns[opt.value]}
+                      readOnly
+                      tabIndex={-1}
+                      aria-hidden
+                    />
+                  }
+                >
+                  {opt.label}
+                </Menu.Item>
+              ))}
+            </Menu.Dropdown>
+          </Menu>
+        )}
 
         <Menu
           shadow="sm"
