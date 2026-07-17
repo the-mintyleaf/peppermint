@@ -18,6 +18,7 @@ import {
 } from "@peppermint/admin";
 import { z } from "zod";
 import type { CreateUserValues } from "../users.types";
+import { NameFieldGroup } from "./NameFieldGroup";
 import type { UserFormProps } from "./UserForm.types";
 
 const schema = z.object({
@@ -88,21 +89,110 @@ export function UserForm({ onSubmit, isLoading }: UserFormProps) {
       }}
     >
       <Stack gap="md" p="md">
-        <AccountFields isLoading={isLoading} />
-        <Divider label="Employee profile" labelPosition="left" />
-        <ProfileFields isLoading={isLoading} />
+        <Divider label="Employee" labelPosition="left" />
+        <EmployeeSection isLoading={isLoading} />
+        <Divider label="Employment" labelPosition="left" />
+        <EmploymentSection isLoading={isLoading} />
+        <Divider label="Account access" labelPosition="left" />
+        <AccountSection isLoading={isLoading} />
+        <RemarksField isLoading={isLoading} />
+        <Text size="xs" c="dimmed">
+          The superadmin account can&apos;t be created here.
+        </Text>
         <SubmitButton isLoading={isLoading} />
       </Stack>
     </FormWrapper>
   );
 }
 
-function AccountFields({ isLoading }: { isLoading: boolean }) {
+function RemarksField({ isLoading }: { isLoading: boolean }) {
+  const { form } = useFormInstance<CreateUserValues>();
+  return (
+    <Textarea
+      label="Remarks"
+      placeholder="Anything the team should know about this account"
+      autosize
+      minRows={2}
+      disabled={isLoading}
+      {...form.getInputProps("remarks")}
+    />
+  );
+}
+
+function EmployeeSection({ isLoading }: { isLoading: boolean }) {
+  const { form } = useFormInstance<CreateUserValues>();
+  return (
+    <>
+      <NameFieldGroup
+        required
+        disabled={isLoading}
+        firstName={form.getInputProps("first_name")}
+        middleName={form.getInputProps("middle_name")}
+        lastName={form.getInputProps("last_name")}
+      />
+      <TextInput
+        label="Preferred name"
+        placeholder="What they go by, if different"
+        disabled={isLoading}
+        {...form.getInputProps("preferred_name")}
+      />
+    </>
+  );
+}
+
+function EmploymentSection({ isLoading }: { isLoading: boolean }) {
+  const { form } = useFormInstance<CreateUserValues>();
+  return (
+    <>
+      <Group grow align="flex-start">
+        <TextInput
+          label="Employee code"
+          placeholder="EMP-014"
+          required
+          disabled={isLoading}
+          {...form.getInputProps("employee_code")}
+        />
+        <TextInput
+          label="Job title"
+          placeholder="Registered Nurse"
+          required
+          disabled={isLoading}
+          {...form.getInputProps("job_title")}
+        />
+      </Group>
+      <TextInput
+        label="Employment start date"
+        type="date"
+        required
+        disabled={isLoading}
+        {...form.getInputProps("employment_start_date")}
+      />
+      <Group grow align="flex-start">
+        <TextInput
+          label="Contact email"
+          type="email"
+          placeholder="name@company.com"
+          disabled={isLoading}
+          {...form.getInputProps("contact_email")}
+        />
+        <TextInput
+          label="Contact phone"
+          placeholder="+1 555 010 4477"
+          disabled={isLoading}
+          {...form.getInputProps("contact_phone")}
+        />
+      </Group>
+    </>
+  );
+}
+
+function AccountSection({ isLoading }: { isLoading: boolean }) {
   const { form } = useFormInstance<CreateUserValues>();
   return (
     <>
       <TextInput
         label="Username"
+        placeholder="jsmith"
         required
         disabled={isLoading}
         {...form.getInputProps("username")}
@@ -117,90 +207,13 @@ function AccountFields({ isLoading }: { isLoading: boolean }) {
         />
         <PasswordInput
           label="Temporary password"
+          placeholder="At least 8 characters"
           required
           description="The user must change it on first sign-in."
           disabled={isLoading}
           {...form.getInputProps("temporary_password")}
         />
       </Group>
-    </>
-  );
-}
-
-function ProfileFields({ isLoading }: { isLoading: boolean }) {
-  const { form } = useFormInstance<CreateUserValues>();
-  return (
-    <>
-      <Group grow align="flex-start">
-        <TextInput
-          label="Employee code"
-          required
-          disabled={isLoading}
-          {...form.getInputProps("employee_code")}
-        />
-        <TextInput
-          label="Job title"
-          required
-          disabled={isLoading}
-          {...form.getInputProps("job_title")}
-        />
-      </Group>
-      <Group grow align="flex-start">
-        <TextInput
-          label="First name"
-          required
-          disabled={isLoading}
-          {...form.getInputProps("first_name")}
-        />
-        <TextInput
-          label="Middle name"
-          disabled={isLoading}
-          {...form.getInputProps("middle_name")}
-        />
-        <TextInput
-          label="Last name"
-          required
-          disabled={isLoading}
-          {...form.getInputProps("last_name")}
-        />
-      </Group>
-      <Group grow align="flex-start">
-        <TextInput
-          label="Preferred name"
-          disabled={isLoading}
-          {...form.getInputProps("preferred_name")}
-        />
-        <TextInput
-          label="Employment start date"
-          type="date"
-          required
-          disabled={isLoading}
-          {...form.getInputProps("employment_start_date")}
-        />
-      </Group>
-      <Group grow align="flex-start">
-        <TextInput
-          label="Contact email"
-          type="email"
-          disabled={isLoading}
-          {...form.getInputProps("contact_email")}
-        />
-        <TextInput
-          label="Contact phone"
-          disabled={isLoading}
-          {...form.getInputProps("contact_phone")}
-        />
-      </Group>
-      <Textarea
-        label="Remarks"
-        autosize
-        minRows={2}
-        disabled={isLoading}
-        {...form.getInputProps("remarks")}
-      />
-      <Text size="xs" c="dimmed">
-        The superadmin account can&apos;t be created here.
-      </Text>
     </>
   );
 }

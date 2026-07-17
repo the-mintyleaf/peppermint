@@ -16,6 +16,7 @@ import {
 } from "@peppermint/admin";
 import { z } from "zod";
 import type { ProfileUpdateValues } from "../users.types";
+import { NameFieldGroup } from "./NameFieldGroup";
 import type { UserProfileEditFormProps } from "./UserProfileEditForm.types";
 
 const schema = z.object({
@@ -107,33 +108,23 @@ function Fields({ isLoading }: { isLoading: boolean }) {
   const { form } = useFormInstance<ProfileUpdateValues>();
   return (
     <>
-      <Group grow align="flex-start">
-        <TextInput
-          label="First name"
-          required
-          disabled={isLoading}
-          {...form.getInputProps("first_name")}
-        />
-        <TextInput
-          label="Middle name"
-          disabled={isLoading}
-          {...form.getInputProps("middle_name")}
-        />
-        <TextInput
-          label="Last name"
-          required
-          disabled={isLoading}
-          {...form.getInputProps("last_name")}
-        />
-      </Group>
+      <NameFieldGroup
+        required
+        disabled={isLoading}
+        firstName={form.getInputProps("first_name")}
+        middleName={form.getInputProps("middle_name")}
+        lastName={form.getInputProps("last_name")}
+      />
       <Group grow align="flex-start">
         <TextInput
           label="Preferred name"
+          placeholder="What they go by, if different"
           disabled={isLoading}
           {...form.getInputProps("preferred_name")}
         />
         <TextInput
           label="Job title"
+          placeholder="Registered Nurse"
           required
           disabled={isLoading}
           {...form.getInputProps("job_title")}
@@ -143,11 +134,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         <TextInput
           label="Contact email"
           type="email"
+          placeholder="name@company.com"
           disabled={isLoading}
           {...form.getInputProps("contact_email")}
         />
         <TextInput
           label="Contact phone"
+          placeholder="+1 555 010 4477"
           disabled={isLoading}
           {...form.getInputProps("contact_phone")}
         />
@@ -168,6 +161,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       </Group>
       <Textarea
         label="Remarks"
+        placeholder="Anything the team should know about this account"
         autosize
         minRows={2}
         disabled={isLoading}
