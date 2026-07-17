@@ -1,5 +1,6 @@
 export { ApplicantActionsMenu } from "./ApplicantActionsMenu";
 export { ApplicantLockToggle } from "./ApplicantLockToggle";
+export { OpenDocumentButton } from "./OpenDocumentButton";
 export { ApplicantActionBar } from "./ApplicantActionBar";
 export { TransitionModal } from "./TransitionModal";
 export { MergeModal } from "./MergeModal";

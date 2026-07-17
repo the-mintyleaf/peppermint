@@ -13,6 +13,7 @@ import type { ApplicantListRow, FollowUpPriority } from "../../../_shared";
 import {
   ApplicantActionsMenu,
   ApplicantLockToggle,
+  OpenDocumentButton,
 } from "../../components/ApplicantActions";
 import { ApplicantLifecycleSwitch } from "./components/ApplicantLifecycleSwitch";
 
@@ -146,7 +147,12 @@ export function getApplicantColumns(
       accessor: "actions",
       title: "",
       textAlign: "right",
-      render: (a) => <ApplicantActionsMenu applicant={a} />,
+      render: (a) => (
+        <Group gap={4} justify="flex-end" wrap="nowrap">
+          <OpenDocumentButton applicant={a} />
+          <ApplicantActionsMenu applicant={a} />
+        </Group>
+      ),
     },
   );
 
