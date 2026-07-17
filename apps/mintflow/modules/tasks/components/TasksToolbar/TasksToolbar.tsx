@@ -188,6 +188,8 @@ export function TasksToolbar({
               {GROUP_OPTIONS.map((opt) => (
                 <Menu.Item
                   key={opt.value}
+                  role="menuitemradio"
+                  aria-checked={groupBy === opt.value}
                   onClick={() => setGroupBy(opt.value)}
                   leftSection={<SelectedMark active={groupBy === opt.value} />}
                 >
@@ -212,6 +214,8 @@ export function TasksToolbar({
             {SORT_OPTIONS.map((opt) => (
               <Menu.Item
                 key={opt.value}
+                role="menuitemradio"
+                aria-checked={sortBy === opt.value}
                 onClick={() => setSort(opt.value)}
                 leftSection={<SelectedMark active={sortBy === opt.value} />}
               >
@@ -262,6 +266,8 @@ export function TasksToolbar({
             {members.map((member) => (
               <Menu.Item
                 key={member.id}
+                role="menuitemcheckbox"
+                aria-checked={filters.assignees.includes(member.name)}
                 onClick={() => toggleAssignee(member.name)}
                 leftSection={
                   <Checkbox
@@ -282,6 +288,8 @@ export function TasksToolbar({
             {PRIORITY_OPTIONS.map((opt) => (
               <Menu.Item
                 key={opt.value}
+                role="menuitemcheckbox"
+                aria-checked={filters.priorities.includes(opt.value)}
                 onClick={() => togglePriority(opt.value)}
                 leftSection={
                   <Checkbox
@@ -302,6 +310,8 @@ export function TasksToolbar({
             {DUE_OPTIONS.map((opt) => (
               <Menu.Item
                 key={opt.label}
+                role="menuitemradio"
+                aria-checked={filters.due === opt.value}
                 onClick={() => setFilters({ due: opt.value })}
                 leftSection={
                   <SelectedMark active={filters.due === opt.value} />

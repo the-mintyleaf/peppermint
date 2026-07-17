@@ -43,7 +43,10 @@ interface TasksViewState {
   setGroupBy: (groupBy: GroupBy) => void;
   setFilters: (filters: Partial<TaskFilters>) => void;
   toggleColumn: (column: keyof VisibleColumns) => void;
+  /** Reset only the filters object (assignees/priorities/due). */
   clearFilters: () => void;
+  /** Reset every narrowing control: filters + search + selected member. */
+  resetAll: () => void;
   activeFilterCount: () => number;
 }
 
@@ -75,7 +78,8 @@ export const useTasksStore = create<TasksViewState>((set, get) => ({
         [column]: !s.visibleColumns[column],
       },
     })),
-  clearFilters: () =>
+  clearFilters: () => set({ filters: DEFAULT_FILTERS }),
+  resetAll: () =>
     set({
       filters: DEFAULT_FILTERS,
       search: "",

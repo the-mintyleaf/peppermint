@@ -38,7 +38,7 @@ export function ModuleTasks() {
   const search = useTasksStore((s) => s.search);
   const selectedMemberId = useTasksStore((s) => s.selectedMemberId);
   const filters = useTasksStore((s) => s.filters);
-  const clearFilters = useTasksStore((s) => s.clearFilters);
+  const resetAll = useTasksStore((s) => s.resetAll);
 
   // Card detail + create/edit form state stays local to the module.
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -177,7 +177,7 @@ export function ModuleTasks() {
                         size="xs"
                         c="blue"
                         style={{ cursor: "pointer" }}
-                        onClick={clearFilters}
+                        onClick={resetAll}
                       >
                         Clear filters
                       </Text>
