@@ -128,7 +128,7 @@ function TaskDetailContent({
           {confirming ? (
             <Group gap="xs">
               <Text size="xs" c="red.7">
-                Delete this task permanently?
+                Delete “{task.title}” permanently?
               </Text>
               <Button
                 size="xs"
