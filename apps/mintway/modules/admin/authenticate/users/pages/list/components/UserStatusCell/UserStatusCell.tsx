@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Group, Menu, UnstyledButton } from "@peppermint/ui";
+import { Button, Menu } from "@peppermint/ui";
 import { StatusBadge } from "@peppermint/admin";
 import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
@@ -93,14 +93,18 @@ export function UserStatusCell({
   if (transitions.length === 0) return badge;
 
   return (
-    <Menu position="bottom-start" withinPortal>
+    <Menu position="bottom-start" width="target" withinPortal>
       <Menu.Target>
-        <UnstyledButton aria-label={`Change status for ${user.username}`}>
-          <Group gap={4} wrap="nowrap">
-            {badge}
-            <CaretDownIcon size={12} aria-hidden />
-          </Group>
-        </UnstyledButton>
+        <Button
+          variant="default"
+          size="xs"
+          fullWidth
+          justify="space-between"
+          rightSection={<CaretDownIcon size={12} aria-hidden />}
+          aria-label={`Change status for ${user.username}`}
+        >
+          {badge}
+        </Button>
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Label>Change status</Menu.Label>
