@@ -223,6 +223,18 @@ export function DocumentEditorProvider({
     [updateMutation],
   );
 
+  // Render-only content update for the bank Customizations panel: reflect the change in the
+  // local cache so the preview/print pick it up, but never persist or create a revision.
+  // These are print-layout tweaks (header padding), not saved edits — no snapshot on each change.
+  const updateDocumentContentLocal = useCallback(
+    (documentId: string, content: DocumentContent) => {
+      const doc = documentsRef.current.find((d) => d.id === documentId);
+      if (!doc) return;
+      writeDocumentToCache({ ...doc, content });
+    },
+    [writeDocumentToCache],
+  );
+
   const hasUnsavedChanges = hasPendingEdits || updateMutation.isPending;
 
   const confirmLeave = useCallback(
@@ -376,6 +388,7 @@ export function DocumentEditorProvider({
     editFieldsModalOpen,
     setEditFieldsModalOpen,
     updateDocumentContent,
+    updateDocumentContentLocal,
     removeDocumentFromList,
     addDocumentToList,
     quickCreateDocument,

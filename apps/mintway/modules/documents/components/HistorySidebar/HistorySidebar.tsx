@@ -75,7 +75,7 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
     setActiveHistoricalLog,
     printableContentRef,
     removeDocumentFromList,
-    updateDocumentContent,
+    updateDocumentContentLocal,
   } = useDocumentEditor();
 
   const { entries, isLoading, restore, isRestoring } = useDocumentHistory(
@@ -95,11 +95,15 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
     ? getDocumentTypeConfig(activeDocument.type).ConfigBar
     : undefined;
 
+  // Customizations are print-layout render tweaks — apply them locally only, never persist
+  // or create a revision snapshot on each change.
   const handleUpdate = useCallback(
     (content: DocumentContent) => {
-      if (activeDocument) updateDocumentContent(activeDocument.id, content);
+      if (activeDocument) {
+        updateDocumentContentLocal(activeDocument.id, content);
+      }
     },
-    [activeDocument, updateDocumentContent],
+    [activeDocument, updateDocumentContentLocal],
   );
 
   return (

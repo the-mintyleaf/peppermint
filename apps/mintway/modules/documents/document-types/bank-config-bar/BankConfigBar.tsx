@@ -9,7 +9,6 @@ import {
   Group,
   useDebouncedCallback,
 } from "@peppermint/ui";
-import { useDocumentEditor } from "../../context";
 import type {
   DocumentConfigBarProps,
   BankContent,
@@ -32,7 +31,6 @@ export function BankConfigBar({
   onUpdate,
   disabled,
 }: DocumentConfigBarProps) {
-  const { markUnsavedChanges } = useDocumentEditor();
   const content = doc.content as BankContent;
   // Latest-content ref read by debounced update callbacks (not during render).
   const contentRef = useRef(content);
@@ -74,7 +72,6 @@ export function BankConfigBar({
   const handleTopSliderChange = (val: number) => {
     startAdjusting();
     setPaddingTop(val);
-    markUnsavedChanges();
     const c = contentRef.current as BankContent;
     onUpdate({
       ...c,
@@ -85,7 +82,6 @@ export function BankConfigBar({
   const handleBottomSliderChange = (val: number) => {
     startAdjusting();
     setPaddingBottom(val);
-    markUnsavedChanges();
     const c = contentRef.current as BankContent;
     onUpdate({
       ...c,
@@ -100,14 +96,12 @@ export function BankConfigBar({
   const handleTopNumberChange = (val: number | string) => {
     const n = typeof val === "number" ? val : paddingTop;
     setPaddingTop(n);
-    markUnsavedChanges();
     debouncedUpdate(n, paddingBottom);
   };
 
   const handleBottomNumberChange = (val: number | string) => {
     const n = typeof val === "number" ? val : paddingBottom;
     setPaddingBottom(n);
-    markUnsavedChanges();
     debouncedUpdate(paddingTop, n);
   };
 

@@ -41,6 +41,15 @@ export interface DocumentEditorContextValue {
   editFieldsModalOpen: boolean;
   setEditFieldsModalOpen: (open: boolean) => void;
   updateDocumentContent: (documentId: string, content: DocumentContent) => void;
+  /**
+   * Render-only content update: writes to the local query cache so the preview/print reflect
+   * the change, but never persists or creates a revision snapshot. Used by the bank
+   * Customizations panel (padding tweaks are print-layout render adjustments, not saved edits).
+   */
+  updateDocumentContentLocal: (
+    documentId: string,
+    content: DocumentContent,
+  ) => void;
   removeDocumentFromList: (documentId: string) => void;
   addDocumentToList: (doc: Document) => void;
   quickCreateDocument: (type: DocumentType) => void;
