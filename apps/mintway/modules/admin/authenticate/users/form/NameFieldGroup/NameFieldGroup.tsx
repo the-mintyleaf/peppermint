@@ -28,7 +28,15 @@ export function NameFieldGroup({
     .join(" ");
 
   return (
-    <Input.Wrapper label={label} required={required} error={error}>
+    <Input.Wrapper
+      // A group of three inputs has no single control to point `htmlFor` at, so
+      // render the label as a plain <div> instead of an orphaned <label>. Each
+      // segment carries its own aria-label for screen readers.
+      labelElement="div"
+      label={label}
+      required={required}
+      error={error}
+    >
       <div className={groupClassName}>
         <Input
           variant="unstyled"
@@ -36,7 +44,9 @@ export function NameFieldGroup({
           px="sm"
           placeholder="First"
           disabled={disabled}
+          required={required}
           aria-label="First name"
+          aria-required={required}
           {...firstName}
         />
         <div className={classes.divider} aria-hidden />
@@ -44,7 +54,7 @@ export function NameFieldGroup({
           variant="unstyled"
           className={classes.segment}
           px="sm"
-          placeholder="Middle"
+          placeholder="Middle (optional)"
           disabled={disabled}
           aria-label="Middle name"
           {...middleName}
@@ -56,7 +66,9 @@ export function NameFieldGroup({
           px="sm"
           placeholder="Last"
           disabled={disabled}
+          required={required}
           aria-label="Last name"
+          aria-required={required}
           {...lastName}
         />
       </div>

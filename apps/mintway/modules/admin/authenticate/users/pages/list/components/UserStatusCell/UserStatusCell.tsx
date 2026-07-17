@@ -73,18 +73,13 @@ export function UserStatusCell({
         onClick: lifecycle.openDeactivate,
       });
   } else if (status === "suspended") {
+    // Deactivate is an active-only transition (mirrors the row-action menu); a
+    // suspended account is unsuspended first, never deactivated directly.
     if (canSuspend)
       transitions.push({
         label: "Unsuspend",
         icon: <PlayCircleIcon size={16} aria-hidden />,
         onClick: lifecycle.unsuspend,
-      });
-    if (canLifecycle && !isSelf)
-      transitions.push({
-        label: "Deactivate",
-        icon: <ProhibitIcon size={16} aria-hidden />,
-        color: "red",
-        onClick: lifecycle.openDeactivate,
       });
   } else if (status === "deactivated") {
     if (canLifecycle)
