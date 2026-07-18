@@ -11,16 +11,28 @@ import { getWorkErrorMessage, workKeys } from "@/lib/work";
 import {
   archiveTask,
   archiveWork,
+  blockTask,
+  closeWork,
   completeTask,
   createTask,
+  extendWorkDeadline,
+  reopenWork,
   reorderTask,
   restoreWork,
   returnTaskUncompleted,
   startTask,
   startWork,
+  submitWorkForClosure,
+  submitWorkForReview,
+  unblockTask,
+  type BlockPayload,
+  type ClosePayload,
   type CreateTaskPayload,
+  type DeadlineExtendPayload,
+  type ReasonPayload,
   type ReorderTaskPayload,
   type ReturnTaskPayload,
+  type UnblockPayload,
   type VersionedCommand,
 } from "./cases.commands";
 
@@ -101,6 +113,24 @@ export function useReturnTask(workId: string) {
   });
 }
 
+export function useBlockTask(workId: string) {
+  return useWorkMutation({
+    mutationFn: (vars: { taskId: string; payload: BlockPayload }) =>
+      blockTask(vars.taskId, vars.payload),
+    successMessage: "Task blocked",
+    invalidateKeys: taskKeys(workId),
+  });
+}
+
+export function useUnblockTask(workId: string) {
+  return useWorkMutation({
+    mutationFn: (vars: { taskId: string; payload: UnblockPayload }) =>
+      unblockTask(vars.taskId, vars.payload),
+    successMessage: "Task unblocked",
+    invalidateKeys: taskKeys(workId),
+  });
+}
+
 export function useArchiveTask(workId: string) {
   return useWorkMutation({
     mutationFn: (vars: { taskId: string; payload?: VersionedCommand }) =>
@@ -137,6 +167,49 @@ export function useRestoreWork(workId: string) {
   return useWorkMutation({
     mutationFn: (payload?: VersionedCommand) => restoreWork(workId, payload),
     successMessage: "Work restored",
+    invalidateKeys: workItemKeys(workId),
+  });
+}
+
+export function useSubmitWorkForReview(workId: string) {
+  return useWorkMutation({
+    mutationFn: (payload?: VersionedCommand) =>
+      submitWorkForReview(workId, payload),
+    successMessage: "Submitted for review",
+    invalidateKeys: workItemKeys(workId),
+  });
+}
+
+export function useSubmitWorkForClosure(workId: string) {
+  return useWorkMutation({
+    mutationFn: (payload?: VersionedCommand) =>
+      submitWorkForClosure(workId, payload),
+    successMessage: "Submitted for closure",
+    invalidateKeys: workItemKeys(workId),
+  });
+}
+
+export function useReopenWork(workId: string) {
+  return useWorkMutation({
+    mutationFn: (payload: ReasonPayload) => reopenWork(workId, payload),
+    successMessage: "Work reopened",
+    invalidateKeys: workItemKeys(workId),
+  });
+}
+
+export function useExtendDeadline(workId: string) {
+  return useWorkMutation({
+    mutationFn: (payload: DeadlineExtendPayload) =>
+      extendWorkDeadline(workId, payload),
+    successMessage: "Deadline extended",
+    invalidateKeys: workItemKeys(workId),
+  });
+}
+
+export function useCloseWork(workId: string) {
+  return useWorkMutation({
+    mutationFn: (payload: ClosePayload) => closeWork(workId, payload),
+    successMessage: "Work closed",
     invalidateKeys: workItemKeys(workId),
   });
 }

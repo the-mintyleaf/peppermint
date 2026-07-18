@@ -7,3 +7,4 @@ export {
 export { WorkTabs, type WorkTabsProps } from "./WorkTabs";
 export { InsightsRail, type InsightsRailProps } from "./InsightsRail";
 export { CreateTaskModal, type CreateTaskModalProps } from "./CreateTaskModal";
+export { WorkCommandModal, type WorkCommandKind } from "./WorkCommandModal";

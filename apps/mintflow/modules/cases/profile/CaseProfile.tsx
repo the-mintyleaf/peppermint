@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   AccessMenu,
@@ -28,19 +29,28 @@ import {
   useRestoreWork,
   useStartTask,
   useStartWork,
+  useSubmitWorkForClosure,
+  useSubmitWorkForReview,
 } from "../cases.mutations";
 import {
   useCaseProfile,
   useProfileView,
   useVisibleActivity,
 } from "./CaseProfile.hooks";
-import type { TaskActionKind, TaskChipView, WorkActionKind } from "./caseView";
+import {
+  FORM_BACKED_WORK_ACTIONS,
+  type TaskActionKind,
+  type TaskChipView,
+  type WorkActionKind,
+} from "./caseView";
 import {
   CreateTaskModal,
   InsightsRail,
   TaskStrip,
+  WorkCommandModal,
   WorkDetail,
   WorkTabs,
+  type WorkCommandKind,
 } from "./components";
 import type { ModuleCaseProfileProps } from "./CaseProfile.types";
 
@@ -93,14 +103,28 @@ export function ModuleCaseProfile({
   const startWork = useStartWork(caseId);
   const archiveWork = useArchiveWork(caseId);
   const restoreWork = useRestoreWork(caseId);
+  const submitReview = useSubmitWorkForReview(caseId);
+  const submitClosure = useSubmitWorkForClosure(caseId);
+  const [workCommand, setWorkCommand] = useState<WorkCommandKind | null>(null);
+
   const workActionPending =
-    startWork.isPending || archiveWork.isPending || restoreWork.isPending;
+    startWork.isPending ||
+    archiveWork.isPending ||
+    restoreWork.isPending ||
+    submitReview.isPending ||
+    submitClosure.isPending;
 
   const runWorkAction = (action: WorkActionKind) => {
+    if (FORM_BACKED_WORK_ACTIONS.has(action)) {
+      setWorkCommand(action as WorkCommandKind);
+      return;
+    }
     const payload = { aggregate_version: view?.item.aggregate_version };
     if (action === "start") startWork.mutate(payload);
     else if (action === "archive") archiveWork.mutate(payload);
     else if (action === "restore") restoreWork.mutate(payload);
+    else if (action === "submit_review") submitReview.mutate(payload);
+    else if (action === "submit_closure") submitClosure.mutate(payload);
   };
 
   const [taskModalOpened, taskModal] = useDisclosure(false);
@@ -253,6 +277,12 @@ export function ModuleCaseProfile({
           onClose={taskModal.close}
         />
       ) : null}
+
+      <WorkCommandModal
+        workId={caseId}
+        command={workCommand}
+        onClose={() => setWorkCommand(null)}
+      />
     </>
   );
 }

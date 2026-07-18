@@ -102,26 +102,60 @@ export const TASK_ACTION_LABEL: Record<TaskActionKind, string> = {
   archive: "Archive",
 };
 
-export type WorkActionKind = "start" | "archive" | "restore";
+export type WorkActionKind =
+  | "start"
+  | "submit_review"
+  | "submit_closure"
+  | "deadline"
+  | "close"
+  | "reopen"
+  | "archive"
+  | "restore";
 
 export const WORK_ACTION_LABEL: Record<WorkActionKind, string> = {
   start: "Start work",
+  submit_review: "Submit for review",
+  submit_closure: "Submit for closure",
+  deadline: "Extend deadline",
+  close: "Close work",
+  reopen: "Reopen",
   archive: "Archive",
   restore: "Restore",
 };
 
+/** Work commands that need a form (the rest run directly). */
+export const FORM_BACKED_WORK_ACTIONS: ReadonlySet<WorkActionKind> = new Set([
+  "deadline",
+  "close",
+  "reopen",
+]);
+
 /**
- * Form-free work-item commands offered for a status. The backend validates the
- * transition (invalid → 409), so this is a sensible menu, not the full rule set.
- * Commands that need fields (close/reopen/deadline/…) are added with their forms.
+ * Work-item commands offered for a status. The backend validates the transition
+ * (invalid → 409), so this is a sensible menu, not the full rule set. Direct
+ * in_progress→closed is forbidden — closure goes through submit-closure first.
  */
 export function availableWorkActions(status: WorkStatus): WorkActionKind[] {
-  if (status === "archived") return ["restore"];
-  const actions: WorkActionKind[] = [];
-  if (status === "accepted" || status === "changes_requested")
-    actions.push("start");
-  actions.push("archive");
-  return actions;
+  switch (status) {
+    case "archived":
+      return ["restore"];
+    case "closed":
+      return ["reopen", "archive"];
+    case "closure_pending":
+      return ["close", "archive"];
+    case "review_pending":
+      return ["archive"];
+    case "changes_requested":
+      return ["start", "submit_review", "deadline", "archive"];
+    case "blocked":
+      return ["deadline", "archive"];
+    case "in_progress":
+      return ["submit_review", "submit_closure", "deadline", "archive"];
+    case "accepted":
+      return ["start", "deadline", "archive"];
+    default:
+      return ["archive"];
+  }
 }
 
 /**

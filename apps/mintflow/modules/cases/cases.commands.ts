@@ -11,6 +11,7 @@ import type {
   AssignmentCategory,
   AssignmentTargetType,
   BlockerType,
+  ClosureOutcome,
   WorkAssignment,
   WorkItem,
   WorkTask,
@@ -52,6 +53,78 @@ export async function restoreWork(
 ): Promise<WorkItem> {
   const { data } = await api.post<WorkItem>(
     `/api/v1/work/items/${workId}/restore/`,
+    payload,
+  );
+  return data;
+}
+
+export async function submitWorkForReview(
+  workId: string,
+  payload: VersionedCommand = {},
+): Promise<WorkItem> {
+  const { data } = await api.post<WorkItem>(
+    `/api/v1/work/items/${workId}/review/submit/`,
+    payload,
+  );
+  return data;
+}
+
+export async function submitWorkForClosure(
+  workId: string,
+  payload: VersionedCommand = {},
+): Promise<WorkItem> {
+  const { data } = await api.post<WorkItem>(
+    `/api/v1/work/items/${workId}/closure/submit/`,
+    payload,
+  );
+  return data;
+}
+
+export interface ReasonPayload {
+  reason: string;
+}
+
+export async function reopenWork(
+  workId: string,
+  payload: ReasonPayload,
+): Promise<WorkItem> {
+  const { data } = await api.post<WorkItem>(
+    `/api/v1/work/items/${workId}/reopen/`,
+    payload,
+  );
+  return data;
+}
+
+export interface DeadlineExtendPayload {
+  new_due_at: string;
+  reason: string;
+}
+
+export async function extendWorkDeadline(
+  workId: string,
+  payload: DeadlineExtendPayload,
+): Promise<WorkItem> {
+  const { data } = await api.post<WorkItem>(
+    `/api/v1/work/items/${workId}/deadline/extend/`,
+    payload,
+  );
+  return data;
+}
+
+export interface ClosePayload {
+  outcome: ClosureOutcome;
+  closure_summary: string;
+  reason?: string;
+  completed_scope?: string;
+  unresolved_scope?: string;
+}
+
+export async function closeWork(
+  workId: string,
+  payload: ClosePayload,
+): Promise<WorkItem> {
+  const { data } = await api.post<WorkItem>(
+    `/api/v1/work/items/${workId}/close/`,
     payload,
   );
   return data;
