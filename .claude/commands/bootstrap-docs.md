@@ -1,6 +1,6 @@
 You are bootstrapping the documentation structure for an app.
 
-Arguments: $ARGUMENTS (app name, e.g. "mintflow" or "mojito")
+Arguments: $ARGUMENTS (app name, e.g. "mintway" or "mintflow")
 
 ## Step 1 — Confirm target
 

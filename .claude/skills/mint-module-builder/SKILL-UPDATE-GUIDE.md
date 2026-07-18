@@ -1,4 +1,4 @@
-# Mojito AI Usage Guide — Update Guide
+# Peppermint Module Build Guide — Update Guide
 
 This document explains what to re-study and what to keep in sync when updating `SKILL.md`.
 
@@ -52,12 +52,12 @@ packages/admin/src/index.ts
 
 Check for new exports, renamed props, or removed APIs.
 
-### 3. A real module example in the Mojito app
+### 3. A real module example in the apps
 
-The channels module is the canonical ContainedModule reference:
+The grants module is a canonical ContainedModule (list) reference:
 
 ```
-apps/mojito/modules/admin/channels/
+apps/mintflow-admin/modules/admin/authenticate/grants/
 ```
 
 Read the whole folder to verify the skill examples still match the real implementation. If they diverge, update the skill to match the usage-doc pattern (not the inconsistent app code).
@@ -94,7 +94,7 @@ Check for any supplementary rules added since the last update.
 1. Create a branch: `git checkout -b dev/skill-update-<date>`.
 2. Re-study the files listed above.
 3. Edit `SKILL.md` — focus only on sections affected by what changed.
-4. Commit: `[.claude/mojito-ai-usage-guide] docs: update skill for <what changed>`.
+4. Commit: `[.claude/mint-module-builder] docs: update skill for <what changed>`.
 5. Push and open a PR if required; otherwise merge to the working branch.
 
 ---

@@ -46,7 +46,7 @@ Read in this exact order. Stop reading when you have what you need — do not sc
 Extract from the user's description:
 
 - Module name and domain
-- Target app (mintflow / mojito / etc.)
+- Target app (mintway / mintflow / mintflow-admin / etc.)
 - Any constraints or context the user already stated
 
 If the target app is not stated and cannot be inferred from context, that is a blocking gap.

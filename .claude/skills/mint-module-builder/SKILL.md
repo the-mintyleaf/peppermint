@@ -1,17 +1,18 @@
 ---
 name: mint-module-builder
 description: >
-  Know-how and build guide for the Mojito app (Peppermint monorepo). Read this before
+  Know-how and build guide for Peppermint monorepo apps. Read this before
   building any module or page. Covers stack rules, the Contained/Not-Contained
   decision, ContainedModule and MultiPageModule patterns, file structure, and
   common mistakes. Use as a bootstrap doc when given a requirements document.
 model: opus
 ---
 
-# Mojito AI Usage Guide
+# Peppermint Module Build Guide
 
-This is the authoritative build guide for the Mojito app and the Peppermint monorepo.
-Reading this replaces the need to re-scan the repository before building a module.
+This is the authoritative build guide for module work across the Peppermint monorepo
+apps (`mintway`, `mintflow`, `mintflow-admin`). Reading this replaces the need to
+re-scan the repository before building a module.
 
 ---
 
@@ -81,6 +82,13 @@ hand-roll `useForm` for a module form.
 
 ## 4. ContainedModule — Build Guide
 
+> **Staff CRUD list pages:** prefer the app-level `createListModule(config)` (from
+> `@/components/createListModule`) — it collapses the
+> `RequireStaff → ModuleHeader → ModalPaper → ModalTableShell` skeleton into a single
+> config (`createListModule<Row, FormValues>({ ... })`). The manual `ModalPaper` +
+> `ModalTableShell` wiring shown below is the underlying shape it wraps — use it directly
+> when a page needs something `createListModule` does not cover.
+
 ### When to use
 
 - One URL owns the entire lifecycle (e.g. `/admin/channels`)
@@ -107,18 +115,31 @@ modules/admin/
 
 ### Step 1 — `<name>.types.ts`
 
-Entity **must** extend `Record<string, unknown>` — required by the shell's generic constraint.
+The entity is a **plain interface**. The shells constrain `T extends object`, which a
+plain interface already satisfies — do **not** add `extends Record<string, unknown>`
+(only React-Flow node data legitimately needs that index signature). Declare the read
+entity and the write payloads as **distinct** types: the create/update request shapes
+usually differ from the read entity (server-set fields like `id`/`enrolledAt` are not
+sent on create).
 
 ```ts
 export type StudentStatus = "active" | "on-leave" | "graduated" | "dropped";
 
-export interface Student extends Record<string, unknown> {
+export interface Student {
   id: string;
   fullName: string;
   email: string;
   status: StudentStatus;
   enrolledAt: string;
 }
+
+/** Request payloads — separate from the read entity. */
+export interface StudentCreatePayload {
+  fullName: string;
+  email: string;
+  status: StudentStatus;
+}
+export type StudentUpdatePayload = Partial<StudentCreatePayload>;
 
 export interface StudentsFetchResponse {
   data: Student[];
@@ -128,10 +149,17 @@ export interface StudentsFetchResponse {
 
 ### Step 2 — `<name>.queryKeys.ts`
 
+Use `createQueryKeys` from `@peppermint/admin` — it produces stable **array-form** keys
+(`.all` / `.lists()` / `.list(params)` / `.detail(id)`). Never hand-write stringly keys
+like `"students.list"` or `.split(".")` them.
+
 ```ts
-export const studentQueryKeys = {
-  list: () => "students.list",
-};
+import { createQueryKeys } from "@peppermint/admin";
+
+export const studentQueryKeys = createQueryKeys("students");
+// studentQueryKeys.list()            → ["students", "list"]
+// studentQueryKeys.list({ page: 2 }) → ["students", "list", { page: 2 }]
+// studentQueryKeys.detail(id)        → ["students", "detail", id]
 ```
 
 ### Step 3 — `<name>.api.ts`
@@ -140,7 +168,12 @@ Use `QueryParams` from `@peppermint/admin` — matches what the shell passes aut
 
 ```ts
 import type { QueryParams } from "@peppermint/admin";
-import type { Student, StudentsFetchResponse } from "./students.types";
+import type {
+  Student,
+  StudentCreatePayload,
+  StudentUpdatePayload,
+  StudentsFetchResponse,
+} from "./students.types";
 
 export async function fetchStudents(
   params?: QueryParams,
@@ -150,13 +183,13 @@ export async function fetchStudents(
 }
 
 export async function createStudent(
-  values: Partial<Student>,
+  values: StudentCreatePayload,
 ): Promise<Student> {
   /* ... */
 }
 export async function updateStudent(
   id: string,
-  values: Partial<Student>,
+  values: StudentUpdatePayload,
 ): Promise<Student> {
   /* ... */
 }
@@ -167,9 +200,9 @@ export async function deleteStudent(id: string): Promise<void> {
 
 ### Step 4 — `pages/list/<name>.columns.tsx`
 
-Use `DataTableShellColumn<T>`. The default rule is **no `render`** — the shell renders plain values correctly on its own. Only add a `render` function when the output genuinely cannot be expressed as plain text: a colored badge, an icon, a stacked multi-line cell. Never wrap plain text in `<Text>` just to have a `render`. When you do use `render`, every piece of text inside it must be `size="xs"` unless there is a specific, documented reason to go larger.
+Use `DataTableShellColumn<T>`. The default is **no `render`** — the shell renders plain values correctly on its own. Only add a `render` function when the output genuinely cannot be expressed as plain text: a colored badge, an icon, a stacked multi-line cell. Never wrap plain text in `<Text>` just to have a `render`. When you do use `render`, prefer a compact `size="xs"` for dense table cells; go larger only when the cell's content genuinely needs the emphasis.
 
-**Every column must pass an `icon`** (Phosphor icon component from `@phosphor-icons/react/dist/csr/*`). `DataTableShell` renders it beside the column title in the table header — do not skip icons on list columns.
+**Prefer a header `icon` on each column** (Phosphor icon component from `@phosphor-icons/react/dist/csr/*`) — `DataTableShell` renders it beside the column title, and a consistent icon set reads better. Add one when it aids scanning; it is a strong default, not an absolute requirement for every column.
 
 ```tsx
 import type { DataTableShellColumn } from "@peppermint/admin";
@@ -342,7 +375,7 @@ const tabs: DataTableShellTab[] = [
 export function StudentsList() {
   return (
     <ModalPaper withBorder>
-      <ModalTableShell<Student>
+      <ModalTableShell<Student, StudentFormValues>
         queryKey={studentQueryKeys.list()}
         queryGetFn={fetchStudents}
         dataKey="data"
@@ -357,7 +390,8 @@ export function StudentsList() {
         createFormComponent={StudentForm}
         editFormComponent={StudentForm}
         onCreateApi={(values) => createStudent(values)}
-        onEditApi={(values) => updateStudent(values.id, values)}
+        // edit id comes from the row `record` (second arg), never from form values
+        onEditApi={(values, record) => updateStudent(record.id, values)}
         onDeleteApi={(id) => deleteStudent(String(id))}
         pageSizes={[10, 20, 30, 50]}
         defaultPageSize={20}
@@ -476,12 +510,14 @@ modules/admin/
 
 ### Step 1 — `module.api.ts`
 
-All entity types and API functions in one file. Entity must extend `Record<string, unknown>`.
+All entity types and API functions in one file. The entity is a **plain interface**
+(shells constrain `T extends object` — no `extends Record<string, unknown>`). Keep the
+create/update payloads distinct from the read entity.
 
 ```ts
 import type { QueryParams } from "@peppermint/admin";
 
-export interface Product extends Record<string, unknown> {
+export interface Product {
   id: number;
   title: string;
   category: string;
@@ -489,6 +525,15 @@ export interface Product extends Record<string, unknown> {
   stock: number;
   availabilityStatus: string;
 }
+
+/** Request payloads — separate from the read entity. */
+export interface ProductCreatePayload {
+  title: string;
+  category: string;
+  price: number;
+  stock: number;
+}
+export type ProductUpdatePayload = Partial<ProductCreatePayload>;
 
 export interface ProductsResponse {
   products: Product[];
@@ -503,12 +548,14 @@ export async function fetchProducts(
 export async function fetchProduct(id: number): Promise<Product> {
   /* ... */
 }
-export async function createProduct(data: Partial<Product>): Promise<Product> {
+export async function createProduct(
+  data: ProductCreatePayload,
+): Promise<Product> {
   /* ... */
 }
 export async function updateProduct(
   id: number,
-  data: Partial<Product>,
+  data: ProductUpdatePayload,
 ): Promise<Product> {
   /* ... */
 }
@@ -667,9 +714,9 @@ export function ProductForm({ onBack, onSuccess }: ProductFormProps) {
 
 ### Step 7 — `pages/list/list.columns.ts`
 
-Same strict rule as ContainedModule: **no `render` by default**. Only add one when the cell genuinely needs a badge, icon, or multi-line layout that plain text cannot express. Every text element inside any `render` must be `size="xs"` unless there is a specific, documented reason to go larger.
+Same as ContainedModule: **no `render` by default**. Only add one when the cell genuinely needs a badge, icon, or multi-line layout that plain text cannot express. Inside a `render`, prefer a compact `size="xs"` for dense cells; go larger only when the content needs the emphasis.
 
-**Every column must pass an `icon`** (Phosphor icon component from `@phosphor-icons/react/dist/csr/*`) so `DataTableShell` can render it in the table header beside the title.
+**Prefer a header `icon` on each column** (Phosphor icon component from `@phosphor-icons/react/dist/csr/*`) so `DataTableShell` can render it beside the title — a strong default that aids scanning, applied where it helps rather than as an absolute requirement.
 
 ```tsx
 import type { DataTableShellColumn } from "@peppermint/admin";
@@ -731,7 +778,7 @@ Wrap in `ModalPaper`. Tabs typed as `DataTableShellTab[]`. Use `filter`, not `fo
 ```tsx
 "use client";
 
-import { DataTableShell } from "@peppermint/admin";
+import { DataTableShell, createQueryKeys } from "@peppermint/admin";
 import { ModalPaper } from "@peppermint/ui";
 import type { DataTableShellTab } from "@peppermint/admin";
 import { PackageIcon } from "@phosphor-icons/react/dist/csr/Package";
@@ -739,6 +786,8 @@ import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { fetchProducts } from "../../module.api";
 import { PRODUCT_COLUMNS } from "./list.columns";
 import type { Product } from "../../module.api";
+
+const productKeys = createQueryKeys("products");
 
 const STATUS_TABS: DataTableShellTab[] = [
   { label: "All Products", icon: PackageIcon },
@@ -753,7 +802,7 @@ export function ProductsList() {
   return (
     <ModalPaper withBorder>
       <DataTableShell<Product>
-        queryKey="products.list"
+        queryKey={productKeys.list()}
         queryGetFn={(params) => fetchProducts(params)}
         dataKey="products"
         paginationKey="meta"
@@ -968,17 +1017,22 @@ Never fetch in `useEffect`. Never call Axios directly in event handlers.
 { label: "Active", filter: { status: "active" } }
 ```
 
-### Not extending `Record<string, unknown>` on the entity
+### Adding `extends Record<string, unknown>` to a domain row type
+
+The shells constrain `T extends object`, which a plain interface already satisfies. Do
+not add the index signature to make a shell happy — it weakens type-safety and
+contradicts the root guidance (`CLAUDE.md` Anti-Patterns / `.claude/rules.md`). Only
+React-Flow node data legitimately needs `Record<string, unknown>`.
 
 ```ts
-// ❌ causes a generic constraint error in DataTableShellColumn<T> and ModalTableShell<T>
-export interface Student {
+// ❌ index signature not needed — and it lets any typo'd key through
+export interface Student extends Record<string, unknown> {
   id: string;
   name: string;
 }
 
-// ✅
-export interface Student extends Record<string, unknown> {
+// ✅ plain interface — satisfies `T extends object`
+export interface Student {
   id: string;
   name: string;
 }
@@ -1027,7 +1081,7 @@ export default ModuleStudents;
 
 ### Unnecessary or oversized renders in columns
 
-The default is **no `render`**. The shell handles plain values. Only add `render` when the cell genuinely requires a badge, icon, or multi-line layout. Every text element inside `render` must be `size="xs"` unless there is a specific reason to go larger.
+The default is **no `render`**. The shell handles plain values. Only add `render` when the cell genuinely requires a badge, icon, or multi-line layout. Inside a `render`, prefer a compact `size="xs"` for dense table cells; go larger only when the content needs the emphasis.
 
 ```tsx
 // ❌ render used for plain text — never do this
@@ -1036,29 +1090,23 @@ The default is **no `render`**. The shell handles plain values. Only add `render
 // ✅ plain text needs no render
 { accessor: "email", title: "Email", sortable: true }
 
-// ❌ render justified but text size not set — always set it
-{ accessor: "status", render: (r) => <Badge>{r.status}</Badge> }
-
-// ✅ render justified, text size explicitly xs
+// ✅ render justified — prefer a compact size for dense cells
 { accessor: "status", render: (r) => <Badge size="xs">{r.status}</Badge> }
 { accessor: "price",  render: (r) => <Text size="xs">${r.price.toFixed(2)}</Text> }
 
-// ❌ text size bumped up with no reason
-{ accessor: "name", render: (r) => <Text size="sm">{r.name}</Text> }
-
-// ✅ if text must be rendered, xs unless there is a documented reason otherwise
+// go larger only when the content genuinely needs the emphasis
 { accessor: "name", render: (r) => <Text size="xs">{r.name}</Text> }
 ```
 
-### Missing column header icons
+### Inconsistent column header icons
 
-Every entry in `list.columns.ts` / `list.columns.tsx` must include an `icon` on each column. `DataTableShell` uses it in the table header — columns without `icon` render title-only headers and break the list UI convention.
+`DataTableShell` renders a column's `icon` in the table header beside the title. A
+consistent icon set reads better, so a header icon is a strong default — add one where
+it aids scanning. It is not an absolute requirement: skip it when no icon meaningfully
+represents the column, but avoid a table where only some columns carry icons at random.
 
 ```tsx
-// ❌ no header icon
-{ accessor: "email", title: "Email", sortable: true }
-
-// ✅ pass a Phosphor icon component
+// prefer a Phosphor icon component where it aids scanning
 import { EnvelopeIcon } from "@phosphor-icons/react/dist/csr/Envelope";
 { accessor: "email", title: "Email", icon: EnvelopeIcon, sortable: true }
 ```
@@ -1114,9 +1162,9 @@ Square brackets are literal — they are part of the commit message.
 Examples:
 
 ```
-[mojito/channels] add: ContainedModule for channel management
+[mintway/channels] add: ContainedModule for channel management
 [@peppermint/admin/DataTableShell] fix: server filter not sent on tab change
-[mojito/products] update: add pricing step to MultiPageModule form
+[mintway/products] update: add pricing step to MultiPageModule form
 ```
 
 ---
@@ -1175,7 +1223,7 @@ Given a requirements doc, follow this sequence:
 1. **Every page** gets wrapped in `<ModalPaper withBorder>` — never a hand-rolled `Paper` with manual `radius`/`h`.
 1. **Every `app/` page** is a one-line re-export.
 1. **Tabs** → always `DataTableShellTab[]`, always `filter` (not `forceFilter`).
-1. **Entity type** → always extends `Record<string, unknown>`.
+1. **Entity type** → plain interface (shells constrain `T extends object`); keep create/update payloads distinct from the read entity.
 1. **Imports** → always from `@peppermint/ui`, never from `@mantine/*`.
 1. **Commit format** → `[app-name/module-name] add: description`.
 1. **Multiple independent modules in the doc** → do not build them one after another. Dispatch one `module-builder` agent per `[CONTAINED]`/`[MULTI_PAGE]` module, concurrently, per `.claude/PARALLEL.md`. `[NOT_CONTAINED]`/`[CUSTOM]` and dependent modules stay inline/sequential.
