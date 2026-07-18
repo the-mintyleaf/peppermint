@@ -21,13 +21,17 @@
 
 ## Phase 4 — Docs
 
-- [ ] Update apps/mintway/docs/AI.md Home row
+- [x] Update apps/mintway/docs/AI.md Home row
 
 ## Phase 5 — Verify
 
-- [x] pnpm format && check-types && lint
-- [ ] dual adversarial review (Codex + adversarial-reviewer)
-- [ ] visual-review /admin (light+dark)
-- [ ] design-check
-- [ ] role sanity
-- [ ] commit per phase; delete this file when done
+- [x] pnpm format && check-types && lint (0 errors)
+- [x] adversarial review (Opus) — 4 findings applied in 6dceda1. Codex unavailable
+      in this env (ChatGPT-account model rejection); single-gate degradation.
+- [x] design-check — PASS (one soft anchor note, not a blocker)
+- [x] commit per phase (9bfaa84 build, 6dceda1 review fixes)
+
+### Deferred — needs a running app + authenticated backend session (not available in sandbox)
+
+- [ ] visual-review /admin at breakpoints, light + dark
+- [ ] role sanity: staff / admin / superadmin projections against live /me
