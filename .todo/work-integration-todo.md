@@ -50,9 +50,9 @@ all live under a work item there. Anything without a backend stays on mock and i
 
 - [x] Ran `/form-builder` for the create-form family (controls/order/disclosure decided)
 - [x] **Create task** — CreateTaskModal (FormWrapper) wired to profile "Add task" (commit 3b3a61c)
-- [ ] **Reason-only forms** (self-contained, no external reads): task return-uncompleted (reason+report), block (type+desc) / unblock (note); work deadline-extend (date+reason), reopen (reason)
-- [ ] **Close** (outcome + per-outcome required fields), submit-review, submit-closure
-- [ ] Drag-reorder tasks (DnD → `reorderTask` with `expected_version`)
+- [x] **Task reason forms** — return-uncompleted (reason+report), block (type+desc), unblock (note) in the TaskStrip menu (commit 693efbd)
+- [x] **Work reason forms** — reopen, extend-deadline, **close** (outcome+summary) + form-free submit-review/submit-closure in the WorkDetail menu (commit 8e196e3)
+- [ ] Drag-reorder tasks (DnD via @dnd-kit → `reorderTask` with `expected_version`) — last self-contained item
 - [ ] **Create work** (New Case) — ⚠️ needs NEW org infrastructure in the client: the mintflow client
       has no org context (org/unit admin lives in mintflow-admin). Requires `organization` +
       `responsible_unit` → wire `/organization/memberships/mine` (org context) + org-scoped units list
