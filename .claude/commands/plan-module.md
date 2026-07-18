@@ -1,46 +1,50 @@
-You are running the module planner for the Peppermint monorepo.
+You are structuring the requirements for a Peppermint module — planning only, no code.
 
 Arguments: $ARGUMENTS (module name, short description, or path to a rough requirements doc)
 
-**This is a planning-only session. No application code will be written.**
+**This is a planning-only session. No application code will be written.** To plan _and_
+build in one go, use `/new-module` instead — it runs this same tuner, then scaffolds.
 
 ---
 
 ## Step 1 — Invoke the skill
 
-Invoke the `/mint-module-planner` skill.
+Invoke the `/mint-requirements-tuner` skill.
 
-Pass $ARGUMENTS as the module description. If $ARGUMENTS is empty, ask the user what they want to build before proceeding.
+Pass $ARGUMENTS as the raw requirements. If $ARGUMENTS is empty, ask the user what they
+want to build before proceeding.
 
 ---
 
-## Step 2 — Follow the skill's planning process
+## Step 2 — Follow the skill's tuning process
 
 The skill will guide you through:
 
-1. Reading pre-flight docs (CLAUDE.md, app AI.md, usage-doc/module-patterns)
-2. Inspecting existing modules to build a reuse map
-3. Identifying the module type
-4. Running the Planning Gate (ask questions if blocking gaps exist — then stop)
-5. Producing the full module blueprint
+1. Parsing intent — modules, entities, reuse candidates, inter-module dependencies
+2. Module-type confirmation (always first — confirm every module's tag before detail)
+3. Gap analysis against the Module Completeness Checklist (incl. section L — reuse &
+   dependencies, from an actual scan of the target app)
+4. Interviewing the user on every flagged gap — zero assumptions
+5. Writing the tuned requirements document (Module Breakdown + Reuse Map + per-module
+   detail) to `docs/tuned_requirement.md` (or a user-specified path)
 
-Do not skip pre-flight reading. Do not skip the Planning Gate.
+Do not skip module-type confirmation. Do not assume answers — ask.
 
 ---
 
 ## Step 3 — Output
 
-If questions are needed: output the grouped clarifying questions and stop. Wait for the user to respond before producing the blueprint.
+If gaps remain: ask the grouped clarifying questions and stop. Wait for answers before
+writing the document.
 
-If no blocking gaps exist: output the complete blueprint using the template in the skill.
+If no gaps remain: write the tuned requirements document and report its path.
 
 ---
 
-## Step 4 — Next steps (after blueprint is approved)
+## Step 4 — Next steps (after the document is confirmed)
 
-When the user approves the blueprint, suggest:
+When the user approves the tuned requirements, suggest:
 
-- `/new-module` — to begin structured requirements tuning and implementation
-- Or: hand the Handoff Prompt from the blueprint to a new Claude Code session
+- `/new-module <path-to-doc>` — to scaffold and build from the document.
 
 Do not begin implementation yourself.

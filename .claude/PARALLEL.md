@@ -142,7 +142,7 @@ Never block a phase on Codex availability.
 ## 8. Never parallelize
 
 - Requirements tuning (`/mint-requirements-tuner`) — interactive.
-- Planning (`/mint-module-planner`) — one coherent blueprint.
+- Requirements structuring (`/mint-requirements-tuner`) — one coherent, interactive doc.
 - Git operations — single `dev/<name>` branch; orchestrator commits serially.
 - `/greploop` — stateful iteration loop.
 - Two writers of the same file, ever.

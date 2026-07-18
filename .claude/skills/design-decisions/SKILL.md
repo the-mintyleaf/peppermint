@@ -9,8 +9,9 @@ description: >-
   are about to build, restyle, or extend any Peppermint module, sub-module, page,
   form, table, dashboard, or admin screen — even when the ask is just "build the X
   module," "add a page for Y," or "make this look right," with no mention of design.
-  Run it BEFORE mint-module-planner: this skill produces the design decisions, the
-  planner turns them into a blueprint, the builder implements, design-check audits.
+  Run it BEFORE mint-requirements-tuner: this skill produces the design decisions,
+  the tuner turns them into a tagged requirements doc, the builder implements,
+  design-check audits.
   This skill OWNS the reasoning and the usability call; it DEFERS admin doctrine to
   .claude/DESIGN.md and visual tokens to the app's design-system.md — it decides,
   it does not restate the rulebook.
@@ -28,8 +29,8 @@ subtly wrong for the person who has to use it eight hours a day.
 Where it sits in the pipeline:
 
 ```
-design-decisions  →  mint-module-planner  →  build  →  design-check
-(reason + confirm)   (blueprint)             (code)    (audit gate)
+design-decisions  →  mint-requirements-tuner  →  build  →  design-check
+(reason + confirm)   (tagged requirements doc)   (code)    (audit gate)
 ```
 
 **Division of authority — do not blur these:**
@@ -39,7 +40,8 @@ design-decisions  →  mint-module-planner  →  build  →  design-check
 - **`apps/<app>/docs/design/design-system.md`** owns the visual identity — color, type, spacing,
   radius, shadow, icon sizes. It is the in-repo owner of "the look" (the role a generic frontend-design
   skill plays elsewhere). Reference tokens from it; never invent new visual values.
-- **`mint-module-builder` / `mint-module-planner`** own the _how to build it_ mechanics.
+- **`mint-requirements-tuner` / `mint-module-builder`** own the _how to build it_ mechanics
+  (the tuner structures the tagged requirements doc + reuse map; the builder implements).
 - **This skill** owns _what should exist and why, in what order_ — and confirms that with the user.
 
 Run the phases in order. Do not produce DECIDE output before Phase 1.5 answers are in.
@@ -244,8 +246,8 @@ the `/design-check` skill after the build. Confirm before handing off:
 - **Squint test:** with detail blurred, the page-level anchor still reads first, then #2.
 
 If any check fails, fix the decision before adding anything new. Then **hand the confirmed decisions to
-`mint-module-planner`** — page inventory, module shape, form order, column list + icons, states — as the
-input to its blueprint.
+`mint-requirements-tuner`** — page inventory, module shape, form order, column list + icons, states — as the
+input to its tagged requirements doc.
 
 ---
 
@@ -272,4 +274,4 @@ ordered by importance & risk; columns by scan priority with word+color+position 
 icon each; icons that name the consequence, one per concept, sized per `design-system.md`; fidelity
 matched to the surface.
 **Verify:** primary task succeeds; all contract states + real/extreme content; a11y floor; squint test;
-remove one thing → hand to `mint-module-planner`.
+remove one thing → hand to `mint-requirements-tuner`.

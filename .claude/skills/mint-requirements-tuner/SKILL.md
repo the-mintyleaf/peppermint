@@ -3,9 +3,11 @@ name: mint-requirements-tuner
 description: >
   Takes raw project requirements from the user and refines them into a
   structured requirements document precisely formatted for /mint-module-builder.
-  Assigns a module type tag to every module. Asks clarifying questions for every
-  gap — makes zero assumptions. Writes the final document to a user-specified
-  path, defaulting to docs/tuned_requirement.md.
+  Assigns a module type tag to every module, and builds a reuse map + inter-module
+  dependency / parallel-safety plan that drives build sequencing and parallel
+  dispatch. Asks clarifying questions for every gap — makes zero assumptions.
+  Writes the final document to a user-specified path, defaulting to
+  docs/tuned_requirement.md.
 model: opus
 ---
 
@@ -93,6 +95,9 @@ Read the requirements in ARGUMENTS carefully. Extract:
 - Every status, state, or category mentioned
 - Any routing or navigation intent (single page, separate create/edit/view)
 - Any relationships between entities
+- Any existing asset the requirements imply could be reused (a component, hook,
+  store, query key, or API client already in the target app)
+- Any dependency between modules (one module needs another's entity, route, or data)
 - The output path (if the user specified one)
 
 ### Phase 2 — Module Type Confirmation (always first)
@@ -116,7 +121,9 @@ Do not move to Phase 3 until the module type for every module is confirmed.
 
 For every confirmed module, run through the **Module Completeness Checklist**
 below. Flag every item that is missing, ambiguous, or only partially described.
-Skip checklist sections that do not apply to the module's type.
+Skip checklist sections that do not apply to the module's type. Section L (Reuse
+& Dependencies) applies to **every** type — run it by actually scanning the
+target app, not from memory.
 
 ### Phase 4 — Interview
 
@@ -224,6 +231,19 @@ Before interviewing: check `apps/<app>/docs/api-contracts/<domain>.md` and `docs
 - [ ] Key that holds pagination (e.g. `meta`, `pagination`)
 - [ ] Server-side or client-side filtering/sorting/pagination?
 
+### L. Reuse & Dependencies (all types)
+
+Before writing, scan the target app for assets the module can reuse instead of
+rebuilding — this is the reuse map the builder relies on. Name **exact paths**.
+
+- [ ] Existing components, hooks, stores, query keys, or API clients this module
+      should reuse (name exact paths, not "probably something exists")
+- [ ] Existing assets that must **not** be rebuilt or duplicated
+- [ ] Does this module depend on another module in this doc (needs its entity,
+      route, or data)? Which one, and how?
+- [ ] Is each module **parallel-safe** (independent → dispatched concurrently) or
+      must it build in a later wave (depends on a sibling)? See `.claude/PARALLEL.md`.
+
 ---
 
 ## Output Format
@@ -249,14 +269,17 @@ decision. Never use `TBD` to avoid asking a question.
 ## Module Breakdown
 
 > This is the primary build map. Every module has a type tag that tells
-> /mint-module-builder exactly which template or approach to use.
+> /mint-module-builder exactly which template or approach to use. The
+> **Depends on** and **Parallel-safe** columns drive dispatch: independent
+> `[CONTAINED]`/`[MULTI_PAGE]` modules are built concurrently (one `module-builder`
+> agent each), dependent ones build in later waves — see `.claude/PARALLEL.md`.
 
-| #   | Module | Type              | Route           | Template / Approach                            |
-| --- | ------ | ----------------- | --------------- | ---------------------------------------------- |
-| 1   | [Name] | `[CONTAINED]`     | `/admin/[path]` | `ModalTableShell`                              |
-| 2   | [Name] | `[MULTI_PAGE]`    | `/admin/[path]` | `DataTableShell` + `FormWrapper` + `FormShell` |
-| 3   | [Name] | `[NOT_CONTAINED]` | `/admin/[path]` | Plain Next.js page — no shell                  |
-| 4   | [Name] | `[CUSTOM]`        | `/admin/[path]` | Bespoke — see module detail                    |
+| #   | Module | Type              | Route           | Template / Approach                            | Depends on | Parallel-safe? |
+| --- | ------ | ----------------- | --------------- | ---------------------------------------------- | ---------- | -------------- |
+| 1   | [Name] | `[CONTAINED]`     | `/admin/[path]` | `ModalTableShell`                              | —          | yes            |
+| 2   | [Name] | `[MULTI_PAGE]`    | `/admin/[path]` | `DataTableShell` + `FormWrapper` + `FormShell` | —          | yes            |
+| 3   | [Name] | `[NOT_CONTAINED]` | `/admin/[path]` | Plain Next.js page — no shell                  | —          | inline         |
+| 4   | [Name] | `[CUSTOM]`        | `/admin/[path]` | Bespoke — see module detail                    | #[n]       | no (wave 2)    |
 
 **Type key:**
 
@@ -264,6 +287,30 @@ decision. Never use `TBD` to avoid asking a question.
 - `[MULTI_PAGE]` — DataTableShell + FormWrapper + FormShell, 2–4 routes
 - `[NOT_CONTAINED]` — reporting / static info page, no admin shell
 - `[CUSTOM]` — unique interaction model, bespoke implementation
+
+---
+
+## Reuse Map
+
+> What already exists in the target app and must be reused — prevents the builder
+> from rebuilding assets. Filled from an actual scan (Checklist L), with exact paths.
+
+### Must reuse
+
+| Asset                                               | Path         | Used for                      |
+| --------------------------------------------------- | ------------ | ----------------------------- |
+| [component / hook / store / query key / API client] | [exact path] | [what it replaces / provides] |
+
+### Must not rebuild
+
+- [existing asset that must not be duplicated — name it]
+
+### Build sequence
+
+- **Independent (parallel-safe):** [module list] — dispatch one `module-builder`
+  agent per module concurrently, per `.claude/PARALLEL.md`.
+- **Dependent (later waves):** [module] depends on [module] because [reason];
+  build after its dependency lands.
 
 ---
 
@@ -390,4 +437,7 @@ top must list every module in the project.
 6. **Badge colors and render decisions** must be confirmed by the user.
 7. **`[CUSTOM]` requires a reason.** Never tag a module `[CUSTOM]` without
    asking the user to explain why none of the three templates fit.
-8. **Write the file only after** all gaps are resolved.
+8. **Reuse before rebuild.** The Reuse Map must come from an actual scan of the
+   target app with exact paths — never leave it empty or vague. If nothing is
+   reusable, say so explicitly.
+9. **Write the file only after** all gaps are resolved.
