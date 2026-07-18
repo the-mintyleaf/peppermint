@@ -12,3 +12,4 @@ export * from "./types";
 export * from "./queryKeys";
 export * from "./errors";
 export * from "./mappers";
+export * from "./directory";
