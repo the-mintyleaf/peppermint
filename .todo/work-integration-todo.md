@@ -62,11 +62,12 @@ all live under a work item there. Anything without a backend stays on mock and i
 
 ### Phase 4 — Case sub-resource tabs (profile)
 
-- [ ] **Activity** tab already reads; add create + correct (forms)
+- [x] **Activity** — record-activity form on the Activity tab (commit 9227d5a); correct = later
 - [ ] **Evidence** tab: list + create (text/structured/external only; file types → disabled/gated) + verify/reject
 - [ ] **Review** tab: list rounds + add comment + decide (self-review/stale guards surfaced)
-- [ ] **Participants**: add / end · **Stakeholders**: create / update / notify (contact fields hidden per role)
-- [ ] check-types + lint green · commit
+- [ ] **Stakeholders**: create / update (bilingual names — self-contained); notify gated
+- [ ] **Participants**: add / end — ⚠️ needs actor picker (org infra, deferred with create-work)
+- [ ] check-types + lint green · commit (split per tab)
 
 ### Phase 5 — Finalize
 
