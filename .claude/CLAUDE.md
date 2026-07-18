@@ -55,7 +55,7 @@ Check these before assuming an API signature. Use `next/navigation` not `next/ro
 
 **`@peppermint/ui`** — always import Mantine components from here, never from `@mantine/*` directly.
 
-**Forms** — build module forms on **`FormWrapper`** from `@peppermint/admin` (the state / Zod-validation / dirty / submit engine, which wraps `@mantine/form`) — read fields via `useFormInstance()`, submit via `useFormControls()`. Do **not** hand-roll `useForm` for a module form. Add **`FormShell`** (which must sit inside `FormWrapper`) for full-page / multi-step form routes; a modal form (inside `ModalTableShell`) uses `FormWrapper` only, with `finalSubmitFn` handing values to the shell's mutation. Never use React Hook Form or other form libraries. Full API: `usage-doc/admin/FormWrapper.md` + `FormShell.md`.
+**Forms** — build module forms on **`FormWrapper`** from `@peppermint/admin` (the state / Zod-validation / dirty / submit engine, which wraps `@mantine/form`) — read fields via `useFormInstance()`, submit via `useFormControls()`. Do **not** hand-roll `useForm` for a module form. Add **`FormShell`** (which must sit inside `FormWrapper`) for full-page / multi-step form routes; a modal form (inside `ModalTableShell`) uses `FormWrapper` only, with `finalSubmitFn` handing values to the shell's mutation. Never use React Hook Form or other form libraries. Full API: `usage-doc/admin/FormWrapper.md` + `FormShell.md`. **Before building or editing any form, run `/form-builder`** — it owns the fillability/control-choice/ordering/disclosure reasoning that decides _what_ the form should be; `FormWrapper`/`FormShell` are only the plumbing that renders that decision.
 
 **`@peppermint/api-client`** — the app calls `configureApiClient({ baseURL, refreshEndpoint })` once in `src/lib/api.ts` and exports the returned Axios instance (auth-header injection, `{ success, data, meta }` envelope unwrap, and single-flight 401 refresh are built in). Always import that instance from the app's `src/lib/api.ts` — never call `configureApiClient` or instantiate Axios inline in a component.
 
@@ -263,8 +263,9 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 1. Check `@peppermint/ui` exports AND the `@peppermint/admin` [Framework Primitives](#framework-primitives) — don't hand-roll a resource API, query keys, a mutation-with-notification, a status/date column, a row-action menu, a reason-confirm modal, or a list module when a primitive already exists.
 2. For any module/sub-module build, restyle, or extension, run `/design-decisions` (pre-build design reasoning — pages, form/column/icon order, feasibility) before `/plan-module`.
 3. If the task involves a module, identify its type (ContainedModule / MultiPageModule / ModalModule / RouteModule) before touching files.
-4. If the task spans more than two files, write a plan first.
-5. If the task doesn't fit a pattern described in this file — stop and ask. Don't invent a new pattern.
+4. If the task builds or edits a form (module form, modal form, settings panel, any input surface), run `/form-builder` before writing fields — it decides controls, ordering, grouping, and disclosure.
+5. If the task spans more than two files, write a plan first.
+6. If the task doesn't fit a pattern described in this file — stop and ask. Don't invent a new pattern.
 
 **General rules:**
 

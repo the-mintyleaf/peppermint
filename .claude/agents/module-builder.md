@@ -25,7 +25,11 @@ If any of these is missing from your prompt, stop and report the gap instead of 
 
 ## Read before writing
 
-1. `.claude/skills/mint-module-builder/SKILL.md` — the full build guide for your module type.
+1. `.claude/skills/mint-module-builder/SKILL.md` — the router (universal rules + decision
+   logic), **then** the one reference file for your tag:
+   `reference/contained-single-page.md` for `[CONTAINED]`,
+   `reference/contained-multi-page.md` for `[MULTI_PAGE]`. That reference file holds your
+   step-by-step build order — do not build from the router alone.
 2. `.claude/CLAUDE.md` — stack rules, naming conventions, component structure.
 3. `.claude/rules.md` — quick reference.
 4. The parent domain's `docs/AI.md`.
