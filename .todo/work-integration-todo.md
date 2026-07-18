@@ -53,10 +53,11 @@ have **no backend** → stay mock, listed in the final gap report. Remaining cle
 
 ## Phase 2 — Case task commands (in the case profile)
 
-- [ ] `cases.commands.ts` task fetchers: create / reorder / start / complete / return / archive / block / unblock / assign / respond
-- [ ] `useWorkMutation` helper (useMutation + notify + invalidate + 409/gated handling)
-- [ ] Wire profile TaskStrip + Add-task to real commands; `aggregate_version` concurrency
-- [ ] `/verify` green; commit
+- [x] `cases.commands.ts` task fetchers: create / reorder / start / complete / return / archive / block / unblock / assign / respond
+- [x] `useWorkMutation` helper (useMutation + notify + invalidate + 409/gated handling) + task hooks
+- [x] Wire form-free task commands (start / complete / archive) into TaskStrip menu; `aggregate_version` concurrency, in-flight spinner
+- [ ] Form-backed task commands (create task, return-uncompleted, block) — need `/form-builder` (FormWrapper, per existing mock modal precedent)
+- [ ] Reorder via drag (needs DnD wiring in the profile task list)
 
 ## Phase 3 — Case lifecycle commands
 
