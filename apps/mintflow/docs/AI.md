@@ -7,11 +7,13 @@ admin-style surface ("mintflow-admin"). It renders bespoke React screens on Mant
 (via `@peppermint/ui`) tuned to a fixed brand design system — **not**
 `@peppermint/admin` framework screens. **Authentication is wired to the backend**
 (login, tokenization, forced + own password change, logout, session-gated shell — see
-[Authentication](#authentication-modulesauth--lib)). **`modules/cases` is wired to the
-real `work` backend** (see its section + `docs/api-contracts/work.md`); the remaining
-module screens (dashboard, tasks, calendar) are **still intentional local mock data**
-(the "not wired" pattern: `notifications.show("Not connected yet")`) — being migrated to
-`work` phase by phase (`.todo/work-integration-todo.md`).
+[Authentication](#authentication-modulesauth--lib)). **`modules/cases` is fully wired to the
+real `work` backend** — list + a command-interactive profile (task + work lifecycle menus,
+Activity/Evidence/Review tabs); see its section + `docs/api-contracts/work.md`. **`modules/dashboard`
+is partially wired** — a live "Awaiting you" section (`/my/*`) above still-mock focus/flow/metrics/files
+widgets. **`modules/tasks` and `modules/calendar` stay mock** (no clean backend). What could **not** be
+integrated and why is catalogued in **`docs/GAPS.md`** (write-only stakeholders/participants, task/metrics/
+files-centric mock screens, gated features, and the deferred org-context forms).
 
 > ⚠️ Mid-rebuild: the previous mobile shell (bottom-nav + IconRail) and most modules
 > were removed. What exists now is the new **single-sidebar app shell** and a
