@@ -9,4 +9,6 @@ export interface WorkTabsProps {
   /** Task title the activity feed is filtered to, if any. */
   filterLabel?: string;
   onClearFilter?: () => void;
+  /** Opens the record-activity form (Activity tab only). */
+  onRecordActivity?: () => void;
 }

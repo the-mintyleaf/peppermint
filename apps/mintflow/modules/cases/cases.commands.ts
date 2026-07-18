@@ -8,10 +8,13 @@
 
 import api from "@/lib/api";
 import type {
+  ActivityType,
   AssignmentCategory,
   AssignmentTargetType,
   BlockerType,
   ClosureOutcome,
+  VisibilityClassification,
+  WorkActivityEntry,
   WorkAssignment,
   WorkItem,
   WorkTask,
@@ -289,6 +292,28 @@ export async function assignTask(
 ): Promise<WorkAssignment> {
   const { data } = await api.post<WorkAssignment>(
     `/api/v1/work/tasks/${taskId}/assignments/`,
+    payload,
+  );
+  return data;
+}
+
+/* ── Activity ─────────────────────────────────────────────────────────────── */
+
+export interface RecordActivityPayload {
+  activity_type: ActivityType;
+  description: string;
+  occurred_at: string;
+  ended_at?: string;
+  duration_seconds?: number;
+  visibility_classification?: VisibilityClassification;
+}
+
+export async function recordActivity(
+  workId: string,
+  payload: RecordActivityPayload,
+): Promise<WorkActivityEntry> {
+  const { data } = await api.post<WorkActivityEntry>(
+    `/api/v1/work/items/${workId}/activities/`,
     payload,
   );
   return data;

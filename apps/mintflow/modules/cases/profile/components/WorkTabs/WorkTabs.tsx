@@ -3,11 +3,13 @@
 import {
   Avatar,
   Box,
+  Button,
   Group,
   SegmentedControl,
   Stack,
   Text,
 } from "@peppermint/ui";
+import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 
 import { tokens } from "@/config/design";
 import { ActivityTimeline } from "../ActivityTimeline";
@@ -68,6 +70,7 @@ export function WorkTabs({
   onTabChange,
   filterLabel,
   onClearFilter,
+  onRecordActivity,
 }: WorkTabsProps) {
   const data = [
     { value: "activity" satisfies WorkTab, label: "Activity" },
@@ -79,13 +82,25 @@ export function WorkTabs({
 
   return (
     <Stack gap={22}>
-      <SegmentedControl
-        fullWidth
-        value={tab}
-        onChange={(v) => onTabChange(v as WorkTab)}
-        data={data}
-        radius="md"
-      />
+      <Group gap="sm" wrap="nowrap" align="center">
+        <SegmentedControl
+          value={tab}
+          onChange={(v) => onTabChange(v as WorkTab)}
+          data={data}
+          radius="md"
+          style={{ flex: 1 }}
+        />
+        {tab === "activity" && onRecordActivity ? (
+          <Button
+            size="xs"
+            variant="light"
+            leftSection={<PlusIcon size={14} aria-label="Record activity" />}
+            onClick={onRecordActivity}
+          >
+            Record
+          </Button>
+        ) : null}
+      </Group>
       {tab === "activity" ? (
         <ActivityTimeline
           view={view}

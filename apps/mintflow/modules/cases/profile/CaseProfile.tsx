@@ -45,6 +45,7 @@ import {
   type WorkActionKind,
 } from "./caseView";
 import {
+  ActivityModal,
   CreateTaskModal,
   InsightsRail,
   TaskCommandModal,
@@ -143,6 +144,7 @@ export function ModuleCaseProfile({
   };
 
   const [taskModalOpened, taskModal] = useDisclosure(false);
+  const [activityModalOpened, activityModal] = useDisclosure(false);
 
   const filterTask = view?.tasks.find((t) => t.id === taskId);
 
@@ -264,6 +266,7 @@ export function ModuleCaseProfile({
                           onTabChange={setTab}
                           filterLabel={filterTask?.title}
                           onClearFilter={() => setTaskId(null)}
+                          onRecordActivity={activityModal.open}
                         />
                       </Box>
                     </Stack>
@@ -304,6 +307,12 @@ export function ModuleCaseProfile({
         command={taskCommand?.kind ?? null}
         task={taskCommand?.task ?? null}
         onClose={() => setTaskCommand(null)}
+      />
+
+      <ActivityModal
+        workId={caseId}
+        opened={activityModalOpened}
+        onClose={activityModal.close}
       />
     </>
   );

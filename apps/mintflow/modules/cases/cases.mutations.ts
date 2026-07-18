@@ -16,6 +16,7 @@ import {
   completeTask,
   createTask,
   extendWorkDeadline,
+  recordActivity,
   reopenWork,
   reorderTask,
   restoreWork,
@@ -30,6 +31,7 @@ import {
   type CreateTaskPayload,
   type DeadlineExtendPayload,
   type ReasonPayload,
+  type RecordActivityPayload,
   type ReorderTaskPayload,
   type ReturnTaskPayload,
   type UnblockPayload,
@@ -211,5 +213,16 @@ export function useCloseWork(workId: string) {
     mutationFn: (payload: ClosePayload) => closeWork(workId, payload),
     successMessage: "Work closed",
     invalidateKeys: workItemKeys(workId),
+  });
+}
+
+/* ── Activity ─────────────────────────────────────────────────────────────── */
+
+export function useRecordActivity(workId: string) {
+  return useWorkMutation({
+    mutationFn: (payload: RecordActivityPayload) =>
+      recordActivity(workId, payload),
+    successMessage: "Activity recorded",
+    invalidateKeys: [workKeys.activities(workId), workKeys.item(workId)],
   });
 }

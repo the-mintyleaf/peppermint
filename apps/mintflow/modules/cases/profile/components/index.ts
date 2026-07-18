@@ -9,3 +9,4 @@ export { InsightsRail, type InsightsRailProps } from "./InsightsRail";
 export { CreateTaskModal, type CreateTaskModalProps } from "./CreateTaskModal";
 export { WorkCommandModal, type WorkCommandKind } from "./WorkCommandModal";
 export { TaskCommandModal, type TaskCommandKind } from "./TaskCommandModal";
+export { ActivityModal, type ActivityModalProps } from "./ActivityModal";
