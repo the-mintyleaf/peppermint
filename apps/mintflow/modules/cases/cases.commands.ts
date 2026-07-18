@@ -1,0 +1,204 @@
+/**
+ * Named-command fetchers for the `work` backend — task-level commands first
+ * (work-item lifecycle commands are added in the lifecycle slice). Every mutation
+ * is a named endpoint (no generic PATCH status=); optimistic concurrency rides on
+ * `aggregate_version` / `expected_version`. Types come from the frozen `@/lib/work`
+ * contract. Wrapped for the UI by `cases.mutations.ts`.
+ */
+
+import api from "@/lib/api";
+import type {
+  AssignmentCategory,
+  AssignmentTargetType,
+  BlockerType,
+  WorkAssignment,
+  WorkTask,
+} from "@/lib/work";
+
+/** Body accepted by the simple "reason + version" commands. */
+export interface VersionedCommand {
+  reason?: string;
+  aggregate_version?: number;
+}
+
+export interface CreateTaskPayload {
+  title_np: string;
+  responsible_unit: string;
+  title_en?: string;
+  description?: string;
+  parent_task?: string;
+  sequence?: number;
+  task_type?: string;
+  is_mandatory?: boolean;
+  review_required?: boolean;
+  due_at?: string;
+}
+
+export async function createTask(
+  workId: string,
+  payload: CreateTaskPayload,
+): Promise<WorkTask> {
+  const { data } = await api.post<WorkTask>(
+    `/api/v1/work/items/${workId}/tasks/`,
+    payload,
+  );
+  return data;
+}
+
+export interface UpdateTaskDetailsPayload {
+  title_np?: string;
+  title_en?: string;
+  description?: string;
+  priority?: string;
+  due_at?: string | null;
+}
+
+export async function updateTaskDetails(
+  taskId: string,
+  payload: UpdateTaskDetailsPayload,
+): Promise<WorkTask> {
+  const { data } = await api.patch<WorkTask>(
+    `/api/v1/work/tasks/${taskId}/details/`,
+    payload,
+  );
+  return data;
+}
+
+export interface ReorderTaskPayload {
+  task: string;
+  new_sequence: number;
+  expected_version?: number;
+}
+
+export async function reorderTask(
+  workId: string,
+  payload: ReorderTaskPayload,
+): Promise<WorkTask> {
+  const { data } = await api.post<WorkTask>(
+    `/api/v1/work/items/${workId}/tasks/reorder/`,
+    payload,
+  );
+  return data;
+}
+
+export async function startTask(
+  taskId: string,
+  payload: VersionedCommand = {},
+): Promise<WorkTask> {
+  const { data } = await api.post<WorkTask>(
+    `/api/v1/work/tasks/${taskId}/start/`,
+    payload,
+  );
+  return data;
+}
+
+export async function completeTask(
+  taskId: string,
+  payload: VersionedCommand = {},
+): Promise<WorkTask> {
+  const { data } = await api.post<WorkTask>(
+    `/api/v1/work/tasks/${taskId}/complete/`,
+    payload,
+  );
+  return data;
+}
+
+export interface ReturnTaskPayload {
+  reason: string;
+  report: string;
+  evidence?: string;
+}
+
+export async function returnTaskUncompleted(
+  taskId: string,
+  payload: ReturnTaskPayload,
+): Promise<WorkTask> {
+  const { data } = await api.post<WorkTask>(
+    `/api/v1/work/tasks/${taskId}/return-uncompleted/`,
+    payload,
+  );
+  return data;
+}
+
+export async function archiveTask(
+  taskId: string,
+  payload: VersionedCommand = {},
+): Promise<WorkTask> {
+  const { data } = await api.post<WorkTask>(
+    `/api/v1/work/tasks/${taskId}/archive/`,
+    payload,
+  );
+  return data;
+}
+
+export interface BlockPayload {
+  blocker_type: BlockerType;
+  description: string;
+  waiting_on_actor?: string;
+  waiting_on_unit?: string;
+  expected_resolution_date?: string;
+}
+
+export async function blockTask(
+  taskId: string,
+  payload: BlockPayload,
+): Promise<WorkTask> {
+  const { data } = await api.post<WorkTask>(
+    `/api/v1/work/tasks/${taskId}/block/`,
+    payload,
+  );
+  return data;
+}
+
+export interface UnblockPayload {
+  resolution_note: string;
+}
+
+export async function unblockTask(
+  taskId: string,
+  payload: UnblockPayload,
+): Promise<WorkTask> {
+  const { data } = await api.post<WorkTask>(
+    `/api/v1/work/tasks/${taskId}/unblock/`,
+    payload,
+  );
+  return data;
+}
+
+export interface AssignPayload {
+  category: AssignmentCategory;
+  target_type: AssignmentTargetType;
+  target_actor?: string;
+  target_unit?: string;
+  target_position?: string;
+  reason?: string;
+}
+
+export async function assignTask(
+  taskId: string,
+  payload: AssignPayload,
+): Promise<WorkAssignment> {
+  const { data } = await api.post<WorkAssignment>(
+    `/api/v1/work/tasks/${taskId}/assignments/`,
+    payload,
+  );
+  return data;
+}
+
+export interface RespondAssignmentPayload {
+  decision: "accept" | "reject_out_of_scope" | "request_clarification";
+  reason?: string;
+  recommended_unit?: string;
+  recommended_actor?: string;
+}
+
+export async function respondTaskAssignment(
+  assignmentId: string,
+  payload: RespondAssignmentPayload,
+): Promise<WorkAssignment> {
+  const { data } = await api.post<WorkAssignment>(
+    `/api/v1/work/task-assignments/${assignmentId}/respond/`,
+    payload,
+  );
+  return data;
+}

@@ -45,26 +45,35 @@ Decisions: **faithful reshape** (adapt UI to real backend domain) · **full doma
 - [ ] `/visual-review /cases` + `/cases/[id]` against `http://192.168.110.97:8000` (confirm names resolve / gated fallbacks)
 - [x] Update app `docs/AI.md` cases section (mock → live)
 
-## Phase 2 — Tasks read + task commands
+## PIVOT (user directive 2026-07-18)
 
-- [ ] Reshape `modules/tasks/kanban/module.api.ts` off mock (1717 lines); real TaskStatus columns
-- [ ] Task reads + commands (create/details/reorder/start/complete/return/archive/assign/respond/block/unblock)
-- [ ] Optimistic concurrency (aggregate_version) + 409 handling; gated affordances disabled
-- [ ] `/visual-review /tasks`; `/verify` green; commit
+Only integrate surfaces with a **clean 1:1 backend** — no aggregation/workarounds/synthesized data.
+Standalone `/tasks` board, `/calendar` (task-level), and rich dashboard widgets (metrics/flow/files)
+have **no backend** → stay mock, listed in the final gap report. Remaining clean integration below.
 
-## Phase 3 — Work lifecycle commands (cases)
+## Phase 2 — Case task commands (in the case profile)
 
-- [ ] Named-command mutations: create/update-details/start/assign/respond/transfer/route/recover/block/deadline
-- [ ] Work-create form via `/form-builder` (forms-tension: FormWrapper vs bespoke — skill decides)
+- [ ] `cases.commands.ts` task fetchers: create / reorder / start / complete / return / archive / block / unblock / assign / respond
+- [ ] `useWorkMutation` helper (useMutation + notify + invalidate + 409/gated handling)
+- [ ] Wire profile TaskStrip + Add-task to real commands; `aggregate_version` concurrency
+- [ ] `/verify` green; commit
+
+## Phase 3 — Case lifecycle commands
+
+- [ ] Work-item fetchers: create / update-details / start / block / unblock / deadline-extend / submit-review / submit-closure / close / reopen / archive / restore / assign / respond / transfer / route / recover-owner / hierarchy-preview
+- [ ] Wire profile action buttons; work-create form via `/form-builder`
 - [ ] Conflict/permission/hierarchy/invalid-transition surfaced; `/verify` green; commit
 
-## Phase 4 — Review, closure, activity, evidence, participants, stakeholders
+## Phase 4 — Case sub-resources (profile tabs)
 
-- [ ] Profile tabs: activity (immutable + corrections), evidence (text/structured; file gated), reviews, closure, participants, stakeholders
+- [ ] activity (create/correct), evidence (text/structured; verify/reject; file gated), reviews (comment/decide), participants (add/end), stakeholders (create/update/notify)
 - [ ] Field-level protection + gating respected; `/verify` green; commit
 
-## Phase 5 — Dashboards + Calendar + cleanup
+## Phase 5 — Dashboard /my/\* lists
 
-- [ ] Dashboard 5 endpoints (my/\*, unit queue, hierarchy-overview) + `?overdue` + neutral metrics facts
-- [ ] Calendar off mock (by due_at); no mock left in any work surface
-- [ ] Full `/verify` + final `/visual-review` sweep; update `docs/AI.md`; walk read/command/dashboard paths live
+- [ ] `GET /my/active/` + `/my/pending-assignments/` + `/my/pending-reviews/` into the dashboard's list widgets
+- [ ] Non-/my widgets (metrics/flow/files) stay mock (no backend); `/verify` green; commit
+
+## Gap report (compile at the end)
+
+- [ ] Standalone `/tasks` board, `/calendar` (task-level), dashboard metrics/flow/files, file attachments/evidence, gated visibility, external notifications
