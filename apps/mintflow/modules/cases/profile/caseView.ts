@@ -38,6 +38,8 @@ export interface TaskChipView {
   title: string;
   state: TaskState;
   status: TaskStatus;
+  /** For optimistic-concurrency on task commands. */
+  version: number;
 }
 
 /** Coarse activity buckets that drive the timeline icon/tint. */
@@ -88,6 +90,37 @@ function taskState(status: TaskStatus): TaskState {
   if (status === "in_progress" || status === "review_pending")
     return "in_progress";
   return "pending";
+}
+
+export type TaskActionKind = "start" | "complete" | "return" | "archive";
+
+export const TASK_ACTION_LABEL: Record<TaskActionKind, string> = {
+  start: "Start",
+  complete: "Complete",
+  return: "Return uncompleted",
+  archive: "Archive",
+};
+
+/**
+ * Commands offered for a task in a given status. The backend is the authority
+ * (an invalid transition returns 409), so this is a sensible menu, not the full
+ * validation — terminal statuses offer nothing.
+ */
+export function availableTaskActions(status: TaskStatus): TaskActionKind[] {
+  if (status === "cancelled" || status === "archived" || status === "completed")
+    return [];
+  const actions: TaskActionKind[] = [];
+  if (
+    status === "not_started" ||
+    status === "accepted" ||
+    status === "changes_requested"
+  )
+    actions.push("start");
+  if (status === "in_progress") actions.push("complete");
+  if (status === "in_progress" || status === "review_pending")
+    actions.push("return");
+  actions.push("archive");
+  return actions;
 }
 
 function activityKind(type: WorkActivityEntry["activity_type"]): ActivityKind {
@@ -185,6 +218,7 @@ export function buildCaseView(
       title: resolveTitle(t),
       state: taskState(t.status),
       status: t.status,
+      version: t.aggregate_version,
     })),
     progress: { done, total, pct },
     breakdown: { done, inProgress, pending: total - done - inProgress },

@@ -22,10 +22,16 @@ import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 
 import { tokens } from "@/config/design";
 import {
+  useArchiveTask,
+  useCompleteTask,
+  useStartTask,
+} from "../cases.mutations";
+import {
   useCaseProfile,
   useProfileView,
   useVisibleActivity,
 } from "./CaseProfile.hooks";
+import type { TaskActionKind, TaskChipView } from "./caseView";
 import { InsightsRail, TaskStrip, WorkDetail, WorkTabs } from "./components";
 import type { ModuleCaseProfileProps } from "./CaseProfile.types";
 
@@ -59,6 +65,25 @@ export function ModuleCaseProfile({
     useCaseProfile(caseId);
   const { taskId, toggleTask, setTaskId, tab, setTab } = useProfileView();
   const visibleActivity = useVisibleActivity(activity, taskId);
+
+  const startTask = useStartTask(caseId);
+  const completeTask = useCompleteTask(caseId);
+  const archiveTask = useArchiveTask(caseId);
+  const pendingTaskId =
+    (startTask.isPending && startTask.variables?.taskId) ||
+    (completeTask.isPending && completeTask.variables?.taskId) ||
+    (archiveTask.isPending && archiveTask.variables?.taskId) ||
+    null;
+
+  const runTaskAction = (action: TaskActionKind, task: TaskChipView) => {
+    const vars = {
+      taskId: task.id,
+      payload: { aggregate_version: task.version },
+    };
+    if (action === "start") startTask.mutate(vars);
+    else if (action === "complete") completeTask.mutate(vars);
+    else if (action === "archive") archiveTask.mutate(vars);
+  };
 
   const filterTask = view?.tasks.find((t) => t.id === taskId);
 
@@ -156,6 +181,8 @@ export function ModuleCaseProfile({
                     tasks={view.tasks}
                     selectedId={taskId}
                     onToggle={toggleTask}
+                    onAction={runTaskAction}
+                    pendingTaskId={pendingTaskId}
                   />
                 ) : null}
 
