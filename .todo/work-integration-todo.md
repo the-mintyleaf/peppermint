@@ -10,17 +10,19 @@ Decisions: **faithful reshape** (adapt UI to real backend domain) · **full doma
 
 ## Phase 0 — Contract intake, typed layer, vocabulary freeze, design reshape
 
-- [ ] Relocate contract docs from `.todo/work/` → repo-root `docs/backend/work/` (API, DATA_CONTRACT,
+- [x] Relocate contract docs from `.todo/work/` → repo-root `docs/backend/work/` (API, DATA_CONTRACT,
       INTEGRATION, SECURITY + LIFECYCLE, HIERARCHY_RESOLUTION and remaining concern docs)
-- [ ] Run `/sync-api mintflow work` → contract digest at `apps/mintflow/docs/api-contracts/work.md`
+- [x] Run `/sync-api mintflow work` → contract digest at `apps/mintflow/docs/api-contracts/work.md`
       (Endpoints, DTO blocks, pagination/filtering, error→UI map, Gaps)
-- [ ] Build the frozen shared work-domain typed layer (types / enums / queryKeys / errors / mappers)
-      in the shared `_shared/` location (proposed `apps/mintflow/lib/work/`)
-- [ ] Freeze module vocabulary: enum sets, error catalogue, endpoint→policy-key list (60),
+- [x] Build the frozen shared work-domain typed layer (types / enums / queryKeys / errors / mappers)
+      at `apps/mintflow/lib/work/`
+- [x] Freeze module vocabulary: enum sets, error catalogue, endpoint→policy-key list (60),
       gated-feature list, DTO→view-model field map
-- [ ] `/design-decisions` reshape pass per surface (read LIFECYCLE + HIERARCHY_RESOLUTION);
-      record RESHAPE decisions
-- [ ] `pnpm check-types` green; commit; DoD gate
+- [x] `pnpm check-types` green; commit Phase 0 foundation
+- [x] Resolve two blocking reshape gaps with user: **fetch names from auth/org**; **drop + remap Files → attachments/evidence**
+- [x] Record reshape decisions → `apps/mintflow/docs/api-contracts/work.reshape.md`
+
+**Phase 0 DoD: ✅ complete** — intake relocated, digest + typed layer committed, vocabulary frozen, reshape approved, check-types green.
 
 ## Phase 1 — Cases read path (WorkItem list + detail/profile)
 
