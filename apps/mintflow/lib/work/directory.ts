@@ -6,13 +6,14 @@
  * names via the `authenticate` and `organization` read endpoints (user decision,
  * see docs/api-contracts/work.reshape.md §2).
  *
- * Contract note: `auth` / `organization` have no synced digest in this repo yet,
- * so the read DTOs below are the **minimal** documented shapes — the user fields
- * mirror mintflow's own `CurrentUser` (`modules/auth/_shared/auth.types.ts`), the
- * unit fields mirror the known `OrganizationUnit`. We read only name/code fields.
- * Lookups fail soft: a 403/404 yields a compact id/initials placeholder rather
- * than blocking the work view. Re-sync with `/sync-api mintflow auth` +
- * `/sync-api mintflow organization` when those digests land, then tighten these.
+ * These are the same endpoints already proven in mintflow-admin:
+ *   - `GET /api/v1/auth/users/{id}/` → user (see users.api.ts; `User` has
+ *     `id`/`username`/`display_name`)
+ *   - `GET /api/v1/organization/units/{id}/` → unit (see Structure.api.ts;
+ *     `OrganizationUnit` has `name_en`/`name_np`/`code`)
+ * The DTOs below are the minimal read subset the UI needs. Lookups fail soft:
+ * a 403/404 yields a compact id/initials placeholder rather than blocking the
+ * work view.
  */
 
 import { useQueries } from "@peppermint/ui";

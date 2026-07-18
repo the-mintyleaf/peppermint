@@ -19,9 +19,10 @@
    `apps/mintflow-admin/modules/admin/organization/_shared/organization.types.ts` (`OrganizationUnit`) — do
    not re-invent them. Build a small shared resolver (proposed `lib/work/` or a `useActorNames`/`useUnitNames`
    hook) that batches ids and caches via React Query.
-   - **Dependency added:** the mintflow client now reads `auth` + `organization`. Assumes the client
-     account has read access to those endpoints (per user decision). If a lookup 403s, degrade to a compact
-     id/initials placeholder — never block the work view on a name lookup.
+   - **Dependency added:** the mintflow client now reads `auth` + `organization`. These are the same
+     endpoints already existing and tested in mintflow-admin (`GET /api/v1/auth/users/{id}/`,
+     `GET /api/v1/organization/units/{id}/`) — reused, not newly assumed. If a lookup 403s, degrade to a
+     compact id/initials placeholder — never block the work view on a name lookup.
 
 3. **Dropped mock concepts (no backend source).** Remove `category` (criminal/harassment/…), `location`,
    and `departments` from the cases model and UI. Remove the mock **Files** sub-view
