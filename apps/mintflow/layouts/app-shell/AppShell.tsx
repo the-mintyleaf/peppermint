@@ -7,8 +7,12 @@ import {
   AppShell,
   Box,
   Burger,
+  Button,
   Center,
+  Group,
   Loader,
+  Stack,
+  Text,
   useDisclosure,
 } from "@peppermint/ui";
 import { KeyIcon } from "@phosphor-icons/react/dist/csr/Key";
@@ -57,7 +61,7 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
     useDisclosure();
   const [accountOpened, accountHandlers] = useDisclosure();
 
-  const { user, isStaff, isLoading } = useCurrentUser();
+  const { user, isStaff, isLoading, isError, refetch } = useCurrentUser();
   const { mutate: logoutMutate } = useLogout();
 
   // No session → back to sign-in. The api-client also redirects on a failed
@@ -117,9 +121,45 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
     [isStaff, user, router, accountHandlers.open, logoutMutate],
   );
 
-  // Hold the shell until identity resolves: loading, the "no user / error"
-  // redirect window, and the forced-password-change bounce all render a loader
-  // instead of flashing the app chrome to an unauthenticated viewer.
+  // A non-401 `/me` failure (500, timeout, CORS) never self-redirects — the
+  // api-client only clears the session on a 401 — so a valid-token user would
+  // otherwise hang on the loader forever. Surface a recovery path instead. A
+  // token-less viewer is already being redirected (effect + api-client), so keep
+  // the loader for that case rather than flashing an error card.
+  if (isError && typeof window !== "undefined") {
+    const hasToken = Boolean(localStorage.getItem("access_token"));
+    if (hasToken) {
+      return (
+        <Center h="100dvh" bg="dark.9" p="md">
+          <Stack align="center" gap="sm" maw={340}>
+            <Text c="gray.0" fw={600}>
+              Couldn&apos;t verify your session
+            </Text>
+            <Text c="gray.5" size="sm" ta="center">
+              Something went wrong while loading your account. Try again, or
+              sign out and sign back in.
+            </Text>
+            <Group gap="sm" mt="xs">
+              <Button variant="light" color="brand" onClick={() => refetch()}>
+                Retry
+              </Button>
+              <Button
+                variant="subtle"
+                color="gray"
+                onClick={() => logoutMutate()}
+              >
+                Sign out
+              </Button>
+            </Group>
+          </Stack>
+        </Center>
+      );
+    }
+  }
+
+  // Hold the shell until identity resolves: loading, the "no user / redirect"
+  // window, and the forced-password-change bounce all render a loader instead of
+  // flashing the app chrome to an unauthenticated viewer.
   if (isLoading || !user || user.password_change_required) {
     return (
       <Center h="100dvh" bg="dark.9">

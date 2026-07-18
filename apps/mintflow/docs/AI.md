@@ -231,7 +231,7 @@ rendered as one full-width labeled panel that collapses to a narrow icon rail on
 - **Config-driven.** `nav.config.tsx` (`APP_SHELL_CONFIG`) holds the static shape —
   `brand` (icon + wordmark + caption), `groups`, `aiButton`, `settingsButton`,
   `notifications`. `groups` is an array of titled sections
-  (`AppShellNavGroup`): **Menu** (Dashboard, Tasks, Cases, Calendar, Team) and
+  (`AppShellNavGroup`): **Menu** (Dashboard, Tasks, Cases, Calendar) and
   **Work Files** (dummy kanban boards). `LayoutAppShell` injects router-bound
   `onNavigate` (`router.push`) and `linkComponent` (Next `Link`), **the `user` menu
   (built from `CurrentUser`), and the role-filtered `groups`** at runtime — a nav item or
