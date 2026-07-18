@@ -72,9 +72,12 @@ all live under a work item there. Anything without a backend stays on mock and i
 
 ### Phase 5 — Finalize
 
-- [ ] `docs/AI.md` (app + module) fully in sync · `GAPS.md` written (see below)
-- [ ] `/verify` full green · `/visual-review` `/cases`, `/cases/[id]`, `/dashboard` against live backend
-- [ ] Delete this todo file
+- [x] `GAPS.md` written (`apps/mintflow/docs/GAPS.md`) + `docs/AI.md` header synced (commit ea35990)
+- [x] `check-types` + `lint` full green (only pre-existing font warnings)
+- [ ] `/visual-review` `/cases`, `/cases/[id]`, `/dashboard` against live backend — **needs the running app + a session (user)**
+- [ ] Delete this todo file once visual-review + any deferred org-infra work is decided
+
+**Integrable scope is COMPLETE.** Remaining = deferred-by-decision (org-infra forms, drag-reorder) + gaps (see GAPS.md).
 
 ---
 
