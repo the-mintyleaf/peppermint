@@ -14,11 +14,15 @@ import type {
   BlockerType,
   ClosureOutcome,
   EvidenceType,
+  ReviewCommentType,
+  ReviewDecision,
   VisibilityClassification,
   WorkActivityEntry,
   WorkAssignment,
   WorkEvidence,
   WorkItem,
+  WorkReviewComment,
+  WorkReviewRound,
   WorkTask,
 } from "@/lib/work";
 
@@ -361,6 +365,40 @@ export async function rejectEvidence(
 ): Promise<WorkEvidence> {
   const { data } = await api.post<WorkEvidence>(
     `/api/v1/work/evidence/${evidenceId}/reject/`,
+    payload,
+  );
+  return data;
+}
+
+/* ── Review ───────────────────────────────────────────────────────────────── */
+
+export interface DecideReviewPayload {
+  decision: ReviewDecision;
+  decision_remarks?: string;
+}
+
+export async function decideReview(
+  reviewId: string,
+  payload: DecideReviewPayload,
+): Promise<WorkReviewRound> {
+  const { data } = await api.post<WorkReviewRound>(
+    `/api/v1/work/reviews/${reviewId}/decide/`,
+    payload,
+  );
+  return data;
+}
+
+export interface AddReviewCommentPayload {
+  comment_type: ReviewCommentType;
+  body: string;
+}
+
+export async function addReviewComment(
+  reviewId: string,
+  payload: AddReviewCommentPayload,
+): Promise<WorkReviewComment> {
+  const { data } = await api.post<WorkReviewComment>(
+    `/api/v1/work/reviews/${reviewId}/comments/`,
     payload,
   );
   return data;

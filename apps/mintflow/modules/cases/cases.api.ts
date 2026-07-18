@@ -13,6 +13,7 @@ import type {
   WorkEvidence,
   WorkItem,
   WorkListParams,
+  WorkReviewRound,
   WorkTask,
 } from "@/lib/work";
 import { toPage } from "@/lib/work";
@@ -63,6 +64,18 @@ export async function listEvidence(
 ): Promise<Page<WorkEvidence>> {
   const { data } = await api.get<Paginated<WorkEvidence>>(
     `/api/v1/work/items/${workId}/evidence/`,
+    { params },
+  );
+  return toPage(data);
+}
+
+/** Review rounds for a work item (paginated, visibility-filtered). */
+export async function listReviews(
+  workId: string,
+  params?: { page?: number; page_size?: number },
+): Promise<Page<WorkReviewRound>> {
+  const { data } = await api.get<Paginated<WorkReviewRound>>(
+    `/api/v1/work/items/${workId}/reviews/`,
     { params },
   );
   return toPage(data);

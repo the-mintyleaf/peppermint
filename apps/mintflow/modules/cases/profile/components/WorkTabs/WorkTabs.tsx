@@ -14,6 +14,7 @@ import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { tokens } from "@/config/design";
 import { ActivityTimeline } from "../ActivityTimeline";
 import { EvidencePanel } from "../EvidencePanel";
+import { ReviewPanel } from "../ReviewPanel";
 import type { CaseView } from "../../caseView";
 import type { WorkTab } from "../../CaseProfile.hooks";
 import type { WorkTabsProps } from "./WorkTabs.types";
@@ -76,6 +77,7 @@ export function WorkTabs({
   const data = [
     { value: "activity" satisfies WorkTab, label: "Activity" },
     { value: "evidence" satisfies WorkTab, label: "Evidence" },
+    { value: "review" satisfies WorkTab, label: "Review" },
     {
       value: "people" satisfies WorkTab,
       label: `People · ${view.people.length}`,
@@ -112,6 +114,7 @@ export function WorkTabs({
         />
       ) : null}
       {tab === "evidence" ? <EvidencePanel workId={view.item.id} /> : null}
+      {tab === "review" ? <ReviewPanel workId={view.item.id} /> : null}
       {tab === "people" ? <PeoplePanel view={view} /> : null}
     </Stack>
   );

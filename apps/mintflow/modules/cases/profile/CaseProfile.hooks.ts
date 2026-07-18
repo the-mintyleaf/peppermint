@@ -14,6 +14,7 @@ import {
   getWorkItem,
   listActivities,
   listEvidence,
+  listReviews,
 } from "../cases.api";
 import {
   buildActivityView,
@@ -24,7 +25,7 @@ import {
   type CaseView,
 } from "./caseView";
 
-export type WorkTab = "activity" | "evidence" | "people";
+export type WorkTab = "activity" | "evidence" | "review" | "people";
 
 /**
  * Full case profile: the work item (the gate — a 404 here is "not found"),
@@ -78,6 +79,15 @@ export function useEvidence(caseId: string, enabled: boolean) {
   return useQuery({
     queryKey: workKeys.evidence(caseId),
     queryFn: () => listEvidence(caseId).then((page) => page.items),
+    enabled,
+  });
+}
+
+/** Review rounds for a work item — fetched lazily when the Review tab is open. */
+export function useReviews(caseId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: workKeys.reviews(caseId),
+    queryFn: () => listReviews(caseId).then((page) => page.items),
     enabled,
   });
 }

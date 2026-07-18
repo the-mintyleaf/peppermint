@@ -9,12 +9,14 @@ import {
 
 import { getWorkErrorMessage, workKeys } from "@/lib/work";
 import {
+  addReviewComment,
   archiveTask,
   archiveWork,
   blockTask,
   closeWork,
   completeTask,
   createTask,
+  decideReview,
   extendWorkDeadline,
   recordActivity,
   rejectEvidence,
@@ -29,8 +31,10 @@ import {
   submitWorkForReview,
   unblockTask,
   verifyEvidence,
+  type AddReviewCommentPayload,
   type BlockPayload,
   type ClosePayload,
+  type DecideReviewPayload,
   type CreateTaskPayload,
   type DeadlineExtendPayload,
   type ReasonPayload,
@@ -255,5 +259,27 @@ export function useRejectEvidence(workId: string) {
     mutationFn: (evidenceId: string) => rejectEvidence(evidenceId),
     successMessage: "Evidence rejected",
     invalidateKeys: [workKeys.evidence(workId)],
+  });
+}
+
+/* ── Review ───────────────────────────────────────────────────────────────── */
+
+export function useDecideReview(workId: string) {
+  return useWorkMutation({
+    mutationFn: (vars: { reviewId: string; payload: DecideReviewPayload }) =>
+      decideReview(vars.reviewId, vars.payload),
+    successMessage: "Review decided",
+    invalidateKeys: [workKeys.reviews(workId), workKeys.item(workId)],
+  });
+}
+
+export function useAddReviewComment(workId: string) {
+  return useWorkMutation({
+    mutationFn: (vars: {
+      reviewId: string;
+      payload: AddReviewCommentPayload;
+    }) => addReviewComment(vars.reviewId, vars.payload),
+    successMessage: "Comment added",
+    invalidateKeys: [workKeys.reviews(workId)],
   });
 }
