@@ -20,6 +20,7 @@ import {
   type WorkActivityEntry,
   type WorkItem,
   type WorkPriority,
+  type WorkStatus,
   type WorkTask,
 } from "@/lib/work";
 
@@ -100,6 +101,28 @@ export const TASK_ACTION_LABEL: Record<TaskActionKind, string> = {
   return: "Return uncompleted",
   archive: "Archive",
 };
+
+export type WorkActionKind = "start" | "archive" | "restore";
+
+export const WORK_ACTION_LABEL: Record<WorkActionKind, string> = {
+  start: "Start work",
+  archive: "Archive",
+  restore: "Restore",
+};
+
+/**
+ * Form-free work-item commands offered for a status. The backend validates the
+ * transition (invalid → 409), so this is a sensible menu, not the full rule set.
+ * Commands that need fields (close/reopen/deadline/…) are added with their forms.
+ */
+export function availableWorkActions(status: WorkStatus): WorkActionKind[] {
+  if (status === "archived") return ["restore"];
+  const actions: WorkActionKind[] = [];
+  if (status === "accepted" || status === "changes_requested")
+    actions.push("start");
+  actions.push("archive");
+  return actions;
+}
 
 /**
  * Commands offered for a task in a given status. The backend is the authority

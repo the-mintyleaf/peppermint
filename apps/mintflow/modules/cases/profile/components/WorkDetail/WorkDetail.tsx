@@ -1,9 +1,11 @@
 "use client";
 
 import {
+  ActionIcon,
   Badge,
   Box,
   Group,
+  Menu,
   Progress,
   SimpleGrid,
   Stack,
@@ -15,6 +17,7 @@ import { MonoText, SectionLabel, StatusPill } from "@/components";
 import { tokens } from "@/config/design";
 import { WORK_PRIORITY_LABEL, WORK_STATUS_LABEL } from "@/lib/work";
 import { PRIORITY_STYLE, STATUS_STYLE } from "../../../cases.styles";
+import { availableWorkActions, WORK_ACTION_LABEL } from "../../caseView";
 import type { WorkDetailProps } from "./WorkDetail.types";
 
 interface MetricTileProps {
@@ -73,11 +76,18 @@ function MetricTile({
  * Case detail card: status / priority badges, title + reference number + unit,
  * objective, and the four-metric strip (progress, open tasks, due, created).
  */
-export function WorkDetail({ view }: WorkDetailProps) {
+export function WorkDetail({
+  view,
+  onWorkAction,
+  workActionPending,
+}: WorkDetailProps) {
   const status = STATUS_STYLE[view.item.status];
   const priority = PRIORITY_STYLE[view.priority];
   const { progress } = view;
   const openTasks = progress.total - progress.done;
+  const workActions = onWorkAction
+    ? availableWorkActions(view.item.status)
+    : [];
 
   return (
     <Stack gap={0}>
@@ -94,11 +104,34 @@ export function WorkDetail({ view }: WorkDetailProps) {
           </StatusPill>
         ) : null}
         <Box style={{ flex: 1 }} />
-        <DotsThreeIcon
-          size={20}
-          color={tokens.muted}
-          aria-label="Case actions"
-        />
+        {onWorkAction && workActions.length > 0 ? (
+          <Menu shadow="sm" width={180} position="bottom-end" withinPortal>
+            <Menu.Target>
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                size="sm"
+                loading={workActionPending}
+                aria-label="Case actions"
+              >
+                <DotsThreeIcon size={20} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              {workActions.map((action) => (
+                <Menu.Item
+                  key={action}
+                  color={action === "archive" ? "red" : undefined}
+                  onClick={() => onWorkAction(action)}
+                >
+                  {WORK_ACTION_LABEL[action]}
+                </Menu.Item>
+              ))}
+            </Menu.Dropdown>
+          </Menu>
+        ) : (
+          <DotsThreeIcon size={20} color={tokens.muted} aria-label="Case" />
+        )}
       </Group>
 
       <Text

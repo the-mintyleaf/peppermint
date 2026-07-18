@@ -10,11 +10,14 @@ import {
 import { getWorkErrorMessage, workKeys } from "@/lib/work";
 import {
   archiveTask,
+  archiveWork,
   completeTask,
   createTask,
   reorderTask,
+  restoreWork,
   returnTaskUncompleted,
   startTask,
+  startWork,
   type CreateTaskPayload,
   type ReorderTaskPayload,
   type ReturnTaskPayload,
@@ -104,5 +107,36 @@ export function useArchiveTask(workId: string) {
       archiveTask(vars.taskId, vars.payload),
     successMessage: "Task archived",
     invalidateKeys: taskKeys(workId),
+  });
+}
+
+/* ── Work-item lifecycle command hooks ────────────────────────────────────── */
+
+/** Keys touched by any work-item command. */
+function workItemKeys(workId: string): QueryKey[] {
+  return [workKeys.item(workId), workKeys.items()];
+}
+
+export function useStartWork(workId: string) {
+  return useWorkMutation({
+    mutationFn: (payload?: VersionedCommand) => startWork(workId, payload),
+    successMessage: "Work started",
+    invalidateKeys: workItemKeys(workId),
+  });
+}
+
+export function useArchiveWork(workId: string) {
+  return useWorkMutation({
+    mutationFn: (payload?: VersionedCommand) => archiveWork(workId, payload),
+    successMessage: "Work archived",
+    invalidateKeys: workItemKeys(workId),
+  });
+}
+
+export function useRestoreWork(workId: string) {
+  return useWorkMutation({
+    mutationFn: (payload?: VersionedCommand) => restoreWork(workId, payload),
+    successMessage: "Work restored",
+    invalidateKeys: workItemKeys(workId),
   });
 }

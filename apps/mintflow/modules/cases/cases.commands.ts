@@ -12,6 +12,7 @@ import type {
   AssignmentTargetType,
   BlockerType,
   WorkAssignment,
+  WorkItem,
   WorkTask,
 } from "@/lib/work";
 
@@ -19,6 +20,41 @@ import type {
 export interface VersionedCommand {
   reason?: string;
   aggregate_version?: number;
+}
+
+/* ── Work-item lifecycle commands (form-free) ─────────────────────────────── */
+
+export async function startWork(
+  workId: string,
+  payload: VersionedCommand = {},
+): Promise<WorkItem> {
+  const { data } = await api.post<WorkItem>(
+    `/api/v1/work/items/${workId}/start/`,
+    payload,
+  );
+  return data;
+}
+
+export async function archiveWork(
+  workId: string,
+  payload: VersionedCommand = {},
+): Promise<WorkItem> {
+  const { data } = await api.post<WorkItem>(
+    `/api/v1/work/items/${workId}/archive/`,
+    payload,
+  );
+  return data;
+}
+
+export async function restoreWork(
+  workId: string,
+  payload: VersionedCommand = {},
+): Promise<WorkItem> {
+  const { data } = await api.post<WorkItem>(
+    `/api/v1/work/items/${workId}/restore/`,
+    payload,
+  );
+  return data;
 }
 
 export interface CreateTaskPayload {

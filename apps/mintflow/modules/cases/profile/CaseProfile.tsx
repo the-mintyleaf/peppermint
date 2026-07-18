@@ -23,15 +23,18 @@ import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { tokens } from "@/config/design";
 import {
   useArchiveTask,
+  useArchiveWork,
   useCompleteTask,
+  useRestoreWork,
   useStartTask,
+  useStartWork,
 } from "../cases.mutations";
 import {
   useCaseProfile,
   useProfileView,
   useVisibleActivity,
 } from "./CaseProfile.hooks";
-import type { TaskActionKind, TaskChipView } from "./caseView";
+import type { TaskActionKind, TaskChipView, WorkActionKind } from "./caseView";
 import { InsightsRail, TaskStrip, WorkDetail, WorkTabs } from "./components";
 import type { ModuleCaseProfileProps } from "./CaseProfile.types";
 
@@ -83,6 +86,19 @@ export function ModuleCaseProfile({
     if (action === "start") startTask.mutate(vars);
     else if (action === "complete") completeTask.mutate(vars);
     else if (action === "archive") archiveTask.mutate(vars);
+  };
+
+  const startWork = useStartWork(caseId);
+  const archiveWork = useArchiveWork(caseId);
+  const restoreWork = useRestoreWork(caseId);
+  const workActionPending =
+    startWork.isPending || archiveWork.isPending || restoreWork.isPending;
+
+  const runWorkAction = (action: WorkActionKind) => {
+    const payload = { aggregate_version: view?.item.aggregate_version };
+    if (action === "start") startWork.mutate(payload);
+    else if (action === "archive") archiveWork.mutate(payload);
+    else if (action === "restore") restoreWork.mutate(payload);
   };
 
   const filterTask = view?.tasks.find((t) => t.id === taskId);
@@ -190,7 +206,11 @@ export function ModuleCaseProfile({
                   <Grid.Col span={{ base: 10, lg: 7 }}>
                     <Stack gap={12}>
                       <Box p={26} style={CARD_STYLE}>
-                        <WorkDetail view={view} />
+                        <WorkDetail
+                          view={view}
+                          onWorkAction={runWorkAction}
+                          workActionPending={workActionPending}
+                        />
                       </Box>
                       <Box p={22} style={CARD_STYLE}>
                         <WorkTabs
