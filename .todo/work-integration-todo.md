@@ -26,10 +26,20 @@ Decisions: **faithful reshape** (adapt UI to real backend domain) · **full doma
 
 ## Phase 1 — Cases read path (WorkItem list + detail/profile)
 
-- [ ] Reshape `modules/cases/module.api.ts` off mock (keep token maps re-keyed to real enums)
-- [ ] Real query hooks: `Cases.hooks.ts`, `profile/CaseProfile.hooks.ts` (list, detail, tasks tree, activities, hierarchy-preview)
-- [ ] Wire list-view / block-view / detail modal / profile/\* to real DTOs; all UI states + 404-as-not-found
-- [ ] `/visual-review /cases` + `/cases/[id]`; `/verify` green; commit
+**List slice — ✅ done (commits c7dc922 / ddc82d3 / 12664cc):**
+
+- [x] Actor/unit directory resolver (`lib/work/directory.ts`) + cases read fetchers (`cases.api.ts`)
+- [x] Real style maps keyed to WorkStatus/WorkPriority (`cases.styles.ts`)
+- [x] `Cases.hooks.ts` real (`useWorkItems`, server `?status`, client search/sort) + `Cases.tsx` (loading/error-retry/empty)
+- [x] block-view (CaseCard) + list-view (CaseRow) on real WorkItem + resolved names; Files rail + orphan CaseDetailModal removed
+
+**Profile slice — remaining:**
+
+- [ ] `profile/profile.api.ts` + `CaseProfile.hooks.ts` → real `getWorkItem`/`getTaskTree`/`listActivities`/`getHierarchyPreview`
+- [ ] Reshape `CaseProfile.tsx` + WorkDetail / TaskStrip / ActivityTimeline / InsightsRail / WorkTabs to real DTOs; Files tab → Attachments+Evidence (P4 fills those)
+- [ ] Handle 404-as-not-found on unknown/invisible id; BS+Gregorian dates
+- [ ] Delete mock `module.api.ts` once profile migrated (last mock consumer)
+- [ ] `/visual-review /cases` + `/cases/[id]` against live backend; `/verify` green; commit
 
 ## Phase 2 — Tasks read + task commands
 
