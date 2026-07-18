@@ -1,10 +1,9 @@
-import type { CaseActivityEvent, CaseFile, WorkCase } from "../../profile.api";
+import type { ActivityView, CaseView } from "../../caseView";
 import type { WorkTab } from "../../CaseProfile.hooks";
 
 export interface WorkTabsProps {
-  workCase: WorkCase;
-  files: CaseFile[];
-  activity: CaseActivityEvent[];
+  view: CaseView;
+  activity: ActivityView[];
   tab: WorkTab;
   onTabChange: (tab: WorkTab) => void;
   /** Task title the activity feed is filtered to, if any. */

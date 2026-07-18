@@ -1,5 +1,5 @@
-import type { WorkCase } from "../../profile.api";
+import type { CaseView } from "../../caseView";
 
 export interface WorkDetailProps {
-  workCase: WorkCase;
+  view: CaseView;
 }

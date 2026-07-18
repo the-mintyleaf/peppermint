@@ -13,13 +13,8 @@ import { DotsThreeIcon } from "@phosphor-icons/react/dist/csr/DotsThree";
 
 import { MonoText, SectionLabel, StatusPill } from "@/components";
 import { tokens } from "@/config/design";
-import {
-  CATEGORY_STYLE,
-  PRIORITY_STYLE,
-  STATUS_STYLE,
-  caseProgress,
-} from "../../profile.api";
-import { dueRelative, formatDate } from "../../CaseProfile.utils";
+import { WORK_PRIORITY_LABEL, WORK_STATUS_LABEL } from "@/lib/work";
+import { PRIORITY_STYLE, STATUS_STYLE } from "../../../cases.styles";
 import type { WorkDetailProps } from "./WorkDetail.types";
 
 interface MetricTileProps {
@@ -27,7 +22,6 @@ interface MetricTileProps {
   value: string;
   sub?: string;
   subColor?: string;
-  valueColor?: string;
   dark?: boolean;
   children?: React.ReactNode;
 }
@@ -37,7 +31,6 @@ function MetricTile({
   value,
   sub,
   subColor,
-  valueColor,
   dark,
   children,
 }: MetricTileProps) {
@@ -56,7 +49,7 @@ function MetricTile({
         fz="24px"
         fw={700}
         mt={8}
-        c={valueColor ?? (dark ? tokens.paper : tokens.ink)}
+        c={dark ? tokens.paper : tokens.ink}
         style={{ lineHeight: 1.1 }}
       >
         {value}
@@ -77,29 +70,29 @@ function MetricTile({
 }
 
 /**
- * Case detail card: status / priority / category badges, title + case number,
- * summary, and the four-metric strip (progress, tasks, due, opened).
+ * Case detail card: status / priority badges, title + reference number + unit,
+ * objective, and the four-metric strip (progress, open tasks, due, created).
  */
-export function WorkDetail({ workCase }: WorkDetailProps) {
-  const status = STATUS_STYLE[workCase.status];
-  const priority = PRIORITY_STYLE[workCase.priority];
-  const category = CATEGORY_STYLE[workCase.category];
-  const progress = caseProgress(workCase);
-  const due = dueRelative(workCase.dueDate);
-  const dueColor = due.includes("overdue") ? tokens.accentDark : tokens.muted2;
+export function WorkDetail({ view }: WorkDetailProps) {
+  const status = STATUS_STYLE[view.item.status];
+  const priority = PRIORITY_STYLE[view.priority];
+  const { progress } = view;
+  const openTasks = progress.total - progress.done;
 
   return (
     <Stack gap={0}>
       <Group gap={9} align="center" wrap="wrap">
         <StatusPill fg={status.fg} bg={status.bg} fz="11px" dot={status.fg}>
-          {status.label}
+          {WORK_STATUS_LABEL[view.item.status]}
         </StatusPill>
         <Badge color={priority.color} variant="light" radius="sm" size="md">
-          {priority.label}
+          {WORK_PRIORITY_LABEL[view.priority]}
         </Badge>
-        <StatusPill fg={category.color} bg={category.tint} fz="11px">
-          {category.label}
-        </StatusPill>
+        {view.reviewRequired ? (
+          <StatusPill fg={tokens.purpleInk} bg={tokens.purpleSoft} fz="11px">
+            Review required
+          </StatusPill>
+        ) : null}
         <Box style={{ flex: 1 }} />
         <DotsThreeIcon
           size={20}
@@ -115,14 +108,14 @@ export function WorkDetail({ workCase }: WorkDetailProps) {
         c={tokens.ink}
         style={{ letterSpacing: "-0.02em", lineHeight: 1.15 }}
       >
-        {workCase.title}
+        {view.title}
       </Text>
       <Group gap={10} mt={6} wrap="wrap">
         <MonoText fz="12px" fw={600} c={tokens.muted}>
-          {workCase.caseNumber}
+          {view.referenceNumber}
         </MonoText>
         <Text fz="12px" c={tokens.muted}>
-          {workCase.location}
+          {view.unitName}
         </Text>
       </Group>
       <Text
@@ -132,7 +125,7 @@ export function WorkDetail({ workCase }: WorkDetailProps) {
         maw={660}
         style={{ lineHeight: 1.6 }}
       >
-        {workCase.summary}
+        {view.objective}
       </Text>
 
       <SimpleGrid cols={{ base: 2, md: 4 }} spacing={10} mt={22}>
@@ -153,19 +146,18 @@ export function WorkDetail({ workCase }: WorkDetailProps) {
         </MetricTile>
         <MetricTile
           label="Open tasks"
-          value={`${progress.total - progress.done}`}
+          value={`${openTasks}`}
           sub={`${progress.total} total`}
         />
         <MetricTile
           label="Due"
-          value={formatDate(workCase.dueDate)}
-          sub={due}
-          subColor={dueColor}
+          value={view.dueLabel || "—"}
+          sub={view.dueBs || undefined}
         />
         <MetricTile
-          label="Opened"
-          value={formatDate(workCase.openedDate)}
-          sub={`Updated ${workCase.updated}`}
+          label="Created"
+          value={view.createdLabel}
+          sub={`Updated ${view.updatedLabel}`}
         />
       </SimpleGrid>
     </Stack>

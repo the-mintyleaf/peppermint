@@ -5,7 +5,7 @@ import { CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
 
 import { MonoText } from "@/components";
 import { tokens } from "@/config/design";
-import { TASK_STATE_STYLE } from "../../profile.api";
+import { TASK_STATE_STYLE } from "../../caseView";
 import type { TaskStripProps } from "./TaskStrip.types";
 
 /**

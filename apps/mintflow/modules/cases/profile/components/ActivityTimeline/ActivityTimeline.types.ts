@@ -1,8 +1,8 @@
-import type { CaseActivityEvent, WorkCase } from "../../profile.api";
+import type { ActivityView, CaseView } from "../../caseView";
 
 export interface ActivityTimelineProps {
-  workCase: WorkCase;
-  events: CaseActivityEvent[];
+  view: CaseView;
+  events: ActivityView[];
   /** Title of the task the feed is filtered to, if any. */
   filterLabel?: string;
   onClearFilter?: () => void;

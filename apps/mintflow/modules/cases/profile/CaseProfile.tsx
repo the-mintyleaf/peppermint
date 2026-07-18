@@ -10,12 +10,12 @@ import {
   Group,
   ModalPaper,
   ModuleHeader,
+  notifications,
   ScrollArea,
   Skeleton,
   Stack,
   Text,
   Title,
-  notifications,
 } from "@peppermint/ui";
 import { ArrowLeftIcon } from "@phosphor-icons/react/dist/csr/ArrowLeft";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
@@ -55,31 +55,31 @@ export function ModuleCaseProfile({
   const router = useRouter();
   const caseId = caseIdProp ?? params.caseId;
 
-  const { data, isLoading, isError, refetch } = useCaseProfile(caseId);
+  const { view, activity, isLoading, isError, notFound, refetch } =
+    useCaseProfile(caseId);
   const { taskId, toggleTask, setTaskId, tab, setTab } = useProfileView();
-  const activity = useVisibleActivity(data?.activity, taskId);
+  const visibleActivity = useVisibleActivity(activity, taskId);
 
-  const workCase = data?.workCase;
-  const filterTask = workCase?.tasks.find((t) => t.id === taskId);
+  const filterTask = view?.tasks.find((t) => t.id === taskId);
 
   const breadcrumb = [
     { label: "Cases", href: "/cases" },
-    { label: workCase?.title ?? "Case", href: `/cases/${caseId}` },
+    { label: view?.title ?? "Case", href: `/cases/${caseId}` },
   ];
 
   const headerRight = (
     <Group gap="sm" mr="sm" wrap="nowrap">
-      {workCase ? (
+      {view && view.people.length > 0 ? (
         <Avatar.Group spacing="sm">
-          {workCase.officers.map((o) => (
+          {view.people.slice(0, 4).map((p) => (
             <Avatar
-              key={o.id}
-              color={o.color}
+              key={p.id}
+              color={p.color}
               radius="xl"
               size={30}
               styles={{ placeholder: { fontSize: 11, fontWeight: 700 } }}
             >
-              {o.initials}
+              {p.initials}
             </Avatar>
           ))}
         </Avatar.Group>
@@ -123,7 +123,7 @@ export function ModuleCaseProfile({
                 Try again
               </Button>
             </ProfileNotice>
-          ) : !workCase ? (
+          ) : notFound || !view ? (
             <ProfileNotice>
               <Text c="dimmed" size="sm">
                 Case not found.
@@ -147,13 +147,13 @@ export function ModuleCaseProfile({
                 mb={16}
                 style={{ letterSpacing: "-0.02em" }}
               >
-                {workCase.title}
+                {view.title}
               </Title>
 
               <Stack gap={14}>
-                {workCase.tasks.length > 0 ? (
+                {view.tasks.length > 0 ? (
                   <TaskStrip
-                    tasks={workCase.tasks}
+                    tasks={view.tasks}
                     selectedId={taskId}
                     onToggle={toggleTask}
                   />
@@ -163,13 +163,12 @@ export function ModuleCaseProfile({
                   <Grid.Col span={{ base: 10, lg: 7 }}>
                     <Stack gap={12}>
                       <Box p={26} style={CARD_STYLE}>
-                        <WorkDetail workCase={workCase} />
+                        <WorkDetail view={view} />
                       </Box>
                       <Box p={22} style={CARD_STYLE}>
                         <WorkTabs
-                          workCase={workCase}
-                          files={data?.files ?? []}
-                          activity={activity}
+                          view={view}
+                          activity={visibleActivity}
                           tab={tab}
                           onTabChange={setTab}
                           filterLabel={filterTask?.title}
@@ -182,7 +181,7 @@ export function ModuleCaseProfile({
                   <Grid.Col span={{ base: 10, lg: 3 }}>
                     <Box style={{ position: "sticky", top: 12 }}>
                       <InsightsRail
-                        workCase={workCase}
+                        view={view}
                         onViewPeople={() => setTab("people")}
                       />
                     </Box>

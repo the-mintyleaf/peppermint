@@ -3,19 +3,72 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@peppermint/ui";
 
-import { fetchCaseProfile } from "./profile.api";
-import type { CaseActivityEvent } from "./profile.api";
+import {
+  isWorkNotFound,
+  useActorDirectory,
+  useUnitDirectory,
+  workKeys,
+} from "@/lib/work";
+import { getTaskTree, getWorkItem, listActivities } from "../cases.api";
+import {
+  buildActivityView,
+  buildCaseView,
+  caseActorIds,
+  caseUnitIds,
+  type ActivityView,
+  type CaseView,
+} from "./caseView";
 
-export type WorkTab = "activity" | "files" | "people";
+export type WorkTab = "activity" | "people";
 
+/**
+ * Full case profile: the work item (the gate — a 404 here is "not found"),
+ * plus its task tree and activity timeline, all resolved to a single view-model
+ * with owner/assignee/unit names filled in from the directory.
+ */
 export function useCaseProfile(caseId: string) {
-  return useQuery({
-    queryKey: ["cases", "profile", caseId],
-    queryFn: () => fetchCaseProfile(caseId),
+  const itemQuery = useQuery({
+    queryKey: workKeys.item(caseId),
+    queryFn: () => getWorkItem(caseId),
+    retry: false,
   });
+  const item = itemQuery.data;
+
+  const tasksQuery = useQuery({
+    queryKey: workKeys.tasks(caseId),
+    queryFn: () => getTaskTree(caseId),
+    enabled: Boolean(item),
+  });
+  const activityQuery = useQuery({
+    queryKey: workKeys.activities(caseId),
+    queryFn: () => listActivities(caseId).then((page) => page.items),
+    enabled: Boolean(item),
+  });
+
+  const tasks = tasksQuery.data ?? [];
+  const activity = activityQuery.data ?? [];
+
+  const actorDir = useActorDirectory(caseActorIds(item, tasks, activity));
+  const unitDir = useUnitDirectory(caseUnitIds(item, tasks));
+
+  const view: CaseView | null = item
+    ? buildCaseView(item, tasks, activity, actorDir, unitDir)
+    : null;
+  const activityView: ActivityView[] = buildActivityView(activity, actorDir);
+
+  const notFound = itemQuery.isError && isWorkNotFound(itemQuery.error);
+
+  return {
+    view,
+    activity: activityView,
+    isLoading: itemQuery.isLoading,
+    isError: itemQuery.isError && !notFound,
+    notFound,
+    refetch: itemQuery.refetch,
+  };
 }
 
-/** Selected checklist-task (feed filter) + active work tab. */
+/** Selected task (feed filter) + active work tab. */
 export function useProfileView() {
   const [taskId, setTaskId] = useState<string | null>(null);
   const [tab, setTab] = useState<WorkTab>("activity");
@@ -26,16 +79,17 @@ export function useProfileView() {
   return { taskId, setTaskId, toggleTask, tab, setTab };
 }
 
-/** Activity filtered to a selected task, or the full feed when none is picked.
- *  A task with no events yields an empty list (not the full feed) so the
- *  "showing activity for X" banner never lies. */
+/**
+ * Activity filtered to a selected task, or the full feed when none is picked. A
+ * task with no events yields an empty list (not the full feed) so the "showing
+ * activity for X" banner never lies.
+ */
 export function useVisibleActivity(
-  activity: CaseActivityEvent[] | undefined,
+  activity: ActivityView[],
   taskId: string | null,
-): CaseActivityEvent[] {
+): ActivityView[] {
   return useMemo(() => {
-    const feed = activity ?? [];
-    if (!taskId) return feed;
-    return feed.filter((e) => e.taskId === taskId);
+    if (!taskId) return activity;
+    return activity.filter((e) => e.taskId === taskId);
   }, [activity, taskId]);
 }

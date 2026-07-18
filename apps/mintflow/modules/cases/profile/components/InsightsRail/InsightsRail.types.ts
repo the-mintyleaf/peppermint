@@ -1,7 +1,7 @@
-import type { WorkCase } from "../../profile.api";
+import type { CaseView } from "../../caseView";
 
 export interface InsightsRailProps {
-  workCase: WorkCase;
-  /** Jumps the work tabs to the People (officers) panel. */
+  view: CaseView;
+  /** Jumps the work tabs to the People panel. */
   onViewPeople: () => void;
 }

@@ -7,19 +7,17 @@ import {
   Group,
   Progress,
   Stack,
-  Switch,
   Text,
 } from "@peppermint/ui";
+import { BuildingsIcon } from "@phosphor-icons/react/dist/csr/Buildings";
 
 import { MonoText, SectionLabel, StatusPill } from "@/components";
 import { tokens } from "@/config/design";
 import {
   PRIORITY_METER,
   TASK_STATE_STYLE,
-  caseProgress,
-  taskBreakdown,
-} from "../../profile.api";
-import type { WorkCase } from "../../profile.api";
+  type CaseView,
+} from "../../caseView";
 import type { InsightsRailProps } from "./InsightsRail.types";
 
 const CARD_STYLE = {
@@ -29,10 +27,10 @@ const CARD_STYLE = {
   boxShadow: tokens.shadow.card,
 } as const;
 
-/** Dark card: the lead officer this case reports through + notify toggle. */
-function LeadCard({ workCase }: { workCase: WorkCase }) {
-  const lead = workCase.officers[0];
-  if (!lead) return null;
+/** Dark card: the accountable owner + responsible unit. */
+function OwnerCard({ view }: { view: CaseView }) {
+  const { owner } = view;
+  if (!owner) return null;
   return (
     <Box
       p={20}
@@ -43,77 +41,45 @@ function LeadCard({ workCase }: { workCase: WorkCase }) {
         color: tokens.paper,
       }}
     >
-      <SectionLabel c={tokens.accent}>Case lead</SectionLabel>
+      <SectionLabel c={tokens.accent}>Accountable owner</SectionLabel>
       <Group gap={12} mt={14} wrap="nowrap">
         <Avatar
-          color={lead.color}
+          color={owner.color}
           radius="md"
           size={44}
           styles={{ placeholder: { fontSize: 15, fontWeight: 700 } }}
         >
-          {lead.initials}
+          {owner.initials}
         </Avatar>
         <Box style={{ minWidth: 0 }}>
           <Text fz="16px" fw={700} truncate>
-            {lead.name}
+            {owner.name}
           </Text>
           <Text fz="12px" c="rgba(255,255,255,0.7)" truncate>
-            {lead.role}
+            {owner.role}
           </Text>
         </Box>
       </Group>
 
-      <Group gap={6} mt={16} wrap="wrap">
-        {workCase.departments.map((dept) => (
-          <MonoText
-            key={dept}
-            fz="10px"
-            fw={700}
-            px={8}
-            py={4}
-            c="rgba(255,255,255,0.82)"
-            style={{
-              background: "rgba(255,255,255,0.1)",
-              borderRadius: 7,
-              textTransform: "uppercase",
-              letterSpacing: "0.04em",
-            }}
-          >
-            {dept}
-          </MonoText>
-        ))}
-      </Group>
-
       <Group
-        gap={10}
+        gap={8}
         mt={16}
         pt={16}
         wrap="nowrap"
         style={{ borderTop: "1px solid rgba(255,255,255,0.18)" }}
       >
-        <Switch
-          defaultChecked
-          color="accent"
-          size="sm"
-          aria-label="Notify the lead on status change"
-          styles={{ track: { cursor: "pointer" } }}
-        />
-        <Box style={{ minWidth: 0 }}>
-          <Text fz="13px" fw={700}>
-            Notify on status change
-          </Text>
-          <Text fz="11px" c="rgba(255,255,255,0.68)">
-            Lead alerted when this case moves stage
-          </Text>
-        </Box>
+        <BuildingsIcon size={15} color="rgba(255,255,255,0.7)" />
+        <Text fz="13px" fw={600} truncate>
+          {view.unitName}
+        </Text>
       </Group>
     </Box>
   );
 }
 
-/** Priority read as a 4-segment urgency meter. */
-function PriorityCard({ workCase }: { workCase: WorkCase }) {
-  const meter = PRIORITY_METER[workCase.priority];
+/** Priority read as a 5-segment urgency meter (one per WorkPriority level). */
+function PriorityCard({ view }: { view: CaseView }) {
+  const meter = PRIORITY_METER[view.priority];
   return (
     <Box p={20} style={CARD_STYLE}>
       <Group gap={9} align="center" wrap="nowrap">
@@ -124,7 +90,7 @@ function PriorityCard({ workCase }: { workCase: WorkCase }) {
         </StatusPill>
       </Group>
       <Group gap={5} mt={14} wrap="nowrap">
-        {[0, 1, 2, 3].map((i) => (
+        {[0, 1, 2, 3, 4].map((i) => (
           <Box
             key={i}
             h={8}
@@ -144,9 +110,8 @@ function PriorityCard({ workCase }: { workCase: WorkCase }) {
 }
 
 /** Completion percentage + a done / in-progress / pending breakdown. */
-function ProgressCard({ workCase }: { workCase: WorkCase }) {
-  const progress = caseProgress(workCase);
-  const breakdown = taskBreakdown(workCase);
+function ProgressCard({ view }: { view: CaseView }) {
+  const { progress, breakdown } = view;
   const rows = [
     {
       label: "Done",
@@ -213,41 +178,41 @@ function ProgressCard({ workCase }: { workCase: WorkCase }) {
   );
 }
 
-/** Condensed officer list with a link into the People tab. */
-function OfficersBrief({ workCase, onViewPeople }: InsightsRailProps) {
-  const brief = workCase.officers.slice(0, 3);
+/** Condensed people list with a link into the People tab. */
+function PeopleBrief({ view, onViewPeople }: InsightsRailProps) {
+  const brief = view.people.slice(0, 3);
   return (
     <Box p={20} style={CARD_STYLE}>
       <Group gap={9} align="center" wrap="nowrap">
-        <SectionLabel>Officers assigned</SectionLabel>
+        <SectionLabel>People</SectionLabel>
         <Box style={{ flex: 1 }} />
         <MonoText fz="12px" fw={700} c={tokens.muted}>
-          {workCase.officers.length}
+          {view.people.length}
         </MonoText>
       </Group>
       <Stack gap={12} mt={14}>
-        {brief.map((officer) => (
-          <Group key={officer.id} gap={11} wrap="nowrap">
+        {brief.map((person) => (
+          <Group key={person.id} gap={11} wrap="nowrap">
             <Avatar
-              color={officer.color}
+              color={person.color}
               radius="xl"
               size={30}
               styles={{ placeholder: { fontSize: 10, fontWeight: 700 } }}
             >
-              {officer.initials}
+              {person.initials}
             </Avatar>
             <Box style={{ minWidth: 0, flex: 1 }}>
               <Text fz="13px" fw={600} c={tokens.ink} truncate>
-                {officer.name}
+                {person.name}
               </Text>
               <Text fz="11px" c={tokens.muted} truncate>
-                {officer.role}
+                {person.role}
               </Text>
             </Box>
           </Group>
         ))}
       </Stack>
-      {workCase.officers.length > brief.length ? (
+      {view.people.length > brief.length ? (
         <Button
           fullWidth
           variant="default"
@@ -255,21 +220,21 @@ function OfficersBrief({ workCase, onViewPeople }: InsightsRailProps) {
           mt={16}
           onClick={onViewPeople}
         >
-          View all officers
+          View all people
         </Button>
       ) : null}
     </Box>
   );
 }
 
-/** Right-hand insights rail: lead, priority, progress, officers brief. */
-export function InsightsRail({ workCase, onViewPeople }: InsightsRailProps) {
+/** Right-hand insights rail: owner, priority, progress, people brief. */
+export function InsightsRail({ view, onViewPeople }: InsightsRailProps) {
   return (
     <Stack gap={12}>
-      <LeadCard workCase={workCase} />
-      <PriorityCard workCase={workCase} />
-      <ProgressCard workCase={workCase} />
-      <OfficersBrief workCase={workCase} onViewPeople={onViewPeople} />
+      <OwnerCard view={view} />
+      <PriorityCard view={view} />
+      <ProgressCard view={view} />
+      <PeopleBrief view={view} onViewPeople={onViewPeople} />
     </Stack>
   );
 }

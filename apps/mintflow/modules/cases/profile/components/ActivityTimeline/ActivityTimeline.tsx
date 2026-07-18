@@ -2,37 +2,28 @@
 
 import { Anchor, Box, Group, Stack, Text } from "@peppermint/ui";
 import { CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
-import { ClockCountdownIcon } from "@phosphor-icons/react/dist/csr/ClockCountdown";
 import { FileArrowUpIcon } from "@phosphor-icons/react/dist/csr/FileArrowUp";
 import { FlagBannerIcon } from "@phosphor-icons/react/dist/csr/FlagBanner";
+import { GavelIcon } from "@phosphor-icons/react/dist/csr/Gavel";
 import { NoteIcon } from "@phosphor-icons/react/dist/csr/Note";
-import { SparkleIcon } from "@phosphor-icons/react/dist/csr/Sparkle";
+import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import type { Icon } from "@phosphor-icons/react";
 
 import { MonoText } from "@/components";
 import { tokens } from "@/config/design";
-import { ACTIVITY_STYLE, caseProgress } from "../../profile.api";
-import type { CaseActivityKind } from "../../profile.api";
+import { ACTIVITY_STYLE, type ActivityKind } from "../../caseView";
 import type { ActivityTimelineProps } from "./ActivityTimeline.types";
 
-const ACTIVITY_ICON: Record<CaseActivityKind, Icon> = {
-  opened: FlagBannerIcon,
-  task_done: CheckIcon,
-  task_progress: ClockCountdownIcon,
-  file: FileArrowUpIcon,
-  status: SparkleIcon,
+const ACTIVITY_ICON: Record<ActivityKind, Icon> = {
+  submission: FileArrowUpIcon,
+  review: CheckIcon,
+  blocker: FlagBannerIcon,
+  correction: PencilSimpleIcon,
+  decision: GavelIcon,
   note: NoteIcon,
 };
 
-function SummaryChip({
-  label,
-  value,
-  valueColor,
-}: {
-  label: string;
-  value: string;
-  valueColor?: string;
-}) {
+function SummaryChip({ label, value }: { label: string; value: string }) {
   return (
     <Group
       gap={8}
@@ -44,21 +35,21 @@ function SummaryChip({
       <Text fz="12px" fw={600} c={tokens.muted2}>
         {label}
       </Text>
-      <MonoText fz="13px" fw={700} c={valueColor ?? tokens.ink}>
+      <MonoText fz="13px" fw={700} c={tokens.ink}>
         {value}
       </MonoText>
     </Group>
   );
 }
 
-/** Vertical case activity feed derived from tasks, files, and open/due dates. */
+/** Vertical case activity feed over the real WorkActivityEntry timeline. */
 export function ActivityTimeline({
-  workCase,
+  view,
   events,
   filterLabel,
   onClearFilter,
 }: ActivityTimelineProps) {
-  const progress = caseProgress(workCase);
+  const { progress } = view;
 
   return (
     <Stack gap={22}>
@@ -67,11 +58,8 @@ export function ActivityTimeline({
           label="Completed"
           value={`${progress.done}/${progress.total}`}
         />
-        <SummaryChip label="Officers" value={`${workCase.officers.length}`} />
-        <SummaryChip
-          label="Departments"
-          value={`${workCase.departments.length}`}
-        />
+        <SummaryChip label="People" value={`${view.people.length}`} />
+        <SummaryChip label="Unit" value={view.unitName} />
       </Group>
 
       {filterLabel ? (
