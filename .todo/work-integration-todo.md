@@ -64,10 +64,11 @@ all live under a work item there. Anything without a backend stays on mock and i
 
 - [x] **Activity** — record-activity form on the Activity tab (commit 9227d5a); correct = later
 - [x] **Evidence** tab — list + submit (text/external/structured) + verify/reject (commit 7db19b9)
-- [ ] **Review** tab: list rounds + add comment + decide (self-review/stale guards surfaced)
-- [ ] **Stakeholders**: create / update (bilingual names — self-contained); notify gated
-- [ ] **Participants**: add / end — ⚠️ needs actor picker (org infra, deferred with create-work)
-- [ ] check-types + lint green · commit (split per tab)
+- [x] **Review** tab — rounds list + decide + comment (commit 7f772e8)
+- [~] **Stakeholders** — ⛔ GAP: no GET/list endpoint (only POST create / PATCH update / POST notify). Write-only → not a usable tab. Moved to Gaps.
+- [~] **Participants** — ⛔ GAP: no GET/list endpoint (only POST add / POST end). Write-only → Gaps.
+
+**Phase 4 integrable scope COMPLETE** (Activity + Evidence + Review). Stakeholders/participants have no read endpoint.
 
 ### Phase 5 — Finalize
 
@@ -88,3 +89,7 @@ No clean backend exists — out of scope until the backend adds endpoints:
 - **File attachments + file-backed evidence** — gated `503 WORK_DOCUMENT_INTEGRATION_UNAVAILABLE`.
 - **Restricted / confidential / explicit visibility creation** — gated `422 WORK_VISIBILITY_MODE_UNSUPPORTED`.
 - **External stakeholder notifications** — gated (curated-template only).
+- **Stakeholders & Participants** — **no GET/list endpoint** (only write: create/update/notify, add/end). Can't
+  list existing rows, so no usable tab. Integrable once the backend adds `GET /items/{id}/{stakeholders,participants}/`.
+- **Create-work / assign / route / transfer** — need an org-context + units/actor picker layer not yet in the
+  mintflow client (org admin lives in mintflow-admin). Deferred by decision, not a hard gap.
