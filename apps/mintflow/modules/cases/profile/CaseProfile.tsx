@@ -10,12 +10,12 @@ import {
   Group,
   ModalPaper,
   ModuleHeader,
-  notifications,
   ScrollArea,
   Skeleton,
   Stack,
   Text,
   Title,
+  useDisclosure,
 } from "@peppermint/ui";
 import { ArrowLeftIcon } from "@phosphor-icons/react/dist/csr/ArrowLeft";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
@@ -35,12 +35,14 @@ import {
   useVisibleActivity,
 } from "./CaseProfile.hooks";
 import type { TaskActionKind, TaskChipView, WorkActionKind } from "./caseView";
-import { InsightsRail, TaskStrip, WorkDetail, WorkTabs } from "./components";
+import {
+  CreateTaskModal,
+  InsightsRail,
+  TaskStrip,
+  WorkDetail,
+  WorkTabs,
+} from "./components";
 import type { ModuleCaseProfileProps } from "./CaseProfile.types";
-
-function notConnected() {
-  notifications.show({ message: "Not connected yet", color: "gray" });
-}
 
 const CARD_STYLE = {
   background: tokens.paper,
@@ -101,6 +103,8 @@ export function ModuleCaseProfile({
     else if (action === "restore") restoreWork.mutate(payload);
   };
 
+  const [taskModalOpened, taskModal] = useDisclosure(false);
+
   const filterTask = view?.tasks.find((t) => t.id === taskId);
 
   const breadcrumb = [
@@ -129,7 +133,8 @@ export function ModuleCaseProfile({
       <Button
         size="xs"
         leftSection={<PlusIcon size={16} aria-label="Add task" />}
-        onClick={notConnected}
+        onClick={taskModal.open}
+        disabled={!view}
       >
         Add task
       </Button>
@@ -239,6 +244,15 @@ export function ModuleCaseProfile({
           )}
         </ScrollArea>
       </ModalPaper>
+
+      {view ? (
+        <CreateTaskModal
+          workId={caseId}
+          responsibleUnit={view.item.responsible_unit}
+          opened={taskModalOpened}
+          onClose={taskModal.close}
+        />
+      ) : null}
     </>
   );
 }

@@ -6,3 +6,4 @@ export {
 } from "./ActivityTimeline";
 export { WorkTabs, type WorkTabsProps } from "./WorkTabs";
 export { InsightsRail, type InsightsRailProps } from "./InsightsRail";
+export { CreateTaskModal, type CreateTaskModalProps } from "./CreateTaskModal";
