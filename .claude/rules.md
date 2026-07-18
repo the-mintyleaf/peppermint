@@ -72,6 +72,10 @@ pnpm format       # run before verification (root only)
 
 Only run commands that exist in the repo. Do not invent scripts.
 
+Which of these to run scales with change risk (trivial docs/styling → high-risk
+types/API/forms/tables/routing/mutations). Full risk tiers + what the anti-pattern hook
+actually blocks vs only advises: `.claude/STANDARDS.md → Verification & Testing Standards`.
+
 Parallel dispatch, phase commits, and dual-review rules: `.claude/PARALLEL.md`.
 
 ---

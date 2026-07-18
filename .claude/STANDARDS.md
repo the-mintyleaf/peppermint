@@ -421,6 +421,28 @@ Utility docs should include:
 >
 > **ACTIVE vs DORMANT:** Categories marked **DORMANT** describe standards whose runner is not configured in this repo yet (no test framework, no analyzer, no Storybook app). They remain the target for when that infra lands. For a DORMANT category: **do not invent or run its scripts** (`rules.md`: only run commands that exist) — verify the checklist items manually where feasible and note what could not be verified. The only runnable scripts today are the root `package.json` scripts (`build`, `dev`, `lint`, `format`, `format:check`, `check-types`) plus native pnpm commands (`install`, `audit`).
 
+> **Automated hooks — what blocks vs what only advises (be accurate about this):**
+>
+> - `anti-pattern-gate.sh` (`PreToolUse`) is a **real hard gate**: it exits non-zero and
+>   **blocks the write** for the patterns it can detect (direct `@mantine/*` import,
+>   `useEffect` fetch, inline Axios, `"use client"` in an `app/` page). It scans only the
+>   **incoming snippet**, so it is a scoped guard — passing it is **not** proof the whole
+>   change complies (e.g. a fetch inserted into an existing `useEffect` body slips past).
+> - `format-on-write.sh`, `design-context.sh`, `stop-reminder.sh` are **advisory** — they
+>   format, inject context, or remind; they never block. Their reminders are not a
+>   substitute for running the verification below.
+>
+> Because the gate is scoped, verification is still required — sized to the change's risk.
+
+> **Risk-tier verification (which checks to run):**
+>
+> - **Trivial** (docs, comments, copy, a styling-only tweak): a focused check of the
+>   touched file — `pnpm format` and, if any `.ts`/`.tsx` changed, `pnpm check-types`.
+> - **Normal** (component/module logic, UI states, hooks): `pnpm format && pnpm check-types && pnpm lint`.
+> - **High-risk** (shared/package types, API boundaries, forms, tables, routing, data
+>   mutations, auth): the Normal checks **plus** `pnpm build`, and exercise the affected
+>   states/paths manually before calling it done.
+
 A task is not complete until code, docs, exports, and checks are all handled.
 
 ---
