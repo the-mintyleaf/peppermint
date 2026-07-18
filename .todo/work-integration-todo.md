@@ -33,22 +33,20 @@ all live under a work item there. Anything without a backend stays on mock and i
 
 ---
 
-## ▶ REMAINING (integrable — in execution order)
+## ▶ REMAINING (integrable — in plan order)
 
-### Phase A — Dashboard `/my/*` reads (form-free)
+### Phase 1 — Form-free work-item lifecycle commands ✅ (commit 7d9dd5d)
 
-- [ ] `dashboard` fetchers + hooks: `GET /my/active/`, `/my/pending-assignments/`, `/my/pending-reviews/`
-- [ ] Wire the dashboard's **list-type** widgets to these (resolve names via directory); loading/empty/error states
-- [ ] Leave metrics tiles / task-flow / work-files widgets on mock (Gap) — visibly, not silently
-- [ ] check-types + lint green · commit
+- [x] `startWork`/`archiveWork`/`restoreWork` fetchers + hooks; wired into the WorkDetail header menu
+      (status-aware, aggregate_version, spinner)
 
-### Phase B — Form-free work-item lifecycle commands
+### Phase 2 — Dashboard `/my/*` reads (form-free) ✅ (commit dd81672)
 
-- [ ] Work-item command fetchers in `cases.commands.ts`: start / archive / restore (+ the version-only ones)
-- [ ] Work hooks in `cases.mutations.ts`; wire into the profile action menu (WorkDetail dots / header)
-- [ ] check-types + lint green · commit
+- [x] `dashboard.api.ts` + hooks (my active work / pending assignments / pending reviews)
+- [x] `AwaitingYou` widget (3 live lists, names resolved, deep-link to cases, per-list states); mounted
+      above the mock board with Live badge + "sample workspace" caption (mock widgets stay mock)
 
-### Phase C — Command forms (`/form-builder` → `FormWrapper`)
+### Phase 3 — Command forms (`/form-builder` → `FormWrapper`)
 
 - [ ] Run `/form-builder` once for the whole work command-form family (decide controls/order/disclosure)
 - [ ] **Create work** (title_np/en, objective, responsible_unit, priority, visibility [organizational|participants_only only], review_required, due_at) — wire `/cases` "New Case"
@@ -58,7 +56,7 @@ all live under a work item there. Anything without a backend stays on mock and i
 - [ ] Drag-reorder tasks (DnD → `reorderTask` with `expected_version`)
 - [ ] Each command surfaces 409/permission/invalid-transition/gated; check-types + lint green · commit (may split across commits)
 
-### Phase D — Case sub-resource tabs (profile)
+### Phase 4 — Case sub-resource tabs (profile)
 
 - [ ] **Activity** tab already reads; add create + correct (forms)
 - [ ] **Evidence** tab: list + create (text/structured/external only; file types → disabled/gated) + verify/reject
@@ -66,7 +64,7 @@ all live under a work item there. Anything without a backend stays on mock and i
 - [ ] **Participants**: add / end · **Stakeholders**: create / update / notify (contact fields hidden per role)
 - [ ] check-types + lint green · commit
 
-### Phase E — Finalize
+### Phase 5 — Finalize
 
 - [ ] `docs/AI.md` (app + module) fully in sync · `GAPS.md` written (see below)
 - [ ] `/verify` full green · `/visual-review` `/cases`, `/cases/[id]`, `/dashboard` against live backend
