@@ -9,9 +9,15 @@ Turborepo monorepo. UI lives in `@peppermint/ui` (Mantine wrapper) and is consum
 - `@peppermint/ui` — Mantine component wrapper (shared UI). Heavy Mantine domains are opt-in subpath exports: `@peppermint/ui/{charts,editor,carousel,code-highlight,dropzone}` (not in the main barrel — import them from the subpath).
 - `@peppermint/api-client` — HTTP client factory. `configureApiClient(config)` returns the app's Axios instance (auth-header injection, `{ success, data, meta }` envelope unwrap, single-flight 401 refresh).
 - `@peppermint/admin` — admin shells (`AdminShell`, `DataTableShell`, `ModalTableShell`, `FormShell`), wrappers, auth pages, and the framework primitives under `src/{data,columns,actions,feedback}` — see [Framework Primitives](#framework-primitives).
-- `@peppermint/kanban` — kanban UI components
-- `@peppermint/config` — shared config values
 - `@peppermint/utils` — shared utility functions
+
+**Reserved packages** — these exist in the workspace with a `package.json` but are
+currently **empty** (`src/index.ts` exports nothing). They are intentional placeholders;
+do not import from, populate, or delete them except under explicit package-scoped work.
+
+- `@peppermint/kanban` — reserved for kanban UI components (dependency direction below reflects the intended, not current, surface)
+- `@peppermint/config` — reserved for shared config values
+- `@peppermint/docs` — reserved
 
 Apps live in `apps/` — see [App Structure](#app-structure) below. When creating an app, use Next.js with the App Router.
 
