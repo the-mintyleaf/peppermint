@@ -48,13 +48,17 @@ all live under a work item there. Anything without a backend stays on mock and i
 
 ### Phase 3 — Command forms (`/form-builder` → `FormWrapper`)
 
-- [ ] Run `/form-builder` once for the whole work command-form family (decide controls/order/disclosure)
-- [ ] **Create work** (title_np/en, objective, responsible_unit, priority, visibility [organizational|participants_only only], review_required, due_at) — wire `/cases` "New Case"
-- [ ] **Create task** — wire profile "Add task" (responsible_unit defaults to the case unit)
-- [ ] Reason/target forms: task return-uncompleted, block/unblock, assign; work deadline-extend, assign/route/transfer, reopen
+- [x] Ran `/form-builder` for the create-form family (controls/order/disclosure decided)
+- [x] **Create task** — CreateTaskModal (FormWrapper) wired to profile "Add task" (commit 3b3a61c)
+- [ ] **Reason-only forms** (self-contained, no external reads): task return-uncompleted (reason+report), block (type+desc) / unblock (note); work deadline-extend (date+reason), reopen (reason)
 - [ ] **Close** (outcome + per-outcome required fields), submit-review, submit-closure
 - [ ] Drag-reorder tasks (DnD → `reorderTask` with `expected_version`)
-- [ ] Each command surfaces 409/permission/invalid-transition/gated; check-types + lint green · commit (may split across commits)
+- [ ] **Create work** (New Case) — ⚠️ needs NEW org infrastructure in the client: the mintflow client
+      has no org context (org/unit admin lives in mintflow-admin). Requires `organization` +
+      `responsible_unit` → wire `/organization/memberships/mine` (org context) + org-scoped units list
+      (unit `Select`). Endpoints are clean+tested, but it's a sub-project — do after the self-contained forms.
+- [ ] **Assign / route / transfer** — also need actor/unit pickers (same org infra as create-work)
+- [ ] Each command surfaces 409/permission/invalid-transition/gated; check-types + lint green · commit (split across commits)
 
 ### Phase 4 — Case sub-resource tabs (profile)
 
