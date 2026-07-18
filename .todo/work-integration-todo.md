@@ -33,13 +33,17 @@ Decisions: **faithful reshape** (adapt UI to real backend domain) · **full doma
 - [x] `Cases.hooks.ts` real (`useWorkItems`, server `?status`, client search/sort) + `Cases.tsx` (loading/error-retry/empty)
 - [x] block-view (CaseCard) + list-view (CaseRow) on real WorkItem + resolved names; Files rail + orphan CaseDetailModal removed
 
-**Profile slice — remaining:**
+**Profile slice — ✅ done (commit 7cac811):**
 
-- [ ] `profile/profile.api.ts` + `CaseProfile.hooks.ts` → real `getWorkItem`/`getTaskTree`/`listActivities`/`getHierarchyPreview`
-- [ ] Reshape `CaseProfile.tsx` + WorkDetail / TaskStrip / ActivityTimeline / InsightsRail / WorkTabs to real DTOs; Files tab → Attachments+Evidence (P4 fills those)
-- [ ] Handle 404-as-not-found on unknown/invisible id; BS+Gregorian dates
-- [ ] Delete mock `module.api.ts` once profile migrated (last mock consumer)
-- [ ] `/visual-review /cases` + `/cases/[id]` against live backend; `/verify` green; commit
+- [x] `caseView.ts` view-model + `CaseProfile.hooks.ts` → real `getWorkItem` (404=not-found) + `getTaskTree` + `listActivities`, names resolved via directory
+- [x] Reshaped `CaseProfile.tsx` + WorkDetail / TaskStrip / ActivityTimeline / InsightsRail / WorkTabs to real DTOs; People = owner + assignees; Files tab dropped (P4)
+- [x] 404-as-not-found; BS+Gregorian dates; 5-level priority meter
+- [x] Deleted last mock (`module.api.ts`, `profile.api.ts`, `CaseProfile.utils.ts`); full-app `check-types` + `lint` green
+
+**Phase 1 DoD — remaining (needs live backend + session):**
+
+- [ ] `/visual-review /cases` + `/cases/[id]` against `http://192.168.110.97:8000` (confirm names resolve / gated fallbacks)
+- [x] Update app `docs/AI.md` cases section (mock → live)
 
 ## Phase 2 — Tasks read + task commands
 

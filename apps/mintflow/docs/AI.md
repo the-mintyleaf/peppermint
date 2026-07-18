@@ -7,9 +7,11 @@ admin-style surface ("mintflow-admin"). It renders bespoke React screens on Mant
 (via `@peppermint/ui`) tuned to a fixed brand design system — **not**
 `@peppermint/admin` framework screens. **Authentication is wired to the backend**
 (login, tokenization, forced + own password change, logout, session-gated shell — see
-[Authentication](#authentication-modulesauth--lib)); **module screen data is still
-intentional local mock data** (the "not wired" pattern:
-`notifications.show("Not connected yet")`).
+[Authentication](#authentication-modulesauth--lib)). **`modules/cases` is wired to the
+real `work` backend** (see its section + `docs/api-contracts/work.md`); the remaining
+module screens (dashboard, tasks, calendar) are **still intentional local mock data**
+(the "not wired" pattern: `notifications.show("Not connected yet")`) — being migrated to
+`work` phase by phase (`.todo/work-integration-todo.md`).
 
 > ⚠️ Mid-rebuild: the previous mobile shell (bottom-nav + IconRail) and most modules
 > were removed. What exists now is the new **single-sidebar app shell** and a
@@ -146,52 +148,41 @@ Single Tasks page with a **List / Board** view toggle, ported verbatim from
 > The `*Dashboard.hooks.ts` filenames are retained from the source; the per-route
 > `*Dashboard.tsx` themselves were replaced by the single `Tasks.tsx`.
 
-### `modules/cases/` — `ModuleCases` (ContainedModule)
+### `modules/cases/` — `ModuleCases` (ContainedModule) — **wired to the `work` backend**
 
-Single `/cases` case-management board. A **case** = a matter before the Ministry of Home
-Affairs (case no · title · summary · category · status · priority · task checklist ·
-officers · departments · dates) — **not** files/GB. Status tabs (All / In Progress /
-Under Review / On Hold / Resolved / Closed) over a **Block** (4-up card grid) or **List**
-(dense table) view, plus a secondary "Recent documents" section (case files) shown only on
-the All tab. Clicking a case opens a rich detail modal. Self-contained on **mock data**
-(`module.api.ts` — `MOCK_CASES` / `MOCK_FILES`, `fetchCases` / `fetchFiles`), no backend.
-Document clicks + New Case / Upload / Update case use the "Not connected yet" pattern.
-mintflow orange/paper tokens (loosely seeded by the `Files.dc.html` mock, since reframed).
+Single `/cases` board over the real backend `work` module (a **case** = a `WorkItem`).
+**Wired, not mock** — reads `GET /api/v1/work/items/` (+ detail, task tree, activities)
+through the frozen `@/lib/work` contract. See the API digest `docs/api-contracts/work.md`
+and reshape decisions `docs/api-contracts/work.reshape.md`. Faithful reshape: real
+`WorkStatus`/`WorkPriority`, `reference_number`, `current_owner` + `responsible_unit`
+(names resolved via `lib/work/directory.ts`), BS+Gregorian dates. The mock's
+category/location/departments/officer-arrays and the Files sub-view were dropped; only
+create/mutation actions still use "Not connected yet" (they land in P3/P4).
 
-- `Cases.tsx` (`ModuleCases`) — chrome (`ModuleHeader` + Upload / New Case, `ManageHeader`,
-  status `SegmentedControl` tabs, Block/List toggle, sort menu, search) rendered once; body
-  swaps between block and list with shared loading / empty states; owns the detail modal.
-- `Cases.hooks.ts` — `useCases` / `useFiles` (React Query over the mock fetchers),
-  `useFilteredCases` (status + search + `SortKey` sort) / `useFilteredFiles` (search),
-  `STATUS_TABS` / `SORT_KEYS`, `formatDate`.
-- `module.api.ts` — types (`WorkCase`, `CaseFile`, `Officer`, `CaseTask`, `CaseStatus`,
-  `CasePriority`, `CaseCategory`), style maps (`STATUS_STYLE`, `PRIORITY_STYLE`,
-  `CATEGORY_STYLE` icon/tint, `FILE_STYLE`), `caseProgress`, mock data + fetchers.
-- `block-view/` — `BlockView` (case grid + documents grid via `SimpleGrid`);
-  `components/CaseCard` (identity · title/summary · progress bar · departments · officers ·
-  status) + `components/FileCard` (document card).
-- `list-view/` — `ListView` (cases table + documents table, `ListView.module.css` grids,
-  horizontal-scroll wrapped); `components/CaseRow` + `components/FileRow`.
-- `detail/CaseDetailModal/` — Mantine `Modal`: header, summary, meta grid, departments,
-  officers, and the task checklist (`CheckItem` + `Progress`). Read-only (no editable
-  fields → no unsaved-changes state). Footer "Open full profile" routes to
-  `/cases/[caseId]`.
-- `profile/` — `ModuleCaseProfile`, the full-page case profile at `/cases/[caseId]`
-  (adapted from the Claude Design `Work.dc.html` layout, re-skinned to orange/paper and
-  mapped onto the police-case model). Reads `caseId` from `useParams`; handles
-  loading / error+retry / not-found / empty states. `ModuleHeader` breadcrumb
-  (Cases / {title}) + officer avatars + Add task, then a 70/30 split:
-  - `profile.api.ts` — derives a `CaseProfileData` (case + its filed `CaseFile`s + a
-    synthesized `activity` feed) from `MOCK_CASES`/`MOCK_FILES`; extra presentational maps
-    (`PRIORITY_METER`, `TASK_STATE_STYLE`, `ACTIVITY_STYLE`) + `taskBreakdown`; re-exports
-    the domain style maps. `CaseProfile.utils.ts` — `formatDate` / `dueRelative` (fixed
-    mid-2026 reference). `CaseProfile.hooks.ts` — `useCaseProfile`, `useProfileView`
-    (selected checklist task + tab), `useVisibleActivity` (filters the feed to the task).
-  - `components/TaskStrip` (checklist chips that filter the activity feed),
-    `components/WorkDetail` (status/priority/category badges + progress/tasks/due/opened
-    metric strip), `components/ActivityTimeline` (icon-rail feed), `components/WorkTabs`
-    (Activity / Files / People tabs), `components/InsightsRail` (dark case-lead card,
-    priority meter, progress breakdown, officers brief).
+- `Cases.tsx` (`ModuleCases`) — chrome (`ModuleHeader`, status `SegmentedControl` tabs from
+  real `WorkStatus`, Block/List toggle, sort menu, search) + body swapping block/list with
+  loading / **error+retry** / empty states; navigates to `/cases/[id]`.
+- `cases.api.ts` — typed read fetchers: `listWorkItems` (paginated → `Page`), `getWorkItem`,
+  `getTaskTree`, `listActivities`, `getHierarchyPreview`.
+- `cases.hooks.ts`→`Cases.hooks.ts` — `useWorkItems(status)` (server `?status`, client
+  search/sort over the page), `useFilteredCases`, `STATUS_TABS` / `SORT_KEYS`, `notConnected`.
+- `cases.styles.ts` — `STATUS_STYLE` (WorkStatus) / `PRIORITY_STYLE` (WorkPriority) /
+  `PRIORITY_RANK`, colored from design tokens.
+- `block-view/` — `BlockView` (resolves owner/unit directories once, maps to `CaseCard`);
+  `components/CaseCard` (reference · priority/flags · title/objective · unit · owner+status).
+- `list-view/` — `ListView` (7-col table: Case/Status/Priority/Unit/Owner/Due/actions,
+  `ListView.module.css`); `components/CaseRow`.
+- `profile/` — `ModuleCaseProfile`, the full-page profile at `/cases/[caseId]`. Reads
+  `caseId` from `useParams`; loading / error+retry / **not-found (404 anti-enum)** states.
+  - `caseView.ts` — the `CaseView` view-model: builds one shape from `WorkItem` + task tree
+    - activity + resolved names; presentational maps (`PRIORITY_METER` 5-level,
+      `TASK_STATE_STYLE`, `ACTIVITY_STYLE`) + activity-kind bucketing + task-state derivation.
+  - `CaseProfile.hooks.ts` — `useCaseProfile` (item = the 404 gate, + tasks + activities +
+    directories), `useProfileView` (selected task + tab), `useVisibleActivity`.
+  - `components/TaskStrip` (task chips filtering the feed), `WorkDetail` (status/priority
+    badges + progress/open-tasks/due/created metrics), `ActivityTimeline` (real
+    `WorkActivityEntry` feed), `WorkTabs` (Activity / People — Attachments+Evidence in P4),
+    `InsightsRail` (owner card + unit, 5-seg priority meter, progress breakdown, people brief).
 
 ## Authentication — `modules/auth/` + `lib/`
 
