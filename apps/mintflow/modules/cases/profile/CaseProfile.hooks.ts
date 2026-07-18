@@ -9,7 +9,12 @@ import {
   useUnitDirectory,
   workKeys,
 } from "@/lib/work";
-import { getTaskTree, getWorkItem, listActivities } from "../cases.api";
+import {
+  getTaskTree,
+  getWorkItem,
+  listActivities,
+  listEvidence,
+} from "../cases.api";
 import {
   buildActivityView,
   buildCaseView,
@@ -19,7 +24,7 @@ import {
   type CaseView,
 } from "./caseView";
 
-export type WorkTab = "activity" | "people";
+export type WorkTab = "activity" | "evidence" | "people";
 
 /**
  * Full case profile: the work item (the gate — a 404 here is "not found"),
@@ -66,6 +71,15 @@ export function useCaseProfile(caseId: string) {
     notFound,
     refetch: itemQuery.refetch,
   };
+}
+
+/** Evidence for a work item — fetched lazily when the Evidence tab is open. */
+export function useEvidence(caseId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: workKeys.evidence(caseId),
+    queryFn: () => listEvidence(caseId).then((page) => page.items),
+    enabled,
+  });
 }
 
 /** Selected task (feed filter) + active work tab. */

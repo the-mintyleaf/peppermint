@@ -13,9 +13,11 @@ import type {
   AssignmentTargetType,
   BlockerType,
   ClosureOutcome,
+  EvidenceType,
   VisibilityClassification,
   WorkActivityEntry,
   WorkAssignment,
+  WorkEvidence,
   WorkItem,
   WorkTask,
 } from "@/lib/work";
@@ -314,6 +316,51 @@ export async function recordActivity(
 ): Promise<WorkActivityEntry> {
   const { data } = await api.post<WorkActivityEntry>(
     `/api/v1/work/items/${workId}/activities/`,
+    payload,
+  );
+  return data;
+}
+
+/* ── Evidence ─────────────────────────────────────────────────────────────── */
+
+export interface SubmitEvidencePayload {
+  evidence_type: EvidenceType;
+  title: string;
+  text_payload?: string;
+  external_reference?: string;
+  structured_payload?: Record<string, unknown>;
+  purpose?: string;
+  supersedes?: string;
+}
+
+export async function submitEvidence(
+  workId: string,
+  payload: SubmitEvidencePayload,
+): Promise<WorkEvidence> {
+  const { data } = await api.post<WorkEvidence>(
+    `/api/v1/work/items/${workId}/evidence/`,
+    payload,
+  );
+  return data;
+}
+
+export async function verifyEvidence(
+  evidenceId: string,
+  payload: { verification_remarks?: string } = {},
+): Promise<WorkEvidence> {
+  const { data } = await api.post<WorkEvidence>(
+    `/api/v1/work/evidence/${evidenceId}/verify/`,
+    payload,
+  );
+  return data;
+}
+
+export async function rejectEvidence(
+  evidenceId: string,
+  payload: { verification_remarks?: string } = {},
+): Promise<WorkEvidence> {
+  const { data } = await api.post<WorkEvidence>(
+    `/api/v1/work/evidence/${evidenceId}/reject/`,
     payload,
   );
   return data;

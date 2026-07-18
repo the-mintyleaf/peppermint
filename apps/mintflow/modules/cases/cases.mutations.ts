@@ -17,15 +17,18 @@ import {
   createTask,
   extendWorkDeadline,
   recordActivity,
+  rejectEvidence,
   reopenWork,
   reorderTask,
   restoreWork,
   returnTaskUncompleted,
   startTask,
   startWork,
+  submitEvidence,
   submitWorkForClosure,
   submitWorkForReview,
   unblockTask,
+  verifyEvidence,
   type BlockPayload,
   type ClosePayload,
   type CreateTaskPayload,
@@ -34,6 +37,7 @@ import {
   type RecordActivityPayload,
   type ReorderTaskPayload,
   type ReturnTaskPayload,
+  type SubmitEvidencePayload,
   type UnblockPayload,
   type VersionedCommand,
 } from "./cases.commands";
@@ -224,5 +228,32 @@ export function useRecordActivity(workId: string) {
       recordActivity(workId, payload),
     successMessage: "Activity recorded",
     invalidateKeys: [workKeys.activities(workId), workKeys.item(workId)],
+  });
+}
+
+/* ── Evidence ─────────────────────────────────────────────────────────────── */
+
+export function useSubmitEvidence(workId: string) {
+  return useWorkMutation({
+    mutationFn: (payload: SubmitEvidencePayload) =>
+      submitEvidence(workId, payload),
+    successMessage: "Evidence submitted",
+    invalidateKeys: [workKeys.evidence(workId)],
+  });
+}
+
+export function useVerifyEvidence(workId: string) {
+  return useWorkMutation({
+    mutationFn: (evidenceId: string) => verifyEvidence(evidenceId),
+    successMessage: "Evidence verified",
+    invalidateKeys: [workKeys.evidence(workId)],
+  });
+}
+
+export function useRejectEvidence(workId: string) {
+  return useWorkMutation({
+    mutationFn: (evidenceId: string) => rejectEvidence(evidenceId),
+    successMessage: "Evidence rejected",
+    invalidateKeys: [workKeys.evidence(workId)],
   });
 }

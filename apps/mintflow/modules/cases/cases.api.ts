@@ -10,6 +10,7 @@ import type {
   Page,
   Paginated,
   WorkActivityEntry,
+  WorkEvidence,
   WorkItem,
   WorkListParams,
   WorkTask,
@@ -50,6 +51,18 @@ export async function listActivities(
 ): Promise<Page<WorkActivityEntry>> {
   const { data } = await api.get<Paginated<WorkActivityEntry>>(
     `/api/v1/work/items/${workId}/activities/`,
+    { params },
+  );
+  return toPage(data);
+}
+
+/** Evidence submitted against a work item (paginated, visibility-filtered). */
+export async function listEvidence(
+  workId: string,
+  params?: { page?: number; page_size?: number },
+): Promise<Page<WorkEvidence>> {
+  const { data } = await api.get<Paginated<WorkEvidence>>(
+    `/api/v1/work/items/${workId}/evidence/`,
     { params },
   );
   return toPage(data);
