@@ -22,13 +22,6 @@ import {
 } from "../../caseView";
 import type { TaskStripProps } from "./TaskStrip.types";
 
-// Commands the quick menu offers; `return` (needs reason+report) is a form → later.
-const QUICK_ACTIONS: ReadonlySet<TaskActionKind> = new Set([
-  "start",
-  "complete",
-  "archive",
-]);
-
 function TaskChip({
   task,
   active,
@@ -44,9 +37,7 @@ function TaskChip({
 }) {
   const state = TASK_STATE_STYLE[task.state];
   const done = task.state === "done";
-  const actions = onAction
-    ? availableTaskActions(task.status).filter((a) => QUICK_ACTIONS.has(a))
-    : [];
+  const actions = onAction ? availableTaskActions(task.status) : [];
 
   return (
     <Group

@@ -93,14 +93,29 @@ function taskState(status: TaskStatus): TaskState {
   return "pending";
 }
 
-export type TaskActionKind = "start" | "complete" | "return" | "archive";
+export type TaskActionKind =
+  | "start"
+  | "complete"
+  | "block"
+  | "unblock"
+  | "return"
+  | "archive";
 
 export const TASK_ACTION_LABEL: Record<TaskActionKind, string> = {
   start: "Start",
   complete: "Complete",
+  block: "Block",
+  unblock: "Unblock",
   return: "Return uncompleted",
   archive: "Archive",
 };
+
+/** Task commands that need a form (the rest run directly). */
+export const FORM_BACKED_TASK_ACTIONS: ReadonlySet<TaskActionKind> = new Set([
+  "block",
+  "unblock",
+  "return",
+]);
 
 export type WorkActionKind =
   | "start"
@@ -174,6 +189,8 @@ export function availableTaskActions(status: TaskStatus): TaskActionKind[] {
   )
     actions.push("start");
   if (status === "in_progress") actions.push("complete");
+  if (status === "in_progress" || status === "accepted") actions.push("block");
+  if (status === "blocked") actions.push("unblock");
   if (status === "in_progress" || status === "review_pending")
     actions.push("return");
   actions.push("archive");

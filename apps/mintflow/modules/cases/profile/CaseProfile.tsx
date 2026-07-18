@@ -38,6 +38,7 @@ import {
   useVisibleActivity,
 } from "./CaseProfile.hooks";
 import {
+  FORM_BACKED_TASK_ACTIONS,
   FORM_BACKED_WORK_ACTIONS,
   type TaskActionKind,
   type TaskChipView,
@@ -46,10 +47,12 @@ import {
 import {
   CreateTaskModal,
   InsightsRail,
+  TaskCommandModal,
   TaskStrip,
   WorkCommandModal,
   WorkDetail,
   WorkTabs,
+  type TaskCommandKind,
   type WorkCommandKind,
 } from "./components";
 import type { ModuleCaseProfileProps } from "./CaseProfile.types";
@@ -90,7 +93,19 @@ export function ModuleCaseProfile({
     (archiveTask.isPending && archiveTask.variables?.taskId) ||
     null;
 
+  const [taskCommand, setTaskCommand] = useState<{
+    kind: TaskCommandKind;
+    task: { id: string; title: string };
+  } | null>(null);
+
   const runTaskAction = (action: TaskActionKind, task: TaskChipView) => {
+    if (FORM_BACKED_TASK_ACTIONS.has(action)) {
+      setTaskCommand({
+        kind: action as TaskCommandKind,
+        task: { id: task.id, title: task.title },
+      });
+      return;
+    }
     const vars = {
       taskId: task.id,
       payload: { aggregate_version: task.version },
@@ -282,6 +297,13 @@ export function ModuleCaseProfile({
         workId={caseId}
         command={workCommand}
         onClose={() => setWorkCommand(null)}
+      />
+
+      <TaskCommandModal
+        workId={caseId}
+        command={taskCommand?.kind ?? null}
+        task={taskCommand?.task ?? null}
+        onClose={() => setTaskCommand(null)}
       />
     </>
   );
