@@ -1,80 +1,87 @@
-# MintFlow `work` — Frontend Integration
+# MintFlow `work` — Frontend Integration Plan (integrable-only)
 
-Source of truth for the phased integration of the MintFlow `cases`/`tasks`/`dashboard`/`calendar`
-surfaces onto the already-built backend `work` module (60 endpoints, live at
+Wire the MintFlow frontend to the already-built `work` backend (60 endpoints, live at
 `http://192.168.110.97:8000`). Plan: `~/.claude/plans/you-are-to-fully-snappy-planet.md`.
+Contract digest: `apps/mintflow/docs/api-contracts/work.md`. Typed layer: `apps/mintflow/lib/work/`.
 
-Decisions: **faithful reshape** (adapt UI to real backend domain) · **full domain, phased**.
+## Governing principle
+
+**Only integrate a surface if it has a clean 1:1 backend endpoint.** No aggregation, no synthesized
+data, no workarounds. The **case profile is the integration hub** — tasks, lifecycle, and sub-resources
+all live under a work item there. Anything without a backend stays on mock and is listed under **Gaps**
+(§ bottom) — it is not "to do", it is out of scope until the backend adds endpoints.
+
+## Standing rules (every phase)
+
+- Reads → `useQuery`; commands → `useMutation` via `useWorkMutation` (notify + invalidate + error map).
+- Named commands only (no generic PATCH status). Send `aggregate_version` on mutations (409 → refetch).
+- 404 = not-found (anti-enum, never "denied"). Gated (503 `WORK_*_UNAVAILABLE`) → disabled + tooltip.
+- Forms → `FormWrapper` (`@peppermint/admin`) **after `/form-builder`** (repo mandate + existing precedent).
+- Each phase ends: `pnpm check-types && lint` green · commit (repo format) · `docs/AI.md` updated if structure changed.
 
 ---
 
-## Phase 0 — Contract intake, typed layer, vocabulary freeze, design reshape
+## ✅ DONE
 
-- [x] Relocate contract docs from `.todo/work/` → repo-root `docs/backend/work/` (API, DATA_CONTRACT,
-      INTEGRATION, SECURITY + LIFECYCLE, HIERARCHY_RESOLUTION and remaining concern docs)
-- [x] Run `/sync-api mintflow work` → contract digest at `apps/mintflow/docs/api-contracts/work.md`
-      (Endpoints, DTO blocks, pagination/filtering, error→UI map, Gaps)
-- [x] Build the frozen shared work-domain typed layer (types / enums / queryKeys / errors / mappers)
-      at `apps/mintflow/lib/work/`
-- [x] Freeze module vocabulary: enum sets, error catalogue, endpoint→policy-key list (60),
-      gated-feature list, DTO→view-model field map
-- [x] `pnpm check-types` green; commit Phase 0 foundation
-- [x] Resolve two blocking reshape gaps with user: **fetch names from auth/org**; **drop + remap Files → attachments/evidence**
-- [x] Record reshape decisions → `apps/mintflow/docs/api-contracts/work.reshape.md`
+- **Foundation** — contract intake `docs/backend/work/`, digest, frozen `lib/work/` (types/enums/
+  queryKeys/errors/mappers/directory resolver), reshape decisions.
+- **Cases reads** — list (`/cases`) + profile (`/cases/[id]`) fully off mock: real WorkItem/WorkTask/
+  activity, resolved owner/unit names, BS+Gregorian dates, 404 handling.
+- **Task command layer** — `cases.commands.ts` (all task fetchers) + `cases.mutations.ts`
+  (`useWorkMutation` + task hooks); **form-free task commands wired** (start / complete / archive in the
+  TaskStrip menu, version-guarded).
 
-**Phase 0 DoD: ✅ complete** — intake relocated, digest + typed layer committed, vocabulary frozen, reshape approved, check-types green.
+---
 
-## Phase 1 — Cases read path (WorkItem list + detail/profile)
+## ▶ REMAINING (integrable — in execution order)
 
-**List slice — ✅ done (commits c7dc922 / ddc82d3 / 12664cc):**
+### Phase A — Dashboard `/my/*` reads (form-free)
 
-- [x] Actor/unit directory resolver (`lib/work/directory.ts`) + cases read fetchers (`cases.api.ts`)
-- [x] Real style maps keyed to WorkStatus/WorkPriority (`cases.styles.ts`)
-- [x] `Cases.hooks.ts` real (`useWorkItems`, server `?status`, client search/sort) + `Cases.tsx` (loading/error-retry/empty)
-- [x] block-view (CaseCard) + list-view (CaseRow) on real WorkItem + resolved names; Files rail + orphan CaseDetailModal removed
+- [ ] `dashboard` fetchers + hooks: `GET /my/active/`, `/my/pending-assignments/`, `/my/pending-reviews/`
+- [ ] Wire the dashboard's **list-type** widgets to these (resolve names via directory); loading/empty/error states
+- [ ] Leave metrics tiles / task-flow / work-files widgets on mock (Gap) — visibly, not silently
+- [ ] check-types + lint green · commit
 
-**Profile slice — ✅ done (commit 7cac811):**
+### Phase B — Form-free work-item lifecycle commands
 
-- [x] `caseView.ts` view-model + `CaseProfile.hooks.ts` → real `getWorkItem` (404=not-found) + `getTaskTree` + `listActivities`, names resolved via directory
-- [x] Reshaped `CaseProfile.tsx` + WorkDetail / TaskStrip / ActivityTimeline / InsightsRail / WorkTabs to real DTOs; People = owner + assignees; Files tab dropped (P4)
-- [x] 404-as-not-found; BS+Gregorian dates; 5-level priority meter
-- [x] Deleted last mock (`module.api.ts`, `profile.api.ts`, `CaseProfile.utils.ts`); full-app `check-types` + `lint` green
+- [ ] Work-item command fetchers in `cases.commands.ts`: start / archive / restore (+ the version-only ones)
+- [ ] Work hooks in `cases.mutations.ts`; wire into the profile action menu (WorkDetail dots / header)
+- [ ] check-types + lint green · commit
 
-**Phase 1 DoD — remaining (needs live backend + session):**
+### Phase C — Command forms (`/form-builder` → `FormWrapper`)
 
-- [ ] `/visual-review /cases` + `/cases/[id]` against `http://192.168.110.97:8000` (confirm names resolve / gated fallbacks)
-- [x] Update app `docs/AI.md` cases section (mock → live)
+- [ ] Run `/form-builder` once for the whole work command-form family (decide controls/order/disclosure)
+- [ ] **Create work** (title_np/en, objective, responsible_unit, priority, visibility [organizational|participants_only only], review_required, due_at) — wire `/cases` "New Case"
+- [ ] **Create task** — wire profile "Add task" (responsible_unit defaults to the case unit)
+- [ ] Reason/target forms: task return-uncompleted, block/unblock, assign; work deadline-extend, assign/route/transfer, reopen
+- [ ] **Close** (outcome + per-outcome required fields), submit-review, submit-closure
+- [ ] Drag-reorder tasks (DnD → `reorderTask` with `expected_version`)
+- [ ] Each command surfaces 409/permission/invalid-transition/gated; check-types + lint green · commit (may split across commits)
 
-## PIVOT (user directive 2026-07-18)
+### Phase D — Case sub-resource tabs (profile)
 
-Only integrate surfaces with a **clean 1:1 backend** — no aggregation/workarounds/synthesized data.
-Standalone `/tasks` board, `/calendar` (task-level), and rich dashboard widgets (metrics/flow/files)
-have **no backend** → stay mock, listed in the final gap report. Remaining clean integration below.
+- [ ] **Activity** tab already reads; add create + correct (forms)
+- [ ] **Evidence** tab: list + create (text/structured/external only; file types → disabled/gated) + verify/reject
+- [ ] **Review** tab: list rounds + add comment + decide (self-review/stale guards surfaced)
+- [ ] **Participants**: add / end · **Stakeholders**: create / update / notify (contact fields hidden per role)
+- [ ] check-types + lint green · commit
 
-## Phase 2 — Case task commands (in the case profile)
+### Phase E — Finalize
 
-- [x] `cases.commands.ts` task fetchers: create / reorder / start / complete / return / archive / block / unblock / assign / respond
-- [x] `useWorkMutation` helper (useMutation + notify + invalidate + 409/gated handling) + task hooks
-- [x] Wire form-free task commands (start / complete / archive) into TaskStrip menu; `aggregate_version` concurrency, in-flight spinner
-- [ ] Form-backed task commands (create task, return-uncompleted, block) — need `/form-builder` (FormWrapper, per existing mock modal precedent)
-- [ ] Reorder via drag (needs DnD wiring in the profile task list)
+- [ ] `docs/AI.md` (app + module) fully in sync · `GAPS.md` written (see below)
+- [ ] `/verify` full green · `/visual-review` `/cases`, `/cases/[id]`, `/dashboard` against live backend
+- [ ] Delete this todo file
 
-## Phase 3 — Case lifecycle commands
+---
 
-- [ ] Work-item fetchers: create / update-details / start / block / unblock / deadline-extend / submit-review / submit-closure / close / reopen / archive / restore / assign / respond / transfer / route / recover-owner / hierarchy-preview
-- [ ] Wire profile action buttons; work-create form via `/form-builder`
-- [ ] Conflict/permission/hierarchy/invalid-transition surfaced; `/verify` green; commit
+## ⛔ GAPS — NOT integrable (stay mock; document, don't build)
 
-## Phase 4 — Case sub-resources (profile tabs)
+No clean backend exists — out of scope until the backend adds endpoints:
 
-- [ ] activity (create/correct), evidence (text/structured; verify/reject; file gated), reviews (comment/decide), participants (add/end), stakeholders (create/update/notify)
-- [ ] Field-level protection + gating respected; `/verify` green; commit
-
-## Phase 5 — Dashboard /my/\* lists
-
-- [ ] `GET /my/active/` + `/my/pending-assignments/` + `/my/pending-reviews/` into the dashboard's list widgets
-- [ ] Non-/my widgets (metrics/flow/files) stay mock (no backend); `/verify` green; commit
-
-## Gap report (compile at the end)
-
-- [ ] Standalone `/tasks` board, `/calendar` (task-level), dashboard metrics/flow/files, file attachments/evidence, gated visibility, external notifications
+- **Standalone `/tasks` kanban board** — no "my tasks across cases" endpoint.
+- **`/calendar`** at task granularity — same reason.
+- **Dashboard metrics tiles / task-flow board / work-files rail** — no metrics endpoint (facts are a
+  backend-only selector), files gated.
+- **File attachments + file-backed evidence** — gated `503 WORK_DOCUMENT_INTEGRATION_UNAVAILABLE`.
+- **Restricted / confidential / explicit visibility creation** — gated `422 WORK_VISIBILITY_MODE_UNSUPPORTED`.
+- **External stakeholder notifications** — gated (curated-template only).
