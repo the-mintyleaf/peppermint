@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { Anchor, Group, SimpleGrid, Stack, Text, Title } from "@peppermint/ui";
 import { ModuleErrorBoundary } from "@peppermint/admin";
@@ -31,6 +30,7 @@ import {
   useApplicantCount,
   useDocumentWorkspaces,
   useFollowUpsDue,
+  useNow,
   useRecentApplicants,
   useUserCount,
 } from "./Home.hooks";
@@ -46,9 +46,9 @@ function greetingWord(hour: number): string {
 
 function HomeDashboard() {
   const { user, isAdmin } = useCurrentUser();
-  // Fix "now" at mount so relative labels and the due-date math stay stable across
-  // re-renders (calling Date.now() during render is impure).
-  const [now] = useState(() => Date.now());
+  // A minute-ticking clock so relative labels and the overdue/due-today math stay correct
+  // on a long-open dashboard (and keep render pure — no Date.now() during render).
+  const now = useNow();
 
   // ── Pipeline (lifecycle stage) counts ──
   const interested = useApplicantCount("interested", {

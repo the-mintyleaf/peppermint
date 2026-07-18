@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useQuery } from "@peppermint/ui";
 import type { QueryParams } from "@peppermint/admin";
 
@@ -8,6 +9,20 @@ import { fetchUsers } from "@/modules/admin/authenticate/users/users.api";
 
 /** Counts and short lists are re-read on a light interval; keep them briefly fresh. */
 const STALE = 60_000;
+
+/**
+ * A ticking "now" so relative/overdue labels don't freeze on a dashboard left open across
+ * a day boundary. Advancing the clock in an effect (not during render) also keeps render
+ * pure. Default cadence is one minute — enough for "Xm ago" and midnight rollover.
+ */
+export function useNow(intervalMs = 60_000): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), intervalMs);
+    return () => clearInterval(id);
+  }, [intervalMs]);
+  return now;
+}
 
 /**
  * Build a full `QueryParams` for a count/list read. All numbers on the dashboard come
@@ -36,7 +51,9 @@ export function useApplicantCount(
   filters: Record<string, unknown>,
 ) {
   return useQuery({
-    queryKey: ["home", "applicant-count", bucketKey],
+    // `filters` is part of the key: it determines the result, so two buckets can never
+    // collide on `bucketKey` alone.
+    queryKey: ["home", "applicant-count", bucketKey, filters],
     queryFn: async () => {
       const res = await fetchApplicants(listParams(filters));
       return res.meta.total;
@@ -67,10 +84,12 @@ export function useRecentApplicants(limit = 5) {
 
 /**
  * Applicants with a follow-up date, soonest first. Admin-only: `next_follow_up_at` is an
- * admin field projection, so this is gated by `enabled`. Ordering is best-effort — if the
- * backend rejects the param we still receive a page and filter/sort client-side, so the
- * card degrades to "no follow-ups due" rather than throwing. The consumer keeps only the
- * overdue / due-today rows.
+ * admin field projection, so this is gated by `enabled`. The `__isnull=false` filter keeps
+ * the page from being flooded by the many applicants with no follow-up (which would push
+ * genuinely-due rows past the fetch window and yield a false "all caught up") — it does not
+ * rely on where the DB sorts NULLs. Ordering is still best-effort: if the backend ignores
+ * the param we filter/sort client-side, so the card degrades gracefully rather than
+ * throwing. The consumer keeps only the overdue / due-today rows.
  */
 export function useFollowUpsDue(enabled: boolean, fetchSize = 20) {
   return useQuery({
@@ -78,7 +97,7 @@ export function useFollowUpsDue(enabled: boolean, fetchSize = 20) {
     queryFn: async () => {
       const res = await fetchApplicants(
         listParams(
-          {},
+          { next_follow_up_at__isnull: false },
           {
             pageSize: fetchSize,
             sort: [{ field: "next_follow_up_at", direction: "asc" }],

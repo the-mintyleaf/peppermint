@@ -84,7 +84,11 @@ export function AttentionList({
   return (
     <Stack gap={4}>
       {rows.map((row) => {
-        const due = dueLabel(row.next_follow_up_at as string, now);
+        // `rows` is pre-filtered to non-null follow-ups by the parent, but guard here so
+        // the component is safe in isolation (no unchecked cast).
+        const followUpAt = row.next_follow_up_at;
+        if (!followUpAt) return null;
+        const due = dueLabel(followUpAt, now);
         const priority = row.follow_up_priority;
         return (
           <Link
