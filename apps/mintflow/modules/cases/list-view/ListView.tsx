@@ -2,24 +2,14 @@
 
 import { Box, Stack } from "@peppermint/ui";
 
+import { useActorDirectory, useUnitDirectory } from "@/lib/work";
 import { SectionLabel } from "@/components";
 import { tokens } from "@/config/design";
 import { CaseRow } from "./components/CaseRow";
-import { FileRow } from "./components/FileRow";
 import type { ListViewProps } from "./ListView.types";
 import classes from "./ListView.module.css";
 
-const CASE_HEADERS = [
-  "Case",
-  "Status",
-  "Priority",
-  "Progress",
-  "Departments",
-  "Officers",
-  "Due",
-  "",
-];
-const FILE_HEADERS = ["Document", "Type", "Case", "Size", "Modified", ""];
+const CASE_HEADERS = ["Case", "Status", "Priority", "Unit", "Owner", "Due", ""];
 
 const cardStyle = {
   background: tokens.paper,
@@ -28,57 +18,37 @@ const cardStyle = {
   overflow: "hidden",
 } as const;
 
-export function ListView({
-  cases,
-  files,
-  onOpenCase,
-  onOpenFile,
-}: ListViewProps) {
+export function ListView({ cases, onOpenCase }: ListViewProps) {
+  const actorDir = useActorDirectory(cases.map((c) => c.current_owner));
+  const unitDir = useUnitDirectory(cases.map((c) => c.responsible_unit));
+
   return (
     <Stack gap="xl" p="md">
-      {cases.length > 0 && (
-        <Stack gap="sm">
-          <SectionLabel>Cases · {cases.length}</SectionLabel>
-          <Box style={cardStyle}>
-            <div className={classes.scroll}>
-              <div className={classes.table}>
-                <div className={`${classes.caseGrid} ${classes.header}`}>
-                  {CASE_HEADERS.map((label, i) => (
-                    <span key={i} className={classes.headerLabel}>
-                      {label}
-                    </span>
-                  ))}
-                </div>
-                {cases.map((c) => (
-                  <CaseRow key={c.id} workCase={c} onOpen={onOpenCase} />
+      <Stack gap="sm">
+        <SectionLabel>Cases · {cases.length}</SectionLabel>
+        <Box style={cardStyle}>
+          <div className={classes.scroll}>
+            <div className={classes.table}>
+              <div className={`${classes.caseGrid} ${classes.header}`}>
+                {CASE_HEADERS.map((label, i) => (
+                  <span key={i} className={classes.headerLabel}>
+                    {label}
+                  </span>
                 ))}
               </div>
+              {cases.map((c) => (
+                <CaseRow
+                  key={c.id}
+                  workCase={c}
+                  onOpen={onOpenCase}
+                  actorDir={actorDir}
+                  unitDir={unitDir}
+                />
+              ))}
             </div>
-          </Box>
-        </Stack>
-      )}
-
-      {files.length > 0 && (
-        <Stack gap="sm">
-          <SectionLabel>Recent documents · {files.length}</SectionLabel>
-          <Box style={cardStyle}>
-            <div className={classes.scroll}>
-              <div className={classes.table}>
-                <div className={`${classes.fileGrid} ${classes.header}`}>
-                  {FILE_HEADERS.map((label, i) => (
-                    <span key={i} className={classes.headerLabel}>
-                      {label}
-                    </span>
-                  ))}
-                </div>
-                {files.map((f) => (
-                  <FileRow key={f.id} file={f} onOpen={onOpenFile} />
-                ))}
-              </div>
-            </div>
-          </Box>
-        </Stack>
-      )}
+          </div>
+        </Box>
+      </Stack>
     </Stack>
   );
 }

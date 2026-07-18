@@ -17,7 +17,6 @@ import {
   Stack,
   Text,
   TextInput,
-  notifications,
   useDebouncedValue,
 } from "@peppermint/ui";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
@@ -28,19 +27,18 @@ import { SquaresFourIcon } from "@phosphor-icons/react/dist/csr/SquaresFour";
 import { RowsIcon } from "@phosphor-icons/react/dist/csr/Rows";
 
 import { tokens } from "@/config/design";
+import type { WorkItem } from "@/lib/work";
 import { BlockView } from "./block-view";
 import { ListView } from "./list-view";
 import {
   SORT_KEYS,
   STATUS_TABS,
+  notConnected,
   sortLabel,
-  useCases,
-  useFiles,
   useFilteredCases,
-  useFilteredFiles,
+  useWorkItems,
 } from "./Cases.hooks";
 import type { SortKey, StatusFilter } from "./Cases.hooks";
-import type { WorkCase } from "./module.api";
 
 type CasesView = "block" | "list";
 
@@ -72,11 +70,7 @@ const STATUS_SEGMENTS = STATUS_TABS.map((t) => ({
 
 const BREADCRUMB = [{ label: "Cases", href: "/cases" }];
 const CASES_SUBHEADING =
-  "Track and act on the matters before the Ministry of Home Affairs — status, tasks, officers, and departments at a glance.";
-
-function notConnected() {
-  notifications.show({ message: "Not connected yet", color: "gray" });
-}
+  "Track and act on the matters before the Ministry of Home Affairs — status, priority, owner, and responsible unit at a glance.";
 
 export function ModuleCases() {
   const [view, setView] = useState<CasesView>("block");
@@ -86,19 +80,13 @@ export function ModuleCases() {
   const [debouncedSearch] = useDebouncedValue(searchInput, 300);
   const router = useRouter();
 
-  const { data: cases, isLoading: casesLoading } = useCases();
-  const { data: files, isLoading: filesLoading } = useFiles();
-  const isLoading = casesLoading || filesLoading;
+  const { data: page, isLoading, isError, refetch } = useWorkItems(status);
+  const cases = page?.items;
 
-  const filteredCases = useFilteredCases(cases, status, debouncedSearch, sort);
-  const filteredFiles = useFilteredFiles(files, debouncedSearch);
-  // Recent documents belong to the overview — hide them when a status is pinned.
-  const visibleFiles = status === "all" ? filteredFiles : [];
-
-  const totalVisible = filteredCases.length + visibleFiles.length;
+  const filteredCases = useFilteredCases(cases, debouncedSearch, sort);
 
   const openCase = useCallback(
-    (c: WorkCase) => router.push(`/cases/${c.id}`),
+    (c: WorkItem) => router.push(`/cases/${c.id}`),
     [router],
   );
   const clearFilters = useCallback(() => {
@@ -109,8 +97,8 @@ export function ModuleCases() {
   const isFiltered = debouncedSearch !== "" || status !== "all";
 
   const summary = useMemo(
-    () => `${filteredCases.length} cases · ${visibleFiles.length} documents`,
-    [filteredCases.length, visibleFiles.length],
+    () => `${filteredCases.length} shown · ${page?.total ?? 0} total`,
+    [filteredCases.length, page?.total],
   );
 
   return (
@@ -229,10 +217,24 @@ export function ModuleCases() {
                   <Skeleton key={i} height={180} radius="lg" />
                 ))}
               </Stack>
-            ) : totalVisible === 0 ? (
+            ) : isError ? (
               <Stack align="center" justify="center" h={320} gap="xs">
                 <Text c="dimmed" size="sm">
-                  No cases match your filters
+                  Couldn&apos;t load cases.
+                </Text>
+                <Button
+                  variant="light"
+                  color="gray"
+                  size="compact-xs"
+                  onClick={() => refetch()}
+                >
+                  Retry
+                </Button>
+              </Stack>
+            ) : filteredCases.length === 0 ? (
+              <Stack align="center" justify="center" h={320} gap="xs">
+                <Text c="dimmed" size="sm">
+                  {isFiltered ? "No cases match your filters" : "No cases yet"}
                 </Text>
                 {isFiltered && (
                   <Button
@@ -246,19 +248,9 @@ export function ModuleCases() {
                 )}
               </Stack>
             ) : view === "block" ? (
-              <BlockView
-                cases={filteredCases}
-                files={visibleFiles}
-                onOpenCase={openCase}
-                onOpenFile={notConnected}
-              />
+              <BlockView cases={filteredCases} onOpenCase={openCase} />
             ) : (
-              <ListView
-                cases={filteredCases}
-                files={visibleFiles}
-                onOpenCase={openCase}
-                onOpenFile={notConnected}
-              />
+              <ListView cases={filteredCases} onOpenCase={openCase} />
             )}
           </ScrollArea>
         </Stack>

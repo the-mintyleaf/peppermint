@@ -1,33 +1,30 @@
 "use client";
 
-import {
-  ActionIcon,
-  Avatar,
-  Badge,
-  Group,
-  Menu,
-  Progress,
-  Text,
-} from "@peppermint/ui";
+import { ActionIcon, Avatar, Badge, Group, Menu, Text } from "@peppermint/ui";
 import { DotsThreeIcon } from "@phosphor-icons/react/dist/csr/DotsThree";
 
-import { CaseIcon, MonoText, StatusPill } from "@/components";
 import {
-  CATEGORY_STYLE,
-  PRIORITY_STYLE,
-  STATUS_STYLE,
-  caseProgress,
-} from "../../../module.api";
-import { formatDate, notConnected } from "../../../Cases.hooks";
+  actorInitials,
+  actorLabel,
+  avatarColorForId,
+  formatGregorian,
+  resolveTitle,
+  unitLabel,
+  WORK_PRIORITY_LABEL,
+  WORK_STATUS_LABEL,
+} from "@/lib/work";
+import { StatusPill } from "@/components";
+import { PRIORITY_STYLE, STATUS_STYLE } from "../../../cases.styles";
+import { notConnected } from "../../../Cases.hooks";
 import type { CaseRowProps } from "./CaseRow.types";
 import classes from "../../ListView.module.css";
 
-export function CaseRow({ workCase, onOpen }: CaseRowProps) {
-  const category = CATEGORY_STYLE[workCase.category];
+export function CaseRow({ workCase, onOpen, actorDir, unitDir }: CaseRowProps) {
   const status = STATUS_STYLE[workCase.status];
   const priority = PRIORITY_STYLE[workCase.priority];
-  const { done, total, pct } = caseProgress(workCase);
-  const extraDepartments = workCase.departments.length - 1;
+  const title = resolveTitle(workCase);
+  const ownerName = actorLabel(workCase.current_owner, actorDir);
+  const unit = unitLabel(workCase.responsible_unit, unitDir);
 
   return (
     <div
@@ -44,72 +41,45 @@ export function CaseRow({ workCase, onOpen }: CaseRowProps) {
     >
       {/* Identity */}
       <div className={classes.identity}>
-        <CaseIcon
-          kind={category.icon}
-          color={category.color}
-          tint={category.tint}
-          size={32}
-          radius={9}
-          iconSize={16}
-        />
         <div className={classes.identityText}>
-          <div className={classes.caseNumber}>{workCase.caseNumber}</div>
-          <div className={classes.nameText}>{workCase.title}</div>
+          <div className={classes.caseNumber}>{workCase.reference_number}</div>
+          <div className={classes.nameText}>{title}</div>
         </div>
       </div>
 
       {/* Status */}
       <StatusPill fg={status.fg} bg={status.bg} dot>
-        {status.label}
+        {WORK_STATUS_LABEL[workCase.status]}
       </StatusPill>
 
       {/* Priority */}
       <div>
         <Badge color={priority.color} variant="light" size="sm" radius="sm">
-          {priority.label}
+          {WORK_PRIORITY_LABEL[workCase.priority]}
         </Badge>
       </div>
 
-      {/* Progress */}
-      <div>
-        <MonoText fz="10px" c="var(--mantine-color-gray-6)" mb={4}>
-          {done}/{total}
-        </MonoText>
-        <Progress
-          value={pct}
-          color={pct === 100 ? "green" : "accent"}
-          size="xs"
-          radius="xl"
-          aria-label={`${done} of ${total} tasks complete`}
-        />
-      </div>
-
-      {/* Departments */}
+      {/* Responsible unit */}
       <Group gap={5} wrap="nowrap" style={{ minWidth: 0 }}>
-        <Text className={classes.metaText}>{workCase.departments[0]}</Text>
-        {extraDepartments > 0 && (
-          <StatusPill fg="var(--mantine-color-gray-6)" bg="rgba(0,0,0,0.05)">
-            +{extraDepartments}
-          </StatusPill>
-        )}
+        <Text className={classes.metaText}>{unit}</Text>
       </Group>
 
-      {/* Officers */}
-      <Avatar.Group spacing="sm">
-        {workCase.officers.slice(0, 3).map((o) => (
-          <Avatar key={o.id} size={22} radius="xl" color={o.color}>
-            {o.initials}
-          </Avatar>
-        ))}
-        {workCase.officers.length > 3 && (
-          <Avatar size={22} radius="xl" color="gray">
-            +{workCase.officers.length - 3}
-          </Avatar>
-        )}
-      </Avatar.Group>
+      {/* Accountable owner */}
+      <Group gap={8} wrap="nowrap" style={{ minWidth: 0 }}>
+        <Avatar
+          size={22}
+          radius="xl"
+          color={avatarColorForId(workCase.current_owner)}
+        >
+          {actorInitials(workCase.current_owner, actorDir)}
+        </Avatar>
+        <Text className={classes.metaText}>{ownerName}</Text>
+      </Group>
 
       {/* Due date */}
-      <span className={classes.mono}>{formatDate(workCase.dueDate)}</span>
+      <span className={classes.mono}>
+        {formatGregorian(workCase.due_at) || "—"}
+      </span>
 
       {/* Actions */}
       <div className={classes.actionCell}>
@@ -119,7 +89,7 @@ export function CaseRow({ workCase, onOpen }: CaseRowProps) {
               variant="subtle"
               color="gray"
               size="sm"
-              aria-label={`${workCase.caseNumber} actions`}
+              aria-label={`${workCase.reference_number} actions`}
               onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}
             >
@@ -128,11 +98,8 @@ export function CaseRow({ workCase, onOpen }: CaseRowProps) {
           </Menu.Target>
           <Menu.Dropdown onClick={(e) => e.stopPropagation()}>
             <Menu.Item onClick={() => onOpen(workCase)}>Open case</Menu.Item>
-            <Menu.Item onClick={notConnected}>Assign officer</Menu.Item>
-            <Menu.Item onClick={notConnected}>Change status</Menu.Item>
-            <Menu.Item color="red" onClick={notConnected}>
-              Close case
-            </Menu.Item>
+            <Menu.Item onClick={notConnected}>Assign</Menu.Item>
+            <Menu.Item onClick={notConnected}>Start</Menu.Item>
           </Menu.Dropdown>
         </Menu>
       </div>

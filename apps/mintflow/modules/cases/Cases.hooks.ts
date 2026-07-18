@@ -3,24 +3,32 @@
 import { useMemo } from "react";
 import { notifications, useQuery } from "@peppermint/ui";
 
-import { fetchCases, fetchFiles } from "./module.api";
-import type {
-  CaseFile,
-  CasePriority,
-  CaseStatus,
-  WorkCase,
-} from "./module.api";
+import {
+  resolveTitle,
+  WORK_STATUS_LABEL,
+  workKeys,
+  type WorkItem,
+  type WorkListParams,
+  type WorkStatus,
+} from "@/lib/work";
+import { listWorkItems } from "./cases.api";
+import { PRIORITY_RANK } from "./cases.styles";
 
-export type StatusFilter = "all" | CaseStatus;
+export type StatusFilter = "all" | WorkStatus;
 export type SortKey = "recent" | "priority" | "due" | "title";
 
+/**
+ * Curated status tabs. `all` is unfiltered; the rest map to a real `WorkStatus`
+ * and drive the server-side `?status` filter (the remaining statuses stay
+ * reachable through search / the "all" tab).
+ */
 export const STATUS_TABS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "in_progress", label: "In Progress" },
-  { value: "under_review", label: "Under Review" },
-  { value: "on_hold", label: "On Hold" },
-  { value: "resolved", label: "Resolved" },
-  { value: "closed", label: "Closed" },
+  { value: "in_progress", label: WORK_STATUS_LABEL.in_progress },
+  { value: "review_pending", label: WORK_STATUS_LABEL.review_pending },
+  { value: "blocked", label: WORK_STATUS_LABEL.blocked },
+  { value: "closure_pending", label: WORK_STATUS_LABEL.closure_pending },
+  { value: "closed", label: WORK_STATUS_LABEL.closed },
 ];
 
 const SORT_LABELS: Record<SortKey, string> = {
@@ -36,83 +44,63 @@ export function sortLabel(key: SortKey): string {
   return SORT_LABELS[key];
 }
 
-const PRIORITY_RANK: Record<CasePriority, number> = {
-  urgent: 0,
-  high: 1,
-  normal: 2,
-  low: 3,
-};
-
-/** Shared "no backend yet" feedback for inert actions across the module. */
+/** Shared "no backend yet" feedback for inert actions (mutations land in P3). */
 export function notConnected(): void {
   notifications.show({ message: "Not connected yet", color: "gray" });
 }
 
-export function useCases() {
-  return useQuery({ queryKey: ["cases"], queryFn: fetchCases });
+const PAGE_SIZE = 100;
+
+/**
+ * Visible work items for the selected status tab. `?status` is applied
+ * server-side; search + sort run client-side over the loaded page (P1 keeps the
+ * mock's single-page interaction model — full cursor pagination is a later pass).
+ */
+export function useWorkItems(status: StatusFilter) {
+  const params: WorkListParams = { page_size: PAGE_SIZE };
+  if (status !== "all") params.status = status;
+  return useQuery({
+    queryKey: workKeys.itemList(params),
+    queryFn: () => listWorkItems(params),
+  });
 }
 
-export function useFiles() {
-  return useQuery({ queryKey: ["cases", "files"], queryFn: fetchFiles });
-}
-
-function matchesCase(workCase: WorkCase, query: string): boolean {
+function matchesItem(item: WorkItem, query: string): boolean {
   if (!query) return true;
-  const q = query.toLowerCase();
   return (
-    workCase.title.toLowerCase().includes(q) ||
-    workCase.caseNumber.toLowerCase().includes(q) ||
-    workCase.summary.toLowerCase().includes(q)
+    resolveTitle(item).toLowerCase().includes(query) ||
+    item.title_np.toLowerCase().includes(query) ||
+    item.reference_number.toLowerCase().includes(query) ||
+    item.objective.toLowerCase().includes(query)
   );
 }
 
+/** Missing deadlines sort last regardless of direction. */
+function byDue(a: WorkItem, b: WorkItem): number {
+  if (!a.due_at && !b.due_at) return 0;
+  if (!a.due_at) return 1;
+  if (!b.due_at) return -1;
+  return a.due_at.localeCompare(b.due_at);
+}
+
 export function useFilteredCases(
-  cases: WorkCase[] | undefined,
-  status: StatusFilter,
+  items: WorkItem[] | undefined,
   search: string,
   sort: SortKey,
-): WorkCase[] {
+): WorkItem[] {
   return useMemo(() => {
-    const rows = (cases ?? []).filter(
-      (c) =>
-        (status === "all" || c.status === status) && matchesCase(c, search),
-    );
+    const q = search.trim().toLowerCase();
+    const rows = (items ?? []).filter((w) => matchesItem(w, q));
 
     const sorted = [...rows];
     if (sort === "priority")
       sorted.sort(
         (a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority],
       );
-    else if (sort === "due")
-      sorted.sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+    else if (sort === "due") sorted.sort(byDue);
     else if (sort === "title")
-      sorted.sort((a, b) => a.title.localeCompare(b.title));
+      sorted.sort((a, b) => resolveTitle(a).localeCompare(resolveTitle(b)));
+    // `recent` keeps the server order (-updated_at).
     return sorted;
-  }, [cases, status, search, sort]);
-}
-
-export function useFilteredFiles(
-  files: CaseFile[] | undefined,
-  search: string,
-): CaseFile[] {
-  return useMemo(() => {
-    if (!search) return files ?? [];
-    const q = search.toLowerCase();
-    return (files ?? []).filter(
-      (f) =>
-        f.name.toLowerCase().includes(q) ||
-        f.caseNumber.toLowerCase().includes(q),
-    );
-  }, [files, search]);
-}
-
-/** "2026-08-15" → "15 Aug 2026" (parsed as a local date — no UTC day shift). */
-export function formatDate(iso: string): string {
-  const [year, month, day] = iso.split("-").map(Number);
-  if (!year || !month || !day) return iso;
-  return new Date(year, month - 1, day).toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  }, [items, search, sort]);
 }

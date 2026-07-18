@@ -1,6 +1,0 @@
-import type { CaseFile } from "../../../module.api";
-
-export interface FileCardProps {
-  file: CaseFile;
-  onOpen: (file: CaseFile) => void;
-}

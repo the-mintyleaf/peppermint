@@ -4,25 +4,14 @@
 }
 
 .table {
-  min-width: 940px;
+  min-width: 860px;
 }
 
 .caseGrid {
   display: grid;
-  grid-template-columns: minmax(220px, 2.6fr) 108px 92px 128px minmax(
-      140px,
-      1.4fr
-    ) 96px 116px 40px;
-  column-gap: 14px;
-  align-items: center;
-}
-
-.fileGrid {
-  display: grid;
-  grid-template-columns: minmax(220px, 2.4fr) 110px minmax(
-      140px,
-      1.2fr
-    ) 90px 110px 40px;
+  grid-template-columns:
+    minmax(220px, 2.6fr) 128px 96px minmax(140px, 1.4fr)
+    minmax(150px, 1.3fr) 120px 40px;
   column-gap: 14px;
   align-items: center;
 }
