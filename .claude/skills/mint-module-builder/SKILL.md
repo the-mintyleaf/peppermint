@@ -366,6 +366,7 @@ import { studentsColumns } from "./students.columns";
 import { studentQueryKeys } from "../../students.queryKeys";
 import { StudentForm } from "../../form/StudentForm";
 import type { Student } from "../../students.types";
+import type { StudentFormValues } from "../../form/StudentForm.types";
 
 const tabs: DataTableShellTab[] = [
   { label: "All Students", icon: UsersIcon },
