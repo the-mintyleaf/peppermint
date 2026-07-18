@@ -3,27 +3,77 @@
 import { useEffect, useMemo, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { AppShell, Box, Burger, useDisclosure } from "@peppermint/ui";
+import {
+  AppShell,
+  Box,
+  Burger,
+  Center,
+  Loader,
+  useDisclosure,
+} from "@peppermint/ui";
+import { KeyIcon } from "@phosphor-icons/react/dist/csr/Key";
+import { SignOutIcon } from "@phosphor-icons/react/dist/csr/SignOut";
 
 import { tokens } from "@/config/design";
+import { AccountModal } from "@/components";
+import { useCurrentUser } from "@/modules/auth/_shared/useCurrentUser";
+import { useLogout } from "@/modules/auth/_shared/useLogout";
 import { useRailCollapsed } from "./AppShell.hooks";
 import { APP_SHELL_CONFIG } from "./nav.config";
 import { Sidebar } from "./components/Sidebar";
 import { NAV_WIDTH, NAV_WIDTH_COLLAPSED, SHELL_INSET } from "./shell.constants";
-import type { AppShellConfig } from "./AppShell.types";
+import type { AppShellConfig, AppShellNavGroup } from "./AppShell.types";
 import classes from "./AppShell.module.css";
 
 /**
- * mintflow-admin chrome — a single always-open 280px navigation panel (no
- * icon-rail / sub-nav split) over the warm-paper content area. Config is the
- * placeholder in `nav.config.tsx`; router-bound `onNavigate` / `linkComponent`
- * are injected here.
+ * Hide any nav group/row flagged `requiresStaff` from non-staff accounts, then
+ * drop groups left with no visible rows. This is the client-side half of the
+ * "permission-based access on modules" gate — the backend remains authoritative.
+ */
+function filterNavByRole(
+  groups: AppShellNavGroup[],
+  isStaff: boolean,
+): AppShellNavGroup[] {
+  return groups
+    .filter((group) => !group.requiresStaff || isStaff)
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !item.requiresStaff || isStaff),
+    }))
+    .filter((group) => group.items.length > 0);
+}
+
+/**
+ * mintflow chrome — a single always-open 280px navigation panel (no icon-rail /
+ * sub-nav split) over the warm-paper content area. Gates the whole authenticated
+ * area: no session bounces to sign-in, a forced password change bounces to
+ * `/password-change`, and the nav is filtered by the account role. Runtime
+ * `onNavigate` / `linkComponent` are injected here.
  */
 export function LayoutAppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "";
   const router = useRouter();
   const [opened, { toggle: toggleMobileNav, close: closeMobileNav }] =
     useDisclosure();
+  const [accountOpened, accountHandlers] = useDisclosure();
+
+  const { user, isStaff, isLoading } = useCurrentUser();
+  const { mutate: logoutMutate } = useLogout();
+
+  // No session → back to sign-in. The api-client also redirects on a failed
+  // refresh; this is the fast path before the first `/me` request even fires.
+  useEffect(() => {
+    if (!localStorage.getItem("access_token")) {
+      router.replace("/");
+    }
+  }, [router]);
+
+  // A forced first-login / post-reset password change must happen before the app.
+  useEffect(() => {
+    if (user?.password_change_required) {
+      router.replace("/password-change");
+    }
+  }, [user, router]);
 
   // Desktop-only; below `sm` the panel is the Burger overlay and stays full-width.
   const isCollapsed = useRailCollapsed();
@@ -39,11 +89,44 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
   const config = useMemo<AppShellConfig>(
     () => ({
       ...APP_SHELL_CONFIG,
+      groups: filterNavByRole(APP_SHELL_CONFIG.groups, isStaff),
       linkComponent: Link,
       onNavigate: (href) => router.push(href),
+      user: user
+        ? {
+            name: user.display_name || user.username,
+            email: user.email ?? undefined,
+            menuItems: [
+              {
+                id: "change-password",
+                label: "Change password",
+                icon: KeyIcon,
+                onClick: accountHandlers.open,
+              },
+              {
+                id: "signout",
+                label: "Sign out",
+                icon: SignOutIcon,
+                danger: true,
+                onClick: () => logoutMutate(),
+              },
+            ],
+          }
+        : undefined,
     }),
-    [router],
+    [isStaff, user, router, accountHandlers.open, logoutMutate],
   );
+
+  // Hold the shell until identity resolves: loading, the "no user / error"
+  // redirect window, and the forced-password-change bounce all render a loader
+  // instead of flashing the app chrome to an unauthenticated viewer.
+  if (isLoading || !user || user.password_change_required) {
+    return (
+      <Center h="100dvh" bg="dark.9">
+        <Loader size="sm" color="brand.5" />
+      </Center>
+    );
+  }
 
   return (
     <>
@@ -107,6 +190,8 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
           </Box>
         </AppShell.Main>
       </AppShell>
+
+      <AccountModal opened={accountOpened} onClose={accountHandlers.close} />
     </>
   );
 }

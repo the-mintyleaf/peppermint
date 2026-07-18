@@ -8,6 +8,8 @@ export interface AppShellNavItem {
   href: string;
   icon: Icon;
   badge?: string;
+  /** Hide this row unless the signed-in account is staff/superuser. */
+  requiresStaff?: boolean;
 }
 
 /** A titled section of the nav panel (e.g. "Menu", "Work Files"). */
@@ -15,6 +17,8 @@ export interface AppShellNavGroup {
   id: string;
   label: string;
   items: AppShellNavItem[];
+  /** Hide the whole group unless the signed-in account is staff/superuser. */
+  requiresStaff?: boolean;
 }
 
 export interface AppShellBrand {

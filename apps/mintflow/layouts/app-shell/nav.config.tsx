@@ -5,14 +5,9 @@ import { SquaresFourIcon } from "@phosphor-icons/react/dist/csr/SquaresFour";
 import { FolderOpenIcon } from "@phosphor-icons/react/dist/csr/FolderOpen";
 import { CheckSquareIcon } from "@phosphor-icons/react/dist/csr/CheckSquare";
 import { CalendarBlankIcon } from "@phosphor-icons/react/dist/csr/CalendarBlank";
-import { UsersThreeIcon } from "@phosphor-icons/react/dist/csr/UsersThree";
 import { KanbanIcon } from "@phosphor-icons/react/dist/csr/Kanban";
 import { StarFourIcon } from "@phosphor-icons/react/dist/csr/StarFour";
 import { GearSixIcon } from "@phosphor-icons/react/dist/csr/GearSix";
-import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
-import { SignOutIcon } from "@phosphor-icons/react/dist/csr/SignOut";
-
-import { notifications } from "@peppermint/ui";
 
 import type { AppShellConfig } from "./AppShell.types";
 
@@ -102,26 +97,6 @@ export const APP_SHELL_CONFIG: Omit<
   settingsButton: { href: "/settings", label: "Settings", icon: GearSixIcon },
   notifications: { href: "/notifications", count: 3 },
 
-  user: {
-    name: "John Minister",
-    email: "john@kamban.gov",
-    menuItems: [
-      { id: "profile", label: "Profile", icon: UserIcon, href: "/settings" },
-      {
-        id: "settings",
-        label: "Settings",
-        icon: GearSixIcon,
-        href: "/settings",
-      },
-      {
-        id: "signout",
-        label: "Sign out",
-        icon: SignOutIcon,
-        danger: true,
-        // Placeholder — no auth yet; mirrors the app's "not connected" pattern.
-        onClick: () =>
-          notifications.show({ message: "Not connected yet", color: "gray" }),
-      },
-    ],
-  },
+  // `user` is injected at runtime by `LayoutAppShell` from the signed-in account
+  // (`/api/v1/auth/me/`) — its menu wires the account modal + sign-out.
 };

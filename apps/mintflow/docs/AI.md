@@ -5,8 +5,11 @@
 mintflow is the **"kamban." minister app**, being rebuilt on this branch as an
 admin-style surface ("mintflow-admin"). It renders bespoke React screens on Mantine
 (via `@peppermint/ui`) tuned to a fixed brand design system — **not**
-`@peppermint/admin` framework screens. **No backend yet** — screen data is intentional
-local mock data (the "not wired" pattern: `notifications.show("Not connected yet")`).
+`@peppermint/admin` framework screens. **Authentication is wired to the backend**
+(login, tokenization, forced + own password change, logout, session-gated shell — see
+[Authentication](#authentication-modulesauth--lib)); **module screen data is still
+intentional local mock data** (the "not wired" pattern:
+`notifications.show("Not connected yet")`).
 
 > ⚠️ Mid-rebuild: the previous mobile shell (bottom-nav + IconRail) and most modules
 > were removed. What exists now is the new **single-sidebar app shell** and a
@@ -14,15 +17,20 @@ local mock data (the "not wired" pattern: `notifications.show("Not connected yet
 
 ## Surfaces & routing
 
-- `/` → redirects to `/dashboard` (`app/page.tsx`).
+- `/` → `ModuleSignIn` (`modules/auth/sign-in/`) — the pre-auth sign-in page (no shell).
+  A live session redirects itself to `/dashboard`.
+- `/password-change` → `ModulePasswordChange` (`modules/auth/password-change/`) — forced
+  password change for an authenticated account, outside the shell.
 - Route group `app/(app)/` wraps authenticated routes in the app shell
-  (`layouts/app-shell`); `(app)/layout.tsx` is a pure re-export of `LayoutAppShell`.
+  (`layouts/app-shell`); `(app)/layout.tsx` is a pure re-export of `LayoutAppShell`,
+  which **gates the whole group** on a valid session (see [Authentication](#authentication-modulesauth--lib)).
   - `/dashboard` → `ModuleDashboard` (`modules/dashboard/`) — the "Home Work Desk" dashboard (home).
   - `/tasks` → `ModuleTasks` (`modules/tasks/`) — the imported Tasks page.
   - `/cases` → `ModuleCases` (`modules/cases/`) — case-management board.
   - `/cases/[caseId]` → `ModuleCaseProfile` (`modules/cases/profile/`) — full case profile page.
   - `/calendar` → `ModuleCalendar` (`modules/calendar/`) — tasks laid out by due date.
-- `app/` files are re-export only (the root redirect is the one allowed exception).
+- `app/` files are re-export only (no logic — the gate lives in `LayoutAppShell` and
+  the sign-in module).
 
 ## Modules
 
@@ -185,6 +193,35 @@ mintflow orange/paper tokens (loosely seeded by the `Files.dc.html` mock, since 
     (Activity / Files / People tabs), `components/InsightsRail` (dark case-lead card,
     priority meter, progress breakdown, officers brief).
 
+## Authentication — `modules/auth/` + `lib/`
+
+The one wired-to-backend surface. Mirrors `mintflow-admin`'s auth wiring; account
+administration (users, roles, permissions) stays in `mintflow-admin` — this client app
+only signs in, holds/refreshes tokens, changes its own password, and gates itself.
+
+- **`lib/api.ts`** — the shared Axios instance from `configureApiClient`
+  (`@peppermint/api-client`): `baseURL` from `NEXT_PUBLIC_API_URL`, `refreshEndpoint`
+  `/api/v1/auth/refresh/`. Auth-header injection, envelope unwrap, and single-flight 401
+  refresh are built in. **Always import the instance from `@/lib/api`.**
+- **`lib/authErrorMessages.ts`** — `ERROR_MESSAGES` (auth-code → copy) +
+  `getApiError` / `getApiErrorMessage`.
+- **`modules/auth/_shared/`** — `auth.types.ts` (`CurrentUser`), `useCurrentUser`
+  (`GET /api/v1/auth/me/`, derives `isStaff`/`isSuperuser`), `useLogout`
+  (`POST /api/v1/auth/logout/` then clear tokens + return to `/`), and
+  `ChangePasswordForm/` (shared by the forced page and the account modal; posts
+  `/api/v1/auth/change-password/`, with a `PasswordStrengthMeter`).
+- **`modules/auth/sign-in/`** — `ModuleSignIn`: wraps `@peppermint/admin`'s `SignInPage`
+  (identifier login + MFA verify + token storage + redirect). Route `/`.
+- **`modules/auth/password-change/`** — `ModulePasswordChange`: thin wrapper around
+  `ChangePasswordForm`. Route `/password-change`.
+- **The gate lives in `LayoutAppShell`** (`layouts/app-shell/AppShell.tsx`): no
+  `access_token` → `router.replace("/")`; `useCurrentUser()` holds a loader until identity
+  resolves; `password_change_required` → `router.replace("/password-change")`. It builds
+  the shell `user` menu from `CurrentUser` (Change password → `AccountModal`; Sign out →
+  `useLogout`) and filters nav by role (`filterNavByRole` + the `requiresStaff` flag).
+- **`components/AccountModal/`** — own-password change in a `Modal` (Change-password only;
+  profile/MFA/sessions/permissions are managed in `mintflow-admin`).
+
 ## The app shell — `layouts/app-shell/`
 
 `LayoutAppShell` (client) is a **collapsible 280px navigation panel** over the warm-paper
@@ -193,10 +230,12 @@ rendered as one full-width labeled panel that collapses to a narrow icon rail on
 
 - **Config-driven.** `nav.config.tsx` (`APP_SHELL_CONFIG`) holds the static shape —
   `brand` (icon + wordmark + caption), `groups`, `aiButton`, `settingsButton`,
-  `notifications`, `user`. `groups` is an array of titled sections
+  `notifications`. `groups` is an array of titled sections
   (`AppShellNavGroup`): **Menu** (Dashboard, Tasks, Cases, Calendar, Team) and
   **Work Files** (dummy kanban boards). `LayoutAppShell` injects router-bound
-  `onNavigate` (`router.push`) and `linkComponent` (Next `Link`) at runtime.
+  `onNavigate` (`router.push`) and `linkComponent` (Next `Link`), **the `user` menu
+  (built from `CurrentUser`), and the role-filtered `groups`** at runtime — a nav item or
+  group flagged `requiresStaff` is hidden from non-staff accounts (`filterNavByRole`).
   Types: `AppShell.types.ts`.
 - **Panel composition** (`components/Sidebar/`): `SidebarBrand` (accent chip + wordmark)
   → `SearchField` (full-width, `spotlight.open()` opens the single `NavSpotlight`, also
@@ -241,18 +280,24 @@ rendered as one full-width labeled panel that collapses to a narrow icon rail on
 - **App-local primitives:** `components/` (exported from `components/index.ts`): `Screen`,
   `MonoText`, `SectionLabel`, `StatusPill`, `CheckRing`, `CheckItem`, `CaseIcon`.
 
-## Wiring status — UI ONLY
+## Wiring status
 
-No backend. Auth/sign-out and placeholder actions use the "Not connected yet"
-notification pattern. Output-contract async states (loading/error/permission) are **N/A**
-on placeholder screens.
+**Authentication is wired** to the backend (see [Authentication](#authentication-modulesauth--lib))
+— real `login/refresh/logout/me/change-password` calls through `@/lib/api`. **Module
+screens remain UI-only on mock data**: their New/Edit/placeholder actions use the "Not
+connected yet" notification pattern, and their output-contract async states
+(loading/error/permission) are **N/A** until the module data is wired.
 
 ## Do not do
 
 - Do not import `@mantine/*` directly — always via `@peppermint/ui`.
-- Do not add `useEffect` data fetching; server state goes through React Query when wired.
+- Do not add `useEffect` data fetching; server state goes through React Query
+  (`useCurrentUser` is the pattern). The only `useEffect`s in the shell are the
+  auth-gate redirects, not fetches.
+- Do not call `configureApiClient` or Axios inline — import the instance from `@/lib/api`.
 - Do not re-export `nav.config` (or any icon-importing client module) through a barrel a
   Server Component evaluates — import it directly from the client shell (SSR note above).
-- Do not put logic in `app/` files beyond the root redirect — they are re-export only.
+- Do not put logic in `app/` files — they are re-export only (the auth gate lives in
+  `LayoutAppShell` and the sign-in module).
 - Do not swap the fixed token colors for Mantine color-scheme variables — the paper
   content surface and dark rail are deliberately fixed.
