@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { notifications, useQuery } from "@peppermint/ui";
 
+import { workKeys } from "@/lib/work";
 import { FOCUS_LIMIT, WIP_LIMIT, fetchDashboard } from "./module.api";
 import type {
   DashboardData,
@@ -13,6 +14,11 @@ import type {
   Kpi,
   WorkFile,
 } from "./module.api";
+import {
+  listMyActiveWork,
+  listMyPendingAssignments,
+  listMyPendingReviews,
+} from "./dashboard.api";
 
 export type DashboardVariant = "populated" | "empty";
 
@@ -25,6 +31,29 @@ export function useDashboard(variant: DashboardVariant = "populated") {
   return useQuery({
     queryKey: ["dashboard", variant],
     queryFn: () => fetchDashboard(variant),
+  });
+}
+
+/* ── Live "Awaiting you" reads (the only real dashboard data) ─────────────── */
+
+export function useMyActiveWork() {
+  return useQuery({
+    queryKey: workKeys.myActive(),
+    queryFn: listMyActiveWork,
+  });
+}
+
+export function useMyPendingAssignments() {
+  return useQuery({
+    queryKey: workKeys.myPendingAssignments(),
+    queryFn: listMyPendingAssignments,
+  });
+}
+
+export function useMyPendingReviews() {
+  return useQuery({
+    queryKey: workKeys.myPendingReviews(),
+    queryFn: listMyPendingReviews,
   });
 }
 

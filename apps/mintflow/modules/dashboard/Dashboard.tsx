@@ -29,6 +29,7 @@ import {
   notConnected,
 } from "./Dashboard.hooks";
 import type { DashboardVariant } from "./Dashboard.hooks";
+import { AwaitingYou } from "./components/AwaitingYou";
 import { FocusHero } from "./components/FocusHero";
 import { TaskFlowBoard } from "./components/TaskFlowBoard";
 import { WorkFilesRail } from "./components/WorkFilesRail";
@@ -107,12 +108,20 @@ export function ModuleDashboard() {
       />
 
       <ModalPaper withBorder>
-        {isLoading ? (
-          <LoadingState />
-        ) : isError || !data ? (
-          <ErrorState onRetry={() => refetch()} />
-        ) : (
-          <ScrollArea h="100%">
+        <ScrollArea h="100%">
+          <AwaitingYou />
+          <Divider color={tokens.line} />
+          <Box px="md" pt="sm">
+            <Text fz="11px" fw={600} c={tokens.muted}>
+              Sample workspace below — focus, flow, metrics and files
+              aren&apos;t connected yet.
+            </Text>
+          </Box>
+          {isLoading ? (
+            <LoadingState />
+          ) : isError || !data ? (
+            <ErrorState onRetry={() => refetch()} />
+          ) : (
             <Box
               style={{
                 display: "flex",
@@ -190,8 +199,8 @@ export function ModuleDashboard() {
                 />
               </Stack>
             </Box>
-          </ScrollArea>
-        )}
+          )}
+        </ScrollArea>
       </ModalPaper>
 
       <TaskDrawer
