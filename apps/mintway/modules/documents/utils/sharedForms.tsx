@@ -1,6 +1,6 @@
 "use client";
 
-import type { DocumentFormProps } from "../documents.types";
+import type { DocumentContent, DocumentFormProps } from "../documents.types";
 import { BankStatementForm } from "../components/BankStatementForm";
 import { BankCertificateForm } from "../components/BankCertificateForm";
 import { WodaForm } from "../components/WodaForm";
@@ -12,11 +12,25 @@ export const createBankStatementForm = () => BankStatementForm;
 /** Certificate forms use the dedicated BankCertificateForm (balance + auto words). */
 export const createBankCertificateForm = () => BankCertificateForm;
 
-/** LOR variants: institution constants become schema defaults; rendered by WodaForm. */
+/**
+ * LOR variants. Institution constants drive two things: which content fields the form
+ * exposes (per-variant academic fields opt in via empty-string constants) and the values
+ * baked into the saved content. Router/hardcoded keys (institution_name, lor_title, …)
+ * are merged in at submit rather than shown, so editing can't misroute or blank a letter.
+ * Edited values win over the baked constants.
+ */
 export function createLorForm(constants: Record<string, unknown> = {}) {
   const schema = buildLorSchema(constants);
-  return function LorVariantForm(props: DocumentFormProps) {
-    return <WodaForm schema={schema} {...props} />;
+  return function LorVariantForm({ onSubmit, ...props }: DocumentFormProps) {
+    return (
+      <WodaForm
+        schema={schema}
+        onSubmit={(content) =>
+          onSubmit({ ...constants, ...content } as DocumentContent)
+        }
+        {...props}
+      />
+    );
   };
 }
 

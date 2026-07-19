@@ -35,7 +35,7 @@ interface LetterField extends WodaField {
   always?: boolean;
 }
 
-const LOR_SECTIONS = ["Letter", "Institution", "Student", "Recommender"];
+const LOR_SECTIONS = ["Letter", "Student", "Course", "Recommender"];
 
 const LOR_FIELDS: LetterField[] = [
   // Letter
@@ -63,46 +63,11 @@ const LOR_FIELDS: LetterField[] = [
     control: "date-ad",
     always: true,
   },
-  {
-    section: "Letter",
-    name: "lor_title",
-    label: "Letter heading",
-    description: "The bold heading printed at the top of the letter.",
-    placeholder: "To Whom It May Concern",
-    always: true,
-  },
-  {
-    section: "Letter",
-    name: "lor_salutation",
-    label: "Salutation",
-    placeholder: "Dear Sir/Madam,",
-    optional: true,
-    always: true,
-  },
-  // Institution
-  {
-    section: "Institution",
-    name: "institution_name",
-    label: "Institution name",
-    placeholder: "Bageshwari Multiple Campus",
-    always: true,
-  },
-  {
-    section: "Institution",
-    name: "institution_subname",
-    label: "Sub-name / affiliation",
-    placeholder: "Mid-West University",
-    optional: true,
-    always: true,
-  },
-  {
-    section: "Institution",
-    name: "institution_address",
-    label: "Institution address",
-    control: "textarea",
-    placeholder: "Kohalpur, Banke",
-    always: true,
-  },
+  // Note: institution_name, lor_title, lor_salutation, institution_subname and
+  // institution_address are NOT editable fields. Each LOR template is hardcoded per
+  // institution; institution_name + lor_title are only ROUTER keys (TemplateLor switches
+  // on them) and the rest are never printed. They are baked into the saved content by
+  // createLorForm instead, so editing them can't blank a letter or misroute it.
   // Student
   {
     section: "Student",
@@ -150,6 +115,172 @@ const LOR_FIELDS: LetterField[] = [
     options: PRONOUNS,
     defaultValue: "him",
     always: true,
+  },
+  // Student — per-variant (opted in by the institution's constants)
+  {
+    section: "Student",
+    name: "father_honorific",
+    label: "Father honorific",
+    control: "combobox",
+    options: HONORIFICS,
+    placeholder: "Mr.",
+    half: true,
+  },
+  {
+    section: "Student",
+    name: "father_name",
+    label: "Father name",
+    placeholder: "Hari Bahadur Shrestha",
+    half: true,
+  },
+  {
+    section: "Student",
+    name: "student_address",
+    label: "Student address",
+    control: "textarea",
+    placeholder: "Birendranagar-5, Surkhet",
+  },
+  {
+    section: "Student",
+    name: "student_registration_no",
+    label: "Registration no.",
+    placeholder: "2078-BBA-123",
+    half: true,
+  },
+  {
+    section: "Student",
+    name: "student_dob",
+    label: "Date of birth (A.D.)",
+    control: "date-ad",
+    half: true,
+  },
+  {
+    section: "Student",
+    name: "grade",
+    label: "Grade / class completed",
+    placeholder: "12",
+    half: true,
+  },
+  {
+    section: "Student",
+    name: "year_of_completion",
+    label: "Year of completion",
+    placeholder: "2081",
+    half: true,
+  },
+  {
+    section: "Student",
+    name: "qualification",
+    label: "Qualification",
+    placeholder: "Diploma in Civil Engineering",
+    half: true,
+  },
+  {
+    section: "Student",
+    name: "qualification_year",
+    label: "Qualification year",
+    placeholder: "2081",
+    half: true,
+  },
+  // Course & study
+  {
+    section: "Course",
+    name: "program",
+    label: "Program",
+    placeholder: "BBA",
+    half: true,
+  },
+  {
+    section: "Course",
+    name: "program_full_name",
+    label: "Program full name",
+    placeholder: "Bachelor of Business Administration",
+    half: true,
+  },
+  {
+    section: "Course",
+    name: "degree_name",
+    label: "Degree name",
+    placeholder: "Bachelor's degree",
+    half: true,
+  },
+  {
+    section: "Course",
+    name: "subject",
+    label: "Subject",
+    placeholder: "Science",
+    half: true,
+  },
+  {
+    section: "Course",
+    name: "study_field",
+    label: "Field of study",
+    placeholder: "Management",
+    half: true,
+  },
+  {
+    section: "Course",
+    name: "target_program",
+    label: "Target program",
+    placeholder: "Master's degree",
+    half: true,
+  },
+  {
+    section: "Course",
+    name: "study_duration",
+    label: "Study duration (in words)",
+    description: "Number of years, spelled out.",
+    placeholder: "three",
+    half: true,
+  },
+  {
+    section: "Course",
+    name: "study_year_start",
+    label: "Study start year",
+    placeholder: "2021",
+    half: true,
+  },
+  {
+    section: "Course",
+    name: "academic_year_start",
+    label: "Academic year start",
+    placeholder: "2021",
+    half: true,
+  },
+  {
+    section: "Course",
+    name: "academic_year_end",
+    label: "Academic year end",
+    placeholder: "2024",
+    half: true,
+  },
+  {
+    section: "Course",
+    name: "graduation_year",
+    label: "Graduation year",
+    placeholder: "2024",
+    half: true,
+  },
+  {
+    section: "Course",
+    name: "teaching_semesters",
+    label: "Teaching semesters",
+    placeholder: "8",
+    half: true,
+  },
+  {
+    section: "Course",
+    name: "teaching_subjects",
+    label: "Teaching subjects",
+    control: "textarea",
+    placeholder: "Programming, Databases",
+  },
+  {
+    section: "Course",
+    name: "student_interests",
+    label: "Student interests",
+    control: "textarea",
+    placeholder: "robotics, mathematics",
   },
   // Recommender
   {

@@ -7,6 +7,8 @@ export const LorJanajagriti = createLorForm({
   institution_address: "Tamakoshi R.M., Ward No. 5, Shahare, Dolakha",
   lor_title: "LETTER OF RECOMMENDATION",
   recommender_title: "Head Teacher",
+  academic_year_start: "",
+  academic_year_end: "",
 });
 
 export const LorBageshwariChief = createLorForm({
@@ -17,6 +19,14 @@ export const LorBageshwariChief = createLorForm({
   recommender_title: "Campus Chief",
   recommender_contact: "081540076",
   recommender_email: "bmck@mwu.edu.np",
+  father_honorific: "",
+  father_name: "",
+  student_address: "",
+  program: "",
+  degree_name: "",
+  academic_year_start: "",
+  academic_year_end: "",
+  graduation_year: "",
 });
 
 export const LorBageshwariHod = createLorForm({
@@ -33,6 +43,8 @@ export const LorShiva = createLorForm({
   institution_address: "Chure-1, Kimtola, Kailali",
   lor_title: "Recommendation Letter",
   recommender_title: "Principal",
+  grade: "",
+  year_of_completion: "",
 });
 
 export const LorKcmit = createLorForm({
@@ -43,6 +55,13 @@ export const LorKcmit = createLorForm({
   lor_salutation: "",
   recommender_contact: "4479939",
   recommender_email: "kcmitcollege@gmail.com",
+  father_honorific: "",
+  father_name: "",
+  program: "",
+  program_full_name: "",
+  academic_year_start: "",
+  academic_year_end: "",
+  student_interests: "",
 });
 
 export const LorTriChandra = createLorForm({
@@ -51,6 +70,8 @@ export const LorTriChandra = createLorForm({
   institution_address: "Saraswati Sadan, Kathmandu, Nepal",
   lor_title: "RECOMMENDATION LETTER",
   recommender_contact: "4-244047",
+  academic_year_start: "",
+  academic_year_end: "",
 });
 
 export const LorMonastic = createLorForm({
@@ -73,6 +94,9 @@ export const LorOmHealth = createLorForm({
   recommender_title: "Act. Principal",
   recommender_contact: "9841412676",
   recommender_email: "iswarikhanal78@gmail.com",
+  program: "",
+  study_duration: "",
+  study_year_start: "",
 });
 
 export const LorAtlantic = createLorForm({
@@ -84,6 +108,12 @@ export const LorAtlantic = createLorForm({
   recommender_title: "Principal",
   recommender_contact: "+977-1-4022514",
   recommender_email: "info@atlantic.edu.np",
+  degree_name: "",
+  study_field: "",
+  target_program: "",
+  teaching_semesters: "",
+  teaching_subjects: "",
+  graduation_year: "",
 });
 
 export const LorModelTechnical = createLorForm({
@@ -93,6 +123,10 @@ export const LorModelTechnical = createLorForm({
   lor_title: "LETTER OF RECOMMENDATION",
   recommender_title: "Principal",
   recommender_contact: "051-525412, 525908",
+  student_registration_no: "",
+  student_dob: "",
+  qualification: "",
+  qualification_year: "",
 });
 
 export const LorNepalgunj = createLorForm({
@@ -102,4 +136,8 @@ export const LorNepalgunj = createLorForm({
   recommender_title: "Principal",
   recommender_contact: "081-5363930, 081-5837940",
   recommender_email: "ntc.college08@gmail.com",
+  subject: "",
+  study_duration: "",
+  academic_year_start: "",
+  academic_year_end: "",
 });
