@@ -128,19 +128,22 @@ export function BankStatementForm({
           Account
         </Text>
         <TextInput
-          label="Account Holder"
+          label="Account holder"
+          placeholder="Ram Bahadur Shrestha"
           required
           {...form.getInputProps("statement_account_holder")}
           disabled={isLoading}
         />
         <TextInput
-          label="Account Number"
+          label="Account number"
+          placeholder="0123456789012"
           required
           {...form.getInputProps("statement_account_no")}
           disabled={isLoading}
         />
         <Textarea
-          label="Account Address"
+          label="Account holder address"
+          placeholder="Birendranagar-5, Surkhet"
           autosize
           minRows={1}
           {...form.getInputProps("statement_account_address")}
@@ -148,13 +151,14 @@ export function BankStatementForm({
         />
         <Group grow>
           <TextInput
-            label="Account Type"
-            placeholder="e.g. Savings"
+            label="Account type"
+            placeholder="Savings"
             {...form.getInputProps("statement_account_type")}
             disabled={isLoading}
           />
           <TextInput
-            label="Reference No."
+            label="Reference no."
+            placeholder="079/80-1234"
             {...form.getInputProps("statement_ref_no")}
             disabled={isLoading}
           />
@@ -166,14 +170,16 @@ export function BankStatementForm({
         </Text>
         <Group grow>
           <DateInput
-            label="Statement From"
+            label="Statement from"
+            description="First day of the statement period."
             valueFormat="YYYY-MM-DD"
             clearable
             {...form.getInputProps("statement_start_date")}
             disabled={isLoading}
           />
           <DateInput
-            label="Statement To"
+            label="Statement to"
+            description="Last day of the statement period."
             valueFormat="YYYY-MM-DD"
             clearable
             {...form.getInputProps("statement_end_date")}
@@ -182,27 +188,29 @@ export function BankStatementForm({
         </Group>
         <Group grow>
           <DateInput
-            label="Opening Balance Date"
+            label="Opening balance date"
             valueFormat="YYYY-MM-DD"
             value={computed.statements_opening_date || null}
-            description="Synced from the first transaction"
+            description="Synced from the first transaction."
             disabled
             readOnly
           />
           <NumberInput
-            label="Opening Balance"
+            label="Opening balance"
             hideControls
             decimalScale={2}
             thousandSeparator=","
             value={computed.statements_opening_bal}
-            description="Synced from the first transaction"
+            description="Synced from the first transaction."
             disabled
             readOnly
           />
         </Group>
         <Group grow>
           <NumberInput
-            label="Interest Rate (%)"
+            label="Interest rate (%)"
+            description="Applied to inserted Interest rows."
+            placeholder="6.5"
             hideControls
             decimalScale={2}
             min={0}
@@ -210,7 +218,9 @@ export function BankStatementForm({
             disabled={isLoading}
           />
           <NumberInput
-            label="Tax Rate (%)"
+            label="Tax rate (%)"
+            description="Default rate for inserted Tax rows."
+            placeholder="5"
             hideControls
             decimalScale={2}
             min={0}

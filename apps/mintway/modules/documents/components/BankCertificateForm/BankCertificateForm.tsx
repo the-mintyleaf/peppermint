@@ -62,19 +62,22 @@ export function BankCertificateForm({
           Account
         </Text>
         <TextInput
-          label="Account Holder"
+          label="Account holder"
+          placeholder="Ram Bahadur Shrestha"
           required
           {...form.getInputProps("statement_account_holder")}
           disabled={isLoading}
         />
         <TextInput
-          label="Account Number"
+          label="Account number"
+          placeholder="0123456789012"
           required
           {...form.getInputProps("statement_account_no")}
           disabled={isLoading}
         />
         <Textarea
-          label="Account Address"
+          label="Account holder address"
+          placeholder="Birendranagar-5, Surkhet"
           autosize
           minRows={1}
           {...form.getInputProps("statement_account_address")}
@@ -82,27 +85,30 @@ export function BankCertificateForm({
         />
         <Group grow>
           <TextInput
-            label="Account Type"
-            placeholder="e.g. Savings"
+            label="Account type"
+            placeholder="Savings"
             {...form.getInputProps("statement_account_type")}
             disabled={isLoading}
           />
           <TextInput
-            label="Reference No."
+            label="Reference no."
+            placeholder="079/80-1234"
             {...form.getInputProps("statement_ref_no")}
             disabled={isLoading}
           />
         </Group>
         <Group grow>
           <DateInput
-            label="Certificate Date"
+            label="Certificate date"
+            description="Date the balance is certified as of."
             valueFormat="YYYY-MM-DD"
             clearable
             {...form.getInputProps("statement_end_date")}
             disabled={isLoading}
           />
           <NumberInput
-            label="Interest Rate (%)"
+            label="Interest rate (%)"
+            placeholder="6.5"
             hideControls
             decimalScale={2}
             min={0}
@@ -117,7 +123,9 @@ export function BankCertificateForm({
         </Text>
         <Group grow>
           <NumberInput
-            label="Total Balance (NPR)"
+            label="Total balance (NPR)"
+            description="Certified balance; converted to words below."
+            placeholder="500000"
             hideControls
             decimalScale={2}
             thousandSeparator=","
@@ -126,7 +134,9 @@ export function BankCertificateForm({
             disabled={isLoading}
           />
           <NumberInput
-            label="USD Rate (NPR per USD)"
+            label="Exchange rate (NPR per 1 US$)"
+            description="Used for the USD equivalent below."
+            placeholder="133.50"
             hideControls
             decimalScale={2}
             min={0}
@@ -157,12 +167,14 @@ export function BankCertificateForm({
         </Text>
         <Group grow>
           <TextInput
-            label="Spokesperson Name"
+            label="Spokesperson name"
+            placeholder="Hari Prasad Sharma"
             {...form.getInputProps("statement_spokesperson")}
             disabled={isLoading}
           />
           <TextInput
-            label="Spokesperson Post"
+            label="Spokesperson post / designation"
+            placeholder="Branch Manager"
             {...form.getInputProps("statement_spokesperson_post")}
             disabled={isLoading}
           />
