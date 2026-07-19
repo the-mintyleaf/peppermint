@@ -16,17 +16,27 @@ const schema: WodaFormSchema = {
     applicantSection({ gender: true, address: true }),
     parentsSection(),
     {
-      title: "Surname details",
+      title: "Surname discrepancy",
+      description:
+        "The certificate states these surnames belong to the same family.",
       fields: [
         {
           name: "applicant_surname_reference",
-          label: "Surname reference",
-          description: "Document or basis the surname is drawn from",
+          label: "Surname source",
+          description:
+            "Where the differing surname appears, as it reads in the sentence.",
+          placeholder: "the surname on the citizenship certificate",
         },
-        { name: "applicant_surname", label: "Applicant surname", half: true },
+        {
+          name: "applicant_surname",
+          label: "Applicant's surname",
+          placeholder: "Shrestha",
+          half: true,
+        },
         {
           name: "applicant_parents_surname",
           label: "Parents' surname",
+          placeholder: "Pradhan",
           half: true,
         },
       ],

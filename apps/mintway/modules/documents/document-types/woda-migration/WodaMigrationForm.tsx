@@ -17,11 +17,13 @@ const schema: WodaFormSchema = {
     parentsSection(),
     {
       title: "Migration",
+      description: "Certifies the applicant migrated to their current address.",
       fields: [
         {
           name: "initial_address",
-          label: "Previous address",
-          description: "Address before migration",
+          label: "Migrated from",
+          description: "The address the applicant migrated away from.",
+          placeholder: "Birendranagar-3, Surkhet",
         },
         {
           name: "migration_date",
@@ -30,8 +32,10 @@ const schema: WodaFormSchema = {
         },
         {
           name: "signature_migration_alongwith",
-          label: "Migrated along with",
-          description: "Family members who migrated together",
+          label: "Accompanying family (phrase)",
+          description:
+            "Printed after the applicant's name — write it as a phrase.",
+          placeholder: "along with his family",
           optional: true,
         },
       ],
