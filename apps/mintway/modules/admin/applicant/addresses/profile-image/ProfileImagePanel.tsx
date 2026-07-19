@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import {
   Avatar,
   Button,
@@ -12,7 +12,6 @@ import {
   Text,
   Title,
   notifications,
-  useQuery,
 } from "@peppermint/ui";
 import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
 import { UploadSimpleIcon } from "@phosphor-icons/react/dist/csr/UploadSimple";
@@ -21,9 +20,9 @@ import { profileImageKeys, useApplicantMutation } from "../../_shared";
 import {
   PROFILE_IMAGE_MAX_BYTES,
   PROFILE_IMAGE_TYPES,
-  fetchProfileImageBlob,
   uploadProfileImage,
 } from "./profileImage.api";
+import { useProfileImageUrl } from "./useProfileImageUrl";
 
 interface ProfileImagePanelProps {
   applicantId: string;
@@ -40,26 +39,7 @@ export function ProfileImagePanel({
   applicantId,
   disabled,
 }: ProfileImagePanelProps) {
-  const { data: blob, isLoading } = useQuery({
-    queryKey: profileImageKeys.detail(applicantId),
-    queryFn: () => fetchProfileImageBlob(applicantId),
-    retry: false,
-  });
-
-  // Object-URL lifecycle is a genuine external-system sync: create it in the effect
-  // from the streamed blob and revoke the exact URL on change/unmount. Creating it in
-  // render (useMemo) would leak on aborted StrictMode renders.
-  const [url, setUrl] = useState<string | null>(null);
-  useEffect(() => {
-    const objectUrl = blob ? URL.createObjectURL(blob) : null;
-    // Legitimate external-system sync (blob → object URL); the rule's cascading-render
-    // concern doesn't apply — this runs once per blob change and revokes on cleanup.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setUrl(objectUrl);
-    return () => {
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [blob]);
+  const { url, isLoading } = useProfileImageUrl(applicantId);
 
   const resetFileRef = useRef<() => void>(null);
 

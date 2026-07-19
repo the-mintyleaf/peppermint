@@ -1,0 +1,13 @@
+/* Section-tile bento: one column on mobile, two from small screens up. Even tracks so
+   the tiles pack into a calm grid rather than a ragged list. */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--mantine-spacing-xs);
+}
+
+@media (min-width: 40em) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

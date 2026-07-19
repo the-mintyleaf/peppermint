@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { RowActionsMenu, useModalTableShellContext } from "@peppermint/admin";
 import type { RowAction } from "@peppermint/admin";
 import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
@@ -13,6 +12,7 @@ import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
 
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import type { Applicant } from "../../../_shared";
+import { useApplicantProfile } from "../ApplicantProfileModal/ApplicantProfileModal.context";
 import { TransitionModal } from "./TransitionModal";
 import { MergeModal } from "./MergeModal";
 import { useApplicantActionState } from "./useApplicantActionState";
@@ -24,9 +24,9 @@ import { useApplicantActionState } from "./useApplicantActionState";
  * modal.
  */
 export function ApplicantActionsMenu({ applicant }: { applicant: Applicant }) {
-  const router = useRouter();
   const { isAdmin } = useCurrentUser();
   const { openEditModal } = useModalTableShellContext<Applicant>();
+  const { openProfile } = useApplicantProfile();
   const state = useApplicantActionState(applicant);
 
   const notAdmin = () => !isAdmin;
@@ -35,7 +35,7 @@ export function ApplicantActionsMenu({ applicant }: { applicant: Applicant }) {
     {
       label: "View",
       icon: <EyeIcon size={16} />,
-      onClick: (r) => router.push(`/admin/applicants/${r.id}`),
+      onClick: (r) => openProfile(r.id),
     },
     {
       label: "Edit",

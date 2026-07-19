@@ -23,6 +23,7 @@ import type { Applicant, DuplicateMatch } from "../../../_shared";
 import { ApplicantForm, ApplicantEditForm } from "../../form";
 import { toCreatePayload, toUpdatePayload } from "../../form";
 import type { ApplicantFormValues } from "../../form";
+import { ApplicantProfileProvider } from "../../components/ApplicantProfileModal";
 import { getApplicantColumns } from "./applicants.columns";
 import { DuplicateWarningModal } from "./components/DuplicateWarningModal";
 
@@ -52,7 +53,7 @@ function ApplicantsListContent() {
   const columns = getApplicantColumns(isAdmin);
 
   return (
-    <>
+    <ApplicantProfileProvider>
       <ModalTableShell<Applicant, ApplicantFormValues, ApplicantFormValues>
         queryKey={applicantKeys.lists()}
         queryGetFn={fetchApplicants}
@@ -111,7 +112,7 @@ function ApplicantsListContent() {
         matches={dupMatches}
         onClose={() => setDupMatches(null)}
       />
-    </>
+    </ApplicantProfileProvider>
   );
 }
 
