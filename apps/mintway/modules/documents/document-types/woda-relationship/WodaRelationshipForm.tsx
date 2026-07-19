@@ -1,23 +1,50 @@
 "use client";
 
-import { createWodaForm } from "../../utils/sharedForms";
+import { WodaForm } from "../../components/WodaForm";
+import type { DocumentFormProps } from "../../documents.types";
+import type { WodaFormSchema } from "../../utils/wodaFormSchema";
+import {
+  applicantSection,
+  documentSection,
+  honorificField,
+  nameField,
+  parentsSection,
+  RELATIONS,
+  spokespersonSection,
+} from "../../utils/wodaCommonSections";
 
-export const WodaRelationshipForm = createWodaForm({
-  wodadoc_refno: "",
-  wodadoc_date: "",
-  applicant_honorific: "",
-  applicant_name: "",
-  applicant_permanent_address: "",
-  signature_issued_act_relationship: "",
-  applicant_father_name: "",
-  applicant_father_honorific: "",
-  applicant_mother_name: "",
-  applicant_mother_honorific: "",
-  extra_relation: "",
-  relation_extra_honorific: "",
-  relation_extra_name: "",
-  relation_extra_relation: "",
-  spokesperson_name: "",
-  spokesperson_post: "",
-  spokesperson_contact: "",
-});
+const schema: WodaFormSchema = {
+  sections: [
+    documentSection(),
+    applicantSection({ address: true }),
+    parentsSection(),
+    {
+      title: "Relationship",
+      fields: [
+        {
+          name: "extra_relation",
+          label: "Relationship being certified",
+          control: "combobox",
+          options: RELATIONS,
+        },
+        {
+          name: "signature_issued_act_relationship",
+          label: "Issuing act / reference",
+        },
+        honorificField("relation_extra_honorific", "Related person honorific"),
+        nameField("relation_extra_name", "Related person name"),
+        {
+          name: "relation_extra_relation",
+          label: "Relation to applicant",
+          control: "combobox",
+          options: RELATIONS,
+        },
+      ],
+    },
+    spokespersonSection(),
+  ],
+};
+
+export function WodaRelationshipForm(props: DocumentFormProps) {
+  return <WodaForm schema={schema} {...props} />;
+}

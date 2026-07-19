@@ -48,7 +48,7 @@ export function CreateDocumentModal() {
       opened={createModalOpen && !!createModalType}
       onClose={closeCreateModal}
       title={config ? `Create ${config.label}` : "Create page"}
-      size="md"
+      size="lg"
     >
       {Form && createModalType && (
         <Form

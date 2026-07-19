@@ -1,246 +1,214 @@
 "use client";
 
-import { Stack, TextInput, DateInput, Button, Select } from "@peppermint/ui";
-import { useForm } from "@peppermint/ui";
+import { WodaForm } from "../../components/WodaForm";
 import type { DocumentFormProps } from "../../documents.types";
+import type { WodaFormSchema } from "../../utils/wodaFormSchema";
+import {
+  documentSection,
+  HONORIFICS,
+  RELATIONS,
+} from "../../utils/wodaCommonSections";
 
-export function WodaAffidavitFinancialForm({
-  onSubmit,
-  isLoading,
-}: DocumentFormProps) {
-  const form = useForm({
-    initialValues: {
-      wodadoc_refno: "",
-      dispatch_no: "",
-      wodadoc_date_bs: "",
-      wodadoc_date: new Date().toISOString().split("T")[0],
-      // Sponsor
-      sponsor_honorific: "Mr.",
-      sponsor_name: "",
-      sponsor_relation: "Grandfather",
-      sponsor_citizenship_no: "",
-      // Parents
-      father_honorific: "Mr.",
-      father_name: "",
-      mother_honorific: "Mrs.",
-      mother_name: "",
-      parent_citizenship_no: "",
-      permanent_address: "",
-      // Student
-      student_honorific: "Miss",
-      student_name: "",
-      student_pronoun: "her",
-      student_kinship: "daughter",
-      student_citizenship_no: "",
-      student_nid_no: "",
-      student_passport_no: "",
-      course_level: "Bachelor",
-      course_name: "",
-      institution_name: "",
-      institution_location: "",
-      // Support
-      support_providers: "",
-      // Signatories
-      signer1_name: "",
-      signer1_relation: "Grandmother",
-      signer2_name: "",
-      signer2_relation: "Father",
-      signer3_name: "",
-      signer3_relation: "Mother",
-      // Ward chairman
-      chairman_name: "",
-      chairman_date: "",
+const COURSE_LEVELS = ["Bachelor", "Master", "PhD", "Diploma", "PCL"];
+
+const KINSHIP_OPTIONS = [
+  { label: "Son", value: "son" },
+  { label: "Daughter", value: "daughter" },
+];
+
+const PRONOUN_OPTIONS = [
+  { label: "Him", value: "him" },
+  { label: "Her", value: "her" },
+];
+
+const schema: WodaFormSchema = {
+  submitLabel: "Create Document",
+  sections: [
+    documentSection({ dateBs: true, dispatchNo: true }),
+    {
+      title: "Sponsor",
+      fields: [
+        {
+          name: "sponsor_honorific",
+          label: "Honorific",
+          control: "combobox",
+          options: HONORIFICS,
+          defaultValue: "Mr.",
+          half: true,
+        },
+        {
+          name: "sponsor_name",
+          label: "Sponsor name",
+          half: true,
+          required: true,
+        },
+        {
+          name: "sponsor_relation",
+          label: "Relation to student",
+          control: "combobox",
+          options: RELATIONS,
+          defaultValue: "Grandfather",
+          half: true,
+        },
+        {
+          name: "sponsor_citizenship_no",
+          label: "Citizenship no.",
+          half: true,
+        },
+      ],
     },
-  });
+    {
+      title: "Parents",
+      fields: [
+        {
+          name: "father_honorific",
+          label: "Father honorific",
+          control: "combobox",
+          options: HONORIFICS,
+          defaultValue: "Mr.",
+          half: true,
+        },
+        { name: "father_name", label: "Father name", half: true },
+        {
+          name: "mother_honorific",
+          label: "Mother honorific",
+          control: "combobox",
+          options: HONORIFICS,
+          defaultValue: "Mrs.",
+          half: true,
+        },
+        { name: "mother_name", label: "Mother name", half: true },
+        {
+          name: "parent_citizenship_no",
+          label: "Parent citizenship no.",
+          half: true,
+        },
+        {
+          name: "permanent_address",
+          label: "Permanent address",
+          control: "textarea",
+        },
+      ],
+    },
+    {
+      title: "Student",
+      fields: [
+        {
+          name: "student_honorific",
+          label: "Honorific",
+          control: "combobox",
+          options: HONORIFICS,
+          defaultValue: "Miss",
+          half: true,
+        },
+        {
+          name: "student_name",
+          label: "Student name",
+          half: true,
+          required: true,
+        },
+        {
+          name: "student_kinship",
+          label: "Kinship to sponsor",
+          control: "segmented",
+          options: KINSHIP_OPTIONS,
+          defaultValue: "daughter",
+        },
+        {
+          name: "student_pronoun",
+          label: "Pronoun",
+          control: "segmented",
+          options: PRONOUN_OPTIONS,
+          defaultValue: "her",
+        },
+        {
+          name: "student_citizenship_no",
+          label: "Citizenship no.",
+          half: true,
+        },
+        { name: "student_nid_no", label: "National ID no.", half: true },
+        {
+          name: "student_passport_no",
+          label: "Passport no.",
+          half: true,
+          optional: true,
+        },
+      ],
+    },
+    {
+      title: "Course",
+      fields: [
+        {
+          name: "course_level",
+          label: "Level",
+          control: "combobox",
+          options: COURSE_LEVELS,
+          defaultValue: "Bachelor",
+          half: true,
+        },
+        { name: "course_name", label: "Course name", half: true },
+        { name: "institution_name", label: "Institution", half: true },
+        { name: "institution_location", label: "Location", half: true },
+      ],
+    },
+    {
+      title: "Support",
+      fields: [
+        {
+          name: "support_providers",
+          label: "Support providers",
+          control: "textarea",
+          description: "Who jointly provides financial support",
+        },
+      ],
+    },
+    {
+      title: "Signatories",
+      fields: [
+        { name: "signer1_name", label: "Signatory 1 name", half: true },
+        {
+          name: "signer1_relation",
+          label: "Relation",
+          control: "combobox",
+          options: RELATIONS,
+          defaultValue: "Grandmother",
+          half: true,
+        },
+        { name: "signer2_name", label: "Signatory 2 name", half: true },
+        {
+          name: "signer2_relation",
+          label: "Relation",
+          control: "combobox",
+          options: RELATIONS,
+          defaultValue: "Father",
+          half: true,
+        },
+        { name: "signer3_name", label: "Signatory 3 name", half: true },
+        {
+          name: "signer3_relation",
+          label: "Relation",
+          control: "combobox",
+          options: RELATIONS,
+          defaultValue: "Mother",
+          half: true,
+        },
+      ],
+    },
+    {
+      title: "Ward chairman",
+      fields: [
+        { name: "chairman_name", label: "Chairman name", half: true },
+        {
+          name: "chairman_date",
+          label: "Date (A.D.)",
+          control: "date-ad",
+          half: true,
+        },
+      ],
+    },
+  ],
+};
 
-  return (
-    <form onSubmit={form.onSubmit((values) => onSubmit(values as never))}>
-      <Stack gap="md" p="md">
-        <TextInput
-          label="Ref. No."
-          {...form.getInputProps("wodadoc_refno")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Dispatch No."
-          {...form.getInputProps("dispatch_no")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Date (BS)"
-          {...form.getInputProps("wodadoc_date_bs")}
-          disabled={isLoading}
-        />
-        <DateInput
-          label="Date (AD)"
-          valueFormat="YYYY-MM-DD"
-          clearable
-          {...form.getInputProps("wodadoc_date")}
-          disabled={isLoading}
-        />
-
-        <TextInput
-          label="Sponsor Honorific"
-          {...form.getInputProps("sponsor_honorific")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Sponsor Name"
-          {...form.getInputProps("sponsor_name")}
-          required
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Sponsor Relation"
-          {...form.getInputProps("sponsor_relation")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Sponsor Citizenship No."
-          {...form.getInputProps("sponsor_citizenship_no")}
-          disabled={isLoading}
-        />
-
-        <TextInput
-          label="Father Honorific"
-          {...form.getInputProps("father_honorific")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Father Name"
-          {...form.getInputProps("father_name")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Mother Honorific"
-          {...form.getInputProps("mother_honorific")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Mother Name"
-          {...form.getInputProps("mother_name")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Parent Citizenship No."
-          {...form.getInputProps("parent_citizenship_no")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Permanent Address"
-          {...form.getInputProps("permanent_address")}
-          disabled={isLoading}
-        />
-
-        <TextInput
-          label="Student Honorific"
-          {...form.getInputProps("student_honorific")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Student Name"
-          {...form.getInputProps("student_name")}
-          required
-          disabled={isLoading}
-        />
-        <Select
-          label="Student Pronoun"
-          data={[
-            { value: "him", label: "Him (Son)" },
-            { value: "her", label: "Her (Daughter)" },
-          ]}
-          {...form.getInputProps("student_pronoun")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Student Citizenship No."
-          {...form.getInputProps("student_citizenship_no")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Student NID No."
-          {...form.getInputProps("student_nid_no")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Student Passport No."
-          {...form.getInputProps("student_passport_no")}
-          disabled={isLoading}
-        />
-
-        <TextInput
-          label="Course Level (e.g. Bachelor)"
-          {...form.getInputProps("course_level")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Course Name"
-          {...form.getInputProps("course_name")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Institution Name"
-          {...form.getInputProps("institution_name")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Institution Location"
-          {...form.getInputProps("institution_location")}
-          disabled={isLoading}
-        />
-
-        <TextInput
-          label="Support Providers (point 2 text)"
-          {...form.getInputProps("support_providers")}
-          disabled={isLoading}
-        />
-
-        <TextInput
-          label="Signer 1 Name"
-          {...form.getInputProps("signer1_name")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Signer 1 Relation"
-          {...form.getInputProps("signer1_relation")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Signer 2 Name"
-          {...form.getInputProps("signer2_name")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Signer 2 Relation"
-          {...form.getInputProps("signer2_relation")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Signer 3 Name"
-          {...form.getInputProps("signer3_name")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Signer 3 Relation"
-          {...form.getInputProps("signer3_relation")}
-          disabled={isLoading}
-        />
-
-        <TextInput
-          label="Ward Chairman Name"
-          {...form.getInputProps("chairman_name")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Ward Chairman Date"
-          {...form.getInputProps("chairman_date")}
-          disabled={isLoading}
-        />
-
-        <Button type="submit" loading={isLoading} fullWidth>
-          Create Document
-        </Button>
-      </Stack>
-    </form>
-  );
+export function WodaAffidavitFinancialForm(props: DocumentFormProps) {
+  return <WodaForm schema={schema} {...props} />;
 }

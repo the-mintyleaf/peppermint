@@ -1,22 +1,50 @@
 "use client";
 
-import { createWodaForm } from "../../utils/sharedForms";
+import { WodaForm } from "../../components/WodaForm";
+import type { DocumentFormProps } from "../../documents.types";
+import type { WodaFormSchema } from "../../utils/wodaFormSchema";
+import {
+  applicantSection,
+  documentSection,
+  earningGuardianField,
+  parentsSection,
+  spokespersonSection,
+} from "../../utils/wodaCommonSections";
 
-export const WodaOccupationForm = createWodaForm({
-  wodadoc_refno: "",
-  wodadoc_date: "",
-  applicant_father_name: "",
-  applicant_father_honorific: "",
-  applicant_mother_name: "",
-  applicant_mother_honorific: "",
-  applicant_earning_guardian: "father",
-  applicant_honorific: "",
-  applicant_name: "",
-  applicant_permanent_address: "",
-  occupations: [],
-  occupation_note: "",
-  pan_status: "",
-  spokesperson_name: "",
-  spokesperson_post: "",
-  spokesperson_contact: "",
-});
+const schema: WodaFormSchema = {
+  sections: [
+    documentSection(),
+    applicantSection({ address: true }),
+    parentsSection(),
+    {
+      title: "Occupations",
+      fields: [
+        earningGuardianField(),
+        {
+          name: "occupations",
+          label: "Occupations",
+          control: "occupations",
+          occupationColumns: [
+            { key: "name", label: "Occupation", type: "text" },
+          ],
+        },
+        {
+          name: "occupation_note",
+          label: "Additional note",
+          control: "textarea",
+          optional: true,
+        },
+        {
+          name: "pan_status",
+          label: "Earning guardian is registered on PAN",
+          control: "switch",
+        },
+      ],
+    },
+    spokespersonSection(),
+  ],
+};
+
+export function WodaOccupationForm(props: DocumentFormProps) {
+  return <WodaForm schema={schema} {...props} />;
+}

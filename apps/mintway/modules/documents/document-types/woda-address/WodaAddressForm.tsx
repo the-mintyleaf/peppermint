@@ -1,22 +1,46 @@
 "use client";
 
-import { createWodaForm } from "../../utils/sharedForms";
+import { WodaForm } from "../../components/WodaForm";
+import type { DocumentFormProps } from "../../documents.types";
+import type { WodaFormSchema } from "../../utils/wodaFormSchema";
+import {
+  applicantSection,
+  documentSection,
+  parentsSection,
+  spokespersonSection,
+} from "../../utils/wodaCommonSections";
 
-export const WodaAddressForm = createWodaForm({
-  wodadoc_refno: "",
-  wodadoc_date: "",
-  applicant_father_name: "",
-  applicant_father_honorific: "",
-  applicant_mother_name: "",
-  applicant_mother_honorific: "",
-  initial_address_name: "",
-  applicant_permanent_address: "",
-  address_name_change_date_bs: "",
-  address_name_change_date: "",
-  applicant_honorific: "",
-  applicant_name: "",
-  applicant_gender: "Male",
-  spokesperson_name: "",
-  spokesperson_post: "",
-  spokesperson_contact: "",
-});
+const schema: WodaFormSchema = {
+  sections: [
+    documentSection(),
+    applicantSection({ gender: true, address: true }),
+    parentsSection(),
+    {
+      title: "Address change",
+      fields: [
+        {
+          name: "initial_address_name",
+          label: "Previous address",
+          description: "Address recorded before the change",
+        },
+        {
+          name: "address_name_change_date_bs",
+          label: "Change date (B.S.)",
+          control: "date-bs",
+          half: true,
+        },
+        {
+          name: "address_name_change_date",
+          label: "Change date (A.D.)",
+          control: "date-ad",
+          half: true,
+        },
+      ],
+    },
+    spokespersonSection(),
+  ],
+};
+
+export function WodaAddressForm(props: DocumentFormProps) {
+  return <WodaForm schema={schema} {...props} />;
+}

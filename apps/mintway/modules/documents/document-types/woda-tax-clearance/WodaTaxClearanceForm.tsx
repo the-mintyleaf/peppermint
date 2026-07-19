@@ -1,28 +1,69 @@
 "use client";
 
-import { createWodaForm } from "../../utils/sharedForms";
+import { WodaForm } from "../../components/WodaForm";
+import type { DocumentFormProps } from "../../documents.types";
+import type { WodaFormSchema } from "../../utils/wodaFormSchema";
+import {
+  applicantSection,
+  documentSection,
+  earningGuardianField,
+  parentsSection,
+  spokespersonSection,
+} from "../../utils/wodaCommonSections";
 
-export const WodaTaxClearanceForm = createWodaForm({
-  wodadoc_refno: "",
-  wodadoc_date: "",
-  applicant_father_name: "",
-  applicant_father_honorific: "",
-  applicant_mother_name: "",
-  applicant_mother_honorific: "",
-  applicant_earning_guardian: "father",
-  applicant_honorific: "",
-  applicant_name: "",
-  applicant_permanent_address: "",
-  fiscal_1_ad: "",
-  fiscal_2_ad: "",
-  fiscal_3_ad: "",
-  fiscal_1_bs: "",
-  fiscal_2_bs: "",
-  fiscal_3_bs: "",
-  occupations: [],
-  tax: 0,
-  tax_clearance_issuer: "",
-  spokesperson_name: "",
-  spokesperson_post: "",
-  spokesperson_contact: "",
-});
+const schema: WodaFormSchema = {
+  sections: [
+    documentSection(),
+    applicantSection({ address: true }),
+    parentsSection(),
+    {
+      title: "Fiscal years",
+      fields: [
+        earningGuardianField(),
+        { name: "fiscal_1_bs", label: "Year 1 (B.S.)", half: true },
+        { name: "fiscal_1_ad", label: "Year 1 (A.D.)", half: true },
+        { name: "fiscal_2_bs", label: "Year 2 (B.S.)", half: true },
+        { name: "fiscal_2_ad", label: "Year 2 (A.D.)", half: true },
+        { name: "fiscal_3_bs", label: "Year 3 (B.S.)", half: true },
+        { name: "fiscal_3_ad", label: "Year 3 (A.D.)", half: true },
+      ],
+    },
+    {
+      title: "Tax clearance",
+      fields: [
+        {
+          name: "occupations",
+          label: "Income sources",
+          control: "occupations",
+          description: "Income earned per fiscal year, by source",
+          occupationColumns: [
+            { key: "name", label: "Source", type: "text", width: 150 },
+            { key: "income1", label: "Year 1", type: "number" },
+            { key: "income2", label: "Year 2", type: "number" },
+            { key: "income3", label: "Year 3", type: "number" },
+          ],
+        },
+        {
+          name: "tax",
+          label: "Tax rate (%)",
+          control: "number",
+          min: 0,
+          max: 100,
+          decimalScale: 2,
+          suffix: "%",
+          half: true,
+        },
+        {
+          name: "tax_clearance_issuer",
+          label: "Issuing tax office",
+          half: true,
+        },
+      ],
+    },
+    spokespersonSection(),
+  ],
+};
+
+export function WodaTaxClearanceForm(props: DocumentFormProps) {
+  return <WodaForm schema={schema} {...props} />;
+}

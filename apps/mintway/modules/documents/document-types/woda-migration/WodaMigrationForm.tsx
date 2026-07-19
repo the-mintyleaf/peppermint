@@ -1,22 +1,45 @@
 "use client";
 
-import { createWodaForm } from "../../utils/sharedForms";
+import { WodaForm } from "../../components/WodaForm";
+import type { DocumentFormProps } from "../../documents.types";
+import type { WodaFormSchema } from "../../utils/wodaFormSchema";
+import {
+  applicantSection,
+  documentSection,
+  parentsSection,
+  spokespersonSection,
+} from "../../utils/wodaCommonSections";
 
-export const WodaMigrationForm = createWodaForm({
-  wodadoc_refno: "",
-  wodadoc_date: "",
-  applicant_father_name: "",
-  applicant_father_honorific: "",
-  applicant_mother_name: "",
-  applicant_mother_honorific: "",
-  applicant_honorific: "",
-  applicant_name: "",
-  applicant_gender: "Male",
-  applicant_permanent_address: "",
-  initial_address: "",
-  migration_date: "",
-  signature_migration_alongwith: "",
-  spokesperson_name: "",
-  spokesperson_post: "",
-  spokesperson_contact: "",
-});
+const schema: WodaFormSchema = {
+  sections: [
+    documentSection(),
+    applicantSection({ gender: true, address: true }),
+    parentsSection(),
+    {
+      title: "Migration",
+      fields: [
+        {
+          name: "initial_address",
+          label: "Previous address",
+          description: "Address before migration",
+        },
+        {
+          name: "migration_date",
+          label: "Migration date (A.D.)",
+          control: "date-ad",
+        },
+        {
+          name: "signature_migration_alongwith",
+          label: "Migrated along with",
+          description: "Family members who migrated together",
+          optional: true,
+        },
+      ],
+    },
+    spokespersonSection(),
+  ],
+};
+
+export function WodaMigrationForm(props: DocumentFormProps) {
+  return <WodaForm schema={schema} {...props} />;
+}

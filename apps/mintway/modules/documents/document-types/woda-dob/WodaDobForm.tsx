@@ -1,25 +1,60 @@
 "use client";
 
-import { createWodaForm } from "../../utils/sharedForms";
+import { WodaForm } from "../../components/WodaForm";
+import type { DocumentFormProps } from "../../documents.types";
+import type { WodaFormSchema } from "../../utils/wodaFormSchema";
+import {
+  applicantSection,
+  documentSection,
+  parentsSection,
+  spokespersonSection,
+} from "../../utils/wodaCommonSections";
 
-export const WodaDobForm = createWodaForm({
-  wodadoc_refno: "",
-  wodadoc_date: "",
-  applicant_father_name: "",
-  applicant_father_honorific: "",
-  applicant_mother_name: "",
-  applicant_mother_honorific: "",
-  applicant_honorific: "",
-  applicant_name: "",
-  applicant_gender: "Male",
-  applicant_permanent_address: "",
-  applicant_dob: "",
-  applicant_dob_bs: "",
-  applicant_birth_address: "",
-  applicant_citizenship: "",
-  applicant_citizenship_issuer: "",
-  signature_issued_act_dob: "",
-  spokesperson_name: "",
-  spokesperson_post: "",
-  spokesperson_contact: "",
-});
+const schema: WodaFormSchema = {
+  sections: [
+    documentSection(),
+    applicantSection({ gender: true, address: true }),
+    parentsSection(),
+    {
+      title: "Birth & citizenship",
+      fields: [
+        {
+          name: "applicant_dob_bs",
+          label: "Date of birth (B.S.)",
+          control: "date-bs",
+          half: true,
+        },
+        {
+          name: "applicant_dob",
+          label: "Date of birth (A.D.)",
+          control: "date-ad",
+          half: true,
+        },
+        {
+          name: "applicant_birth_address",
+          label: "Place of birth",
+          control: "textarea",
+        },
+        {
+          name: "applicant_citizenship",
+          label: "Citizenship no.",
+          half: true,
+        },
+        {
+          name: "applicant_citizenship_issuer",
+          label: "Issuing office",
+          half: true,
+        },
+        {
+          name: "signature_issued_act_dob",
+          label: "Issuing act / reference",
+        },
+      ],
+    },
+    spokespersonSection(),
+  ],
+};
+
+export function WodaDobForm(props: DocumentFormProps) {
+  return <WodaForm schema={schema} {...props} />;
+}
