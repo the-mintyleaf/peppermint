@@ -20,6 +20,6 @@ sparklines); **Needs attention** is the hero card; restrained + accented color.
 ## Phase 3 — Verify & review
 
 - [x] `pnpm format && pnpm check-types && pnpm lint` (scoped) pass.
-- [ ] Dual adversarial review of the diff; apply fixes.
-- [ ] Visual review of `/admin` (light + dark, breakpoints).
-- [ ] Update module/app `docs/AI.md` if structure changed.
+- [x] Dual adversarial review — Opus reviewer clean (1 cosmetic-only staff-tail note, no fix). Codex unavailable in this env (ChatGPT-account model unsupported).
+- [ ] Visual review of `/admin` (light + dark, breakpoints) — needs the authenticated dev stack + backend; run `/visual-review /admin` locally to confirm.
+- [x] `docs/AI.md` — N/A: app AI.md doesn't enumerate components and the Home data-source row is unchanged.
