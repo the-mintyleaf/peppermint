@@ -6,6 +6,7 @@ import {
   Button,
   DateInput,
   Fieldset,
+  Input,
   NumberInput,
   SegmentedControl,
   SimpleGrid,
@@ -24,8 +25,14 @@ import type { WodaFormProps } from "./WodaForm.types";
 type WodaFormValues = Record<string, unknown>;
 
 /** Every field in the schema, flattened — used to build defaults and validation once. */
-function collectFields(props: WodaFormProps): WodaField[] {
-  return props.schema.sections.flatMap((section) => section.fields);
+function collectFields(schema: WodaFormProps["schema"]): WodaField[] {
+  return schema.sections.flatMap((section) => section.fields);
+}
+
+/** Coerce any raw value into a finite number (empty/NaN → 0). */
+function toFiniteNumber(raw: unknown): number {
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : 0;
 }
 
 /** Control-appropriate empty value for a field with no explicit default. */
@@ -48,15 +55,67 @@ function coerceValue(field: WodaField, raw: unknown): unknown {
   switch (field.control) {
     case "occupations":
       return Array.isArray(raw) ? raw : [];
-    case "number": {
-      const n = Number(raw);
-      return Number.isFinite(n) ? n : 0;
-    }
+    case "number":
+      return toFiniteNumber(raw);
     case "switch":
       return Boolean(raw);
     default:
       return raw ?? "";
   }
+}
+
+/**
+ * Coerce number-bearing values back to numbers before submit. Mantine `NumberInput`
+ * yields `""` when a field is cleared, and the templates call `.toFixed`/arithmetic on
+ * these values — so an empty string would crash the render or concatenate into totals.
+ */
+function normalizeForSubmit(
+  fields: WodaField[],
+  values: WodaFormValues,
+): WodaFormValues {
+  const out: WodaFormValues = { ...values };
+  for (const field of fields) {
+    if (field.control === "number") {
+      out[field.name] = toFiniteNumber(out[field.name]);
+    } else if (field.control === "occupations") {
+      const numberKeys = (field.occupationColumns ?? [])
+        .filter((col) => col.type === "number")
+        .map((col) => col.key);
+      const rows = Array.isArray(out[field.name])
+        ? (out[field.name] as Record<string, unknown>[])
+        : [];
+      out[field.name] = rows.map((row) => {
+        const next = { ...row };
+        for (const key of numberKeys) next[key] = toFiniteNumber(next[key]);
+        return next;
+      });
+    }
+  }
+  return out;
+}
+
+/** Required-field validator that respects each control's notion of "empty". */
+function requiredValidator(
+  field: WodaField,
+): (value: unknown) => string | null {
+  const message = `${field.label} is required`;
+  return (value) => {
+    switch (field.control) {
+      case "number":
+        // 0 is a valid answer; only an unset/empty value fails.
+        return value === "" || value === null || value === undefined
+          ? message
+          : null;
+      case "switch":
+        return value ? null : message;
+      case "occupations":
+        return Array.isArray(value) && value.length > 0 ? null : message;
+      default:
+        return !value || (typeof value === "string" && !value.trim())
+          ? message
+          : null;
+    }
+  };
 }
 
 function segmentedData(
@@ -84,7 +143,7 @@ function fieldLabel(field: WodaField): string {
 export function WodaForm(props: WodaFormProps) {
   const { schema, initialContent, onSubmit, isLoading } = props;
 
-  const fields = useMemo(() => collectFields(props), [props]);
+  const fields = useMemo(() => collectFields(schema), [schema]);
 
   const initialValues = useMemo<WodaFormValues>(() => {
     const values: WodaFormValues = {};
@@ -106,13 +165,7 @@ export function WodaForm(props: WodaFormProps) {
     validate: Object.fromEntries(
       fields
         .filter((field) => field.required)
-        .map((field) => [
-          field.name,
-          (value: unknown) =>
-            !value || (typeof value === "string" && !value.trim())
-              ? `${field.label} is required`
-              : null,
-        ]),
+        .map((field) => [field.name, requiredValidator(field)]),
     ),
   });
 
@@ -164,25 +217,30 @@ export function WodaForm(props: WodaFormProps) {
             {...form.getInputProps(field.name)}
           />
         );
-      case "segmented":
+      case "segmented": {
+        // Input.Wrapper renders the accessible label/description/error; the group gets
+        // its name via aria-label. Only value/onChange are forwarded — spreading the full
+        // getInputProps would leak `error` onto the DOM and SegmentedControl shows none.
+        const inputProps = form.getInputProps(field.name);
         return (
-          <div>
-            <Text component="label" size="sm" fw={500} display="block" mb={4}>
-              {label}
-            </Text>
+          <Input.Wrapper
+            label={label}
+            required={field.required}
+            description={field.description}
+            error={inputProps.error}
+          >
             <SegmentedControl
               fullWidth
+              mt={4}
               data={segmentedData(field.options)}
               disabled={disabled}
-              {...form.getInputProps(field.name)}
+              aria-label={label}
+              value={(inputProps.value as string) ?? ""}
+              onChange={inputProps.onChange}
             />
-            {field.description && (
-              <Text size="xs" c="dimmed" mt={4}>
-                {field.description}
-              </Text>
-            )}
-          </div>
+          </Input.Wrapper>
         );
+      }
       case "switch":
         return (
           <Switch
@@ -263,7 +321,7 @@ export function WodaForm(props: WodaFormProps) {
   };
 
   const handleSubmit = form.onSubmit((values) => {
-    onSubmit(values as DocumentContent);
+    onSubmit(normalizeForSubmit(fields, values) as DocumentContent);
   });
 
   return (
