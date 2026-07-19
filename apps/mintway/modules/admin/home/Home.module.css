@@ -1,0 +1,40 @@
+/* Compact bento grid. Cards flow into a dense pack so spanned cards never leave holes.
+   Stacks to one column on mobile, two on small screens, four from md up. */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--mantine-spacing-md);
+}
+
+@media (min-width: 48em) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-flow: row dense;
+  }
+
+  /* Span helpers apply from sm up; row spans wait for the fixed row track at md. */
+  .hero,
+  .wide {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 64em) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: minmax(122px, auto);
+  }
+
+  .hero {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+
+  .wide {
+    grid-column: span 2;
+  }
+
+  .tall {
+    grid-row: span 2;
+  }
+}

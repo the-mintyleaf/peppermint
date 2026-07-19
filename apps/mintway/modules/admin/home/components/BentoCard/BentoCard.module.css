@@ -1,0 +1,11 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* The body takes the remaining height so lists sit flush and cards align on the grid. */
+.body {
+  flex: 1;
+  min-height: 0;
+}

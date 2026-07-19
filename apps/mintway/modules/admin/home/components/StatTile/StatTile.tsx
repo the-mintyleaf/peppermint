@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import {
   ActionIcon,
@@ -28,65 +29,82 @@ export function StatTile({
   isError,
   onRetry,
 }: StatTileProps) {
+  // Dynamic Mantine color name → CSS vars so the soft tint + hover live in the module.
+  const accent = {
+    "--tile-bg": `var(--mantine-color-${color}-light)`,
+    "--tile-bg-hover": `var(--mantine-color-${color}-light-hover)`,
+    "--tile-value": `var(--mantine-color-${color}-light-color)`,
+  } as CSSProperties;
+
   const body = (
-    <Group wrap="nowrap" gap="sm" align="center">
-      <ThemeIcon size={40} radius="md" variant="light" color={color}>
-        {icon}
-      </ThemeIcon>
-      <Stack gap={2} style={{ minWidth: 0 }}>
-        <Text size="xs" c="dimmed" fw={500} tt="uppercase" lh={1}>
+    <Stack gap="xs" justify="space-between" h="100%">
+      <Group justify="space-between" align="flex-start" gap="xs" wrap="nowrap">
+        <Text
+          size="xs"
+          c="dimmed"
+          fw={600}
+          tt="uppercase"
+          lh={1.2}
+          style={{ letterSpacing: "0.03em" }}
+        >
           {label}
         </Text>
-        {isLoading ? (
-          <Skeleton height={26} width={44} radius="sm" mt={4} />
-        ) : isError ? (
-          <Group gap={6} align="center" wrap="nowrap">
-            <WarningIcon size={16} weight="fill" aria-hidden />
-            <Text size="sm" c="dimmed">
-              Unavailable
-            </Text>
-            {onRetry ? (
-              <Tooltip label="Retry" withArrow>
-                <ActionIcon
-                  size="sm"
-                  variant="subtle"
-                  color="gray"
-                  aria-label={`Retry loading ${label}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onRetry();
-                  }}
-                >
-                  <ArrowClockwiseIcon size={14} aria-hidden />
-                </ActionIcon>
-              </Tooltip>
-            ) : null}
-          </Group>
-        ) : (
-          <Text fz={26} fw={700} lh={1.1}>
+        <ThemeIcon size={30} radius="md" variant="light" color={color}>
+          {icon}
+        </ThemeIcon>
+      </Group>
+
+      {isLoading ? (
+        <Skeleton height={30} width={52} radius="sm" />
+      ) : isError ? (
+        <Group gap={6} align="center" wrap="nowrap">
+          <WarningIcon size={16} weight="fill" aria-hidden />
+          <Text size="sm" c="dimmed">
+            Unavailable
+          </Text>
+          {onRetry ? (
+            <Tooltip label="Retry" withArrow>
+              <ActionIcon
+                size="sm"
+                variant="subtle"
+                color="gray"
+                aria-label={`Retry loading ${label}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onRetry();
+                }}
+              >
+                <ArrowClockwiseIcon size={14} aria-hidden />
+              </ActionIcon>
+            </Tooltip>
+          ) : null}
+        </Group>
+      ) : (
+        <Stack gap={2}>
+          <Text fz={30} fw={700} lh={1} className={styles.value}>
             {value ?? 0}
           </Text>
-        )}
-        {hint && !isLoading && !isError ? (
-          <Text size="xs" c="dimmed" lh={1}>
-            {hint}
-          </Text>
-        ) : null}
-      </Stack>
-    </Group>
+          {hint ? (
+            <Text size="xs" c="dimmed" lh={1.2}>
+              {hint}
+            </Text>
+          ) : null}
+        </Stack>
+      )}
+    </Stack>
   );
 
-  // A tile with a destination is a quiet link, not a button — no elevated affordance,
-  // just a hover cue. Non-navigational tiles render as a plain card.
+  // A tile with a destination is a quiet link, not a button — a hover cue only, never an
+  // elevated affordance (DESIGN.md 1.9). Non-navigational or errored tiles are plain cards.
   if (href && !isError) {
     return (
       <Card
         component={Link}
         href={href}
-        withBorder
-        radius="md"
+        radius="lg"
         padding="md"
-        className={styles.linkTile}
+        style={accent}
+        className={`${styles.tile} ${styles.linkTile}`}
       >
         {body}
       </Card>
@@ -94,7 +112,7 @@ export function StatTile({
   }
 
   return (
-    <Card withBorder radius="md" padding="md">
+    <Card radius="lg" padding="md" style={accent} className={styles.tile}>
       {body}
     </Card>
   );

@@ -1,14 +1,20 @@
+.tile {
+  height: 100%;
+  background-color: var(--tile-bg);
+}
+
+.value {
+  color: var(--tile-value);
+}
+
 .linkTile {
   color: inherit;
   text-decoration: none;
-  transition:
-    border-color 120ms ease,
-    background-color 120ms ease;
+  transition: background-color 120ms ease;
 }
 
 .linkTile:hover {
-  border-color: var(--mantine-color-brand-filled);
-  background-color: var(--mantine-color-default-hover);
+  background-color: var(--tile-bg-hover);
 }
 
 .linkTile:focus-visible {

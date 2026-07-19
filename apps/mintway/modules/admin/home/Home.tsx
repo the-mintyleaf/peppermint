@@ -1,29 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { Anchor, Group, SimpleGrid, Stack, Text, Title } from "@peppermint/ui";
+import { Anchor, Group, Stack, Text, Title } from "@peppermint/ui";
 import { ModuleErrorBoundary } from "@peppermint/admin";
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/csr/ArrowRight";
+import { BellRingingIcon } from "@phosphor-icons/react/dist/csr/BellRinging";
+import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
 import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
 import { GraduationCapIcon } from "@phosphor-icons/react/dist/csr/GraduationCap";
-import { PauseCircleIcon } from "@phosphor-icons/react/dist/csr/PauseCircle";
 import { PulseIcon } from "@phosphor-icons/react/dist/csr/Pulse";
 import { SignatureIcon } from "@phosphor-icons/react/dist/csr/Signature";
 import { SparkleIcon } from "@phosphor-icons/react/dist/csr/Sparkle";
 import { TrendUpIcon } from "@phosphor-icons/react/dist/csr/TrendUp";
 import { UserListIcon } from "@phosphor-icons/react/dist/csr/UserList";
-import { UserMinusIcon } from "@phosphor-icons/react/dist/csr/UserMinus";
 
 import { RequireAuth } from "@/components/RequireAuth";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 
 import {
   AttentionList,
+  BentoCard,
+  CompositionCard,
   QuickActions,
   RecentApplicants,
-  SectionCard,
   StatTile,
 } from "./components";
+import type { CompositionSegment } from "./components";
+import styles from "./Home.module.css";
 import {
   selectDueFollowUps,
   useActiveSignaturesCount,
@@ -61,7 +64,7 @@ function HomeDashboard() {
     lifecycle_stage: "applicant",
   });
 
-  // ── Engagement health counts ──
+  // ── Engagement health counts (rendered as one composition) ──
   const active = useApplicantCount("eng-active", {
     engagement_status: "active",
   });
@@ -93,50 +96,101 @@ function HomeDashboard() {
       label: "Interested",
       query: interested,
       color: "gray",
-      icon: <SparkleIcon size={22} aria-hidden />,
+      icon: <SparkleIcon size={18} aria-hidden />,
     },
     {
       key: "potential",
       label: "Potential",
       query: potential,
       color: "blue",
-      icon: <TrendUpIcon size={22} aria-hidden />,
+      icon: <TrendUpIcon size={18} aria-hidden />,
     },
     {
       key: "applicant",
       label: "Applicants",
       query: applicant,
       color: "teal",
-      icon: <GraduationCapIcon size={22} aria-hidden />,
+      icon: <GraduationCapIcon size={18} aria-hidden />,
     },
   ];
 
-  const engagementTiles = [
+  const engagementSegments: CompositionSegment[] = [
+    { key: "active", label: "Active", count: active.data ?? 0, color: "teal" },
     {
-      key: "active",
-      label: "Active",
-      query: active,
-      color: "teal",
-      icon: <PulseIcon size={22} aria-hidden />,
-    },
-    {
-      key: "on-hold",
+      key: "on_hold",
       label: "On hold",
-      query: onHold,
+      count: onHold.data ?? 0,
       color: "yellow",
-      icon: <PauseCircleIcon size={22} aria-hidden />,
     },
-    {
-      key: "lost",
-      label: "Lost",
-      query: lost,
-      color: "gray",
-      icon: <UserMinusIcon size={22} aria-hidden />,
-    },
+    { key: "lost", label: "Lost", count: lost.data ?? 0, color: "gray" },
   ];
+  const engagementLoading =
+    active.isLoading || onHold.isLoading || lost.isLoading;
+  const engagementError = active.isError || onHold.isError || lost.isError;
+  const engagementRetry = () => {
+    void active.refetch();
+    void onHold.refetch();
+    void lost.refetch();
+  };
+
+  const pipelineCards = pipelineTiles.map((t) => (
+    <StatTile
+      key={t.key}
+      label={t.label}
+      value={t.query.data}
+      icon={t.icon}
+      color={t.color}
+      href={APPLICANTS_HREF}
+      isLoading={t.query.isLoading}
+      isError={t.query.isError}
+      onRetry={() => void t.query.refetch()}
+    />
+  ));
+
+  const engagementCard = (
+    <BentoCard
+      title="Engagement health"
+      icon={<PulseIcon size={18} aria-hidden />}
+      color="teal"
+      className={styles.wide}
+    >
+      <CompositionCard
+        segments={engagementSegments}
+        centerCaption="engaged"
+        isLoading={engagementLoading}
+        isError={engagementError}
+        onRetry={engagementRetry}
+      />
+    </BentoCard>
+  );
+
+  const recentCard = (
+    <BentoCard
+      title="Recent activity"
+      icon={<ClockCounterClockwiseIcon size={18} aria-hidden />}
+      color="grape"
+      className={`${styles.wide} ${styles.tall}`}
+      action={
+        <Anchor component={Link} href={APPLICANTS_HREF} size="sm">
+          <Group gap={4} align="center">
+            View all <ArrowRightIcon size={14} aria-hidden />
+          </Group>
+        </Anchor>
+      }
+    >
+      <RecentApplicants
+        rows={recent.data}
+        now={now}
+        isLoading={recent.isLoading}
+        isError={recent.isError}
+        onRetry={() => void recent.refetch()}
+        isRetrying={recent.isRefetching}
+      />
+    </BentoCard>
+  );
 
   return (
-    <Stack gap="xl" py="md">
+    <Stack gap="lg" py="md">
       <Group justify="space-between" align="flex-end" gap="md">
         <Stack gap={2}>
           <Title order={3}>
@@ -152,114 +206,68 @@ function HomeDashboard() {
       </Group>
 
       {isAdmin ? (
-        <SectionCard title="Needs attention">
-          <AttentionList
-            rows={dueRows}
-            now={now}
-            isLoading={followUps.isLoading}
-            isError={followUps.isError}
-            onRetry={() => void followUps.refetch()}
-            isRetrying={followUps.isRefetching}
+        <div className={styles.grid}>
+          <BentoCard
+            title="Needs attention"
+            icon={<BellRingingIcon size={18} aria-hidden />}
+            color="orange"
+            className={styles.hero}
+          >
+            <AttentionList
+              rows={dueRows}
+              now={now}
+              isLoading={followUps.isLoading}
+              isError={followUps.isError}
+              onRetry={() => void followUps.refetch()}
+              isRetrying={followUps.isRefetching}
+            />
+          </BentoCard>
+
+          {pipelineCards}
+
+          <StatTile
+            label="User accounts"
+            value={users.data}
+            icon={<UserListIcon size={18} aria-hidden />}
+            color="indigo"
+            href="/admin/authenticate/users"
+            isLoading={users.isLoading}
+            isError={users.isError}
+            onRetry={() => void users.refetch()}
           />
-        </SectionCard>
-      ) : null}
 
-      <Stack gap="sm">
-        <Title order={5}>Pipeline</Title>
-        <SimpleGrid cols={{ base: 1, xs: 2, md: 3 }} spacing="md">
-          {pipelineTiles.map((t) => (
-            <StatTile
-              key={t.key}
-              label={t.label}
-              value={t.query.data}
-              icon={t.icon}
-              color={t.color}
-              href={APPLICANTS_HREF}
-              isLoading={t.query.isLoading}
-              isError={t.query.isError}
-              onRetry={() => void t.query.refetch()}
-            />
-          ))}
-        </SimpleGrid>
-      </Stack>
+          {engagementCard}
+          {recentCard}
 
-      <Stack gap="sm">
-        <Title order={5}>Engagement health</Title>
-        <SimpleGrid cols={{ base: 1, xs: 2, md: 3 }} spacing="md">
-          {engagementTiles.map((t) => (
-            <StatTile
-              key={t.key}
-              label={t.label}
-              value={t.query.data}
-              icon={t.icon}
-              color={t.color}
-              href={APPLICANTS_HREF}
-              isLoading={t.query.isLoading}
-              isError={t.query.isError}
-              onRetry={() => void t.query.refetch()}
-            />
-          ))}
-        </SimpleGrid>
-      </Stack>
-
-      <SectionCard
-        title="Recent activity"
-        action={
-          <Anchor component={Link} href={APPLICANTS_HREF} size="sm">
-            <Group gap={4} align="center">
-              View all <ArrowRightIcon size={14} aria-hidden />
-            </Group>
-          </Anchor>
-        }
-      >
-        <RecentApplicants
-          rows={recent.data}
-          now={now}
-          isLoading={recent.isLoading}
-          isError={recent.isError}
-          onRetry={() => void recent.refetch()}
-          isRetrying={recent.isRefetching}
-        />
-      </SectionCard>
-
-      {isAdmin ? (
-        <Stack gap="sm">
-          <Title order={5}>Operations</Title>
-          <SimpleGrid cols={{ base: 1, xs: 2, md: 3 }} spacing="md">
-            <StatTile
-              label="Document workspaces"
-              value={docs.data?.count}
-              hint={docs.data ? `${docs.data.drafts} open drafts` : undefined}
-              icon={<FileTextIcon size={22} aria-hidden />}
-              color="brand"
-              href="/admin/documents"
-              isLoading={docs.isLoading}
-              isError={docs.isError}
-              onRetry={() => void docs.refetch()}
-            />
-            <StatTile
-              label="Active signatures"
-              value={signatures.data}
-              icon={<SignatureIcon size={22} aria-hidden />}
-              color="grape"
-              href="/admin/signatures"
-              isLoading={signatures.isLoading}
-              isError={signatures.isError}
-              onRetry={() => void signatures.refetch()}
-            />
-            <StatTile
-              label="User accounts"
-              value={users.data}
-              icon={<UserListIcon size={22} aria-hidden />}
-              color="indigo"
-              href="/admin/authenticate/users"
-              isLoading={users.isLoading}
-              isError={users.isError}
-              onRetry={() => void users.refetch()}
-            />
-          </SimpleGrid>
-        </Stack>
-      ) : null}
+          <StatTile
+            label="Document workspaces"
+            value={docs.data?.count}
+            hint={docs.data ? `${docs.data.drafts} open drafts` : undefined}
+            icon={<FileTextIcon size={18} aria-hidden />}
+            color="brand"
+            href="/admin/documents"
+            isLoading={docs.isLoading}
+            isError={docs.isError}
+            onRetry={() => void docs.refetch()}
+          />
+          <StatTile
+            label="Active signatures"
+            value={signatures.data}
+            icon={<SignatureIcon size={18} aria-hidden />}
+            color="grape"
+            href="/admin/signatures"
+            isLoading={signatures.isLoading}
+            isError={signatures.isError}
+            onRetry={() => void signatures.refetch()}
+          />
+        </div>
+      ) : (
+        <div className={styles.grid}>
+          {recentCard}
+          {engagementCard}
+          {pipelineCards}
+        </div>
+      )}
     </Stack>
   );
 }
