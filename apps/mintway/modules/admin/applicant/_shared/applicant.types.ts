@@ -32,6 +32,17 @@ export type LeadSource =
 
 export type FollowUpPriority = "low" | "normal" | "high" | "urgent";
 
+/** Lead + applicant (admin projection only on the applicant). Blank `""` when unset. */
+export type PaymentStatus = "prepaid" | "postpaid";
+
+/** Lead intake only — the enquirer's stated level. */
+export type EducationLevel =
+  | "diploma"
+  | "bachelor"
+  | "post_graduate"
+  | "masters"
+  | "others";
+
 export type AddressType =
   | "current"
   | "permanent"
@@ -169,57 +180,127 @@ export interface DuplicateMeta {
 // ── Applicant ─────────────────────────────────────────────────────────────────
 
 /**
- * Applicant record (detail + list row). Staff receive the required fields only;
- * admin adds the protected fields, all optional here so one type serves both
- * projections. `record_version` is mandatory on every mutation.
+ * The four applicant response projections, kept separate on purpose.
+ *
+ * A staff token and an admin token calling the *same* endpoint receive different
+ * field sets, and the **detail** and **list** projections differ again. Modelling
+ * all four as one interface with optional admin fields is what previously let
+ * `record_version` — which neither list projection returns — be read off a table
+ * row: it type-checked, serialised to `undefined`, and silently dropped out of the
+ * request body. Keeping them distinct makes that a compile error instead.
+ *
+ * Pick the type by the signed-in role, never by testing whether a field is present.
+ *
+ * Optional text/enum fields are `Nullable=No` → unset arrives as `""`, never `null`
+ * (see overview.md "Empty vs null"). Only genuinely DB-nullable fields are `| null`.
  */
-export interface Applicant {
+export interface ApplicantStaff {
   id: string;
   applicant_code: string;
   first_name: string;
-  middle_name?: string;
-  last_name?: string;
+  middle_name: string;
+  last_name: string;
   full_name: string;
-  name_native?: string;
-  preferred_display_name?: string;
-  nationality?: string;
-  primary_email?: string;
-  alternate_email?: string;
-  primary_phone?: string;
-  alternate_phone?: string;
-  lead_source?: LeadSource;
-  lead_source_detail?: string;
-  initial_interest?: string;
+  name_native: string;
+  preferred_display_name: string;
+  nationality: string;
+  primary_email: string;
+  alternate_email: string;
+  primary_phone: string;
+  alternate_phone: string;
+  lead_source: LeadSource | "";
+  lead_source_detail: string;
+  initial_interest: string;
   lifecycle_stage: LifecycleStage;
   engagement_status: EngagementStatus;
   is_locked: boolean;
   record_version: number;
-  profile_image_url?: string | null;
+  profile_image_url: string | null;
   created_at: string;
   updated_at: string;
-
-  // ── admin-only projection (absent on a staff token) ──
-  date_of_birth?: string | null;
-  date_of_birth_bs?: BsDate | null;
-  gender?: Gender;
-  religion?: string;
-  full_name_romanized?: string;
-  summary?: string;
-  eligibility_summary?: string;
-  counselling_notes?: string;
-  last_contacted_at?: string | null;
-  next_follow_up_at?: string | null;
-  follow_up_priority?: FollowUpPriority;
-  converted_at?: string | null;
-  locked_at?: string | null;
-  lock_reason?: string;
-  archived_at?: string | null;
-  merged_into?: string | null;
-  merged_at?: string | null;
 }
 
-/** List row — same shape; the list projection simply omits admin fields for staff. */
-export type ApplicantListRow = Applicant;
+/** Admin detail projection — the staff set plus the protected fields. */
+export interface ApplicantAdmin extends ApplicantStaff {
+  full_name_romanized: string;
+  date_of_birth: string | null;
+  date_of_birth_bs: BsDate | null;
+  gender: Gender | "";
+  religion: string;
+  payment_status: PaymentStatus | "";
+  summary: string;
+  eligibility_summary: string;
+  counselling_notes: string;
+  last_contacted_at: string | null;
+  next_follow_up_at: string | null;
+  follow_up_priority: FollowUpPriority | "";
+  converted_at: string | null;
+  locked_at: string | null;
+  lock_reason: string;
+  archived_at: string | null;
+  merged_into: string | null;
+  merged_at: string | null;
+}
+
+/**
+ * Detail record. Admin-only fields are optional because the same component tree
+ * renders both projections and gates on `isAdmin` — but unlike the list rows this
+ * type does carry `record_version`, because both detail projections return it.
+ */
+export type Applicant = ApplicantStaff &
+  Partial<Omit<ApplicantAdmin, keyof ApplicantStaff>>;
+
+/**
+ * Staff list row — narrower than the staff *detail* projection. Note the absence of
+ * `record_version`: a write sourced from a row must resolve the version separately.
+ */
+export interface ApplicantListRowStaff {
+  id: string;
+  applicant_code: string;
+  full_name: string;
+  primary_email: string;
+  primary_phone: string;
+  lifecycle_stage: LifecycleStage;
+  engagement_status: EngagementStatus;
+  is_locked: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Admin list row — the exact enumerated set; also has no `record_version`. */
+export interface ApplicantListRowAdmin extends ApplicantListRowStaff {
+  nationality: string;
+  follow_up_priority: FollowUpPriority | "";
+  next_follow_up_at: string | null;
+  converted_at: string | null;
+  archived_at: string | null;
+}
+
+/** Whichever list projection the current role receives. */
+export type ApplicantListRow = ApplicantListRowStaff &
+  Partial<Omit<ApplicantListRowAdmin, keyof ApplicantListRowStaff>>;
+
+/**
+ * The slice the row/header action surface needs (lock, transition, archive, merge,
+ * open-documents). Deliberately structural rather than one of the projections: these
+ * components are rendered both from a list row and from the detail record, and this
+ * is exactly the set both are guaranteed to carry.
+ *
+ * `record_version` is *not* here, and must not be — an action that needs one resolves
+ * it from the detail, because no list projection returns it.
+ */
+export interface ApplicantActionTarget {
+  id: string;
+  applicant_code: string;
+  full_name: string;
+  is_locked: boolean;
+  lifecycle_stage: LifecycleStage;
+  engagement_status: EngagementStatus;
+  /** Admin projections only — absent for staff, and absent from the staff list row. */
+  archived_at?: string | null;
+  /** Admin *detail* only — never present on a list row. */
+  merged_into?: string | null;
+}
 
 // ── Addresses ─────────────────────────────────────────────────────────────────
 

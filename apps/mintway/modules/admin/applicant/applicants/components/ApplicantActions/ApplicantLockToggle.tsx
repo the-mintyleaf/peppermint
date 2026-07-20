@@ -4,7 +4,7 @@ import { ActionIcon, Tooltip } from "@peppermint/ui";
 import { LockKeyIcon } from "@phosphor-icons/react/dist/csr/LockKey";
 import { LockKeyOpenIcon } from "@phosphor-icons/react/dist/csr/LockKeyOpen";
 
-import type { Applicant } from "../../../_shared";
+import type { ApplicantActionTarget } from "../../../_shared";
 import { useApplicantActionState } from "./useApplicantActionState";
 
 /**
@@ -14,7 +14,11 @@ import { useApplicantActionState } from "./useApplicantActionState";
  * valid, but locking one 409s — so on an unlocked terminal record there's nothing to
  * offer and the control is omitted.
  */
-export function ApplicantLockToggle({ applicant }: { applicant: Applicant }) {
+export function ApplicantLockToggle({
+  applicant,
+}: {
+  applicant: ApplicantActionTarget;
+}) {
   const state = useApplicantActionState(applicant);
   const locked = applicant.is_locked;
 

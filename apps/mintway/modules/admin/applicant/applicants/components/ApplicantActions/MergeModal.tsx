@@ -22,11 +22,15 @@ import {
   mergeApplicant,
   useApplicantMutation,
 } from "../../../_shared";
-import type { Applicant, MergePayload, MergeRecord } from "../../../_shared";
+import type {
+  ApplicantActionTarget,
+  MergePayload,
+  MergeRecord,
+} from "../../../_shared";
 
 interface MergeModalProps {
   /** The duplicate being folded into a survivor. */
-  applicant: Applicant;
+  applicant: ApplicantActionTarget;
   opened: boolean;
   onClose: () => void;
 }
@@ -94,7 +98,9 @@ export function MergeModal({ applicant, opened, onClose }: MergeModalProps) {
   };
 
   const mutation = useApplicantMutation<
-    { data: { surviving_applicant: Applicant; merge: MergeRecord } },
+    {
+      data: { surviving_applicant: ApplicantActionTarget; merge: MergeRecord };
+    },
     MergePayload
   >({
     mutationFn: (payload) => mergeApplicant(applicant.id, payload),

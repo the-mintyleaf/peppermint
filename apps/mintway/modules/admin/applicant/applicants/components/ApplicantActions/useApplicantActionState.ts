@@ -12,7 +12,7 @@ import {
   unlockApplicant,
   useApplicantMutation,
 } from "../../../_shared";
-import type { Applicant } from "../../../_shared";
+import type { Applicant, ApplicantActionTarget } from "../../../_shared";
 
 /**
  * Owns the admin action surface for one applicant: lock / unlock / archive (each a
@@ -20,7 +20,7 @@ import type { Applicant } from "../../../_shared";
  * Both the list row menu and the overview action bar consume this so the mutation +
  * invalidation logic lives in one place.
  */
-export function useApplicantActionState(applicant: Applicant) {
+export function useApplicantActionState(applicant: ApplicantActionTarget) {
   const queryClient = useQueryClient();
   const [transitionOpen, setTransitionOpen] = useState(false);
   const [mergeOpen, setMergeOpen] = useState(false);

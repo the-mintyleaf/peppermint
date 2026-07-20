@@ -14,7 +14,7 @@ import {
 import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
 
 import { documentsApi, documentQueryKeys } from "@/modules/documents";
-import type { Applicant } from "../../../_shared";
+import type { ApplicantActionTarget } from "../../../_shared";
 import { WarningIcon } from "@phosphor-icons/react/dist/ssr";
 
 /**
@@ -23,7 +23,11 @@ import { WarningIcon } from "@phosphor-icons/react/dist/ssr";
  * arrival). When none exist, it confirms before sending the operator to the editor's
  * create flow — so they never land on an empty workspace unexpectedly.
  */
-export function OpenDocumentButton({ applicant }: { applicant: Applicant }) {
+export function OpenDocumentButton({
+  applicant,
+}: {
+  applicant: ApplicantActionTarget;
+}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isChecking, setChecking] = useState(false);

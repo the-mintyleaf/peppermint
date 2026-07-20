@@ -31,8 +31,10 @@ function dueLabel(
   return { text: `Overdue ${days}d`, overdue: true };
 }
 
+// `first_name` is not in either list projection — only the detail one carries it —
+// so the old fallback through it was always undefined. `full_name` is guaranteed.
 function displayName(row: ApplicantListRow): string {
-  return row.full_name?.trim() || row.first_name || row.applicant_code;
+  return row.full_name.trim() || row.applicant_code;
 }
 
 export function AttentionList({

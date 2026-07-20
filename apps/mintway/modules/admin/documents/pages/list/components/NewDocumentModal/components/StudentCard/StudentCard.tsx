@@ -50,12 +50,12 @@ export function StudentCard({ student, selected, onSelect }: StudentCardProps) {
       onClick={() => onSelect(student)}
     >
       <Group gap="sm" wrap="nowrap" align="center">
-        <Avatar
-          src={student.profile_image_url ?? undefined}
-          radius="xl"
-          size={40}
-          color="brand"
-        >
+        {/*
+          No `src`: neither list projection returns `profile_image_url` (it is on the
+          detail record only), so this always fell through to initials anyway. Asking
+          for the picture here would mean a detail fetch per row.
+        */}
+        <Avatar radius="xl" size={40} color="brand">
           {initials(student.full_name)}
         </Avatar>
 

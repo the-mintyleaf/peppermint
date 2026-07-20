@@ -24,6 +24,7 @@ import {
 } from "../../../_shared";
 import type {
   Applicant,
+  ApplicantActionTarget,
   EngagementStatus,
   LifecycleStage,
   TransitionPayload,
@@ -34,7 +35,7 @@ import {
 } from "./TransitionModal.hooks";
 
 export interface TransitionModalProps {
-  applicant: Applicant;
+  applicant: ApplicantActionTarget;
   opened: boolean;
   onClose: () => void;
   /** Pre-select the "Move to stage" field when opened from the Stage switch. */

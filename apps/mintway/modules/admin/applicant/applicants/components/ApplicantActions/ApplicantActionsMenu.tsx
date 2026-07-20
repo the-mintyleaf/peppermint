@@ -11,7 +11,7 @@ import { GitMergeIcon } from "@phosphor-icons/react/dist/csr/GitMerge";
 import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
 
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
-import type { Applicant } from "../../../_shared";
+import type { ApplicantActionTarget } from "../../../_shared";
 import { useApplicantProfile } from "../ApplicantProfileModal/ApplicantProfileModal.context";
 import { TransitionModal } from "./TransitionModal";
 import { MergeModal } from "./MergeModal";
@@ -23,15 +23,19 @@ import { useApplicantActionState } from "./useApplicantActionState";
  * never see an action the server would 403/404). Edit routes through the shell's edit
  * modal.
  */
-export function ApplicantActionsMenu({ applicant }: { applicant: Applicant }) {
+export function ApplicantActionsMenu({
+  applicant,
+}: {
+  applicant: ApplicantActionTarget;
+}) {
   const { isAdmin } = useCurrentUser();
-  const { openEditModal } = useModalTableShellContext<Applicant>();
+  const { openEditModal } = useModalTableShellContext<ApplicantActionTarget>();
   const { openProfile } = useApplicantProfile();
   const state = useApplicantActionState(applicant);
 
   const notAdmin = () => !isAdmin;
 
-  const actions: RowAction<Applicant>[] = [
+  const actions: RowAction<ApplicantActionTarget>[] = [
     {
       label: "View",
       icon: <EyeIcon size={16} />,

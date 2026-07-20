@@ -15,8 +15,10 @@ import { formatRelative } from "../../Home.utils";
 import styles from "./RecentApplicants.module.css";
 import type { RecentApplicantsProps } from "./RecentApplicants.types";
 
+// `first_name` is not in either list projection — only the detail one carries it —
+// so the old fallback through it was always undefined. `full_name` is guaranteed.
 function displayName(row: ApplicantListRow): string {
-  return row.full_name?.trim() || row.first_name || row.applicant_code;
+  return row.full_name.trim() || row.applicant_code;
 }
 
 export function RecentApplicants({

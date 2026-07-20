@@ -12,7 +12,7 @@ Plan: `~/.claude/plans/following-this-integration-guide-proud-honey.md`
 - [x] 1d. Print event `document_revision` is a UUID, not a number — fix `NaN` rendering
 - [x] 1e. Drop over-required `country` on travel-history + visa-history forms
 - [x] 1f. Gate applicant create on admin role; point staff at leads
-- [ ] Phase 1 verify (`pnpm format && check-types && lint`) + commit + dual adversarial review
+- [x] Phase 1 verify (`pnpm format && check-types && lint`) + commit + dual adversarial review
 
 ## Phase 2 — Contract gaps in existing entities
 

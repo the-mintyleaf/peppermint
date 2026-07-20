@@ -9,13 +9,13 @@ import { GitMergeIcon } from "@phosphor-icons/react/dist/csr/GitMerge";
 import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
 
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
-import type { Applicant } from "../../../_shared";
+import type { ApplicantActionTarget } from "../../../_shared";
 import { TransitionModal } from "./TransitionModal";
 import { MergeModal } from "./MergeModal";
 import { useApplicantActionState } from "./useApplicantActionState";
 
 interface ApplicantActionBarProps {
-  applicant: Applicant;
+  applicant: ApplicantActionTarget;
   /** Opens the overview's own edit modal. */
   onEdit: () => void;
 }

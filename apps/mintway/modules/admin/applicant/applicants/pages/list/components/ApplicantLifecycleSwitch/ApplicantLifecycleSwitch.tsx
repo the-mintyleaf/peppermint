@@ -56,7 +56,10 @@ export function ApplicantLifecycleSwitch({
   // nowhere forward to go (the final "Applicant" stage) keeps the switch look for row
   // consistency but reads as a settled status: a check mark instead of the caret, with the
   // dropdown disabled so it can't be opened.
-  if (!isAdmin || applicant.archived_at || applicant.merged_into) return badge;
+  // `merged_into` is not in the list projection, so testing it here never did
+  // anything. It doesn't need to: merging archives the record it merges away, so
+  // `archived_at` already covers both terminal cases from a row.
+  if (!isAdmin || applicant.archived_at) return badge;
 
   const isTerminal = targets.length === 0;
 
