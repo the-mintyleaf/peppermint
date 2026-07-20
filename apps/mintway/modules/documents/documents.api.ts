@@ -251,6 +251,7 @@ export async function updateDocument(
       ...(input.schemaVersion !== undefined
         ? { schema_version: input.schemaVersion }
         : {}),
+      ...(input.changeReason ? { change_reason: input.changeReason } : {}),
       record_version: input.recordVersion,
     },
   );

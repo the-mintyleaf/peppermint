@@ -92,6 +92,35 @@ export const ERROR_MESSAGES: Record<string, string> = {
   APPLICANT_INTEREST_PROFILE_EXISTS:
     "This applicant already has an interest profile.",
 
+  // Documents, revisions, print evidence, signatures.
+  // NOTE: staff receive 404 (not 403) on these surfaces so they can't infer that a
+  // document exists — so "not found" copy must not imply deletion.
+  APPLICANT_DOCUMENT_NOT_FOUND: "That document isn't available.",
+  APPLICANT_DOCUMENT_NOT_EDITABLE:
+    "This document can no longer be edited. Finalised, submitted, superseded and archived documents are read-only.",
+  APPLICANT_DOCUMENT_STATUS_INVALID: "That status change isn't allowed.",
+  APPLICANT_DOCUMENT_TYPE_INVALID: "That document type isn't recognised.",
+  APPLICANT_DOCUMENT_ARCHIVED: "This document is archived.",
+  APPLICANT_DOCUMENT_VERSION_CONFLICT:
+    "This document changed since you opened it. Reload to get the latest version.",
+  APPLICANT_REVISION_NOT_FOUND: "That revision isn't available.",
+  APPLICANT_PRINT_EVENT_NOT_FOUND: "That print record isn't available.",
+  APPLICANT_SIGNATURE_NOT_FOUND: "That signature isn't available.",
+  APPLICANT_SIGNATURE_INVALID: "That signature can't be used on this document.",
+  // APPLICANT_DOCUMENT_CONTENT_INVALID is deliberately absent. The contract says to
+  // surface the server's own message, which names the offending field; a generic
+  // string here would replace it with something less useful. getApiErrorMessage
+  // falls through to `error.message` for any unmapped code, which is what we want.
+
+  // Lead intake
+  APPLICANT_LEAD_NOT_FOUND: "That lead couldn't be found.",
+  APPLICANT_LEAD_VERSION_CONFLICT:
+    "This lead changed since you opened it. Reload and try again.",
+  APPLICANT_LEAD_ALREADY_CONVERTED:
+    "This lead has already been converted to an applicant.",
+  APPLICANT_LEAD_CONVERT_COUNTRY_REQUIRED:
+    "A target country is required to convert a lead.",
+
   // Framework-level
   VALIDATION_ERROR: "Please check the highlighted fields and try again.",
   AUTHENTICATION_REQUIRED: "Please sign in to continue.",

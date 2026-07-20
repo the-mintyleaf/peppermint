@@ -362,6 +362,11 @@ export interface UpdateDocumentInput {
   content?: DocumentContent;
   schemaVersion?: number;
   recordVersion: number;
+  /**
+   * Why this edit was made. Stored on the revision the PATCH appends and shown in
+   * the revision history; without it every revision reads "No reason given".
+   */
+  changeReason?: string;
   /** Frontend document type — used only to map certificate content keys; never sent. */
   type?: DocumentType;
 }
