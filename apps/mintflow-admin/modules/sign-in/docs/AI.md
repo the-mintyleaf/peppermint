@@ -37,11 +37,13 @@ the shared `ERROR_MESSAGES` map from `lib/authErrorMessages.ts`, and an
 
 ## Common edit targets
 
-| Task                                 | Files                                                                                       |
-| ------------------------------------ | ------------------------------------------------------------------------------------------- |
-| Change login/MFA flow behavior       | `packages/admin/src/pages/SignInPage/SignInPage.tsx` (shared — check other consumers first) |
-| Change mintflow-specific copy/config | `SignIn.tsx`                                                                                |
-| Change error copy                    | `lib/authErrorMessages.ts` (`ERROR_MESSAGES`)                                               |
+| Task                                 | Files                                                                                                                                       |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Change login/MFA flow behavior       | `packages/admin/src/pages/SignInPage/SignInPage.hooks.ts` (`useSignInController` — shared, check other consumers first)                     |
+| Change sign-in page chrome           | `packages/admin/src/pages/SignInPage/components/layouts/` (`SignInLayoutDefault` / `SignInLayoutModernLines`, picked by the `variant` prop) |
+| Change the forms inside the page     | `packages/admin/src/pages/SignInPage/components/SignInPanelContent.tsx` (shared by every variant)                                           |
+| Change mintflow-specific copy/config | `SignIn.tsx`                                                                                                                                |
+| Change error copy                    | `lib/authErrorMessages.ts` (`ERROR_MESSAGES`)                                                                                               |
 
 ## Backend endpoints
 
@@ -55,7 +57,9 @@ the shared `ERROR_MESSAGES` map from `lib/authErrorMessages.ts`, and an
 
 ## State ownership
 
-- MFA phase / error / loading state: local `useState` inside `SignInPage`.
+- MFA phase / error / loading state: local `useState` inside
+  `useSignInController` (`packages/admin/src/pages/SignInPage/SignInPage.hooks.ts`),
+  handed to the layout variants as a `SignInController` object.
 - Already-signed-in redirect: `useEffect` reading `localStorage` in
   `SignIn.tsx` (mirrors the check in `layouts/admin/Admin.tsx`).
 

@@ -33,6 +33,13 @@
   border-bottom: 1px solid var(--sil-line);
 }
 
+/* The rail's right-hand marker is decoration; drop it before it wraps. */
+@media (max-width: 30em) {
+  .topRailMeta {
+    display: none;
+  }
+}
+
 /* Body — stacked on small screens, split by a vertical hairline from lg up. */
 
 .body {
@@ -137,13 +144,26 @@
 
 /* Bottom status rail + checkerboard finish. */
 
+/* Stacked and centred on narrow screens — three columns of meta at 390px wrap
+   into an unreadable tangle. */
 .statusRail {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--mantine-spacing-md);
+  gap: var(--mantine-spacing-xs);
   padding: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
   border-top: 1px dashed var(--sil-line);
+  text-align: center;
+}
+
+@media (min-width: 48em) {
+  .statusRail {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--mantine-spacing-md);
+    text-align: left;
+  }
 }
 
 .checker {

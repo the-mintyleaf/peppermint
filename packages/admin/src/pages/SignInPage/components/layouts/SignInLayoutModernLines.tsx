@@ -64,7 +64,11 @@ export function SignInLayoutModernLines({
             </Text>
           </Group>
 
-          <Text className={classes.meta} size="10px" c="dimmed">
+          <Text
+            className={`${classes.meta} ${classes.topRailMeta}`}
+            size="10px"
+            c="dimmed"
+          >
             Secure access
           </Text>
         </Box>
@@ -81,13 +85,15 @@ export function SignInLayoutModernLines({
               {panelTagline}
             </Text>
 
-            <Title order={1} fw={500} lh={1.05} size="3rem" c={brandInk}>
+            <Title
+              order={1}
+              fw={500}
+              lh={1.05}
+              size="clamp(2rem, 5vw, 3rem)"
+              c={brandInk}
+            >
               {panelHeading}
             </Title>
-
-            <Text className={classes.meta} size="10px" c={brandInkDimmed}>
-              {STEP_META[controller.phase]}
-            </Text>
           </Box>
 
           <Box component="section" className={classes.formCol}>
