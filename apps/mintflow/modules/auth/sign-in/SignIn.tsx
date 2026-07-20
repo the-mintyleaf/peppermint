@@ -17,11 +17,11 @@ export function ModuleSignIn() {
   return (
     <SignInPage
       variant="modernlines"
-      heading={["Sign into", "mintflow."]}
+      heading={["Sign into", "your mintflow account."]}
       subheading="Don't have an account? Ask your administrator to invite you."
       brand={["mintflow", "by mintyleaf.co"]}
-      panelTagline="Work done right."
-      panelHeading="Sketched from the ground up to make the work work."
+      panelTagline="Systematic work management for Ministry of Home Affairs, Nepal."
+      panelHeading="Built for better workflow across the Home Ministry."
       loginApi={`${API_URL}/api/v1/auth/login/`}
       mfaVerifyApi={`${API_URL}/api/v1/auth/mfa/totp/verify/`}
       identifierField="identifier"
