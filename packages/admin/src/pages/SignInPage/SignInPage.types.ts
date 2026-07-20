@@ -1,5 +1,15 @@
 export type SignInIdentifierField = "email" | "username" | "identifier";
 
+/**
+ * Which page chrome the sign-in screen renders in. `"default"` is the
+ * brand-gradient panel + centred form card; `"modernlines"` is the bordered,
+ * technical treatment built from 1px rules.
+ */
+export type SignInVariant = "default" | "modernlines";
+
+/** The phase of the sign-in flow the page is currently in. */
+export type SignInPhase = "credentials" | "mfa" | "redirecting";
+
 /** Unwrapped login/MFA response payload the page reads tokens and flags from. */
 export interface SignInResultData {
   access?: string;
@@ -26,6 +36,8 @@ export interface SignInResultData {
 }
 
 export interface SignInPageProps {
+  /** Page chrome to render. Defaults to `"default"`. */
+  variant?: SignInVariant;
   heading?: [string, string];
   subheading?: string;
   brand?: [string, string];
@@ -84,4 +96,38 @@ export interface SignInPageProps {
   withCredentials?: boolean;
   /** Optional error-code -> message overrides. Falls back to the backend's own `error.message`/`message`. */
   errorMessageMap?: Record<string, string>;
+}
+
+/**
+ * Everything the sign-in flow owns that is independent of how the page looks:
+ * phase, mutation state and the submit/navigation handlers. Produced by
+ * `useSignInController` and consumed by every layout variant unchanged.
+ */
+export interface SignInController {
+  phase: SignInPhase;
+  /** Resolved user-facing error for the current attempt, or `null`. */
+  errorMessage: string | null;
+  /** True while either the login or the MFA mutation is in flight. */
+  isLoading: boolean;
+  /** The key the credential is submitted under, resolved from the page props. */
+  identifierField: SignInIdentifierField;
+  showMagicLink: boolean;
+  setShowMagicLink: (show: boolean) => void;
+  magicLinkEmail: string;
+  setMagicLinkEmail: (email: string) => void;
+  onSignIn: (identifier: string, password: string) => void;
+  onMfaSubmit: (code: string) => void;
+  onBackToSignIn: () => void;
+  onMagicLinkSubmit: () => Promise<void>;
+  onSocialLogin: (callback?: () => void) => void;
+}
+
+/**
+ * The contract every layout variant implements: the flow state plus the page's
+ * own presentational props, passed through untouched. Keeping both layouts on
+ * one interface is what makes them swappable by the `variant` dispatch.
+ */
+export interface SignInLayoutProps {
+  controller: SignInController;
+  page: SignInPageProps;
 }
