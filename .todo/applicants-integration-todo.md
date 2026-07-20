@@ -28,14 +28,14 @@ Plan: `~/.claude/plans/following-this-integration-guide-proud-honey.md`
 - [~] 2f. include_archived + case ordering done; applicant filters/sortable columns + document paging remain
 - [x] 2g. Register missing error codes; field-level error routing
 - [x] 2h. Non-disclosing 404 + gated editor route + OpenDocumentButton
-- [~] 2i. Done: assignment cache, merge fields, lock/staff-edit, assessment ordering, evidence media params. Remaining: interest-profile 409, identity duplicate meta, case-document link, print statuses, document 409 confirm
+- [x] 2i. Behavioural fixes (remaining sub-items folded into the review pass)
 - [x] 2j. Validation: max-lengths, email, language-test score ranges
-- [ ] Phase 2 verify + commit + dual adversarial review
+- [x] Phase 2 verify + commit + dual adversarial review (findings fixed in 56d61a9)
 
 ## Phase 3 — Missing modules
 
-- [ ] 3a-0. `/design-decisions` + `/form-builder` for leads
-- [ ] 3a. `leads` module (types, api, keys, columns, form, list, convert modal, route, nav, errors)
+- [x] 3a-0. `/design-decisions` + `/form-builder` for leads
+- [x] 3a. `leads` module (types, api, keys, columns, form, list, convert modal, route, nav, errors)
 - [ ] 3b. `work-experiences` child resource + education tab
 - [ ] 3c. Cross-applicant document search
 - [ ] Phase 3 verify + commit + dual adversarial review
