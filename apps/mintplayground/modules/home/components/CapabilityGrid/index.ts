@@ -1,0 +1,1 @@
+export { CapabilityGrid } from "./CapabilityGrid";

@@ -1,0 +1,24 @@
+.panel {
+  transition: width 180ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    transition: none;
+  }
+}
+
+.toggleRow {
+  display: flex;
+  justify-content: center;
+}
+
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.38);
+  padding: 0 10px;
+  margin-bottom: 2px;
+}
