@@ -6,8 +6,10 @@ import { StatusBadge } from "@peppermint/admin";
 import { LockKeyIcon } from "@phosphor-icons/react/dist/csr/LockKey";
 
 import {
+  ENGAGEMENT_STATUS_LABELS,
   FOLLOW_UP_PRIORITY_COLORS,
   FOLLOW_UP_PRIORITY_LABELS,
+  toOptions,
 } from "../../../_shared";
 import type { ApplicantListRow, FollowUpPriority } from "../../../_shared";
 import {
@@ -39,6 +41,12 @@ export function getApplicantColumns(
     {
       accessor: "full_name",
       title: "Applicant",
+      // Only the six fields in the contract's `ordering` whitelist are marked
+      // sortable — {full_name, created_at, updated_at, next_follow_up_at,
+      // lifecycle_stage, applicant_code}. Marking anything else would emit an
+      // ordering key DRF silently drops, so the column would look sortable and
+      // do nothing.
+      sortable: true,
       render: (a) => (
         <Group gap={8} align="center" wrap="nowrap">
           {isAdmin ? (
@@ -79,6 +87,7 @@ export function getApplicantColumns(
     {
       accessor: "lifecycle_stage",
       title: "Stage",
+      sortable: true,
       width: 200,
       render: (a) => (
         <ApplicantLifecycleSwitch
@@ -92,6 +101,13 @@ export function getApplicantColumns(
       accessor: "engagement_status",
       title: "Engagement",
       width: 200,
+      // `engagement_status` is a documented list filter for both roles. The tabs
+      // already own `lifecycle_stage`, so this is the other axis operators narrow by.
+      filter: {
+        type: "select",
+        options: toOptions(ENGAGEMENT_STATUS_LABELS),
+        placeholder: "Any engagement",
+      },
       render: (a) => (
         <ApplicantLifecycleSwitch
           applicant={a}
@@ -106,6 +122,13 @@ export function getApplicantColumns(
     columns.push({
       accessor: "next_follow_up_at",
       title: "Follow-up",
+      sortable: true,
+      // Admin-only filter, matching the contract's admin param set.
+      filter: {
+        type: "select",
+        options: toOptions(FOLLOW_UP_PRIORITY_LABELS),
+        placeholder: "Any priority",
+      },
       render: (a) => {
         const d = a.next_follow_up_at ? dayjs(a.next_follow_up_at) : null;
         return (
@@ -134,6 +157,7 @@ export function getApplicantColumns(
     {
       accessor: "updated_at",
       title: "Updated",
+      sortable: true,
       render: (a) => {
         const d = a.updated_at ? dayjs(a.updated_at) : null;
         return d && d.isValid() ? (
