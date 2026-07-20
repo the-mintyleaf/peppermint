@@ -1,5 +1,7 @@
 "use client";
 
+import { LeafIcon } from "@phosphor-icons/react/dist/ssr";
+
 import {
   Anchor,
   Center,
@@ -12,7 +14,6 @@ import {
   Text,
   Title,
 } from "@peppermint/ui";
-import { LeafIcon } from "@phosphor-icons/react/dist/ssr";
 
 import { SignInPanelContent } from "../SignInPanelContent";
 import type { SignInLayoutProps } from "../../SignInPage.types";
@@ -23,11 +24,11 @@ import type { SignInLayoutProps } from "../../SignInPage.types";
  */
 export function SignInLayoutDefault({ controller, page }: SignInLayoutProps) {
   const {
-    heading = ["Sign into", "to your portal."],
-    subheading = "Enter your credentials to access your account.",
-    brand = ["Portal", "by Peppermint"],
-    panelTagline = "Work done right.",
-    panelHeading = "Sketched from the ground up to make the work work.",
+    heading,
+    subheading,
+    brand,
+    panelTagline,
+    panelHeading,
     panelBackgroundImage,
   } = page;
 

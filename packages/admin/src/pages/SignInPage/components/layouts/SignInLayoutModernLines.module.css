@@ -1,0 +1,207 @@
+/*
+ * The "modern lines" chrome: every region is delimited by a 1px rule rather than
+ * by elevation or fill. All colour comes from Mantine tokens so the variant
+ * follows the host app's theme and its light/dark toggle.
+ */
+
+.root {
+  --sil-line: var(--mantine-color-default-border);
+  --sil-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --sil-inset: var(--mantine-spacing-xl);
+
+  min-height: 100vh;
+  padding: var(--sil-inset);
+  background-color: var(--mantine-color-body);
+}
+
+.frame {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 2 * var(--sil-inset));
+  border: 1px solid var(--sil-line);
+}
+
+/* Top rail — brand left, meta right. */
+
+.topRail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg);
+  border-bottom: 1px solid var(--sil-line);
+}
+
+/* Body — stacked on small screens, split by a vertical hairline from lg up. */
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.brandCol {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-xl);
+  padding: var(--mantine-spacing-xl) var(--mantine-spacing-lg);
+  border-bottom: 1px solid var(--sil-line);
+}
+
+/* Set only when panelBackgroundImage is supplied; the image itself is applied
+   inline since its URL is a runtime prop. */
+.brandColImage {
+  background-size: cover;
+  background-position: center;
+}
+
+.formCol {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: var(--mantine-spacing-xl) var(--mantine-spacing-lg);
+}
+
+@media (min-width: 75em) {
+  .body {
+    flex-direction: row;
+  }
+
+  .brandCol {
+    flex: 1 1 58%;
+    border-right: 1px solid var(--sil-line);
+    border-bottom: none;
+  }
+
+  .formCol {
+    flex: 1 1 42%;
+  }
+}
+
+/* Corner brackets around the form region. Two nested wrappers carry one L-shape
+   per pseudo-element, so the corners cost no extra markup. */
+
+.formFrame {
+  position: relative;
+  width: 100%;
+  max-width: 26rem;
+  padding: var(--mantine-spacing-lg);
+}
+
+.formFrame::before,
+.formFrame::after,
+.formFrameInner::before,
+.formFrameInner::after {
+  content: "";
+  position: absolute;
+  width: 1.25rem;
+  height: 1.25rem;
+  pointer-events: none;
+}
+
+.formFrame::before {
+  top: 0;
+  left: 0;
+  border-top: 1px solid var(--sil-line);
+  border-left: 1px solid var(--sil-line);
+}
+
+.formFrame::after {
+  right: 0;
+  bottom: 0;
+  border-right: 1px solid var(--sil-line);
+  border-bottom: 1px solid var(--sil-line);
+}
+
+.formFrameInner::before {
+  top: 0;
+  right: 0;
+  border-top: 1px solid var(--sil-line);
+  border-right: 1px solid var(--sil-line);
+}
+
+.formFrameInner::after {
+  bottom: 0;
+  left: 0;
+  border-bottom: 1px solid var(--sil-line);
+  border-left: 1px solid var(--sil-line);
+}
+
+.formFrameInner {
+  position: static;
+}
+
+/* Bottom status rail + checkerboard finish. */
+
+.statusRail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
+  border-top: 1px dashed var(--sil-line);
+}
+
+.checker {
+  height: 0.625rem;
+  background-image: repeating-conic-gradient(
+    var(--sil-line) 0% 25%,
+    transparent 0% 50%
+  );
+  background-size: 0.625rem 0.625rem;
+  opacity: 0.5;
+}
+
+/* Uppercase monospace meta — rail labels, step counters, section markers. */
+
+.meta {
+  font-family: var(--sil-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Controls: square, hairline-bordered, unelevated. Scoped to this variant only. */
+
+.root :global(.mantine-TextInput-input),
+.root :global(.mantine-PasswordInput-input),
+.root :global(.mantine-Button-root),
+.root :global(.mantine-Alert-root),
+.root :global(.mantine-Paper-root) {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.root :global(.mantine-TextInput-input),
+.root :global(.mantine-PasswordInput-input) {
+  border: 1px solid var(--sil-line);
+  background-color: transparent;
+}
+
+/* Re-assert the focus affordance — the border rule above would otherwise win
+   over Mantine's own focus styling and leave the field looking inert. */
+.root :global(.mantine-TextInput-input):focus,
+.root :global(.mantine-TextInput-input):focus-within,
+.root :global(.mantine-PasswordInput-input):focus,
+.root :global(.mantine-PasswordInput-input):focus-within {
+  border-color: var(--mantine-primary-color-filled);
+  outline: 1px solid var(--mantine-primary-color-filled);
+  outline-offset: -2px;
+}
+
+.root :global(.mantine-InputWrapper-label),
+.root :global(.mantine-Divider-label) {
+  font-family: var(--sil-mono);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root :global(.mantine-Button-root) {
+    transition: none;
+  }
+}

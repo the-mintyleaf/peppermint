@@ -23,6 +23,53 @@ class SignInRequestError extends Error {
   }
 }
 
+/** Picks the most specific message available for a failed response body. */
+function resolveErrorMessage(
+  body: unknown,
+  errorMessageMap?: Record<string, string>,
+): string {
+  const data = (body ?? {}) as SignInResultData;
+  const code = data.error?.code;
+  if (code && errorMessageMap?.[code]) return errorMessageMap[code];
+  return (
+    data.error?.message ??
+    data.message ??
+    "Something went wrong. Please try again."
+  );
+}
+
+/**
+ * POSTs a JSON body and unwraps the `{ success, data }` envelope; throws a
+ * SignInRequestError (carrying the parsed body) on a non-2xx so the mutation's
+ * onError path can surface a resolved message.
+ */
+async function postAuth(
+  url: string,
+  payload: Record<string, unknown>,
+  options: {
+    withCredentials: boolean;
+    errorMessageMap?: Record<string, string>;
+  },
+): Promise<SignInResultData> {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+    // Opt-in credentials so cookie-based backends can set their session cookies
+    // (HttpOnly refresh + CSRF) on login. Off by default: a credentialed request
+    // to a wildcard-CORS login endpoint would be rejected by the browser.
+    credentials: options.withCredentials ? "include" : "same-origin",
+  });
+  const body = await response.json();
+  if (!response.ok) {
+    throw new SignInRequestError(
+      resolveErrorMessage(body, options.errorMessageMap),
+      body,
+    );
+  }
+  return unwrapEnvelope(body) as SignInResultData;
+}
+
 /**
  * Owns the entire sign-in flow — phases, both mutations, token storage and the
  * submit handlers — so the layout variants stay purely presentational.
@@ -50,39 +97,7 @@ export function useSignInController({
   const [challengeId, setChallengeId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const resolveErrorMessage = (body: unknown): string => {
-    const data = (body ?? {}) as SignInResultData;
-    const code = data.error?.code;
-    if (code && errorMessageMap?.[code]) return errorMessageMap[code];
-    return (
-      data.error?.message ??
-      data.message ??
-      "Something went wrong. Please try again."
-    );
-  };
-
-  // POST a JSON body and unwrap the `{ success, data }` envelope; throw a
-  // SignInRequestError (carrying the parsed body) on a non-2xx so the mutation's
-  // onError path can surface a resolved message.
-  const postAuth = async (
-    url: string,
-    payload: Record<string, unknown>,
-  ): Promise<SignInResultData> => {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      // Opt-in credentials so cookie-based backends can set their session cookies
-      // (HttpOnly refresh + CSRF) on login. Off by default: a credentialed request
-      // to a wildcard-CORS login endpoint would be rejected by the browser.
-      credentials: withCredentials ? "include" : "same-origin",
-    });
-    const body = await response.json();
-    if (!response.ok) {
-      throw new SignInRequestError(resolveErrorMessage(body), body);
-    }
-    return unwrapEnvelope(body) as SignInResultData;
-  };
+  const requestOptions = { withCredentials, errorMessageMap };
 
   const completeSuccess = (data: SignInResultData) => {
     // A first-login challenge (no session) short-circuits into the caller's
@@ -153,20 +168,34 @@ export function useSignInController({
 
   const loginMutation = useMutation({
     mutationFn: (vars: { identifier: string; password: string }) =>
-      postAuth(loginApi, {
-        [resolvedIdentifierField]: vars.identifier,
-        password: vars.password,
-      }),
+      postAuth(
+        loginApi,
+        {
+          [resolvedIdentifierField]: vars.identifier,
+          password: vars.password,
+        },
+        requestOptions,
+      ),
     onSuccess: handleSuccessData,
     onError: handleMutationError,
   });
 
   const mfaMutation = useMutation({
-    mutationFn: (code: string) =>
-      postAuth(mfaVerifyApi as string, {
-        challenge_id: challengeId,
-        code,
-      }),
+    mutationFn: (code: string) => {
+      // Guarded rather than cast: the phase transitions already refuse to reach
+      // here without an endpoint, but nothing in the types enforced that, and a
+      // fetch on `undefined` would surface as an opaque 404.
+      if (!mfaVerifyApi) {
+        throw new Error(
+          "Multi-factor authentication is required but not configured.",
+        );
+      }
+      return postAuth(
+        mfaVerifyApi,
+        { challenge_id: challengeId, code },
+        requestOptions,
+      );
+    },
     onSuccess: completeSuccess,
     onError: handleMutationError,
   });

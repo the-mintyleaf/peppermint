@@ -1,22 +1,16 @@
 "use client";
 
 import {
-  Alert,
-  Button,
-  Divider,
-  SimpleGrid,
-  Stack,
-  Text,
-  TextInput,
-} from "@peppermint/ui";
-import {
   AppleLogoIcon,
   DiscordLogoIcon,
   WarningIcon,
 } from "@phosphor-icons/react/dist/ssr";
 
+import { Alert, Button, Divider, SimpleGrid, Stack } from "@peppermint/ui";
+
 import { GoogleIcon } from "./GoogleIcon";
 import { SignInForm } from "./SignInForm";
+import { MagicLinkForm } from "./MagicLinkForm";
 import { MfaChallengeForm } from "./MfaChallengeForm";
 import type { SignInLayoutProps } from "../SignInPage.types";
 
@@ -44,12 +38,12 @@ export function SignInPanelContent({ controller, page }: SignInLayoutProps) {
 
   const {
     onForgotPassword,
-    disableSignUp = false,
-    disableForgotPassword = false,
-    hasGoogleLogin = false,
-    hasAppleLogin = false,
-    hasDiscordLogin = false,
-    hasMagicLinkLogin = false,
+    disableSignUp,
+    disableForgotPassword,
+    hasGoogleLogin,
+    hasAppleLogin,
+    hasDiscordLogin,
+    hasMagicLinkLogin,
     onGoogleLogin,
     onAppleLogin,
     onDiscordLogin,
@@ -67,7 +61,11 @@ export function SignInPanelContent({ controller, page }: SignInLayoutProps) {
   return (
     <Stack gap="xs" py="md">
       {errorMessage && (
+        // The alert mounts after a failed submit while focus stays in the form,
+        // so it needs a live region to reach a screen reader at all.
         <Alert
+          role="alert"
+          aria-live="assertive"
           color="red"
           icon={<WarningIcon size={18} weight="fill" aria-hidden />}
         >
@@ -161,50 +159,15 @@ export function SignInPanelContent({ controller, page }: SignInLayoutProps) {
           )}
         </>
       ) : (
-        <Stack gap="md">
-          <Stack gap={0} mb="xs">
-            <Text fw={600} size="lg" ta="center">
-              Magic Link
-            </Text>
-            <Text c="dimmed" size="sm" ta="center">
-              We&apos;ll email you a link to sign in instantly.
-            </Text>
-          </Stack>
-
-          <TextInput
-            size="md"
-            label="Email"
-            placeholder="name@example.com"
-            type="email"
-            required
-            value={magicLinkEmail}
-            onChange={(e) => setMagicLinkEmail(e.currentTarget.value)}
-          />
-
-          <Button
-            size="md"
-            color="black"
-            onClick={onMagicLinkSubmit}
-            disabled={!magicLinkEmail.trim()}
-            fullWidth
-            h={50}
-          >
-            Send Magic Link
-          </Button>
-
-          <Button
-            variant="subtle"
-            size="sm"
-            c="dimmed"
-            onClick={() => {
-              setShowMagicLink(false);
-              setMagicLinkEmail("");
-            }}
-            fullWidth
-          >
-            Back to Sign In
-          </Button>
-        </Stack>
+        <MagicLinkForm
+          email={magicLinkEmail}
+          onEmailChange={setMagicLinkEmail}
+          onSubmit={onMagicLinkSubmit}
+          onCancel={() => {
+            setShowMagicLink(false);
+            setMagicLinkEmail("");
+          }}
+        />
       )}
     </Stack>
   );

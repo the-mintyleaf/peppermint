@@ -123,11 +123,35 @@ export interface SignInController {
 }
 
 /**
- * The contract every layout variant implements: the flow state plus the page's
- * own presentational props, passed through untouched. Keeping both layouts on
- * one interface is what makes them swappable by the `variant` dispatch.
+ * Page props with every presentational default already applied. Resolving these
+ * once in `SignInPage` — rather than per layout — is what lets a variant read
+ * `page.heading[0]` without a guard, and stops two variants from drifting apart
+ * on what "no heading supplied" means.
+ */
+export type ResolvedSignInPageProps = SignInPageProps &
+  Required<
+    Pick<
+      SignInPageProps,
+      | "heading"
+      | "subheading"
+      | "brand"
+      | "panelTagline"
+      | "panelHeading"
+      | "disableSignUp"
+      | "disableForgotPassword"
+      | "hasGoogleLogin"
+      | "hasAppleLogin"
+      | "hasDiscordLogin"
+      | "hasMagicLinkLogin"
+    >
+  >;
+
+/**
+ * The contract every layout variant implements: the flow state plus the
+ * resolved presentational props. Keeping both layouts on one interface is what
+ * makes them swappable by the `variant` dispatch.
  */
 export interface SignInLayoutProps {
   controller: SignInController;
-  page: SignInPageProps;
+  page: ResolvedSignInPageProps;
 }
