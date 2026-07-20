@@ -37,8 +37,8 @@ Plan: `~/.claude/plans/following-this-integration-guide-proud-honey.md`
 - [x] 3a-0. `/design-decisions` + `/form-builder` for leads
 - [x] 3a. `leads` module (types, api, keys, columns, form, list, convert modal, route, nav, errors)
 - [x] 3b. `work-experiences` child resource + education tab
-- [ ] 3c. Cross-applicant document search
-- [ ] Phase 3 verify + commit + dual adversarial review
+- [x] 3c. Cross-applicant document search
+- [x] Phase 3 verify + commit + adversarial review (findings fixed in 7512d22)
 
 ## Phase 4 — Bikram Sambat + remaining surfaces
 
