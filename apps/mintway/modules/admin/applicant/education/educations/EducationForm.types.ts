@@ -9,6 +9,8 @@ export interface EducationFormValues extends Record<string, unknown> {
   field_of_study: string;
   program: string;
   country: string;
+  start_period: string;
+  end_period: string;
   start_date: string;
   end_date: string;
   completion_status: string;
@@ -17,6 +19,12 @@ export interface EducationFormValues extends Record<string, unknown> {
   grading_system: string;
   registration_number: string;
   graduation_year: string;
+  academic_year_start: string;
+  academic_year_end: string;
+  year_of_completion: string;
+  completion_year_bs: string;
+  completion_year_ad: string;
+  study_duration: string;
   notes: string;
 }
 

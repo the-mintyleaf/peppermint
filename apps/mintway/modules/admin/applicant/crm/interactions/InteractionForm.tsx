@@ -39,6 +39,7 @@ const VALIDATION = z.object({
 });
 
 const INITIAL: InteractionFormValues = {
+  application_case: "",
   interaction_type: "inquiry",
   direction: "",
   occurred_at: "",
@@ -52,6 +53,7 @@ const INITIAL: InteractionFormValues = {
 function toInitial(record?: Partial<Interaction>): InteractionFormValues {
   if (!record) return INITIAL;
   return {
+    application_case: record.application_case ?? "",
     interaction_type: record.interaction_type ?? "inquiry",
     direction: record.direction ?? "",
     occurred_at: record.occurred_at ? record.occurred_at.slice(0, 16) : "",
@@ -65,13 +67,22 @@ function toInitial(record?: Partial<Interaction>): InteractionFormValues {
   };
 }
 
+/** `Nullable=No` optional text — unset is the empty string, so blank clears. */
 const TEXT_KEYS: (keyof InteractionFormValues)[] = ["summary", "outcome"];
+
+/** `Nullable=Yes` — cleared by sending `null`, never `""` (DRF rejects `""` for a
+ * DateTimeField, and for the `application_case` UUID relation). */
+const NULLABLE_KEYS: (keyof InteractionFormValues)[] = [
+  "next_follow_up_at",
+  "application_case",
+];
 
 /**
  * Build the api payload. Always send interaction_type + occurred_at + is_confidential.
- * On create, empty summary/outcome are dropped; on edit, blank text is sent so a cleared
- * field clears (PATCH). Empty datetime (next_follow_up_at) and empty enums (direction,
- * follow_up_priority) are always dropped (DRF rejects "" for those).
+ * On create, empty values are dropped; on edit they are sent explicitly so a cleared
+ * field actually clears — `""` for the nullable=No text fields, `null` for the follow-up
+ * datetime and the case link. `direction` / `follow_up_priority` are enums and are
+ * always dropped when blank — DRF rejects `""` for a choice field.
  */
 function toPayload(
   values: InteractionFormValues,
@@ -87,11 +98,15 @@ function toPayload(
     if (typeof value !== "string") continue;
     if (value !== "" || isEdit) payload[key] = value;
   }
+  for (const key of NULLABLE_KEYS) {
+    const value = values[key];
+    if (typeof value !== "string") continue;
+    if (value !== "") payload[key] = value;
+    else if (isEdit) payload[key] = null;
+  }
   if (values.direction) payload.direction = values.direction;
   if (values.follow_up_priority)
     payload.follow_up_priority = values.follow_up_priority;
-  if (values.next_follow_up_at)
-    payload.next_follow_up_at = values.next_follow_up_at;
   return payload as InteractionPayload;
 }
 
@@ -178,6 +193,12 @@ function Fields({ isLoading }: { isLoading: boolean }) {
           {...form.getInputProps("follow_up_priority")}
         />
       </Group>
+      <TextInput
+        label="Application case"
+        description="Id of a case belonging to this applicant — leave blank if unlinked"
+        disabled={isLoading}
+        {...form.getInputProps("application_case")}
+      />
       <Checkbox
         label="Confidential"
         disabled={isLoading}

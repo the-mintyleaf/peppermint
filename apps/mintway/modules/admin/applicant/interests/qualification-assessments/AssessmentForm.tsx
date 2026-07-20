@@ -148,11 +148,25 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         {...form.getInputProps("language_readiness")}
       />
       <Textarea
+        label="Study gap summary"
+        autosize
+        minRows={2}
+        disabled={isLoading}
+        {...form.getInputProps("study_gap_summary")}
+      />
+      <Textarea
         label="Financial readiness"
         autosize
         minRows={2}
         disabled={isLoading}
         {...form.getInputProps("financial_readiness")}
+      />
+      <Textarea
+        label="Funding summary"
+        autosize
+        minRows={2}
+        disabled={isLoading}
+        {...form.getInputProps("funding_summary")}
       />
       <Textarea
         label="Visa risk summary"

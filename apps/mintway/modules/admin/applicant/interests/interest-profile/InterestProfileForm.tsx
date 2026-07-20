@@ -50,10 +50,10 @@ const LIST_KEYS: (keyof InterestProfileFormValues)[] = [
   "preferred_cities",
 ];
 
+/** `Nullable=No` optional text — unset is the empty string, so blank clears. */
 const TEXT_KEYS: (keyof InterestProfileFormValues)[] = [
   "preferred_intake",
   "preferred_year",
-  "estimated_budget",
   "budget_currency",
   "funding_method",
   "study_gap_summary",
@@ -91,7 +91,12 @@ function toInitial(
   };
 }
 
-/** JSON-list fields always sent (empty array clears); text cleared on edit only. */
+/**
+ * JSON-list fields are always sent (an empty array clears them); text is cleared on edit
+ * only, so a blanked field isn't a silent PATCH no-op. `estimated_budget` is the one
+ * `Nullable=Yes` field — it clears with `null`, never `""`, which DRF's DecimalField
+ * rejects with a 400. It is a decimal STRING and is never Number()'d.
+ */
 function toPayload(
   values: InterestProfileFormValues,
   isEdit: boolean,
@@ -103,6 +108,9 @@ function toPayload(
     if (typeof value !== "string") continue;
     if (value !== "" || isEdit) payload[key] = value;
   }
+  if (values.estimated_budget !== "")
+    payload.estimated_budget = values.estimated_budget;
+  else if (isEdit) payload.estimated_budget = null;
   return payload;
 }
 
@@ -185,6 +193,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Estimated budget"
+          description="Decimal amount, e.g. 5000000.00"
           disabled={isLoading}
           {...form.getInputProps("estimated_budget")}
         />

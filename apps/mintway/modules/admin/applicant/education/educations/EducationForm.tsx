@@ -31,6 +31,8 @@ const INITIAL: EducationFormValues = {
   field_of_study: "",
   program: "",
   country: "",
+  start_period: "",
+  end_period: "",
   start_date: "",
   end_date: "",
   completion_status: "",
@@ -39,6 +41,12 @@ const INITIAL: EducationFormValues = {
   grading_system: "",
   registration_number: "",
   graduation_year: "",
+  academic_year_start: "",
+  academic_year_end: "",
+  year_of_completion: "",
+  completion_year_bs: "",
+  completion_year_ad: "",
+  study_duration: "",
   notes: "",
 };
 
@@ -51,6 +59,8 @@ function toInitial(record?: Partial<Education>): EducationFormValues {
     field_of_study: record.field_of_study ?? "",
     program: record.program ?? "",
     country: record.country ?? "",
+    start_period: record.start_period ?? "",
+    end_period: record.end_period ?? "",
     start_date: record.start_date ? record.start_date.slice(0, 10) : "",
     end_date: record.end_date ? record.end_date.slice(0, 10) : "",
     completion_status: record.completion_status ?? "",
@@ -59,10 +69,17 @@ function toInitial(record?: Partial<Education>): EducationFormValues {
     grading_system: record.grading_system ?? "",
     registration_number: record.registration_number ?? "",
     graduation_year: record.graduation_year ?? "",
+    academic_year_start: record.academic_year_start ?? "",
+    academic_year_end: record.academic_year_end ?? "",
+    year_of_completion: record.year_of_completion ?? "",
+    completion_year_bs: record.completion_year_bs ?? "",
+    completion_year_ad: record.completion_year_ad ?? "",
+    study_duration: record.study_duration ?? "",
     notes: record.notes ?? "",
   };
 }
 
+/** `Nullable=No` optional text — unset is the empty string, so blank clears. */
 const TEXT_KEYS: (keyof EducationFormValues)[] = [
   "institution",
   "degree",
@@ -70,24 +87,49 @@ const TEXT_KEYS: (keyof EducationFormValues)[] = [
   "field_of_study",
   "program",
   "country",
-  "completion_status",
+  "start_period",
+  "end_period",
   "gpa",
   "grade",
   "grading_system",
   "registration_number",
+  "academic_year_start",
+  "academic_year_end",
   "graduation_year",
+  "year_of_completion",
+  "completion_year_bs",
+  "completion_year_ad",
+  "study_duration",
   "notes",
 ];
 
-/** Build the api payload — drop empty text, enum, and date fields. */
-function toPayload(values: EducationFormValues): EducationPayload {
+/** `Nullable=Yes` — cleared by sending `null`. */
+const NULLABLE_KEYS: (keyof EducationFormValues)[] = ["start_date", "end_date"];
+
+/**
+ * Build the api payload. On create empty values are dropped; on edit they are sent
+ * explicitly so a cleared field actually clears, rather than the PATCH silently
+ * no-op'ing that key. `completion_status` is an enum and is always dropped when
+ * blank — DRF rejects `""` for a choice field with no blank option.
+ */
+function toPayload(
+  values: EducationFormValues,
+  isEdit: boolean,
+): EducationPayload {
   const payload: Record<string, unknown> = {};
   for (const key of TEXT_KEYS) {
     const value = values[key];
-    if (typeof value === "string" && value !== "") payload[key] = value;
+    if (typeof value !== "string") continue;
+    if (value !== "" || isEdit) payload[key] = value;
   }
-  if (values.start_date) payload.start_date = values.start_date;
-  if (values.end_date) payload.end_date = values.end_date;
+  for (const key of NULLABLE_KEYS) {
+    const value = values[key];
+    if (typeof value !== "string") continue;
+    if (value !== "") payload[key] = value;
+    else if (isEdit) payload[key] = null;
+  }
+  if (values.completion_status)
+    payload.completion_status = values.completion_status;
   return payload;
 }
 
@@ -100,11 +142,12 @@ export function EducationForm({
   onSubmit,
   isLoading,
 }: EducationFormProps) {
+  const isEdit = Boolean(initialValues);
   return (
     <FormWrapper<EducationFormValues>
       initial={toInitial(initialValues)}
       finalSubmitFn={async (values) => {
-        onSubmit(toPayload(values));
+        onSubmit(toPayload(values, isEdit));
         return { ok: true };
       }}
     >
@@ -158,6 +201,20 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       </Group>
       <Group grow align="flex-start">
         <TextInput
+          label="Start period"
+          description="Free text, e.g. Spring 2021"
+          disabled={isLoading}
+          {...form.getInputProps("start_period")}
+        />
+        <TextInput
+          label="End period"
+          description="Free text, e.g. Fall 2024"
+          disabled={isLoading}
+          {...form.getInputProps("end_period")}
+        />
+      </Group>
+      <Group grow align="flex-start">
+        <TextInput
           label="Start date"
           type="date"
           disabled={isLoading}
@@ -201,9 +258,47 @@ function Fields({ isLoading }: { isLoading: boolean }) {
           {...form.getInputProps("registration_number")}
         />
         <TextInput
+          label="Study duration"
+          description="e.g. 4 years"
+          disabled={isLoading}
+          {...form.getInputProps("study_duration")}
+        />
+      </Group>
+      <Group grow align="flex-start">
+        <TextInput
+          label="Academic year start"
+          disabled={isLoading}
+          {...form.getInputProps("academic_year_start")}
+        />
+        <TextInput
+          label="Academic year end"
+          disabled={isLoading}
+          {...form.getInputProps("academic_year_end")}
+        />
+      </Group>
+      <Group grow align="flex-start">
+        <TextInput
           label="Graduation year"
           disabled={isLoading}
           {...form.getInputProps("graduation_year")}
+        />
+        <TextInput
+          label="Year of completion"
+          disabled={isLoading}
+          {...form.getInputProps("year_of_completion")}
+        />
+      </Group>
+      <Group grow align="flex-start">
+        <TextInput
+          label="Completion year (BS)"
+          description="As written on the certificate, e.g. 2078"
+          disabled={isLoading}
+          {...form.getInputProps("completion_year_bs")}
+        />
+        <TextInput
+          label="Completion year (AD)"
+          disabled={isLoading}
+          {...form.getInputProps("completion_year_ad")}
         />
       </Group>
       <Textarea

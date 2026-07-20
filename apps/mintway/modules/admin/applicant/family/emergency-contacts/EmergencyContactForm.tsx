@@ -47,6 +47,7 @@ function toInitial(
   };
 }
 
+/** `Nullable=No` optional text — unset is the empty string, so blank clears. */
 const TEXT_KEYS: (keyof EmergencyContactFormValues)[] = [
   "relationship",
   "phone",
@@ -54,9 +55,14 @@ const TEXT_KEYS: (keyof EmergencyContactFormValues)[] = [
   "address",
 ];
 
-/** Build the api payload — always send name + is_primary; drop empty text fields. */
+/**
+ * Build the api payload — always send name + is_primary. On create empty values are
+ * dropped; on edit they are sent explicitly so a cleared field actually clears, rather
+ * than the PATCH silently no-op'ing that key.
+ */
 function toPayload(
   values: EmergencyContactFormValues,
+  isEdit: boolean,
 ): EmergencyContactPayload {
   const payload: Record<string, unknown> = {
     name: values.name,
@@ -64,7 +70,8 @@ function toPayload(
   };
   for (const key of TEXT_KEYS) {
     const value = values[key];
-    if (typeof value === "string" && value !== "") payload[key] = value;
+    if (typeof value !== "string") continue;
+    if (value !== "" || isEdit) payload[key] = value;
   }
   return payload as EmergencyContactPayload;
 }
@@ -76,12 +83,13 @@ export function EmergencyContactForm({
   onSubmit,
   isLoading,
 }: EmergencyContactFormProps) {
+  const isEdit = Boolean(initialValues);
   return (
     <FormWrapper<EmergencyContactFormValues>
       initial={toInitial(initialValues)}
       validation={[VALIDATION]}
       finalSubmitFn={async (values) => {
-        onSubmit(toPayload(values));
+        onSubmit(toPayload(values, isEdit));
         return { ok: true };
       }}
     >

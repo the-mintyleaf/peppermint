@@ -8,6 +8,7 @@ import { UsersThreeIcon } from "@phosphor-icons/react/dist/csr/UsersThree";
 import { SparkleIcon } from "@phosphor-icons/react/dist/csr/Sparkle";
 import { TrendUpIcon } from "@phosphor-icons/react/dist/csr/TrendUp";
 import { UserCheckIcon } from "@phosphor-icons/react/dist/csr/UserCheck";
+import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
 
 import { RequireAuth } from "@/components/RequireAuth";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
@@ -27,7 +28,7 @@ import { ApplicantProfileProvider } from "../../components/ApplicantProfileModal
 import { getApplicantColumns } from "./applicants.columns";
 import { DuplicateWarningModal } from "./components/DuplicateWarningModal";
 
-const TABS: DataTableShellTab[] = [
+const BASE_TABS: DataTableShellTab[] = [
   { label: "All", icon: UsersThreeIcon },
   {
     label: "Interested",
@@ -46,11 +47,25 @@ const TABS: DataTableShellTab[] = [
   },
 ];
 
+/**
+ * Archived applicants are excluded from every list unless `include_archived` is sent,
+ * and that param is admin-only. Without this tab the Archive action was a one-way
+ * door: the record left the list and nothing in the UI could bring it back.
+ */
+const ARCHIVED_TAB: DataTableShellTab = {
+  label: "Archived",
+  icon: ArchiveIcon,
+  filter: { include_archived: "true", engagement_status: "archived" },
+};
+
 function ApplicantsListContent() {
   const { isAdmin } = useCurrentUser();
   const [dupMatches, setDupMatches] = useState<DuplicateMatch[] | null>(null);
 
   const columns = getApplicantColumns(isAdmin);
+
+  // include_archived is admin-only, so staff never see the Archived tab.
+  const tabs = isAdmin ? [...BASE_TABS, ARCHIVED_TAB] : BASE_TABS;
 
   return (
     <ApplicantProfileProvider>
@@ -106,7 +121,7 @@ function ApplicantsListContent() {
         disableReviewButton
         pageSizes={[10, 20, 30, 50]}
         defaultPageSize={20}
-        tabs={TABS}
+        tabs={tabs}
         basePath="/admin/applicants"
         mainComponent={ModalPaper}
         mainComponentProps={{ withBorder: true }}

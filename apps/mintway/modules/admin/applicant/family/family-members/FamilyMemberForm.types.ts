@@ -6,6 +6,8 @@ export interface FamilyMemberFormValues extends Record<string, unknown> {
   name: string;
   relationship: string;
   date_of_birth: string;
+  /** Integer as a string; parsed on submit (`Nullable=Yes` — clears with `null`). */
+  age_snapshot: string;
   occupation: string;
   contact: string;
   address: string;

@@ -11,6 +11,8 @@ export interface VisaHistoryFormValues extends Record<string, unknown> {
   reference_number: string;
   refusal_reason: string;
   notes: string;
+  /** `Media` id owned by the same applicant (`Nullable=Yes` — clears with `null`). */
+  evidence_media: string;
 }
 
 /** Cleaned create/update payload the form emits (empties dropped; country kept). */

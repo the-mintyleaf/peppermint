@@ -72,10 +72,13 @@ const TEXT_KEYS: (keyof AddressFormValues)[] = [
   "address_text",
 ];
 
+/** `Nullable=Yes` — cleared by sending `null`, never `""` (DRF's DateField rejects it). */
+const NULLABLE_KEYS: (keyof AddressFormValues)[] = ["valid_from", "valid_to"];
+
 /**
- * Build the api payload. Always send address_type + is_primary. On create, empty text
- * is dropped; on edit, blank text is sent so a cleared field actually clears (PATCH).
- * Empty dates are always dropped (DRF rejects "" for a date field).
+ * Build the api payload. Always send address_type + is_primary. On create, empty values
+ * are dropped; on edit they are sent explicitly so a cleared field actually clears —
+ * `""` for the nullable=No text fields, `null` for the two dates.
  */
 function toPayload(values: AddressFormValues, isEdit: boolean): AddressPayload {
   const payload: Record<string, unknown> = {
@@ -87,8 +90,12 @@ function toPayload(values: AddressFormValues, isEdit: boolean): AddressPayload {
     if (typeof value !== "string") continue;
     if (value !== "" || isEdit) payload[key] = value;
   }
-  if (values.valid_from) payload.valid_from = values.valid_from;
-  if (values.valid_to) payload.valid_to = values.valid_to;
+  for (const key of NULLABLE_KEYS) {
+    const value = values[key];
+    if (typeof value !== "string") continue;
+    if (value !== "") payload[key] = value;
+    else if (isEdit) payload[key] = null;
+  }
   return payload as AddressPayload;
 }
 

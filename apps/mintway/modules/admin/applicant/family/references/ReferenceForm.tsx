@@ -1,6 +1,5 @@
 "use client";
 
-import { z } from "zod";
 import { Button, Group, Stack, Textarea, TextInput } from "@peppermint/ui";
 import {
   FormWrapper,
@@ -27,8 +26,6 @@ const INITIAL: ReferenceFormValues = {
   notes: "",
 };
 
-const VALIDATION = z.object({ name: z.string().min(1, "Name is required") });
-
 function toInitial(record?: Partial<Reference>): ReferenceFormValues {
   if (!record) return INITIAL;
   return {
@@ -45,6 +42,7 @@ function toInitial(record?: Partial<Reference>): ReferenceFormValues {
   };
 }
 
+/** `Nullable=No` optional text — unset is the empty string, so blank clears. */
 const TEXT_KEYS: (keyof ReferenceFormValues)[] = [
   "title",
   "institution",
@@ -55,18 +53,31 @@ const TEXT_KEYS: (keyof ReferenceFormValues)[] = [
   "notes",
 ];
 
-/** Build the api payload — always send name; parse reference_order to a number (omit if
- * empty); drop empty text fields. */
-function toPayload(values: ReferenceFormValues): ReferencePayload {
+/** `reference_order` is `Nullable=No` with a server default of 1 — blanking it can only
+ * mean "back to the default", since DRF's IntegerField rejects both `""` and `null`. */
+const REFERENCE_ORDER_DEFAULT = 1;
+
+/**
+ * Build the api payload — always send name; parse reference_order to a number. On create
+ * empty values are dropped; on edit they are sent explicitly so a cleared field actually
+ * clears, rather than the PATCH silently no-op'ing that key.
+ */
+function toPayload(
+  values: ReferenceFormValues,
+  isEdit: boolean,
+): ReferencePayload {
   const payload: Record<string, unknown> = { name: values.name };
   const order = values.reference_order.trim();
   if (order !== "") {
     const parsed = Number(order);
     if (!Number.isNaN(parsed)) payload.reference_order = parsed;
+  } else if (isEdit) {
+    payload.reference_order = REFERENCE_ORDER_DEFAULT;
   }
   for (const key of TEXT_KEYS) {
     const value = values[key];
-    if (typeof value === "string" && value !== "") payload[key] = value;
+    if (typeof value !== "string") continue;
+    if (value !== "" || isEdit) payload[key] = value;
   }
   return payload as ReferencePayload;
 }
@@ -78,12 +89,12 @@ export function ReferenceForm({
   onSubmit,
   isLoading,
 }: ReferenceFormProps) {
+  const isEdit = Boolean(initialValues);
   return (
     <FormWrapper<ReferenceFormValues>
       initial={toInitial(initialValues)}
-      validation={[VALIDATION]}
       finalSubmitFn={async (values) => {
-        onSubmit(toPayload(values));
+        onSubmit(toPayload(values, isEdit));
         return { ok: true };
       }}
     >
@@ -102,7 +113,6 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Name"
-          withAsterisk
           disabled={isLoading}
           {...form.getInputProps("name")}
         />

@@ -53,6 +53,7 @@ function toInitial(
   };
 }
 
+/** `Nullable=No` optional text — unset is the empty string, so blank clears. */
 const TEXT_KEYS: (keyof AcademicGradingFormValues)[] = [
   "context",
   "month_or_period",
@@ -61,26 +62,48 @@ const TEXT_KEYS: (keyof AcademicGradingFormValues)[] = [
   "composition",
   "listening",
   "reading",
-  "class_hours",
   "attendance_percentage",
 ];
 
-const NUMBER_KEYS: (keyof AcademicGradingFormValues)[] = [
+/** `Nullable=Yes` decimal — a decimal STRING, never Number()'d; cleared with `null`. */
+const NULLABLE_DECIMAL_KEYS: (keyof AcademicGradingFormValues)[] = [
+  "class_hours",
+];
+
+/** `Nullable=Yes` integers — coerced on send, cleared with `null` (never `""`). */
+const NULLABLE_NUMBER_KEYS: (keyof AcademicGradingFormValues)[] = [
   "total_days",
   "present",
   "absent",
 ];
 
-/** Build the api payload — drop empty text; coerce numeric fields; omit empties. */
-function toPayload(values: AcademicGradingFormValues): AcademicGradingPayload {
+/**
+ * Build the api payload. On create empty values are dropped; on edit they are sent
+ * explicitly so a cleared field actually clears, rather than the PATCH silently
+ * no-op'ing that key. The nullable decimal/integer fields clear with `null` — DRF's
+ * DecimalField/IntegerField have no `allow_blank` and reject `""` with a 400.
+ */
+function toPayload(
+  values: AcademicGradingFormValues,
+  isEdit: boolean,
+): AcademicGradingPayload {
   const payload: Record<string, unknown> = {};
   for (const key of TEXT_KEYS) {
     const value = values[key];
-    if (typeof value === "string" && value !== "") payload[key] = value;
+    if (typeof value !== "string") continue;
+    if (value !== "" || isEdit) payload[key] = value;
   }
-  for (const key of NUMBER_KEYS) {
+  for (const key of NULLABLE_DECIMAL_KEYS) {
     const value = values[key];
-    if (typeof value === "string" && value !== "") payload[key] = Number(value);
+    if (typeof value !== "string") continue;
+    if (value !== "") payload[key] = value;
+    else if (isEdit) payload[key] = null;
+  }
+  for (const key of NULLABLE_NUMBER_KEYS) {
+    const value = values[key];
+    if (typeof value !== "string") continue;
+    if (value !== "") payload[key] = Number(value);
+    else if (isEdit) payload[key] = null;
   }
   return payload;
 }
@@ -95,11 +118,12 @@ export function AcademicGradingForm({
   onSubmit,
   isLoading,
 }: AcademicGradingFormProps) {
+  const isEdit = Boolean(initialValues);
   return (
     <FormWrapper<AcademicGradingFormValues>
       initial={toInitial(initialValues)}
       finalSubmitFn={async (values) => {
-        onSubmit(toPayload(values));
+        onSubmit(toPayload(values, isEdit));
         return { ok: true };
       }}
     >

@@ -33,6 +33,7 @@ const INITIAL: VisaHistoryFormValues = {
   reference_number: "",
   refusal_reason: "",
   notes: "",
+  evidence_media: "",
 };
 
 function toInitial(record?: Partial<VisaHistory>): VisaHistoryFormValues {
@@ -50,6 +51,7 @@ function toInitial(record?: Partial<VisaHistory>): VisaHistoryFormValues {
     reference_number: record.reference_number ?? "",
     refusal_reason: record.refusal_reason ?? "",
     notes: record.notes ?? "",
+    evidence_media: record.evidence_media ?? "",
   };
 }
 
@@ -60,10 +62,19 @@ const TEXT_KEYS: (keyof VisaHistoryFormValues)[] = [
   "notes",
 ];
 
+/** `Nullable=Yes` — cleared by sending `null`, never `""` (DRF rejects `""` for a
+ * DateField, and for the `evidence_media` UUID relation). */
+const NULLABLE_KEYS: (keyof VisaHistoryFormValues)[] = [
+  "application_date",
+  "decision_date",
+  "evidence_media",
+];
+
 /**
- * Build the api payload. Always send country. On create, empty text is dropped; on edit,
- * blank text is sent so a cleared field clears (PATCH). Empty dates (application_date,
- * decision_date) and the empty enum (decision) are always dropped (DRF rejects "").
+ * Build the api payload. Always send country. On create, empty values are dropped; on
+ * edit they are sent explicitly so a cleared field actually clears — `""` for the
+ * nullable=No text fields, `null` for the dates and the media link. `decision` is an
+ * enum and is always dropped when blank — DRF rejects `""` for a choice field.
  */
 function toPayload(
   values: VisaHistoryFormValues,
@@ -75,10 +86,13 @@ function toPayload(
     if (typeof value !== "string") continue;
     if (value !== "" || isEdit) payload[key] = value;
   }
+  for (const key of NULLABLE_KEYS) {
+    const value = values[key];
+    if (typeof value !== "string") continue;
+    if (value !== "") payload[key] = value;
+    else if (isEdit) payload[key] = null;
+  }
   if (values.decision) payload.decision = values.decision;
-  if (values.application_date)
-    payload.application_date = values.application_date;
-  if (values.decision_date) payload.decision_date = values.decision_date;
   return payload as VisaHistoryPayload;
 }
 
@@ -165,6 +179,12 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         minRows={2}
         disabled={isLoading}
         {...form.getInputProps("notes")}
+      />
+      <TextInput
+        label="Evidence media"
+        description="Id of an uploaded media file belonging to this applicant"
+        disabled={isLoading}
+        {...form.getInputProps("evidence_media")}
       />
     </>
   );

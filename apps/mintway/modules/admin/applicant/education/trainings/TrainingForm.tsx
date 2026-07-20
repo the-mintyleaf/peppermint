@@ -35,23 +35,39 @@ function toInitial(record?: Partial<Training>): TrainingFormValues {
   };
 }
 
+/** `Nullable=No` optional text — unset is the empty string, so blank clears. */
 const TEXT_KEYS: (keyof TrainingFormValues)[] = [
   "institution",
   "credential",
   "notes",
 ];
 
-/** Build the api payload — always send course_or_training; drop empty text/dates. */
-function toPayload(values: TrainingFormValues): TrainingPayload {
+/** `Nullable=Yes` — cleared by sending `null`, never `""` (DRF's DateField rejects it). */
+const NULLABLE_KEYS: (keyof TrainingFormValues)[] = ["start_date", "end_date"];
+
+/**
+ * Build the api payload — always send course_or_training. On create empty values are
+ * dropped; on edit they are sent explicitly so a cleared field actually clears, rather
+ * than the PATCH silently no-op'ing that key.
+ */
+function toPayload(
+  values: TrainingFormValues,
+  isEdit: boolean,
+): TrainingPayload {
   const payload: Record<string, unknown> = {
     course_or_training: values.course_or_training,
   };
   for (const key of TEXT_KEYS) {
     const value = values[key];
-    if (typeof value === "string" && value !== "") payload[key] = value;
+    if (typeof value !== "string") continue;
+    if (value !== "" || isEdit) payload[key] = value;
   }
-  if (values.start_date) payload.start_date = values.start_date;
-  if (values.end_date) payload.end_date = values.end_date;
+  for (const key of NULLABLE_KEYS) {
+    const value = values[key];
+    if (typeof value !== "string") continue;
+    if (value !== "") payload[key] = value;
+    else if (isEdit) payload[key] = null;
+  }
   return payload as TrainingPayload;
 }
 
@@ -64,11 +80,12 @@ export function TrainingForm({
   onSubmit,
   isLoading,
 }: TrainingFormProps) {
+  const isEdit = Boolean(initialValues);
   return (
     <FormWrapper<TrainingFormValues>
       initial={toInitial(initialValues)}
       finalSubmitFn={async (values) => {
-        onSubmit(toPayload(values));
+        onSubmit(toPayload(values, isEdit));
         return { ok: true };
       }}
     >

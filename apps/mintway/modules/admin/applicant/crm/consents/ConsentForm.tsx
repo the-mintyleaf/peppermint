@@ -43,6 +43,7 @@ const INITIAL: ConsentFormValues = {
   captured_at: "",
   expires_at: "",
   notes: "",
+  evidence_media: "",
 };
 
 function toInitial(record?: Partial<Consent>): ConsentFormValues {
@@ -54,6 +55,7 @@ function toInitial(record?: Partial<Consent>): ConsentFormValues {
     captured_at: record.captured_at ? record.captured_at.slice(0, 16) : "",
     expires_at: record.expires_at ? record.expires_at.slice(0, 16) : "",
     notes: record.notes ?? "",
+    evidence_media: record.evidence_media ?? "",
   };
 }
 
@@ -62,10 +64,19 @@ const TEXT_KEYS: (keyof ConsentFormValues)[] = [
   "notes",
 ];
 
+/** `Nullable=Yes` — cleared by sending `null`, never `""` (DRF rejects `""` for a
+ * DateTimeField, and for the `evidence_media` UUID relation). */
+const NULLABLE_KEYS: (keyof ConsentFormValues)[] = [
+  "captured_at",
+  "expires_at",
+  "evidence_media",
+];
+
 /**
- * Build the api payload. Always send consent_type + status. On create, empty text is
- * dropped; on edit, blank text is sent so a cleared field clears (PATCH). Empty datetimes
- * (captured_at, expires_at) are always dropped (DRF rejects "").
+ * Build the api payload. Always send consent_type + status. On create, empty values are
+ * dropped; on edit they are sent explicitly so a cleared field actually clears — `""`
+ * for the nullable=No text fields, `null` for the datetimes and the media link.
+ * `withdrawn_at` is server-stamped and never sent.
  */
 function toPayload(values: ConsentFormValues, isEdit: boolean): ConsentPayload {
   const payload: Record<string, unknown> = {
@@ -77,8 +88,12 @@ function toPayload(values: ConsentFormValues, isEdit: boolean): ConsentPayload {
     if (typeof value !== "string") continue;
     if (value !== "" || isEdit) payload[key] = value;
   }
-  if (values.captured_at) payload.captured_at = values.captured_at;
-  if (values.expires_at) payload.expires_at = values.expires_at;
+  for (const key of NULLABLE_KEYS) {
+    const value = values[key];
+    if (typeof value !== "string") continue;
+    if (value !== "") payload[key] = value;
+    else if (isEdit) payload[key] = null;
+  }
   return payload as ConsentPayload;
 }
 
@@ -157,6 +172,12 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         minRows={2}
         disabled={isLoading}
         {...form.getInputProps("notes")}
+      />
+      <TextInput
+        label="Evidence media"
+        description="Id of an uploaded media file belonging to this applicant"
+        disabled={isLoading}
+        {...form.getInputProps("evidence_media")}
       />
     </>
   );

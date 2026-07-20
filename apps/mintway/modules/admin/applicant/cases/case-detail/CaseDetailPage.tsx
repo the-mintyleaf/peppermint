@@ -202,16 +202,25 @@ function CaseDetailContent() {
           <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="sm">
             <Field label="Destination" value={kase.destination_country} />
             <Field label="Institution" value={kase.institution} />
+            <Field label="Campus" value={kase.institution_campus} />
             <Field label="Program" value={kase.program} />
+            <Field label="Program full name" value={kase.program_full_name} />
             <Field label="Study level" value={kase.study_level} />
+            <Field label="Study field" value={kase.study_field} />
+            <Field label="Subject" value={kase.subject} />
             <Field label="Intake" value={kase.intake} />
+            <Field label="Application year" value={kase.application_year} />
             <Field
               label="Application reference"
               value={kase.application_reference}
             />
+            <Field label="Prior qualification" value={kase.qualification} />
+            <Field label="Qualification year" value={kase.qualification_year} />
+            <Field label="Grade" value={kase.grade} />
             <Field label="Opened" value={fmtDate(kase.opened_at)} />
             <Field label="Closed" value={fmtDate(kase.closed_at)} />
             <Field label="Outcome" value={kase.outcome} />
+            <Field label="Outcome reason" value={kase.outcome_reason} />
           </SimpleGrid>
           {kase.notes && <Field label="Notes" value={kase.notes} />}
         </Stack>

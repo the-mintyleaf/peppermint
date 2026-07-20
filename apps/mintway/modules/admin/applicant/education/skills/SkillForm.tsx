@@ -44,12 +44,22 @@ function toInitial(record?: Partial<Skill>): SkillFormValues {
   };
 }
 
-/** Build the api payload — always send name; drop empty proficiency/notes/sort_order. */
-function toPayload(values: SkillFormValues): SkillPayload {
+/** `sort_order` is `Nullable=No` with a server default of 0 — blanking it can only mean
+ * "back to the default", since DRF's IntegerField rejects both `""` and `null`. */
+const SORT_ORDER_DEFAULT = 0;
+
+/**
+ * Build the api payload — always send name. On create empty values are dropped; on edit
+ * they are sent explicitly so a cleared field actually clears, rather than the PATCH
+ * silently no-op'ing that key. `proficiency` is an enum and is always dropped when blank
+ * — DRF rejects `""` for a choice field with no blank option.
+ */
+function toPayload(values: SkillFormValues, isEdit: boolean): SkillPayload {
   const payload: Record<string, unknown> = { name: values.name };
   if (values.proficiency) payload.proficiency = values.proficiency;
-  if (values.notes) payload.notes = values.notes;
+  if (values.notes !== "" || isEdit) payload.notes = values.notes;
   if (values.sort_order !== "") payload.sort_order = Number(values.sort_order);
+  else if (isEdit) payload.sort_order = SORT_ORDER_DEFAULT;
   return payload as SkillPayload;
 }
 
@@ -62,11 +72,12 @@ export function SkillForm({
   onSubmit,
   isLoading,
 }: SkillFormProps) {
+  const isEdit = Boolean(initialValues);
   return (
     <FormWrapper<SkillFormValues>
       initial={toInitial(initialValues)}
       finalSubmitFn={async (values) => {
-        onSubmit(toPayload(values));
+        onSubmit(toPayload(values, isEdit));
         return { ok: true };
       }}
     >

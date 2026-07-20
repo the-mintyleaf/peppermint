@@ -7,6 +7,13 @@ import type {
   CaseStatus,
 } from "../_shared";
 
+/** Sort array → DRF `ordering` string, matching `createResourceApi`'s own mapping. */
+function toOrdering(sort: QueryParams["sort"] | undefined): string {
+  return (sort ?? [])
+    .map((s) => (s.direction === "desc" ? `-${s.field}` : s.field))
+    .join(",");
+}
+
 // ── Nested under an applicant ────────────────────────────────────────────────
 
 /** `GET /api/v1/applicants/:id/cases/` — the applicant's cases, paginated. */
@@ -21,6 +28,9 @@ export async function fetchCases(
     params: {
       page: params?.page,
       page_size: params?.pageSize,
+      // Always send an explicit ordering — the server's default is unstated
+      // (gaps.md #9), so row order would otherwise be non-deterministic.
+      ordering: toOrdering(params?.sort) || "-opened_at",
       ...params?.filters,
     },
   });

@@ -43,10 +43,16 @@ const TEXT_KEYS: (keyof TravelHistoryFormValues)[] = [
   "notes",
 ];
 
+/** `Nullable=Yes` — cleared by sending `null`, never `""` (DRF's DateField rejects it). */
+const NULLABLE_KEYS: (keyof TravelHistoryFormValues)[] = [
+  "travelled_from",
+  "travelled_to",
+];
+
 /**
- * Build the api payload. Always send country. On create, empty text is dropped; on edit,
- * blank text is sent so a cleared field clears (PATCH). Empty dates (travelled_from,
- * travelled_to) are always dropped (DRF rejects "" for a date field).
+ * Build the api payload. Always send country. On create, empty values are dropped; on
+ * edit they are sent explicitly so a cleared field actually clears — `""` for the
+ * nullable=No text fields, `null` for the two dates.
  */
 function toPayload(
   values: TravelHistoryFormValues,
@@ -58,8 +64,12 @@ function toPayload(
     if (typeof value !== "string") continue;
     if (value !== "" || isEdit) payload[key] = value;
   }
-  if (values.travelled_from) payload.travelled_from = values.travelled_from;
-  if (values.travelled_to) payload.travelled_to = values.travelled_to;
+  for (const key of NULLABLE_KEYS) {
+    const value = values[key];
+    if (typeof value !== "string") continue;
+    if (value !== "") payload[key] = value;
+    else if (isEdit) payload[key] = null;
+  }
   return payload as TravelHistoryPayload;
 }
 

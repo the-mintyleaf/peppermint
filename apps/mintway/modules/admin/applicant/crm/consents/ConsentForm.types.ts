@@ -9,6 +9,8 @@ export interface ConsentFormValues extends Record<string, unknown> {
   captured_at: string;
   expires_at: string;
   notes: string;
+  /** `Media` id owned by the same applicant (`Nullable=Yes` — clears with `null`). */
+  evidence_media: string;
 }
 
 /** Cleaned create/update payload the form emits (empties dropped; required fields kept). */

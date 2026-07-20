@@ -3,6 +3,8 @@ import type { Interaction } from "../../_shared";
 
 /** Interaction form state — strings + the confidential flag; the api payload drops empties. */
 export interface InteractionFormValues extends Record<string, unknown> {
+  /** Case id owned by the same applicant (`Nullable=Yes` — clears with `null`). */
+  application_case: string;
   interaction_type: string;
   direction: string;
   occurred_at: string;
