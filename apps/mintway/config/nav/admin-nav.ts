@@ -3,6 +3,7 @@ import { HouseIcon } from "@phosphor-icons/react/dist/csr/House";
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
 import { UserListIcon } from "@phosphor-icons/react/dist/csr/UserList";
 import { UsersThreeIcon } from "@phosphor-icons/react/dist/csr/UsersThree";
+import { UserPlusIcon } from "@phosphor-icons/react/dist/csr/UserPlus";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
 import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
 import { SignatureIcon } from "@phosphor-icons/react/dist/csr/Signature";
@@ -36,6 +37,15 @@ export function buildAdminConfig(
         icon: UsersThreeIcon,
         label: "Applicants",
         href: "/admin/applicants",
+      },
+      {
+        // Staff-reachable and, since Phase 7, the only way staff can start a
+        // record — applicant create is admin-only. Convert gates within the route.
+        kind: "page",
+        id: "leads",
+        icon: UserPlusIcon,
+        label: "Leads",
+        href: "/admin/leads",
       },
       ...(isAdmin
         ? [

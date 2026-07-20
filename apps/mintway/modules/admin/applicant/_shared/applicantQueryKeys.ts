@@ -25,6 +25,7 @@ export const caseStatusHistoryKeys = createQueryKeys(
   "applicant.case-status-history",
 );
 export const assignmentKeys = createQueryKeys("applicant.assignments");
+export const leadKeys = createQueryKeys("applicant.leads");
 
 /**
  * A per-slug query-key factory for the generic child resources (§5, §8). Keeps each

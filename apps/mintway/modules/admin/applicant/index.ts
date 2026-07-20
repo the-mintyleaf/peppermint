@@ -8,6 +8,7 @@ import { FamilyPage } from "./family";
 import { HistoryPage } from "./history";
 import { IdentityPage } from "./identity";
 import { InterestsPage } from "./interests";
+import { LeadsList } from "./leads";
 
 /**
  * Applicant CRM module group. Each key is a route target re-exported by a thin `app/`
@@ -15,6 +16,7 @@ import { InterestsPage } from "./interests";
  */
 export const ModuleApplicant = {
   main: ApplicantsList,
+  leads: LeadsList,
   overview: ApplicantOverview,
   addresses: AddressesPage,
   identity: IdentityPage,
