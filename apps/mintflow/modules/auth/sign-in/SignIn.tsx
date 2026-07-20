@@ -16,6 +16,7 @@ export function ModuleSignIn() {
 
   return (
     <SignInPage
+      variant="modernlines"
       heading={["Sign into", "mintflow."]}
       subheading="Don't have an account? Ask your administrator to invite you."
       brand={["mintflow", "by mintyleaf.co"]}
