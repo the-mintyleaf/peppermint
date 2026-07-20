@@ -9,6 +9,7 @@ import { CertificateIcon } from "@phosphor-icons/react/dist/csr/Certificate";
 import { SparkleIcon } from "@phosphor-icons/react/dist/csr/Sparkle";
 import { ChatCircleTextIcon } from "@phosphor-icons/react/dist/csr/ChatCircleText";
 import { ChartBarIcon } from "@phosphor-icons/react/dist/csr/ChartBar";
+import { BriefcaseIcon } from "@phosphor-icons/react/dist/csr/Briefcase";
 
 import { RequireStaff } from "@/components/RequireStaff";
 import { ApplicantDetailShell } from "../_shared";
@@ -18,6 +19,7 @@ import { TrainingsSection } from "./trainings";
 import { SkillsSection } from "./skills";
 import { LanguagesSection } from "./languages";
 import { AcademicGradingsSection } from "./academic-gradings";
+import { WorkExperiencesSection } from "./work-experiences";
 
 const DEFAULT_TAB = "educations";
 
@@ -34,6 +36,12 @@ function EducationPageContent() {
             leftSection={<GraduationCapIcon size={15} aria-hidden />}
           >
             Education
+          </Tabs.Tab>
+          <Tabs.Tab
+            value="work-experiences"
+            leftSection={<BriefcaseIcon size={15} aria-hidden />}
+          >
+            Work experience
           </Tabs.Tab>
           <Tabs.Tab
             value="language-tests"
@@ -69,6 +77,9 @@ function EducationPageContent() {
 
         <Tabs.Panel value="educations">
           <EducationsSection applicantId={applicantId} />
+        </Tabs.Panel>
+        <Tabs.Panel value="work-experiences">
+          <WorkExperiencesSection applicantId={applicantId} />
         </Tabs.Panel>
         <Tabs.Panel value="language-tests">
           <LanguageTestsSection applicantId={applicantId} />

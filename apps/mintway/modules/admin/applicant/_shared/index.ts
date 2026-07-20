@@ -21,3 +21,6 @@ export type {
   ApplicantSection,
   ApplicantSectionId,
 } from "./ApplicantDetailShell";
+
+export { BsDateText, bsDateColumn } from "./BsDateText";
+export type { BsDateTextProps } from "./BsDateText";

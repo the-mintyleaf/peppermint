@@ -472,6 +472,7 @@ export interface LanguageTest {
   speaking_score?: string | null;
   certificate_number?: string;
   expiry_date?: string | null;
+  expiry_date_bs?: BsDate | null;
   notes?: string;
   created_at: string;
   updated_at: string;
@@ -481,8 +482,12 @@ export interface WorkExperience {
   id: string;
   company?: string;
   role?: string;
+  start_period?: string;
+  end_period?: string;
   start_date?: string | null;
+  start_date_bs?: BsDate | null;
   end_date?: string | null;
+  end_date_bs?: BsDate | null;
   is_current?: boolean;
   country?: string;
   description?: string;
@@ -505,7 +510,9 @@ export interface Training {
   course_or_training: string;
   institution?: string;
   start_date?: string | null;
+  start_date_bs?: BsDate | null;
   end_date?: string | null;
+  end_date_bs?: BsDate | null;
   credential?: string;
   notes?: string;
   created_at: string;
@@ -585,9 +592,11 @@ export interface Interaction {
   interaction_type: InteractionType;
   direction?: InteractionDirection;
   occurred_at: string;
+  occurred_at_bs?: BsDate | null;
   summary?: string;
   outcome?: string;
   next_follow_up_at?: string | null;
+  next_follow_up_at_bs?: BsDate | null;
   follow_up_priority?: FollowUpPriority;
   is_confidential?: boolean;
   application_case?: string | null;
@@ -624,7 +633,9 @@ export interface TravelHistory {
   country: string;
   purpose?: string;
   travelled_from?: string | null;
+  travelled_from_bs?: BsDate | null;
   travelled_to?: string | null;
+  travelled_to_bs?: BsDate | null;
   visa_type?: string;
   notes?: string;
   created_at: string;
@@ -636,7 +647,9 @@ export interface VisaHistory {
   country: string;
   visa_type?: string;
   application_date?: string | null;
+  application_date_bs?: BsDate | null;
   decision_date?: string | null;
+  decision_date_bs?: BsDate | null;
   decision?: VisaDecision;
   reference_number?: string;
   refusal_reason?: string;
@@ -652,8 +665,11 @@ export interface Consent {
   status: ConsentStatus;
   consent_text_version?: string;
   captured_at?: string | null;
+  captured_at_bs?: BsDate | null;
   expires_at?: string | null;
+  expires_at_bs?: BsDate | null;
   withdrawn_at?: string | null;
+  withdrawn_at_bs?: BsDate | null;
   evidence_media?: string | null;
   notes?: string;
   created_at: string;
@@ -679,6 +695,7 @@ export interface QualificationAssessment {
   recommendation?: string;
   notes?: string;
   valid_until?: string | null;
+  valid_until_bs?: BsDate | null;
   is_current: boolean;
   created_at: string;
 }
