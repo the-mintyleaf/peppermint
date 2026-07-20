@@ -23,7 +23,6 @@
   /* Frame inset from the viewport, and the junction mark's arm span. */
   --ml-inset: var(--mantine-spacing-md);
   --ml-cross: 0.8125rem;
-  --ml-cross-sm: 0.5625rem;
 
   /*
    * Ink for meta text and for the junction mark.

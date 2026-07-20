@@ -95,8 +95,8 @@ export function SidebarFooter({
   return (
     <>
       <Box className={collapsed ? classes.actionsCollapsed : classes.actions}>
-        {framed && <CrossMark size="sm" className={classes.junctionStart} />}
-        <CrossMark size="sm" className={classes.junctionEnd} />
+        {framed && <CrossMark className={classes.junctionStart} />}
+        <CrossMark className={classes.junctionEnd} />
 
         {aiButton && !aiButton.hidden && (
           <QuickAction

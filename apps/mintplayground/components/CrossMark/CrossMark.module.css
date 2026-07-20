@@ -17,10 +17,6 @@
   pointer-events: none;
 }
 
-.cross[data-size="sm"] {
-  --cross-size: var(--ml-cross-sm);
-}
-
 /* On the accent bar the hairline colour disappears — invert to the bar's own
    contrast colour instead of adding a second line token. */
 .cross[data-tone="accent"] {

@@ -17,8 +17,8 @@ import classes from "./Sidebar.module.css";
 function BlockJunctions({ framed }: { framed: boolean }) {
   return (
     <>
-      {framed && <CrossMark size="sm" className={classes.junctionStart} />}
-      <CrossMark size="sm" className={classes.junctionEnd} />
+      {framed && <CrossMark className={classes.junctionStart} />}
+      <CrossMark className={classes.junctionEnd} />
     </>
   );
 }

@@ -15,16 +15,10 @@ import classes from "./CrossMark.module.css";
  * positions it by setting `top`/`left`/`right`/`bottom` through `className`;
  * this component centres itself on that coordinate.
  */
-export function CrossMark({
-  size = "md",
-  tone = "line",
-  className,
-  style,
-}: CrossMarkProps) {
+export function CrossMark({ tone = "line", className, style }: CrossMarkProps) {
   return (
     <Box
       aria-hidden
-      data-size={size}
       data-tone={tone}
       className={className ? `${classes.cross} ${className}` : classes.cross}
       style={style}

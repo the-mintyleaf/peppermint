@@ -74,8 +74,10 @@ reaching for anyway.
 Rules for using it:
 
 - **Every junction, or none in that region.** A half-marked grid looks like a bug.
-- **Size follows the lower-ranked rule.** Two solid rules meeting → `size="md"`.
-  A dotted rule meeting a solid one → `size="sm"`.
+- **One size, everywhere.** `--ml-cross`, and `CrossMark` takes no size prop. The
+  mark is punctuation, not hierarchy — the rules already carry the rank, and
+  varying the mark to restate it just makes the grid look inconsistent. If a
+  junction seems to need a bigger mark, the rule ranks are wrong, not the mark.
 - **Never on a free end.** A rule that stops in open space gets nothing; the mark
   means _two lines meet here_, and using it as a terminator destroys that.
 - **Decoration.** Always `aria-hidden`, never interactive, never stateful. It drops
