@@ -36,15 +36,15 @@ Plan: `~/.claude/plans/following-this-integration-guide-proud-honey.md`
 
 - [x] 3a-0. `/design-decisions` + `/form-builder` for leads
 - [x] 3a. `leads` module (types, api, keys, columns, form, list, convert modal, route, nav, errors)
-- [ ] 3b. `work-experiences` child resource + education tab
+- [x] 3b. `work-experiences` child resource + education tab
 - [ ] 3c. Cross-applicant document search
 - [ ] Phase 3 verify + commit + dual adversarial review
 
 ## Phase 4 — Bikram Sambat + remaining surfaces
 
-- [ ] 4a-i. Add ~20 missing `_bs` type fields
-- [ ] 4a-ii. Shared BS display component + `dateColumnBs` helper
-- [ ] 4a-iii. Apply across all date columns and detail views
+- [x] 4a-i. Add ~20 missing `_bs` type fields
+- [x] 4a-ii. Shared BS display component (`BsDateText`) + `bsDateColumn` helper
+- [x] 4a-iii. Apply across date columns and detail views (see 28155ee for the surfaces with no date column at all)
 - [ ] 4b. Revision diff (`changed_fields`), print artifact multipart, signature validity window, detail reads
 - [ ] 4c. `/update-ai-map` — app AI.md + applicant module AI.md
 - [ ] Phase 4 verify + commit + dual adversarial review
