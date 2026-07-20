@@ -43,8 +43,8 @@ export function UserMenu({
   const avatar = (
     <Avatar
       src={user.avatarUrl}
-      size={36}
-      radius="xl"
+      size={28}
+      radius={0}
       color="accent"
       variant="filled"
     >

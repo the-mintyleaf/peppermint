@@ -16,12 +16,21 @@ export function LayoutApp({ children }: { children: React.ReactNode }) {
     <html
       lang="en"
       {...mantineHtmlProps}
+      // Tokenised, not a fixed light grey: the shell ships a scheme toggle, and
+      // a hardcoded background shows through wherever the app's own surface
+      // doesn't reach (overscroll, and the shell-less auth routes).
       style={{
-        background: "#e6e7ea",
+        background: "var(--mantine-color-body)",
       }}
     >
       <head>
-        <template
+        {/*
+          A `<script>`, not a `<template>` — template contents are inert and
+          never execute, which left `data-mantine-color-scheme` unset until
+          hydration. Harmless while the app was light-only; a visible
+          light-to-dark flash on every load once the scheme is a user choice.
+        */}
+        <script
           data-mantine-script
           dangerouslySetInnerHTML={{ __html: colorSchemeScript }}
         />

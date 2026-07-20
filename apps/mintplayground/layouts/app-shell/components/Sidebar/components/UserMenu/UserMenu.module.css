@@ -1,10 +1,14 @@
+/*
+ * The account row. Square avatar, sans name, mono email — the email is meta
+ * (which account is this), the name is content.
+ */
+
 .trigger {
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 6px;
-  border-radius: var(--mantine-radius-md);
+  padding: 8px 10px;
   transition: background-color 150ms ease;
 }
 
@@ -12,17 +16,24 @@
   composes: trigger;
   justify-content: center;
   gap: 0;
+  padding: 8px 4px;
 }
 
 .trigger:hover,
 .triggerCollapsed:hover {
-  background-color: rgba(255, 255, 255, 0.06);
+  background-color: var(--mantine-color-default-hover);
 }
 
 .trigger:focus-visible,
 .triggerCollapsed:focus-visible {
-  outline: 2px solid var(--mantine-color-accent-5);
-  outline-offset: 2px;
+  outline: 1px solid var(--mantine-primary-color-filled);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trigger {
+    transition: none;
+  }
 }
 
 .text {
@@ -32,25 +43,26 @@
 }
 
 .name {
+  overflow: hidden;
   font-size: var(--mantine-font-size-sm);
   font-weight: 600;
   line-height: 1.2;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
+  color: var(--mantine-color-text);
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .email {
-  font-size: 11px;
-  line-height: 1.3;
-  color: rgba(255, 255, 255, 0.45);
-  white-space: nowrap;
   overflow: hidden;
+  font-family: var(--ml-mono);
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--ml-meta-ink);
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .caret {
   flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--ml-meta-ink);
 }

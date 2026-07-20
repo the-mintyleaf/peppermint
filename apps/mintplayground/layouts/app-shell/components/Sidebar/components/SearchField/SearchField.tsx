@@ -28,9 +28,9 @@ export function SearchField({ collapsed = false }: SearchFieldProps) {
       onClick={() => spotlight.open()}
       aria-label="Search"
     >
-      <MagnifyingGlassIcon size={16} className={classes.icon} />
+      <MagnifyingGlassIcon size={14} className={classes.icon} />
       <Text component="span" className={classes.placeholder}>
-        Search…
+        Search
       </Text>
       <Text component="span" className={classes.kbd}>
         ⌘K

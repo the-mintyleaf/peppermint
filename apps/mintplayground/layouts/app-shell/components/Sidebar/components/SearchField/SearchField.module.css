@@ -1,59 +1,73 @@
+/*
+ * The search trigger. A hairline-bordered rectangle rather than a filled pill —
+ * a fill would be the only soft shape in a column built from rules.
+ */
+
 .field {
-  width: 100%;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 10px;
-  border-radius: var(--mantine-radius-md);
-  background-color: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.55);
-  transition: background-color 150ms ease;
+  width: calc(100% - 20px);
+  margin: 8px 10px;
+  padding: 6px 8px;
+  border: var(--ml-rule-solid);
+  color: var(--ml-meta-ink);
+  transition: border-color 150ms ease;
 }
 
 .field:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--mantine-color-text);
+  color: var(--mantine-color-text);
 }
 
 .iconTrigger {
-  width: 36px;
-  height: 36px;
-  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--mantine-radius-md);
-  background-color: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.55);
-  transition: background-color 150ms ease;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: 8px auto;
+  border: var(--ml-rule-solid);
+  color: var(--ml-meta-ink);
+  transition: border-color 150ms ease;
 }
 
 .iconTrigger:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.85);
+  border-color: var(--mantine-color-text);
+  color: var(--mantine-color-text);
 }
 
 .field:focus-visible,
 .iconTrigger:focus-visible {
-  outline: 2px solid var(--mantine-color-accent-5);
-  outline-offset: 2px;
+  outline: 1px solid var(--mantine-primary-color-filled);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field,
+  .iconTrigger {
+    transition: none;
+  }
 }
 
 .icon {
   flex-shrink: 0;
 }
 
+/* Mono here is legitimate: this is a placeholder marking what the control does,
+   not content the user wrote. */
 .placeholder {
   flex: 1;
+  font-family: var(--ml-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
   text-align: left;
-  font-size: var(--mantine-font-size-sm);
+  text-transform: uppercase;
 }
 
 .kbd {
-  font-family: var(--mantine-font-family-monospace);
+  flex-shrink: 0;
+  font-family: var(--ml-mono);
   font-size: 10px;
   line-height: 1;
-  padding: 3px 6px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.5);
 }

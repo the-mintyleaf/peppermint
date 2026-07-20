@@ -43,6 +43,10 @@ export const configThemeMantineMain: MantineThemeOverride = {
     ],
   },
   primaryColor: "accent",
+  // Modern Lines principle 2 — square everything, no exceptions. Setting it on
+  // the theme is what makes it hold for portalled surfaces (Menu, Tooltip,
+  // Drawer, Spotlight) that render outside the shell's scoped stylesheet.
+  defaultRadius: 0,
   primaryShade: {
     light: 6,
     dark: 6,

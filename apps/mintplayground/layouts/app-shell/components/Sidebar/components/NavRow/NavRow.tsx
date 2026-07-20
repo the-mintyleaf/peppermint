@@ -34,10 +34,10 @@ export function NavRow({
       className={collapsed ? classes.rowCollapsed : classes.row}
     >
       <IconComponent
-        size={18}
+        size={17}
         weight={active ? "fill" : "regular"}
         className={classes.icon}
-        color={active ? "var(--mantine-color-accent-4)" : undefined}
+        color={active ? "var(--mantine-primary-color-filled)" : undefined}
       />
       {!collapsed && (
         <>
@@ -47,9 +47,9 @@ export function NavRow({
           {badge && (
             <Badge
               size="xs"
-              radius="sm"
-              variant="light"
-              color={active ? "accent" : "gray"}
+              radius={0}
+              variant="outline"
+              color={active ? "var(--mantine-primary-color-filled)" : "gray"}
             >
               {badge}
             </Badge>

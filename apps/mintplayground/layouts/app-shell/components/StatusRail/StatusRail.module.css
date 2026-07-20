@@ -1,0 +1,45 @@
+/*
+ * The frame's terminal rail. Its top rule is the surface's single dashed rule —
+ * dashed means "this is the end of the content", so it appears exactly once.
+ */
+
+.rail {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  border-top: var(--ml-rule-dashed);
+  text-align: center;
+}
+
+/* Where the dashed rule meets the frame's left and right edges. */
+.junctionStart {
+  top: 0;
+  left: 0;
+}
+
+.junctionEnd {
+  top: 0;
+  right: 0;
+}
+
+/* Three columns of meta at 390px wrap into an unreadable tangle — stack until
+   there is room, then spread. */
+@media (min-width: 48em) {
+  .rail {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--mantine-spacing-md);
+    text-align: left;
+  }
+}
+
+/* The middle slot is the first thing to go when width runs out. */
+@media (max-width: 30em) {
+  .railCentre {
+    display: none;
+  }
+}

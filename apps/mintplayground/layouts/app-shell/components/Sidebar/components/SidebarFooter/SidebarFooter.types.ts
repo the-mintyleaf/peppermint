@@ -16,4 +16,6 @@ export interface SidebarFooterProps {
   onNavigate?: (href: string) => void;
   /** Stack quick actions vertically for the collapsed icon rail. */
   collapsed?: boolean;
+  /** See `SidebarProps.framed` — drops the start-side junction mark when false. */
+  framed?: boolean;
 }

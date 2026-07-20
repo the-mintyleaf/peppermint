@@ -1,3 +1,4 @@
+export { CrossMark, type CrossMarkProps } from "./CrossMark";
 export { MonoText, type MonoTextProps } from "./MonoText";
 export { SectionLabel, type SectionLabelProps } from "./SectionLabel";
 export { StatusPill, type StatusPillProps } from "./StatusPill";

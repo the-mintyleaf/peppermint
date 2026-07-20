@@ -2,7 +2,6 @@
 
 import { Badge, Group, Stack, Text } from "@peppermint/ui";
 
-import { tokens } from "@/config/design";
 import { SectionLabel } from "@/components";
 import type { SessionPanelProps } from "../../Home.types";
 
@@ -18,10 +17,10 @@ function formatLastLogin(value: string | null): string {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <Group justify="space-between" wrap="nowrap" gap="lg">
-      <Text fz="12px" c={tokens.muted}>
+      <Text fz="12px" c="dimmed">
         {label}
       </Text>
-      <Text fz="12px" fw={600} c={tokens.ink} ta="right">
+      <Text fz="12px" fw={600} ta="right">
         {value}
       </Text>
     </Group>
@@ -46,8 +45,8 @@ export function SessionPanel({ user }: SessionPanelProps) {
         <SectionLabel>Your session</SectionLabel>
         <Badge
           size="sm"
-          radius="sm"
-          variant="light"
+          radius={0}
+          variant="outline"
           color={user.is_staff ? "accent" : "gray"}
         >
           {role}
@@ -62,9 +61,9 @@ export function SessionPanel({ user }: SessionPanelProps) {
         <Row label="Last sign-in" value={formatLastLogin(user.last_login)} />
       </Stack>
 
-      <Text fz="11px" c={tokens.muted}>
+      <Text fz="11px" c="dimmed">
         Served by the in-app mock at{" "}
-        <Text span inherit ff={tokens.mono}>
+        <Text span inherit ff="monospace">
           /api/v1/auth/me/
         </Text>
         . Nothing leaves this app.

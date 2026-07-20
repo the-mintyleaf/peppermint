@@ -1,24 +1,13 @@
-import type { CSSProperties } from "react";
-
-import { tokens } from "@/config/design";
-
-/** Fixed width of the full (expanded) navigation panel. */
-export const NAV_WIDTH = 280;
-/** Width of the panel when collapsed to the desktop icon rail. */
-export const NAV_WIDTH_COLLAPSED = 72;
-/** Outer inset around the panel inside the AppShell navbar slot. */
-export const SHELL_INSET = 8;
-/** Height of the brand header block at the top of the panel. */
-export const NAV_HEADER_HEIGHT = 56;
-
+/** Width of the nav column when expanded. */
+export const NAV_WIDTH = 264;
+/** Width of the nav column when collapsed to the desktop icon rail. */
+export const NAV_WIDTH_COLLAPSED = 60;
 /**
- * The full nav panel card — a single always-open 280px sidebar (no icon-rail /
- * sub-nav split). The body is light and the content sits on the paper
- * surface, so the panel carries its own dark ink/tile surface.
+ * Width below which the nav column leaves the frame and becomes a drawer. Kept
+ * as a raw media query because `useMediaQuery` takes a query rather than a
+ * Mantine breakpoint name — it must stay in step with the `48em` media queries
+ * in the shell's stylesheets.
  */
-export const navCardStyle: CSSProperties = {
-  backgroundColor: tokens.tile,
-  borderRadius: tokens.radius.card,
-  boxShadow: tokens.shadow.nav,
-  overflow: "hidden",
-};
+export const NAV_BREAKPOINT = "(min-width: 48em)";
+/** Shown in the status rail's right-hand slot. */
+export const SHELL_VERSION = "0.1.0";

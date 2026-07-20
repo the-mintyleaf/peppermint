@@ -2,7 +2,6 @@
 
 import { Badge, Box, Group, Stack, Text } from "@peppermint/ui";
 
-import { tokens } from "@/config/design";
 import type { CapabilityGridProps } from "../../Home.types";
 
 /**
@@ -24,26 +23,22 @@ export function CapabilityGrid({ items }: CapabilityGridProps) {
           key={item.id}
           gap={6}
           p={14}
-          style={{
-            border: `1px solid ${tokens.line}`,
-            borderRadius: tokens.radius.card,
-            background: tokens.paper,
-          }}
+          style={{ border: "var(--ml-rule-solid)" }}
         >
           <Group justify="space-between" wrap="nowrap" align="flex-start">
-            <Text fz="13px" fw={700} c={tokens.ink}>
+            <Text fz="13px" fw={700}>
               {item.label}
             </Text>
             <Badge
               size="xs"
-              radius="sm"
-              variant="light"
+              radius={0}
+              variant="outline"
               color={item.status === "ready" ? "teal" : "gray"}
             >
               {item.status === "ready" ? "Ready" : "Placeholder"}
             </Badge>
           </Group>
-          <Text fz="12px" c={tokens.muted2}>
+          <Text fz="12px" c="dimmed">
             {item.detail}
           </Text>
         </Stack>

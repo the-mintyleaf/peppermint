@@ -4,28 +4,36 @@ import { useEffect, useMemo, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  AppShell,
   Box,
-  Burger,
   Button,
-  Center,
+  Drawer,
   Group,
   Loader,
   Stack,
   Text,
   useDisclosure,
+  useMediaQuery,
 } from "@peppermint/ui";
 import { KeyIcon } from "@phosphor-icons/react/dist/csr/Key";
 import { SignOutIcon } from "@phosphor-icons/react/dist/csr/SignOut";
 
-import { tokens } from "@/config/design";
-import { AccountModal } from "@/components";
+import { AccountModal, CrossMark } from "@/components";
 import { useCurrentUser } from "@/modules/auth/_shared/useCurrentUser";
 import { useLogout } from "@/modules/auth/_shared/useLogout";
+import { useSidebarStore } from "./AppShell.store";
 import { useRailCollapsed } from "./AppShell.hooks";
 import { APP_SHELL_CONFIG } from "./nav.config";
+import { flattenNavItems, resolveActiveHref } from "./nav.utils";
 import { Sidebar } from "./components/Sidebar";
-import { NAV_WIDTH, NAV_WIDTH_COLLAPSED, SHELL_INSET } from "./shell.constants";
+import { NavSpotlight } from "./components/NavSpotlight";
+import { StatusRail } from "./components/StatusRail";
+import { TopRail } from "./components/TopRail";
+import {
+  NAV_BREAKPOINT,
+  NAV_WIDTH,
+  NAV_WIDTH_COLLAPSED,
+  SHELL_VERSION,
+} from "./shell.constants";
 import type { AppShellConfig, AppShellNavGroup } from "./AppShell.types";
 import classes from "./AppShell.module.css";
 
@@ -48,17 +56,19 @@ function filterNavByRole(
 }
 
 /**
- * mintplayground chrome — a single always-open 280px navigation panel (no icon-rail /
- * sub-nav split) over the warm-paper content area. Gates the whole authenticated
- * area: no session bounces to sign-in, a forced password change bounces to
- * `/password-change`, and the nav is filtered by the account role. Runtime
- * `onNavigate` / `linkComponent` are injected here.
+ * mintplayground chrome, in the Modern Lines language: one frame inset from the
+ * viewport, subdivided by rules into top rail → nav column + content → status
+ * rail → accent bar. Every junction between two rules carries a `+`. See
+ * `docs/design/design-system.md`.
+ *
+ * It also gates the whole authenticated area: no session bounces to sign-in, a
+ * forced password change bounces to `/password-change`, and the nav is filtered
+ * by the account role. Runtime `onNavigate` / `linkComponent` are injected here.
  */
 export function LayoutAppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "";
   const router = useRouter();
-  const [opened, { toggle: toggleMobileNav, close: closeMobileNav }] =
-    useDisclosure();
+  const [navOpened, { toggle: toggleNav, close: closeNav }] = useDisclosure();
   const [accountOpened, accountHandlers] = useDisclosure();
 
   const { user, isStaff, isLoading, isError, refetch } = useCurrentUser();
@@ -79,16 +89,17 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
     }
   }, [user, router]);
 
-  // Desktop-only; below `sm` the panel is the Burger overlay and stays full-width.
+  // Collapse is a desktop concern; below `sm` the nav column is the drawer.
   const isCollapsed = useRailCollapsed();
-  const navbarWidth =
-    (isCollapsed ? NAV_WIDTH_COLLAPSED : NAV_WIDTH) + SHELL_INSET * 2;
+  const hasHydrated = useSidebarStore((s) => s.hasHydrated);
+  const isDesktopNav = useMediaQuery(NAV_BREAKPOINT);
 
-  // Close the mobile navbar on route change so a tap-through doesn't leave the
-  // overlay open on top of the new page.
+  // Close the drawer on route change so a tap-through doesn't leave it open on
+  // top of the new page, and on the way up past `sm` so it can't be left mounted
+  // over a frame that already has its nav column back.
   useEffect(() => {
-    closeMobileNav();
-  }, [pathname, closeMobileNav]);
+    closeNav();
+  }, [pathname, isDesktopNav, closeNav]);
 
   const config = useMemo<AppShellConfig>(
     () => ({
@@ -121,115 +132,147 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
     [isStaff, user, router, accountHandlers.open, logoutMutate],
   );
 
-  // A non-401 `/me` failure (500, timeout, CORS) never self-redirects — the
-  // api-client only clears the session on a 401 — so a valid-token user would
-  // otherwise hang on the loader forever. Surface a recovery path instead. A
-  // token-less viewer is already being redirected (effect + api-client), so keep
-  // the loader for that case rather than flashing an error card.
-  if (isError && typeof window !== "undefined") {
-    const hasToken = Boolean(localStorage.getItem("access_token"));
-    if (hasToken) {
-      return (
-        <Center h="100dvh" bg="dark.9" p="md">
-          <Stack align="center" gap="sm" maw={340}>
-            <Text c="gray.0" fw={600}>
-              Couldn&apos;t verify your session
-            </Text>
-            <Text c="gray.5" size="sm" ta="center">
-              Something went wrong while loading your account. Try again, or
-              sign out and sign back in.
-            </Text>
-            <Group gap="sm" mt="xs">
-              <Button variant="light" color="brand" onClick={() => refetch()}>
-                Retry
-              </Button>
-              <Button
-                variant="subtle"
-                color="gray"
-                onClick={() => logoutMutate()}
-              >
-                Sign out
-              </Button>
-            </Group>
-          </Stack>
-        </Center>
-      );
-    }
-  }
+  // The rails read from the resolved nav, so they stay correct as the role
+  // filter changes what exists.
+  const activeHref = resolveActiveHref(config.groups, pathname);
+  const activeLabel = flattenNavItems(config.groups).find(
+    (item) => item.href === activeHref,
+  )?.label;
 
-  // Hold the shell until identity resolves: loading, the "no user / redirect"
-  // window, and the forced-password-change bounce all render a loader instead of
-  // flashing the app chrome to an unauthenticated viewer.
-  if (isLoading || !user || user.password_change_required) {
-    return (
-      <Center h="100dvh" bg="dark.9">
-        <Loader size="sm" color="brand.5" />
-      </Center>
+  /**
+   * The gate's content, or `null` once identity has resolved.
+   *
+   * A non-401 `/me` failure (500, timeout, CORS) never self-redirects — the
+   * api-client only clears the session on a 401 — so a valid-token user would
+   * otherwise hang on the loader forever. Surface a recovery path instead. A
+   * token-less viewer is already being redirected (effect + api-client), so keep
+   * the loader for that case rather than flashing an error card.
+   */
+  const hasToken =
+    typeof window !== "undefined" &&
+    Boolean(localStorage.getItem("access_token"));
+
+  let gate: ReactNode = null;
+  if (isError && hasToken) {
+    gate = (
+      <Stack align="center" gap="sm" maw={340}>
+        <Text fw={600}>Couldn&apos;t verify your session</Text>
+        <Text c="var(--ml-meta-ink)" size="sm" ta="center">
+          Something went wrong while loading your account. Try again, or sign
+          out and sign back in.
+        </Text>
+        <Group gap="sm" mt="xs">
+          <Button variant="filled" onClick={() => refetch()}>
+            Retry
+          </Button>
+          <Button variant="default" onClick={() => logoutMutate()}>
+            Sign out
+          </Button>
+        </Group>
+      </Stack>
     );
+  } else if (isLoading || !user || user.password_change_required) {
+    // Hold the app until identity resolves: loading, the "no user / redirect"
+    // window, and the forced-password-change bounce all show the gate rather
+    // than flashing the nav to an unauthenticated viewer.
+    gate = <Loader size="sm" type="dots" />;
   }
 
+  /*
+   * One return, not an early one per state. The frame is permanent: swapping the
+   * BODY keeps the rails, the border and the accent bar mounted across every
+   * transition, where an early `return` would unmount and rebuild the whole
+   * chrome each time `isLoading` flips.
+   */
   return (
     <>
-      {/* Mobile-only toggle — the panel collapses below `sm` and otherwise has
-          no way to open. Dark chip keeps it visible over the light content. */}
-      <Box
-        hiddenFrom="sm"
-        pos="fixed"
-        top={12}
-        left={12}
-        p={4}
-        bg={tokens.tile}
-        style={{ zIndex: 1000, borderRadius: "var(--mantine-radius-sm)" }}
-      >
-        <Burger
-          opened={opened}
-          onClick={toggleMobileNav}
-          size="sm"
-          color="var(--mantine-color-gray-0)"
-          aria-label="Toggle navigation"
-        />
+      <Box className={classes.root}>
+        <Box className={classes.frame}>
+          <TopRail
+            brand={config.brand}
+            linkComponent={config.linkComponent}
+            meta={gate ? "Session" : "Sandbox · Mock API"}
+            navOpened={navOpened}
+            onToggleNav={toggleNav}
+            // No nav to open yet, and the drawer isn't mounted — a burger here
+            // would be a dead control.
+            showNavTrigger={!gate}
+          />
+
+          {gate ? (
+            <Box className={classes.gate}>{gate}</Box>
+          ) : (
+            <Box className={classes.body}>
+              <Box
+                className={classes.navCol}
+                w={isCollapsed ? NAV_WIDTH_COLLAPSED : NAV_WIDTH}
+                // The stored collapse preference only lands after rehydration.
+                // Gating the width transition on it keeps a collapsed user from
+                // watching the column animate 264 → 60px on every page load.
+                data-hydrated={hasHydrated || undefined}
+              >
+                {/* The nav column's right rule crosses both rails — mark both. */}
+                <CrossMark className={classes.navColTopJunction} />
+                <CrossMark className={classes.navColBottomJunction} />
+                <Sidebar
+                  config={config}
+                  pathname={pathname}
+                  activeHref={activeHref}
+                  collapsed={isCollapsed}
+                  collapsible
+                />
+              </Box>
+
+              <Box component="main" className={classes.content}>
+                {children}
+              </Box>
+            </Box>
+          )}
+
+          <StatusRail
+            section={gate ? "Authenticating" : activeLabel}
+            pathname={pathname}
+            version={SHELL_VERSION}
+          />
+
+          <Box className={classes.accentBar} aria-hidden />
+        </Box>
       </Box>
 
-      <AppShell
-        bg="dark.9"
-        mode="static"
-        h="100dvh"
-        p={0}
-        padding={0}
-        withBorder={false}
-        navbar={{
-          width: navbarWidth,
-          breakpoint: "sm",
-          collapsed: { mobile: !opened },
-        }}
-      >
-        <AppShell.Navbar
-          p={SHELL_INSET}
-          bg="transparent"
-          className={classes.navbar}
-          style={{ border: "none", overflow: "hidden" }}
+      {/* Below `sm` the nav column leaves the frame. It keeps its own right rule
+          so the drawer still reads as the same region, just detached.
+          Composed rather than passed as props: `Drawer`'s `aria-label` would be
+          spread onto the outer wrapper, leaving the `role="dialog"` itself with
+          no accessible name (there is no title and no close button to supply
+          one). `Drawer.Content` is the dialog, so the label goes there. */}
+      {!gate && (
+        <Drawer.Root
+          opened={navOpened}
+          onClose={closeNav}
+          size={NAV_WIDTH}
+          padding={0}
         >
-          <Sidebar config={config} pathname={pathname} />
-        </AppShell.Navbar>
-
-        <AppShell.Main
-          bg="transparent"
-          style={{ minHeight: 0, overflow: "hidden", display: "flex" }}
-        >
-          <Box
-            flex={1}
-            // Reserve top space on mobile so content clears the fixed burger.
-            pt={{ base: 52, sm: 0 }}
-            style={{
-              minHeight: 0,
-              minWidth: 0,
-              overflow: "auto",
-            }}
+          <Drawer.Overlay />
+          <Drawer.Content
+            aria-label="Navigation"
+            className={classes.drawerContent}
           >
-            {children}
-          </Box>
-        </AppShell.Main>
-      </AppShell>
+            <Drawer.Body className={classes.drawerBody}>
+              <Sidebar
+                config={config}
+                pathname={pathname}
+                activeHref={activeHref}
+                collapsed={false}
+                framed={false}
+              />
+            </Drawer.Body>
+          </Drawer.Content>
+        </Drawer.Root>
+      )}
+
+      {/* Mounted once, outside both Sidebars — two Spotlights would register the
+          same shortcut twice. */}
+      <NavSpotlight groups={config.groups} onNavigate={config.onNavigate} />
 
       <AccountModal opened={accountOpened} onClose={accountHandlers.close} />
     </>

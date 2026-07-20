@@ -66,7 +66,9 @@ The landing page at `/home`. Answers one question: _what is wired up in here, an
 am I signed in as?_
 
 - `Home.tsx` — page anchor + the `CAPABILITIES` list, then a two-column band of
-  session details and the mock-account list.
+  session details and the mock-account list. Converted to tokens (it inverts for
+  dark mode); its `ModalPaper`/`ModuleHeader` chrome is still mintflow's, flattened
+  by the shell's control-squaring rules rather than rebuilt.
 - `components/SessionPanel/` — the live `/me/` payload, rendered plainly. Its job is
   to make a broken auth path visible on the home page.
 - `components/CapabilityGrid/` — ready-vs-placeholder cards. Status is carried by the
@@ -78,16 +80,49 @@ am I signed in as?_
 `password-change/`, and `_shared/` (`useCurrentUser`, `useLogout`,
 `ChangePasswordForm` + its strength meter).
 
+## Design language — Modern Lines
+
+The app is built in **Modern Lines**: structure comes from ruled lines, not elevation.
+Read `docs/design/design-system.md` before any visual work — it points at the language
+itself (`inspos/design-system/`) and records the two extensions this app adds.
+
+The short version:
+
+- Rule rank — `--ml-rule-solid` between regions, `--ml-rule-dotted` within one,
+  `--ml-rule-dashed` for the end of the content (once per surface).
+- Every junction between two rules carries a `+` (`components/CrossMark/`).
+- Tokens only. `--ml-*` (in `public/styles/global.css`) and Mantine variables — never a
+  raw hex, never a hardcoded mono stack. The whole app inverts for dark mode, and the
+  shell's top rail carries the scheme toggle.
+- `theme.defaultRadius: 0`. Nothing is rounded, including portalled surfaces.
+
+`config/design/tokens.ts` is **legacy** — mintflow's warm-paper/dark-tile values, with
+radii and shadows that contradict the language. The shell and `modules/home/` no longer
+use it. Fine in an unconverted module, wrong for anything new.
+
 ## Layouts
 
 - `layouts/app/` — `LayoutApp`: `<html>`, fonts, Mantine `AppWrapper`, `metadata`.
-- `layouts/app-shell/` — `LayoutAppShell`: the session gate plus the 280px sidebar
-  (brand, spotlight search, nav groups, footer, user menu). Filters nav by
-  `requiresStaff`, bounces a token-less viewer to `/`, and a
-  `password_change_required` account to `/password-change`.
+- `layouts/app-shell/` — `LayoutAppShell`: the session gate plus the frame.
+
+  One bordered rectangle inset from the viewport, subdivided into `TopRail`
+  (brand · meta · scheme toggle · drawer trigger) → body (`Sidebar` column +
+  content) → `StatusRail` (dashed, the surface's one terminal rule) → accent bar.
+  The frame is **permanent**: the loading, `/me`-failed and redirect states all
+  render inside it, never instead of it (`renderGate` in `AppShell.tsx`).
+  - Neither `.frame` nor the sidebar `.panel` sets `overflow: hidden` — junction
+    marks straddle the rules they sit on, and clipping amputates them. Scrolling is
+    owned by `.content` and the nav's `ScrollArea`.
+  - Below `sm` (48em) the nav column leaves the frame and becomes a `Drawer`.
+    `Sidebar` takes `collapsed` as a **prop**, not from the store, so the drawer copy
+    renders expanded while the desktop column stays collapsed.
+  - `NavSpotlight` is mounted once by `AppShell.tsx`, outside both `Sidebar`s — two
+    copies would register `mod+K` twice.
+  - Still filters nav by `requiresStaff`, bounces a token-less viewer to `/`, and a
+    `password_change_required` account to `/password-change`.
 
 ## Config
 
-`config/design/tokens.ts` (fixed brand values) and `config/theme/` (Mantine theme +
-component defaults) are carried over from mintflow verbatim — including the `Modal`
-body `padding: 0` override, so **modal content must supply its own padding**.
+`config/theme/` (Mantine theme + component defaults) is carried over from mintflow,
+plus `defaultRadius: 0` for the design language. It keeps the `Modal` body
+`padding: 0` override, so **modal content must supply its own padding**.

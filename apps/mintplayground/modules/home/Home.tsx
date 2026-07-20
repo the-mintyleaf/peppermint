@@ -15,7 +15,6 @@ import {
 } from "@peppermint/ui";
 import { KeyIcon } from "@phosphor-icons/react/dist/csr/Key";
 
-import { tokens } from "@/config/design";
 import { AccountModal, SectionLabel } from "@/components";
 import { MOCK_CREDENTIAL_HINTS, MOCK_PASSWORD } from "@/lib/mock/accounts";
 import { useCurrentUser } from "@/modules/auth/_shared/useCurrentUser";
@@ -86,10 +85,10 @@ export function ModuleHome() {
           <Stack gap={0}>
             {/* Page anchor — the one heading everything else sits under. */}
             <Stack gap={6} px="lg" pt="lg" pb="md">
-              <Title order={1} c={tokens.ink}>
+              <Title order={1}>
                 {user ? `Hello, ${user.display_name}.` : "Hello."}
               </Title>
-              <Text fz="13px" c={tokens.muted2} maw={620}>
+              <Text fz="13px" c="dimmed" maw={620}>
                 This is a sandbox for frontend and UI/UX work — the auth pages,
                 the app shell and the theme from mintflow, with every request
                 served by mock handlers inside this app. Nothing here talks to a
@@ -97,7 +96,7 @@ export function ModuleHome() {
               </Text>
             </Stack>
 
-            <Divider color={tokens.line} />
+            <Divider color="var(--ml-line)" />
 
             <Box px="lg" py="md">
               <Stack gap="sm">
@@ -106,7 +105,7 @@ export function ModuleHome() {
               </Stack>
             </Box>
 
-            <Divider color={tokens.line} />
+            <Divider color="var(--ml-line)" />
 
             <Box
               px="lg"
@@ -123,7 +122,7 @@ export function ModuleHome() {
               {user ? (
                 <SessionPanel user={user} />
               ) : (
-                <Text fz="12px" c={tokens.muted}>
+                <Text fz="12px" c="dimmed">
                   Session details are unavailable.
                 </Text>
               )}
@@ -133,18 +132,18 @@ export function ModuleHome() {
                 <Stack gap={8}>
                   {MOCK_CREDENTIAL_HINTS.map(({ username, note }) => (
                     <Group key={username} justify="space-between" gap="lg">
-                      <Text fz="12px" fw={600} ff={tokens.mono} c={tokens.ink}>
+                      <Text fz="12px" fw={600} ff="monospace">
                         {username}
                       </Text>
-                      <Text fz="12px" c={tokens.muted2} ta="right">
+                      <Text fz="12px" c="dimmed" ta="right">
                         {note}
                       </Text>
                     </Group>
                   ))}
                 </Stack>
-                <Text fz="11px" c={tokens.muted}>
+                <Text fz="11px" c="dimmed">
                   Password for every account:{" "}
-                  <Text span inherit ff={tokens.mono}>
+                  <Text span inherit ff="monospace">
                     {MOCK_PASSWORD}
                   </Text>
                   . Changes last until the dev server restarts.

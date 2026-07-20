@@ -5,9 +5,7 @@ import {
   ActionIcon,
   BookmarksMenu,
   Box,
-  Divider,
   Indicator,
-  Stack,
   Tooltip,
 } from "@peppermint/ui";
 import type { Icon } from "@phosphor-icons/react";
@@ -15,6 +13,7 @@ import { StarFourIcon } from "@phosphor-icons/react/dist/csr/StarFour";
 import { BellIcon } from "@phosphor-icons/react/dist/csr/Bell";
 import { GearSixIcon } from "@phosphor-icons/react/dist/csr/GearSix";
 
+import { CrossMark } from "@/components";
 import { UserMenu } from "../UserMenu";
 import { isActiveHref } from "../../../../nav.utils";
 import type { SidebarFooterProps } from "./SidebarFooter.types";
@@ -26,7 +25,8 @@ interface QuickActionProps {
   href?: string;
   onClick?: () => void;
   active?: boolean;
-  color?: string;
+  /** Render in the brand colour, and opt out of the cluster's dimmed-ink rule. */
+  accent?: boolean;
   weight?: "fill" | "regular";
   linkComponent?: ElementType;
 }
@@ -42,7 +42,7 @@ function QuickAction({
   href,
   onClick,
   active = false,
-  color = "gray.0",
+  accent = false,
   weight,
   linkComponent,
 }: QuickActionProps) {
@@ -57,13 +57,14 @@ function QuickAction({
         href={useButton ? undefined : href}
         onClick={useButton ? onClick : undefined}
         variant="subtle"
-        size="lg"
-        color={color}
+        size="md"
+        color={accent ? "var(--mantine-primary-color-filled)" : "gray"}
+        data-accent={accent || undefined}
         aria-label={label}
         aria-current={active ? "page" : undefined}
       >
         <IconComponent
-          size={18}
+          size={16}
           weight={weight ?? (active ? "fill" : "regular")}
         />
       </ActionIcon>
@@ -72,8 +73,9 @@ function QuickAction({
 }
 
 /**
- * Bottom cluster of the nav panel: a row of quick actions (AI, bookmarks,
- * notifications, settings) above the full-width account row.
+ * Bottom region of the nav column: a row of app-level quick actions (AI,
+ * bookmarks, notifications, settings) over the account row, divided by a dotted
+ * rule — same region, subdivided — with a junction mark at each end of it.
  */
 export function SidebarFooter({
   aiButton,
@@ -84,23 +86,25 @@ export function SidebarFooter({
   linkComponent,
   onNavigate,
   collapsed = false,
+  framed = true,
 }: SidebarFooterProps) {
   const settingsHref = settingsButton?.href ?? "/settings";
   const settingsActive = isActiveHref(pathname, settingsHref);
   const hasUnread = (notifications?.count ?? 0) > 0;
 
   return (
-    <Stack gap={8}>
-      <Divider className={classes.divider} />
+    <>
+      <Box className={collapsed ? classes.actionsCollapsed : classes.actions}>
+        {framed && <CrossMark size="sm" className={classes.junctionStart} />}
+        <CrossMark size="sm" className={classes.junctionEnd} />
 
-      <Box className={collapsed ? classes.clusterCollapsed : classes.cluster}>
         {aiButton && !aiButton.hidden && (
           <QuickAction
             icon={aiButton.icon ?? StarFourIcon}
             label={aiButton.label ?? "Ask AI"}
             href={aiButton.href}
             onClick={aiButton.onClick}
-            color="accent.4"
+            accent
             weight="fill"
             linkComponent={linkComponent}
           />
@@ -137,7 +141,7 @@ export function SidebarFooter({
             href={settingsHref}
             onClick={settingsButton.onClick}
             active={settingsActive}
-            color={settingsActive ? "accent.4" : "gray.0"}
+            accent={settingsActive}
             linkComponent={linkComponent}
           />
         )}
@@ -151,6 +155,6 @@ export function SidebarFooter({
           collapsed={collapsed}
         />
       )}
-    </Stack>
+    </>
   );
 }

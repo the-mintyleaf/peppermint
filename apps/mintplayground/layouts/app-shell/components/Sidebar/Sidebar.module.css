@@ -1,24 +1,109 @@
+/*
+ * The nav column is ONE region of the frame, so its internal blocks are divided
+ * by dotted rules — solid would promote them to regions of their own and flatten
+ * the hierarchy. The footer is the exception: it is a genuinely separate region
+ * (identity and app-level actions, not destinations), so it opens with a solid
+ * rule and its junction marks are full-size.
+ */
+
+/* No `overflow: hidden` here either — see the note on `.frame`. The scroll is
+   owned by the group list, not by the panel. */
 .panel {
-  transition: width 180ms ease;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .panel {
-    transition: none;
-  }
-}
-
-.toggleRow {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  height: 100%;
 }
 
-.sectionLabel {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+/* An interior block. `position: relative` so its rule can carry a junction mark
+   at each end — where it meets the frame's left edge, and where it meets the nav
+   column's own right rule. */
+.block {
+  position: relative;
+  flex-shrink: 0;
+  border-bottom: var(--ml-rule-dotted);
+}
+
+.blockSolid {
+  position: relative;
+  flex-shrink: 0;
+  border-top: var(--ml-rule-solid);
+}
+
+.junctionStart {
+  bottom: 0;
+  left: 0;
+}
+
+.junctionEnd {
+  right: 0;
+  bottom: 0;
+}
+
+/* The footer's rule is on top, so its junctions sit at the top corners. */
+.junctionTopStart {
+  top: 0;
+  left: 0;
+}
+
+.junctionTopEnd {
+  top: 0;
+  right: 0;
+}
+
+/* Header — the region's mono label, with the collapse control alongside. */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-xs);
+  min-height: 2.25rem;
+  padding: 6px 8px 6px 13px;
+}
+
+.headerCollapsed {
+  composes: header;
+  justify-content: center;
+  padding: 6px 4px;
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Group label — mono meta. This is the device that makes a bordered column read
+   as instrumentation rather than as an unstyled div; every region gets one. */
+
+.groupLabel {
+  display: block;
+  padding: 10px 13px 6px;
+  font-family: var(--ml-mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--ml-meta-ink);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.38);
-  padding: 0 10px;
-  margin-bottom: 2px;
+}
+
+.headerLabel {
+  composes: groupLabel;
+  padding: 0;
+}
+
+/*
+ * Groups are separated by a FREE-STANDING rule: inset from both edges, so it
+ * touches nothing and therefore correctly takes no junction mark (a mark means
+ * "two lines meet here"). Full-bleed would also put its ends inside the scroll
+ * viewport's clip box, where a mark can only ever render as half a cross.
+ */
+.groupRule {
+  height: 0;
+  margin: 2px 12px 0;
+  border-top: var(--ml-rule-dotted);
+}
+
+/* A collapsed rail has no room for a label — the rule alone carries the split. */
+.groupSpacer {
+  height: 10px;
 }

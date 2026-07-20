@@ -19,9 +19,8 @@ export function SidebarToggle({ collapsed, onToggle }: SidebarToggleProps) {
   return (
     <Tooltip label={label} withArrow position={collapsed ? "right" : "bottom"}>
       <ActionIcon
-        variant="subtle"
+        variant="transparent"
         size="md"
-        color="gray.0"
         className={classes.button}
         onClick={onToggle}
         aria-label={label}

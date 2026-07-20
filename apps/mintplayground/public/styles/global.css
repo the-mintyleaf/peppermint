@@ -1,0 +1,54 @@
+/*
+ * Modern Lines — the app's line tokens.
+ *
+ * The design language is documented in `docs/design/design-system.md`. Structure
+ * in this app comes from ruled lines, so the line colour, the rule ranks and the
+ * junction mark are declared once here and referenced everywhere else. Every
+ * value resolves to a Mantine token, so the language inverts for dark mode with
+ * no second set of values.
+ */
+
+:root {
+  /* The one line colour. Re-theming the whole language is this one line. */
+  --ml-line: var(--mantine-color-default-border);
+
+  /* Rule ranks — see "Rule rank" in the design doc.
+     solid  = boundary between regions
+     dotted = subdivision inside one region
+     dashed = end of content (once per surface) */
+  --ml-rule-solid: 1px solid var(--ml-line);
+  --ml-rule-dotted: 1px dotted var(--ml-line);
+  --ml-rule-dashed: 1px dashed var(--ml-line);
+
+  /* Frame inset from the viewport, and the junction mark's arm span. */
+  --ml-inset: var(--mantine-spacing-md);
+  --ml-cross: 0.8125rem;
+  --ml-cross-sm: 0.5625rem;
+
+  /*
+   * Ink for meta text and for the junction mark.
+   *
+   * NOT `--mantine-color-dimmed`: that is gray.6, which lands at ~3.2:1 on this
+   * theme's near-white body — under the 4.5:1 AA floor, and this language puts
+   * its most important labels at 9–10px, the worst possible place to be short on
+   * contrast. gray.7 / gray.4 clear it in both schemes.
+   *
+   * The junction mark shares the token because it must read DARKER than the
+   * hairlines it joins; drawn in the line colour it disappears into them and
+   * resolves nothing.
+   */
+  --ml-meta-ink: light-dark(
+    var(--mantine-color-gray-7),
+    var(--mantine-color-gray-4)
+  );
+  --ml-cross-color: var(--ml-meta-ink);
+
+  /* The app's mono, via the theme — never a hardcoded stack. */
+  --ml-mono: var(--mantine-font-family-monospace);
+}
+
+@media (min-width: 48em) {
+  :root {
+    --ml-inset: var(--mantine-spacing-lg);
+  }
+}

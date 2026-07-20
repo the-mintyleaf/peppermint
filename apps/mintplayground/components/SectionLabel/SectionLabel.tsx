@@ -10,7 +10,9 @@ import type { SectionLabelProps } from "./SectionLabel.types";
 export function SectionLabel({
   fz = "10px",
   fw = 600,
-  c = "rgba(0,0,0,0.42)",
+  // Tokenised, not a fixed black alpha: the label has to stay legible when the
+  // surface inverts, and `dimmed` is under AA at this size.
+  c = "var(--ml-meta-ink)",
   ...props
 }: SectionLabelProps) {
   return <MonoText label fz={fz} fw={fw} c={c} {...props} />;
