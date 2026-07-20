@@ -1,27 +1,20 @@
 "use client";
 
-import { Center, Paper, Stack, Text, Title } from "@peppermint/ui";
-import { ChangePasswordForm } from "@/modules/auth/_shared/ChangePasswordForm";
+import { PasswordChangePage } from "@peppermint/admin";
+import { ERROR_MESSAGES } from "@/lib/authErrorMessages";
 
 export function ModulePasswordChange() {
-  const handleSuccess = () => {
-    window.location.href = "/home";
-  };
-
   return (
-    <Center mih="100vh" p="md">
-      <Paper withBorder p="xl" radius="md" maw={400} w="100%">
-        <Stack gap="lg">
-          <Stack gap={4}>
-            <Title order={2}>Update your password</Title>
-            <Text size="sm" c="dimmed">
-              You need to set a new password before continuing.
-            </Text>
-          </Stack>
-
-          <ChangePasswordForm onSuccess={handleSuccess} />
-        </Stack>
-      </Paper>
-    </Center>
+    <PasswordChangePage
+      variant="modernlines"
+      heading={["Change your", "password."]}
+      subheading="Enter your current password, then choose a new one you haven't used before."
+      brand={["mintplayground", "by mintyleaf.co"]}
+      panelTagline="Account security."
+      panelHeading="A new password is all that stands between you and the sandbox."
+      changePasswordApi="/api/v1/auth/change-password/"
+      successRedirectUrl="/home"
+      errorMessageMap={ERROR_MESSAGES}
+    />
   );
 }

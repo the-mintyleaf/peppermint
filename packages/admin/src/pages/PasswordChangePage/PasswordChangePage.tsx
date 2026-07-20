@@ -1,255 +1,42 @@
 "use client";
 
+import { MoonIcon, SunIcon } from "@phosphor-icons/react/dist/ssr";
+
 import {
   ActionIcon,
-  Anchor,
-  Button,
-  Center,
-  Group,
-  Paper,
-  PasswordInput,
-  Stack,
-  Text,
-  Title,
   Tooltip,
   useComputedColorScheme,
   useMantineColorScheme,
-  useForm,
 } from "@peppermint/ui";
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+
+import { usePasswordChangeController } from "./PasswordChangePage.hooks";
 import {
-  LeafIcon,
-  LockKeyIcon,
-  MoonIcon,
-  SunIcon,
-} from "@phosphor-icons/react/dist/ssr";
+  PasswordChangeLayoutDefault,
+  PasswordChangeLayoutModernLines,
+} from "./components";
+import { resolvePasswordChangePageProps } from "./utils/resolvePasswordChangePageProps";
 import type { PasswordChangePageProps } from "./PasswordChangePage.types";
-import { ACCESS_TOKEN_KEY } from "../../auth/authStorage";
 
-interface FormValues {
-  old_password: string;
-  new_password: string;
-  confirm_password: string;
-}
-
-interface PasswordChangeErrorBody {
-  error?: { code?: string; message?: string };
-}
-
-/** Carries the parsed error body from a failed change-password request. */
-class PasswordChangeRequestError extends Error {
-  body: PasswordChangeErrorBody;
-  constructor(body: PasswordChangeErrorBody) {
-    super("Password change failed");
-    this.name = "PasswordChangeRequestError";
-    this.body = body;
-  }
-}
-
-const ERROR_MESSAGES: Record<string, string> = {
-  AUTH_PASSWORD_INVALID: "Your current password is incorrect.",
-  AUTH_PASSWORD_REUSE_BLOCKED:
-    "You've used this password recently. Choose a different one.",
-  VALIDATION_ERROR: "Password does not meet the requirements.",
-};
-
-export function PasswordChangePage({
-  changePasswordApi,
-  successRedirectUrl,
-  onSuccess,
-  onError,
-}: PasswordChangePageProps) {
-  const [succeeded, setSucceeded] = useState(false);
+/**
+ * Change-password screen. The flow lives in `usePasswordChangeController`; this
+ * component only resolves presentational defaults, picks a layout from
+ * `variant`, and renders the colour-scheme toggle that both variants share.
+ */
+export function PasswordChangePage(props: PasswordChangePageProps) {
+  const controller = usePasswordChangeController(props);
+  const page = resolvePasswordChangePageProps(props);
   const { setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme("light");
   const isDark = computedColorScheme === "dark";
 
-  const form = useForm<FormValues>({
-    initialValues: { old_password: "", new_password: "", confirm_password: "" },
-    validate: {
-      old_password: (v) => (!v ? "Current password is required" : null),
-      new_password: (v) =>
-        v.length < 12 ? "Password must be at least 12 characters" : null,
-      confirm_password: (v, values) =>
-        v !== values.new_password ? "Passwords do not match" : null,
-    },
-  });
-
-  const changePasswordMutation = useMutation({
-    mutationFn: async (values: FormValues) => {
-      const token =
-        typeof window !== "undefined"
-          ? window.localStorage.getItem(ACCESS_TOKEN_KEY)
-          : null;
-
-      const response = await fetch(changePasswordApi, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          old_password: values.old_password,
-          new_password: values.new_password,
-        }),
-      });
-
-      if (!response.ok) {
-        const data = (await response.json()) as PasswordChangeErrorBody;
-        throw new PasswordChangeRequestError(data);
-      }
-    },
-    onSuccess: () => {
-      setSucceeded(true);
-      onSuccess?.();
-      if (successRedirectUrl) {
-        setTimeout(() => {
-          window.location.href = successRedirectUrl;
-        }, 1500);
-      }
-    },
-    onError: (error) => {
-      onError?.(
-        error instanceof PasswordChangeRequestError ? error.body : error,
-      );
-
-      if (!(error instanceof PasswordChangeRequestError)) {
-        form.setErrors({ new_password: "Something went wrong. Try again." });
-        return;
-      }
-
-      const code = error.body.error?.code;
-      const message = code
-        ? (ERROR_MESSAGES[code] ??
-          error.body.error?.message ??
-          "Failed to update password")
-        : "Failed to update password";
-
-      if (code === "AUTH_PASSWORD_INVALID") {
-        form.setErrors({ old_password: message });
-      } else {
-        form.setErrors({ new_password: message });
-      }
-    },
-  });
-
-  const isLoading = changePasswordMutation.isPending;
-
-  const handleSubmit = (values: FormValues) => {
-    changePasswordMutation.mutate(values);
-  };
+  const Layout =
+    props.variant === "modernlines"
+      ? PasswordChangeLayoutModernLines
+      : PasswordChangeLayoutDefault;
 
   return (
     <>
-      <Center h="100vh">
-        <Stack>
-          <Center>
-            <Group gap={4} px="md" py={4}>
-              <LeafIcon color="var(--mantine-color-brand-5)" weight="fill" />
-              <Title size="xs" c="brand.6">
-                mintyflow{" "}
-                <span style={{ color: "var(--mantine-color-gray-5)" }}>
-                  by mintyleaf.co
-                </span>
-              </Title>
-            </Group>
-          </Center>
-
-          <Paper w={{ base: "100%", sm: 440 }} p={{ base: "md", lg: "3rem" }}>
-            <Stack gap="md" w="100%">
-              <Stack gap="xs" align="center">
-                <Center mb={4}>
-                  <LockKeyIcon
-                    size={36}
-                    color="var(--mantine-color-brand-5)"
-                    weight="duotone"
-                  />
-                </Center>
-                <Title size="2rem" order={2} ta="center" fw={500} lh="100%">
-                  Change your{" "}
-                  <span style={{ color: "var(--mantine-color-brand-5)" }}>
-                    password.
-                  </span>
-                </Title>
-                <Text c="dimmed" size="xs" ta="center" maw={360}>
-                  Enter your current password, then choose a new one. Must be at
-                  least 12 characters and not previously used.
-                </Text>
-              </Stack>
-
-              {succeeded ? (
-                <Stack gap="xs" align="center" py="md">
-                  <Text fw={600} size="lg" c="teal" ta="center">
-                    Password updated!
-                  </Text>
-                  <Text c="dimmed" size="sm" ta="center">
-                    {successRedirectUrl
-                      ? "Redirecting you now…"
-                      : "Your password has been changed successfully."}
-                  </Text>
-                </Stack>
-              ) : (
-                <form onSubmit={form.onSubmit(handleSubmit)}>
-                  <Stack gap="md" py="md">
-                    <PasswordInput
-                      size="md"
-                      label="Current password"
-                      placeholder="Your existing password"
-                      required
-                      {...form.getInputProps("old_password")}
-                    />
-                    <PasswordInput
-                      size="md"
-                      label="New password"
-                      placeholder="At least 12 characters"
-                      required
-                      {...form.getInputProps("new_password")}
-                    />
-                    <PasswordInput
-                      size="md"
-                      label="Confirm new password"
-                      placeholder="Re-enter your new password"
-                      required
-                      {...form.getInputProps("confirm_password")}
-                    />
-                    <Button
-                      type="submit"
-                      size="md"
-                      color="black"
-                      fullWidth
-                      h={50}
-                      mt="xs"
-                      loading={isLoading}
-                    >
-                      Update password
-                    </Button>
-                  </Stack>
-                </form>
-              )}
-            </Stack>
-          </Paper>
-
-          <Center>
-            <Stack gap="xs">
-              <Text ta="center" size="10px">
-                By continuing, you agree to our{" "}
-                <Anchor href="/terms" c="brand.4">
-                  Terms of Service
-                </Anchor>{" "}
-                and{" "}
-                <Anchor href="/privacy" c="brand.4">
-                  Privacy Policy
-                </Anchor>
-                .
-              </Text>
-              <Text ta="center" size="10px" c="gray.5">
-                Version v1.0.1 @ Copyright 2026 mintyleaf.co
-              </Text>
-            </Stack>
-          </Center>
-        </Stack>
-      </Center>
+      <Layout controller={controller} page={page} />
 
       <Tooltip label={isDark ? "Light mode" : "Dark mode"} withArrow>
         <ActionIcon
