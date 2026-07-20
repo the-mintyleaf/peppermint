@@ -106,11 +106,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Country"
+          maxLength={100}
           disabled={isLoading}
           {...form.getInputProps("country")}
         />
         <TextInput
           label="Purpose"
+          maxLength={150}
           disabled={isLoading}
           {...form.getInputProps("purpose")}
         />
@@ -131,6 +133,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       </Group>
       <TextInput
         label="Visa type"
+        maxLength={100}
         disabled={isLoading}
         {...form.getInputProps("visa_type")}
       />

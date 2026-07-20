@@ -42,6 +42,14 @@ export function ApplicantActionBar({
           variant="default"
           size="xs"
           leftSection={<PencilSimpleIcon size={14} />}
+          // Staff writes to a locked record are rejected with a 423, so don't open a
+          // form that can't be saved. Admins can still edit while locked.
+          disabled={!isAdmin && applicant.is_locked}
+          title={
+            !isAdmin && applicant.is_locked
+              ? "This record is locked. Ask an admin to unlock it."
+              : undefined
+          }
           onClick={onEdit}
         >
           Edit

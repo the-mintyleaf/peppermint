@@ -149,6 +149,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       </Text>
       <TextInput
         label="Consent text version"
+        maxLength={50}
         disabled={isLoading}
         {...form.getInputProps("consent_text_version")}
       />

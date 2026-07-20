@@ -1,5 +1,6 @@
 "use client";
 
+import { z } from "zod";
 import {
   Button,
   Checkbox,
@@ -24,6 +25,16 @@ import type {
 } from "./AddressForm.types";
 
 const ADDRESS_TYPE_OPTIONS = toOptions(ADDRESS_TYPE_LABELS);
+
+/**
+ * No writable field on this resource is required — every row is `Req ✗`. The plain
+ * `≤N chars` caps ride on the inputs' `maxLength`; `ward` and `postal_code` get rules
+ * instead, because a silently clipped code still looks like a valid one.
+ */
+const VALIDATION = z.object({
+  ward: z.string().max(32, "Ward can be at most 32 characters"),
+  postal_code: z.string().max(32, "Postal code can be at most 32 characters"),
+});
 
 const INITIAL: AddressFormValues = {
   address_type: "current",
@@ -113,6 +124,7 @@ export function AddressForm({
   return (
     <FormWrapper<AddressFormValues>
       initial={toInitial(initialValues)}
+      validation={[VALIDATION]}
       finalSubmitFn={async (values) => {
         onSubmit(toPayload(values, isEdit));
         return { ok: true };
@@ -139,6 +151,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         />
         <TextInput
           label="Country"
+          maxLength={100}
           disabled={isLoading}
           {...form.getInputProps("country")}
         />
@@ -146,11 +159,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Province / State"
+          maxLength={120}
           disabled={isLoading}
           {...form.getInputProps("province_or_state")}
         />
         <TextInput
           label="District"
+          maxLength={120}
           disabled={isLoading}
           {...form.getInputProps("district")}
         />
@@ -158,6 +173,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Municipality"
+          maxLength={120}
           disabled={isLoading}
           {...form.getInputProps("municipality")}
         />
@@ -175,11 +191,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Locality"
+          maxLength={150}
           disabled={isLoading}
           {...form.getInputProps("locality")}
         />
         <TextInput
           label="Street"
+          maxLength={200}
           disabled={isLoading}
           {...form.getInputProps("street")}
         />

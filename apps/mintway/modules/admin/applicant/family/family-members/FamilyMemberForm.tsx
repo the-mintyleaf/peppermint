@@ -34,7 +34,14 @@ const INITIAL: FamilyMemberFormValues = {
   notes: "",
 };
 
-const VALIDATION = z.object({ name: z.string().min(1, "Name is required") });
+/**
+ * `name` is the only `Req ✓` field. `contact` carries its `≤64 chars` cap as a rule
+ * rather than a `maxLength` — a silently clipped number still looks like a real one.
+ */
+const VALIDATION = z.object({
+  name: z.string().min(1, "Name is required"),
+  contact: z.string().max(64, "Contact can be at most 64 characters"),
+});
 
 function toInitial(record?: Partial<FamilyMember>): FamilyMemberFormValues {
   if (!record) return INITIAL;
@@ -126,11 +133,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         <TextInput
           label="Name"
           withAsterisk
+          maxLength={200}
           disabled={isLoading}
           {...form.getInputProps("name")}
         />
         <TextInput
           label="Relationship"
+          maxLength={100}
           disabled={isLoading}
           {...form.getInputProps("relationship")}
         />
@@ -153,6 +162,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Occupation"
+          maxLength={150}
           disabled={isLoading}
           {...form.getInputProps("occupation")}
         />

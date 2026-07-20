@@ -352,7 +352,12 @@ export interface MergeRecord {
   id: string;
   source_applicant: string;
   surviving_applicant: string;
-  field_resolutions?: Record<string, "duplicate">;
+  /**
+   * As returned on the merge record. Only the *input* is constrained to
+   * `"duplicate"`; the stored resolution echoes whichever side won, so this is a
+   * plain string map.
+   */
+  field_resolutions?: Record<string, string>;
   transferred_counts?: Record<string, number>;
   reason: string;
   performed_by?: string | null;

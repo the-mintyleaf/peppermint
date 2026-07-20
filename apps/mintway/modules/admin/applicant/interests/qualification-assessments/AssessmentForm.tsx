@@ -124,11 +124,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Preferred destination"
+          maxLength={100}
           disabled={isLoading}
           {...form.getInputProps("preferred_destination")}
         />
         <TextInput
           label="Preferred program / field"
+          maxLength={150}
           disabled={isLoading}
           {...form.getInputProps("preferred_program_or_field")}
         />

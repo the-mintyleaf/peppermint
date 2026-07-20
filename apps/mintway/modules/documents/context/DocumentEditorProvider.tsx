@@ -16,8 +16,10 @@ import {
   useQuery,
   useQueryClient,
 } from "@peppermint/ui";
+import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { documentsApi } from "../documents.api";
 import { documentQueryKeys } from "../documents.queryKeys";
+import { DocumentUnavailable } from "../components/DocumentUnavailable";
 import { useSignatures } from "../hooks/useSignatures";
 import { getDefaultDocumentContent } from "../utils/defaultDocumentContent";
 import { getDefaultLabel } from "../documentTypeConfig";
@@ -75,18 +77,24 @@ export function DocumentEditorProvider({
   const [isPrintingAll, setIsPrintingAll] = useState(false);
   const [hasPendingEdits, setHasPendingEdits] = useState(false);
 
-  const { data: documents = [], isLoading: isLoadingDocuments } = useQuery({
+  const documentsQuery = useQuery({
     queryKey: documentQueryKeys.list(applicantId),
     queryFn: () => documentsApi.listByApplicant(applicantId),
   });
+  const documents = useMemo(
+    () => documentsQuery.data ?? [],
+    [documentsQuery.data],
+  );
+  const isLoadingDocuments = documentsQuery.isLoading;
 
-  const { data: studentFullData } = useQuery({
+  const prefillQuery = useQuery({
     queryKey: documentQueryKeys.prefill(applicantId),
     queryFn: async () => {
       const prefill = await documentsApi.fetchPrefill(applicantId);
       return documentsApi.prefillToSummary(applicantId, prefill);
     },
   });
+  const studentFullData = prefillQuery.data;
 
   const { data: signatures = [] } = useSignatures();
 
@@ -470,6 +478,26 @@ export function DocumentEditorProvider({
     markUnsavedChanges,
     confirmLeave,
   };
+
+  // The editor can't render anything truthful without the document list (and without the
+  // prefill it silently drops every applicant-derived field), so a failure on either is
+  // terminal rather than a half-populated editor. A 404 here is deliberately ambiguous —
+  // the backend returns it both for an unknown applicant and for a staff account, which
+  // must not learn whether documents exist (overview.md §Role model) — so the copy comes
+  // from `getApiErrorMessage` ("That document isn't available."), which never says the
+  // record was deleted. Declared after every hook so the hook order stays stable.
+  const loadError = documentsQuery.error ?? prefillQuery.error;
+  if (loadError) {
+    return (
+      <DocumentUnavailable
+        message={getApiErrorMessage(loadError)}
+        onRetry={() => {
+          void documentsQuery.refetch();
+          void prefillQuery.refetch();
+        }}
+      />
+    );
+  }
 
   return (
     <DocumentEditorContext.Provider value={value}>

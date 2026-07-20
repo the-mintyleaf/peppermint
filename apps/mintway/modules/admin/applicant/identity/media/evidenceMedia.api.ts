@@ -8,6 +8,8 @@ import type { MediaItem } from "../../_shared";
 export async function fetchEvidenceMedia(
   applicantId: string,
   params?: QueryParams,
+  /** Archived media is excluded unless this is sent — deleting is a soft archive. */
+  includeArchived = false,
 ): Promise<{
   data: MediaItem[];
   meta: { total: number } & Record<string, unknown>;
@@ -16,6 +18,7 @@ export async function fetchEvidenceMedia(
     params: {
       page: params?.page,
       page_size: params?.pageSize,
+      ...(includeArchived ? { include_archived: true } : {}),
       ...params?.filters,
     },
   });
@@ -30,10 +33,13 @@ export async function uploadEvidenceMedia(
   applicantId: string,
   category: string,
   file: File,
+  /** Optional case scope. Must belong to the same applicant, or the server 400s. */
+  applicationCaseId?: string,
 ): Promise<MediaItem> {
   const form = new FormData();
   form.append("category", category);
   form.append("file", file);
+  if (applicationCaseId) form.append("application_case_id", applicationCaseId);
   // Override the instance's default JSON Content-Type so axios sends the FormData as
   // multipart (otherwise it JSON-stringifies it and drops the file); the browser adds
   // the boundary.

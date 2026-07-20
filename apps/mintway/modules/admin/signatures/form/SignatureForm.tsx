@@ -27,20 +27,19 @@ const schema = z.object({
 });
 
 /**
- * `Signature` (the read row) carries no email/phone, so the edit prefill maps only the fields it
- * exposes. Email/phone can't be prefilled on edit — the entity doesn't expose them. Because
- * `toSignatureInput` maps blank → `undefined` and the API omits undefined fields, a save that
- * leaves them blank *retains* the server's existing values (it does not wipe them) — the flip
- * side being this form can't clear an already-set email/phone. Lifecycle (`is_active`) is not a
- * form field: new signatures are created active, and status is toggled from the list.
+ * `Signature` now carries `email`/`phone`, so the edit prefill shows the stored values instead
+ * of two misleadingly blank inputs. Note the remaining limitation: `toSignatureInput` maps blank
+ * → `undefined` and the API omits undefined fields, so clearing a field *retains* the server's
+ * value rather than wiping it. Lifecycle (`is_active`) is not a form field: new signatures are
+ * created active, and status is toggled from the list.
  */
 function toInitial(record?: Partial<Signature>): SignatureFormValues {
   return {
     name: record?.name ?? "",
     title: record?.title ?? "",
     organization: record?.organization ?? "",
-    email: "",
-    phone: "",
+    email: record?.email ?? "",
+    phone: record?.phone ?? "",
     imageFile: null,
   };
 }

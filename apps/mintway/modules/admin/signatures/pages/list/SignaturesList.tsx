@@ -4,7 +4,7 @@ import { ModalTableShell } from "@peppermint/admin";
 import { ModalPaper, useQueryClient } from "@peppermint/ui";
 import { documentQueryKeys } from "@/modules/documents";
 import type { Signature } from "@/modules/documents";
-import { RequireStaff } from "@/components/RequireStaff";
+import { RequireDocumentAccess } from "@/modules/documents/components/RequireDocumentAccess";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { SignatureForm } from "../../form";
 import type { SignatureFormValues } from "../../form";
@@ -69,10 +69,15 @@ function SignaturesListContent() {
   );
 }
 
+/**
+ * Gated by `RequireDocumentAccess`, not `RequireStaff`: signatures are admin/superadmin-only
+ * and the backend answers staff with a non-disclosing 404 (`signature.md` §Access), so the
+ * client must show not-found rather than a "Forbidden" panel that confirms the surface exists.
+ */
 export function SignaturesList() {
   return (
-    <RequireStaff>
+    <RequireDocumentAccess>
       <SignaturesListContent />
-    </RequireStaff>
+    </RequireDocumentAccess>
   );
 }

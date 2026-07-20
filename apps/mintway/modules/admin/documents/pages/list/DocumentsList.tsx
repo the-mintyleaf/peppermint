@@ -8,7 +8,7 @@ import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/csr/ArrowUpRight";
 import { InfoIcon } from "@phosphor-icons/react/dist/csr/Info";
 import { documentsApi, documentQueryKeys } from "@/modules/documents";
 import type { DocumentWorkspaceSummary } from "@/modules/documents";
-import { RequireStaff } from "@/components/RequireStaff";
+import { RequireDocumentAccess } from "@/modules/documents/components/RequireDocumentAccess";
 import { documentsColumns } from "./documents.columns";
 import { NewDocumentModal } from "./components/NewDocumentModal";
 import { DocumentWorkspaceDrawer } from "./components/DocumentWorkspaceDrawer";
@@ -18,6 +18,10 @@ import { DocumentWorkspaceDrawer } from "./components/DocumentWorkspaceDrawer";
  * the full-screen editor (a separate route/layout outside the admin shell). "New document"
  * opens an applicant picker, then routes into that editor. The info button opens a detail
  * drawer for inspecting a workspace's documents, revisions, and prints in place.
+ *
+ * Gated by `RequireDocumentAccess`, not `RequireStaff`: the backend answers staff with a
+ * non-disclosing 404 on every document surface, so a "Forbidden" panel here would leak the
+ * fact that the surface exists (see `docs/applicants/integration/overview.md` §Role model).
  */
 export function DocumentsList() {
   const router = useRouter();
@@ -60,7 +64,7 @@ export function DocumentsList() {
   ];
 
   return (
-    <RequireStaff>
+    <RequireDocumentAccess>
       <DataTableShell<DocumentWorkspaceSummary>
         queryKey={documentQueryKeys.workspaces()}
         queryGetFn={async () => {
@@ -96,6 +100,6 @@ export function DocumentsList() {
         opened={detailWorkspace !== null}
         onClose={() => setDetailWorkspace(null)}
       />
-    </RequireStaff>
+    </RequireDocumentAccess>
   );
 }

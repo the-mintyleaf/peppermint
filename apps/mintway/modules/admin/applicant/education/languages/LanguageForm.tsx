@@ -81,6 +81,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Language"
+          maxLength={100}
           disabled={isLoading}
           {...form.getInputProps("language")}
         />

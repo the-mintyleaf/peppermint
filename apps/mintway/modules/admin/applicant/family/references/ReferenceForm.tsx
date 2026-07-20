@@ -1,5 +1,6 @@
 "use client";
 
+import { z } from "zod";
 import { Button, Group, Stack, Textarea, TextInput } from "@peppermint/ui";
 import {
   FormWrapper,
@@ -25,6 +26,20 @@ const INITIAL: ReferenceFormValues = {
   relationship_to_applicant: "",
   notes: "",
 };
+
+/**
+ * Every field on this resource is `Req ✗` — nothing here may be made mandatory. The plain
+ * `≤N chars` caps ride on the inputs' `maxLength`; `contact` gets a rule instead, because
+ * a silently clipped number still looks like a real one. An empty `email` stays valid.
+ */
+const VALIDATION = z.object({
+  email: z
+    .string()
+    .refine((value) => value === "" || z.email().safeParse(value).success, {
+      message: "Enter a valid email address",
+    }),
+  contact: z.string().max(64, "Contact can be at most 64 characters"),
+});
 
 function toInitial(record?: Partial<Reference>): ReferenceFormValues {
   if (!record) return INITIAL;
@@ -93,6 +108,7 @@ export function ReferenceForm({
   return (
     <FormWrapper<ReferenceFormValues>
       initial={toInitial(initialValues)}
+      validation={[VALIDATION]}
       finalSubmitFn={async (values) => {
         onSubmit(toPayload(values, isEdit));
         return { ok: true };
@@ -113,6 +129,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Name"
+          maxLength={200}
           disabled={isLoading}
           {...form.getInputProps("name")}
         />
@@ -126,11 +143,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Title"
+          maxLength={150}
           disabled={isLoading}
           {...form.getInputProps("title")}
         />
         <TextInput
           label="Institution"
+          maxLength={255}
           disabled={isLoading}
           {...form.getInputProps("institution")}
         />
@@ -149,6 +168,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       </Group>
       <TextInput
         label="Relationship to applicant"
+        maxLength={100}
         disabled={isLoading}
         {...form.getInputProps("relationship_to_applicant")}
       />

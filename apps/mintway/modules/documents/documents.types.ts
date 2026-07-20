@@ -11,6 +11,14 @@ export type DocumentStatus =
   | "superseded"
   | "archived";
 
+/**
+ * A reusable signatory (`GET /signatures/`). `signature_image`, `is_active` and `has_image`
+ * keep backend-ish casing because the certificate templates read them directly; everything
+ * added since follows the file's camelCase convention.
+ *
+ * `title`/`organization`/`email`/`phone` are `Nullable=No` on the wire — unset comes back as
+ * `""`, never `null`. The nullable stamps below really can be `null`.
+ */
 export interface Signature {
   id: string;
   name: string;
@@ -20,6 +28,17 @@ export interface Signature {
   title?: string;
   organization?: string;
   has_image?: boolean;
+  email: string;
+  phone: string;
+  validFrom: string | null;
+  validTo: string | null;
+  /** sha-256 of the stored image; `null` until an image is uploaded. */
+  imageChecksum: string | null;
+  imageMimeType: string | null;
+  /** Set when the signatory is deactivated — `DELETE` deactivates, never removes. */
+  archivedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CertificateMarkEntry {
@@ -282,7 +301,14 @@ export interface Document {
   recordVersion: number;
   currentRevisionNumber: number;
   schemaVersion: number;
+  /** Renderer metadata; `""` when unset (`Nullable=No` on the wire). */
+  templateKey: string;
+  templateVersion: string;
   applicationCaseId: string | null;
+  /** Lifecycle stamps — `null` until the document reaches that state. */
+  finalizedAt: string | null;
+  submittedAt: string | null;
+  archivedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -302,8 +328,22 @@ export interface DocumentRevision {
   labelSnapshot: string;
   statusSnapshot: DocumentStatus;
   documentTypeSnapshot: DocumentType;
+  schemaVersion: number;
+  templateKey: string;
+  templateVersion: string;
   changeReason?: string;
+  /**
+   * Names of the `document_content` fields this revision touched — field *names* only,
+   * never values. This is what a revision-to-revision diff view reads.
+   */
+  changedFields: string[];
+  /** The revision this one succeeded; `null` on the first revision of a document. */
+  previousRevision: string | null;
   changedBy?: string | null;
+  /** sha-256 pinning `contentSnapshot`. */
+  contentChecksum: string;
+  /** Correlation id for tracing the write that produced this revision. */
+  requestId: string;
   createdAt: string;
 }
 
@@ -333,7 +373,22 @@ export interface PrintEvent {
    * matching against the revisions list.
    */
   revisionId: string | null;
+  applicantId: string;
+  applicationCaseId: string | null;
   snapshot: PrintEventSnapshot;
+  /** Renderer metadata captured verbatim at print time; `""` when unset. */
+  templateKey: string;
+  templateVersion: string;
+  rendererVersion: string;
+  /** Free-form client context (browser, print dialog, …) stored verbatim. */
+  clientMetadata: Record<string, unknown>;
+  /** sha-256 of the uploaded artifact; `null` when the print carried no file. */
+  artifactChecksum: string | null;
+  artifactMimeType: string | null;
+  /** Actor user id; `null` for system-initiated renders. */
+  printedBy: string | null;
+  /** Correlation id for tracing the print request. */
+  requestId: string;
   printStatus: PrintStatus;
   printedAt: string;
 }
@@ -342,10 +397,14 @@ export interface PrintEvent {
 export interface CreatePrintEventInput {
   revisionNumber?: number | null;
   contentSnapshot?: DocumentContent;
+  /** Applicant data as resolved at print time — pinned so later applicant edits can't rewrite it. */
+  resolvedApplicantDataSnapshot?: Record<string, unknown>;
   derivedValuesSnapshot?: Record<string, unknown>;
   renderConfigSnapshot?: Record<string, unknown>;
   templateKey?: string;
   templateVersion?: string;
+  rendererVersion?: string;
+  clientMetadata?: Record<string, unknown>;
   printStatus?: PrintStatus;
 }
 
@@ -355,6 +414,10 @@ export interface CreateDocumentInput {
   label: string;
   content: DocumentContent;
   applicationCaseId?: string | null;
+  /** Defaults to 1 server-side when omitted. */
+  schemaVersion?: number;
+  templateKey?: string;
+  templateVersion?: string;
 }
 
 export interface UpdateDocumentInput {

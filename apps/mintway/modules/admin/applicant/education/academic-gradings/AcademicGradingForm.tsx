@@ -142,11 +142,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Context"
+          maxLength={150}
           disabled={isLoading}
           {...form.getInputProps("context")}
         />
         <TextInput
           label="Month / period"
+          maxLength={50}
           disabled={isLoading}
           {...form.getInputProps("month_or_period")}
         />
@@ -154,16 +156,19 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Grammar"
+          maxLength={50}
           disabled={isLoading}
           {...form.getInputProps("grammar")}
         />
         <TextInput
           label="Conversation"
+          maxLength={50}
           disabled={isLoading}
           {...form.getInputProps("conversation")}
         />
         <TextInput
           label="Composition"
+          maxLength={50}
           disabled={isLoading}
           {...form.getInputProps("composition")}
         />
@@ -171,11 +176,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Listening"
+          maxLength={50}
           disabled={isLoading}
           {...form.getInputProps("listening")}
         />
         <TextInput
           label="Reading"
+          maxLength={50}
           disabled={isLoading}
           {...form.getInputProps("reading")}
         />
@@ -208,6 +215,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         />
         <TextInput
           label="Attendance %"
+          maxLength={20}
           disabled={isLoading}
           {...form.getInputProps("attendance_percentage")}
         />

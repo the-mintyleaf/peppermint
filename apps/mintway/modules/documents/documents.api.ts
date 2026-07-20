@@ -100,8 +100,13 @@ interface RawDocument {
   status: Document["status"];
   document_content: Document["content"] | null;
   schema_version: number;
+  template_key: string;
+  template_version: string;
   current_revision_number: number;
   record_version: number;
+  finalized_at: string | null;
+  submitted_at: string | null;
+  archived_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -121,10 +126,31 @@ function toDocument(raw: RawDocument): Document {
     recordVersion: raw.record_version,
     currentRevisionNumber: raw.current_revision_number,
     schemaVersion: raw.schema_version,
+    templateKey: raw.template_key ?? "",
+    templateVersion: raw.template_version ?? "",
     applicationCaseId: raw.application_case,
+    finalizedAt: raw.finalized_at ?? null,
+    submittedAt: raw.submitted_at ?? null,
+    archivedAt: raw.archived_at ?? null,
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
   };
+}
+
+// ── Raw field coercion ───────────────────────────────────────────────────────
+// The revision / print-event / signature payloads arrive as `Record<string, unknown>`, so
+// each field is narrowed at the boundary. `Nullable=No` string fields come back as `""`
+// when unset (never null — see overview.md "Empty vs null"); `Nullable=Yes` ones keep null.
+function str(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+function nullableStr(value: unknown): string | null {
+  return value == null ? null : String(value);
+}
+function record(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
 }
 
 function toRevision(raw: Record<string, unknown>): DocumentRevision {
@@ -141,8 +167,18 @@ function toRevision(raw: Record<string, unknown>): DocumentRevision {
     labelSnapshot: String(raw.label_snapshot ?? ""),
     statusSnapshot: raw.status_snapshot as Document["status"],
     documentTypeSnapshot: type,
+    schemaVersion: Number(raw.schema_version ?? 1),
+    templateKey: str(raw.template_key),
+    templateVersion: str(raw.template_version),
     changeReason: (raw.change_reason as string) ?? undefined,
+    // Field names only — never values. Drives the revision diff view.
+    changedFields: Array.isArray(raw.changed_fields)
+      ? raw.changed_fields.map(String)
+      : [],
+    previousRevision: nullableStr(raw.previous_revision),
     changedBy: (raw.changed_by as string | null) ?? null,
+    contentChecksum: str(raw.content_checksum),
+    requestId: str(raw.request_id),
     createdAt: String(raw.created_at),
   };
 }
@@ -152,8 +188,9 @@ function toPrintEvent(raw: Record<string, unknown>): PrintEvent {
     id: String(raw.id),
     documentId: String(raw.document),
     type: toFrontendType(String(raw.document_type)),
-    revisionId:
-      raw.document_revision != null ? String(raw.document_revision) : null,
+    revisionId: nullableStr(raw.document_revision),
+    applicantId: str(raw.applicant),
+    applicationCaseId: nullableStr(raw.application_case),
     snapshot: {
       contentSnapshot: (raw.content_snapshot ?? undefined) as
         | Document["content"]
@@ -168,6 +205,14 @@ function toPrintEvent(raw: Record<string, unknown>): PrintEvent {
         | Record<string, unknown>
         | undefined,
     },
+    templateKey: str(raw.template_key),
+    templateVersion: str(raw.template_version),
+    rendererVersion: str(raw.renderer_version),
+    clientMetadata: record(raw.client_metadata),
+    artifactChecksum: nullableStr(raw.artifact_checksum),
+    artifactMimeType: nullableStr(raw.artifact_mime_type),
+    printedBy: nullableStr(raw.printed_by),
+    requestId: str(raw.request_id),
     printStatus: (raw.print_status as PrintEvent["printStatus"]) ?? "rendered",
     printedAt: String(raw.print_initiated_at ?? raw.created_at),
   };
@@ -177,11 +222,21 @@ function toSignature(raw: Record<string, unknown>): Signature {
   return {
     id: String(raw.id),
     name: String(raw.name ?? ""),
+    // The image is private — resolved separately via the authenticated `/image/` stream.
     signature_image: "",
     is_active: Boolean(raw.is_active),
     title: (raw.title as string) ?? undefined,
     organization: (raw.organization as string) ?? undefined,
     has_image: Boolean(raw.has_image),
+    email: str(raw.email),
+    phone: str(raw.phone),
+    validFrom: nullableStr(raw.valid_from),
+    validTo: nullableStr(raw.valid_to),
+    imageChecksum: nullableStr(raw.image_checksum),
+    imageMimeType: nullableStr(raw.image_mime_type),
+    archivedAt: nullableStr(raw.archived_at),
+    createdAt: str(raw.created_at),
+    updatedAt: str(raw.updated_at),
   };
 }
 
@@ -230,6 +285,15 @@ export async function createDocument(
       document_content: toBackendContent(input.type, input.content),
       ...(input.applicationCaseId
         ? { application_case_id: input.applicationCaseId }
+        : {}),
+      ...(input.schemaVersion !== undefined
+        ? { schema_version: input.schemaVersion }
+        : {}),
+      ...(input.templateKey !== undefined
+        ? { template_key: input.templateKey }
+        : {}),
+      ...(input.templateVersion !== undefined
+        ? { template_version: input.templateVersion }
         : {}),
     },
   );
@@ -340,6 +404,12 @@ export async function createPrintEvent(
       ...(input.contentSnapshot !== undefined
         ? { content_snapshot: input.contentSnapshot }
         : {}),
+      ...(input.resolvedApplicantDataSnapshot !== undefined
+        ? {
+            resolved_applicant_data_snapshot:
+              input.resolvedApplicantDataSnapshot,
+          }
+        : {}),
       ...(input.derivedValuesSnapshot !== undefined
         ? { derived_values_snapshot: input.derivedValuesSnapshot }
         : {}),
@@ -349,6 +419,12 @@ export async function createPrintEvent(
       ...(input.templateKey ? { template_key: input.templateKey } : {}),
       ...(input.templateVersion
         ? { template_version: input.templateVersion }
+        : {}),
+      ...(input.rendererVersion
+        ? { renderer_version: input.rendererVersion }
+        : {}),
+      ...(input.clientMetadata !== undefined
+        ? { client_metadata: input.clientMetadata }
         : {}),
       print_status: input.printStatus ?? "rendered",
     },

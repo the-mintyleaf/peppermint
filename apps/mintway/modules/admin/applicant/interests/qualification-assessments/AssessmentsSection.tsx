@@ -27,4 +27,7 @@ export const AssessmentsSection = createChildResource<
   modalWidth: 640,
   disableEdit: true,
   disableDelete: true,
+  // The contract describes this feed as newest-first, but the server's default
+  // ordering is unstated (gaps.md #9) — pin it rather than rely on one.
+  defaultParams: { ordering: "-assessment_date" },
 });

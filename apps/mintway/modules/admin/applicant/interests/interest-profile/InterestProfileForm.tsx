@@ -174,16 +174,19 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Preferred intake"
+          maxLength={50}
           disabled={isLoading}
           {...form.getInputProps("preferred_intake")}
         />
         <TextInput
           label="Preferred year"
+          maxLength={20}
           disabled={isLoading}
           {...form.getInputProps("preferred_year")}
         />
         <TextInput
           label="Target program"
+          maxLength={150}
           disabled={isLoading}
           {...form.getInputProps("target_program")}
         />
@@ -199,11 +202,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         />
         <TextInput
           label="Budget currency"
+          maxLength={8}
           disabled={isLoading}
           {...form.getInputProps("budget_currency")}
         />
         <TextInput
           label="Funding method"
+          maxLength={100}
           disabled={isLoading}
           {...form.getInputProps("funding_method")}
         />

@@ -35,20 +35,32 @@ interface MergeModalProps {
   onClose: () => void;
 }
 
-/** Scalar fields that may be pulled from the duplicate onto the survivor (§14.1). */
+/**
+ * The whitelisted scalar fields that may be pulled from the duplicate onto the
+ * survivor: names, contact, DOB, gender, nationality, religion, summaries,
+ * `lead_source*` and `initial_interest`. Anything omitted here simply cannot be
+ * rescued from the duplicate before it is archived, so the list must stay complete.
+ */
 const RESOLVABLE_FIELDS: { value: string; label: string }[] = [
   { value: "first_name", label: "First name" },
   { value: "middle_name", label: "Middle name" },
   { value: "last_name", label: "Last name" },
   { value: "name_native", label: "Native name" },
+  { value: "preferred_display_name", label: "Preferred display name" },
   { value: "primary_email", label: "Primary email" },
+  { value: "alternate_email", label: "Alternate email" },
   { value: "primary_phone", label: "Primary phone" },
+  { value: "alternate_phone", label: "Alternate phone" },
   { value: "date_of_birth", label: "Date of birth" },
   { value: "gender", label: "Gender" },
   { value: "nationality", label: "Nationality" },
   { value: "religion", label: "Religion" },
   { value: "summary", label: "Summary" },
   { value: "eligibility_summary", label: "Eligibility summary" },
+  { value: "counselling_notes", label: "Counselling notes" },
+  { value: "lead_source", label: "Lead source" },
+  { value: "lead_source_detail", label: "Lead source detail" },
+  { value: "initial_interest", label: "Initial interest" },
 ];
 
 /**

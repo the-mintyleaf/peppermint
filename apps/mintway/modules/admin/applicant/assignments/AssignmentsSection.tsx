@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Badge,
   Button,
@@ -34,6 +35,7 @@ function fmtDateTime(value?: string | null) {
  * assignment. Assignments are history rows — ending sets `ended_at`, never deletes.
  */
 export function AssignmentsSection({ applicantId }: { applicantId: string }) {
+  const queryClient = useQueryClient();
   const [assignOpen, setAssignOpen] = useState(false);
 
   const query = useQuery({
@@ -67,13 +69,26 @@ export function AssignmentsSection({ applicantId }: { applicantId: string }) {
     );
   }
 
-  const end = useApplicantMutation<void, { id: string; reason: string }>({
+  const end = useApplicantMutation<
+    void,
+    { id: string; reason: string; applicationCaseId?: string | null }
+  >({
     mutationFn: ({ id, reason }) => endAssignment(applicantId, id, reason),
     successTitle: "Assignment ended",
     successMessage: "The assignment was ended.",
     errorTitle: "Couldn't end assignment",
-    // A case-scoped end updates the case's counsellor, so refresh case lists too.
     invalidateKeys: [assignmentKeys.list(applicantId), caseKeys.lists()],
+    onSuccess: (_data, variables) => {
+      // Ending a case-scoped assignment clears that case's assigned_counsellor, so
+      // its *detail* cache goes stale too — invalidating only the list (as this did)
+      // left the case detail showing a counsellor who is no longer assigned. Mirrors
+      // what the assign path in AssignAssignmentModal already does.
+      if (variables.applicationCaseId) {
+        void queryClient.invalidateQueries({
+          queryKey: caseKeys.detail(variables.applicationCaseId),
+        });
+      }
+    },
   });
 
   const confirmEnd = (assignment: Assignment) =>
@@ -83,7 +98,11 @@ export function AssignmentsSection({ applicantId }: { applicantId: string }) {
       reasonRequired: false,
       confirmLabel: "End",
       onConfirm: async (reason) => {
-        await end.mutateAsync({ id: assignment.id, reason });
+        await end.mutateAsync({
+          id: assignment.id,
+          reason,
+          applicationCaseId: assignment.application_case,
+        });
       },
     });
 

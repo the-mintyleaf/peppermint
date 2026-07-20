@@ -1,5 +1,6 @@
 "use client";
 
+import { z } from "zod";
 import {
   Button,
   Group,
@@ -23,6 +24,66 @@ import type {
 } from "./LanguageTestForm.types";
 
 const TEST_TYPE_OPTIONS = toOptions(LANGUAGE_TEST_TYPE_LABELS);
+
+/** Per-`test_type` score bounds. `other` is absent — the contract leaves it unbounded. */
+const SCORE_RANGES: Record<string, { min: number; max: number }> = {
+  ielts: { min: 0, max: 9 },
+  pte: { min: 10, max: 90 },
+  toefl: { min: 0, max: 120 },
+  duolingo: { min: 10, max: 160 },
+};
+
+const SCORE_KEYS = [
+  "overall_score",
+  "listening_score",
+  "reading_score",
+  "writing_score",
+  "speaking_score",
+] as const;
+
+/**
+ * Mirrors the server's per-`test_type` range rule
+ * (`APPLICANT_LANGUAGE_TEST_SCORE_INVALID`) so an out-of-range score is caught before the
+ * request fires. Scores are decimal STRINGS: the parse below is read-only — the number is
+ * used for the comparison and thrown away, never written back into form state, so the
+ * entered precision survives to the wire. Every score is `Req ✗`, so a blank one is valid.
+ */
+const VALIDATION = z
+  .object({
+    test_type: z.string(),
+    certificate_number: z
+      .string()
+      .max(100, "Certificate number can be at most 100 characters"),
+    overall_score: z.string(),
+    listening_score: z.string(),
+    reading_score: z.string(),
+    writing_score: z.string(),
+    speaking_score: z.string(),
+  })
+  .superRefine((values, ctx) => {
+    const range = SCORE_RANGES[values.test_type];
+    for (const key of SCORE_KEYS) {
+      const raw = values[key].trim();
+      if (raw === "") continue;
+      const parsed = Number(raw);
+      if (!Number.isFinite(parsed)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Enter a number",
+          path: [key],
+        });
+        continue;
+      }
+      if (!range) continue;
+      if (parsed < range.min || parsed > range.max) {
+        ctx.addIssue({
+          code: "custom",
+          message: `Must be between ${range.min} and ${range.max} for this test`,
+          path: [key],
+        });
+      }
+    }
+  });
 
 const INITIAL: LanguageTestFormValues = {
   test_type: "ielts",
@@ -71,9 +132,12 @@ const BLANKABLE_KEYS: (keyof LanguageTestFormValues)[] = [
 ];
 
 /**
- * Build the api payload — always send test_type. Scores are decimal STRINGS, never
- * Number()'d, and are range-validated server-side per test_type (IELTS 0–9, PTE 10–90,
- * TOEFL 0–120, Duolingo 10–160); an out-of-range value surfaces as a 400.
+ * Build the api payload — always send test_type. Scores are decimal STRINGS and are
+ * never Number()'d on the way out, so the entered precision reaches the wire intact.
+ * Their per-test_type ranges (IELTS 0–9, PTE 10–90, TOEFL 0–120, Duolingo 10–160; `other`
+ * unbounded) are now checked client-side by `VALIDATION` above, which parses a copy only.
+ * The server remains the source of truth — it re-validates and still answers an
+ * out-of-range value with `APPLICANT_LANGUAGE_TEST_SCORE_INVALID` (400).
  *
  * Create and edit differ: on create an untouched field is simply omitted, but on edit
  * omitting it makes the PATCH a no-op for that key, so a user who blanks a field could
@@ -112,6 +176,7 @@ export function LanguageTestForm({
   return (
     <FormWrapper<LanguageTestFormValues>
       initial={toInitial(initialValues)}
+      validation={[VALIDATION]}
       finalSubmitFn={async (values) => {
         onSubmit(toPayload(values, isEdit));
         return { ok: true };

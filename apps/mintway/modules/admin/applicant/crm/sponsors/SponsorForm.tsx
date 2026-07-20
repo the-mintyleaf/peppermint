@@ -31,8 +31,19 @@ import type {
 const SPONSOR_TYPE_OPTIONS = toOptions(SPONSOR_TYPE_LABELS);
 const VERIFICATION_STATUS_OPTIONS = toOptions(VERIFICATION_STATUS_LABELS);
 
+/**
+ * `sponsor_type` is the only `Req ✓` field. `phone` carries its `≤32 chars` cap as a rule
+ * rather than a `maxLength` — a silently clipped number still looks like a real one.
+ * `email` is `Req ✗`, so an empty string stays valid and still clears on edit.
+ */
 const VALIDATION = z.object({
   sponsor_type: z.string().min(1, "Sponsor type is required"),
+  phone: z.string().max(32, "Phone can be at most 32 characters"),
+  email: z
+    .string()
+    .refine((value) => value === "" || z.email().safeParse(value).success, {
+      message: "Enter a valid email address",
+    }),
 });
 
 const INITIAL: SponsorFormValues = {
@@ -170,6 +181,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         />
         <TextInput
           label="Name"
+          maxLength={200}
           disabled={isLoading}
           {...form.getInputProps("name")}
         />
@@ -177,11 +189,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Relationship"
+          maxLength={100}
           disabled={isLoading}
           {...form.getInputProps("relationship_to_applicant")}
         />
         <TextInput
           label="Occupation"
+          maxLength={200}
           disabled={isLoading}
           {...form.getInputProps("occupation_or_business")}
         />
@@ -189,11 +203,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Organization"
+          maxLength={255}
           disabled={isLoading}
           {...form.getInputProps("organization_name")}
         />
         <TextInput
           label="Country"
+          maxLength={100}
           disabled={isLoading}
           {...form.getInputProps("country")}
         />
@@ -226,6 +242,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         />
         <TextInput
           label="Income currency"
+          maxLength={8}
           disabled={isLoading}
           {...form.getInputProps("income_currency")}
         />
@@ -239,12 +256,14 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         />
         <TextInput
           label="Funding currency"
+          maxLength={8}
           disabled={isLoading}
           {...form.getInputProps("funding_currency")}
         />
       </Group>
       <TextInput
         label="Funding source"
+        maxLength={150}
         disabled={isLoading}
         {...form.getInputProps("funding_source")}
       />

@@ -1,5 +1,6 @@
 "use client";
 
+import { z } from "zod";
 import {
   Button,
   Group,
@@ -23,6 +24,17 @@ import type {
 } from "./VisaHistoryForm.types";
 
 const VISA_DECISION_OPTIONS = toOptions(VISA_DECISION_LABELS);
+
+/**
+ * Every field on this resource is `Req ✗` — nothing here may be made mandatory. The plain
+ * `≤N chars` caps ride on the inputs' `maxLength`; `reference_number` gets a rule
+ * instead, because a silently clipped identifier still looks like a valid one.
+ */
+const VALIDATION = z.object({
+  reference_number: z
+    .string()
+    .max(100, "Reference number can be at most 100 characters"),
+});
 
 const INITIAL: VisaHistoryFormValues = {
   country: "",
@@ -109,6 +121,7 @@ export function VisaHistoryForm({
   return (
     <FormWrapper<VisaHistoryFormValues>
       initial={toInitial(initialValues)}
+      validation={[VALIDATION]}
       finalSubmitFn={async (values) => {
         onSubmit(toPayload(values, isEdit));
         return { ok: true };
@@ -129,11 +142,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Country"
+          maxLength={100}
           disabled={isLoading}
           {...form.getInputProps("country")}
         />
         <TextInput
           label="Visa type"
+          maxLength={100}
           disabled={isLoading}
           {...form.getInputProps("visa_type")}
         />

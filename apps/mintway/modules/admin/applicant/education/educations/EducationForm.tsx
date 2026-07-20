@@ -1,5 +1,6 @@
 "use client";
 
+import { z } from "zod";
 import {
   Button,
   Group,
@@ -23,6 +24,17 @@ import type {
 } from "./EducationForm.types";
 
 const COMPLETION_STATUS_OPTIONS = toOptions(COMPLETION_STATUS_LABELS);
+
+/**
+ * No field on this resource is required (every row is `Req ✗`). The remaining `≤N chars`
+ * caps are enforced with the input's `maxLength`; `registration_number` gets an explicit
+ * rule instead, because a silently clipped identifier still looks like a valid one.
+ */
+const VALIDATION = z.object({
+  registration_number: z
+    .string()
+    .max(100, "Registration number can be at most 100 characters"),
+});
 
 const INITIAL: EducationFormValues = {
   institution: "",
@@ -146,6 +158,7 @@ export function EducationForm({
   return (
     <FormWrapper<EducationFormValues>
       initial={toInitial(initialValues)}
+      validation={[VALIDATION]}
       finalSubmitFn={async (values) => {
         onSubmit(toPayload(values, isEdit));
         return { ok: true };
@@ -166,11 +179,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Institution"
+          maxLength={255}
           disabled={isLoading}
           {...form.getInputProps("institution")}
         />
         <TextInput
           label="Degree"
+          maxLength={150}
           disabled={isLoading}
           {...form.getInputProps("degree")}
         />
@@ -178,11 +193,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Qualification"
+          maxLength={150}
           disabled={isLoading}
           {...form.getInputProps("qualification")}
         />
         <TextInput
           label="Field of study"
+          maxLength={150}
           disabled={isLoading}
           {...form.getInputProps("field_of_study")}
         />
@@ -190,11 +207,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Program"
+          maxLength={150}
           disabled={isLoading}
           {...form.getInputProps("program")}
         />
         <TextInput
           label="Country"
+          maxLength={100}
           disabled={isLoading}
           {...form.getInputProps("country")}
         />
@@ -203,12 +222,14 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         <TextInput
           label="Start period"
           description="Free text, e.g. Spring 2021"
+          maxLength={50}
           disabled={isLoading}
           {...form.getInputProps("start_period")}
         />
         <TextInput
           label="End period"
           description="Free text, e.g. Fall 2024"
+          maxLength={50}
           disabled={isLoading}
           {...form.getInputProps("end_period")}
         />
@@ -237,16 +258,19 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="GPA"
+          maxLength={20}
           disabled={isLoading}
           {...form.getInputProps("gpa")}
         />
         <TextInput
           label="Grade"
+          maxLength={50}
           disabled={isLoading}
           {...form.getInputProps("grade")}
         />
         <TextInput
           label="Grading system"
+          maxLength={50}
           disabled={isLoading}
           {...form.getInputProps("grading_system")}
         />
@@ -260,6 +284,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         <TextInput
           label="Study duration"
           description="e.g. 4 years"
+          maxLength={50}
           disabled={isLoading}
           {...form.getInputProps("study_duration")}
         />
@@ -267,11 +292,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Academic year start"
+          maxLength={20}
           disabled={isLoading}
           {...form.getInputProps("academic_year_start")}
         />
         <TextInput
           label="Academic year end"
+          maxLength={20}
           disabled={isLoading}
           {...form.getInputProps("academic_year_end")}
         />
@@ -279,11 +306,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Graduation year"
+          maxLength={20}
           disabled={isLoading}
           {...form.getInputProps("graduation_year")}
         />
         <TextInput
           label="Year of completion"
+          maxLength={20}
           disabled={isLoading}
           {...form.getInputProps("year_of_completion")}
         />
@@ -292,11 +321,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         <TextInput
           label="Completion year (BS)"
           description="As written on the certificate, e.g. 2078"
+          maxLength={20}
           disabled={isLoading}
           {...form.getInputProps("completion_year_bs")}
         />
         <TextInput
           label="Completion year (AD)"
+          maxLength={20}
           disabled={isLoading}
           {...form.getInputProps("completion_year_ad")}
         />

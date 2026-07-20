@@ -103,11 +103,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
     <>
       <TextInput
         label="Course / training"
+        maxLength={255}
         disabled={isLoading}
         {...form.getInputProps("course_or_training")}
       />
       <TextInput
         label="Institution"
+        maxLength={255}
         disabled={isLoading}
         {...form.getInputProps("institution")}
       />
@@ -127,6 +129,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       </Group>
       <TextInput
         label="Credential"
+        maxLength={150}
         disabled={isLoading}
         {...form.getInputProps("credential")}
       />

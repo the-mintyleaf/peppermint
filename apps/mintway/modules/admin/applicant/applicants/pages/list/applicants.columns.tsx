@@ -151,7 +151,13 @@ export function getApplicantColumns(
       textAlign: "right",
       render: (a) => (
         <Group gap={4} justify="flex-end" wrap="nowrap">
-          <OpenDocumentButton applicant={a} />
+          {/*
+            Document surfaces answer staff with 404, not 403, precisely so staff
+            can't infer a document exists — so the entry point must not be rendered
+            for them either. Showing it would both leak the affordance and fire a
+            request that can only fail.
+          */}
+          {isAdmin && <OpenDocumentButton applicant={a} />}
           <ApplicantActionsMenu applicant={a} />
         </Group>
       ),

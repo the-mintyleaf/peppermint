@@ -31,7 +31,20 @@ const INITIAL: EmergencyContactFormValues = {
   is_primary: false,
 };
 
-const VALIDATION = z.object({ name: z.string().min(1, "Name is required") });
+/**
+ * `name` is the only `Req ✓` field. `phone` carries its `≤32 chars` cap as a rule rather
+ * than a `maxLength` — a silently clipped number still looks like a real one. `email` is
+ * `Req ✗`, so an empty string stays valid and still clears on edit.
+ */
+const VALIDATION = z.object({
+  name: z.string().min(1, "Name is required"),
+  phone: z.string().max(32, "Phone can be at most 32 characters"),
+  email: z
+    .string()
+    .refine((value) => value === "" || z.email().safeParse(value).success, {
+      message: "Enter a valid email address",
+    }),
+});
 
 function toInitial(
   record?: Partial<EmergencyContact>,
@@ -109,11 +122,13 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         <TextInput
           label="Name"
           withAsterisk
+          maxLength={200}
           disabled={isLoading}
           {...form.getInputProps("name")}
         />
         <TextInput
           label="Relationship"
+          maxLength={100}
           disabled={isLoading}
           {...form.getInputProps("relationship")}
         />

@@ -44,6 +44,10 @@ export function ApplicantActionsMenu({
     {
       label: "Edit",
       icon: <PencilSimpleIcon size={16} />,
+      // A locked record rejects staff writes with a 423. Disable rather than hide,
+      // so the reason the action is unavailable stays visible — and rather than let
+      // staff fill in a form that cannot be saved. Admins keep editing while locked.
+      disabled: (r) => !isAdmin && r.is_locked,
       onClick: (r) => openEditModal(r),
     },
     {
