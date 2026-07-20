@@ -21,15 +21,15 @@ Plan: `~/.claude/plans/following-this-integration-guide-proud-honey.md`
 - [x] 2c. Missing enums: `payment_status`, `education_level`, `LockAction` + `confidentiality_level` label maps
 - [x] 2d-i. `educations` — 8 missing fields
 - [x] 2d-ii. `application-case` — 10 missing type fields + form coverage (6/17 → full)
-- [ ] 2d-iii. `document` / `document-revision` / `print-event` / `signature` missing fields
+- [x] 2d-iii. document / revision / print-event / signature fields
 - [x] 2d-iv. Smaller: `age_snapshot`, `assignment.created_at`, `verified_at`, `interactions.metadata`, `evidence_media`, `application_case` links
 - [ ] 2d-v. Identity-document media links (`image_front`, `image_back`, `file`)
 - [~] 2e. `change_reason` — api layer done; capture UI still to wire
 - [~] 2f. include_archived + case ordering done; applicant filters/sortable columns + document paging remain
 - [x] 2g. Register missing error codes; field-level error routing
-- [ ] 2h. Non-disclosing 404 on document/signature surfaces + gate editor route
-- [ ] 2i. Behavioural: lock/staff-edit, merge fields, assignment cache invalidation, interest-profile 409, identity duplicate meta, assessment ordering + id handoff, case↔document link, evidence media params, print statuses, document 409 confirm
-- [ ] 2j. Validation: max-lengths, email, language-test score ranges
+- [x] 2h. Non-disclosing 404 + gated editor route + OpenDocumentButton
+- [~] 2i. Done: assignment cache, merge fields, lock/staff-edit, assessment ordering, evidence media params. Remaining: interest-profile 409, identity duplicate meta, case-document link, print statuses, document 409 confirm
+- [x] 2j. Validation: max-lengths, email, language-test score ranges
 - [ ] Phase 2 verify + commit + dual adversarial review
 
 ## Phase 3 — Missing modules
