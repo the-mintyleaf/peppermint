@@ -1,15 +1,17 @@
 /**
  * Display metadata for the applicant enums — labels, badge colors, and `<Select>`
  * option arrays. Columns and forms import from here so a label/color is defined once.
- * Values mirror `INTEGRATION.md` §4.
+ * Values mirror `docs/applicants/integration/enums.md`.
  */
 
 import type {
   AddressType,
   CaseStatus,
   CompletionStatus,
+  ConfidentialityLevel,
   ConsentStatus,
   ConsentType,
+  EducationLevel,
   EligibilityResult,
   EngagementStatus,
   EvidenceMediaCategory,
@@ -18,6 +20,8 @@ import type {
   IdentityDocumentType,
   InteractionDirection,
   InteractionType,
+  LockAction,
+  PaymentStatus,
   LanguageTestType,
   LeadSource,
   LifecycleStage,
@@ -113,6 +117,51 @@ export const LEAD_SOURCE_LABELS: Record<LeadSource, string> = {
   event: "Event",
   agent: "Agent",
   other: "Other",
+};
+
+/** Lead + applicant. The wire values read backwards, so the labels matter here. */
+export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  prepaid: "Pre-pay",
+  postpaid: "Post-pay",
+};
+
+/** Lead intake only. */
+export const EDUCATION_LEVEL_LABELS: Record<EducationLevel, string> = {
+  diploma: "Diploma",
+  bachelor: "Bachelor",
+  post_graduate: "Post-graduate",
+  masters: "Masters",
+  others: "Others",
+};
+
+/** Lock-history rows — without this the raw wire value renders. */
+export const LOCK_ACTION_LABELS: Record<LockAction, string> = {
+  locked: "Locked",
+  unlocked: "Unlocked",
+};
+
+export const LOCK_ACTION_COLORS: Record<LockAction, string> = {
+  locked: "orange",
+  unlocked: "teal",
+};
+
+/** Read-only on media; surfaced so a protected file reads as protected. */
+export const CONFIDENTIALITY_LEVEL_LABELS: Record<
+  ConfidentialityLevel,
+  string
+> = {
+  basic: "Basic",
+  protected: "Protected",
+  highly_protected: "Highly protected",
+};
+
+export const CONFIDENTIALITY_LEVEL_COLORS: Record<
+  ConfidentialityLevel,
+  string
+> = {
+  basic: "gray",
+  protected: "blue",
+  highly_protected: "red",
 };
 
 export const FOLLOW_UP_PRIORITY_LABELS: Record<FollowUpPriority, string> = {

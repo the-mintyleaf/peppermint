@@ -16,9 +16,9 @@ Plan: `~/.claude/plans/following-this-integration-guide-proud-honey.md`
 
 ## Phase 2 — Contract gaps in existing entities
 
-- [ ] 2a. Split `Applicant` into 4 documented role projections; fix enum `""` nullability
-- [ ] 2b. `payment_status` end-to-end
-- [ ] 2c. Missing enums: `payment_status`, `education_level`, `LockAction` + `confidentiality_level` label maps
+- [x] 2a. Split `Applicant` into 4 documented role projections; fix enum `""` nullability
+- [x] 2b. `payment_status` end-to-end
+- [x] 2c. Missing enums: `payment_status`, `education_level`, `LockAction` + `confidentiality_level` label maps
 - [ ] 2d-i. `educations` — 8 missing fields
 - [ ] 2d-ii. `application-case` — 10 missing type fields + form coverage (6/17 → full)
 - [ ] 2d-iii. `document` / `document-revision` / `print-event` / `signature` missing fields

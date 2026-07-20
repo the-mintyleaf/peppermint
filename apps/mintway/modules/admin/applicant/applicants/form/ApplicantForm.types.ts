@@ -28,6 +28,8 @@ export interface ApplicantFormValues extends Record<string, unknown> {
   summary: string;
   eligibility_summary: string;
   counselling_notes: string;
+  payment_status: string;
+  last_contacted_at: string;
   next_follow_up_at: string;
   follow_up_priority: string;
 }

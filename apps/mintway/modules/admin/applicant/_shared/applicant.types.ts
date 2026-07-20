@@ -1,9 +1,6 @@
 /**
- * Applicant CRM domain shapes. Source of truth: `.todo/applications/`
- * (`INTEGRATION.md` §3–4, `DATA_CONTRACT.md` §1–14, `API.md`). Responses are
- * role-projected — a staff token and an admin token calling the same GET receive
- * different field sets — so admin-only fields are modelled as optional and the UI
- * gates on the signed-in role (never on field presence).
+ * Applicant CRM domain shapes. Source of truth: the integration pack at
+ * `apps/mintway/docs/applicants/integration/` (overview.md + entities/*.md).
  */
 
 // ── Enums ───────────────────────────────────────────────────────────────────
@@ -51,6 +48,9 @@ export type AddressType =
   | "other";
 
 export type LockAction = "locked" | "unlocked";
+
+/** Read-only classification stamped on evidence media. */
+export type ConfidentialityLevel = "basic" | "protected" | "highly_protected";
 
 export type IdentityDocumentType =
   | "passport"
@@ -369,7 +369,7 @@ export interface MediaItem {
   mime_type: string;
   size_bytes: number;
   checksum: string;
-  confidentiality_level?: "basic" | "protected" | "highly_protected";
+  confidentiality_level?: ConfidentialityLevel;
   is_current: boolean;
   archived_at?: string | null;
   created_at?: string;

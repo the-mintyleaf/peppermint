@@ -11,6 +11,7 @@ import {
 
 import {
   FOLLOW_UP_PRIORITY_LABELS,
+  PAYMENT_STATUS_LABELS,
   GENDER_LABELS,
   LEAD_SOURCE_LABELS,
 } from "../../../../_shared";
@@ -128,6 +129,14 @@ export function OverviewContent({
           <InfoRow
             label="Last contacted"
             value={fmtDate(applicant.last_contacted_at)}
+          />
+          <InfoRow
+            label="Payment status"
+            value={
+              applicant.payment_status
+                ? PAYMENT_STATUS_LABELS[applicant.payment_status]
+                : undefined
+            }
           />
           <InfoRow label="Converted" value={fmtDate(applicant.converted_at)} />
           <InfoRow label="Summary" value={applicant.summary} />

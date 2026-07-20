@@ -22,6 +22,7 @@ import { NameFieldGroup } from "@/components/NameFieldGroup";
 
 import {
   FOLLOW_UP_PRIORITY_LABELS,
+  PAYMENT_STATUS_LABELS,
   GENDER_LABELS,
   LEAD_SOURCE_LABELS,
   toOptions,
@@ -31,6 +32,7 @@ import type { ApplicantFormValues } from "./ApplicantForm.types";
 const LEAD_SOURCE_OPTIONS = toOptions(LEAD_SOURCE_LABELS);
 const GENDER_OPTIONS = toOptions(GENDER_LABELS);
 const FOLLOW_UP_PRIORITY_OPTIONS = toOptions(FOLLOW_UP_PRIORITY_LABELS);
+const PAYMENT_STATUS_OPTIONS = toOptions(PAYMENT_STATUS_LABELS);
 
 /** Optional-panel keys, one per collapsible Accordion section. */
 const PANEL = {
@@ -46,6 +48,8 @@ const PANEL_FIELDS: Record<string, (keyof ApplicantFormValues)[]> = {
     "date_of_birth",
     "gender",
     "religion",
+    "payment_status",
+    "last_contacted_at",
     "next_follow_up_at",
     "follow_up_priority",
   ],
@@ -290,11 +294,19 @@ export function ApplicantFields({
                   </Group>
                   <Group grow align="flex-start">
                     <TextInput
+                      label="Last contacted"
+                      type="datetime-local"
+                      disabled={isLoading}
+                      {...form.getInputProps("last_contacted_at")}
+                    />
+                    <TextInput
                       label="Next follow-up"
                       type="datetime-local"
                       disabled={isLoading}
                       {...form.getInputProps("next_follow_up_at")}
                     />
+                  </Group>
+                  <Group grow align="flex-start">
                     <Select
                       label="Follow-up priority"
                       placeholder="Set a priority"
@@ -302,6 +314,14 @@ export function ApplicantFields({
                       data={FOLLOW_UP_PRIORITY_OPTIONS}
                       disabled={isLoading}
                       {...form.getInputProps("follow_up_priority")}
+                    />
+                    <Select
+                      label="Payment status"
+                      placeholder="Not set"
+                      clearable
+                      data={PAYMENT_STATUS_OPTIONS}
+                      disabled={isLoading}
+                      {...form.getInputProps("payment_status")}
                     />
                   </Group>
                 </Stack>

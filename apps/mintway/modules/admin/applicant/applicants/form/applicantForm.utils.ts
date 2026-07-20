@@ -27,6 +27,8 @@ export const APPLICANT_FORM_INITIAL: ApplicantFormValues = {
   summary: "",
   eligibility_summary: "",
   counselling_notes: "",
+  payment_status: "",
+  last_contacted_at: "",
   next_follow_up_at: "",
   follow_up_priority: "",
 };
@@ -61,6 +63,8 @@ export function buildApplicantSchema(requireContact: boolean) {
     summary: str(),
     eligibility_summary: str(),
     counselling_notes: str(),
+    payment_status: str(),
+    last_contacted_at: str(),
     next_follow_up_at: str(),
     follow_up_priority: str(),
   });
@@ -110,6 +114,8 @@ export function applicantToFormValues(
     summary: a.summary ?? "",
     eligibility_summary: a.eligibility_summary ?? "",
     counselling_notes: a.counselling_notes ?? "",
+    payment_status: a.payment_status ?? "",
+    last_contacted_at: toDatetimeLocalInput(a.last_contacted_at),
     next_follow_up_at: toDatetimeLocalInput(a.next_follow_up_at),
     follow_up_priority: a.follow_up_priority ?? "",
   };
@@ -143,6 +149,8 @@ const STAFF_ENUM_DATE_FIELDS: (keyof ApplicantFormValues)[] = ["lead_source"];
 const ADMIN_ENUM_DATE_FIELDS: (keyof ApplicantFormValues)[] = [
   "date_of_birth",
   "gender",
+  "payment_status",
+  "last_contacted_at",
   "next_follow_up_at",
   "follow_up_priority",
 ];
