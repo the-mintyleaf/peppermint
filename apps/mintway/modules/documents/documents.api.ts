@@ -421,11 +421,18 @@ export async function searchDocuments(
   const count = unwrapListMeta(data).count;
   return {
     data: rows,
-    // `count` is the authoritative total. When it is missing (contract mismatch) fall back to
-    // the page length so the pager never claims "0 records" while rows are on screen — it
-    // under-reports rather than fabricating a total.
+    // `count` is the authoritative total. If it is ever missing (contract mismatch)
+    // we genuinely don't know it — but reporting `rows.length` would compute to
+    // exactly one page and make pages 2..N unreachable with no error. A full page
+    // instead reports "at least one more", so paging stays possible and only the
+    // count is approximate; a short page really is the last one.
     meta: {
-      total: typeof count === "number" ? count : rows.length,
+      total:
+        typeof count === "number"
+          ? count
+          : rows.length < pageSize
+            ? (page - 1) * pageSize + rows.length
+            : page * pageSize + 1,
       page,
       pageSize,
     },

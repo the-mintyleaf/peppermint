@@ -51,6 +51,7 @@ const VALIDATION = z.object({
   first_name: z.string().trim().min(1, "First name is required").max(150),
   middle_name: z.string().max(150),
   last_name: z.string().max(150),
+  full_name: z.string().max(300),
   name_native: z.string().max(300),
   email: z
     .string()
@@ -72,6 +73,7 @@ const INITIAL: LeadFormValues = {
   first_name: "",
   middle_name: "",
   last_name: "",
+  full_name: "",
   name_native: "",
   email: "",
   contact_number: "",
@@ -100,6 +102,7 @@ function toInitial(record?: Partial<Lead>): LeadFormValues {
     first_name: record.first_name ?? "",
     middle_name: record.middle_name ?? "",
     last_name: record.last_name ?? "",
+    full_name: record.full_name ?? "",
     name_native: record.name_native ?? "",
     email: record.email ?? "",
     contact_number: record.contact_number ?? "",
@@ -123,6 +126,7 @@ function toInitial(record?: Partial<Lead>): LeadFormValues {
 const TEXT_KEYS: (keyof LeadFormValues)[] = [
   "middle_name",
   "last_name",
+  "full_name",
   "name_native",
   "email",
   "contact_number",
@@ -134,7 +138,12 @@ const TEXT_KEYS: (keyof LeadFormValues)[] = [
   "notes",
 ];
 
-/** Enum fields — DRF rejects `""` for a choice field, so drop them when blank. */
+/**
+ * Optional **enums**. These are `Nullable=No` / Django `blank=True`, so `""` is
+ * their unset value and DRF accepts it — they clear exactly like text does. They
+ * are NOT dropped when blank: doing that makes every clearable Select a no-op,
+ * which is the bug corrected across the rest of the module in 56d61a9.
+ */
 const ENUM_KEYS: (keyof LeadFormValues)[] = [
   "lead_source",
   "education_level",
@@ -142,26 +151,33 @@ const ENUM_KEYS: (keyof LeadFormValues)[] = [
 ];
 
 /**
+ * Read a Select/TextInput value as a string.
+ *
+ * A Mantine `clearable` Select writes `null` into form state on clear, not `""`.
+ * Reading these fields with a `typeof === "string"` guard would therefore skip
+ * exactly the case we need to send — the cleared one — so normalise first.
+ */
+function asString(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+/**
  * Build the api payload. `first_name` is always sent (the one required field).
  * On create empty values are dropped; on edit they are sent explicitly so a
  * cleared field actually clears rather than the PATCH no-op'ing that key —
- * `""` for the nullable=No text, `null` for `date_of_birth` and the tri-state
- * visa flag, which are the only nullable fields here.
+ * `""` for the `Nullable=No` text and enums, `null` for `date_of_birth` and the
+ * tri-state visa flag, which are the only nullable fields here.
  */
 function toPayload(values: LeadFormValues, isEdit: boolean): LeadFormPayload {
   const payload: Record<string, unknown> = {
-    first_name: values.first_name.trim(),
+    first_name: asString(values.first_name).trim(),
   };
-  for (const key of TEXT_KEYS) {
-    const value = values[key];
-    if (typeof value !== "string") continue;
+  for (const key of [...TEXT_KEYS, ...ENUM_KEYS]) {
+    const value = asString(values[key]);
     if (value !== "" || isEdit) payload[key] = value;
   }
-  for (const key of ENUM_KEYS) {
-    const value = values[key];
-    if (typeof value === "string" && value !== "") payload[key] = value;
-  }
-  if (values.date_of_birth) payload.date_of_birth = values.date_of_birth;
+  const dob = asString(values.date_of_birth);
+  if (dob) payload.date_of_birth = dob;
   else if (isEdit) payload.date_of_birth = null;
 
   // "" is genuinely "unknown" here, so it maps to null rather than being dropped —
@@ -289,13 +305,25 @@ function Fields({
             middleName={form.getInputProps("middle_name")}
             lastName={form.getInputProps("last_name")}
           />
-          <TextInput
-            label="Name (native script)"
-            placeholder="e.g. मनीषा श्रेष्ठ"
-            maxLength={300}
-            disabled={isLoading}
-            {...form.getInputProps("name_native")}
-          />
+          <Group grow align="flex-start">
+            <TextInput
+              label="Full name"
+              // The server composes this from the parts, but a mononym or a name
+              // whose composed order is wrong needs an explicit override — and
+              // this is the value the list's primary column shows.
+              description="Leave blank to compose it from the parts above"
+              maxLength={300}
+              disabled={isLoading}
+              {...form.getInputProps("full_name")}
+            />
+            <TextInput
+              label="Name (native script)"
+              placeholder="e.g. मनीषा श्रेष्ठ"
+              maxLength={300}
+              disabled={isLoading}
+              {...form.getInputProps("name_native")}
+            />
+          </Group>
 
           <Divider label="How to reach them" labelPosition="left" />
           <Group grow align="flex-start">

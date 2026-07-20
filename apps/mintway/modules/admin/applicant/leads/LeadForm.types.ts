@@ -14,6 +14,7 @@ export interface LeadFormValues extends Record<string, unknown> {
   first_name: string;
   middle_name: string;
   last_name: string;
+  full_name: string;
   name_native: string;
   email: string;
   contact_number: string;

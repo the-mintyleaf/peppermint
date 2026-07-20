@@ -208,8 +208,13 @@ export function DocumentSearchPanel({ onBack }: DocumentSearchPanelProps) {
         </ModalPaper>
       ) : (
         <DataTableShell<Document>
-          // The criteria and the retry counter live in the key, so changing either refetches
-          // without remounting (which would reset the table's page and sort).
+          // Remount on a criteria change so the table's page resets to 1. Page lives
+          // in the wrapper's own store, which criteria bypass entirely — without
+          // this, narrowing a search while on page 4 refetches page 4 of a
+          // one-page result and shows the empty state for a search that matched.
+          // Losing the sort on remount is the lesser cost.
+          key={criteriaKey}
+          // The retry counter stays in the key so Retry refetches without remounting.
           queryKey={[
             ...documentQueryKeys.search(searchParams),
             String(retryToken),

@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, Stack, Text } from "@peppermint/ui";
+import { Badge, Stack, Text, dayjs } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
 
 import type { WorkExperience } from "../../_shared";
@@ -10,15 +10,26 @@ import type { WorkExperience } from "../../_shared";
  * often give only the former — so show the period when there is one and fall
  * back to the date rather than leaving the cell empty.
  */
+function fmtDate(value?: string | null): string {
+  if (!value) return "";
+  const d = dayjs(value);
+  return d.isValid() ? d.format("MMM D, YYYY") : value;
+}
+
 function periodLabel(w: WorkExperience): string {
-  const start =
-    w.start_period || (w.start_date ? w.start_date.slice(0, 10) : "");
-  const end = w.is_current
-    ? "Present"
-    : w.end_period || (w.end_date ? w.end_date.slice(0, 10) : "");
+  const start = w.start_period || fmtDate(w.start_date);
+  const end = w.is_current ? "Present" : w.end_period || fmtDate(w.end_date);
   if (!start && !end) return "—";
   return [start || "?", end || "?"].join(" – ");
 }
+
+/**
+ * The BS siblings on `start_date`/`end_date` are not shown here: this cell is a
+ * range that prefers the free-text period and collapses to "Present" for a
+ * current role, so a single-date BS component can't express it. A BS-aware range
+ * cell is a design question, not a swap — the dates at least format consistently
+ * with every sibling table now.
+ */
 
 export const workExperienceColumns: DataTableShellColumn<WorkExperience>[] = [
   {

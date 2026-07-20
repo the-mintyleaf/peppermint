@@ -93,8 +93,8 @@ export function getDocumentSearchColumns({
           ).format("MMM D, YYYY")}`}
           withArrow
         >
-          {/* Absolute, not relative: `dayjs.extend(relativeTime)` is never called in this
-              app, so `.fromNow()` is not guaranteed to be available at runtime. */}
+          {/* Absolute, not relative: a search result is scanned against a date the
+              operator already has in mind, so "Jun 3, 2026" beats "2 months ago". */}
           <Text size="xs">{dayjs(record.updatedAt).format("MMM D, YYYY")}</Text>
         </Tooltip>
       ),

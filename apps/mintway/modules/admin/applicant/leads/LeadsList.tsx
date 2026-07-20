@@ -75,6 +75,11 @@ function LeadsListContent() {
         modalWidth={720}
         createFormComponent={LeadForm}
         editFormComponent={LeadForm}
+        // No row selection. Whether a lead may be edited is a *per-row* question
+        // — a converted one is frozen and PATCHing it 409s — and the selection
+        // toolbar's Edit button has no per-row guard, so it would bypass the one
+        // in LeadRowActions. Editing goes through the row menu, which checks.
+        disableActions
         // The list projection is the full record, but re-reading before edit keeps
         // record_version fresh so a concurrent edit conflicts instead of winning.
         onEditTrigger={(record) => getLead(record.id)}

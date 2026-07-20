@@ -10,6 +10,18 @@ import type {
   LeadUpdatePayload,
 } from "./leads.types";
 
+/**
+ * Newest enquiry first — the working set is "who came in recently and still
+ * needs handling". `created_at` is server-set and non-null, so unlike a
+ * user-entered date it always sorts deterministically.
+ */
+const DEFAULT_ORDERING = "-created_at";
+
+interface LeadListResponse {
+  data: Lead[];
+  meta: { total: number } & Record<string, unknown>;
+}
+
 const resource = createResourceApi<Lead, LeadCreatePayload, LeadUpdatePayload>({
   client: api,
   basePath: "/api/v1/applicants/leads",
@@ -19,14 +31,29 @@ const resource = createResourceApi<Lead, LeadCreatePayload, LeadUpdatePayload>({
  * `GET /api/v1/applicants/leads/` — the enquiry funnel.
  *
  * Filters: `lead_source`, `payment_status`, `education_level`, `converted`.
- * Ordering ∈ {full_name, created_at, updated_at, lead_code}. The server's default
- * ordering is unstated (gaps.md #9), so the list always sends one explicitly.
+ * Ordering ∈ {full_name, created_at, updated_at, lead_code}.
+ *
+ * An explicit `ordering` is always sent. The server's default is unstated
+ * (gaps.md #9), and an unstable one across page requests would let the same lead
+ * appear on two pages while another is never shown. `createResourceApi` only
+ * emits `ordering` when the user has picked a sort, so the default is applied
+ * here rather than relying on that.
  */
 export function fetchLeads(params?: QueryParams) {
-  return resource.list(params) as Promise<{
-    data: Lead[];
-    meta: { total: number } & Record<string, unknown>;
-  }>;
+  if (!params) return resource.list() as Promise<LeadListResponse>;
+
+  // `defaultToServerParams` spreads `filters` first and only appends its own
+  // `ordering` when a sort is set, so a filters-borne default survives when the
+  // user hasn't picked one and is correctly overridden the moment they do.
+  const hasUserSort = params.sort.length > 0;
+  return resource.list(
+    hasUserSort
+      ? params
+      : {
+          ...params,
+          filters: { ordering: DEFAULT_ORDERING, ...params.filters },
+        },
+  ) as Promise<LeadListResponse>;
 }
 
 /** `GET /api/v1/applicants/leads/{id}/`. */
