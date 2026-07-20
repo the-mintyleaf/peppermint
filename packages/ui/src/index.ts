@@ -10,7 +10,7 @@ export * from "@mantine/form";
 // to keep recharts/tiptap/embla out of the main barrel's closure:
 //   @peppermint/ui/charts · /editor · /carousel · /code-highlight · /dropzone
 export * from "@tanstack/react-query";
-export { default as dayjs } from "dayjs";
+export { dayjs } from "./dayjs";
 
 // `noop` is exported by more than one starred module (e.g. @mantine/core and
 // @tanstack/react-query); an explicit re-export disambiguates the otherwise

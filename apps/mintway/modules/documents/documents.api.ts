@@ -5,6 +5,8 @@ import type {
   Document,
   DocumentPrefill,
   DocumentRevision,
+  DocumentSearchParams,
+  DocumentSearchResult,
   DocumentStatusAction,
   DocumentType,
   DocumentWorkspaceSummary,
@@ -42,6 +44,14 @@ function unwrapList<T>(raw: unknown): T[] {
   if (Array.isArray(raw)) return raw as T[];
   const maybe = (raw as { data?: unknown } | null)?.data;
   return Array.isArray(maybe) ? (maybe as T[]) : [];
+}
+
+/** Pagination `meta` off a list envelope — `{}` for the bare-array shape. */
+function unwrapListMeta(raw: unknown): Record<string, unknown> {
+  const maybe = (raw as { meta?: unknown } | null)?.meta;
+  return maybe && typeof maybe === "object" && !Array.isArray(maybe)
+    ? (maybe as Record<string, unknown>)
+    : {};
 }
 
 // ── Certificate content key mapping ──────────────────────────────────────────
@@ -356,6 +366,72 @@ export async function listWorkspaces(): Promise<DocumentWorkspaceSummary[]> {
   return unwrapList<Record<string, unknown>>(data).map(toWorkspace);
 }
 
+// ── Cross-applicant search ───────────────────────────────────────────────────
+// Unlike the per-applicant list above (a bounded set for one applicant), search spans every
+// applicant, so it is genuinely paginated: `page` / `page_size` are always sent, `page_size`
+// is clamped to the documented max of 100, and `meta.count` is remapped to `meta.total`.
+// The endpoint's pagination *and* ordering defaults are an open gap (gaps.md #12), so both
+// are sent explicitly on every request rather than assumed.
+
+const SEARCH_DEFAULT_PAGE_SIZE = 20;
+const SEARCH_MAX_PAGE_SIZE = 100;
+/** Newest activity first — the useful default when scanning across applicants. */
+const SEARCH_DEFAULT_ORDERING = "-updated_at";
+
+function clampPageSize(pageSize: number | undefined): number {
+  const requested = Math.trunc(pageSize ?? SEARCH_DEFAULT_PAGE_SIZE);
+  if (!Number.isFinite(requested) || requested < 1) {
+    return SEARCH_DEFAULT_PAGE_SIZE;
+  }
+  return Math.min(requested, SEARCH_MAX_PAGE_SIZE);
+}
+
+/** Blank strings are dropped — an empty filter must not narrow the result set. */
+function optional(key: string, value: string | undefined) {
+  const trimmed = value?.trim();
+  return trimmed ? { [key]: trimmed } : {};
+}
+
+/** `GET /api/v1/documents/search/` — find documents across all applicants, paginated. */
+export async function searchDocuments(
+  params: DocumentSearchParams = {},
+): Promise<DocumentSearchResult> {
+  const page = Math.max(1, Math.trunc(params.page ?? 1) || 1);
+  const pageSize = clampPageSize(params.pageSize);
+
+  const { data } = await api.get(`/api/v1/documents/search/`, {
+    params: {
+      ...(params.type ? { document_type: toBackendType(params.type) } : {}),
+      ...(params.status ? { status: params.status } : {}),
+      ...optional("label", params.label),
+      ...optional("applicant", params.applicant),
+      ...optional("template_version", params.templateVersion),
+      ...optional("application_case_id", params.applicationCaseId),
+      ...optional("created_from", params.createdFrom),
+      ...optional("created_to", params.createdTo),
+      ...optional("updated_from", params.updatedFrom),
+      ...optional("updated_to", params.updatedTo),
+      page,
+      page_size: pageSize,
+      ordering: params.ordering?.trim() || SEARCH_DEFAULT_ORDERING,
+    },
+  });
+
+  const rows = unwrapList<RawDocument>(data).map(toDocument);
+  const count = unwrapListMeta(data).count;
+  return {
+    data: rows,
+    // `count` is the authoritative total. When it is missing (contract mismatch) fall back to
+    // the page length so the pager never claims "0 records" while rows are on screen — it
+    // under-reports rather than fabricating a total.
+    meta: {
+      total: typeof count === "number" ? count : rows.length,
+      page,
+      pageSize,
+    },
+  };
+}
+
 // ── Revisions ────────────────────────────────────────────────────────────────
 /** `GET /api/v1/documents/:id/revisions/` — newest first. */
 export async function listRevisions(
@@ -544,6 +620,7 @@ export const documentsApi = {
   runAction: runDocumentAction,
   fetchPrefill,
   listWorkspaces,
+  search: searchDocuments,
   listRevisions,
   restoreRevision,
   listPrintEvents,

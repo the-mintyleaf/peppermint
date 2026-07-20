@@ -8,6 +8,13 @@ export const documentQueryKeys = {
     ["documents", "print-events", documentId] as const,
   revisions: (documentId: string | null) =>
     ["documents", "revisions", documentId] as const,
+  /**
+   * Cross-applicant search. The criteria are serialized rather than nested so the key stays a
+   * `readonly string[]` — the shape `DataTableShell`'s wrapper accepts, and which it appends
+   * page / pageSize / sort to in server-query mode.
+   */
+  search: (criteria: object = {}) =>
+    ["documents", "search", JSON.stringify(criteria)] as const,
   signatures: () => ["documents", "signatures"] as const,
   signatureImage: (signatureId: string) =>
     ["documents", "signature-image", signatureId] as const,

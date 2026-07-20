@@ -15,6 +15,8 @@ export { useSignatures } from "./hooks/useSignatures";
 // Shared engine surface consumed by the admin-scoped Documents and Signatures modules.
 export { documentsApi } from "./documents.api";
 export { documentQueryKeys } from "./documents.queryKeys";
+export { documentTypeList, getDocumentTypeConfig } from "./documentTypeConfig";
+export { STATUS_META } from "./documents.status";
 
 export type {
   Document,
@@ -25,6 +27,8 @@ export type {
   PrintEvent,
   PrintStatus,
   DocumentRevision,
+  DocumentSearchParams,
+  DocumentSearchResult,
   DocumentFormProps,
   DocumentTemplateProps,
   DocumentConfigBarProps,

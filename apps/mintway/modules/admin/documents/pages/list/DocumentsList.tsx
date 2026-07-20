@@ -6,12 +6,14 @@ import { ActionIcon, Button, Group, ModalPaper, Tooltip } from "@peppermint/ui";
 import { DataTableShell } from "@peppermint/admin";
 import { ArrowUpRightIcon } from "@phosphor-icons/react/dist/csr/ArrowUpRight";
 import { InfoIcon } from "@phosphor-icons/react/dist/csr/Info";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { documentsApi, documentQueryKeys } from "@/modules/documents";
 import type { DocumentWorkspaceSummary } from "@/modules/documents";
 import { RequireDocumentAccess } from "@/modules/documents/components/RequireDocumentAccess";
 import { documentsColumns } from "./documents.columns";
 import { NewDocumentModal } from "./components/NewDocumentModal";
 import { DocumentWorkspaceDrawer } from "./components/DocumentWorkspaceDrawer";
+import { DocumentSearchPanel } from "./components/DocumentSearchPanel";
 
 /**
  * Admin Documents module: read-only table of per-applicant document workspaces. Rows open
@@ -26,6 +28,7 @@ import { DocumentWorkspaceDrawer } from "./components/DocumentWorkspaceDrawer";
 export function DocumentsList() {
   const router = useRouter();
   const [newOpen, setNewOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [detailWorkspace, setDetailWorkspace] =
     useState<DocumentWorkspaceSummary | null>(null);
 
@@ -63,6 +66,17 @@ export function DocumentsList() {
     },
   ];
 
+  // Workspaces answer "what does this applicant have?"; search answers "where is this
+  // document, across everyone?". They are two different questions over two different row
+  // shapes, so they swap the body of the page rather than sharing one table.
+  if (searchOpen) {
+    return (
+      <RequireDocumentAccess>
+        <DocumentSearchPanel onBack={() => setSearchOpen(false)} />
+      </RequireDocumentAccess>
+    );
+  }
+
   return (
     <RequireDocumentAccess>
       <DataTableShell<DocumentWorkspaceSummary>
@@ -87,6 +101,16 @@ export function DocumentsList() {
         disableActions
         sustained
         onNewClick={() => setNewOpen(true)}
+        headerRight={
+          <Button
+            size="xs"
+            variant="light"
+            leftSection={<MagnifyingGlassIcon size={14} aria-hidden />}
+            onClick={() => setSearchOpen(true)}
+          >
+            Search all documents
+          </Button>
+        }
         pageSizes={[10, 20, 50]}
         defaultPageSize={20}
         mainComponent={ModalPaper}

@@ -435,6 +435,46 @@ export interface UpdateDocumentInput {
 }
 
 /**
+ * Criteria for `GET /api/v1/documents/search/` — the cross-applicant document search.
+ * Every field maps 1:1 onto a documented query param (`document.md` §3 search); an omitted
+ * or blank field is simply not sent, so the server never sees an empty filter.
+ */
+export interface DocumentSearchParams {
+  /** `document_type` — frontend slug; translated to the backend slug at the API layer. */
+  type?: DocumentType;
+  /** `status` — one of the six document statuses. */
+  status?: DocumentStatus;
+  /** `label` — free-text match on the document label. */
+  label?: string;
+  /** `applicant` — applicant code **or** name (the backend accepts either). */
+  applicant?: string;
+  /** `template_version` — renderer metadata. */
+  templateVersion?: string;
+  /** `application_case_id` — narrows to documents linked to one case. */
+  applicationCaseId?: string;
+  /** `created_from` — `YYYY-MM-DD`. */
+  createdFrom?: string;
+  /** `created_to` — `YYYY-MM-DD`. */
+  createdTo?: string;
+  /** `updated_from` — `YYYY-MM-DD`. */
+  updatedFrom?: string;
+  /** `updated_to` — `YYYY-MM-DD`. */
+  updatedTo?: string;
+  /** 1-based page. Defaults to 1 — never rely on a server default (gaps.md #12). */
+  page?: number;
+  /** Page size, **max 100** (overview.md §Pagination). Clamped at the API layer. */
+  pageSize?: number;
+  /** DRF `ordering`, e.g. `-updated_at`. Always sent — the server default is unstated. */
+  ordering?: string;
+}
+
+/** Paginated search response — `meta.count` is remapped to `meta.total` at the API layer. */
+export interface DocumentSearchResult {
+  data: Document[];
+  meta: { total: number; page: number; pageSize: number };
+}
+
+/**
  * Reusable applicant data composed by `GET /applicants/:id/document-prefill/`. Kept loose —
  * it aggregates the applicant plus profile children; the editor maps the fields it needs into
  * a document snapshot (documents are persisted independently, §12.5).
