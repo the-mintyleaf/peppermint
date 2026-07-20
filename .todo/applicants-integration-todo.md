@@ -45,6 +45,6 @@ Plan: `~/.claude/plans/following-this-integration-guide-proud-honey.md`
 - [x] 4a-i. Add ~20 missing `_bs` type fields
 - [x] 4a-ii. Shared BS display component (`BsDateText`) + `bsDateColumn` helper
 - [x] 4a-iii. Apply across date columns and detail views (see 28155ee for the surfaces with no date column at all)
-- [ ] 4b. Revision diff (`changed_fields`), print artifact multipart, signature validity window, detail reads
-- [ ] 4c. `/update-ai-map` — app AI.md + applicant module AI.md
+- [x] 4b. Revision diff, change_reason UI, signature validity (print artifact: api layer only — UI needs a product decision)
+- [x] 4c. AI maps — app + applicant module
 - [ ] Phase 4 verify + commit + dual adversarial review
