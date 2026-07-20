@@ -406,6 +406,13 @@ export interface CreatePrintEventInput {
   rendererVersion?: string;
   clientMetadata?: Record<string, unknown>;
   printStatus?: PrintStatus;
+  /**
+   * Optional rendered file (PDF/PNG) to store alongside the evidence record. Present ⇒ the
+   * request is sent as `multipart/form-data` instead of JSON (`document-print-event.md` §7).
+   * Never echoed back as data — the server answers with `artifact_checksum` /
+   * `artifact_mime_type` only.
+   */
+  artifact?: File | null;
 }
 
 export interface CreateDocumentInput {
@@ -506,8 +513,12 @@ export interface SignatureInput {
   email?: string;
   phone?: string;
   isActive?: boolean;
-  validFrom?: string;
-  validTo?: string;
+  /**
+   * `Nullable=Yes` (`signature.md` §1) — `null` clears the stored date. Omit the key
+   * entirely to leave the server value untouched.
+   */
+  validFrom?: string | null;
+  validTo?: string | null;
   imageFile?: File | null;
 }
 

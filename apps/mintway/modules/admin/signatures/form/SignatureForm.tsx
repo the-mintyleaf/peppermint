@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Group, Stack, TextInput } from "@peppermint/ui";
+import { Button, DateInput, Group, Stack, TextInput } from "@peppermint/ui";
 import {
   FormWrapper,
   useFormControls,
@@ -14,17 +14,27 @@ import type {
   SignatureFormValues,
 } from "./SignatureForm.types";
 
-const schema = z.object({
-  name: z.string().min(1, "Required"),
-  title: z.string(),
-  organization: z.string(),
-  email: z
-    .string()
-    .refine((v) => !v || /^\S+@\S+\.\S+$/.test(v), "Invalid email"),
-  phone: z.string(),
-  // File | null — kept loose; the shell/API validate the upload itself.
-  imageFile: z.any(),
-});
+const schema = z
+  .object({
+    name: z.string().min(1, "Required"),
+    title: z.string(),
+    organization: z.string(),
+    email: z
+      .string()
+      .refine((v) => !v || /^\S+@\S+\.\S+$/.test(v), "Invalid email"),
+    phone: z.string(),
+    validFrom: z.string().nullable(),
+    validTo: z.string().nullable(),
+    // File | null — kept loose; the shell/API validate the upload itself.
+    imageFile: z.any(),
+  })
+  // Both bounds are optional and either may stand alone, but an inverted window is a data
+  // error the backend does not reject — catch it here rather than store a signatory that can
+  // never be valid. `YYYY-MM-DD` compares correctly as a string.
+  .refine((v) => !v.validFrom || !v.validTo || v.validFrom <= v.validTo, {
+    message: "Valid to must be on or after Valid from",
+    path: ["validTo"],
+  });
 
 /**
  * `Signature` now carries `email`/`phone`, so the edit prefill shows the stored values instead
@@ -40,6 +50,8 @@ function toInitial(record?: Partial<Signature>): SignatureFormValues {
     organization: record?.organization ?? "",
     email: record?.email ?? "",
     phone: record?.phone ?? "",
+    validFrom: record?.validFrom ?? null,
+    validTo: record?.validTo ?? null,
     imageFile: null,
   };
 }
@@ -121,6 +133,28 @@ function SignatureFields({
           placeholder="+1 555 000 1234"
           disabled={isLoading}
           {...form.getInputProps("phone")}
+        />
+      </Group>
+      {/* Both bounds are optional: an open-ended signatory leaves them blank. They sit after
+          the identity fields because they qualify the signatory rather than identify one. */}
+      <Group grow align="flex-start">
+        <DateInput
+          label="Valid from"
+          description="Optional"
+          placeholder="No start date"
+          valueFormat="YYYY-MM-DD"
+          clearable
+          disabled={isLoading}
+          {...form.getInputProps("validFrom")}
+        />
+        <DateInput
+          label="Valid to"
+          description="Optional"
+          placeholder="No end date"
+          valueFormat="YYYY-MM-DD"
+          clearable
+          disabled={isLoading}
+          {...form.getInputProps("validTo")}
         />
       </Group>
       <Button

@@ -45,6 +45,8 @@ export function useDocumentHistory(
       snapshot: { content: rev.contentSnapshot },
       at: rev.createdAt,
       revisionNumber: rev.revisionNumber,
+      changeReason: rev.changeReason,
+      changedFields: rev.changedFields,
     }));
 
     const printEntries: ActiveHistoricalEntry[] = (printEventsQuery.data ?? [])

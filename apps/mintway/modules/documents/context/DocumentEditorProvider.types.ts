@@ -21,6 +21,13 @@ export interface ActiveHistoricalEntry {
   snapshot: HistoricalSnapshot;
   at: string;
   revisionNumber?: number;
+  /** Revision entries only — the operator-supplied reason for the edit, when one was given. */
+  changeReason?: string;
+  /**
+   * Revision entries only — names of the `document_content` fields the revision touched.
+   * Field *names* only, never values (`document-revision.md` §1).
+   */
+  changedFields?: string[];
 }
 
 export interface DocumentEditorContextValue {
@@ -40,7 +47,16 @@ export interface DocumentEditorContextValue {
   closeCreateModal: () => void;
   editFieldsModalOpen: boolean;
   setEditFieldsModalOpen: (open: boolean) => void;
-  updateDocumentContent: (documentId: string, content: DocumentContent) => void;
+  /**
+   * Persist a content edit. `changeReason` is optional and is recorded on the revision the
+   * PATCH appends — only the deliberate "Edit fields → Save" path offers it (see
+   * `EditFieldsModal`); never prompt for it on an incidental write.
+   */
+  updateDocumentContent: (
+    documentId: string,
+    content: DocumentContent,
+    changeReason?: string,
+  ) => void;
   /**
    * Render-only content update: writes to the local query cache so the preview/print reflect
    * the change, but never persists or creates a revision snapshot. Used by the bank

@@ -5,6 +5,7 @@ import type { DataTableShellColumn } from "@peppermint/admin";
 import type { Signature } from "@/modules/documents";
 import { SignatureRowActionsMenu } from "./components/SignatureRowActionsMenu";
 import { SignatureStatusCell } from "./components/SignatureStatusCell";
+import { SignatureValidityCell } from "./components/SignatureValidityCell";
 
 export const signaturesColumns: DataTableShellColumn<Signature>[] = [
   { accessor: "name", title: "Name", sortable: true },
@@ -22,6 +23,12 @@ export const signaturesColumns: DataTableShellColumn<Signature>[] = [
     accessor: "is_active",
     title: "Status",
     render: (r) => <SignatureStatusCell signature={r} />,
+  },
+  // Directly after Status: the two together answer "is this signatory usable today?".
+  {
+    accessor: "validFrom",
+    title: "Validity",
+    render: (r) => <SignatureValidityCell signature={r} />,
   },
   {
     accessor: "has_image",

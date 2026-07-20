@@ -157,6 +157,10 @@ function str(value: unknown): string {
 function nullableStr(value: unknown): string | null {
   return value == null ? null : String(value);
 }
+// Override the client's default JSON Content-Type so axios sends multipart with a boundary
+// (otherwise it JSON-stringifies the FormData and drops the file). Mirrors evidenceMedia.api.ts.
+const MULTIPART = { headers: { "Content-Type": "multipart/form-data" } };
+
 function record(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -473,45 +477,87 @@ export async function listPrintEvents(
   return unwrapList<Record<string, unknown>>(data).map(toPrintEvent);
 }
 
-/** `POST /api/v1/documents/:id/print-events/` — derived values stored verbatim. */
+/**
+ * The print-event create body, minus the artifact — shared by the JSON and the multipart
+ * paths so both send byte-identical evidence fields.
+ */
+function toPrintEventBody(
+  input: CreatePrintEventInput,
+): Record<string, unknown> {
+  return {
+    // The revision is referenced by NUMBER on create, never by id (§7).
+    ...(input.revisionNumber != null
+      ? { revision_number: input.revisionNumber }
+      : {}),
+    ...(input.contentSnapshot !== undefined
+      ? { content_snapshot: input.contentSnapshot }
+      : {}),
+    ...(input.resolvedApplicantDataSnapshot !== undefined
+      ? {
+          resolved_applicant_data_snapshot: input.resolvedApplicantDataSnapshot,
+        }
+      : {}),
+    ...(input.derivedValuesSnapshot !== undefined
+      ? { derived_values_snapshot: input.derivedValuesSnapshot }
+      : {}),
+    ...(input.renderConfigSnapshot !== undefined
+      ? { render_config_snapshot: input.renderConfigSnapshot }
+      : {}),
+    ...(input.templateKey ? { template_key: input.templateKey } : {}),
+    ...(input.templateVersion
+      ? { template_version: input.templateVersion }
+      : {}),
+    ...(input.rendererVersion
+      ? { renderer_version: input.rendererVersion }
+      : {}),
+    ...(input.clientMetadata !== undefined
+      ? { client_metadata: input.clientMetadata }
+      : {}),
+    print_status: input.printStatus ?? "rendered",
+  };
+}
+
+/**
+ * Multipart body for a print event carrying a rendered artifact. The snapshot fields are
+ * JSON objects, and a multipart part is a string — so each one is serialised with
+ * `JSON.stringify` (DRF's MultiPartParser hands the raw string to the JSONField, which
+ * parses it). Scalars are appended as-is; `revision_number` stays a number-as-string, which
+ * is what DRF's IntegerField expects from form input.
+ */
+function toPrintEventFormData(
+  input: CreatePrintEventInput,
+  artifact: File,
+): FormData {
+  const fd = new FormData();
+  for (const [key, value] of Object.entries(toPrintEventBody(input))) {
+    fd.append(
+      key,
+      typeof value === "object" && value !== null
+        ? JSON.stringify(value)
+        : String(value),
+    );
+  }
+  fd.append("artifact", artifact);
+  return fd;
+}
+
+/**
+ * `POST /api/v1/documents/:id/print-events/` — derived values stored verbatim.
+ * Sent as JSON, or as multipart when an `artifact` (the rendered file) is attached —
+ * the FormData is built here at the api layer, per `document-print-event.md` §7.
+ */
 export async function createPrintEvent(
   documentId: string,
   input: CreatePrintEventInput,
 ): Promise<PrintEvent> {
-  const { data } = await api.post<Record<string, unknown>>(
-    `/api/v1/documents/${documentId}/print-events/`,
-    {
-      ...(input.revisionNumber != null
-        ? { revision_number: input.revisionNumber }
-        : {}),
-      ...(input.contentSnapshot !== undefined
-        ? { content_snapshot: input.contentSnapshot }
-        : {}),
-      ...(input.resolvedApplicantDataSnapshot !== undefined
-        ? {
-            resolved_applicant_data_snapshot:
-              input.resolvedApplicantDataSnapshot,
-          }
-        : {}),
-      ...(input.derivedValuesSnapshot !== undefined
-        ? { derived_values_snapshot: input.derivedValuesSnapshot }
-        : {}),
-      ...(input.renderConfigSnapshot !== undefined
-        ? { render_config_snapshot: input.renderConfigSnapshot }
-        : {}),
-      ...(input.templateKey ? { template_key: input.templateKey } : {}),
-      ...(input.templateVersion
-        ? { template_version: input.templateVersion }
-        : {}),
-      ...(input.rendererVersion
-        ? { renderer_version: input.rendererVersion }
-        : {}),
-      ...(input.clientMetadata !== undefined
-        ? { client_metadata: input.clientMetadata }
-        : {}),
-      print_status: input.printStatus ?? "rendered",
-    },
-  );
+  const url = `/api/v1/documents/${documentId}/print-events/`;
+  const { data } = input.artifact
+    ? await api.post<Record<string, unknown>>(
+        url,
+        toPrintEventFormData(input, input.artifact),
+        MULTIPART,
+      )
+    : await api.post<Record<string, unknown>>(url, toPrintEventBody(input));
   return toPrintEvent(data);
 }
 
@@ -545,15 +591,16 @@ function toSignatureFormData(input: SignatureInput): FormData {
   if (input.phone !== undefined) fd.append("phone", input.phone);
   if (input.isActive !== undefined)
     fd.append("is_active", String(input.isActive));
-  if (input.validFrom !== undefined) fd.append("valid_from", input.validFrom);
-  if (input.validTo !== undefined) fd.append("valid_to", input.validTo);
+  // `valid_from` / `valid_to` are the only `Nullable=Yes` writable fields here. FormData has
+  // no null, so a cleared date is sent as `""` — DRF converts an empty HTML/multipart value to
+  // `None` for a nullable field with no `allow_blank` (which is every DateField). An omitted
+  // key still means "leave unchanged", which is why the `undefined` check stays separate.
+  if (input.validFrom !== undefined)
+    fd.append("valid_from", input.validFrom ?? "");
+  if (input.validTo !== undefined) fd.append("valid_to", input.validTo ?? "");
   if (input.imageFile) fd.append("signature_image", input.imageFile);
   return fd;
 }
-
-// Override the client's default JSON Content-Type so axios sends multipart with a boundary
-// (otherwise it JSON-stringifies the FormData and drops the file). Mirrors evidenceMedia.api.ts.
-const MULTIPART = { headers: { "Content-Type": "multipart/form-data" } };
 
 /** `POST /api/v1/signatures/` — multipart. */
 export async function createSignature(

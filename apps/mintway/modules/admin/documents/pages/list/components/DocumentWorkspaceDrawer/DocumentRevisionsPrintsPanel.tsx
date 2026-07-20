@@ -10,8 +10,12 @@ import {
   dayjs,
   useQuery,
 } from "@peppermint/ui";
-import { documentsApi, documentQueryKeys } from "@/modules/documents";
-import type { PrintStatus } from "@/modules/documents";
+import {
+  documentsApi,
+  documentQueryKeys,
+  humanizeChangedFields,
+} from "@/modules/documents";
+import type { DocumentRevision, PrintStatus } from "@/modules/documents";
 import { QueryErrorState } from "@/components/QueryErrorState";
 
 interface DocumentRevisionsPrintsPanelProps {
@@ -30,6 +34,60 @@ const PRINT_STATUS_COLORS: Record<PrintStatus, string> = {
 function fmt(value: string): string {
   const d = dayjs(value);
   return d.isValid() ? d.fromNow() : value;
+}
+
+/**
+ * Past this many field names the list stops being scannable and starts being a wall — the
+ * remainder collapses to a count, which still answers "was this a small fix or a rewrite?".
+ */
+const MAX_VISIBLE_CHANGED_FIELDS = 6;
+
+/**
+ * One revision: what changed, why, and when. `changedFields` carries field *names* only
+ * (`document-revision.md` §1) — a name list is the honest diff at this density; a
+ * value-level diff would need both snapshots and a viewer this drawer has no room for.
+ * Rendered only when the server recorded names: an empty list means none were recorded,
+ * and a "not recorded" caption on every row would be noise, not information.
+ */
+function RevisionRow({ revision }: { revision: DocumentRevision }) {
+  const changed = humanizeChangedFields(revision.changedFields);
+  const visible = changed.slice(0, MAX_VISIBLE_CHANGED_FIELDS);
+  const overflow = changed.length - visible.length;
+
+  return (
+    <Stack gap={4}>
+      <Group justify="space-between" wrap="nowrap" gap="sm">
+        <Group gap="xs" wrap="nowrap">
+          <Badge size="xs" variant="light" color="gray">
+            #{revision.revisionNumber}
+          </Badge>
+          <Text size="xs" c={revision.changeReason ? undefined : "dimmed"}>
+            {revision.changeReason || "No reason given"}
+          </Text>
+        </Group>
+        <Text size="xs" c="dimmed" style={{ whiteSpace: "nowrap" }}>
+          {fmt(revision.createdAt)}
+        </Text>
+      </Group>
+      {changed.length > 0 && (
+        <Group gap={4} wrap="wrap" pl={4}>
+          <Text size="xs" c="dimmed">
+            Changed:
+          </Text>
+          {visible.map((field) => (
+            <Badge key={field} size="xs" variant="default" tt="none">
+              {field}
+            </Badge>
+          ))}
+          {overflow > 0 && (
+            <Text size="xs" c="dimmed">
+              +{overflow} more
+            </Text>
+          )}
+        </Group>
+      )}
+    </Stack>
+  );
 }
 
 export function DocumentRevisionsPrintsPanel({
@@ -88,21 +146,7 @@ export function DocumentRevisionsPrintsPanel({
           No revisions yet.
         </Text>
       ) : (
-        revisionList.map((rev) => (
-          <Group key={rev.id} justify="space-between" wrap="nowrap" gap="sm">
-            <Group gap="xs" wrap="nowrap">
-              <Badge size="xs" variant="light" color="gray">
-                #{rev.revisionNumber}
-              </Badge>
-              <Text size="xs" c={rev.changeReason ? undefined : "dimmed"}>
-                {rev.changeReason || "No reason given"}
-              </Text>
-            </Group>
-            <Text size="xs" c="dimmed" style={{ whiteSpace: "nowrap" }}>
-              {fmt(rev.createdAt)}
-            </Text>
-          </Group>
-        ))
+        revisionList.map((rev) => <RevisionRow key={rev.id} revision={rev} />)
       )}
 
       <Divider label={`Prints (${printList.length})`} labelPosition="left" />

@@ -17,6 +17,10 @@ export { documentsApi } from "./documents.api";
 export { documentQueryKeys } from "./documents.queryKeys";
 export { documentTypeList, getDocumentTypeConfig } from "./documentTypeConfig";
 export { STATUS_META } from "./documents.status";
+export {
+  humanizeChangedFields,
+  humanizeFieldName,
+} from "./utils/changedFields";
 
 export type {
   Document,

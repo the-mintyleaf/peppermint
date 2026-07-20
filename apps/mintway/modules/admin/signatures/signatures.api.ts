@@ -25,11 +25,27 @@ export function reactivateSignature(
 }
 
 /**
+ * `Nullable=Yes` fields (`signature.md` §1) — cleared by sending `null`, which the api layer
+ * writes as an empty multipart part. On **create** an unset bound is simply omitted; on
+ * **edit** it must be sent as `null`, or clearing a date in the form would leave the stored
+ * value in place. This is the same isEdit split the CRM forms use (see `SponsorForm`).
+ */
+const NULLABLE_KEYS = ["validFrom", "validTo"] as const;
+
+/**
  * Map the form's value shape to the API input (trims + drops empty optionals). Lifecycle
  * (`is_active`) is intentionally omitted — create sends it explicitly, edit never touches it.
+ *
+ * The `Nullable=No` text fields keep their existing create-shaped behaviour: blank maps to
+ * `undefined` and the api layer omits it, so clearing one retains the server's value. That
+ * is a pre-existing limitation of these fields, tracked separately — the date bounds below
+ * are `Nullable=Yes` and do clear.
  */
-export function toSignatureInput(values: SignatureFormValues): SignatureInput {
-  return {
+export function toSignatureInput(
+  values: SignatureFormValues,
+  isEdit = false,
+): SignatureInput {
+  const input: SignatureInput = {
     name: values.name.trim(),
     title: values.title.trim() || undefined,
     organization: values.organization.trim() || undefined,
@@ -37,6 +53,13 @@ export function toSignatureInput(values: SignatureFormValues): SignatureInput {
     phone: values.phone.trim() || undefined,
     imageFile: values.imageFile,
   };
+
+  for (const key of NULLABLE_KEYS) {
+    const value = values[key];
+    if (isEdit || value) input[key] = value || null;
+  }
+
+  return input;
 }
 
 export type { Signature };

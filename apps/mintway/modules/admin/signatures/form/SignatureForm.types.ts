@@ -8,6 +8,13 @@ export interface SignatureFormValues extends Record<string, unknown> {
   organization: string;
   email: string;
   phone: string;
+  /**
+   * `Nullable=Yes` date bounds (`signature.md` §1), held as the `YYYY-MM-DD` strings
+   * Mantine's `DateInput` reads/writes. `null` is "no bound", and on edit it clears the
+   * stored value rather than leaving it untouched.
+   */
+  validFrom: string | null;
+  validTo: string | null;
   imageFile: File | null;
 }
 

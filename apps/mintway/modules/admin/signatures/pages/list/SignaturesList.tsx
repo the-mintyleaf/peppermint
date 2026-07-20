@@ -54,7 +54,7 @@ function SignaturesListContent() {
         createSignature({ ...toSignatureInput(values), isActive: true })
       }
       onEditApi={(values, record) =>
-        updateSignature(record.id, toSignatureInput(values))
+        updateSignature(record.id, toSignatureInput(values, true))
       }
       onCreateSuccess={invalidateEditor}
       onEditSuccess={invalidateEditor}

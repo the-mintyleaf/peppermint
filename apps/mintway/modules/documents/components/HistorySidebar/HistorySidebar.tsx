@@ -21,6 +21,7 @@ import { useDocumentHistory } from "../../hooks/useDocumentHistory";
 import { useDocumentActions } from "../../hooks/useDocumentActions";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
 import { isEditableStatus } from "../../documents.status";
+import { humanizeChangedFields } from "../../utils/changedFields";
 import type {
   Document,
   DocumentConfigBarProps,
@@ -65,6 +66,30 @@ const DocumentCustomizations = memo(function DocumentCustomizations({
   }
   return <ConfigBar document={document} onUpdate={onUpdate} />;
 });
+
+/**
+ * This sidebar is a narrow rail, so the changed-field list is a single clipped sentence
+ * rather than the badge row the admin drawer can afford. Field *names* only — that is all
+ * `changed_fields` carries (`document-revision.md` §1). The full list stays available in
+ * the admin workspace drawer.
+ */
+const MAX_VISIBLE_CHANGED_FIELDS = 3;
+
+function ChangedFieldsSummary({ fields }: { fields: string[] }) {
+  const labels = humanizeChangedFields(fields);
+  if (labels.length === 0) return null;
+
+  const visible = labels.slice(0, MAX_VISIBLE_CHANGED_FIELDS);
+  const overflow = labels.length - visible.length;
+  const summary =
+    visible.join(", ") + (overflow > 0 ? ` +${overflow} more` : "");
+
+  return (
+    <Text fz={10} c="dimmed" lh={1.2} title={labels.join(", ")}>
+      Changed: {summary}
+    </Text>
+  );
+}
 
 export function HistorySidebar({ onClose }: HistorySidebarProps) {
   const {
@@ -219,6 +244,16 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
                             {typeLabel} ·{" "}
                             {new Date(entry.at).toLocaleTimeString()}
                           </Text>
+                          {isRevision && entry.changeReason && (
+                            <Text fz={10} lh={1.2} lineClamp={2}>
+                              {entry.changeReason}
+                            </Text>
+                          )}
+                          {isRevision && entry.changedFields && (
+                            <ChangedFieldsSummary
+                              fields={entry.changedFields}
+                            />
+                          )}
                           {isRevision && entry.revisionNumber !== undefined && (
                             <Menu
                               shadow="md"

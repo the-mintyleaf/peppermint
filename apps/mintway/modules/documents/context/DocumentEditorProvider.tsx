@@ -126,15 +126,22 @@ export function DocumentEditorProvider({
       type,
       content,
       recordVersion,
+      changeReason,
     }: {
       id: string;
       type: DocumentType;
       content: DocumentContent;
       recordVersion: number;
+      changeReason?: string;
     }) => {
       try {
         return {
-          doc: await documentsApi.update(id, { type, content, recordVersion }),
+          doc: await documentsApi.update(id, {
+            type,
+            content,
+            recordVersion,
+            changeReason,
+          }),
           conflict: false,
         };
       } catch (error) {
@@ -147,6 +154,9 @@ export function DocumentEditorProvider({
               type,
               content,
               recordVersion: fresh.recordVersion,
+              // The retry writes the same edit, so it carries the same reason — otherwise a
+              // conflicted save would silently lose it and read "No reason given".
+              changeReason,
             }),
             conflict: true,
           };
@@ -217,7 +227,7 @@ export function DocumentEditorProvider({
   }, []);
 
   const updateDocumentContent = useCallback(
-    (documentId: string, content: DocumentContent) => {
+    (documentId: string, content: DocumentContent, changeReason?: string) => {
       const doc = documentsRef.current.find((d) => d.id === documentId);
       if (!doc) return;
       setHasPendingEdits(true);
@@ -226,6 +236,8 @@ export function DocumentEditorProvider({
         type: doc.type,
         content,
         recordVersion: doc.recordVersion,
+        // Blank → omitted, so the backend records no reason rather than an empty one.
+        changeReason: changeReason?.trim() || undefined,
       });
     },
     [updateMutation],
