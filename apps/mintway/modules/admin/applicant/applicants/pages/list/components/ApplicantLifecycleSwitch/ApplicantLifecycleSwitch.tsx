@@ -22,8 +22,9 @@ import type { ApplicantLifecycleSwitchProps } from "./ApplicantLifecycleSwitch.t
  * The Stage / Engagement cell. For an admin on a live record it becomes a status switch
  * (the shared pale-pill look): picking a target opens the lifecycle modal pre-filled with
  * that choice, so the reason/assessment rules still apply before anything is written.
- * Staff, archived records, and dead-end stages fall back to a plain read-only badge — the
- * lever never appears where the server would reject the change.
+ * Staff and archived/merged records fall back to a plain read-only badge — the lever never
+ * appears where the server would reject the change. A live record already at the final
+ * stage keeps the switch pill but shows a check with a disabled dropdown (nothing forward).
  */
 export function ApplicantLifecycleSwitch({
   applicant,
@@ -50,16 +51,14 @@ export function ApplicantLifecycleSwitch({
     <StatusBadge value={current} colorMap={colors} labelMap={labels} />
   );
 
-  // No lever for staff, terminal records (archived or merged — the server rejects a
-  // transition on either, matching ApplicantActionBar's `isTerminal`), or a stage with
-  // nowhere forward to go.
-  if (
-    !isAdmin ||
-    applicant.archived_at ||
-    applicant.merged_into ||
-    targets.length === 0
-  )
-    return badge;
+  // No lever for staff or terminal records (archived or merged — the server rejects a
+  // transition on either, matching ApplicantActionBar's `isTerminal`). A live record with
+  // nowhere forward to go (the final "Applicant" stage) keeps the switch look for row
+  // consistency but reads as a settled status: a check mark instead of the caret, with the
+  // dropdown disabled so it can't be opened.
+  if (!isAdmin || applicant.archived_at || applicant.merged_into) return badge;
+
+  const isTerminal = targets.length === 0;
 
   // `target` drives everything: setting it mounts the modal (seeded from the pick via
   // useState initializers); clearing it on close unmounts. No modal tree — and no idle
@@ -69,13 +68,18 @@ export function ApplicantLifecycleSwitch({
 
   return (
     <>
-      <Menu position="bottom-start" withinPortal>
+      <Menu position="bottom-start" withinPortal disabled={isTerminal}>
         <Menu.Target>
           <StatusSwitchButton
             fullWidth
+            terminal={isTerminal}
             label={labels[current] ?? current}
             color={colors[current] ?? "gray"}
-            aria-label={`Change ${isStage ? "stage" : "engagement"} for ${applicant.full_name}, currently ${labels[current] ?? current}`}
+            aria-label={
+              isTerminal
+                ? `${isStage ? "Stage" : "Engagement"} for ${applicant.full_name}: ${labels[current] ?? current} — final ${isStage ? "stage" : "status"}, no change available`
+                : `Change ${isStage ? "stage" : "engagement"} for ${applicant.full_name}, currently ${labels[current] ?? current}`
+            }
           />
         </Menu.Target>
         <Menu.Dropdown>

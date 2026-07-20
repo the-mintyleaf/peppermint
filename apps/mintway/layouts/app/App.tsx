@@ -11,7 +11,7 @@ export function LayoutApp({ children }: { children: React.ReactNode }) {
       {...mantineHtmlProps}
       style={{
         background:
-          "linear-gradient(160deg, var(--mantine-color-dark-9) 0%, var(--mantine-color-brand-9) 100%)",
+          "linear-gradient(160deg, var(--mantine-color-dark-6) 0%, var(--mantine-color-dark-9) 100%)",
       }}
     >
       <head>

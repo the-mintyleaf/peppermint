@@ -6,7 +6,4 @@ export interface ApplicantProfileModalProps {
 
 export interface ApplicantProfileBodyProps {
   applicantId: string;
-  onClose: () => void;
-  /** Report edit-form open state so the parent can hold its close affordances. */
-  onEditingChange: (editing: boolean) => void;
 }

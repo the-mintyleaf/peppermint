@@ -80,6 +80,13 @@ Check these before assuming an API signature. Use `next/navigation` not `next/ro
 
 Never use the `sx` prop (deprecated). Never apply global CSS classes to Mantine components.
 
+**Modals** — the app theme sets the `Modal` body padding to `0` globally, so modal content renders edge-to-edge by default. **Always confirm this first** by checking the app's Mantine component overrides at `apps/<app>/config/theme/theme.mantine.components.tsx` (the `Modal.extend` → `styles.body.padding` value) before deciding how to add padding back. Whenever you open a modal you must restore the padding yourself:
+
+- `Modal` / `Modals` (component or `modals.open`) — **do not reach for `styles`.** Contain the body content in structural elements — `Box`, `Stack`, `Modal.Section` — and set padding via the `p` prop on those containers. Padding lives on the content wrapper, never on the modal's own `styles`.
+- `useConfirmModal` / `modals.openConfirmModal` — here you **do** use `styles`: add padding through `inner` (the inner content wrapper), so the confirm body and actions aren't flush against the edges.
+
+Never ship a modal whose content sits flush against the modal edges.
+
 **Images** — use Next.js `<Image>` (from `next/image`) for all images in `assets/img/`. Use a plain `<img>` only for externally-hosted images where the source domain can't be added to `next.config`.
 
 **Error handling:**

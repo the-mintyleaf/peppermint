@@ -23,6 +23,7 @@ export function ModuleSignIn() {
       brand={["mintway", "by mintyleaf.co"]}
       panelTagline="Work done right."
       panelHeading="Sketched from the ground up to make the work work."
+      panelBackgroundImage="https://images.pexels.com/photos/30788621/pexels-photo-30788621.jpeg"
       loginApi={`${API_URL}/api/v1/auth/login/`}
       identifierField="username"
       successRedirectUrl="/admin"

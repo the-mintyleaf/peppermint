@@ -191,13 +191,13 @@ function HomeDashboard() {
 
   return (
     <Stack gap="lg" py="md">
-      <Group justify="space-between" align="flex-end" gap="md">
+      <Group my="xl" justify="space-between" align="flex-end" gap="md">
         <Stack gap={2}>
-          <Title order={3}>
+          <Title size="2rem" c="white">
             {greetingWord(new Date(now).getHours())}
             {name ? `, ${name}` : ""}
           </Title>
-          <Text size="sm" c="dimmed">
+          <Text size="sm" c="gray.5">
             Here&apos;s what&apos;s happening across your applicants
             {freshness ? ` · updated ${freshness}` : ""}
           </Text>

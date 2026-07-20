@@ -39,9 +39,9 @@ export function EditCurrentDocumentButton({
       variant="filled"
       leftSection={<EditIcon size={14} aria-hidden />}
       onClick={() => setEditFieldsModalOpen(true)}
-      aria-label="Edit only"
+      aria-label="Edit"
     >
-      Edit only
+      Edit
     </Button>
   );
 }

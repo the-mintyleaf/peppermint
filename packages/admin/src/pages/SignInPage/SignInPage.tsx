@@ -62,6 +62,7 @@ export function SignInPage({
   brand = ["Portal", "by Peppermint"],
   panelTagline = "Work done right.",
   panelHeading = "Sketched from the ground up to make the work work.",
+  panelBackgroundImage,
   icon,
   loginApi,
   identifierField,
@@ -268,6 +269,18 @@ export function SignInPage({
 
   const hasAnySocial = socialProviders > 0;
 
+  // Layered over the image, a flat 50%-black gradient halves its brightness so the
+  // panel's light text stays readable regardless of the source image.
+  const panelBackgroundStyle = panelBackgroundImage
+    ? {
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${JSON.stringify(
+          panelBackgroundImage,
+        )})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }
+    : undefined;
+
   return (
     <>
       <Container h="100vh">
@@ -278,10 +291,15 @@ export function SignInPage({
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
+                ...panelBackgroundStyle,
               }}
               px="4rem"
               py="5rem"
-              bg="linear-gradient(120deg, var(--mantine-color-brand-9),var(--mantine-color-brand-7))"
+              bg={
+                panelBackgroundImage
+                  ? undefined
+                  : "linear-gradient(120deg, var(--mantine-color-brand-9),var(--mantine-color-brand-7))"
+              }
               h="calc(100vh - 2*var(--mantine-spacing-xl))"
               my="xl"
               radius="lg"

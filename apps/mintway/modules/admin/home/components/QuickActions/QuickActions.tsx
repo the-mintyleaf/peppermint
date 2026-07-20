@@ -14,11 +14,12 @@ import type { QuickActionsProps } from "./QuickActions.types";
  */
 export function QuickActions({ isAdmin }: QuickActionsProps) {
   return (
-    <Group gap="sm">
+    <Group gap="xs">
       <Button
         component={Link}
         href="/admin/applicants"
-        leftSection={<UserPlusIcon size={18} aria-hidden />}
+        size="xs"
+        leftSection={<UserPlusIcon size={14} aria-hidden />}
       >
         New applicant
       </Button>
@@ -27,7 +28,8 @@ export function QuickActions({ isAdmin }: QuickActionsProps) {
           component={Link}
           href="/admin/documents"
           variant="default"
-          leftSection={<FileTextIcon size={18} aria-hidden />}
+          size="xs"
+          leftSection={<FileTextIcon size={14} aria-hidden />}
         >
           New document
         </Button>

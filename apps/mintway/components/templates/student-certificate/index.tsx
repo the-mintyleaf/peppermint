@@ -336,13 +336,13 @@ export function TemplateStudentCertificate({
               </Grid.Col>
               <Grid.Col span={12}>
                 <Text fz={10}>
-                  <b>コース名(Course name) :</b> {d.batch.course?.name ?? ""}
+                  <b>コース名(Course name) :</b> {d.batch?.course?.name ?? ""}
                 </Text>
               </Grid.Col>
               <Grid.Col span={12}>
                 <Text fz={10}>
                   <b>使用教材(Textbook) : </b>{" "}
-                  {d.batch.course?.books?.map((b) => b.name).join(", ") ?? ""}
+                  {d.batch?.course?.books?.map((b) => b.name).join(", ") ?? ""}
                 </Text>
               </Grid.Col>
               <Grid.Col span={12}>
@@ -350,10 +350,10 @@ export function TemplateStudentCertificate({
                   履修内容：文法(Grammar)、会話(Conversation)、聴解(Listening)、読解(Reading)、作文(Composition)
                   <br />
                   コース時間(Total Course Hour) :{" "}
-                  {(d.batch.course?.total_days ?? 0) * d.coursehour} Hours (
+                  {(d.batch?.course?.total_days ?? 0) * d.coursehour} Hours (
                   {d.coursehour} Hours per Day)
                   <br />
-                  目標レベル(Target level) : {d.batch.course?.level ?? ""}
+                  目標レベル(Target level) : {d.batch?.course?.level ?? ""}
                 </Text>
               </Grid.Col>
             </Grid>

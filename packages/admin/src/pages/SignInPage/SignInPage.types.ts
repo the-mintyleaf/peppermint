@@ -31,6 +31,12 @@ export interface SignInPageProps {
   brand?: [string, string];
   panelTagline?: string;
   panelHeading?: string;
+  /**
+   * Optional background image URL for the left brand panel (the container holding the
+   * brand, tagline and heading). When set, it replaces the default gradient and is always
+   * dimmed to half brightness via a black overlay so the panel text stays legible.
+   */
+  panelBackgroundImage?: string;
   icon?: React.ReactNode;
   loginApi: string;
   /** Which key the entered credential is sent under, e.g. `{ identifier, password }`. Defaults from `skipEmailValidation`. */

@@ -1,0 +1,2817 @@
+# MintFlow Work Module — Architecture, Requirements, Dynamic Hierarchy Workflow, and Integration Contract
+
+**Document status:** Implementation-grade architecture and requirements specification  
+**Module owner:** `work`  
+**Contract version:** `1.0.0`  
+**Snapshot date:** 2026-07-17  
+**Target stack:** Django 5.1.9, Django REST Framework, PostgreSQL  
+**Deployment posture:** Local-first, privacy-first, audit-first  
+**Intended reader:** Backend architect, Claude Code, implementation reviewers, security reviewers, QA engineers
+
+---
+
+## 1. Document purpose
+
+This document defines the `work` module for MintFlow. It is intended to be sufficiently explicit that an AI coding agent cannot safely invent its own domain rules, static approval chains, hidden authorization logic, or undocumented schema.
+
+This is a final implementation requirement, not a brainstorming note. It should be treated as a government-grade, audit-first, least-privilege, need-to-know specification aligned with established institutional security practice: immutable history, explicit lifecycle transitions, anti-enumeration, document provenance, separation of duties, and no hidden state.
+
+The module is the operational heart of MintFlow. It must track:
+
+- what objective must be achieved;
+- who created it;
+- which organization and organizational unit are responsible;
+- which actor is currently accountable;
+- which actors execute tasks and subtasks;
+- what actions were performed;
+- what evidence supports those actions;
+- where delay or blockage occurred;
+- which hierarchy path controlled assignment, response, review, and escalation;
+- who reviewed the result;
+- how the work concluded;
+- what was communicated to internal and external stakeholders.
+
+The governing principle is:
+
+> At every point in time, MintFlow must be able to explain who was accountable, what was expected, what happened, what evidence supports it, where it was delayed, who reviewed it, how it concluded, and under what authority each action occurred.
+
+---
+
+## 2. Authoritative existing project context
+
+The current backend already contains these governance modules:
+
+| Existing module | Authoritative responsibility |
+|---|---|
+| `authenticate` | Actor identity, authentication eligibility, sessions, MFA, service accounts, security state |
+| `organization` | Organizations, units, closure-table hierarchy, positions, position assignments, memberships, reporting lines, delegations, structural history |
+| `permissions` | Roles, role bindings, direct grants, direct denials, and permission decision evaluation at global, organization, and organization-unit scope |
+| `core.policy_engine` | Registry of applications, models, endpoints, permission keys, categories, dependencies, versions, and policy changelogs |
+| `core` | Shared API envelope, exception formatting, logging, request ID, pagination, authentication defaults, health/readiness infrastructure |
+
+The `work` module must integrate with these modules. It must not duplicate their source-of-truth data or build a second identity, organization, hierarchy, authorization, or policy system.
+
+The repository does **not** currently contain final standalone `cases`, `events`, `notifications`, `documents`, `audit`, or `evaluation` applications. This specification defines clean integration boundaries for them without silently implementing those domains inside `work`.
+
+If the foundational `events` app is introduced in this program, it must remain domain-neutral and project-wide. It should own only generic append-only event infrastructure, not work semantics. `work` remains the source of truth for work state and work history, while `events` receives durable event envelopes for institutional memory, search, analytics, projection, and audit consumption. The initial architecture already places a foundational event ledger before `work`; if implemented now, it must be the first controlled prerequisite, not a replacement for work history.
+
+---
+
+## 3. Definition of work
+
+### 3.1 Formal definition
+
+> A Work Item is an auditable organizational objective assigned to one accountable actor, executed through tasks and subtasks, supported by activity records and evidence, governed by dynamic organizational hierarchy, and resolved through a controlled closure process.
+
+### 3.2 Work aggregate
+
+A work item is not merely a row with `title`, `assignee`, and `status`. It is an aggregate containing:
+
+```text
+Objective
+├── Accountable ownership
+├── Responsible organization and unit
+├── Tasks and subtasks
+├── Execution assignments
+├── Participants
+├── Hierarchy resolutions
+├── Activity records
+├── Evidence references
+├── Reviews and review rounds
+├── Status transitions
+├── Closure decision
+├── Internal notification events
+└── External stakeholders
+```
+
+### 3.3 High-level lifecycle
+
+```text
+Start → Actions → Closure
+```
+
+Expanded:
+
+```text
+Creation → Assignment/Acceptance → Execution → Review → Closure → Archive
+```
+
+---
+
+## 4. Module ownership boundary
+
+### 4.1 The `work` module owns
+
+- work objectives and descriptive details;
+- current accountable owner and ownership history;
+- responsible organization and organizational unit references;
+- task and subtask hierarchy;
+- execution assignments and assignment responses;
+- work participants;
+- dynamic hierarchy resolution snapshots for work actions;
+- routing and cross-unit handoff records;
+- append-only work activity records;
+- work-specific evidence associations;
+- immutable document attachment provenance and document-version references used by work;
+- work and task status transitions;
+- review requests, rounds, decisions, and comments;
+- work closure outcomes;
+- archival and restoration state;
+- external concerned-party relationships to work;
+- transactional outbox records for downstream notifications/events;
+- neutral operational metrics and durations derived from work history.
+
+### 4.2 The `work` module does not own
+
+- passwords, authentication, sessions, MFA, or actor security state;
+- organization/unit creation or hierarchy maintenance;
+- positions, reporting-line definition, memberships, or delegation definition;
+- role/grant/deny creation or general permission evaluation;
+- policy registry internals;
+- physical file-lake design or generalized document storage;
+- generalized notification inbox/delivery preferences;
+- universal event ledger;
+- formal audit findings;
+- employee or department performance scoring;
+- case lifecycle;
+- generalized configurable workflow templates;
+- AI-generated autonomous decisions.
+
+### 4.3 Cross-app coupling rule
+
+- Foreign keys to authoritative identity and organization models are permitted when required.
+- Business reads from another app must use that app's documented public selectors.
+- Business mutations in another app must use that app's documented public services.
+- The implementation must not import another app's internal service helpers, private utilities, serializers, or view logic.
+- Actual existing selector/service names must be inspected in the repository. Claude must not invent names and claim they already exist.
+
+---
+
+## 5. Non-negotiable domain invariants
+
+### INV-001 — Every active work item has one accountable actor
+
+Every non-archived work item must have exactly one current accountable owner.
+
+- If no owner is selected at creation, the creator becomes owner.
+- If another actor is selected, accountability transfers only after the assignment or handover is accepted according to the rules in this document.
+- No active work may become ownerless.
+
+### INV-002 — Every work item has organizational scope
+
+Every work item must reference:
+
+- one organization;
+- one responsible organizational unit;
+- one accountable actor.
+
+### INV-003 — Creator is immutable
+
+`created_by` and `created_at` never change. Ownership transfer never rewrites the creator.
+
+### INV-004 — Ownership cannot be changed by direct field update
+
+Changing current accountable ownership must use the ownership-transfer service. Direct serializer updates to `current_owner` are forbidden.
+
+### INV-005 — Ownership transfer requires explicit acceptance
+
+The current owner remains accountable until the proposed owner accepts. Rejection, expiry, or cancellation leaves current ownership unchanged.
+
+### INV-006 — Work and tasks are never hard deleted
+
+Delete behavior is archive behavior. Historical records remain queryable by authorized users.
+
+### INV-007 — Meaningful mutations create append-only history
+
+Every assignment, acceptance, rejection, routing, transfer, start, block, unblock, review submission, review decision, completion, closure, reopening, archive, restore, evidence verification, and correction must create a historical record.
+
+### INV-008 — Status cannot be arbitrarily patched
+
+Statuses change only through named service commands with transition validation. Generic `PATCH status=...` is forbidden.
+
+### INV-009 — Hierarchy is dynamically resolved
+
+No department name, actor ID, position ID, or approval chain may be hard-coded into work logic. Assignment response, review, escalation, and visibility must resolve from the effective organization structure.
+
+### INV-010 — Historical hierarchy decisions cannot be rewritten
+
+Every hierarchy-driven decision stores an immutable resolution snapshot. Later changes to units, heads, reporting lines, positions, or delegations must not alter the historical explanation of an earlier decision.
+
+### INV-011 — Future hierarchy actions use current effective structure
+
+Visibility, future review resolution, escalation, and newly issued routing decisions use the current effective hierarchy at the time of the action.
+
+### INV-012 — Hierarchy changes do not silently transfer ownership
+
+Moving a unit, changing a unit head, or changing an actor's supervisor does not automatically rewrite current work ownership. Ownership changes only through explicit transfer/reassignment rules, except controlled recovery when the owner is no longer eligible.
+
+### INV-013 — Activity and evidence history is correction-based
+
+Submitted accountability entries are not silently edited. Corrections create a new record referencing the incorrect or superseded record.
+
+### INV-014 — Review-required work cannot self-complete
+
+When review is required, execution completion produces a review submission, not final completion. Final completion depends on an authorized review decision.
+
+### INV-015 — Closure and successful completion are different concepts
+
+A work item may close as completed, partially completed, not completed, cancelled, duplicate, superseded, out of scope, or withdrawn.
+
+### INV-016 — Relationship does not replace permission
+
+Being creator, owner, assignee, reviewer, participant, unit head, or ancestor head may establish resource relevance or visibility, but the actor must still possess the required permission key through the `permissions` module.
+
+### INV-017 — Permission does not automatically expose every row
+
+Having a broad action permission does not automatically permit reading every work item. Work-specific visibility, organization scope, hierarchy relationship, and sensitivity rules must also pass.
+
+### INV-018 — Work records facts; evaluation interprets them
+
+The work module may calculate durations and counts. It must not label an actor or department good, poor, efficient, inefficient, or underperforming.
+
+---
+
+## 6. Dynamic hierarchy-driven workflow
+
+This is a foundational requirement.
+
+The work lifecycle is stable, but the people and units responsible for assignment, response, review, escalation, and visibility are determined dynamically from the organization structure.
+
+### 6.1 Authoritative organization inputs
+
+The hierarchy resolver must use effective records from the `organization` module, including where applicable:
+
+- organization membership;
+- organization-unit membership;
+- active position assignment;
+- explicit reporting line;
+- unit head position and current assignee;
+- parent/ancestor units from the closure table;
+- root unit or organization-level head;
+- active delegation;
+- membership, assignment, reporting-line, and delegation effective dates;
+- unit and organization active state.
+
+### 6.2 Resolution precedence
+
+For a hierarchy-dependent target such as reviewer, escalation recipient, response recipient, or supervisor, use this precedence:
+
+1. An explicitly assigned authorized target for the current action, when the action allows explicit selection.
+2. The active explicit reporting-line supervisor of the responsible actor or position.
+3. The active head of the actor's responsible unit.
+4. The active head of the nearest ancestor unit.
+5. Continue upward through ancestor units.
+6. Resolve the root-unit or organization head.
+7. Apply an active eligible delegation when the resolved authority has delegated the relevant action/scope.
+8. If no eligible target exists, block the action with `WORK_HIERARCHY_TARGET_UNRESOLVED`; never guess.
+
+### 6.3 Effective-time rule
+
+Each hierarchy lookup must use an explicit `effective_at` timestamp.
+
+- For a new action, `effective_at` is normally the current transaction time.
+- For reconstructing history, use the timestamp stored in the resolution snapshot.
+- Never use today's hierarchy to explain an action that occurred under an older hierarchy.
+
+### 6.4 Hierarchy resolution snapshot
+
+Every hierarchy-driven action must store:
+
+- organization ID;
+- source actor ID;
+- source unit ID;
+- source position ID when applicable;
+- resolved target actor ID;
+- resolved target unit ID;
+- resolved target position ID when applicable;
+- ordered unit ancestry path;
+- ordered reporting/authority path where available;
+- resolution strategy used;
+- delegation ID when used;
+- effective timestamp;
+- reason for resolution;
+- action type;
+- source work/task/assignment/review identifier;
+- structure/history identifiers when exposed by the organization module.
+
+### 6.5 Hierarchy-change behavior
+
+| Situation | Required behavior |
+|---|---|
+| Unit moves under another parent | Past snapshots remain unchanged; future visibility/escalation uses new ancestry |
+| Unit head changes | Existing owner remains; future unit-head visibility and new hierarchy actions use new head |
+| Actor's supervisor changes | Past review/routing records remain; future supervisor resolution uses new reporting line |
+| Owner changes unit but remains eligible | Ownership remains unless business rules require transfer; visibility is recomputed from current responsible work unit and explicit participation |
+| Owner becomes inactive, leaves organization, or loses eligibility | Work enters reassignment-required state; authorized hierarchy resolves a replacement; previous owner remains in history |
+| Delegation begins | New eligible actions may resolve to delegate; existing historical targets remain unchanged |
+| Delegation ends | Future actions revert to normal authority chain |
+| Organization structure cannot resolve a head | Action is blocked and surfaced to authorized administrators; no silent fallback to arbitrary staff |
+
+### 6.6 Assignment response path
+
+The response path must not be a static “send to department head” rule.
+
+For a task or work response:
+
+1. Prefer the actor who issued the active assignment when that actor remains active and authorized within the relevant scope.
+2. If the assignment issuer is no longer eligible, dynamically resolve the nearest eligible superior through the current hierarchy.
+3. For a cross-unit task, return operational results to the accountable work owner while preserving visibility for the assignee's unit head and ancestors.
+4. For a work-level completion submission, resolve the reviewer using the owner's current effective hierarchy unless an explicit authorized reviewer was established.
+5. A return as “not completed” must include a reason, supporting activity/evidence, and the hierarchy resolution used.
+
+### 6.7 Unit-targeted routing
+
+When work is routed to an organizational unit rather than a named actor:
+
+- the unit becomes the responsible routing target;
+- the system resolves the unit's active dispatcher position if such a documented concept exists in `organization`;
+- otherwise it resolves the active unit head;
+- otherwise it walks to the nearest ancestor head;
+- the resolved actor receives a pending assignment or routing request;
+- the work remains owned by the previous owner until acceptance;
+- a unit queue view must expose pending routed work to authorized unit leadership;
+- routing loops must be detected.
+
+### 6.8 Routing loop detection
+
+The system must detect repeated routing paths such as:
+
+```text
+Unit A → Unit B → Unit A
+```
+
+Required safeguards:
+
+- store every routing hop;
+- reject an identical immediate reverse route unless an override reason and permission exist;
+- detect repeated units within the active route chain;
+- after a configurable maximum hop count, escalate to the nearest common ancestor head;
+- do not hard-code the hop limit in views; define it in module configuration with a documented default.
+
+### 6.9 Dynamic hierarchy flowchart
+
+```mermaid
+flowchart TD
+    A[Hierarchy-dependent work action requested] --> B[Authenticate actor]
+    B --> C[Check policy permission at org/unit scope]
+    C -->|Denied| X[Return stable authorization error]
+    C -->|Allowed| D[Load effective organization context]
+    D --> E{Explicit eligible target exists?}
+    E -->|Yes| J[Select explicit target]
+    E -->|No| F{Active reporting-line supervisor?}
+    F -->|Yes| J
+    F -->|No| G{Active unit head?}
+    G -->|Yes| J
+    G -->|No| H[Walk ancestor units]
+    H --> I{Eligible ancestor/root head found?}
+    I -->|No| Y[Block: hierarchy target unresolved]
+    I -->|Yes| J
+    J --> K{Eligible active delegation applies?}
+    K -->|Yes| L[Resolve delegate]
+    K -->|No| M[Keep resolved authority]
+    L --> N[Create immutable hierarchy snapshot]
+    M --> N
+    N --> O[Validate work lifecycle preconditions]
+    O -->|Invalid| Z[Return lifecycle error; no mutation]
+    O -->|Valid| P[Execute transactional work action]
+    P --> Q[Write transition/activity/outbox records]
+```
+
+---
+
+## 7. Actor roles inside work
+
+These roles are work-domain relationships. They do not replace permission roles.
+
+| Work relationship | Meaning |
+|---|---|
+| Creator | Immutable actor who created the work |
+| Accountable owner | Single actor ultimately responsible for closure |
+| Task assignee | Actor responsible for executing a task/subtask |
+| Assignment issuer | Actor who issued a current assignment |
+| Contributor | Actor permitted to add scoped activity/evidence |
+| Reviewer | Actor responsible for a review decision |
+| Watcher/observer | Actor permitted to receive updates and read within defined visibility |
+| Responsible unit | Organizational unit institutionally accountable for the work |
+| Task responsible unit | Unit responsible for a particular task, possibly different from work unit |
+| External stakeholder | Person or institution outside internal actor scope linked for approved communication |
+
+Rules:
+
+- One work item has one current accountable owner.
+- Tasks may have different assignees and responsible units.
+- A reviewer cannot approve a submission they authored unless an explicit self-review rule and permission exists. Default: self-review forbidden.
+- A unit head's visibility is derived from hierarchy, not stored as a permanent participant row for every work item.
+
+---
+
+## 8. Work lifecycle state machine
+
+### 8.1 Work statuses
+
+Use lowercase `TextChoices` values:
+
+```text
+assignment_pending
+accepted
+in_progress
+blocked
+review_pending
+changes_requested
+closure_pending
+closed
+archived
+```
+
+### 8.2 Initial status
+
+- Creator remains owner: initial status is `accepted`.
+- Another actor is proposed as owner: initial status is `assignment_pending`, while the creator remains accountable until acceptance.
+- A unit is targeted: initial status is `assignment_pending`, and the creator remains accountable until a resolved unit recipient accepts.
+
+### 8.3 Allowed work transitions
+
+| From | To | Command | Core requirements |
+|---|---|---|---|
+| `assignment_pending` | `accepted` | accept assignment/handover | recipient eligible and authorized |
+| `assignment_pending` | `accepted` | cancel proposed assignment and retain creator | creator/authorized manager; history preserved |
+| `accepted` | `in_progress` | start work | owner eligible |
+| `in_progress` | `blocked` | report blocker | blocker type and reason required |
+| `blocked` | `in_progress` | resolve blocker | resolution note required |
+| `in_progress` | `review_pending` | submit for review | required tasks/evidence satisfied |
+| `review_pending` | `changes_requested` | request changes | reviewer decision and comments required |
+| `changes_requested` | `in_progress` | resume changes | owner/assignee acknowledges request |
+| `review_pending` | `closure_pending` | approve review | authorized reviewer |
+| `in_progress` | `closure_pending` | submit closure without review | only when review is not required |
+| `closure_pending` | `closed` | close work | authorized closer; closure outcome required |
+| `closed` | `in_progress` | reopen work | separate permission and reason required |
+| any non-archived status | `archived` | archive | separate permission and archive reason |
+| `archived` | prior safe status | restore | separate permission; restoration record required |
+
+Direct transition from `in_progress` to `closed` is forbidden.
+
+### 8.4 Closure outcomes
+
+```text
+completed
+partially_completed
+not_completed
+cancelled
+duplicate
+superseded
+out_of_scope
+withdrawn
+```
+
+Mandatory rules:
+
+- `completed`: completion summary and supporting evidence/activity required.
+- `partially_completed`: completed scope, unresolved scope, and reason required.
+- `not_completed`: reason, accountability report, and unresolved task summary required.
+- `cancelled`: cancellation authority and reason required.
+- `duplicate`: canonical work reference required.
+- `superseded`: replacement work reference required.
+- `out_of_scope`: routing history and scope explanation required.
+- `withdrawn`: withdrawing authority and reason required.
+
+### 8.5 Work lifecycle flowchart
+
+```mermaid
+stateDiagram-v2
+    [*] --> accepted: creator is owner
+    [*] --> assignment_pending: another owner/unit proposed
+    assignment_pending --> accepted: accepted
+    assignment_pending --> accepted: proposal cancelled; creator retained
+    accepted --> in_progress: start
+    in_progress --> blocked: blocker reported
+    blocked --> in_progress: blocker resolved
+    in_progress --> review_pending: submit for review
+    review_pending --> changes_requested: changes requested
+    changes_requested --> in_progress: changes resumed
+    review_pending --> closure_pending: approved
+    in_progress --> closure_pending: review not required
+    closure_pending --> closed: closure authorized
+    closed --> in_progress: reopened
+    accepted --> archived: archive
+    in_progress --> archived: archive
+    blocked --> archived: archive
+    review_pending --> archived: archive
+    closure_pending --> archived: archive
+    closed --> archived: archive
+    archived --> accepted: restore to safe state
+    archived --> in_progress: restore to prior active state
+```
+
+---
+
+## 9. Task and subtask model
+
+### 9.1 Structure
+
+Use one `WorkTask` model with a nullable self-referencing `parent_task`.
+
+- `parent_task = NULL`: top-level task.
+- `parent_task != NULL`: subtask.
+- Do not create separate `Task` and `SubTask` tables.
+
+### 9.2 Structural rules
+
+- A parent and child must belong to the same work item.
+- A task cannot be its own ancestor.
+- Circular task ancestry is forbidden.
+- Task ordering must be stable within the same parent.
+- Task depth must be validated through a configurable maximum. Recommended initial operational maximum: 5 levels.
+- Deleting a task means cancel/archive according to task lifecycle; no hard delete after any activity or assignment exists.
+
+### 9.3 Task statuses
+
+```text
+not_started
+assignment_pending
+accepted
+in_progress
+blocked
+review_pending
+changes_requested
+completed
+returned_uncompleted
+cancelled
+archived
+```
+
+### 9.4 Task completion rules
+
+- A task may be completed only by an eligible current assignee or authorized hierarchy actor.
+- If review is required, the assignee submits for review; the reviewer completes approval.
+- If the assignee cannot complete it, use `return_uncompleted_task()` with reason, report, evidence, and hierarchy response resolution.
+- `returned_uncompleted` is not silently reassigned. The work owner or resolved hierarchy actor must decide whether to revise, reassign, cancel, or close the task.
+- Parent completion may require all mandatory child tasks to be completed or explicitly waived by an authorized actor with recorded reason.
+
+### 9.5 Dependencies
+
+A task may depend on another task in the same work item.
+
+Dependency types:
+
+```text
+finish_to_start
+start_to_start
+informational
+external_blocker
+```
+
+- Circular blocking dependencies are forbidden.
+- A blocked dependency must contribute to blocked-duration metrics.
+- Cross-work dependencies are deferred until a `cases` or generalized workflow layer defines their contract.
+
+---
+
+## 10. Assignment, acceptance, handover, and routing
+
+### 10.1 Assignment categories
+
+```text
+accountable_owner
+executor
+reviewer
+contributor
+observer
+```
+
+### 10.2 Assignment target
+
+An assignment may target:
+
+- a specific actor;
+- an organization unit requiring dynamic recipient resolution;
+- a position, only if the organization module exposes a stable documented position-target contract.
+
+### 10.3 Assignment statuses
+
+```text
+pending
+accepted
+rejected_out_of_scope
+clarification_requested
+cancelled
+expired
+revoked
+ended
+```
+
+### 10.4 Assignment response
+
+The recipient may:
+
+- accept;
+- reject as out of scope;
+- request clarification;
+- recommend a unit or actor for routing.
+
+Rejection requires:
+
+- reason;
+- optional recommended unit;
+- optional recommended actor;
+- comments/evidence where applicable;
+- hierarchy snapshot;
+- timestamp.
+
+Rejection does not automatically transfer accountability.
+
+### 10.5 Ownership transfer
+
+Ownership transfer is a specialized handover:
+
+```text
+requested → accepted | rejected | cancelled | expired
+```
+
+Required fields:
+
+- current owner;
+- proposed owner;
+- current responsible unit;
+- proposed responsible unit when changing;
+- initiated by;
+- reason;
+- requested at;
+- expires at when used;
+- accepted/rejected by;
+- decision remarks;
+- hierarchy snapshot;
+- effective at.
+
+Atomic acceptance must:
+
+1. verify current ownership has not changed;
+2. verify recipient eligibility;
+3. re-check permission and scope;
+4. close the previous owner assignment;
+5. set the new current owner;
+6. update responsible unit only when explicitly approved;
+7. create transition/history records;
+8. create outbox events;
+9. increment the aggregate version.
+
+### 10.6 Ineligible owner recovery
+
+When an owner becomes inactive, leaves the organization, or loses required membership:
+
+- do not erase ownership history;
+- mark the work `reassignment_required` through a derived flag or integrity state, not an undocumented status;
+- prevent actions that require an eligible owner;
+- notify authorized hierarchy actors through outbox;
+- resolve a replacement through current hierarchy;
+- require an explicit reassignment service action;
+- record previous and new authority context.
+
+### 10.7 Cross-unit routing flow
+
+```mermaid
+flowchart TD
+    A[Assignee determines work/task is outside scope] --> B[Submit route recommendation with reason]
+    B --> C[Check actor permission and active assignment]
+    C --> D[Resolve target unit recipient dynamically]
+    D -->|No target| X[Block and escalate: hierarchy unresolved]
+    D --> E[Detect route loop and hop limit]
+    E -->|Loop/limit| F[Resolve nearest common ancestor authority]
+    E -->|Safe| G[Create pending routing request]
+    F --> G
+    G --> H[Notify resolved recipient/unit queue through outbox]
+    H --> I{Recipient decision}
+    I -->|Accept| J[Transfer task or ownership atomically]
+    I -->|Reject| K[Record rejection and preserve current accountability]
+    I -->|Clarification| L[Return request to current owner/issuer]
+    J --> M[Create hierarchy snapshot and transition history]
+```
+
+---
+
+## 11. Activity and accountability log
+
+### 11.1 Purpose
+
+The activity log answers:
+
+- what did the actor do;
+- when did they do it;
+- for which work/task;
+- how long was the work actively held;
+- how long the actor actively worked on it;
+- what result or decision was produced;
+- which evidence supports it;
+- which document versions were attached, consulted, or detached during the action;
+- which organizational context applied.
+
+### 11.2 Activity types
+
+```text
+progress_update
+work_performed
+decision
+communication
+meeting
+research
+field_activity
+document_prepared
+information_requested
+information_received
+blocker_reported
+dependency_resolved
+submission
+review_response
+correction
+system_activity
+```
+
+### 11.3 Required activity fields
+
+- work item;
+- optional task;
+- actor;
+- actor organization/unit/position context snapshot;
+- activity type;
+- description;
+- occurred/started timestamp;
+- optional ended timestamp;
+- optional explicit duration seconds when the session is known precisely;
+- recorded timestamp;
+- source type (`human`, `system`, `ai_draft`);
+- visibility classification;
+- optional evidence links;
+- optional document attachment links;
+- optional correction-of reference;
+- immutable submission state.
+
+### 11.4 Immutability
+
+After submission:
+
+- ordinary update is forbidden;
+- factual correction creates a new activity entry referencing the original;
+- the original remains visible to authorized auditors;
+- a correction must state why the original was wrong;
+- administrative redaction, if ever required, must be a separate future legal/compliance process, not generic update/delete.
+
+### 11.5 Time accounting
+
+The system must distinguish:
+
+- created time;
+- assignment waiting time;
+- acceptance time;
+- time to first action;
+- active execution time;
+- blocked time;
+- external waiting time;
+- review waiting time;
+- change-request rework time;
+- closure waiting time.
+
+Do not infer “active labor hours” solely from elapsed wall-clock time. Activity timestamps provide evidence; final labor-time analytics require explicit future evaluation rules.
+
+### 11.6 Activity/session rule
+
+If the module needs to know who worked on something and for how long, it must rely on explicit activity entries with actor, start time, end time, and duration, not on inferred page views or hidden background edits. Passive visibility events are not work sessions.
+
+---
+
+## 12. Work data, evidence, and files
+
+### 12.1 Separation of concepts
+
+**Work data** is operational information used to execute work.  
+**Evidence** is information or an artifact submitted to support accountability, review, or closure.
+
+### 12.2 Evidence types
+
+```text
+text_statement
+document_reference
+image_reference
+external_reference
+structured_payload
+generated_output
+approval_record
+communication_record
+```
+
+### 12.3 Evidence lifecycle
+
+```text
+submitted
+pending_verification
+verified
+rejected
+superseded
+invalid
+```
+
+Verification means the evidence is accepted as a valid submission for the stated purpose. It does not by itself approve the work.
+
+### 12.4 Evidence fields
+
+- work item;
+- optional task;
+- optional activity;
+- submitted by;
+- submitted at;
+- evidence type;
+- title/description;
+- purpose;
+- text or structured payload when applicable;
+- external/source reference when applicable;
+- document/file reference when available;
+- version number;
+- verification status;
+- verified/rejected by;
+- verified/rejected at;
+- verification remarks;
+- sensitivity/visibility;
+- supersedes reference;
+- checksum and MIME metadata must be owned by the future document/file service, not duplicated casually.
+
+### 12.5 File integration gate
+
+The current repository has no standalone `documents` app. Therefore:
+
+- `work` must not implement uncontrolled raw file paths or ad hoc file-lake logic;
+- text and structured evidence may be implemented directly;
+- file-backed evidence must use a documented document/file integration contract;
+- before file upload endpoints are enabled, a minimal local document service must own upload validation, MIME checks, size limits, checksum, storage path, retention, and access metadata;
+- Claude must not silently create a second file-storage architecture inside `work`.
+
+### 12.6 Document accountability ledger
+
+Every time a document is attached to, detached from, or referenced by a work item, task, activity, evidence item, review round, or closure record, the system must create a history-preserving attachment ledger row.
+
+The attachment ledger must answer:
+
+- which work item the document was associated with;
+- which document reference and document-version reference were used;
+- who attached or detached it;
+- when the attachment state changed;
+- why the document was attached or detached;
+- what attachment role it served;
+- what visibility class applied at that time;
+- whether it was a primary supporting document or a supplementary one;
+- what checksum, MIME type, size, and source-service snapshot were observed at the time of association.
+
+Attachment records are provenance records. They are not file storage.
+
+### 12.7 Government-grade document security minimums
+
+The future document service must enforce, at minimum:
+
+- authenticated and authorized upload/download;
+- document-version immutability;
+- encryption at rest;
+- checksum verification on ingest and on retrieval;
+- MIME and content-type validation;
+- malware scanning before release;
+- document-level access control and audit logging;
+- retention and legal-hold support;
+- redaction or restricted-view support when required by policy;
+- no raw filesystem paths exposed to work or clients;
+- no direct storage-engine assumptions inside work;
+- no document deletion that erases accountability history.
+
+If a document is later revoked, deleted from the live store, or superseded, the work attachment ledger must still preserve the historical link and the security-relevant snapshot metadata.
+
+---
+
+## 13. Review and re-review workflow
+
+### 13.1 Review scope
+
+A review may target:
+
+- the entire work item;
+- a task;
+- a subtask;
+- a specific evidence package;
+- a stable submission snapshot.
+
+### 13.2 Review target resolution
+
+Default review target:
+
+1. explicit authorized reviewer, if assigned;
+2. current assignment issuer, if still authorized and structurally appropriate;
+3. active reporting-line supervisor;
+4. current unit head;
+5. nearest eligible ancestor head;
+6. root/organization authority;
+7. delegated authority when eligible.
+
+### 13.3 Review decisions
+
+```text
+approved
+approved_with_remarks
+changes_requested
+rejected
+returned_without_review
+```
+
+### 13.4 Stable review snapshot
+
+Each review round must freeze references to:
+
+- work/task version;
+- included activity entries;
+- included evidence versions;
+- included document attachment references and document-version identifiers;
+- included child-task states;
+- submission summary;
+- requester;
+- reviewer;
+- hierarchy resolution snapshot.
+
+The underlying work may continue only according to lifecycle rules. A reviewer must always know exactly what version was reviewed.
+
+### 13.5 Review rounds
+
+- First submission creates round 1.
+- `changes_requested` returns the target to execution.
+- Re-submission creates a new immutable round.
+- Old rounds and comments remain unchanged.
+- Approval applies only to the reviewed snapshot/version.
+- Material changes after approval invalidate approval when configured by the service rules and require re-review.
+
+### 13.6 Review flowchart
+
+```mermaid
+flowchart TD
+    A[Assignee/owner prepares submission] --> B[Validate required tasks, activity, and evidence]
+    B -->|Invalid| X[Return validation errors]
+    B -->|Valid| C[Resolve reviewer from current hierarchy]
+    C --> D[Create immutable review snapshot and round]
+    D --> E[Status: review_pending]
+    E --> F{Reviewer decision}
+    F -->|Changes requested| G[Record decision and required changes]
+    G --> H[Status: changes_requested]
+    H --> I[Assignee resumes work]
+    I --> A
+    F -->|Approved| J[Record approval against snapshot]
+    J --> K[Status: closure_pending or task completed]
+    F -->|Rejected| L[Record rejection; hierarchy action required]
+    F -->|Returned without review| M[Record procedural reason; resolve next reviewer]
+```
+
+---
+
+## 14. Visibility and resource authorization
+
+The current permissions application evaluates permissions at global, organization, and organization-unit scope. It does not yet provide generalized resource-instance grants. Therefore, access to work must be a two-stage decision.
+
+### 14.1 Two-stage authorization
+
+**Stage 1 — Action authority**  
+Ask the `permissions` module whether the actor possesses the policy permission key at the relevant organization/unit scope.
+
+**Stage 2 — Resource visibility and lifecycle authority**  
+The `work` module verifies that the particular work item is visible/actionable based on ownership, assignment, participation, hierarchy, sensitivity, and lifecycle.
+
+Both stages must pass.
+
+### 14.2 Default visibility relationships
+
+Subject to permission and sensitivity rules, visibility may be established by:
+
+- creator relationship;
+- current accountable ownership;
+- current task assignment;
+- active contributor/reviewer/observer participation;
+- responsible-unit leadership;
+- ancestor-unit leadership up to the highest eligible head;
+- explicit auditor or administrator permission;
+- approved explicit access relationship in a future row-level permissions phase.
+
+### 14.3 Visibility modes
+
+```text
+organizational
+participants_only
+restricted
+confidential
+explicit
+```
+
+| Mode | Behavior |
+|---|---|
+| `organizational` | Eligible participants, responsible-unit heads, and ancestor heads may access according to permission scope |
+| `participants_only` | Direct participants plus specifically authorized hierarchy/audit actors |
+| `restricted` | Requires relationship plus elevated restricted-work permission |
+| `confidential` | Requires confidential-work permission and need-to-know relationship; hierarchy alone is insufficient |
+| `explicit` | Requires future explicit resource-access contract; not to be improvised in phase 1 |
+
+### 14.4 Data-level visibility
+
+Evidence and activity may be more restrictive than the parent work item.
+
+- Parent work access does not automatically expose every confidential attachment or note.
+- Each activity/evidence item stores visibility classification.
+- A response serializer must filter nested records through a visibility selector; never serialize all related objects and filter afterward in Python.
+
+Document attachments follow the same rule:
+
+- a document attachment may be visible only to a narrower set than the parent work item;
+- the attachment record must carry its own visibility classification and document-service reference;
+- a caller with work access does not automatically get document download access;
+- the document service remains the final authority on raw file retrieval.
+
+### 14.5 Authorization algorithm
+
+```mermaid
+flowchart TD
+    A[Request work action] --> B[Authenticate subject]
+    B --> C[Resolve organization and unit context]
+    C --> D[Permissions app evaluates policy key]
+    D -->|Denied| X[403 stable permission error]
+    D -->|Allowed| E[Load resource through visibility-aware selector]
+    E -->|Not visible| Y[404 or 403 according to documented anti-enumeration rule]
+    E -->|Visible| F[Check sensitivity requirements]
+    F -->|Failed| Z[403 sensitivity error]
+    F -->|Passed| G[Check relationship/hierarchy authority]
+    G -->|Failed| W[403 resource authority error]
+    G -->|Passed| H[Check lifecycle preconditions]
+    H -->|Failed| V[409 lifecycle conflict]
+    H -->|Passed| I[Execute service transaction]
+```
+
+### 14.6 Anti-enumeration rule
+
+For work details not visible to the caller, use one consistent documented behavior. Recommended default: return the same not-found response used for an unknown UUID, unless the caller has a specific audit/debug permission that permits visibility into denial reasons.
+
+---
+
+## 15. External concerned individuals and organizations
+
+### 15.1 Purpose
+
+A work item may concern a person or institution outside MintFlow's internal actor scope, such as:
+
+- complainant;
+- applicant;
+- citizen;
+- vendor;
+- partner institution;
+- witness;
+- beneficiary;
+- reporting party.
+
+### 15.2 External stakeholder record
+
+Required fields:
+
+- stakeholder type;
+- display name;
+- internal reference number where available;
+- relationship to work;
+- approved contact channels;
+- preferred language;
+- notification preference;
+- consent or legal-basis metadata where required;
+- notification eligibility;
+- created by;
+- created at;
+- sensitivity classification.
+
+### 15.3 Communication rule
+
+External stakeholders must never automatically receive:
+
+- internal activity logs;
+- hierarchy information;
+- review comments;
+- internal evidence;
+- personnel information;
+- authorization explanations.
+
+They receive approved communication templates or curated messages only.
+
+### 15.4 Closure notification
+
+Closure must record:
+
+- whether an external notification is required;
+- which stakeholders are eligible;
+- approved message/template reference;
+- who approved the communication;
+- notification outbox status;
+- delivery result when a notifications module exists.
+
+---
+
+## 16. Notification design
+
+### 16.1 Boundary
+
+The work app determines that a notification-worthy domain event occurred. A future `notifications` app owns inbox state, delivery channels, read/unread state, preferences, retries, and external delivery.
+
+### 16.2 Mandatory work notification events
+
+```text
+work_created
+work_assignment_requested
+work_assignment_accepted
+work_assignment_rejected
+work_clarification_requested
+work_routing_requested
+work_routing_escalated
+work_ownership_transfer_requested
+work_ownership_transfer_accepted
+work_ownership_transfer_rejected
+work_started
+work_blocked
+work_unblocked
+work_deadline_approaching
+work_deadline_missed
+work_review_requested
+work_changes_requested
+work_review_approved
+work_closure_submitted
+work_closed
+work_reopened
+work_archived
+work_restored
+external_notification_required
+```
+
+Equivalent task events must be emitted where applicable.
+
+### 16.3 Transactional outbox
+
+The work module must use a transactional outbox record now, in this build:
+
+- created in the same database transaction as the domain change;
+- immutable payload version;
+- idempotency key;
+- event type;
+- aggregate ID and version;
+- actor and organization scope;
+- recipient-resolution references where applicable;
+- processing status;
+- retry count and last error metadata;
+- no external network call inside the work transaction.
+
+A general user-notification table must not be hidden inside `work`.
+
+Every important work mutation must atomically create:
+
+- work state change;
+- work history entry;
+- domain event envelope;
+- outbox event record.
+
+The database transaction is the authority boundary. If the transaction rolls back, none of those records exist. If the transaction commits, the durable event envelope exists even if downstream delivery is delayed or unavailable. `WorkOutboxEvent` is the authoritative envelope for now; a separate universal event ledger can be projected later.
+
+### 16.4 Background worker orchestration
+
+The work module has enough asynchronous load to justify a background worker layer. Celery is required for retryable, non-authoritative follow-up processing, not for lifecycle decisions.
+
+Celery is allowed to process:
+
+- notification dispatch;
+- deadline reminder generation;
+- overdue detection;
+- escalation processing;
+- attachment and evidence inspection jobs;
+- file-processing requests;
+- periodic integrity validation;
+- derived visibility refreshes;
+- search indexing and analytics projection jobs;
+- outbox consumption and retry handling.
+
+Celery must not process:
+
+- ownership transfer authority;
+- assignment acceptance authority;
+- review approval authority;
+- closure authority;
+- any direct state mutation that would bypass the synchronous work service and PostgreSQL transaction.
+
+Correct execution flow:
+
+1. API request validates permission and hierarchy.
+2. API service opens a PostgreSQL transaction.
+3. API service updates work state.
+4. API service writes status transition, history, and outbox rows.
+5. API service commits the transaction.
+6. A post-commit trigger schedules background processing, typically via `transaction.on_commit()`.
+7. Celery workers poll or consume committed outbox records and process side effects.
+
+`transaction.on_commit()` is a dispatch trigger only. It is not the source of durability. The transactional outbox is the durable contract that protects against process death after commit and before task publication.
+
+### 16.5 Foundational event ledger
+
+MintFlow should have a small standalone `events` module if the project is moving beyond a single app prototype. This is justified by the long-term requirements for accountability, institutional memory, AI reasoning, search, analytics, and later audit interpretation.
+
+The `events` module must own:
+
+- generic domain-event envelope;
+- append-only event storage;
+- correlation and causation identifiers;
+- event schema versions;
+- publication services;
+- idempotency tracking for event publication;
+- retention and partitioning strategy;
+- projection-friendly read models when needed.
+
+The `events` module must not own:
+
+- work lifecycle rules;
+- work status transitions;
+- assignment authority;
+- review authority;
+- closure authority;
+- document truth;
+- permission decisions;
+- organization hierarchy;
+- authentication state.
+
+The `work` module owns what a work event means. The `events` module owns how durable event history is stored and published. `WorkStatusTransition` is the authoritative domain history for work. A `DomainEvent` is the integration/history envelope derived from that change. Both are required, but they solve different problems.
+
+If the `events` module is implemented in this build, every important work mutation must atomically create the work-state change, the work-history record, the durable domain-event row in `events`, and the outbox/publication record in the same PostgreSQL transaction. In that mode, `WorkOutboxEvent` is transport/publication state, not the long-term event store.
+
+### 16.6 EVENTS.md contract
+
+The dedicated `EVENTS.md` contract for the `events` module must be written before implementation of any event-driven projection or external consumer. It is a required foundation document, not an optional note.
+
+#### 16.6.1 Purpose
+
+The `events` module is the project-wide historical event backbone. It stores durable, append-only event envelopes for domain changes emitted by MintFlow modules. It exists so that later audit, analytics, AI reasoning, search indexing, and cross-module projections can consume a stable event stream without depending on live transactional tables.
+
+#### 16.6.2 Ownership
+
+The `events` module owns:
+
+- generic event envelope storage;
+- append-only event history;
+- correlation identifiers;
+- causation identifiers;
+- event schema versioning;
+- publication state;
+- retry state;
+- dead-letter handling;
+- retention and partitioning policy;
+- projection metadata for downstream consumers.
+
+The `events` module does not own:
+
+- any business lifecycle rules;
+- work state transitions;
+- assignment authority;
+- review authority;
+- closure authority;
+- document/file truth;
+- permissions;
+- identity;
+- organization hierarchy;
+- audit interpretation.
+
+#### 16.6.3 Domain boundary
+
+`work` defines what happened in work terms. `events` stores the durable event envelope for that change. A `WorkStatusTransition` remains the authoritative work-history record. A `DomainEvent` records the integration-grade event representation for the same mutation. They are intentionally not the same model.
+
+#### 16.6.4 Required event envelope
+
+Every persisted event row must carry, at minimum:
+
+- event ID;
+- event type;
+- aggregate type;
+- aggregate ID;
+- organization ID when the event is organization-scoped;
+- actor ID when known;
+- occurred at;
+- schema version;
+- payload JSON;
+- correlation ID, nullable;
+- causation ID, nullable;
+- idempotency key, unique;
+- publication status;
+- attempt count;
+- available at;
+- locked at, nullable;
+- processed at, nullable;
+- last error code, nullable;
+- last error message, nullable;
+- created at;
+- updated at.
+
+#### 16.6.5 Required states
+
+```text
+pending
+processing
+processed
+failed
+dead_lettered
+```
+
+#### 16.6.6 Event semantics
+
+- Events are append-only.
+- Events are never updated to change business meaning after publication.
+- A failed publish does not erase the original event row.
+- Retries must be idempotent.
+- Dead-lettered events remain queryable and inspectable.
+- Event payloads must be schema-versioned so future projections can evolve safely.
+
+#### 16.6.7 Work integration contract
+
+For work mutations that matter for accountability, the same PostgreSQL transaction must produce:
+
+- the authoritative work-state change;
+- the work history record;
+- the durable event envelope in `events`;
+- the outbox/publication record used by Celery.
+
+The work module remains the source of truth for the meaning of the event. The events module remains the source of truth for the durable event stream. `WorkOutboxEvent` is the bridge between the work transaction and the event stream, not a competing long-term ledger.
+
+#### 16.6.8 Retry and recovery
+
+- A Celery worker may consume committed events or outbox rows idempotently.
+- A scheduled sweeper may requeue stalled or abandoned records.
+- Recovery tasks must never mutate authoritative work state.
+- Recovery tasks may only publish, retry, project, or reconcile event delivery state.
+
+#### 16.6.9 Downstream use
+
+The event stream may later feed:
+
+- notifications;
+- search;
+- analytics;
+- projection stores;
+- audit interpretation;
+- AI reasoning support;
+- future event-ledger consumers.
+
+No downstream consumer may be allowed to redefine the business meaning of the event.
+
+### 16.7 Redis / Valkey boundary
+
+Redis or Valkey may be introduced narrowly as infrastructure support. It is useful for throughput and latency, but it must never become a source of truth.
+
+Recommended initial uses:
+
+- Celery broker;
+- short-lived cache;
+- permission-decision cache;
+- hierarchy-resolution cache;
+- throttling support;
+- temporary worker coordination.
+
+Redis or Valkey must not become the source of truth for:
+
+- assignments;
+- work status;
+- notification records;
+- review decisions;
+- hierarchy history;
+- audit records;
+- permission grants;
+- event history.
+
+Redis Pub/Sub must not be used for authoritative work events because at-most-once delivery can lose messages. If event delivery matters, the durable path is PostgreSQL outbox plus idempotent consumer processing.
+
+Correct flow:
+
+1. Work mutation commits in PostgreSQL.
+2. Work state, history, domain event, and outbox row are written atomically.
+3. Celery consumes the committed outbox record.
+4. Redis or Valkey may support broker coordination or cache retrieval, but never replace the outbox.
+
+Cache invalidation rules:
+
+- cache keys for hierarchy and permission decisions should include `organization_id`, `actor_id`, `organization_structure_version`, `permission_revision`, and `resource_scope` or equivalent scope markers;
+- when organization hierarchy, reporting lines, position assignments, delegations, role bindings, grants, or denials change, the relevant revision must change or the cache must be invalidated;
+- never rely only on time-based expiry for security-sensitive authorization caches;
+- cache is a performance hint, not a trust boundary.
+
+### 16.8 CACHE.md contract
+
+The dedicated `CACHE.md` contract for Redis or Valkey usage must exist before any security-sensitive cache is implemented. It is a required architecture document, not an optimization note.
+
+#### 16.8.1 Purpose
+
+The cache layer exists to reduce repeated read cost for derived values that are safe to recompute. It must not become a second system of record.
+
+#### 16.8.2 Allowed cached data
+
+Only derived, reconstructable, non-authoritative data may be cached. Examples:
+
+- permission-decision results for short-lived reuse;
+- hierarchy-resolution results for a specific organization/actor/revision combination;
+- lookup accelerators for visible work lists;
+- throttle counters;
+- temporary worker coordination data;
+- idempotency hints where the authoritative key remains in PostgreSQL.
+
+#### 16.8.3 Forbidden cached data
+
+The cache must never be the source of truth for:
+
+- work assignments;
+- work status;
+- work history;
+- event history;
+- notification delivery records;
+- review decisions;
+- permission grants or denials;
+- hierarchy history;
+- document truth;
+- audit records.
+
+#### 16.8.4 Invalidations
+
+Cache invalidation must be deterministic and tied to revision changes, not only time-to-live expiry.
+
+Required revision inputs for security-sensitive cache keys:
+
+- `organization_id`;
+- `actor_id`;
+- `organization_structure_version`;
+- `permission_revision`;
+- `resource_scope`;
+- `document_version` when document visibility is involved.
+
+Whenever hierarchy, reporting lines, position assignments, delegations, role bindings, grants, denials, or document visibility changes, the relevant revision must change or the cache entry must be explicitly invalidated.
+
+#### 16.8.5 Safety rules
+
+- Redis or Valkey Pub/Sub must not be used for authoritative work events.
+- Cache misses are acceptable; stale authorization is not.
+- A cache entry may speed up a decision, but it must never authorize an action on its own.
+- The authoritative decision remains in PostgreSQL-backed application logic.
+- If the cache is unavailable, the system must degrade safely by recomputing from source of truth.
+
+#### 16.8.6 Operational notes
+
+- use short TTLs for derived security-sensitive entries even when revision keys exist;
+- prefer explicit invalidation on write paths over blind expiration;
+- do not cache confidential payloads longer than necessary;
+- treat the cache as disposable infrastructure.
+
+### 16.9 Document/file foundation
+
+MintFlow requires a minimal document/file foundation before work evidence uploads are enabled. This must be a single canonical document/file foundation, implemented either as a standalone `documents` module or as a separate local file foundation service, but not both. It must be domain-neutral and project-wide.
+
+The document/file foundation must own:
+
+- document/file truth;
+- storage zone;
+- storage path;
+- original filename;
+- safe filename;
+- MIME type;
+- detected MIME type;
+- size in bytes;
+- SHA-256 checksum;
+- uploaded by;
+- uploaded at;
+- classification level;
+- retention policy;
+- malware scan status;
+- verification status;
+- source type.
+
+The document/file foundation must not own:
+
+- work semantics;
+- evidence meaning;
+- review authority;
+- assignment authority;
+- permissions;
+- organization hierarchy;
+- audit interpretation.
+
+Work must only store opaque `document_id` references and work-side provenance records. It must not store raw file paths, binary blobs, or uncontrolled `FileField` truth. The document foundation remains the source of truth for the file, its scan status, and its retention/classification metadata.
+
+Work evidence upload endpoints must remain disabled until this foundation exists and is documented. The implementation may use the existing `WorkAttachment` ledger for provenance, but the logical evidence relation must also be represented explicitly as `WorkEvidenceLink` in the work domain contract.
+
+---
+
+## 17. Deadlines, blockers, and accountability time
+
+### 17.1 Deadline fields
+
+Work and tasks may have optional deadlines.
+
+Store distinct timestamps:
+
+- created at;
+- assigned at;
+- accepted at;
+- started at;
+- due at;
+- first activity at;
+- blocked at;
+- unblocked at;
+- submitted for review at;
+- review decided at;
+- completion proposed at;
+- closed at;
+- archived at.
+
+### 17.2 Blocker types
+
+```text
+internal_dependency
+external_party
+missing_information
+missing_authority
+resource_unavailable
+technical_issue
+review_wait
+cross_unit_wait
+legal_or_policy_hold
+other
+```
+
+Blocking requires:
+
+- blocker type;
+- description;
+- responsible/waiting-on actor or unit when known;
+- expected resolution date when known;
+- evidence or communication reference when applicable.
+
+### 17.3 Deadline behavior
+
+- Deadline expiry does not automatically mark work failed.
+- The system emits a deadline event and records variance.
+- Authorized actors may extend deadlines only through a service action with reason and old/new due date history.
+- Repeated extensions remain visible.
+- Blocked and review-wait durations must be separately measurable.
+
+---
+
+## 18. Neutral metrics produced by work
+
+The module may expose factual metrics:
+
+- assignment count;
+- assignment acceptance latency;
+- time to first action;
+- elapsed execution duration;
+- blocked duration by category;
+- review waiting duration;
+- number of review rounds;
+- rework duration;
+- routing hop count;
+- reassignment count;
+- ownership transfer count;
+- deadline variance;
+- reopen count;
+- completion/closure outcome;
+- number of unresolved dependencies;
+- mandatory task completion ratio;
+- evidence verification count;
+- workload-in-hand duration per actor/unit.
+
+The module must not produce a final personnel or department performance score. The future `evaluation` app must normalize metrics by role, work complexity, authority level, unit context, dependencies, and resources.
+
+---
+
+## 19. Logical data model
+
+All public IDs must be UUIDs. All timestamps must be timezone-aware. Enums belong in `work/constants.py`. Multi-table writes use `transaction.atomic()`. Every model defines `__str__`.
+
+The exact final schema must be written first in `work/docs/DATA_CONTRACT.md`. The following logical models are mandatory unless repository inspection proves a simpler design preserves every invariant.
+
+### 19.1 `WorkItem`
+
+Purpose: current work aggregate state optimized for operational reads.
+
+Key fields:
+
+- `id: UUID`
+- `reference_number: str`, unique, immutable, human-readable
+- `organization: FK organization.Organization`
+- `responsible_unit: FK organization.OrganizationUnit`
+- `created_by: FK authenticate.User`, immutable
+- `current_owner: FK authenticate.User`
+- `title: str`
+- `objective: text`
+- `description: text`, optional
+- `priority: enum` (`low`, `normal`, `high`, `urgent`, `critical`)
+- `visibility_mode: enum`
+- `sensitivity_level: enum`, compatible with future classification contract
+- `status: enum`
+- `review_required: bool`
+- `due_at: datetime`, nullable
+- `accepted_at`, `started_at`, `closed_at`, `archived_at`, nullable
+- `aggregate_version: positive integer` for optimistic concurrency
+- `is_reassignment_required: bool` or equivalent derived integrity state
+- `created_at`, `updated_at`
+
+Constraints/indexes:
+
+- index `(organization, status, updated_at)`;
+- index `(responsible_unit, status, due_at)`;
+- index `(current_owner, status, due_at)`;
+- index `(organization, reference_number)` if reference is organization-scoped instead of globally unique;
+- check active non-archived work has owner and responsible unit;
+- title and objective required;
+- current owner must be eligible at creation/transfer service time.
+
+### 19.2 `WorkTask`
+
+Purpose: hierarchical executable unit.
+
+Key fields:
+
+- work item;
+- parent task, nullable self-FK;
+- sequence/order;
+- title;
+- description;
+- task type, optional controlled enum;
+- responsible unit;
+- current assignee, nullable only before assignment when creator/owner remains responsible by rule;
+- status;
+- priority;
+- mandatory flag;
+- review required;
+- due at;
+- accepted/started/completed/archived timestamps;
+- aggregate version;
+- created by and timestamps.
+
+Constraints/indexes:
+
+- parent belongs to same work;
+- no cycle;
+- unique stable ordering within `(work, parent_task, sequence)` or documented alternative;
+- index `(work, parent_task, sequence)`;
+- index `(current_assignee, status, due_at)`;
+- index `(responsible_unit, status, due_at)`.
+
+### 19.3 `WorkAssignment`
+
+Purpose: append-friendly history of who/what was assigned under which role.
+
+Key fields:
+
+- work;
+- optional task;
+- assignment category;
+- target actor, nullable;
+- target unit, nullable;
+- resolved actor, nullable until resolution;
+- issued by;
+- status;
+- reason/instructions;
+- issued, responded, effective, ended timestamps;
+- response remarks;
+- hierarchy resolution reference;
+- previous assignment reference where applicable;
+- version/idempotency key.
+
+Constraints:
+
+- exactly one of actor/unit target according to target type;
+- task belongs to work;
+- only one active accountable-owner assignment;
+- one active primary executor per task unless multi-assignee support is explicitly introduced later.
+
+### 19.4 `WorkParticipant`
+
+Purpose: direct contributor/reviewer/observer relationships not fully represented by current assignments.
+
+Fields:
+
+- work;
+- optional task;
+- actor;
+- participant role;
+- added by;
+- active from/to;
+- reason;
+- visibility limit;
+- created/updated timestamps.
+
+Participant membership does not grant permission by itself.
+
+### 19.5 `WorkOwnershipTransfer`
+
+Purpose: controlled accountable-owner handover.
+
+Fields and lifecycle are defined in section 10.5.
+
+### 19.6 `WorkRoutingRecord`
+
+Purpose: immutable cross-unit or actor route hop.
+
+Fields:
+
+- work/task;
+- from actor/unit;
+- proposed target actor/unit;
+- resolved recipient;
+- route reason;
+- status;
+- hop number;
+- previous route reference;
+- loop-detection metadata;
+- hierarchy resolution;
+- created/decision timestamps.
+
+### 19.7 `WorkHierarchyResolution`
+
+Purpose: immutable explanation of a dynamic hierarchy decision.
+
+Fields are defined in section 6.4. Store UUID arrays/JSON only where relational representation would be excessive; document schema and version any JSON payload.
+
+### 19.8 `WorkActivityEntry`
+
+Purpose: immutable accountability action record and explicit work-session evidence.
+
+Fields are defined in section 11.3.
+
+### 19.9 `WorkEvidence`
+
+Purpose: work-specific evidence metadata and reference.
+
+Fields are defined in section 12.4. File metadata remains owned by the document service.
+
+### 19.10 `WorkStatusTransition`
+
+Purpose: immutable status history for work and tasks.
+
+Fields:
+
+- work;
+- optional task;
+- from status;
+- to status;
+- action type;
+- actor;
+- reason;
+- occurred at;
+- hierarchy resolution, nullable;
+- aggregate version before/after;
+- request ID/idempotency key;
+- metadata schema version.
+
+### 19.11 `WorkReviewRound`
+
+Purpose: immutable review submission and decision per round.
+
+Fields:
+
+- work;
+- optional task;
+- round number;
+- requested by;
+- reviewer;
+- status/decision;
+- submission summary;
+- immutable snapshot payload/version;
+- requested at;
+- decided at;
+- decision remarks;
+- hierarchy resolution;
+- superseded/invalidated state.
+
+Unique constraint on `(work, task, round_number)` with nullable-task handling explicitly tested.
+
+### 19.12 `WorkReviewComment`
+
+Purpose: immutable comment thread inside a review round.
+
+Fields:
+
+- review round;
+- actor;
+- comment type;
+- body;
+- parent comment, nullable;
+- created at;
+- correction reference, nullable;
+- visibility classification.
+
+### 19.13 `WorkClosure`
+
+Purpose: one authoritative closure record per closure version.
+
+Fields:
+
+- work;
+- closure version;
+- outcome;
+- closure summary;
+- reason;
+- completed and unresolved scope;
+- unresolved task snapshot;
+- supporting evidence snapshot;
+- proposed by;
+- closed by;
+- proposed/closed timestamps;
+- hierarchy resolution;
+- external notification required;
+- reopened at/by/reason, nullable;
+- superseded closure reference when reopened/reclosed.
+
+A reopened work keeps old closure records.
+
+### 19.14 `WorkStakeholder`
+
+Purpose: external concerned party relationship.
+
+Fields are defined in section 15.2. Sensitive contact details must follow project encryption/redaction policy when one exists; do not invent cryptography in this module without approval.
+
+### 19.15 `WorkOutboxEvent`
+
+Purpose: reliable local integration event.
+
+This model is required in the current build. It is not a future-only optimization. It is the durable domain-event envelope for authoritative work mutations until a separate event ledger exists.
+
+Fields:
+
+- event ID UUID;
+- event type;
+- schema version;
+- aggregate type/ID/version;
+- organization/unit scope;
+- actor;
+- payload JSON with documented schema;
+- idempotency key, unique;
+- created at;
+- processing status;
+- attempts;
+- available at;
+- locked at, nullable;
+- processed at;
+- last error code/message with sensitive-data restrictions.
+
+Recommended states:
+
+- `pending`
+- `processing`
+- `processed`
+- `failed`
+- `dead_lettered`
+
+Operating rule:
+
+- a Celery worker consumes committed outbox rows idempotently;
+- a scheduled sweeper retries pending or abandoned rows that were not processed due to worker crash, broker outage, or stale lock expiration;
+- the worker never mutates authoritative work state;
+- the worker only performs retryable side effects and projections.
+
+### 19.16 `WorkAttachment`
+
+Purpose: history-preserving provenance record for any document or file reference associated with work, tasks, activities, evidence, reviews, or closure.
+
+Key fields:
+
+- work;
+- optional task;
+- optional activity;
+- optional evidence;
+- optional review round;
+- optional closure;
+- document reference;
+- document version reference;
+- attachment role;
+- attached by;
+- attached at;
+- detached by, nullable;
+- detached at, nullable;
+- attachment reason;
+- visibility classification;
+- sensitivity classification;
+- source document service;
+- checksum snapshot;
+- MIME type snapshot;
+- size snapshot;
+- is primary;
+- created at;
+- updated at.
+
+Rules:
+
+- one row records one attachment occurrence;
+- document reference and document-version reference are opaque identifiers from the document service, not file paths;
+- detaching a document never deletes the row;
+- reattaching the same document later creates a new row rather than reusing old history;
+- work must never store raw file paths or binary blobs;
+- document security and raw-file access remain owned by the document service.
+
+### 19.17 `WorkEvidenceLink`
+
+Purpose: explicit work-side relationship between a work item and a document-backed evidence item.
+
+Key fields:
+
+- work item;
+- optional task;
+- optional activity entry;
+- document_id;
+- evidence_type;
+- submitted_by;
+- verification_status;
+- linked_at;
+- visibility classification;
+- created at;
+- updated at.
+
+Rules:
+
+- document_id is an opaque identifier from the document foundation;
+- the work domain owns the relationship and evidence semantics, not the file truth;
+- the document foundation owns upload, storage, scan, retention, and file metadata;
+- the implementation may unify this with `WorkAttachment` only if no semantics are lost and the evidence-specific contract remains explicit.
+
+---
+
+## 20. Service command catalogue
+
+Views must be thin. Lifecycle and business invariants belong in typed service functions. Exact names may follow project conventions, but the following capabilities are mandatory.
+
+### 20.1 Work commands
+
+- `create_work()`
+- `update_work_details()` — non-lifecycle descriptive fields only
+- `start_work()`
+- `report_work_blocker()`
+- `resolve_work_blocker()`
+- `extend_work_deadline()`
+- `submit_work_for_review()`
+- `submit_work_for_closure()`
+- `close_work()`
+- `reopen_work()`
+- `archive_work()`
+- `restore_work()`
+
+### 20.2 Assignment/routing commands
+
+- `assign_work()`
+- `respond_to_work_assignment()`
+- `request_ownership_transfer()`
+- `respond_to_ownership_transfer()`
+- `route_work()`
+- `respond_to_routing_request()`
+- `recover_ineligible_owner()`
+
+### 20.3 Task commands
+
+- `create_task()`
+- `update_task_details()`
+- `reorder_task()`
+- `assign_task()`
+- `respond_to_task_assignment()`
+- `start_task()`
+- `report_task_blocker()`
+- `resolve_task_blocker()`
+- `complete_task()`
+- `return_task_uncompleted()`
+- `cancel_task()`
+- `archive_task()`
+
+### 20.4 Activity/evidence commands
+
+- `record_activity()`
+- `correct_activity()`
+- `attach_document()`
+- `detach_document()`
+- `submit_evidence()`
+- `verify_evidence()`
+- `reject_evidence()`
+- `supersede_evidence()`
+
+### 20.5 Review commands
+
+- `request_review()`
+- `add_review_comment()`
+- `decide_review()`
+- `invalidate_review_after_material_change()`
+
+### 20.6 Participant/stakeholder commands
+
+- `add_participant()`
+- `end_participation()`
+- `add_external_stakeholder()`
+- `update_external_stakeholder()`
+- `request_external_notification()`
+
+### 20.7 Mandatory service pattern
+
+Every mutation service must:
+
+1. receive validated typed input, not raw `request.data`;
+2. authenticate/identify actor context supplied by the view layer;
+3. re-check action permission through the documented permissions integration;
+4. lock the aggregate row when concurrency matters (`select_for_update` through a selector/query helper consistent with project rules);
+5. verify aggregate version/idempotency key;
+6. validate lifecycle transition;
+7. dynamically resolve hierarchy where needed;
+8. execute in `transaction.atomic()`;
+9. update current-state rows;
+10. append transition/activity/review/routing records and prepare the domain-event envelope;
+11. create outbox records in the same transaction;
+12. return a typed result, not an HTTP response.
+
+---
+
+## 21. Selector catalogue
+
+Selectors own all database reads and must prevent N+1 queries.
+
+Mandatory read capabilities:
+
+- get visible work list for actor;
+- get work detail by UUID/reference with visibility enforcement;
+- get “my active work”;
+- get work assigned pending acceptance;
+- get responsible-unit work queue;
+- get hierarchy overview for a head across descendant units;
+- get overdue work visible to actor;
+- get pending reviews;
+- get task tree efficiently;
+- get activity timeline filtered by visibility;
+- get attachment timeline filtered by visibility and document ACL;
+- get evidence filtered by visibility;
+- get ownership/assignment/routing history;
+- get closure history;
+- get work metrics source facts;
+- preview hierarchy resolution for a proposed action;
+- detect active route loops;
+- detect task ancestry/dependency cycles;
+- detect work with ineligible owner.
+
+List selectors must use `select_related`, `prefetch_related`, annotations, and stable ordering. Query access patterns and indexes must be documented in `API.md` and `DATA_CONTRACT.md`.
+
+---
+
+## 22. API surface and policy permission keys
+
+Base URL:
+
+```text
+/api/v1/work/
+```
+
+The final route list must be registered in `core.policy_engine`. Command endpoints are preferred over generic status mutation.
+
+### 22.1 Core work endpoints
+
+| Method | Route | Purpose | Permission key |
+|---|---|---|---|
+| POST | `/items/` | Create work | `work.work_item.create` |
+| GET | `/items/` | List visible work | `work.work_item.list` |
+| GET | `/items/{id}/` | Read work | `work.work_item.read` |
+| PATCH | `/items/{id}/details/` | Update non-lifecycle details | `work.work_item.update_details` |
+| POST | `/items/{id}/start/` | Start execution | `work.work_item.start` |
+| POST | `/items/{id}/block/` | Report blocker | `work.work_item.block` |
+| POST | `/items/{id}/unblock/` | Resolve blocker | `work.work_item.unblock` |
+| POST | `/items/{id}/deadline/extend/` | Extend due date | `work.work_item.extend_deadline` |
+| POST | `/items/{id}/review/submit/` | Submit work review | `work.work_item.request_review` |
+| POST | `/items/{id}/closure/submit/` | Submit closure proposal | `work.work_item.submit_closure` |
+| POST | `/items/{id}/close/` | Authorize closure | `work.work_item.close` |
+| POST | `/items/{id}/reopen/` | Reopen closed work | `work.work_item.reopen` |
+| POST | `/items/{id}/archive/` | Archive | `work.work_item.archive` |
+| POST | `/items/{id}/restore/` | Restore | `work.work_item.restore` |
+
+### 22.2 Assignment and routing endpoints
+
+| Method | Route | Permission key |
+|---|---|---|
+| POST | `/items/{id}/assignments/` | `work.work_item.assign` |
+| POST | `/assignments/{id}/respond/` | `work.work_item.respond_assignment` |
+| POST | `/items/{id}/ownership-transfers/` | `work.work_item.transfer_ownership` |
+| POST | `/ownership-transfers/{id}/respond/` | `work.work_item.respond_ownership_transfer` |
+| POST | `/items/{id}/routes/` | `work.work_item.route` |
+| POST | `/routes/{id}/respond/` | `work.work_item.respond_route` |
+| GET | `/items/{id}/hierarchy-preview/` | `work.work_item.preview_hierarchy` |
+
+### 22.3 Task endpoints
+
+| Method | Route | Permission key |
+|---|---|---|
+| POST | `/items/{id}/tasks/` | `work.task.create` |
+| GET | `/items/{id}/tasks/` | `work.task.list` |
+| GET | `/tasks/{id}/` | `work.task.read` |
+| PATCH | `/tasks/{id}/details/` | `work.task.update_details` |
+| POST | `/tasks/{id}/assignments/` | `work.task.assign` |
+| POST | `/task-assignments/{id}/respond/` | `work.task.respond_assignment` |
+| POST | `/tasks/{id}/start/` | `work.task.start` |
+| POST | `/tasks/{id}/block/` | `work.task.block` |
+| POST | `/tasks/{id}/unblock/` | `work.task.unblock` |
+| POST | `/tasks/{id}/complete/` | `work.task.complete` |
+| POST | `/tasks/{id}/return-uncompleted/` | `work.task.return_uncompleted` |
+| POST | `/tasks/{id}/archive/` | `work.task.archive` |
+
+### 22.4 Activity, evidence, review, stakeholder endpoints
+
+| Method | Route | Permission key |
+|---|---|---|
+| POST | `/items/{id}/activities/` | `work.activity.create` |
+| GET | `/items/{id}/activities/` | `work.activity.list` |
+| POST | `/activities/{id}/corrections/` | `work.activity.correct` |
+| POST | `/items/{id}/attachments/` | `work.attachment.create` |
+| GET | `/items/{id}/attachments/` | `work.attachment.list` |
+| POST | `/attachments/{id}/detach/` | `work.attachment.detach` |
+| POST | `/items/{id}/evidence/` | `work.evidence.create` |
+| GET | `/items/{id}/evidence/` | `work.evidence.list` |
+| POST | `/evidence/{id}/verify/` | `work.evidence.verify` |
+| POST | `/evidence/{id}/reject/` | `work.evidence.reject` |
+| GET | `/items/{id}/reviews/` | `work.review.list` |
+| POST | `/reviews/{id}/comments/` | `work.review.comment` |
+| POST | `/reviews/{id}/decide/` | `work.review.decide` |
+| POST | `/items/{id}/stakeholders/` | `work.stakeholder.create` |
+| PATCH | `/stakeholders/{id}/` | `work.stakeholder.update` |
+| POST | `/stakeholders/{id}/notify/` | `work.stakeholder.notify` |
+
+### 22.5 Query/dashboard endpoints
+
+| Method | Route | Permission key |
+|---|---|---|
+| GET | `/my/active/` | `work.work_item.list_my` |
+| GET | `/my/pending-assignments/` | `work.assignment.list_my_pending` |
+| GET | `/my/pending-reviews/` | `work.review.list_my_pending` |
+| GET | `/units/{unit_id}/queue/` | `work.work_item.list_unit_queue` |
+| GET | `/units/{unit_id}/hierarchy-overview/` | `work.work_item.list_hierarchy_overview` |
+
+The route catalogue may be consolidated after codebase review, but no lifecycle capability may be removed or hidden behind arbitrary generic CRUD.
+
+---
+
+## 23. Policy engine requirements
+
+For every endpoint and permission-sensitive service action:
+
+- register the `work` application and related policy models;
+- use stable lowercase permission keys;
+- categorize create/read/list/update/delete/custom actions;
+- assign risk level;
+- map to UI-friendly permission categories;
+- declare dependencies;
+- create/update endpoint version records;
+- append policy changelog entries;
+- run registry synchronization and strict validation.
+
+Examples of required dependency thinking:
+
+- `work.work_item.close` requires `work.work_item.read` and appropriate review/closure authority.
+- `work.work_item.archive` requires `work.work_item.read` and may imply loss of ordinary-list visibility.
+- `work.attachment.create` requires `work.work_item.read` plus a document upload/attach permission when the document service exists.
+- `work.attachment.detach` requires `work.attachment.list` or `work.work_item.read` plus a manage-attachment permission.
+- `work.evidence.verify` requires `work.evidence.read`.
+- `work.review.decide` requires `work.review.list` or read-detail capability.
+- `work.work_item.transfer_ownership` requires read access and assignment authority.
+
+Claude must update policy metadata in the same implementation task. Endpoint code without policy lifecycle metadata is incomplete.
+
+---
+
+## 24. Integration contracts
+
+### 24.1 `authenticate` integration
+
+Work needs:
+
+- stable actor/user FK;
+- actor active/login eligibility status where relevant;
+- system/service-account identity for automated events;
+- no password/security logic.
+
+Rules:
+
+- an inactive actor cannot accept new ownership or assignment;
+- disabling login does not automatically erase actor history;
+- service accounts may create system activities only when explicitly permitted and attributable.
+
+### 24.2 `organization` integration
+
+Work needs:
+
+- organization and unit references;
+- closure-table ancestor/descendant queries;
+- active memberships;
+- active unit memberships;
+- active position assignments;
+- reporting-line resolution;
+- unit-head resolution;
+- root hierarchy resolution;
+- delegation resolution;
+- historical/effective-date context.
+
+The organization module remains authoritative. Work may cache immutable snapshots for audit, but not maintain a second organization tree.
+
+### 24.3 `permissions` integration
+
+Every controlled action must call the existing permission-decision interface with:
+
+- subject actor;
+- permission key;
+- organization scope;
+- organization-unit scope where relevant;
+- explain/decision context when supported.
+
+Work then applies resource and lifecycle checks. Work must not write roles, grants, or denials.
+
+### 24.4 `core.policy_engine` integration
+
+All routes/actions are registered, categorized, versioned, and validated. No endpoint is complete without policy metadata.
+
+### 24.5 `core` integration
+
+Use:
+
+- standard JSON success/error envelope;
+- central exception handling;
+- request ID;
+- structured logging;
+- standard pagination;
+- configured JWT/service-account authentication;
+- default throttling and explicit expensive-endpoint throttles.
+
+### 24.6 Future `notifications` integration
+
+Input: outbox events with recipient-resolution references.  
+Output: inbox/delivery status.  
+Work does not own channel preferences or delivery retries.
+
+### 24.7 Future `events` integration
+
+Work status, activity, assignment, review, and closure events should be projectable into a universal event ledger. The work outbox is the transition bridge until that module exists.
+
+### 24.8 Future `documents` integration
+
+Documents own physical file truth and metadata. Work owns evidence purpose, attachment provenance, and linkage.
+
+Minimum document-service requirements for government-grade use:
+
+- document versioning must be immutable and attributable;
+- raw files must never be exposed through work database tables;
+- upload, download, preview, revoke, and archive actions must all be permissioned and audited;
+- work must only store references and security-relevant snapshots, not storage paths or blobs;
+- access to a document from work does not imply access to every version or every attachment context;
+- document-level ACLs must be narrower or equal to work-level visibility, never broader by accident.
+
+### 24.9 Future `cases` integration
+
+A case may contain multiple work items. Do not add a phantom unvalidated case UUID field before the cases app contract exists. When implemented, add a documented nullable FK or association with migration and compatibility plan.
+
+### 24.10 Future `workflow` integration
+
+The work module owns its core lifecycle invariants. A future workflow module may define configurable stages and transitions but must invoke work services and use the same dynamic hierarchy resolver. It must not bypass work state rules.
+
+### 24.11 Future `audit` integration
+
+Audit consumes immutable work transitions, activities, reviews, evidence verification, and hierarchy snapshots. Audit findings are not stored as ordinary work comments.
+
+### 24.12 Future `evaluation` integration
+
+Evaluation consumes factual metrics and contextual organization data. It owns normalized performance interpretation.
+
+### 24.13 Future AI integration
+
+AI may:
+
+- suggest task decomposition;
+- draft summaries;
+- suggest likely routing;
+- identify possible blockers;
+- summarize activity/evidence;
+- recommend reviewers.
+
+AI may not autonomously:
+
+- transfer ownership;
+- approve review;
+- close work;
+- archive work;
+- alter evidence verification;
+- create performance judgments;
+- bypass permissions or hierarchy.
+
+AI suggestions must be stored as drafts/recommendations with model, prompt version, source references, confidence/uncertainty, and human decision.
+
+---
+
+## 25. End-to-end system integration flowchart
+
+```mermaid
+flowchart LR
+    subgraph GOV[Existing Governance Foundation]
+        AUTH[authenticate\nActor identity & eligibility]
+        ORG[organization\nUnits, closure hierarchy, positions, reporting, delegation]
+        PERM[permissions\nRoles, grants, denials, scope decisions]
+        POLICY[core.policy_engine\nAction & endpoint registry]
+        CORE[core\nAPI envelope, logging, request ID, auth defaults]
+    end
+
+    subgraph WORK[Work Module]
+        WAPI[Thin DRF views & serializers]
+        WAUTH[Work resource authorization]
+        HIER[Dynamic hierarchy resolver]
+        WSVC[Transactional command services]
+        WSTATE[Work/task current state]
+        WHIST[Assignments, transitions, activity, review, closure history]
+        OUTBOX[Transactional outbox]
+    end
+
+    subgraph FUTURE[Future/Adjacent Modules]
+        NOTIF[notifications]
+        DOCS[documents/file lake]
+        EVENTS[event ledger]
+        CASES[cases]
+        AUDIT[audit]
+        EVAL[evaluation]
+        AI[local AI reasoning]
+    end
+
+    CORE --> WAPI
+    AUTH --> WAPI
+    WAPI --> PERM
+    WAPI --> WAUTH
+    ORG --> HIER
+    PERM --> WAUTH
+    POLICY -. registers .-> WAPI
+    WAUTH --> WSVC
+    HIER --> WSVC
+    WSVC --> WSTATE
+    WSVC --> WHIST
+    WSVC --> OUTBOX
+    DOCS -. evidence reference .-> WHIST
+    CASES -. optional future association .-> WSTATE
+    OUTBOX -. delivery .-> NOTIF
+    OUTBOX -. projection .-> EVENTS
+    WHIST -. accountability source .-> AUDIT
+    WHIST -. factual metrics .-> EVAL
+    WSTATE -. structured context .-> AI
+    WHIST -. source-linked history .-> AI
+```
+
+---
+
+## 26. Complete operational flow
+
+```mermaid
+flowchart TD
+    A[Authorized actor creates work] --> B{Explicit different owner or unit?}
+    B -->|No| C[Creator becomes accountable owner; status accepted]
+    B -->|Yes| D[Creator remains accountable; assignment pending]
+    D --> E[Resolve target using organization hierarchy]
+    E --> F{Target response}
+    F -->|Accept| G[Ownership/assignment becomes effective]
+    F -->|Reject out of scope| H[Record reason and route recommendation]
+    F -->|Clarification| I[Return to issuer/owner]
+    H --> E
+    C --> J[Create tasks/subtasks and assignments]
+    G --> J
+    J --> K[Actors accept and start tasks]
+    K --> L[Record activities and submit evidence]
+    L --> M{Blocked?}
+    M -->|Yes| N[Record blocker and waiting responsibility]
+    N --> O[Resolve blocker]
+    O --> L
+    M -->|No| P{Review required?}
+    P -->|Yes| Q[Resolve reviewer dynamically]
+    Q --> R[Create immutable review round]
+    R --> S{Review decision}
+    S -->|Changes requested| T[Return to execution with comments]
+    T --> L
+    S -->|Approved| U[Move to closure pending]
+    S -->|Rejected/returned| V[Hierarchy action: revise, reroute, or close failed]
+    P -->|No| U
+    U --> W[Authorized actor records closure outcome]
+    W --> X[Close work and freeze closure snapshot]
+    X --> Y{External notification required?}
+    Y -->|Yes| Z[Create approved notification outbox event]
+    Y -->|No| AA[Remain closed]
+    Z --> AA
+    AA --> AB[Archive later; never hard delete]
+```
+
+---
+
+## 27. Concurrency, idempotency, and consistency
+
+### 27.1 Optimistic concurrency
+
+Use an `aggregate_version` on work and task current-state rows.
+
+Mutation requests should accept an expected version through request data or an `If-Match`/ETag strategy documented in API contracts. A stale mutation returns `409 WORK_VERSION_CONFLICT`.
+
+### 27.2 Row locking
+
+Use row-level locking for:
+
+- assignment acceptance;
+- ownership transfer response;
+- routing response;
+- status transitions;
+- review decisions;
+- closure;
+- reopen/archive/restore;
+- task reorder where concurrent ordering matters.
+
+### 27.3 Idempotency
+
+Idempotency keys are mandatory for:
+
+- create work;
+- assignment/transfer acceptance;
+- review decision;
+- closure;
+- external notification request;
+- outbox processing.
+
+Repeated requests with the same key and same payload return the prior result. Same key with different payload returns a conflict.
+
+### 27.4 Transaction boundary
+
+Current state, append-only history, hierarchy snapshot, domain event, and outbox event must commit atomically.
+
+No email, SMS, external API call, OCR call, or AI call is permitted inside the work transaction.
+
+---
+
+## 28. Error code catalogue
+
+All codes live in `work/constants.py` and are documented in `API.md`.
+
+Minimum stable codes:
+
+```text
+WORK_ITEM_NOT_FOUND
+WORK_TASK_NOT_FOUND
+WORK_ASSIGNMENT_NOT_FOUND
+WORK_REVIEW_NOT_FOUND
+WORK_EVIDENCE_NOT_FOUND
+WORK_STAKEHOLDER_NOT_FOUND
+WORK_PERMISSION_DENIED
+WORK_RESOURCE_NOT_VISIBLE
+WORK_SENSITIVITY_ACCESS_DENIED
+WORK_INVALID_STATUS_TRANSITION
+WORK_VERSION_CONFLICT
+WORK_IDEMPOTENCY_CONFLICT
+WORK_OWNER_REQUIRED
+WORK_OWNER_INELIGIBLE
+WORK_ASSIGNMENT_ALREADY_RESOLVED
+WORK_ASSIGNMENT_TARGET_INVALID
+WORK_OWNERSHIP_TRANSFER_ALREADY_RESOLVED
+WORK_ROUTING_LOOP_DETECTED
+WORK_ROUTING_HOP_LIMIT_EXCEEDED
+WORK_HIERARCHY_TARGET_UNRESOLVED
+WORK_HIERARCHY_CONTEXT_INVALID
+WORK_TASK_PARENT_INVALID
+WORK_TASK_CYCLE_DETECTED
+WORK_TASK_DEPTH_EXCEEDED
+WORK_TASK_DEPENDENCY_CYCLE
+WORK_REVIEW_REQUIRED
+WORK_REVIEWER_INELIGIBLE
+WORK_SELF_REVIEW_FORBIDDEN
+WORK_REVIEW_SNAPSHOT_STALE
+WORK_CLOSURE_REQUIREMENTS_UNMET
+WORK_CLOSURE_OUTCOME_INVALID
+WORK_ARCHIVED
+WORK_EVIDENCE_INVALID
+WORK_EVIDENCE_ALREADY_RESOLVED
+WORK_ATTACHMENT_NOT_FOUND
+WORK_ATTACHMENT_INVALID
+WORK_ATTACHMENT_ALREADY_DETACHED
+WORK_ACTIVITY_IMMUTABLE
+WORK_DEADLINE_EXTENSION_REASON_REQUIRED
+WORK_EXTERNAL_NOTIFICATION_NOT_APPROVED
+WORK_FILE_INTEGRATION_UNAVAILABLE
+WORK_DOCUMENT_INTEGRATION_UNAVAILABLE
+```
+
+Use validation details inside the standard error envelope. Do not expose hierarchy-sensitive information to unauthorized callers.
+
+---
+
+## 29. Security and privacy requirements
+
+- Deny by default.
+- Validate organization and unit scope on every action.
+- Never trust actor/unit IDs supplied by the client without authoritative lookup.
+- Never expose work existence through list/detail differences for unauthorized users.
+- Filter nested activity/evidence at the query layer.
+- Do not log confidential work text, evidence content, contact details, tokens, or raw files.
+- Log request ID, actor ID, action key, work ID, result code, and safe metadata.
+- Use explicit serializer read/write fields.
+- Prevent mass assignment of creator, owner, responsible unit, status, closure outcome, review decision, and audit fields.
+- MIME, malware, checksum, and storage validation belong to document integration.
+- External stakeholder contacts require field-level access control and future retention rules.
+- No background task may mutate work without an attributable system/service actor and permission context.
+
+---
+
+## 30. Scaling and indexing requirements
+
+Expected high-volume tables:
+
+- work items;
+- tasks;
+- assignments;
+- activity entries;
+- attachment records;
+- status transitions;
+- evidence records;
+- review rounds;
+- outbox events.
+
+Requirements:
+
+- index every high-frequency filter/order/join path;
+- use composite indexes for owner/status/due-date and unit/status/due-date queues;
+- use stable pagination ordering;
+- use cursor pagination for very large timeline tables when threshold is proven;
+- partition activity/transition/outbox tables later when measured volume justifies it;
+- do not introduce another database engine during initial implementation;
+- outbox consumers must be batchable and retry-safe;
+- hierarchy descendant queries must reuse the organization's closure table, not recursive Python loops;
+- hierarchy overview selectors must avoid per-work hierarchy queries;
+- archive does not move rows to another store in phase 1.
+
+---
+
+## 31. Required documentation files
+
+Create under `backend/work/docs/`:
+
+- `API.md`
+- `DATA_CONTRACT.md`
+- `INTEGRATION.md`
+- `DOCUMENT_INTEGRATION.md`
+- `ASYNC_PROCESSING.md`
+- `CACHE.md`
+- `DEBUG_HISTORY.md`
+- `LIFECYCLE.md`
+- `HIERARCHY_RESOLUTION.md`
+- `EVENTS.md`
+
+`DATA_CONTRACT.md` must be completed before model code.
+
+`INTEGRATION.md` must identify exact public selectors/services used from `authenticate`, `organization`, `permissions`, and `core.policy_engine` after repository inspection.
+
+---
+
+## 32. Management commands
+
+Mandatory:
+
+### `validate_work_integrity`
+
+Checks at minimum:
+
+- active work without owner;
+- invalid responsible unit/organization pair;
+- owner not eligible;
+- multiple active owner assignments;
+- task parent outside work;
+- task cycles/depth violations;
+- dependency cycles;
+- invalid current status versus transition history;
+- missing closure record for closed work;
+- unresolved accepted transfer inconsistencies;
+- stale pending assignment to inactive actor;
+- routing loops/hop overflow;
+- missing hierarchy snapshot for hierarchy-dependent action;
+- outbox idempotency duplicates;
+- archived records with active assignments.
+
+The command reports but does not silently repair unless a separate explicitly approved repair command is designed.
+
+Optional after evidence:
+
+### `rebuild_work_metrics`
+
+Rebuilds derived neutral metrics from immutable records. Must be idempotent.
+
+---
+
+## 33. Testing requirements
+
+### 33.1 Model/constraint tests
+
+- every invariant and DB constraint;
+- task and dependency cycle detection;
+- unique active owner assignment;
+- immutable creator/history behavior;
+- attachment provenance and detach history;
+- archive behavior;
+- indexes/migration safety where testable.
+
+### 33.2 Service tests
+
+For every command:
+
+- success;
+- permission denial;
+- resource visibility denial;
+- invalid lifecycle state;
+- stale aggregate version;
+- duplicate idempotency key;
+- hierarchy target resolution;
+- hierarchy target missing;
+- delegation behavior;
+- transaction rollback;
+- outbox creation;
+- history creation.
+- document attachment success/failure where applicable.
+
+### 33.3 Hierarchy tests
+
+- explicit reporting line preferred;
+- unit head fallback;
+- ancestor-head fallback;
+- root-head fallback;
+- active delegation applied;
+- expired delegation ignored;
+- hierarchy move affects future resolution only;
+- old snapshot remains unchanged;
+- head change affects future visibility/review;
+- owner does not silently change;
+- cross-unit route returns to work owner;
+- routing loop escalates.
+
+### 33.4 API tests
+
+Every endpoint:
+
+- success;
+- validation failure;
+- unauthenticated;
+- permission denied;
+- invisible resource anti-enumeration;
+- not found;
+- lifecycle conflict;
+- standard response envelope;
+- stable error code;
+- pagination where applicable;
+- no N+1 regression for list/detail query patterns.
+- attachment endpoints enforce visibility and document ACL behavior.
+
+### 33.5 Concurrency tests
+
+Use transaction-capable PostgreSQL tests for:
+
+- two actors accepting the same assignment;
+- ownership change during acceptance;
+- concurrent review decisions;
+- concurrent closure/reopen;
+- duplicate idempotent requests;
+- task reorder conflicts.
+
+### 33.6 Management-command tests
+
+- clean data passes;
+- each integrity violation is detected;
+- command does not mutate without explicit repair mode.
+
+---
+
+## 34. Implementation sequence
+
+Claude must follow this order.
+
+### Phase 0 — Compatibility and contract gate
+
+1. Create session branch according to repository rules.
+2. Read current app docs and actual public interfaces.
+3. Produce a compatibility/change-impact plan.
+4. Identify exact cross-app FKs and selector/service boundaries.
+5. Write `DATA_CONTRACT.md`, `INTEGRATION.md`, `LIFECYCLE.md`, and hierarchy contract before models.
+6. Stop for approval if an authorization behavior change, new dependency, or destructive change is required.
+
+### Phase 1 — Core aggregate and hierarchy foundation
+
+- WorkItem;
+- WorkTask;
+- WorkAssignment;
+- WorkHierarchyResolution;
+- WorkStatusTransition;
+- core creation/read/list selectors and services;
+- policy registry;
+- tests.
+
+### Phase 2 — Execution and accountability
+
+- assignment response;
+- routing;
+- ownership transfer;
+- activity records;
+- attachment ledger and document provenance;
+- blockers/deadlines;
+- task execution;
+- outbox;
+- worker orchestration and Celery consumers;
+- tests.
+
+### Phase 3 — Review and closure
+
+- review rounds/comments/snapshots;
+- closure/reopen/archive/restore;
+- stakeholder records;
+- tests.
+
+### Phase 4 — Evidence integration
+
+- text/structured evidence;
+- file-backed evidence only after document service contract exists;
+- document download/access integration and attachment visibility enforcement;
+- verification lifecycle;
+- tests.
+
+### Phase 5 — Operational selectors and integrity
+
+- my work;
+- unit queue;
+- hierarchy overview;
+- pending reviews;
+- metrics facts;
+- integrity command;
+- query performance tests;
+- complete docs and policy validation.
+
+Each phase must be independently migratable, tested, documented, and policy-registered. Do not claim the full module complete after only Phase 1.
+
+---
+
+## 35. Explicit anti-hallucination and anti-drift rules for Claude
+
+Claude must not:
+
+1. invent existing selector/service names in other modules;
+2. hard-code actors, units, department names, position IDs, or hierarchy depth;
+3. build static approval chains that ignore the organization closure table/reporting lines;
+4. create a second permission system inside `work`;
+5. grant access merely because an actor is stored as a participant;
+6. treat broad permission as permission to every work row;
+7. allow generic status/owner/closure updates through serializers;
+8. use model signals as the primary lifecycle orchestrator;
+9. hard delete work, tasks, evidence, reviews, activities, or transitions;
+10. silently edit accountability history;
+11. let hierarchy changes rewrite historical routing/review explanations;
+12. silently move ownership when a unit head or supervisor changes;
+13. compute personnel performance scores in the work app;
+14. store uncontrolled file paths or create a hidden file lake;
+15. create case/event/audit/notification domains inside work because those apps do not exist yet;
+16. add Celery, Redis, search engines, or third-party workflow libraries without a documented contract and approval when they affect authority, persistence, or external delivery;
+17. make AI-generated routing or closure decisions autonomous;
+18. expose confidential nested records through an unfiltered serializer;
+19. implement endpoints without policy registry entries and validation;
+20. claim completion without PostgreSQL-backed tests, linting, migrations, documentation, and integrity validation.
+
+When an actual existing interface differs from this document, Claude must:
+
+- identify the difference;
+- preserve the domain invariant;
+- propose the smallest compatible adaptation;
+- update integration documentation;
+- request approval when the change affects authorization or architecture.
+
+---
+
+## 36. Acceptance criteria
+
+The work module is acceptable only when all of the following are demonstrable:
+
+1. Every active work has one current accountable actor and responsible unit.
+2. Creator and historical ownership are preserved.
+3. Work cannot be hard deleted.
+4. Status and ownership cannot be arbitrarily patched.
+5. Tasks/subtasks support safe hierarchical execution without cycles.
+6. Dynamic hierarchy resolves responses, reviews, visibility, and escalation.
+7. Every hierarchy-driven decision stores an immutable snapshot.
+8. Organization changes affect future actions but never rewrite prior history.
+9. Ownership does not silently change after hierarchy restructuring.
+10. Cross-unit routing preserves accountability and detects loops.
+11. Activity entries provide correction-based audit history.
+12. Review-required work cannot close without review approval.
+13. Review rounds preserve stable submission snapshots.
+14. Closure stores an explicit outcome and supporting explanation.
+15. External stakeholders receive only approved communications.
+16. Permission evaluation and resource visibility both pass before access.
+17. Sensitive nested data is filtered at query level.
+18. Current-state changes, history, hierarchy snapshots, and outbox events are atomic.
+19. Concurrent conflicting actions are detected.
+20. Policy engine registry and strict validation pass.
+21. Integrity command detects deliberately corrupted scenarios.
+22. API, data contract, integration, lifecycle, events, and debug documentation exist.
+23. Required test suites pass against PostgreSQL.
+24. `ruff check`, `ruff format`, migrations, policy validation, and project CI gate pass.
+
+---
+
+## 37. Final architectural statement
+
+MintFlow's work module must be implemented as:
+
+> An auditable work-execution aggregate whose lifecycle is stable, whose authority and response paths are dynamically derived from the effective organizational hierarchy, whose historical decisions remain immutable, and whose integrations preserve the ownership boundaries of identity, organization, permissions, policy governance, evidence, notification, audit, and evaluation.
+
+The hierarchy is not decorative metadata. It is an active runtime authority graph.
+
+The workflow must therefore be dynamic in **who responds, reviews, sees, receives, and escalates**, while remaining strict and deterministic in **what lifecycle transitions are allowed**.

@@ -98,4 +98,3 @@ with verification appropriate to change risk.
   and approval.
 - Preserve base theme defaults while allowing substantial app-level customization.
 - SSR is allowed when it materially helps a route; it is not a blanket mandate.
-

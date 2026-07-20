@@ -9,8 +9,8 @@ import {
   Group,
   Loader,
   Modal,
-  ModalPaper,
   Stack,
+  Tabs,
   Text,
   ThemeIcon,
   Title,
@@ -20,23 +20,20 @@ import { WarningCircleIcon } from "@phosphor-icons/react/dist/csr/WarningCircle"
 
 import { getApiError } from "@/lib/authErrorMessages";
 import {
+  APPLICANT_SECTIONS,
   applicantKeys,
   updateApplicant,
   useApplicant,
   useApplicantMutation,
 } from "../../../_shared";
-import type { Applicant } from "../../../_shared";
+import type { Applicant, ApplicantSectionId } from "../../../_shared";
 import { ApplicantActionBar } from "../ApplicantActions/ApplicantActionBar";
 import { ApplicantEditForm, toUpdatePayload } from "../../form";
 import type { ApplicantFormValues } from "../../form";
-import { ProfileHero } from "./ProfileHero";
-import { ProfileSectionTile } from "./ProfileSectionTile";
-import { getProfileSectionTiles } from "./sectionTiles";
-import styles from "./ApplicantProfileModal.module.css";
-import type {
-  ApplicantProfileBodyProps,
-  ApplicantProfileModalProps,
-} from "./ApplicantProfileModal.types";
+import { ProfileHeader } from "./ProfileHeader";
+import { ProfileOverview } from "./ProfileOverview";
+import { SectionContent } from "./SectionContent";
+import type { ApplicantProfileModalProps } from "./ApplicantProfileModal.types";
 
 function ProfileState({
   title,
@@ -69,22 +66,58 @@ function ProfileState({
   );
 }
 
-function ApplicantProfileBody({
-  applicantId,
-  onClose,
-  onEditingChange,
-}: ApplicantProfileBodyProps) {
+/** Section nav + the active section's content — overview by default, others in-place. */
+function ProfileSections({
+  applicant,
+  isAdmin,
+}: {
+  applicant: Applicant;
+  isAdmin: boolean;
+}) {
+  const [active, setActive] = useState<ApplicantSectionId>("overview");
+  const sections = APPLICANT_SECTIONS.filter((s) => isAdmin || !s.adminOnly);
+
+  return (
+    <Stack gap="md">
+      <Tabs
+        value={active}
+        onChange={(v) => v && setActive(v as ApplicantSectionId)}
+        variant="outline"
+      >
+        <Tabs.List>
+          {sections.map((section) => {
+            const Icon = section.icon;
+            return (
+              <Tabs.Tab
+                key={section.id}
+                value={section.id}
+                leftSection={<Icon size={15} aria-hidden />}
+              >
+                {section.label}
+              </Tabs.Tab>
+            );
+          })}
+        </Tabs.List>
+      </Tabs>
+
+      {active === "overview" ? (
+        <ProfileOverview applicant={applicant} isAdmin={isAdmin} />
+      ) : (
+        <SectionContent
+          sectionId={active}
+          applicant={applicant}
+          isAdmin={isAdmin}
+        />
+      )}
+    </Stack>
+  );
+}
+
+function ApplicantProfileBody({ applicantId }: { applicantId: string }) {
   const router = useRouter();
   const { applicant, isLoading, isError, error, isAdmin, refetch } =
     useApplicant(applicantId);
   const [editOpen, setEditOpen] = useState(false);
-
-  // Keep the parent modal informed so it can hold its ground (no Escape / click-outside
-  // close) while the edit form owns the foreground.
-  const setEditing = (open: boolean) => {
-    setEditOpen(open);
-    onEditingChange(open);
-  };
 
   const editMutation = useApplicantMutation<Applicant, ApplicantFormValues>({
     mutationFn: (values) =>
@@ -96,7 +129,7 @@ function ApplicantProfileBody({
     successMessage: "Your changes were saved.",
     errorTitle: "Couldn't save changes",
     invalidateKeys: [applicantKeys.lists(), applicantKeys.detail(applicantId)],
-    onSuccess: () => setEditing(false),
+    onSuccess: () => setEditOpen(false),
   });
 
   if (isLoading) {
@@ -124,51 +157,33 @@ function ApplicantProfileBody({
     );
   }
 
-  const tiles = getProfileSectionTiles(applicantId, isAdmin);
-
   return (
     <>
       <Stack gap="md">
-        <ModalPaper withBorder>
-          <Stack gap="sm">
-            <ProfileHero applicant={applicant} />
-            <Divider />
-            <Group justify="flex-end" gap="xs">
-              {isAdmin && (
-                <Button
-                  variant="light"
-                  size="xs"
-                  leftSection={<FileTextIcon size={14} aria-hidden />}
-                  onClick={() => router.push(`/documents/${applicantId}`)}
-                >
-                  Prepare documents
-                </Button>
-              )}
-              <ApplicantActionBar
-                applicant={applicant}
-                onEdit={() => setEditing(true)}
-              />
-            </Group>
-          </Stack>
-        </ModalPaper>
-
-        <Stack gap="xs">
-          <Title order={6}>Sections</Title>
-          <div className={styles.grid}>
-            {tiles.map((tile) => (
-              <ProfileSectionTile
-                key={tile.id}
-                tile={tile}
-                onNavigate={onClose}
-              />
-            ))}
-          </div>
-        </Stack>
+        <ProfileHeader applicant={applicant} />
+        <Group justify="flex-end" gap="xs">
+          {isAdmin && (
+            <Button
+              variant="light"
+              size="xs"
+              leftSection={<FileTextIcon size={14} aria-hidden />}
+              onClick={() => router.push(`/documents/${applicantId}`)}
+            >
+              Prepare documents
+            </Button>
+          )}
+          <ApplicantActionBar
+            applicant={applicant}
+            onEdit={() => setEditOpen(true)}
+          />
+        </Group>
+        <Divider />
+        <ProfileSections applicant={applicant} isAdmin={isAdmin} />
       </Stack>
 
       <Modal
         opened={editOpen}
-        onClose={() => setEditing(false)}
+        onClose={() => setEditOpen(false)}
         title="Edit applicant"
         size="lg"
         styles={{ body: { padding: "var(--mantine-spacing-md)" } }}
@@ -185,38 +200,27 @@ function ApplicantProfileBody({
 
 /**
  * Applicant profile hub, shown in a modal instead of a dedicated route. Anchors on the
- * applicant's identity + lifecycle state, carries the record's actions, and launches
- * into each detail section — which remain full routes the tiles link out to.
+ * applicant's identity + lifecycle state, carries the record's actions, and hosts every
+ * detail section in-place (overview by default) — no navigation away from the list. The
+ * hub closes explicitly (its X); Escape / click-outside are disabled so the many nested
+ * section modals can't collapse it from underneath.
  */
 export function ApplicantProfileModal({
   applicantId,
   onClose,
 }: ApplicantProfileModalProps) {
-  const [editing, setEditing] = useState(false);
-
-  const handleClose = () => {
-    setEditing(false);
-    onClose();
-  };
-
   return (
     <Modal
       opened={applicantId !== null}
-      onClose={handleClose}
+      onClose={onClose}
       title="Applicant profile"
-      size={760}
-      // While the nested edit form is open it owns Escape / click-outside; the parent
-      // must not close underneath it.
-      closeOnEscape={!editing}
-      closeOnClickOutside={!editing}
+      size="72rem"
+      closeOnEscape={false}
+      closeOnClickOutside={false}
       styles={{ body: { padding: "var(--mantine-spacing-md)" } }}
     >
       {applicantId !== null && (
-        <ApplicantProfileBody
-          applicantId={applicantId}
-          onClose={onClose}
-          onEditingChange={setEditing}
-        />
+        <ApplicantProfileBody key={applicantId} applicantId={applicantId} />
       )}
     </Modal>
   );

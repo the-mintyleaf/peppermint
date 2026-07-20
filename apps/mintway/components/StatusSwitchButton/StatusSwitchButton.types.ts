@@ -17,4 +17,10 @@ export interface StatusSwitchButtonProps
   label: string;
   /** Mantine palette name (e.g. `"teal"`) — tints the button and the dot. */
   color: string;
+  /**
+   * Terminal state — the record has reached the end of its track and there is
+   * nowhere to switch to. Swaps the caret affordance for a check mark; pair with a
+   * disabled `Menu` so the pill reads as a final status, not an openable lever.
+   */
+  terminal?: boolean;
 }

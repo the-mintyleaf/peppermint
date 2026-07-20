@@ -288,7 +288,8 @@
 
 .editDocumentBtn {
   position: absolute;
-  bottom: 16px;
+  /* Sits just below the 40px main header + 40px sub-header toolbar, top-right. */
+  top: 96px;
   z-index: 15;
   box-shadow: var(--mantine-shadow-md);
   transition: right 0.15s ease;
@@ -355,7 +356,16 @@
     display: none !important;
   }
 
-  .centerContent :global(.mantine-ScrollArea-viewport) > * {
+  /* Collapse the wrappers between the viewport and the print root. Mantine nests
+     viewport > .mantine-ScrollArea-content > [padding Box] > … , so the viewport's direct
+     child is the content wrapper — the Box carrying the on-screen "12px 8px" breathing room
+     sits one level deeper. Zeroing only the viewport's direct child (as before) left that
+     Box's 24px of vertical padding intact, which tips a full-height (297mm) page just past
+     the sheet boundary and emits a trailing blank page. Reset the content wrapper and its
+     child too so the print root sits flush at the page origin. */
+  .centerContent :global(.mantine-ScrollArea-viewport) > *,
+  .centerContent :global(.mantine-ScrollArea-content),
+  .centerContent :global(.mantine-ScrollArea-content) > * {
     padding: 0 !important;
     margin: 0 !important;
     min-height: 0 !important;

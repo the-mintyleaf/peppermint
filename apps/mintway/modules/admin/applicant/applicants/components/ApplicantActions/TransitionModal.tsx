@@ -9,7 +9,6 @@ import {
   Select,
   Stack,
   Text,
-  TextInput,
   Textarea,
 } from "@peppermint/ui";
 
@@ -29,6 +28,10 @@ import type {
   LifecycleStage,
   TransitionPayload,
 } from "../../../_shared";
+import {
+  useApplicantRecordVersion,
+  useAssessmentOptions,
+} from "./TransitionModal.hooks";
 
 export interface TransitionModalProps {
   applicant: Applicant;
@@ -62,6 +65,23 @@ export function TransitionModal({
   const [reason, setReason] = useState("");
   const [notes, setNotes] = useState("");
   const [assessmentId, setAssessmentId] = useState("");
+
+  // The `→ potential` move needs a real assessment id of this applicant, so we offer the
+  // actual records — fetched only while the Potential branch is showing (§9.1).
+  const {
+    options: assessmentOptions,
+    isLoading: assessmentsLoading,
+    isError: assessmentsError,
+  } = useAssessmentOptions(applicant.id, opened && stage === "potential");
+
+  // The list projection omits `record_version` and the server bumps it after each
+  // transition, so refetch the fresh value rather than trust the row we were handed.
+  const {
+    recordVersion,
+    isLoading: versionLoading,
+    isError: versionError,
+  } = useApplicantRecordVersion(applicant.id, opened);
+  const effectiveVersion = recordVersion ?? applicant.record_version;
 
   const reset = () => {
     setStage("");
@@ -119,11 +139,14 @@ export function TransitionModal({
 
   const nothingChosen = !stage && !engagement;
   const reasonMissing = reasonRequired && !reason.trim();
-  const disabled = nothingChosen || reasonMissing;
+  const versionMissing = effectiveVersion === undefined;
+  const disabled =
+    nothingChosen || reasonMissing || versionMissing || versionLoading;
 
   const handleSubmit = () => {
+    if (effectiveVersion === undefined) return;
     const payload: TransitionPayload = {
-      record_version: applicant.record_version,
+      record_version: effectiveVersion,
     };
     if (stage) payload.lifecycle_stage = stage as LifecycleStage;
     if (engagement) payload.engagement_status = engagement as EngagementStatus;
@@ -170,11 +193,23 @@ export function TransitionModal({
         />
 
         {stage === "potential" && (
-          <TextInput
-            label="Qualification assessment id"
-            description="Optional — provide this or a reason to move to Potential."
-            value={assessmentId}
-            onChange={(e) => setAssessmentId(e.currentTarget.value)}
+          <Select
+            label="Qualification assessment"
+            placeholder={
+              assessmentsLoading
+                ? "Loading assessments…"
+                : assessmentOptions.length
+                  ? "Select an assessment"
+                  : "No assessments recorded"
+            }
+            description="Pick a recorded assessment, or leave blank and give a reason to move to Potential."
+            clearable
+            searchable
+            disabled={assessmentsLoading || assessmentOptions.length === 0}
+            data={assessmentOptions}
+            value={assessmentId || null}
+            onChange={(v) => setAssessmentId(v ?? "")}
+            error={assessmentsError ? "Couldn't load assessments" : undefined}
           />
         )}
 
@@ -197,6 +232,13 @@ export function TransitionModal({
         {hint && (
           <Alert color="blue" variant="light" py="xs">
             {hint}
+          </Alert>
+        )}
+
+        {versionError && versionMissing && (
+          <Alert color="red" variant="light" py="xs">
+            Couldn&apos;t load the applicant&apos;s current record — reopen this
+            dialog to try again before changing the lifecycle.
           </Alert>
         )}
 

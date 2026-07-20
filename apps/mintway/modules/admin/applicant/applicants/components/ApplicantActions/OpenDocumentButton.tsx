@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ActionIcon,
+  Alert,
   Text,
   Tooltip,
   modals,
@@ -14,6 +15,7 @@ import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
 
 import { documentsApi, documentQueryKeys } from "@/modules/documents";
 import type { Applicant } from "../../../_shared";
+import { WarningIcon } from "@phosphor-icons/react/dist/ssr";
 
 /**
  * Opens the applicant's document workspace from the list. Checks whether the applicant has
@@ -42,16 +44,27 @@ export function OpenDocumentButton({ applicant }: { applicant: Applicant }) {
       }
 
       modals.openConfirmModal({
-        title: "No document yet",
+        title: "DOCUMENT NOT FOUND",
         children: (
-          <Text size="sm">
-            {applicant.full_name} has no documents yet. Create one now?
-          </Text>
+          <Alert icon={<WarningIcon />}>
+            <Text size="xs">
+              {applicant.full_name} has no documents yet. <br />
+              Create a <b>New Document</b> one now?
+            </Text>
+          </Alert>
         ),
         labels: { confirm: "Create document", cancel: "Cancel" },
         confirmProps: { size: "xs" },
         cancelProps: { size: "xs" },
         onConfirm: goToEditor,
+        styles: {
+          title: {
+            fontSize: "var(--mantine-font-size-sm)",
+          },
+          inner: {
+            padding: "var(--mantine-spacing-xs)",
+          },
+        },
       });
     } catch {
       notifications.show({

@@ -23,10 +23,11 @@ export interface CertificateMarkEntry {
 }
 
 /**
- * Resolved student-certificate content. Fields mirror the template's `EMPTY_CERT` fallback:
- * the string/number/`batch` fields are required (the template passes them to `formatDate`,
- * grade comparisons and arithmetic without guarding). `image`, `customBranch` and
- * `customBranchNo` are optional extras and render blank when absent.
+ * Resolved student-certificate content. The string/number fields are required (the template
+ * passes them to `formatDate`, grade comparisons and arithmetic without guarding). `batch`,
+ * `image`, `customBranch` and `customBranchNo` are optional — the certificate form does not
+ * emit `batch`, so the template guards every access (`d.batch?.course?…`) and renders blank
+ * when it is absent.
  */
 export interface StudentCertificateData {
   firstname: string;
@@ -48,7 +49,7 @@ export interface StudentCertificateData {
   image?: string;
   customBranch?: string;
   customBranchNo?: string;
-  batch: {
+  batch?: {
     course?: {
       name?: string;
       level?: string;

@@ -3,7 +3,7 @@
 .grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--mantine-spacing-md);
+  gap: var(--mantine-spacing-xs);
 }
 
 @media (min-width: 48em) {
@@ -22,7 +22,7 @@
 @media (min-width: 64em) {
   .grid {
     grid-template-columns: repeat(4, 1fr);
-    grid-auto-rows: minmax(122px, auto);
+    grid-auto-rows: minmax(158px, auto);
   }
 
   .hero {

@@ -3,6 +3,7 @@
 import { forwardRef } from "react";
 import { Button, Group } from "@peppermint/ui";
 import { CaretDownIcon } from "@phosphor-icons/react/dist/csr/CaretDown";
+import { CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
 import { DotIcon } from "@phosphor-icons/react/dist/csr/Dot";
 
 import type { StatusSwitchButtonProps } from "./StatusSwitchButton.types";
@@ -16,7 +17,10 @@ import type { StatusSwitchButtonProps } from "./StatusSwitchButton.types";
 export const StatusSwitchButton = forwardRef<
   HTMLButtonElement,
   StatusSwitchButtonProps
->(function StatusSwitchButton({ label, color, ...rest }, ref) {
+>(function StatusSwitchButton(
+  { label, color, terminal = false, ...rest },
+  ref,
+) {
   return (
     <Button
       ref={ref}
@@ -26,7 +30,13 @@ export const StatusSwitchButton = forwardRef<
       color={color}
       size="xs"
       justify="space-between"
-      rightSection={<CaretDownIcon size={12} aria-hidden />}
+      rightSection={
+        terminal ? (
+          <CheckIcon size={12} weight="bold" aria-hidden />
+        ) : (
+          <CaretDownIcon size={12} aria-hidden />
+        )
+      }
       {...rest}
     >
       <Group gap={3}>

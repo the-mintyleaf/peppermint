@@ -11,6 +11,7 @@ import type {
   LifecycleStage,
   LockHistoryEntry,
   MergeRecord,
+  QualificationAssessment,
 } from "./applicant.types";
 
 // ── Envelope-meta capture ─────────────────────────────────────────────────────
@@ -203,6 +204,23 @@ export async function fetchLockHistory(
 ): Promise<{ data: LockHistoryEntry[]; meta: { total: number } }> {
   const { data } = await api.get(
     `/api/v1/applicants/${applicantId}/lock-history/`,
+    { params: { page: params?.page, page_size: params?.pageSize } },
+  );
+  return { data: data.data, meta: { total: data.meta?.count ?? 0 } };
+}
+
+/**
+ * `GET /api/v1/applicants/{id}/qualification-assessments/` — the applicant's assessments
+ * (newest first). Backs the assessment picker on the lifecycle transition (§9.1): the
+ * `→ potential` move needs a real assessment id *of this applicant*, so the transition
+ * modal must offer the actual records rather than a hand-typed UUID.
+ */
+export async function fetchQualificationAssessments(
+  applicantId: string,
+  params?: Partial<QueryParams>,
+): Promise<{ data: QualificationAssessment[]; meta: { total: number } }> {
+  const { data } = await api.get(
+    `/api/v1/applicants/${applicantId}/qualification-assessments/`,
     { params: { page: params?.page, page_size: params?.pageSize } },
   );
   return { data: data.data, meta: { total: data.meta?.count ?? 0 } };
