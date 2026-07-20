@@ -6,6 +6,7 @@ import { Button, Group, Modal } from "@peppermint/ui";
 import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
 
 import { RequireAuth } from "@/components/RequireAuth";
+import { ClientPreconditionError } from "@/lib/authErrorMessages";
 import {
   ApplicantDetailShell,
   applicantKeys,
@@ -31,7 +32,7 @@ function ApplicantOverviewContent() {
       // the server answers with APPLICANT_VERSION_CONFLICT. If the detail hasn't
       // loaded there is nothing safe to send, so fail before writing.
       if (!applicant) {
-        throw new Error(
+        throw new ClientPreconditionError(
           "Applicant not loaded — cannot save without a version.",
         );
       }

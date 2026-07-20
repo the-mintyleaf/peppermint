@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { openReasonConfirmModal } from "@peppermint/admin";
 
 import {
@@ -20,6 +21,7 @@ import type { Applicant } from "../../../_shared";
  * invalidation logic lives in one place.
  */
 export function useApplicantActionState(applicant: Applicant) {
+  const queryClient = useQueryClient();
   const [transitionOpen, setTransitionOpen] = useState(false);
   const [mergeOpen, setMergeOpen] = useState(false);
 
@@ -45,14 +47,25 @@ export function useApplicantActionState(applicant: Applicant) {
   });
 
   /**
-   * `record_version` is resolved here, not read off `applicant` — the staff list
-   * projection omits it, so a row-sourced value serialises to `undefined` and the
-   * key drops out of the DELETE body entirely (→ "This field is required"). Refetch
-   * the detail immediately before the write so the version is both present and fresh.
+   * `record_version` cannot be read off `applicant` — the list projection omits it, so
+   * a row-sourced value serialises to `undefined` and the key drops out of the DELETE
+   * body ("This field is required").
+   *
+   * It is resolved through the `detail` query cache rather than an unconditional GET.
+   * That distinction matters: a fresh read immediately before the write would echo a
+   * version that cannot possibly be stale, silently disabling the conflict check the
+   * contract requires. Going through `fetchQuery` echoes the version the user actually
+   * last read whenever the detail is cached, so a concurrent edit still surfaces as
+   * APPLICANT_VERSION_CONFLICT; it only falls back to a network read when archiving
+   * from a list row the user never opened, where no read version exists to defend.
    */
   const archive = useApplicantMutation<void, string>({
     mutationFn: async (reason) => {
-      const current = await getApplicant(applicant.id);
+      const current = await queryClient.fetchQuery({
+        queryKey: applicantKeys.detail(applicant.id),
+        queryFn: () => getApplicant(applicant.id),
+        staleTime: Infinity,
+      });
       return archiveApplicant(applicant.id, current.record_version, reason);
     },
     successTitle: "Applicant archived",

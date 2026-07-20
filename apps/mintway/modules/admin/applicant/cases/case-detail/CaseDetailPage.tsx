@@ -24,7 +24,7 @@ import { ArrowsLeftRightIcon } from "@phosphor-icons/react/dist/csr/ArrowsLeftRi
 import { WarningCircleIcon } from "@phosphor-icons/react/dist/csr/WarningCircle";
 
 import { RequireStaff } from "@/components/RequireStaff";
-import { getApiError } from "@/lib/authErrorMessages";
+import { ClientPreconditionError, getApiError } from "@/lib/authErrorMessages";
 import {
   CASE_STATUS_COLORS,
   CASE_STATUS_LABELS,
@@ -70,11 +70,20 @@ function CaseDetailContent() {
     ApplicationCase,
     Record<string, unknown>
   >({
-    mutationFn: (payload) =>
-      updateCase(caseId, {
+    mutationFn: (payload) => {
+      // `0` is a wrong version, not an "unknown" sentinel — it guarantees the
+      // APPLICANT_CASE_VERSION_CONFLICT the onError below is written to recover
+      // from. If the detail hasn't loaded there is nothing safe to send.
+      if (!kase) {
+        throw new ClientPreconditionError(
+          "Case not loaded — cannot save without a version.",
+        );
+      }
+      return updateCase(caseId, {
         ...payload,
-        record_version: kase?.record_version ?? 0,
-      }),
+        record_version: kase.record_version,
+      });
+    },
     successTitle: "Case updated",
     successMessage: "Your changes were saved.",
     errorTitle: "Couldn't save changes",

@@ -81,7 +81,10 @@ export function TransitionModal({
     isLoading: versionLoading,
     isError: versionError,
   } = useApplicantRecordVersion(applicant.id, opened);
-  const effectiveVersion = recordVersion ?? applicant.record_version;
+  // No fallback to `applicant.record_version`: on a list row it is absent (the
+  // projection omits it) and on a detail record it may be stale. Either way it is
+  // not safe to write with — block submit until the fresh value arrives instead.
+  const effectiveVersion = recordVersion;
 
   const reset = () => {
     setStage("");

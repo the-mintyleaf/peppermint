@@ -4,14 +4,14 @@ Plan: `~/.claude/plans/following-this-integration-guide-proud-honey.md`
 
 ## Phase 1 — Correctness bugs (silent data loss)
 
-- [ ] 1a-i. `language-tests`: rename `overall`/`listening`/`reading`/`writing` → `*_score` (types, form types, form, columns)
-- [ ] 1a-ii. `sponsors`: rename `relationship`→`relationship_to_applicant`, `occupation`→`occupation_or_business`, `organization`→`organization_name`, `annual_income_currency`→`income_currency`, `funding_amount_currency`→`funding_currency`
-- [ ] 1a-iii. `qualification-assessments`: rename `language_summary`→`language_readiness`, `financial_summary`→`financial_readiness`
-- [ ] 1b. Archive: refetch fresh `record_version` instead of reading it off the list row
-- [ ] 1c. Remove `record_version ?? 0` fallbacks (ApplicantOverview, ApplicantProfileModal)
-- [ ] 1d. Print event `document_revision` is a UUID, not a number — fix `NaN` rendering
-- [ ] 1e. Drop over-required `country` on travel-history + visa-history forms
-- [ ] 1f. Gate applicant create on admin role; point staff at leads
+- [x] 1a-i. `language-tests`: rename `overall`/`listening`/`reading`/`writing` → `*_score` (types, form types, form, columns)
+- [x] 1a-ii. `sponsors`: rename `relationship`→`relationship_to_applicant`, `occupation`→`occupation_or_business`, `organization`→`organization_name`, `annual_income_currency`→`income_currency`, `funding_amount_currency`→`funding_currency`
+- [x] 1a-iii. `qualification-assessments`: rename `language_summary`→`language_readiness`, `financial_summary`→`financial_readiness`
+- [x] 1b. Archive: refetch fresh `record_version` instead of reading it off the list row
+- [x] 1c. Remove `record_version ?? 0` fallbacks (ApplicantOverview, ApplicantProfileModal)
+- [x] 1d. Print event `document_revision` is a UUID, not a number — fix `NaN` rendering
+- [x] 1e. Drop over-required `country` on travel-history + visa-history forms
+- [x] 1f. Gate applicant create on admin role; point staff at leads
 - [ ] Phase 1 verify (`pnpm format && check-types && lint`) + commit + dual adversarial review
 
 ## Phase 2 — Contract gaps in existing entities

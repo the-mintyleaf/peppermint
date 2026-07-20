@@ -78,8 +78,15 @@ function toInitial(record?: Partial<Sponsor>): SponsorFormValues {
   };
 }
 
-// Money fields (annual_income, funding_amount) are decimal STRINGS — sent as-is, never
-// Number()'d, to preserve precision.
+// Money fields are decimal STRINGS — sent as-is, never Number()'d, to preserve
+// precision. They are also the only `Nullable=Yes` fields here, so they clear with
+// `null`; DRF's DecimalField has no allow_blank and rejects `""` with a 400.
+const MONEY_KEYS: (keyof SponsorFormValues)[] = [
+  "annual_income",
+  "funding_amount",
+];
+
+/** `Nullable=No` optional text — unset is the empty string. */
 const TEXT_KEYS: (keyof SponsorFormValues)[] = [
   "name",
   "relationship_to_applicant",
@@ -89,18 +96,17 @@ const TEXT_KEYS: (keyof SponsorFormValues)[] = [
   "country",
   "phone",
   "email",
-  "annual_income",
   "income_currency",
-  "funding_amount",
   "funding_currency",
   "funding_source",
   "verification_notes",
 ];
 
 /**
- * Build the api payload. Always send sponsor_type + is_primary. On create, empty text is
- * dropped; on edit, blank text is sent so a cleared field clears (PATCH). The optional
- * enum (verification_status) is always dropped when empty (DRF rejects "").
+ * Build the api payload. Always send sponsor_type + is_primary. On create, empty values
+ * are dropped; on edit they are sent explicitly so a cleared field actually clears —
+ * `""` for the nullable=No text fields, `null` for the two decimals (DRF's DecimalField
+ * rejects `""`). The optional enum (verification_status) is always dropped when empty.
  */
 function toPayload(values: SponsorFormValues, isEdit: boolean): SponsorPayload {
   const payload: Record<string, unknown> = {
@@ -111,6 +117,12 @@ function toPayload(values: SponsorFormValues, isEdit: boolean): SponsorPayload {
     const value = values[key];
     if (typeof value !== "string") continue;
     if (value !== "" || isEdit) payload[key] = value;
+  }
+  for (const key of MONEY_KEYS) {
+    const value = values[key];
+    if (typeof value !== "string") continue;
+    if (value !== "") payload[key] = value;
+    else if (isEdit) payload[key] = null;
   }
   if (values.verification_status)
     payload.verification_status = values.verification_status;

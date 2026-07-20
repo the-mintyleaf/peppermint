@@ -18,7 +18,7 @@ import {
 import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
 import { WarningCircleIcon } from "@phosphor-icons/react/dist/csr/WarningCircle";
 
-import { getApiError } from "@/lib/authErrorMessages";
+import { ClientPreconditionError, getApiError } from "@/lib/authErrorMessages";
 import {
   APPLICANT_SECTIONS,
   applicantKeys,
@@ -124,7 +124,7 @@ function ApplicantProfileBody({ applicantId }: { applicantId: string }) {
       // See ApplicantOverview: `0` is a wrong version, not an "unknown" sentinel —
       // it guarantees APPLICANT_VERSION_CONFLICT. Fail before writing instead.
       if (!applicant) {
-        throw new Error(
+        throw new ClientPreconditionError(
           "Applicant not loaded — cannot save without a version.",
         );
       }

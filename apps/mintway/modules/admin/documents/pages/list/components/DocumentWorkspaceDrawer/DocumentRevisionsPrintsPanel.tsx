@@ -121,10 +121,15 @@ export function DocumentRevisionsPrintsPanel({
               >
                 {print.printStatus.replace(/_/g, " ")}
               </Badge>
-              {print.revisionId != null &&
-              revisionNumberById.has(print.revisionId) ? (
+              {print.revisionId != null ? (
                 <Text size="xs" c="dimmed">
-                  rev #{revisionNumberById.get(print.revisionId)}
+                  {revisionNumberById.has(print.revisionId)
+                    ? `rev #${revisionNumberById.get(print.revisionId)}`
+                    : // The revisions list is capped, so an older linked revision
+                      // may be outside it. Say so rather than render nothing —
+                      // this is print evidence, and dropping the attribution
+                      // silently is worse than admitting it isn't loaded.
+                      "rev (not in loaded history)"}
                 </Text>
               ) : null}
             </Group>

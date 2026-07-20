@@ -102,7 +102,27 @@ export const ERROR_MESSAGES: Record<string, string> = {
   UNKNOWN_ERROR: "Something went wrong. Please try again.",
 };
 
+/**
+ * A precondition the client refused to write through — e.g. a mutation blocked
+ * because the record (and therefore its `record_version`) hasn't loaded yet.
+ *
+ * Its `message` is user-facing copy and is surfaced verbatim. Plain `Error`s stay
+ * anonymised as `UNKNOWN_ERROR`, so raw technical text can never reach a user by
+ * accident; opting in means choosing this class deliberately.
+ */
+export class ClientPreconditionError extends Error {
+  readonly code = "CLIENT_PRECONDITION_FAILED";
+
+  constructor(message: string) {
+    super(message);
+    this.name = "ClientPreconditionError";
+  }
+}
+
 export function getApiError(error: unknown): ApiErrorShape {
+  if (error instanceof ClientPreconditionError) {
+    return { code: error.code, message: error.message };
+  }
   const axiosError = error as AxiosError<{ error?: ApiErrorShape }>;
   const apiError = axiosError?.response?.data?.error;
   if (apiError?.code) {

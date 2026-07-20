@@ -53,29 +53,49 @@ function toInitial(record?: Partial<LanguageTest>): LanguageTestFormValues {
   };
 }
 
-const TEXT_KEYS: (keyof LanguageTestFormValues)[] = [
+/** `Nullable=Yes` in the contract — cleared by sending `null`, never `""`. */
+const NULLABLE_KEYS: (keyof LanguageTestFormValues)[] = [
+  "test_date",
   "overall_score",
   "listening_score",
   "reading_score",
   "writing_score",
   "speaking_score",
+  "expiry_date",
+];
+
+/** `Nullable=No` optional text — unset is the empty string. */
+const BLANKABLE_KEYS: (keyof LanguageTestFormValues)[] = [
   "certificate_number",
   "notes",
 ];
 
 /**
- * Build the api payload — always send test_type; drop empty scores/dates. Scores are
- * range-validated server-side per test_type (IELTS 0–9, PTE 10–90, TOEFL 0–120,
- * Duolingo 10–160); an out-of-range value surfaces as a 400 (not blocked here).
+ * Build the api payload — always send test_type. Scores are decimal STRINGS, never
+ * Number()'d, and are range-validated server-side per test_type (IELTS 0–9, PTE 10–90,
+ * TOEFL 0–120, Duolingo 10–160); an out-of-range value surfaces as a 400.
+ *
+ * Create and edit differ: on create an untouched field is simply omitted, but on edit
+ * omitting it makes the PATCH a no-op for that key, so a user who blanks a field could
+ * never clear it. On edit we therefore send the cleared value explicitly — `null` for
+ * the nullable fields, `""` for the blank-able text ones.
  */
-function toPayload(values: LanguageTestFormValues): LanguageTestPayload {
+function toPayload(
+  values: LanguageTestFormValues,
+  isEdit: boolean,
+): LanguageTestPayload {
   const payload: Record<string, unknown> = { test_type: values.test_type };
-  for (const key of TEXT_KEYS) {
+  for (const key of NULLABLE_KEYS) {
     const value = values[key];
-    if (typeof value === "string" && value !== "") payload[key] = value;
+    if (typeof value !== "string") continue;
+    if (value !== "") payload[key] = value;
+    else if (isEdit) payload[key] = null;
   }
-  if (values.test_date) payload.test_date = values.test_date;
-  if (values.expiry_date) payload.expiry_date = values.expiry_date;
+  for (const key of BLANKABLE_KEYS) {
+    const value = values[key];
+    if (typeof value !== "string") continue;
+    if (value !== "" || isEdit) payload[key] = value;
+  }
   return payload as LanguageTestPayload;
 }
 
@@ -88,11 +108,12 @@ export function LanguageTestForm({
   onSubmit,
   isLoading,
 }: LanguageTestFormProps) {
+  const isEdit = Boolean(initialValues);
   return (
     <FormWrapper<LanguageTestFormValues>
       initial={toInitial(initialValues)}
       finalSubmitFn={async (values) => {
-        onSubmit(toPayload(values));
+        onSubmit(toPayload(values, isEdit));
         return { ok: true };
       }}
     >
