@@ -1,18 +1,16 @@
 "use client";
 
-import { ActionIcon, Stack, Text, dayjs } from "@peppermint/ui";
+import { ActionIcon, Stack, Text } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
 import { StatusBadge } from "@peppermint/admin";
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/csr/ArrowRight";
 
-import { CASE_STATUS_COLORS, CASE_STATUS_LABELS } from "../_shared";
+import {
+  CASE_STATUS_COLORS,
+  CASE_STATUS_LABELS,
+  bsDateColumn,
+} from "../_shared";
 import type { ApplicationCase, CaseStatus } from "../_shared";
-
-function fmtDate(value?: string | null) {
-  if (!value) return "—";
-  const d = dayjs(value);
-  return d.isValid() ? d.format("MMM D, YYYY") : "—";
-}
 
 export function getCaseColumns(
   onView: (row: ApplicationCase) => void,
@@ -55,11 +53,7 @@ export function getCaseColumns(
         />
       ),
     },
-    {
-      accessor: "opened_at",
-      title: "Opened",
-      render: (c) => <Text size="xs">{fmtDate(c.opened_at)}</Text>,
-    },
+    bsDateColumn<ApplicationCase>("opened_at", "Opened"),
     {
       accessor: "actions",
       title: "",

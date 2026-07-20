@@ -7,6 +7,12 @@ export interface BsDateTextProps {
   bs?: BsDate | null;
   /** Which BS script to show. Defaults to the English transliteration. */
   script?: "en" | "np";
+  /**
+   * Show the time alongside the AD date. Needed for genuine datetime fields —
+   * on an interaction log or a consent capture, the time of day is information,
+   * not noise. The BS sibling carries no time, so it stays date-only.
+   */
+  withTime?: boolean;
   size?: "xs" | "sm";
   /** Rendered when both values are absent. */
   fallback?: string;

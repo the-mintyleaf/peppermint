@@ -1,19 +1,14 @@
 "use client";
 
-import { Text, dayjs } from "@peppermint/ui";
+import { Text } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
 
 import {
   INTERACTION_DIRECTION_LABELS,
   INTERACTION_TYPE_LABELS,
+  bsDateColumn,
 } from "../../_shared";
 import type { Interaction } from "../../_shared";
-
-function fmtDateTime(value?: string | null) {
-  if (!value) return "—";
-  const d = dayjs(value);
-  return d.isValid() ? d.format("MMM D, YYYY h:mm A") : "—";
-}
 
 export const interactionColumns: DataTableShellColumn<Interaction>[] = [
   {
@@ -34,11 +29,7 @@ export const interactionColumns: DataTableShellColumn<Interaction>[] = [
       </Text>
     ),
   },
-  {
-    accessor: "occurred_at",
-    title: "Occurred",
-    render: (i) => <Text size="xs">{fmtDateTime(i.occurred_at)}</Text>,
-  },
+  bsDateColumn<Interaction>("occurred_at", "Occurred", { withTime: true }),
   {
     accessor: "summary",
     title: "Summary",

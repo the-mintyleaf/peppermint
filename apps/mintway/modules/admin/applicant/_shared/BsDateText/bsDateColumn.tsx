@@ -17,7 +17,7 @@ import { BsDateText } from "./BsDateText";
 export function bsDateColumn<T extends object>(
   accessor: keyof T & string,
   title: string,
-  options?: { sortable?: boolean; script?: "en" | "np" },
+  options?: { sortable?: boolean; script?: "en" | "np"; withTime?: boolean },
 ): DataTableShellColumn<T> {
   return {
     accessor,
@@ -30,6 +30,7 @@ export function bsDateColumn<T extends object>(
           value={record[accessor] as string | null | undefined}
           bs={record[`${accessor}_bs`] as BsDate | null | undefined}
           script={options?.script}
+          withTime={options?.withTime}
         />
       );
     },

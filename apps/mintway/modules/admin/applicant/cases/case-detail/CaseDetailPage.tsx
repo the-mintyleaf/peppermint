@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { useParams } from "next/navigation";
 import {
   Button,
@@ -15,7 +16,6 @@ import {
   Text,
   ThemeIcon,
   Title,
-  dayjs,
   useQuery,
 } from "@peppermint/ui";
 import { DataTableShell, StatusBadge } from "@peppermint/admin";
@@ -26,6 +26,7 @@ import { WarningCircleIcon } from "@phosphor-icons/react/dist/csr/WarningCircle"
 import { RequireStaff } from "@/components/RequireStaff";
 import { ClientPreconditionError, getApiError } from "@/lib/authErrorMessages";
 import {
+  BsDateText,
   CASE_STATUS_COLORS,
   CASE_STATUS_LABELS,
   caseKeys,
@@ -37,19 +38,22 @@ import { CaseEditForm } from "./CaseEditForm";
 import { CaseTransitionModal } from "./CaseTransitionModal";
 import { caseStatusHistoryColumns } from "./caseStatusHistory.columns";
 
-function fmtDate(value?: string | null) {
-  if (!value) return "—";
-  const d = dayjs(value);
-  return d.isValid() ? d.format("MMM D, YYYY") : "—";
-}
-
-function Field({ label, value }: { label: string; value?: string | null }) {
+/**
+ * Plain values keep their `<Text size="sm">` shell; a rendered node (a date with
+ * its Bikram Sambat sibling) is emitted as-is, since wrapping a block element in
+ * Mantine's paragraph-based `Text` would be invalid markup.
+ */
+function Field({ label, value }: { label: string; value?: ReactNode }) {
   return (
     <Stack gap={0}>
       <Text size="xs" c="dimmed">
         {label}
       </Text>
-      <Text size="sm">{value || "—"}</Text>
+      {typeof value === "string" || value == null ? (
+        <Text size="sm">{value || "—"}</Text>
+      ) : (
+        value
+      )}
     </Stack>
   );
 }
@@ -217,8 +221,26 @@ function CaseDetailContent() {
             <Field label="Prior qualification" value={kase.qualification} />
             <Field label="Qualification year" value={kase.qualification_year} />
             <Field label="Grade" value={kase.grade} />
-            <Field label="Opened" value={fmtDate(kase.opened_at)} />
-            <Field label="Closed" value={fmtDate(kase.closed_at)} />
+            <Field
+              label="Opened"
+              value={
+                <BsDateText
+                  value={kase.opened_at}
+                  bs={kase.opened_at_bs}
+                  size="sm"
+                />
+              }
+            />
+            <Field
+              label="Closed"
+              value={
+                <BsDateText
+                  value={kase.closed_at}
+                  bs={kase.closed_at_bs}
+                  size="sm"
+                />
+              }
+            />
             <Field label="Outcome" value={kase.outcome} />
             <Field label="Outcome reason" value={kase.outcome_reason} />
           </SimpleGrid>

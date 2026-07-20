@@ -5,10 +5,11 @@ import { Stack, Text, dayjs } from "@peppermint/ui";
 import type { BsDateTextProps } from "./BsDateText.types";
 
 /** AD value, formatted; `null` when there is nothing to show. */
-function formatAd(value?: string | null): string | null {
+function formatAd(value: string | null | undefined, withTime: boolean) {
   if (!value) return null;
   const d = dayjs(value);
-  return d.isValid() ? d.format("MMM D, YYYY") : value;
+  if (!d.isValid()) return value;
+  return d.format(withTime ? "MMM D, YYYY · h:mm A" : "MMM D, YYYY");
 }
 
 /**
@@ -27,10 +28,11 @@ export function BsDateText({
   value,
   bs,
   script = "en",
+  withTime = false,
   size = "xs",
   fallback = "—",
 }: BsDateTextProps) {
-  const ad = formatAd(value);
+  const ad = formatAd(value, withTime);
   const bsDisplay = script === "np" ? bs?.display_np : bs?.display_en;
 
   if (!ad && !bsDisplay) {

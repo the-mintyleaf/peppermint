@@ -3,7 +3,7 @@
 import { Badge, Text } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
 
-import { LANGUAGE_TEST_TYPE_LABELS } from "../../_shared";
+import { LANGUAGE_TEST_TYPE_LABELS, bsDateColumn } from "../../_shared";
 import type { LanguageTest } from "../../_shared";
 
 export const languageTestColumns: DataTableShellColumn<LanguageTest>[] = [
@@ -25,18 +25,6 @@ export const languageTestColumns: DataTableShellColumn<LanguageTest>[] = [
       </Text>
     ),
   },
-  {
-    accessor: "test_date",
-    title: "Test date",
-    render: (t) => (
-      <Text size="xs">{t.test_date ? t.test_date.slice(0, 10) : "—"}</Text>
-    ),
-  },
-  {
-    accessor: "expiry_date",
-    title: "Expiry",
-    render: (t) => (
-      <Text size="xs">{t.expiry_date ? t.expiry_date.slice(0, 10) : "—"}</Text>
-    ),
-  },
+  bsDateColumn<LanguageTest>("test_date", "Test date"),
+  bsDateColumn<LanguageTest>("expiry_date", "Expiry"),
 ];

@@ -1,6 +1,6 @@
 "use client";
 
-import { Text, dayjs } from "@peppermint/ui";
+import { Text } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
 import { StatusBadge } from "@peppermint/admin";
 
@@ -8,14 +8,9 @@ import {
   IDENTITY_DOCUMENT_TYPE_LABELS,
   VERIFICATION_STATUS_COLORS,
   VERIFICATION_STATUS_LABELS,
+  bsDateColumn,
 } from "../../_shared";
 import type { IdentityDocument, VerificationStatus } from "../../_shared";
-
-function fmtDate(value?: string | null) {
-  if (!value) return "—";
-  const d = dayjs(value);
-  return d.isValid() ? d.format("MMM D, YYYY") : "—";
-}
 
 export const identityDocumentColumns: DataTableShellColumn<IdentityDocument>[] =
   [
@@ -33,11 +28,7 @@ export const identityDocumentColumns: DataTableShellColumn<IdentityDocument>[] =
       title: "Issuing country",
       render: (d) => <Text size="xs">{d.issuing_country || "—"}</Text>,
     },
-    {
-      accessor: "expires_at",
-      title: "Expires",
-      render: (d) => <Text size="xs">{fmtDate(d.expires_at)}</Text>,
-    },
+    bsDateColumn<IdentityDocument>("expires_at", "Expires"),
     {
       accessor: "verification_status",
       title: "Verification",
