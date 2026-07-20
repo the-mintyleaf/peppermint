@@ -3,6 +3,8 @@ import type { Sponsor } from "../../_shared";
 
 /** Sponsor form state — strings + the primary flag; money fields are decimal strings. */
 export interface SponsorFormValues extends Record<string, unknown> {
+  /** Case id owned by the same applicant (`Nullable=Yes` — clears with `null`). */
+  application_case: string;
   sponsor_type: string;
   name: string;
   relationship_to_applicant: string;

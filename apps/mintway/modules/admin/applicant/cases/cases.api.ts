@@ -28,9 +28,12 @@ export async function fetchCases(
     params: {
       page: params?.page,
       page_size: params?.pageSize,
-      // Always send an explicit ordering — the server's default is unstated
-      // (gaps.md #9), so row order would otherwise be non-deterministic.
-      ordering: toOrdering(params?.sort) || "-opened_at",
+      // Only a user-chosen sort is forwarded. The case list contract documents no
+      // `ordering` whitelist, so pinning a default here would assert a guarantee we
+      // cannot make — DRF would silently drop an unlisted key.
+      ...(toOrdering(params?.sort)
+        ? { ordering: toOrdering(params?.sort) }
+        : {}),
       ...params?.filters,
     },
   });

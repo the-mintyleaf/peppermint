@@ -486,7 +486,11 @@ export function DocumentEditorProvider({
   // must not learn whether documents exist (overview.md §Role model) — so the copy comes
   // from `getApiErrorMessage` ("That document isn't available."), which never says the
   // record was deleted. Declared after every hook so the hook order stays stable.
-  const loadError = documentsQuery.error ?? prefillQuery.error;
+  // Only the documents query is terminal. Prefill is a separate endpoint that merely
+  // seeds new documents with applicant data — if it fails the editor still works, just
+  // without the seed, which is how it behaved before this branch existed. Blanking the
+  // whole editor on a prefill 500 would be a regression, not a safety measure.
+  const loadError = documentsQuery.error;
   if (loadError) {
     return (
       <DocumentUnavailable

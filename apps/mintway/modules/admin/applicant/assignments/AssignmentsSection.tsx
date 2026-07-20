@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   Badge,
   Button,
@@ -14,6 +13,7 @@ import {
   Title,
   dayjs,
   useQuery,
+  useQueryClient,
 } from "@peppermint/ui";
 import { openReasonConfirmModal } from "@peppermint/admin";
 import { UserPlusIcon } from "@phosphor-icons/react/dist/csr/UserPlus";

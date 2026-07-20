@@ -91,7 +91,10 @@ function toInitial(record?: Partial<Education>): EducationFormValues {
   };
 }
 
-/** `Nullable=No` optional text — unset is the empty string, so blank clears. */
+/**
+ * `Nullable=No` optional text **and enums** — these are Django `blank=True`, so their
+ * unset representation is the empty string and DRF accepts `""`. Blank therefore clears.
+ */
 const TEXT_KEYS: (keyof EducationFormValues)[] = [
   "institution",
   "degree",
@@ -113,6 +116,8 @@ const TEXT_KEYS: (keyof EducationFormValues)[] = [
   "completion_year_ad",
   "study_duration",
   "notes",
+  // enum, `Nullable=No` — clears with `""` exactly like the text fields above
+  "completion_status",
 ];
 
 /** `Nullable=Yes` — cleared by sending `null`. */
@@ -121,8 +126,8 @@ const NULLABLE_KEYS: (keyof EducationFormValues)[] = ["start_date", "end_date"];
 /**
  * Build the api payload. On create empty values are dropped; on edit they are sent
  * explicitly so a cleared field actually clears, rather than the PATCH silently
- * no-op'ing that key. `completion_status` is an enum and is always dropped when
- * blank — DRF rejects `""` for a choice field with no blank option.
+ * no-op'ing that key. `completion_status` is `Nullable=No` and so clears with `""` just
+ * like the text fields — only the `Nullable=Yes` dates clear with `null`.
  */
 function toPayload(
   values: EducationFormValues,
@@ -140,8 +145,6 @@ function toPayload(
     if (value !== "") payload[key] = value;
     else if (isEdit) payload[key] = null;
   }
-  if (values.completion_status)
-    payload.completion_status = values.completion_status;
   return payload;
 }
 

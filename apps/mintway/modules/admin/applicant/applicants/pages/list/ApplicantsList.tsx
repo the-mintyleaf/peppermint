@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ModalTableShell } from "@peppermint/admin";
 import type { DataTableShellTab } from "@peppermint/admin";
 import { ModalPaper } from "@peppermint/ui";
@@ -11,7 +11,10 @@ import { UserCheckIcon } from "@phosphor-icons/react/dist/csr/UserCheck";
 import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
 
 import { RequireAuth } from "@/components/RequireAuth";
-import { getApiErrorMessage } from "@/lib/authErrorMessages";
+import {
+  ClientPreconditionError,
+  getApiErrorMessage,
+} from "@/lib/authErrorMessages";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import {
   applicantKeys,
@@ -20,7 +23,11 @@ import {
   getApplicant,
   updateApplicant,
 } from "../../../_shared";
-import type { Applicant, DuplicateMatch } from "../../../_shared";
+import type {
+  Applicant,
+  ApplicantListRow,
+  DuplicateMatch,
+} from "../../../_shared";
 import { ApplicantForm, ApplicantEditForm } from "../../form";
 import { toCreatePayload, toUpdatePayload } from "../../form";
 import type { ApplicantFormValues } from "../../form";
@@ -61,6 +68,8 @@ const ARCHIVED_TAB: DataTableShellTab = {
 function ApplicantsListContent() {
   const { isAdmin } = useCurrentUser();
   const [dupMatches, setDupMatches] = useState<DuplicateMatch[] | null>(null);
+  // The full record fetched by onEditTrigger — the row itself has no record_version.
+  const editRecordRef = useRef<Applicant | null>(null);
 
   const columns = getApplicantColumns(isAdmin);
 
@@ -69,7 +78,11 @@ function ApplicantsListContent() {
 
   return (
     <ApplicantProfileProvider>
-      <ModalTableShell<Applicant, ApplicantFormValues, ApplicantFormValues>
+      <ModalTableShell<
+        ApplicantListRow,
+        ApplicantFormValues,
+        ApplicantFormValues
+      >
         queryKey={applicantKeys.lists()}
         queryGetFn={fetchApplicants}
         enableServerQuery
@@ -97,10 +110,17 @@ function ApplicantsListContent() {
         // otherwise staff get an action that always 403s.
         createFormComponent={isAdmin ? ApplicantForm : undefined}
         editFormComponent={ApplicantEditForm}
-        // The staff list projection omits record_version + protected fields, so
-        // fetch the full record before editing (needed for the mandatory
-        // record_version and a complete prefill).
-        onEditTrigger={(record) => getApplicant(record.id)}
+        // The list projection omits record_version + the protected fields, so the
+        // full record is fetched before editing — needed both for the prefill and
+        // for the mandatory record_version. It is stashed here rather than read
+        // back off the row: the row is an ApplicantListRow and genuinely has no
+        // version on it, which is now a compile error rather than a silent
+        // `undefined` in the request body.
+        onEditTrigger={async (record) => {
+          const full = await getApplicant(record.id);
+          editRecordRef.current = full;
+          return full;
+        }}
         onCreateApi={(values) =>
           createApplicant(toCreatePayload(values, isAdmin)).then(
             ({ data, meta }) => {
@@ -111,12 +131,18 @@ function ApplicantsListContent() {
             },
           )
         }
-        onEditApi={(values, record) =>
-          updateApplicant(
+        onEditApi={(values, record) => {
+          const full = editRecordRef.current;
+          if (!full || full.id !== record.id) {
+            throw new ClientPreconditionError(
+              "Applicant not loaded — reopen the record and try again.",
+            );
+          }
+          return updateApplicant(
             record.id,
-            toUpdatePayload(values, isAdmin, record.record_version),
-          )
-        }
+            toUpdatePayload(values, isAdmin, full.record_version),
+          );
+        }}
         getErrorMessage={getApiErrorMessage}
         disableReviewButton
         pageSizes={[10, 20, 30, 50]}

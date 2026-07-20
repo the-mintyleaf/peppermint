@@ -9,9 +9,10 @@ administration, the superadmin security-event audit feed, and the full applicant
 lifecycle (leads → applicants, profile, CRM, cases, assignments).
 
 Stack: Next.js App Router, Mantine (via `@peppermint/ui`), React Query, `@peppermint/admin`
-shells + primitives. Backend contracts: `.todo/auth_doc_grandway/` (auth) and
-`.todo/applications/` (applicant: `API.md`, `DATA_CONTRACT.md`, `INTEGRATION.md`,
-`SECURITY.md`).
+shells + primitives. Backend contracts: `.todo/auth_doc_grandway/` (auth) and the
+integration pack at `docs/applicants/integration/` (applicant: `overview.md`,
+`enums.md`, `entities/*.md`, `flows.md`, `gaps.md`) — the pack is the single source
+the frontend integrates against; do not read the backend build docs for field truth.
 
 Base APIs: `/api/v1/auth/` (auth) and `/api/v1/applicants/` · `/api/v1/application-cases/`
 (applicant) at `NEXT_PUBLIC_API_URL`.
@@ -88,7 +89,14 @@ apps/mintway/
 
 ## Role gates
 
-- `RequireStaff` (`components/RequireStaff`) gates admin content on `admin`/`superadmin`.
+- `RequireStaff` (`components/RequireStaff`) gates admin content on `admin`/`superadmin`,
+  rendering a "Forbidden" panel. Correct for 403 surfaces — **not** for documents or
+  signatures.
+- `RequireDocumentAccess` (`modules/documents/components/RequireDocumentAccess`) gates the
+  document + signature surfaces instead. Those answer staff with **404, not 403**, so that
+  staff cannot infer a document exists, and it renders the shared `ModuleNotFound` rather
+  than a Forbidden panel. `DocumentUnavailable` is the matching terminal state inside the
+  editor. Never wrap a document surface in `RequireStaff` — it reintroduces the disclosure.
 - Users lifecycle actions: admin can deactivate/reactivate (staff); superadmin adds
   suspend/unsuspend/reset-password/revoke-sessions (gated in `UserRowActionsMenu`).
 - Security Events is superadmin-only (gated in `SecurityEventsList` + hidden from nav).
@@ -116,12 +124,16 @@ aggregate root; each detail section is a route under `[applicantId]`. Backend co
 
 **Access:** `components/RequireAuth` gates the staff-reachable surface (list, overview,
 addresses, profile image); `components/RequireStaff` (admin/superadmin) gates every other
-section. Role also drives field projections — never render admin-only fields for staff.
+section, except the document/signature surfaces which use `RequireDocumentAccess` (404,
+not 403 — see Role gates). Role also drives field projections — never render admin-only
+fields for staff, and note the four projections are separate types: a **list row carries
+no `record_version`**, so any write sourced from one must resolve the version separately.
 
 **Sections & routes:**
 
 | Section     | Path                    | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | ----------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Leads       | `applicant/leads`       | `/admin/leads` — the Phase-7 enquiry funnel that precedes an applicant, and **the only way staff can start a record** now that applicant create is admin-only. Modal form with disclosure panels (only `first_name` required). `education_qualification`/`work_experience` are deliberately not captured — no documented entry shape (gaps.md #10). Convert is **admin-only** and irreversible: `ConvertLeadModal` names the consequence, requires a target country, surfaces the duplicate warning, then routes to the new applicant. A converted lead is frozen — edit disabled, `LeadDetailModal` carries the enquiry-only fields conversion leaves behind. **Staff+** |
 | Applicants  | `applicant/applicants`  | `/admin/applicants` list (staff/admin projections, tabs, dup warning) + create/edit + inline Stage/Engagement switches (`ApplicantLifecycleSwitch`, admin-only, open the transition modal pre-filled) + lock/archive/merge. Row **View** opens `components/ApplicantProfileModal` — a modal profile hub (persistent `ProfileHeader` + record actions) that hosts **every detail section in-place, no route redirects**: an in-modal section tab strip (role-filtered, Overview default) renders `ProfileOverview` (details list + interest chips + Cases summary) or `SectionContent`, which re-hosts the existing leaf `*Section` CRUD components (sub-tabbed for identity/education/family/interests/crm; `HistorySection` for the read-only feeds). Large modal, explicit-close (Esc/click-out disabled) to survive nested section modals; opened via `ApplicantProfileProvider`/`useApplicantProfile`. Only `CasesSection`'s row-arrow still navigates out (to the separate `/admin/application-cases/[id]` aggregate). The `[id]/[section]` routes + tab shell remain for deep-linking |
 | Addresses   | `applicant/addresses`   | `/admin/applicants/[id]/addresses` — addresses (child factory) + profile image (streamed blob + multipart upload). **Staff+**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | Identity    | `applicant/identity`    | `[id]/identity` — identity documents + evidence media (upload/view/delete)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |

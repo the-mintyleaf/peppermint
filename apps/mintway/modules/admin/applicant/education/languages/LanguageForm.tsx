@@ -39,13 +39,21 @@ function toInitial(record?: Partial<LanguageEntry>): LanguageFormValues {
   };
 }
 
-/** Build the api payload — always send language + is_native; drop empty proficiency. */
-function toPayload(values: LanguageFormValues): LanguagePayload {
+/**
+ * Build the api payload — always send language + is_native. `proficiency` is an enum but
+ * `Nullable=No` (Django `blank=True`), so its unset value is `""`: dropped on create,
+ * sent as `""` on edit so clearing the Select actually clears the stored value.
+ */
+function toPayload(
+  values: LanguageFormValues,
+  isEdit: boolean,
+): LanguagePayload {
   const payload: Record<string, unknown> = {
     language: values.language,
     is_native: values.is_native,
   };
-  if (values.proficiency) payload.proficiency = values.proficiency;
+  if (values.proficiency !== "" || isEdit)
+    payload.proficiency = values.proficiency;
   return payload as LanguagePayload;
 }
 
@@ -58,11 +66,12 @@ export function LanguageForm({
   onSubmit,
   isLoading,
 }: LanguageFormProps) {
+  const isEdit = Boolean(initialValues);
   return (
     <FormWrapper<LanguageFormValues>
       initial={toInitial(initialValues)}
       finalSubmitFn={async (values) => {
-        onSubmit(toPayload(values));
+        onSubmit(toPayload(values, isEdit));
         return { ok: true };
       }}
     >

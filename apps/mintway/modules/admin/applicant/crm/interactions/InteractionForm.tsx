@@ -67,8 +67,17 @@ function toInitial(record?: Partial<Interaction>): InteractionFormValues {
   };
 }
 
-/** `Nullable=No` optional text — unset is the empty string, so blank clears. */
-const TEXT_KEYS: (keyof InteractionFormValues)[] = ["summary", "outcome"];
+/**
+ * `Nullable=No` optional text **and enums** — these are Django `blank=True`, so their
+ * unset representation is the empty string and DRF accepts `""`. Blank therefore clears.
+ */
+const TEXT_KEYS: (keyof InteractionFormValues)[] = [
+  "summary",
+  "outcome",
+  // enums, `Nullable=No` — they clear with `""` exactly like the text fields above
+  "direction",
+  "follow_up_priority",
+];
 
 /** `Nullable=Yes` — cleared by sending `null`, never `""` (DRF rejects `""` for a
  * DateTimeField, and for the `application_case` UUID relation). */
@@ -81,8 +90,8 @@ const NULLABLE_KEYS: (keyof InteractionFormValues)[] = [
  * Build the api payload. Always send interaction_type + occurred_at + is_confidential.
  * On create, empty values are dropped; on edit they are sent explicitly so a cleared
  * field actually clears — `""` for the nullable=No text fields, `null` for the follow-up
- * datetime and the case link. `direction` / `follow_up_priority` are enums and are
- * always dropped when blank — DRF rejects `""` for a choice field.
+ * datetime and the case link. `direction` / `follow_up_priority` are enums but
+ * `Nullable=No`, so they clear with `""` alongside the text fields.
  */
 function toPayload(
   values: InteractionFormValues,
@@ -104,9 +113,6 @@ function toPayload(
     if (value !== "") payload[key] = value;
     else if (isEdit) payload[key] = null;
   }
-  if (values.direction) payload.direction = values.direction;
-  if (values.follow_up_priority)
-    payload.follow_up_priority = values.follow_up_priority;
   return payload as InteractionPayload;
 }
 

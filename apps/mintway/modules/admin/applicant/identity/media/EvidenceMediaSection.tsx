@@ -11,6 +11,7 @@ import {
   ModalPaper,
   Select,
   Stack,
+  Switch,
   Table,
   Text,
   Title,
@@ -80,19 +81,26 @@ function validateFile(file: File): string | null {
 export function EvidenceMediaSection({ applicantId }: { applicantId: string }) {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [category, setCategory] = useState<string>("other");
+  // Deleting evidence is a soft archive — the file is retained server-side but
+  // drops out of the default list. Without this toggle that was a one-way door.
+  const [showArchived, setShowArchived] = useState(false);
   const resetFileRef = useRef<() => void>(null);
   const invalidate = [mediaKeys.list(applicantId)];
 
   const query = useQuery({
-    queryKey: mediaKeys.list(applicantId),
+    queryKey: [...mediaKeys.list(applicantId), { showArchived }],
     queryFn: () =>
-      fetchEvidenceMedia(applicantId, {
-        page: 1,
-        pageSize: 100,
-        search: "",
-        sort: [],
-        filters: {},
-      }),
+      fetchEvidenceMedia(
+        applicantId,
+        {
+          page: 1,
+          pageSize: 100,
+          search: "",
+          sort: [],
+          filters: {},
+        },
+        showArchived,
+      ),
     retry: false,
   });
 
@@ -185,14 +193,22 @@ export function EvidenceMediaSection({ applicantId }: { applicantId: string }) {
       <Stack gap="sm">
         <Group justify="space-between">
           <Title order={6}>Evidence media</Title>
-          <Button
-            size="xs"
-            variant="default"
-            leftSection={<UploadSimpleIcon size={14} />}
-            onClick={() => setUploadOpen(true)}
-          >
-            Upload
-          </Button>
+          <Group gap="xs" wrap="nowrap">
+            <Switch
+              size="xs"
+              label="Show archived"
+              checked={showArchived}
+              onChange={(e) => setShowArchived(e.currentTarget.checked)}
+            />
+            <Button
+              size="xs"
+              variant="default"
+              leftSection={<UploadSimpleIcon size={14} />}
+              onClick={() => setUploadOpen(true)}
+            >
+              Upload
+            </Button>
+          </Group>
         </Group>
 
         {query.isLoading ? (

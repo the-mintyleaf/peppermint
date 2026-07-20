@@ -67,11 +67,17 @@ function toInitial(record?: Partial<VisaHistory>): VisaHistoryFormValues {
   };
 }
 
+/**
+ * `Nullable=No` optional text **and enums** — these are Django `blank=True`, so their
+ * unset representation is the empty string and DRF accepts `""`. Blank therefore clears.
+ */
 const TEXT_KEYS: (keyof VisaHistoryFormValues)[] = [
   "visa_type",
   "reference_number",
   "refusal_reason",
   "notes",
+  // enum, `Nullable=No` — clears with `""` exactly like the text fields above
+  "decision",
 ];
 
 /** `Nullable=Yes` — cleared by sending `null`, never `""` (DRF rejects `""` for a
@@ -86,7 +92,7 @@ const NULLABLE_KEYS: (keyof VisaHistoryFormValues)[] = [
  * Build the api payload. Always send country. On create, empty values are dropped; on
  * edit they are sent explicitly so a cleared field actually clears — `""` for the
  * nullable=No text fields, `null` for the dates and the media link. `decision` is an
- * enum and is always dropped when blank — DRF rejects `""` for a choice field.
+ * enum but `Nullable=No`, so it clears with `""` alongside the text fields.
  */
 function toPayload(
   values: VisaHistoryFormValues,
@@ -104,7 +110,6 @@ function toPayload(
     if (value !== "") payload[key] = value;
     else if (isEdit) payload[key] = null;
   }
-  if (values.decision) payload.decision = values.decision;
   return payload as VisaHistoryPayload;
 }
 

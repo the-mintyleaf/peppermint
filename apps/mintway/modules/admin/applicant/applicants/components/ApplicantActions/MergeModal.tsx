@@ -40,6 +40,9 @@ interface MergeModalProps {
  * survivor: names, contact, DOB, gender, nationality, religion, summaries,
  * `lead_source*` and `initial_interest`. Anything omitted here simply cannot be
  * rescued from the duplicate before it is archived, so the list must stay complete.
+ *
+ * `counselling_notes` is deliberately absent — it is a protected field in its own
+ * right, not one of the summaries, and the whitelist does not name it.
  */
 const RESOLVABLE_FIELDS: { value: string; label: string }[] = [
   { value: "first_name", label: "First name" },
@@ -57,7 +60,6 @@ const RESOLVABLE_FIELDS: { value: string; label: string }[] = [
   { value: "religion", label: "Religion" },
   { value: "summary", label: "Summary" },
   { value: "eligibility_summary", label: "Eligibility summary" },
-  { value: "counselling_notes", label: "Counselling notes" },
   { value: "lead_source", label: "Lead source" },
   { value: "lead_source_detail", label: "Lead source detail" },
   { value: "initial_interest", label: "Initial interest" },

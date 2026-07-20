@@ -143,24 +143,34 @@ const ADMIN_TEXT_FIELDS: (keyof ApplicantFormValues)[] = [
   "counselling_notes",
 ];
 
-/** Date/enum/datetime fields — DRF rejects `""`, so an empty value is dropped. */
-const STAFF_ENUM_DATE_FIELDS: (keyof ApplicantFormValues)[] = ["lead_source"];
+/**
+ * Optional **enums**. These are `Nullable=No` / Django `blank=True`, so their unset
+ * value is `""` and DRF accepts it (overview.md "Empty vs null"). They therefore
+ * clear the same way text does — not by being dropped, which would make every
+ * clearable Select on this form a no-op.
+ */
+const STAFF_ENUM_FIELDS: (keyof ApplicantFormValues)[] = ["lead_source"];
 
-const ADMIN_ENUM_DATE_FIELDS: (keyof ApplicantFormValues)[] = [
-  "date_of_birth",
+const ADMIN_ENUM_FIELDS: (keyof ApplicantFormValues)[] = [
   "gender",
   "payment_status",
-  "last_contacted_at",
-  "next_follow_up_at",
   "follow_up_priority",
 ];
 
+/** `Nullable=Yes` dates — cleared by sending `null`, never `""`. */
+const ADMIN_NULLABLE_DATE_FIELDS: (keyof ApplicantFormValues)[] = [
+  "date_of_birth",
+  "last_contacted_at",
+  "next_follow_up_at",
+];
+
 /**
- * Build a write payload honoring the role whitelist. On **create** every empty field
- * is dropped (don't send blanks). On **update** free-text fields are always sent — so a
- * cleared field (e.g. `counselling_notes`) actually clears server-side — while
- * date/enum fields are still dropped when empty (DRF rejects `""` for those; there is
- * no in-form affordance to clear them to null). `first_name` is always included.
+ * Build a write payload honoring the role whitelist. `first_name` is always included.
+ *
+ * On **create** every empty field is dropped — don't send blanks for things the
+ * operator never filled in. On **update** an empty value is sent explicitly, so
+ * clearing a field actually clears it server-side rather than the PATCH no-op'ing
+ * that key: `""` for text and the optional enums, `null` for the nullable dates.
  */
 function toPayload(
   values: ApplicantFormValues,
@@ -168,23 +178,28 @@ function toPayload(
   mode: "create" | "update",
 ): Record<string, unknown> {
   const payload: Record<string, unknown> = { first_name: values.first_name };
+  const isUpdate = mode === "update";
 
   const textFields = isAdmin
     ? [...STAFF_TEXT_FIELDS, ...ADMIN_TEXT_FIELDS]
     : STAFF_TEXT_FIELDS;
-  const enumDateFields = isAdmin
-    ? [...STAFF_ENUM_DATE_FIELDS, ...ADMIN_ENUM_DATE_FIELDS]
-    : STAFF_ENUM_DATE_FIELDS;
+  const enumFields = isAdmin
+    ? [...STAFF_ENUM_FIELDS, ...ADMIN_ENUM_FIELDS]
+    : STAFF_ENUM_FIELDS;
 
-  for (const key of textFields) {
+  for (const key of [...textFields, ...enumFields]) {
     const value = values[key];
     if (typeof value !== "string") continue;
-    // Update sends blanks to clear; create omits them.
-    if (value !== "" || mode === "update") payload[key] = value;
+    if (value !== "" || isUpdate) payload[key] = value;
   }
-  for (const key of enumDateFields) {
-    const value = values[key];
-    if (typeof value === "string" && value !== "") payload[key] = value;
+  // Dates are admin-only, so staff never reach this loop.
+  if (isAdmin) {
+    for (const key of ADMIN_NULLABLE_DATE_FIELDS) {
+      const value = values[key];
+      if (typeof value !== "string") continue;
+      if (value !== "") payload[key] = value;
+      else if (isUpdate) payload[key] = null;
+    }
   }
   return payload;
 }

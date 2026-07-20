@@ -47,6 +47,7 @@ const VALIDATION = z.object({
 });
 
 const INITIAL: SponsorFormValues = {
+  application_case: "",
   sponsor_type: "self",
   name: "",
   relationship_to_applicant: "",
@@ -69,6 +70,7 @@ const INITIAL: SponsorFormValues = {
 function toInitial(record?: Partial<Sponsor>): SponsorFormValues {
   if (!record) return INITIAL;
   return {
+    application_case: record.application_case ?? "",
     sponsor_type: record.sponsor_type ?? "self",
     name: record.name ?? "",
     relationship_to_applicant: record.relationship_to_applicant ?? "",
@@ -97,7 +99,10 @@ const MONEY_KEYS: (keyof SponsorFormValues)[] = [
   "funding_amount",
 ];
 
-/** `Nullable=No` optional text — unset is the empty string. */
+/**
+ * `Nullable=No` optional text **and enums** — these are Django `blank=True`, so their
+ * unset representation is the empty string and DRF accepts `""`. Blank therefore clears.
+ */
 const TEXT_KEYS: (keyof SponsorFormValues)[] = [
   "name",
   "relationship_to_applicant",
@@ -111,13 +116,20 @@ const TEXT_KEYS: (keyof SponsorFormValues)[] = [
   "funding_currency",
   "funding_source",
   "verification_notes",
+  // enum, `Nullable=No` — clears with `""` exactly like the text fields above
+  "verification_status",
 ];
+
+/** `Nullable=Yes` — cleared by sending `null`, never `""` (DRF rejects `""` for the
+ * `application_case` UUID relation). */
+const NULLABLE_KEYS: (keyof SponsorFormValues)[] = ["application_case"];
 
 /**
  * Build the api payload. Always send sponsor_type + is_primary. On create, empty values
  * are dropped; on edit they are sent explicitly so a cleared field actually clears —
  * `""` for the nullable=No text fields, `null` for the two decimals (DRF's DecimalField
- * rejects `""`). The optional enum (verification_status) is always dropped when empty.
+ * rejects `""`) and the case link. `verification_status` is an enum but `Nullable=No`,
+ * so it clears with `""` alongside the text fields.
  */
 function toPayload(values: SponsorFormValues, isEdit: boolean): SponsorPayload {
   const payload: Record<string, unknown> = {
@@ -129,14 +141,12 @@ function toPayload(values: SponsorFormValues, isEdit: boolean): SponsorPayload {
     if (typeof value !== "string") continue;
     if (value !== "" || isEdit) payload[key] = value;
   }
-  for (const key of MONEY_KEYS) {
+  for (const key of [...MONEY_KEYS, ...NULLABLE_KEYS]) {
     const value = values[key];
     if (typeof value !== "string") continue;
     if (value !== "") payload[key] = value;
     else if (isEdit) payload[key] = null;
   }
-  if (values.verification_status)
-    payload.verification_status = values.verification_status;
   return payload as SponsorPayload;
 }
 
@@ -282,6 +292,12 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         minRows={2}
         disabled={isLoading}
         {...form.getInputProps("verification_notes")}
+      />
+      <TextInput
+        label="Application case"
+        description="Id of a case belonging to this applicant — leave blank if unlinked"
+        disabled={isLoading}
+        {...form.getInputProps("application_case")}
       />
       <Checkbox
         label="Primary sponsor"

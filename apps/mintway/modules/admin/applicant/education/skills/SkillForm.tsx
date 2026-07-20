@@ -51,12 +51,13 @@ const SORT_ORDER_DEFAULT = 0;
 /**
  * Build the api payload — always send name. On create empty values are dropped; on edit
  * they are sent explicitly so a cleared field actually clears, rather than the PATCH
- * silently no-op'ing that key. `proficiency` is an enum and is always dropped when blank
- * — DRF rejects `""` for a choice field with no blank option.
+ * silently no-op'ing that key. `proficiency` is an enum but `Nullable=No` (Django
+ * `blank=True`), so its unset value is `""` and it clears exactly like the text fields.
  */
 function toPayload(values: SkillFormValues, isEdit: boolean): SkillPayload {
   const payload: Record<string, unknown> = { name: values.name };
-  if (values.proficiency) payload.proficiency = values.proficiency;
+  if (values.proficiency !== "" || isEdit)
+    payload.proficiency = values.proficiency;
   if (values.notes !== "" || isEdit) payload.notes = values.notes;
   if (values.sort_order !== "") payload.sort_order = Number(values.sort_order);
   else if (isEdit) payload.sort_order = SORT_ORDER_DEFAULT;

@@ -27,7 +27,9 @@ export const AssessmentsSection = createChildResource<
   modalWidth: 640,
   disableEdit: true,
   disableDelete: true,
-  // The contract describes this feed as newest-first, but the server's default
-  // ordering is unstated (gaps.md #9) — pin it rather than rely on one.
-  defaultParams: { ordering: "-assessment_date" },
+  // No ordering override on purpose. gaps.md #9 carves out history/append-only
+  // feeds as already newest-first, and this one is documented that way — while
+  // `assessment_date` is optional and nullable, so pinning `-assessment_date`
+  // would sort a freshly-created assessment with no date to the *bottom*, below
+  // the superseded ones. The server default is the correct order here.
 });
