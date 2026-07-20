@@ -37,8 +37,18 @@ the token:
 }
 ```
 
-The reference implementation currently hardcodes a `--sil-mono` fallback stack,
-which bypasses the app's own font. Prefer the token in new work.
+Never hardcode your own mono stack — it silently bypasses the app's font. In
+mintflow the webfont is loaded by `apps/mintflow/layouts/app/App.tsx` (Google
+Fonts `<link>`, weights 400–700) and named in `theme.mantine.main.tsx`.
+
+Two related notes:
+
+- The link requests up to `700`, so `fw={800}` on a meta label renders with the
+  700 face. Either drop to 700 or add 800 to the font request.
+- **In app-level code, use `@/components/MonoText` instead of this CSS.** It
+  already applies the mono + uppercase + tracking treatment. The package layout
+  can't reach it (packages must never import from `apps/`), which is the only
+  reason `.meta` exists as CSS.
 
 Do **not** use `var(--font-special)` — it appears in `SignInLayoutDefault` but is
 defined nowhere in the repo and silently resolves to nothing.

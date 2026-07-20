@@ -6,8 +6,10 @@
 
 .root {
   --sil-line: var(--mantine-color-default-border);
-  --sil-mono:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  /* The host app's own mono (mintflow ships JetBrains Mono). Mantine always
+     defines this var, so apps that set no `fontFamilyMonospace` still get a
+     sensible stack rather than nothing. */
+  --sil-mono: var(--mantine-font-family-monospace);
   --sil-inset: var(--mantine-spacing-xl);
 
   min-height: 100vh;
@@ -168,12 +170,8 @@
 
 .checker {
   height: 0.625rem;
-  background-image: repeating-conic-gradient(
-    var(--sil-line) 0% 25%,
-    transparent 0% 50%
-  );
+  background: var(--mantine-color-brand-6);
   background-size: 0.625rem 0.625rem;
-  opacity: 0.5;
 }
 
 /* Uppercase monospace meta — rail labels, step counters, section markers. */
