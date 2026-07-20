@@ -326,7 +326,13 @@ export interface PrintEvent {
   id: string;
   documentId: string;
   type: DocumentType;
-  revisionNumber: number | null;
+  /**
+   * The linked revision's **id** (UUID). The API takes `revision_number` on create
+   * but returns `document_revision` as an id on read — they are not the same value,
+   * so this must never be coerced to a number. Resolve the display number by
+   * matching against the revisions list.
+   */
+  revisionId: string | null;
   snapshot: PrintEventSnapshot;
   printStatus: PrintStatus;
   printedAt: string;

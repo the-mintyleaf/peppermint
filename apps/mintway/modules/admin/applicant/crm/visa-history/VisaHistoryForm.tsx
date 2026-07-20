@@ -1,6 +1,5 @@
 "use client";
 
-import { z } from "zod";
 import {
   Button,
   Group,
@@ -24,10 +23,6 @@ import type {
 } from "./VisaHistoryForm.types";
 
 const VISA_DECISION_OPTIONS = toOptions(VISA_DECISION_LABELS);
-
-const VALIDATION = z.object({
-  country: z.string().min(1, "Country is required"),
-});
 
 const INITIAL: VisaHistoryFormValues = {
   country: "",
@@ -100,7 +95,6 @@ export function VisaHistoryForm({
   return (
     <FormWrapper<VisaHistoryFormValues>
       initial={toInitial(initialValues)}
-      validation={[VALIDATION]}
       finalSubmitFn={async (values) => {
         onSubmit(toPayload(values, isEdit));
         return { ok: true };
@@ -121,7 +115,6 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Country"
-          withAsterisk
           disabled={isLoading}
           {...form.getInputProps("country")}
         />

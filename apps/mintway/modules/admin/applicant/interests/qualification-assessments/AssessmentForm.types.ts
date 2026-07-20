@@ -7,8 +7,8 @@ export interface AssessmentFormValues extends Record<string, unknown> {
   preferred_program_or_field: string;
   education_summary: string;
   study_gap_summary: string;
-  language_summary: string;
-  financial_summary: string;
+  language_readiness: string;
+  financial_readiness: string;
   funding_summary: string;
   visa_risk_summary: string;
   eligibility_result: string;

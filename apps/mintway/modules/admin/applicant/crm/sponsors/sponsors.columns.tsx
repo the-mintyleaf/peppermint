@@ -8,9 +8,7 @@ import type { Sponsor } from "../../_shared";
 
 function fundingAmount(s: Sponsor): string {
   if (!s.funding_amount) return "—";
-  return [s.funding_amount, s.funding_amount_currency]
-    .filter(Boolean)
-    .join(" ");
+  return [s.funding_amount, s.funding_currency].filter(Boolean).join(" ");
 }
 
 export const sponsorColumns: DataTableShellColumn<Sponsor>[] = [

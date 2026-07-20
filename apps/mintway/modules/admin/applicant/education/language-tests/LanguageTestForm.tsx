@@ -27,10 +27,10 @@ const TEST_TYPE_OPTIONS = toOptions(LANGUAGE_TEST_TYPE_LABELS);
 const INITIAL: LanguageTestFormValues = {
   test_type: "ielts",
   test_date: "",
-  overall: "",
-  listening: "",
-  reading: "",
-  writing: "",
+  overall_score: "",
+  listening_score: "",
+  reading_score: "",
+  writing_score: "",
   speaking_score: "",
   certificate_number: "",
   expiry_date: "",
@@ -42,10 +42,10 @@ function toInitial(record?: Partial<LanguageTest>): LanguageTestFormValues {
   return {
     test_type: record.test_type ?? "ielts",
     test_date: record.test_date ? record.test_date.slice(0, 10) : "",
-    overall: record.overall ?? "",
-    listening: record.listening ?? "",
-    reading: record.reading ?? "",
-    writing: record.writing ?? "",
+    overall_score: record.overall_score ?? "",
+    listening_score: record.listening_score ?? "",
+    reading_score: record.reading_score ?? "",
+    writing_score: record.writing_score ?? "",
     speaking_score: record.speaking_score ?? "",
     certificate_number: record.certificate_number ?? "",
     expiry_date: record.expiry_date ? record.expiry_date.slice(0, 10) : "",
@@ -54,10 +54,10 @@ function toInitial(record?: Partial<LanguageTest>): LanguageTestFormValues {
 }
 
 const TEXT_KEYS: (keyof LanguageTestFormValues)[] = [
-  "overall",
-  "listening",
-  "reading",
-  "writing",
+  "overall_score",
+  "listening_score",
+  "reading_score",
+  "writing_score",
   "speaking_score",
   "certificate_number",
   "notes",
@@ -126,24 +126,24 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         <TextInput
           label="Overall"
           disabled={isLoading}
-          {...form.getInputProps("overall")}
+          {...form.getInputProps("overall_score")}
         />
         <TextInput
           label="Listening"
           disabled={isLoading}
-          {...form.getInputProps("listening")}
+          {...form.getInputProps("listening_score")}
         />
         <TextInput
           label="Reading"
           disabled={isLoading}
-          {...form.getInputProps("reading")}
+          {...form.getInputProps("reading_score")}
         />
       </Group>
       <Group grow align="flex-start">
         <TextInput
           label="Writing"
           disabled={isLoading}
-          {...form.getInputProps("writing")}
+          {...form.getInputProps("writing_score")}
         />
         <TextInput
           label="Speaking"

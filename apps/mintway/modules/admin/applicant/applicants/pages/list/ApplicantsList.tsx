@@ -76,7 +76,11 @@ function ApplicantsListContent() {
         createModalTitle="New applicant"
         editModalTitle="Edit applicant"
         modalWidth={720}
-        createFormComponent={ApplicantForm}
+        // Applicant create is admin-only (Phase 7): staff capture enquiries as leads,
+        // which an admin converts. The shell renders the create action whenever
+        // `createFormComponent` is set, so withholding it is what hides the button —
+        // otherwise staff get an action that always 403s.
+        createFormComponent={isAdmin ? ApplicantForm : undefined}
         editFormComponent={ApplicantEditForm}
         // The staff list projection omits record_version + protected fields, so
         // fetch the full record before editing (needed for the mandatory

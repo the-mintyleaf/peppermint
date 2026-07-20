@@ -152,8 +152,8 @@ function toPrintEvent(raw: Record<string, unknown>): PrintEvent {
     id: String(raw.id),
     documentId: String(raw.document),
     type: toFrontendType(String(raw.document_type)),
-    revisionNumber:
-      raw.document_revision != null ? Number(raw.document_revision) : null,
+    revisionId:
+      raw.document_revision != null ? String(raw.document_revision) : null,
     snapshot: {
       contentSnapshot: (raw.content_snapshot ?? undefined) as
         | Document["content"]

@@ -1,6 +1,5 @@
 "use client";
 
-import { z } from "zod";
 import { Button, Group, Stack, Textarea, TextInput } from "@peppermint/ui";
 import {
   FormWrapper,
@@ -14,10 +13,6 @@ import type {
   TravelHistoryFormValues,
   TravelHistoryPayload,
 } from "./TravelHistoryForm.types";
-
-const VALIDATION = z.object({
-  country: z.string().min(1, "Country is required"),
-});
 
 const INITIAL: TravelHistoryFormValues = {
   country: "",
@@ -81,7 +76,6 @@ export function TravelHistoryForm({
   return (
     <FormWrapper<TravelHistoryFormValues>
       initial={toInitial(initialValues)}
-      validation={[VALIDATION]}
       finalSubmitFn={async (values) => {
         onSubmit(toPayload(values, isEdit));
         return { ok: true };
@@ -102,7 +96,6 @@ function Fields({ isLoading }: { isLoading: boolean }) {
       <Group grow align="flex-start">
         <TextInput
           label="Country"
-          withAsterisk
           disabled={isLoading}
           {...form.getInputProps("country")}
         />

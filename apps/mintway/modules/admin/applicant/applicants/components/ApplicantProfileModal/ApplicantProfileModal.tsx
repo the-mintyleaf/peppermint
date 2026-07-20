@@ -120,11 +120,19 @@ function ApplicantProfileBody({ applicantId }: { applicantId: string }) {
   const [editOpen, setEditOpen] = useState(false);
 
   const editMutation = useApplicantMutation<Applicant, ApplicantFormValues>({
-    mutationFn: (values) =>
-      updateApplicant(
+    mutationFn: (values) => {
+      // See ApplicantOverview: `0` is a wrong version, not an "unknown" sentinel —
+      // it guarantees APPLICANT_VERSION_CONFLICT. Fail before writing instead.
+      if (!applicant) {
+        throw new Error(
+          "Applicant not loaded — cannot save without a version.",
+        );
+      }
+      return updateApplicant(
         applicantId,
-        toUpdatePayload(values, isAdmin, applicant?.record_version ?? 0),
-      ),
+        toUpdatePayload(values, isAdmin, applicant.record_version),
+      );
+    },
     successTitle: "Applicant updated",
     successMessage: "Your changes were saved.",
     errorTitle: "Couldn't save changes",

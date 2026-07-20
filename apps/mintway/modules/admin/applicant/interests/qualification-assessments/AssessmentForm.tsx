@@ -30,8 +30,8 @@ const INITIAL: AssessmentFormValues = {
   preferred_program_or_field: "",
   education_summary: "",
   study_gap_summary: "",
-  language_summary: "",
-  financial_summary: "",
+  language_readiness: "",
+  financial_readiness: "",
   funding_summary: "",
   visa_risk_summary: "",
   eligibility_result: "pending",
@@ -46,8 +46,8 @@ const TEXT_KEYS: (keyof AssessmentFormValues)[] = [
   "preferred_program_or_field",
   "education_summary",
   "study_gap_summary",
-  "language_summary",
-  "financial_summary",
+  "language_readiness",
+  "financial_readiness",
   "funding_summary",
   "visa_risk_summary",
   "conditions",
@@ -141,18 +141,18 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         {...form.getInputProps("education_summary")}
       />
       <Textarea
-        label="Language summary"
+        label="Language readiness"
         autosize
         minRows={2}
         disabled={isLoading}
-        {...form.getInputProps("language_summary")}
+        {...form.getInputProps("language_readiness")}
       />
       <Textarea
-        label="Financial summary"
+        label="Financial readiness"
         autosize
         minRows={2}
         disabled={isLoading}
-        {...form.getInputProps("financial_summary")}
+        {...form.getInputProps("financial_readiness")}
       />
       <Textarea
         label="Visa risk summary"

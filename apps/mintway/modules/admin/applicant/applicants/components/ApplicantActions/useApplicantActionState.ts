@@ -6,6 +6,7 @@ import { openReasonConfirmModal } from "@peppermint/admin";
 import {
   applicantKeys,
   archiveApplicant,
+  getApplicant,
   lockApplicant,
   unlockApplicant,
   useApplicantMutation,
@@ -43,9 +44,17 @@ export function useApplicantActionState(applicant: Applicant) {
     invalidateKeys,
   });
 
+  /**
+   * `record_version` is resolved here, not read off `applicant` — the staff list
+   * projection omits it, so a row-sourced value serialises to `undefined` and the
+   * key drops out of the DELETE body entirely (→ "This field is required"). Refetch
+   * the detail immediately before the write so the version is both present and fresh.
+   */
   const archive = useApplicantMutation<void, string>({
-    mutationFn: (reason) =>
-      archiveApplicant(applicant.id, applicant.record_version, reason),
+    mutationFn: async (reason) => {
+      const current = await getApplicant(applicant.id);
+      return archiveApplicant(applicant.id, current.record_version, reason);
+    },
     successTitle: "Applicant archived",
     successMessage: `${applicant.full_name} was archived.`,
     errorTitle: "Couldn't archive applicant",

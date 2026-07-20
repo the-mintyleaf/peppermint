@@ -17,11 +17,11 @@ export const languageTestColumns: DataTableShellColumn<LanguageTest>[] = [
     ),
   },
   {
-    accessor: "overall",
+    accessor: "overall_score",
     title: "Overall",
     render: (t) => (
       <Text size="xs" fw={500}>
-        {t.overall || "—"}
+        {t.overall_score || "—"}
       </Text>
     ),
   },

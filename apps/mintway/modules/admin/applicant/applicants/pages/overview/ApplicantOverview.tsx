@@ -26,11 +26,20 @@ function ApplicantOverviewContent() {
   const [editOpen, setEditOpen] = useState(false);
 
   const editMutation = useApplicantMutation<Applicant, ApplicantFormValues>({
-    mutationFn: (values) =>
-      updateApplicant(
+    mutationFn: (values) => {
+      // Never default the version: `0` is not "unknown", it is a wrong version that
+      // the server answers with APPLICANT_VERSION_CONFLICT. If the detail hasn't
+      // loaded there is nothing safe to send, so fail before writing.
+      if (!applicant) {
+        throw new Error(
+          "Applicant not loaded — cannot save without a version.",
+        );
+      }
+      return updateApplicant(
         applicantId,
-        toUpdatePayload(values, isAdmin, applicant?.record_version ?? 0),
-      ),
+        toUpdatePayload(values, isAdmin, applicant.record_version),
+      );
+    },
     successTitle: "Applicant updated",
     successMessage: "Your changes were saved.",
     errorTitle: "Couldn't save changes",

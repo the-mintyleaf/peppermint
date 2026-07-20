@@ -5,10 +5,10 @@ import type { LanguageTest } from "../../_shared";
 export interface LanguageTestFormValues extends Record<string, unknown> {
   test_type: string;
   test_date: string;
-  overall: string;
-  listening: string;
-  reading: string;
-  writing: string;
+  overall_score: string;
+  listening_score: string;
+  reading_score: string;
+  writing_score: string;
   speaking_score: string;
   certificate_number: string;
   expiry_date: string;

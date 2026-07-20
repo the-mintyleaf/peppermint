@@ -38,17 +38,17 @@ const VALIDATION = z.object({
 const INITIAL: SponsorFormValues = {
   sponsor_type: "self",
   name: "",
-  relationship: "",
-  occupation: "",
-  organization: "",
+  relationship_to_applicant: "",
+  occupation_or_business: "",
+  organization_name: "",
   address: "",
   country: "",
   phone: "",
   email: "",
   annual_income: "",
-  annual_income_currency: "",
+  income_currency: "",
   funding_amount: "",
-  funding_amount_currency: "",
+  funding_currency: "",
   funding_source: "",
   is_primary: false,
   verification_status: "",
@@ -60,17 +60,17 @@ function toInitial(record?: Partial<Sponsor>): SponsorFormValues {
   return {
     sponsor_type: record.sponsor_type ?? "self",
     name: record.name ?? "",
-    relationship: record.relationship ?? "",
-    occupation: record.occupation ?? "",
-    organization: record.organization ?? "",
+    relationship_to_applicant: record.relationship_to_applicant ?? "",
+    occupation_or_business: record.occupation_or_business ?? "",
+    organization_name: record.organization_name ?? "",
     address: record.address ?? "",
     country: record.country ?? "",
     phone: record.phone ?? "",
     email: record.email ?? "",
     annual_income: record.annual_income ?? "",
-    annual_income_currency: record.annual_income_currency ?? "",
+    income_currency: record.income_currency ?? "",
     funding_amount: record.funding_amount ?? "",
-    funding_amount_currency: record.funding_amount_currency ?? "",
+    funding_currency: record.funding_currency ?? "",
     funding_source: record.funding_source ?? "",
     is_primary: Boolean(record.is_primary),
     verification_status: record.verification_status ?? "",
@@ -82,17 +82,17 @@ function toInitial(record?: Partial<Sponsor>): SponsorFormValues {
 // Number()'d, to preserve precision.
 const TEXT_KEYS: (keyof SponsorFormValues)[] = [
   "name",
-  "relationship",
-  "occupation",
-  "organization",
+  "relationship_to_applicant",
+  "occupation_or_business",
+  "organization_name",
   "address",
   "country",
   "phone",
   "email",
   "annual_income",
-  "annual_income_currency",
+  "income_currency",
   "funding_amount",
-  "funding_amount_currency",
+  "funding_currency",
   "funding_source",
   "verification_notes",
 ];
@@ -166,19 +166,19 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         <TextInput
           label="Relationship"
           disabled={isLoading}
-          {...form.getInputProps("relationship")}
+          {...form.getInputProps("relationship_to_applicant")}
         />
         <TextInput
           label="Occupation"
           disabled={isLoading}
-          {...form.getInputProps("occupation")}
+          {...form.getInputProps("occupation_or_business")}
         />
       </Group>
       <Group grow align="flex-start">
         <TextInput
           label="Organization"
           disabled={isLoading}
-          {...form.getInputProps("organization")}
+          {...form.getInputProps("organization_name")}
         />
         <TextInput
           label="Country"
@@ -215,7 +215,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         <TextInput
           label="Income currency"
           disabled={isLoading}
-          {...form.getInputProps("annual_income_currency")}
+          {...form.getInputProps("income_currency")}
         />
       </Group>
       <Group grow align="flex-start">
@@ -228,7 +228,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         <TextInput
           label="Funding currency"
           disabled={isLoading}
-          {...form.getInputProps("funding_amount_currency")}
+          {...form.getInputProps("funding_currency")}
         />
       </Group>
       <TextInput

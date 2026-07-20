@@ -71,6 +71,12 @@ export function DocumentRevisionsPrintsPanel({
   const revisionList = revisions.data ?? [];
   const printList = prints.data ?? [];
 
+  // A print event links its revision by id; the readable "#n" lives on the revision
+  // itself, so resolve it here rather than trying to derive a number from the id.
+  const revisionNumberById = new Map(
+    revisionList.map((rev) => [rev.id, rev.revisionNumber]),
+  );
+
   return (
     <Stack gap="sm">
       <Divider
@@ -115,9 +121,10 @@ export function DocumentRevisionsPrintsPanel({
               >
                 {print.printStatus.replace(/_/g, " ")}
               </Badge>
-              {print.revisionNumber != null ? (
+              {print.revisionId != null &&
+              revisionNumberById.has(print.revisionId) ? (
                 <Text size="xs" c="dimmed">
-                  rev #{print.revisionNumber}
+                  rev #{revisionNumberById.get(print.revisionId)}
                 </Text>
               ) : null}
             </Group>
