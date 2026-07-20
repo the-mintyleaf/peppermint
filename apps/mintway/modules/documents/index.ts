@@ -21,6 +21,12 @@ export {
   humanizeChangedFields,
   humanizeFieldName,
 } from "./utils/changedFields";
+export {
+  formatValidityRange,
+  getSignatureValidity,
+  signatureValiditySuffix,
+} from "./utils/signatureValidity";
+export type { SignatureValidity } from "./utils/signatureValidity";
 
 export type {
   Document,

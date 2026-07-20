@@ -8,6 +8,7 @@ import {
   useDebouncedCallback,
 } from "@peppermint/ui";
 import { useDocumentEditor } from "../../context";
+import { signatureValiditySuffix } from "../../utils/signatureValidity";
 import type {
   DocumentConfigBarProps,
   CertificateContent,
@@ -46,9 +47,16 @@ export function CertificateConfigBar({
     [debouncedUpdate, markUnsavedChanges],
   );
 
+  // Out-of-window signatories are annotated, not filtered. The backend enforces
+  // active + non-archived but not the date window, so removing them would take
+  // away a choice the server still accepts — and an operator preparing a
+  // back-dated certificate may legitimately want one. Naming the state is enough.
   const signatureOptions = [
     { value: "", label: "Blank" },
-    ...signatures.map((sig) => ({ value: sig.id, label: sig.name })),
+    ...signatures.map((sig) => ({
+      value: sig.id,
+      label: `${sig.name}${signatureValiditySuffix(sig)}`,
+    })),
   ];
 
   return (
