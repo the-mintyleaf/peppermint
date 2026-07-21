@@ -290,6 +290,27 @@ Audit trail
 
 Note the three non-competing anchors (1.1): status anchors the page, evidence anchors the decision, the decision buttons anchor the action.
 
+### F. Modal / overlay — _quick create/edit, summaries, context beside the page underneath_
+
+Must answer: What is this one thing, and what is the single action I take on it — without losing the page I came from?
+
+A modal is a **context-preserving surface** (1.3): it exists so the operator acts on one thing while the parent screen stays in view underneath. That defines both what it is for and its hard limits.
+
+- **Modals may display data** — summaries, context, moderate detail, a short create/edit form. They are **not** for in-depth data management: heavy CRUD with real validation depth, its own searchable/sortable/paginated table, deep record detail, or multi-branch workflows. When that depth is required, the surface is a **Detail page** (pattern B) or a dedicated route, not a modal. The modal-vs-page call is a per-module _decision_ made in the `design-decisions` skill (Phase 2.1) against a scored rubric; this pattern is the doctrine that decision defers to.
+- **Structure order:** `Heading → Information → Tabs (only where content genuinely splits) → Tab content`. One page-level anchor (1.1), one clear primary action; secondary actions stay quiet (Layer 5). Calm and focused — a modal that feels dense or cluttered is over-scoped, not under-styled.
+- **No nested modals, ever.** A modal opening another modal buries context instead of preserving it — the opposite of why the surface exists. Handle child data inline (cards, inline forms, accordion). If it can't be done cleanly inline, that is the signal the whole thing belongs on a page.
+- **Prefer cards over tables** for grouped/record data (1.2 — proximity groups without chrome). A minimal table is allowed where one genuinely fits, but never `DataTableShell` or a full table showcase inside a modal — that is a page's job.
+- **One job per modal.** The moment it starts answering a second question, promote it to a page.
+
+```
+Heading            entity name / title, one primary action
+Information         summary + moderate detail (cards, not a data-table dump)
+Tabs               only where content splits into distinct sections
+Tab content        inline child data (cards / inline form / accordion) — never a nested modal
+```
+
+Padding/structure mechanics (the theme zeroes modal body padding) live in `CLAUDE.md → Styling → Modals` — this pattern owns _what belongs in a modal_, that rule owns _how to render one_.
+
 ---
 
 ## Part 6 — Default output contract (definition of done)

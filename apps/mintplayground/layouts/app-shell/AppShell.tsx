@@ -27,7 +27,7 @@ import { flattenNavItems, resolveActiveHref } from "./nav.utils";
 import { Sidebar } from "./components/Sidebar";
 import { NavSpotlight } from "./components/NavSpotlight";
 import { StatusRail } from "./components/StatusRail";
-import { TopRail } from "./components/TopRail";
+import { MobileBar } from "./components/MobileBar";
 import {
   NAV_BREAKPOINT,
   NAV_WIDTH,
@@ -57,8 +57,10 @@ function filterNavByRole(
 
 /**
  * mintplayground chrome, in the Modern Lines language: one frame inset from the
- * viewport, subdivided by rules into top rail → nav column + content → status
- * rail → accent bar. Every junction between two rules carries a `+`. See
+ * viewport, subdivided by rules into nav column + content → status rail → accent
+ * bar, with the brand at the head of the nav column. Below `sm` the nav column
+ * becomes a drawer and a slim `MobileBar` carries the brand mark and drawer
+ * trigger. Every junction between two rules carries a `+`. See
  * `docs/design/design-system.md`.
  *
  * It also gates the whole authenticated area: no session bounces to sign-in, a
@@ -188,10 +190,9 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
     <>
       <Box className={classes.root}>
         <Box className={classes.frame}>
-          <TopRail
+          <MobileBar
             brand={config.brand}
             linkComponent={config.linkComponent}
-            meta={gate ? "Session" : "Sandbox · Mock API"}
             navOpened={navOpened}
             onToggleNav={toggleNav}
             // No nav to open yet, and the drawer isn't mounted — a burger here
@@ -211,7 +212,8 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
                 // watching the column animate 264 → 60px on every page load.
                 data-hydrated={hasHydrated || undefined}
               >
-                {/* The nav column's right rule crosses both rails — mark both. */}
+                {/* The nav column's right rule crosses the frame's top edge and
+                    the status rail below — mark both. */}
                 <CrossMark className={classes.navColTopJunction} />
                 <CrossMark className={classes.navColBottomJunction} />
                 <Sidebar
@@ -228,12 +230,6 @@ export function LayoutAppShell({ children }: { children: ReactNode }) {
               </Box>
             </Box>
           )}
-
-          <StatusRail
-            section={gate ? "Authenticating" : activeLabel}
-            pathname={pathname}
-            version={SHELL_VERSION}
-          />
 
           <Box className={classes.accentBar} aria-hidden />
         </Box>

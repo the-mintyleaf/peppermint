@@ -50,21 +50,27 @@
   right: 0;
 }
 
-/* Header — the region's mono label, with the collapse control alongside. */
+/* Header — the brand mark + wordmark, with the collapse control alongside.
+   Height is pinned to the content column's `ModuleHeader` (55px) so the nav
+   header and the module header — and the rules that close them — line up.
+   Collapsed, the two stack so the mark and the toggle each stay centred in the
+   icon rail rather than crowding a 60px row. */
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--mantine-spacing-xs);
-  min-height: 2.25rem;
-  padding: 6px 8px 6px 13px;
+  min-height: 55px;
+  padding: 8px 10px 8px 11px;
 }
 
 .headerCollapsed {
   composes: header;
+  flex-direction: column;
   justify-content: center;
-  padding: 6px 4px;
+  gap: 8px;
+  padding: 10px 4px;
 }
 
 .scroll {
@@ -84,11 +90,6 @@
   color: var(--ml-meta-ink);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-}
-
-.headerLabel {
-  composes: groupLabel;
-  padding: 0;
 }
 
 /*

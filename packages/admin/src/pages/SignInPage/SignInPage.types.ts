@@ -51,7 +51,11 @@ export interface SignInPageProps {
   panelBackgroundImage?: string;
   icon?: React.ReactNode;
   loginApi: string;
-  /** Which key the entered credential is sent under, e.g. `{ identifier, password }`. Defaults from `skipEmailValidation`. */
+  /**
+   * Which key the entered credential is sent under. `"username"` and `"identifier"`
+   * both send the credential under **both** keys so either backend naming resolves;
+   * `"email"` sends `email` only. Defaults from `skipEmailValidation`.
+   */
   identifierField?: SignInIdentifierField;
   skipEmailValidation?: boolean;
   successRedirectUrl: string;

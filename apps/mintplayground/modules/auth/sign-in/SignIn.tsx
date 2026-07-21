@@ -29,7 +29,7 @@ export function ModuleSignIn() {
       subheading={`Any of: ${CREDENTIAL_LINE}. Password for all: ${MOCK_PASSWORD}`}
       brand={["mintplayground", "by mintyleaf.co"]}
       panelTagline="A frontend and UI/UX sandbox — no backend, all mock data."
-      panelHeading="Somewhere to try things out before they reach a real app."
+      panelHeading="Somewhere to try things out before they reach a real app. "
       loginApi="/api/v1/auth/login/"
       mfaVerifyApi="/api/v1/auth/mfa/totp/verify/"
       identifierField="identifier"

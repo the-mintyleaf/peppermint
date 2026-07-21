@@ -11,18 +11,18 @@ The domain-event contract for the `work` module. `WorkOutboxEvent` (`DATA_CONTRA
 
 ## Change History
 
-| Version | Date | Author | Summary |
-|---------|------|--------|---------|
-| 1.0.0 | 2026-07-17 | AI (Claude Fable 5) | Initial events contract: outbox envelope, 24 work event types, states, transactional-outbox rule, retry/sweeper semantics, deferred-events-ledger projection note. |
-| 1.1.0 | 2026-07-17 | AI (Claude Fable 5) | Phase 1: `WorkOutboxEvent` model implemented; `work_created` and `work_started` rows are written synchronously in the mutation transaction. The Celery consumer + beat sweeper (`tasks.py`) are deferred to Phase 2 — Phase 1 rows accumulate durably as `pending` (the outbox is the durable contract, not the dispatch). |
-| 1.2.0 | 2026-07-17 | AI (Claude Opus 4.8) | Phase 2: the consumer (`work.tasks.dispatch_outbox_event`), sweeper, and overdue detector are live; `transaction.on_commit()` now schedules dispatch after every mutation. Retry/backoff (max 5, exponential) → `failed`, then `dead_lettered`; the sweeper requeues stale-locked/pending rows. Many more event types are now emitted (assignment/transfer/routing/blocker/deadline). The consumer performs a structured log-only side effect until a `notifications` consumer attaches. |
-| 1.3.0 | 2026-07-18 | AI (Claude Opus 4.8) | Phase 3: the review/closure/external event types are now emitted — `work_review_requested`, `work_changes_requested`, `work_review_approved`, `work_closure_submitted`, `work_closed`, `work_reopened`, `work_archived`, `work_restored`, and `external_notification_required`. The `external_notification_required` payload carries only a curated template reference + ids, never internal content (REQ §15.3). |
+| Version | Date       | Author               | Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------- | ---------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-07-17 | AI (Claude Fable 5)  | Initial events contract: outbox envelope, 24 work event types, states, transactional-outbox rule, retry/sweeper semantics, deferred-events-ledger projection note.                                                                                                                                                                                                                                                                                                                       |
+| 1.1.0   | 2026-07-17 | AI (Claude Fable 5)  | Phase 1: `WorkOutboxEvent` model implemented; `work_created` and `work_started` rows are written synchronously in the mutation transaction. The Celery consumer + beat sweeper (`tasks.py`) are deferred to Phase 2 — Phase 1 rows accumulate durably as `pending` (the outbox is the durable contract, not the dispatch).                                                                                                                                                               |
+| 1.2.0   | 2026-07-17 | AI (Claude Opus 4.8) | Phase 2: the consumer (`work.tasks.dispatch_outbox_event`), sweeper, and overdue detector are live; `transaction.on_commit()` now schedules dispatch after every mutation. Retry/backoff (max 5, exponential) → `failed`, then `dead_lettered`; the sweeper requeues stale-locked/pending rows. Many more event types are now emitted (assignment/transfer/routing/blocker/deadline). The consumer performs a structured log-only side effect until a `notifications` consumer attaches. |
+| 1.3.0   | 2026-07-18 | AI (Claude Opus 4.8) | Phase 3: the review/closure/external event types are now emitted — `work_review_requested`, `work_changes_requested`, `work_review_approved`, `work_closure_submitted`, `work_closed`, `work_reopened`, `work_archived`, `work_restored`, and `external_notification_required`. The `external_notification_required` payload carries only a curated template reference + ids, never internal content (REQ §15.3).                                                                        |
 
 ---
 
 ## 1. Domain boundary
 
-`work` owns *what a work event means*. A future `events` module would own *how durable event history is stored and published* (REQ §16.5, §16.6.3). `WorkStatusTransition` (`DATA_CONTRACT.md` §12) remains the authoritative **domain history**; a `WorkOutboxEvent` is the integration-grade **event envelope** derived from the same mutation. They are intentionally different models — both required, solving different problems. No downstream consumer (notifications, search, analytics, audit, AI) may redefine an event's business meaning (REQ §16.6.9).
+`work` owns _what a work event means_. A future `events` module would own _how durable event history is stored and published_ (REQ §16.5, §16.6.3). `WorkStatusTransition` (`DATA_CONTRACT.md` §12) remains the authoritative **domain history**; a `WorkOutboxEvent` is the integration-grade **event envelope** derived from the same mutation. They are intentionally different models — both required, solving different problems. No downstream consumer (notifications, search, analytics, audit, AI) may redefine an event's business meaning (REQ §16.6.9).
 
 ## 2. Event types (REQ §16.2)
 
@@ -45,6 +45,7 @@ Task-equivalent events are emitted where applicable (e.g. task assignment/blocke
 ## 5. Transactional-outbox rule (REQ §16.3, §27.4)
 
 Every important work mutation atomically creates, in **one PostgreSQL transaction**: the work-state change + the work-history record (`WorkStatusTransition`) + the hierarchy snapshot (when hierarchy-driven) + the `WorkOutboxEvent` row. The database transaction is the authority boundary:
+
 - transaction rolls back → none of the rows exist;
 - transaction commits → the durable envelope exists even if downstream delivery is delayed or unavailable.
 
@@ -53,6 +54,7 @@ Every important work mutation atomically creates, in **one PostgreSQL transactio
 ## 6. Consumption & retry (REQ §16.4, §16.6.8)
 
 Consumer and sweeper are Celery tasks (`work/tasks.py`, introduced Phase 2 — see `ASYNC_PROCESSING.md`):
+
 - a worker consumes committed `pending` rows idempotently, sets `processing` + `locked_at`, performs only retryable side effects/projections, then `processed`;
 - the worker **never mutates authoritative work state** (REQ §19.15, §16.6.8) — only publish/retry/project/reconcile;
 - on failure: increment `attempts`, set `available_at` with backoff, `failed`; past a max-attempt threshold → `dead_lettered`;

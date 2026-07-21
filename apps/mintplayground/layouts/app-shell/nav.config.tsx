@@ -2,6 +2,8 @@
 
 import { LeafIcon } from "@phosphor-icons/react/dist/csr/Leaf";
 import { HouseIcon } from "@phosphor-icons/react/dist/csr/House";
+import { SquaresFourIcon } from "@phosphor-icons/react/dist/csr/SquaresFour";
+import { ListChecksIcon } from "@phosphor-icons/react/dist/csr/ListChecks";
 import { PaletteIcon } from "@phosphor-icons/react/dist/csr/Palette";
 import { StackIcon } from "@phosphor-icons/react/dist/csr/Stack";
 import { FlaskIcon } from "@phosphor-icons/react/dist/csr/Flask";
@@ -39,6 +41,30 @@ export const APP_SHELL_CONFIG: Omit<
       id: "menu",
       label: "Menu",
       items: [{ id: "home", label: "Home", href: "/home", icon: HouseIcon }],
+    },
+    {
+      id: "dashboards",
+      label: "Dashboards",
+      items: [
+        {
+          id: "mintflow",
+          label: "Mintflow",
+          href: "/dashboards/mintflow",
+          icon: SquaresFourIcon,
+        },
+      ],
+    },
+    {
+      id: "mintflow",
+      label: "Mintflow",
+      items: [
+        {
+          id: "tasks",
+          label: "Tasks",
+          href: "/mintflow/tasks",
+          icon: ListChecksIcon,
+        },
+      ],
     },
     {
       id: "sandbox",

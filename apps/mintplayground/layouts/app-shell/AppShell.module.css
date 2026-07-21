@@ -62,8 +62,8 @@
   }
 }
 
-/* The two junctions the nav column's right rule makes: with the top rail's
-   bottom rule, and with the status rail's dashed top rule. */
+/* The two junctions the nav column's right rule makes: with the frame's top
+   border, and with the status rail's dashed top rule. */
 .navColTopJunction {
   top: 0;
   right: 0;

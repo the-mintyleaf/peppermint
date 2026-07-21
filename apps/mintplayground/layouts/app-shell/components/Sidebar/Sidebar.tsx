@@ -7,6 +7,7 @@ import { useSidebarStore } from "../../AppShell.store";
 import {
   NavRow,
   SearchField,
+  SidebarBrand,
   SidebarFooter,
   SidebarToggle,
 } from "./components";
@@ -47,11 +48,11 @@ export function Sidebar({
       <Box className={classes.block}>
         <BlockJunctions framed={framed} />
         <Box className={collapsed ? classes.headerCollapsed : classes.header}>
-          {!collapsed && (
-            <Text component="span" className={classes.headerLabel}>
-              Navigate
-            </Text>
-          )}
+          <SidebarBrand
+            brand={config.brand}
+            linkComponent={config.linkComponent}
+            collapsed={collapsed}
+          />
           {collapsible && (
             <SidebarToggle collapsed={collapsed} onToggle={toggle} />
           )}

@@ -11,30 +11,30 @@ The document/file integration contract for the `work` module. The repository has
 
 ## Change History
 
-| Version | Date | Author | Summary |
-|---------|------|--------|---------|
-| 1.0.0 | 2026-07-17 | AI (Claude Fable 5) | Initial document-integration contract: provenance/linkage rules, disabled-upload gate, future document-foundation minimums. |
-| 1.1.0 | 2026-07-18 | AI (Claude Opus 4.8) | Phase 4: text/structured/external/generated/approval/communication evidence is now live (`WorkEvidence`); the §2 gate matrix confirms `document_reference`/`image_reference` and any `document_id` submission stay gated (`WORK_DOCUMENT_INTEGRATION_UNAVAILABLE`), and `WorkEvidenceLink` remains schema-only until the document foundation exists. No change to the gate itself. |
+| Version | Date       | Author               | Summary                                                                                                                                                                                                                                                                                                                                                                            |
+| ------- | ---------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-07-17 | AI (Claude Fable 5)  | Initial document-integration contract: provenance/linkage rules, disabled-upload gate, future document-foundation minimums.                                                                                                                                                                                                                                                        |
+| 1.1.0   | 2026-07-18 | AI (Claude Opus 4.8) | Phase 4: text/structured/external/generated/approval/communication evidence is now live (`WorkEvidence`); the §2 gate matrix confirms `document_reference`/`image_reference` and any `document_id` submission stay gated (`WORK_DOCUMENT_INTEGRATION_UNAVAILABLE`), and `WorkEvidenceLink` remains schema-only until the document foundation exists. No change to the gate itself. |
 
 ---
 
 ## 1. Ownership split
 
-- **Work owns:** evidence *purpose*, attachment *provenance*, and *linkage* — `WorkAttachment` (`DATA_CONTRACT.md` §18), `WorkEvidence` (§19), `WorkEvidenceLink` (§20).
+- **Work owns:** evidence _purpose_, attachment _provenance_, and _linkage_ — `WorkAttachment` (`DATA_CONTRACT.md` §18), `WorkEvidence` (§19), `WorkEvidenceLink` (§20).
 - **The future document foundation owns:** file truth — storage zone/path, original + safe filename, MIME + detected MIME, size, SHA-256 checksum, uploaded-by/at, classification, retention, malware-scan status, verification status, source type (REQ §16.9). It must not own work semantics, evidence meaning, review/assignment authority, permissions, hierarchy, or audit interpretation.
 
 Work references documents by **opaque `document_id` / `document_version_id` only**. It never stores storage paths, binary blobs, or an uncontrolled `FileField` (REQ §16.9).
 
 ## 2. What is enabled now vs. gated
 
-| Capability | Status in initial build |
-|---|---|
-| Text evidence (`text_statement`) | Enabled (Phase 4) |
-| Structured evidence (`structured_payload`) | Enabled (Phase 4) |
-| External-reference evidence | Enabled (Phase 4) |
-| File-backed evidence (`document_id` set) | **Gated** → `WORK_DOCUMENT_INTEGRATION_UNAVAILABLE` |
+| Capability                                    | Status in initial build                                                                                                                              |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Text evidence (`text_statement`)              | Enabled (Phase 4)                                                                                                                                    |
+| Structured evidence (`structured_payload`)    | Enabled (Phase 4)                                                                                                                                    |
+| External-reference evidence                   | Enabled (Phase 4)                                                                                                                                    |
+| File-backed evidence (`document_id` set)      | **Gated** → `WORK_DOCUMENT_INTEGRATION_UNAVAILABLE`                                                                                                  |
 | Attachment ledger rows referencing a document | Schema present (Phase 2); creation gated until the foundation exists → `WORK_DOCUMENT_INTEGRATION_UNAVAILABLE` / `WORK_FILE_INTEGRATION_UNAVAILABLE` |
-| Upload/download endpoints | Not built; disabled until the foundation exists |
+| Upload/download endpoints                     | Not built; disabled until the foundation exists                                                                                                      |
 
 The gate is a documented service-level check, not a silent omission — attempting file-backed evidence returns a stable error code (`DATA_CONTRACT.md` §19/§20, error catalogue in `API.md`).
 

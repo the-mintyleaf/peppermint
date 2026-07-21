@@ -11,11 +11,11 @@ This document is required per project rulebook §19 because `work` makes its own
 
 ## Change History
 
-| Version | Date | Author | Summary |
-|---------|------|--------|---------|
-| 1.0.0 | 2026-07-17 | AI (Claude Fable 5) | Initial security contract: two-stage authorization, visibility modes, anti-enumeration, data-level filtering, mass-assignment protection, logging rules. |
-| 1.1.0 | 2026-07-18 | AI (Claude Opus 4.8) | Phase 3: active `WorkParticipant` rows now feed Stage-2 visibility (both the list query and detail check) — participation grants visibility relevance, never permission (INV-016), so a participant without the Stage-1 permission still gets `403` on a protected read, not `200`. External-stakeholder contact/consent fields (`approved_contact_channels`, `consent_metadata`, `notification_preference`) are serialized only for the work owner/creator/superuser; other readers receive the non-privileged shape (field-level access control, REQ §29). External notifications carry only a curated template reference + ids (REQ §15.3). |
-| 1.2.0 | 2026-07-18 | AI (Claude Opus 4.8) | Phase 5: the two unit-scope dashboard endpoints (`/units/{id}/queue/`, `/units/{id}/hierarchy-overview/`) require the caller to hold leadership visibility over the unit (`selectors.actor_leads_unit`) or be a superuser — a non-leader receives the generic `404` (anti-enumeration, §3), never a distinguishing 403, and both carry a `work_dashboard` scoped throttle. The three `/my/` endpoints are self-scoped (the actor is the query filter). Evidence separation-of-duties (a submitter cannot verify/reject their own evidence) is a resource rule enforced even for superusers. |
+| Version | Date       | Author               | Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------- | ---------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-07-17 | AI (Claude Fable 5)  | Initial security contract: two-stage authorization, visibility modes, anti-enumeration, data-level filtering, mass-assignment protection, logging rules.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| 1.1.0   | 2026-07-18 | AI (Claude Opus 4.8) | Phase 3: active `WorkParticipant` rows now feed Stage-2 visibility (both the list query and detail check) — participation grants visibility relevance, never permission (INV-016), so a participant without the Stage-1 permission still gets `403` on a protected read, not `200`. External-stakeholder contact/consent fields (`approved_contact_channels`, `consent_metadata`, `notification_preference`) are serialized only for the work owner/creator/superuser; other readers receive the non-privileged shape (field-level access control, REQ §29). External notifications carry only a curated template reference + ids (REQ §15.3). |
+| 1.2.0   | 2026-07-18 | AI (Claude Opus 4.8) | Phase 5: the two unit-scope dashboard endpoints (`/units/{id}/queue/`, `/units/{id}/hierarchy-overview/`) require the caller to hold leadership visibility over the unit (`selectors.actor_leads_unit`) or be a superuser — a non-leader receives the generic `404` (anti-enumeration, §3), never a distinguishing 403, and both carry a `work_dashboard` scoped throttle. The three `/my/` endpoints are self-scoped (the actor is the query filter). Evidence separation-of-duties (a submitter cannot verify/reject their own evidence) is a resource rule enforced even for superusers.                                                    |
 
 ---
 
@@ -33,13 +33,13 @@ Authorization order (REQ §14.5): authenticate → resolve org/unit context → 
 
 `VisibilityMode` on `WorkItem` (`DATA_CONTRACT.md` §1):
 
-| Mode | Behavior |
-|---|---|
-| `organizational` | Eligible participants, responsible-unit heads, and ancestor heads per permission scope |
-| `participants_only` | Direct participants + specifically authorized hierarchy/audit actors |
-| `restricted` | Relationship **plus** elevated restricted-work permission |
-| `confidential` | Confidential-work permission **and** need-to-know relationship; hierarchy alone is insufficient |
-| `explicit` | Requires a future explicit resource-access contract; **not improvised in phase 1** — gated |
+| Mode                | Behavior                                                                                        |
+| ------------------- | ----------------------------------------------------------------------------------------------- |
+| `organizational`    | Eligible participants, responsible-unit heads, and ancestor heads per permission scope          |
+| `participants_only` | Direct participants + specifically authorized hierarchy/audit actors                            |
+| `restricted`        | Relationship **plus** elevated restricted-work permission                                       |
+| `confidential`      | Confidential-work permission **and** need-to-know relationship; hierarchy alone is insufficient |
+| `explicit`          | Requires a future explicit resource-access contract; **not improvised in phase 1** — gated      |
 
 Sensitivity (`SensitivityLevel`) is an independent axis; a sensitivity check can deny even a visible resource (`WORK_SENSITIVITY_ACCESS_DENIED`).
 

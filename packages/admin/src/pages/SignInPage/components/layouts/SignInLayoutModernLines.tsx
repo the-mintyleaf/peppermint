@@ -44,10 +44,10 @@ export function SignInLayoutModernLines({
   // never wash out the text on top of it.
   const brandColStyle = panelBackgroundImage
     ? {
-      backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${JSON.stringify(
-        panelBackgroundImage,
-      )})`,
-    }
+        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${JSON.stringify(
+          panelBackgroundImage,
+        )})`,
+      }
     : undefined;
 
   return (
@@ -75,12 +75,19 @@ export function SignInLayoutModernLines({
 
         <Box className={classes.body}>
           <Box
+            bg="var(--mantine-color-brand-light)"
             component="section"
-            className={`${classes.brandCol} ${panelBackgroundImage ? classes.brandColImage : ""
-              }`}
+            className={`${classes.brandCol} ${
+              panelBackgroundImage ? classes.brandColImage : ""
+            }`}
             style={brandColStyle}
           >
-            <Text className={classes.meta} fw={800} size="10px" c={brandInkDimmed}>
+            <Text
+              className={classes.meta}
+              fw={800}
+              size="10px"
+              c={brandInkDimmed}
+            >
               {panelTagline}
             </Text>
 
@@ -114,7 +121,12 @@ export function SignInLayoutModernLines({
                 ) : (
                   <Stack gap="md">
                     <Stack gap={"xl"}>
-                      <Text fw={800} className={classes.meta} size="10px" c="dimmed">
+                      <Text
+                        fw={800}
+                        className={classes.meta}
+                        size="10px"
+                        c="dimmed"
+                      >
                         {controller.phase === "mfa"
                           ? "Two-factor"
                           : "Authenticate"}

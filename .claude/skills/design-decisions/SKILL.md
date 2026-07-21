@@ -158,6 +158,49 @@ Decide the surface, and justify every page:
   inputs, `Badge`, `Text`) — and the _only_ net-new pieces this module genuinely adds over them. Don't
   rebuild a shell to add one column.
 
+**Step 1 — Classify the module: independent vs nested (verify against the API URL, not the UI).**
+The contract digest / `API.md` is the source of truth here — read the endpoint shape, don't guess from
+the feature name.
+
+- **Independent** — has its own top-level collection endpoint (`/api/v1/product`), _even if_ it carries
+  a foreign key to another resource (a category FK doesn't make it nested). Build it as its own
+  module/page.
+- **Nested** — exists only under a parent resource id (`/api/v1/applicant/<applicant-id>/information`).
+  Do **not** stand up a top-level module for it. It is managed from within its parent — and the next
+  step decides _how_.
+
+> `/api/v1/category` + `/api/v1/product` → product is independent (references category, stands alone).
+> `/api/v1/applicant` + `/api/v1/applicant/<id>/information` → information is nested (belongs entirely
+> to an applicant).
+
+**Step 2 — For a nested module, decide Modal vs Detail page with the scored rubric.**
+Sum the points that apply. **> 4 → manage it inside the parent's Detail page** (`DESIGN.md` Part 5B).
+**≤ 4 → manage it in a Modal** (`DESIGN.md` Part 5F). The rubric is the default; the hard overrides win
+outright.
+
+| Signal                                                                   | Points      |
+| ------------------------------------------------------------------------ | ----------- |
+| Field count ≤ 5 / 6–12 / > 12                                            | 0 / +2 / +3 |
+| Full create/edit/delete with real validation (vs read-only / light edit) | +2          |
+| Owns a list/table needing search, sort, filter, or pagination            | +2          |
+| Has further nested children of its own                                   | +3          |
+| Multi-step / wizard-style flow                                           | +2          |
+| Needs history, audit trail, comments, or activity feed                   | +1          |
+| More than ~3 logical sections/tabs of content                            | +1          |
+| File uploads, media galleries, or document previews                      | +1          |
+| Bulk actions across many records                                         | +2          |
+| High-frequency core workflow (users effectively live in this screen)     | +1          |
+
+**Hard overrides — force a Detail page regardless of score** — it must be deep-linkable /
+bookmarkable / shareable by URL; it must render alongside other data for comparison; or its content
+can't fit without heavy internal scrolling.
+
+The Modal-vs-page split, once made, is a **Phase 1.5 confirmation item** — surface the score and your
+call to the user, don't take it silently. Modal structure/UX doctrine (structure order, no nested
+modals, cards over tables, one primary action) lives in `DESIGN.md` Part 5F — cite it, don't restate
+it. Building the resulting **page** routes through `/plan-module` → `mint-module-builder`; a **modal**
+is built inline in its parent (`ModalTableShell` / `FormWrapper`), never via the page builder.
+
 ### 2.2 Form order & layout
 
 - **Order fields by decision importance, not schema order.** Identity/name first, the fields the

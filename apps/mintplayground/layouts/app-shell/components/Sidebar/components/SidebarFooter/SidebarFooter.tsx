@@ -7,11 +7,14 @@ import {
   Box,
   Indicator,
   Tooltip,
+  useMantineColorScheme,
 } from "@peppermint/ui";
 import type { Icon } from "@phosphor-icons/react";
 import { StarFourIcon } from "@phosphor-icons/react/dist/csr/StarFour";
 import { BellIcon } from "@phosphor-icons/react/dist/csr/Bell";
 import { GearSixIcon } from "@phosphor-icons/react/dist/csr/GearSix";
+import { MoonIcon } from "@phosphor-icons/react/dist/csr/Moon";
+import { SunIcon } from "@phosphor-icons/react/dist/csr/Sun";
 
 import { CrossMark } from "@/components";
 import { UserMenu } from "../UserMenu";
@@ -92,6 +95,10 @@ export function SidebarFooter({
   const settingsActive = isActiveHref(pathname, settingsHref);
   const hasUnread = (notifications?.count ?? 0) > 0;
 
+  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === "dark";
+  const schemeLabel = isDark ? "Switch to light mode" : "Switch to dark mode";
+
   return (
     <>
       <Box className={collapsed ? classes.actionsCollapsed : classes.actions}>
@@ -133,6 +140,13 @@ export function SidebarFooter({
         )}
 
         {!collapsed && <Box className={classes.spacer} />}
+
+        <QuickAction
+          icon={isDark ? SunIcon : MoonIcon}
+          label={schemeLabel}
+          onClick={toggleColorScheme}
+          linkComponent={linkComponent}
+        />
 
         {settingsButton && !settingsButton.hidden && (
           <QuickAction

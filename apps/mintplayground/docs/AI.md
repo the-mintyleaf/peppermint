@@ -83,8 +83,9 @@ am I signed in as?_
 ## Design language — Modern Lines
 
 The app is built in **Modern Lines**: structure comes from ruled lines, not elevation.
-Read `docs/design/design-system.md` before any visual work — it points at the language
-itself (`inspos/design-system/`) and records the two extensions this app adds.
+Read `docs/design/design-system.md` before any visual work — it is the full spec (the
+eight principles, the rules, the token vocabulary, and the two extensions this app
+adds); copy-paste recipes live in `docs/design/modern-lines-howto.md`.
 
 The short version:
 
@@ -93,7 +94,7 @@ The short version:
 - Every junction between two rules carries a `+` (`components/CrossMark/`).
 - Tokens only. `--ml-*` (in `public/styles/global.css`) and Mantine variables — never a
   raw hex, never a hardcoded mono stack. The whole app inverts for dark mode, and the
-  shell's top rail carries the scheme toggle.
+  scheme toggle is a footer quick action in the `Sidebar` (next to Settings).
 - `theme.defaultRadius: 0`. Nothing is rounded, including portalled surfaces.
 
 `config/design/tokens.ts` is **legacy** — mintflow's warm-paper/dark-tile values, with
@@ -105,11 +106,14 @@ use it. Fine in an unconverted module, wrong for anything new.
 - `layouts/app/` — `LayoutApp`: `<html>`, fonts, Mantine `AppWrapper`, `metadata`.
 - `layouts/app-shell/` — `LayoutAppShell`: the session gate plus the frame.
 
-  One bordered rectangle inset from the viewport, subdivided into `TopRail`
-  (brand · meta · scheme toggle · drawer trigger) → body (`Sidebar` column +
-  content) → `StatusRail` (dashed, the surface's one terminal rule) → accent bar.
-  The frame is **permanent**: the loading, `/me`-failed and redirect states all
-  render inside it, never instead of it (`renderGate` in `AppShell.tsx`).
+  One bordered rectangle inset from the viewport, subdivided into body (`Sidebar`
+  column + content) → `StatusRail` (dashed, the surface's one terminal rule) →
+  accent bar. The brand (`SidebarBrand`) sits at the head of the nav column, and
+  the scheme toggle is a `SidebarFooter` quick action next to Settings. Below `sm`
+  a slim `MobileBar` (brand mark · drawer trigger) opens the frame instead — from
+  48em up it is `display: none`. The frame is **permanent**: the loading,
+  `/me`-failed and redirect states all render inside it, never instead of it
+  (`renderGate` in `AppShell.tsx`).
   - Neither `.frame` nor the sidebar `.panel` sets `overflow: hidden` — junction
     marks straddle the rules they sit on, and clipping amputates them. Scrolling is
     owned by `.content` and the nav's `ScrollArea`.

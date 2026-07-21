@@ -11,9 +11,9 @@ Redis cache posture for the `work` module. Redis is the already-approved cache b
 
 ## Change History
 
-| Version | Date | Author | Summary |
-|---------|------|--------|---------|
-| 1.0.0 | 2026-07-17 | AI (Claude Fable 5) | Initial cache contract: deliberate no-cache posture + preconditions for future permission/hierarchy caching. |
+| Version | Date       | Author              | Summary                                                                                                      |
+| ------- | ---------- | ------------------- | ------------------------------------------------------------------------------------------------------------ |
+| 1.0.0   | 2026-07-17 | AI (Claude Fable 5) | Initial cache contract: deliberate no-cache posture + preconditions for future permission/hierarchy caching. |
 
 ---
 
@@ -24,8 +24,8 @@ Redis cache posture for the `work` module. Redis is the already-approved cache b
 **Rationale (REQ §16.7, §16.8; CLAUDE.md §15):** the revision markers a security-sensitive cache key must include — `organization_structure_version`, `permission_revision` — **do not exist in code yet**. `organization` has only a per-`OrganizationUnit` optimistic-concurrency `version` (not an org-wide structure version); `permissions` has no `permission_revision` field and no decision cache (verified 2026-07-17). Introducing a cache keyed on markers that no write path bumps would produce exactly the stale-authorization failure the rulebook forbids ("a cache miss is acceptable; stale authorization is not"). So the correct initial posture is no cache, not an unsafe one.
 
 | Key pattern | Data cached | TTL | Source of truth | Revision markers | Invalidation trigger |
-|-------------|-------------|-----|-----------------|------------------|----------------------|
-| — (none) | — | — | PostgreSQL | — | — |
+| ----------- | ----------- | --- | --------------- | ---------------- | -------------------- |
+| — (none)    | —           | —   | PostgreSQL      | —                | —                    |
 
 ## 2. Invalidation rules
 
@@ -38,6 +38,7 @@ The system already degrades safely because it never depends on a cache: every au
 ## 4. Preconditions for enabling a future cache
 
 A security-sensitive cache (permission-decision or hierarchy-resolution reuse) may be added only after **all** of:
+
 1. `organization` exposes an org-wide `organization_structure_version` bumped on every structure/reporting/position/delegation change;
 2. `permissions` exposes a `permission_revision` bumped on every role-binding/grant/deny change;
 3. write paths in those apps bump the markers (not TTL-only);

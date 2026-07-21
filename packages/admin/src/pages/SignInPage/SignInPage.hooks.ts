@@ -71,6 +71,23 @@ async function postAuth(
 }
 
 /**
+ * Builds the login body. The credential goes under the configured `identifierField`,
+ * and for the two non-email fields it is mirrored under the sibling key
+ * (`username` ⇄ `identifier`) so a backend that names the field differently than the
+ * app configured still resolves it. DRF-style serializers ignore keys they don't
+ * declare, so the mirrored key is inert on the side that doesn't want it. `email` is
+ * never mirrored — an email-keyed backend is a genuinely different contract.
+ */
+function buildLoginPayload(
+  identifierField: SignInIdentifierField,
+  identifier: string,
+  password: string,
+): Record<string, unknown> {
+  if (identifierField === "email") return { email: identifier, password };
+  return { username: identifier, identifier, password };
+}
+
+/**
  * Owns the entire sign-in flow — phases, both mutations, token storage and the
  * submit handlers — so the layout variants stay purely presentational.
  */
@@ -170,10 +187,11 @@ export function useSignInController({
     mutationFn: (vars: { identifier: string; password: string }) =>
       postAuth(
         loginApi,
-        {
-          [resolvedIdentifierField]: vars.identifier,
-          password: vars.password,
-        },
+        buildLoginPayload(
+          resolvedIdentifierField,
+          vars.identifier,
+          vars.password,
+        ),
         requestOptions,
       ),
     onSuccess: handleSuccessData,
