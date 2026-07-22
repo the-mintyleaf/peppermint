@@ -16,11 +16,14 @@ import type {
   EvidenceType,
   ReviewCommentType,
   ReviewDecision,
+  SensitivityLevel,
   VisibilityClassification,
+  VisibilityMode,
   WorkActivityEntry,
   WorkAssignment,
   WorkEvidence,
   WorkItem,
+  WorkPriority,
   WorkReviewComment,
   WorkReviewRound,
   WorkTask,
@@ -30,6 +33,40 @@ import type {
 export interface VersionedCommand {
   reason?: string;
   aggregate_version?: number;
+}
+
+/* ── Work-item creation ───────────────────────────────────────────────────── */
+
+/**
+ * Create body for `POST /items/` (contract §1.1). Creator becomes owner
+ * (status `accepted`) unless `proposed_owner`/`target_unit` is given, which
+ * routes the new work to `assignment_pending`. `visibility_mode` is limited to
+ * the creatable modes (`organizational`/`participants_only`) — the rest are
+ * backend-gated (`WORK_VISIBILITY_MODE_UNSUPPORTED`). `reference_number`,
+ * `title_romanized`, `current_owner`, and `status` are server-assigned.
+ */
+export interface CreateWorkPayload {
+  organization: string;
+  responsible_unit: string;
+  title_np: string;
+  objective: string;
+  title_en?: string;
+  description?: string;
+  priority?: WorkPriority;
+  visibility_mode?: VisibilityMode;
+  sensitivity_level?: SensitivityLevel;
+  review_required?: boolean;
+  due_at?: string;
+  proposed_owner?: string;
+  target_unit?: string;
+  idempotency_key?: string;
+}
+
+export async function createWork(
+  payload: CreateWorkPayload,
+): Promise<WorkItem> {
+  const { data } = await api.post<WorkItem>("/api/v1/work/items/", payload);
+  return data;
 }
 
 /* ── Work-item lifecycle commands (form-free) ─────────────────────────────── */

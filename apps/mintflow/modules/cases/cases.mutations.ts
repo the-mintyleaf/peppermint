@@ -16,6 +16,7 @@ import {
   closeWork,
   completeTask,
   createTask,
+  createWork,
   decideReview,
   extendWorkDeadline,
   recordActivity,
@@ -34,6 +35,7 @@ import {
   type AddReviewCommentPayload,
   type BlockPayload,
   type ClosePayload,
+  type CreateWorkPayload,
   type DecideReviewPayload,
   type CreateTaskPayload,
   type DeadlineExtendPayload,
@@ -151,6 +153,15 @@ export function useArchiveTask(workId: string) {
 }
 
 /* ── Work-item lifecycle command hooks ────────────────────────────────────── */
+
+/** Create a new work item (case). Refreshes every work list on success. */
+export function useCreateWork() {
+  return useWorkMutation({
+    mutationFn: (payload: CreateWorkPayload) => createWork(payload),
+    successMessage: "Case created",
+    invalidateKeys: [workKeys.items()],
+  });
+}
 
 /** Keys touched by any work-item command. */
 function workItemKeys(workId: string): QueryKey[] {

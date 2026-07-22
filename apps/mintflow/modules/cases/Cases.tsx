@@ -18,6 +18,7 @@ import {
   Text,
   TextInput,
   useDebouncedValue,
+  useDisclosure,
 } from "@peppermint/ui";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
@@ -29,6 +30,7 @@ import { RowsIcon } from "@phosphor-icons/react/dist/csr/Rows";
 import { tokens } from "@/config/design";
 import type { WorkItem } from "@/lib/work";
 import { BlockView } from "./block-view";
+import { CreateCaseModal } from "./components/CreateCaseModal";
 import { ListView } from "./list-view";
 import {
   SORT_KEYS,
@@ -78,6 +80,8 @@ export function ModuleCases() {
   const [sort, setSort] = useState<SortKey>("recent");
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch] = useDebouncedValue(searchInput, 300);
+  const [createOpened, { open: openCreate, close: closeCreate }] =
+    useDisclosure(false);
   const router = useRouter();
 
   const { data: page, isLoading, isError, refetch } = useWorkItems(status);
@@ -120,7 +124,7 @@ export function ModuleCases() {
             <Button
               size="xs"
               leftSection={<PlusIcon size={16} aria-label="New case" />}
-              onClick={notConnected}
+              onClick={openCreate}
             >
               New Case
             </Button>
@@ -255,6 +259,8 @@ export function ModuleCases() {
           </ScrollArea>
         </Stack>
       </ModalPaper>
+
+      <CreateCaseModal opened={createOpened} onClose={closeCreate} />
     </>
   );
 }

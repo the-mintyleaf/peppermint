@@ -158,8 +158,9 @@ through the frozen `@/lib/work` contract. See the API digest `docs/api-contracts
 and reshape decisions `docs/api-contracts/work.reshape.md`. Faithful reshape: real
 `WorkStatus`/`WorkPriority`, `reference_number`, `current_owner` + `responsible_unit`
 (names resolved via `lib/work/directory.ts`), BS+Gregorian dates. The mock's
-category/location/departments/officer-arrays and the Files sub-view were dropped; only
-create/mutation actions still use "Not connected yet" (they land in P3/P4).
+category/location/departments/officer-arrays and the Files sub-view were dropped.
+**Case creation is wired** (`POST /items/` via `CreateCaseModal`); the list-header
+**Upload** action alone stays "Not connected yet" (attachment upload is 503-gated).
 
 - `Cases.tsx` (`ModuleCases`) — chrome (`ModuleHeader`, status `SegmentedControl` tabs from
   real `WorkStatus`, Block/List toggle, sort menu, search) + body swapping block/list with
@@ -170,6 +171,15 @@ create/mutation actions still use "Not connected yet" (they land in P3/P4).
   search/sort over the page), `useFilteredCases`, `STATUS_TABS` / `SORT_KEYS`, `notConnected`.
 - `cases.styles.ts` — `STATUS_STYLE` (WorkStatus) / `PRIORITY_STYLE` (WorkPriority) /
   `PRIORITY_RANK`, colored from design tokens.
+- `cases.commands.ts` / `cases.mutations.ts` — named-command fetchers + their
+  `useWorkMutation` hooks (create, work-item lifecycle, tasks, activity, evidence,
+  review). `createWork` (`POST /items/`) + `useCreateWork` back the New Case flow.
+- `components/CreateCaseModal/` — the **New Case** form (modal on `/cases`, `FormWrapper`
+  - Zod). Essentials (title np/en, objective, org, responsible unit, priority, due,
+    review) + a disclosed **Advanced** section (initial-owner routing → `proposed_owner`
+    / `target_unit`, visibility, sensitivity). `CreateCaseModal.api.ts`/`.hooks.ts` load
+    org/unit/user reference options from the `organization` + `auth` read surfaces;
+    unsaved-changes are guarded on close.
 - `block-view/` — `BlockView` (resolves owner/unit directories once, maps to `CaseCard`);
   `components/CaseCard` (reference · priority/flags · title/objective · unit · owner+status).
 - `list-view/` — `ListView` (7-col table: Case/Status/Priority/Unit/Owner/Due/actions,
