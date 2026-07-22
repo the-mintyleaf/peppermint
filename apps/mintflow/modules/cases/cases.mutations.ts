@@ -58,6 +58,11 @@ function useWorkMutation<TData, TVars>(options: {
   mutationFn: (vars: TVars) => Promise<TData>;
   successMessage: string;
   invalidateKeys: QueryKey[];
+  /**
+   * Set `false` when the caller owns error feedback (e.g. a form whose
+   * `finalSubmitFn` already surfaces the message), to avoid a double toast.
+   */
+  notifyError?: boolean;
 }) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -69,6 +74,7 @@ function useWorkMutation<TData, TVars>(options: {
       notifications.show({ message: options.successMessage, color: "green" });
     },
     onError: (error: unknown) => {
+      if (options.notifyError === false) return;
       notifications.show({
         message: getWorkErrorMessage(error),
         color: "red",
@@ -154,12 +160,22 @@ export function useArchiveTask(workId: string) {
 
 /* ── Work-item lifecycle command hooks ────────────────────────────────────── */
 
-/** Create a new work item (case). Refreshes every work list on success. */
+/**
+ * Create a new work item (case). Refreshes the work lists a new case can appear
+ * in — the board plus the self-scoped dashboards (assignment routing lands the
+ * case in "my pending assignments"). The form owns error feedback, so the
+ * mutation stays quiet on error (`notifyError: false`).
+ */
 export function useCreateWork() {
   return useWorkMutation({
     mutationFn: (payload: CreateWorkPayload) => createWork(payload),
     successMessage: "Case created",
-    invalidateKeys: [workKeys.items()],
+    invalidateKeys: [
+      workKeys.items(),
+      workKeys.myActive(),
+      workKeys.myPendingAssignments(),
+    ],
+    notifyError: false,
   });
 }
 

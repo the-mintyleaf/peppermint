@@ -128,6 +128,16 @@ function toIsoDateTime(value: string | null): string | undefined {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00Z` : value;
 }
 
+/**
+ * A fresh idempotency key. `crypto.randomUUID` needs a secure context, so fall
+ * back for dev served over plain http on a LAN host (where it's undefined).
+ */
+function newIdempotencyKey(): string {
+  const cryptoObj = globalThis.crypto;
+  if (cryptoObj?.randomUUID) return cryptoObj.randomUUID();
+  return `case-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 export function CreateCaseModal({ opened, onClose }: CreateCaseModalProps) {
   const create = useCreateWork();
 
@@ -138,7 +148,7 @@ export function CreateCaseModal({ opened, onClose }: CreateCaseModalProps) {
   // One key per open session, so a retried submit is idempotent but a fresh
   // open (a genuinely new case) gets a new key.
   const idempotencyKey = useMemo(
-    () => (opened ? crypto.randomUUID() : ""),
+    () => (opened ? newIdempotencyKey() : ""),
     [opened],
   );
 
@@ -249,10 +259,12 @@ function CreateCaseFields({ onCancel, onDirtyChange }: CreateCaseFieldsProps) {
   // deployment) — never override a choice the user already made.
   useEffect(() => {
     if (!form.values.organization && orgs.options.length === 1) {
+      // Only fold the auto-filled org into the pristine baseline when nothing
+      // else has been touched yet — otherwise resetDirty would bury input the
+      // user typed while the org list was still loading.
+      const wasPristine = !form.isDirty();
       form.setFieldValue("organization", orgs.options[0].value);
-      // Treat the auto-filled org as the pristine baseline, so a single-org
-      // deployment doesn't trip the unsaved-changes guard on an untouched form.
-      form.resetDirty();
+      if (wasPristine) form.resetDirty();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orgs.options]);
@@ -353,6 +365,7 @@ function CreateCaseFields({ onCancel, onDirtyChange }: CreateCaseFieldsProps) {
       <UnstyledButton
         onClick={toggleAdvanced}
         aria-expanded={advancedOpen}
+        aria-controls="create-case-advanced"
         style={{ display: "flex", alignItems: "center", gap: 6 }}
       >
         <Text size="sm" fw={600}>
@@ -360,7 +373,7 @@ function CreateCaseFields({ onCancel, onDirtyChange }: CreateCaseFieldsProps) {
         </Text>
         <CaretDownIcon
           size={14}
-          aria-label={advancedOpen ? "Collapse" : "Expand"}
+          aria-hidden
           style={{
             transform: advancedOpen ? "rotate(180deg)" : "none",
             transition: "transform 150ms ease",
@@ -368,7 +381,7 @@ function CreateCaseFields({ onCancel, onDirtyChange }: CreateCaseFieldsProps) {
         />
       </UnstyledButton>
 
-      <Collapse expanded={advancedOpen}>
+      <Collapse id="create-case-advanced" expanded={advancedOpen}>
         <Stack gap="md">
           <div>
             <Text size="sm" fw={500} mb={4}>
