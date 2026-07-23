@@ -38,3 +38,6 @@ yarn-error.log*
 *.pem
 .pnpm-store/
 
+# Nested backend doc-reference repo (has its own .git) — not tracked here
+.backend/
+

@@ -73,6 +73,33 @@ $HIT"
   fi
 fi
 
+# 5 — extends Record<string, unknown> on a domain row type. Shells constrain T extends object,
+# which a plain interface already satisfies; the index signature only lets typo'd keys through.
+# Only React-Flow node data legitimately needs it — a rare case handled via the escape hatch.
+# Exemption: FormWrapper<T> (packages/admin) constrains T extends FormValues = Record<string,
+# unknown> — a genuinely stricter contract than a shell's `T extends object`, so a plain
+# interface does NOT structurally satisfy it (confirmed by tsc: "Index signature for type
+# 'string' is missing"). The established codebase convention for a FormWrapper values type is
+# `interface FooValues extends Record<string, unknown>` (e.g. mintway's CreateUserValues) — so
+# an interface whose name ends in "Values" is exempt from this check.
+HIT=$(printf '%s\n' "$CONTENT" | grep -nE 'extends[[:space:]]+Record<[[:space:]]*string[[:space:]]*,[[:space:]]*unknown[[:space:]]*>' | grep -vE 'interface[[:space:]]+[A-Za-z0-9_]*Values[[:space:]]+extends' | head -3)
+if [ -n "$HIT" ]; then
+  REASONS="$REASONS
+[B] extends Record<string, unknown> on a domain type — shells constrain T extends object (a plain interface satisfies it). Remove the index signature; only React-Flow node data is exempt (if that is this case, use the escape hatch below):
+$HIT"
+fi
+
+# 6 — Logic in an app/ page or layout file. Those are re-export-only; a React hook or an inline
+# handler means logic leaked out of the module/layout it belongs in. ("use client" is caught by #4.)
+if printf '%s' "$FILE" | grep -qE '/app/.*(page|layout)\.tsx$'; then
+  HIT=$(printf '%s\n' "$CONTENT" | grep -nE '(^|[^[:alnum:]_])(useState|useEffect|useRef|useMemo|useCallback|useQuery|useMutation)[[:space:]]*\(|onClick=' | head -3)
+  if [ -n "$HIT" ]; then
+    REASONS="$REASONS
+[B] Logic in an app/ page or layout file — these are re-export-only (export { default } from ... or import X; export default X). Move hooks and handlers into the module/layout it imports:
+$HIT"
+  fi
+fi
+
 if [ -n "$REASONS" ]; then
   {
     echo "Anti-pattern gate blocked this write (.claude/hooks/anti-pattern-gate.sh):"
