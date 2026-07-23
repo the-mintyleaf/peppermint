@@ -11,17 +11,18 @@ Backend contract: `.backend/backend/leads/docs/{API,DATA_CONTRACT,INTEGRATION,SE
 
 ## Phase 1 — Foundation
 
-- [ ] `modules/admin/lead-management/leadManagement.types.ts` — Lead, LeadBoardRow, LeadSource, LossReason, LeadNote, HistoryEntry, enums
-- [ ] `modules/admin/lead-management/leadManagement.queryKeys.ts` — createQueryKeys x3 + notes/history key helpers
-- [ ] `modules/admin/lead-management/leadManagement.api.ts` — createResourceApi + fetchAllLeads aggregator + sources/loss-reasons/notes/history reads
-- [ ] `components/RequireLeadAccess/` — new gate (admin + lead_manager, excludes superadmin)
-- [ ] `config/nav/admin-nav.ts` — `canAccessLeads` branch, "Leads" nav entry
-- [ ] `layouts/admin/Admin.tsx` — update `buildAdminConfig` call site
-- [ ] `layouts/app/App.tsx` — add `configureAppMutations()` call
-- [ ] `lib/authErrorMessages.ts` — append `LEADS_*` error codes
-- [ ] `app/admin/lead-management/page.tsx` — route re-export
-- [ ] Empty `LeadManagementBoard.tsx` behind the gate (loading/empty state only)
-- [ ] Phase 1 verify (`pnpm format && check-types && lint`) + commit + dual adversarial review
+- [x] `modules/admin/lead-management/leadManagement.types.ts` — Lead, LeadBoardRow, LeadSource, LossReason, LeadNote, HistoryEntry, enums
+- [x] `modules/admin/lead-management/leadManagement.queryKeys.ts` — createQueryKeys x3 + notes/history key helpers
+- [x] `modules/admin/lead-management/leadManagement.api.ts` — createResourceApi + fetchAllLeads aggregator + sources/loss-reasons/notes/history reads
+- [x] `components/RequireLeadAccess/` — new gate (admin + lead_manager, excludes superadmin)
+- [x] `config/nav/admin-nav.ts` — `canAccessLeads` branch, "Leads" nav entry
+- [x] `layouts/admin/Admin.tsx` — update `buildAdminConfig` call site
+- [x] `configureAppMutations()` call — added to `layouts/admin/Admin.tsx` instead of `layouts/app/App.tsx` (App.tsx is a Server Component; Admin.tsx is already `"use client"` and is where every `useAppMutation` call in this module actually runs)
+- [x] `lib/authErrorMessages.ts` — append `LEADS_*` error codes
+- [x] `app/admin/lead-management/page.tsx` — route re-export
+- [x] Empty `LeadManagementBoard.tsx` behind the gate (loading/empty state only)
+- [x] Phase 1 verify (`prettier` scoped to touched files, `turbo check-types --filter=grandway`, `turbo lint --filter=grandway`) + commit + dual adversarial review
+  - Dual review (Codex + adversarial-reviewer) found: `LeadStage`-typed stage payloads didn't exclude `lost`/`converted` at the type level (fixed — new `SelectableLeadStage`), wrong error message text for `LEADS_STAGE_INVALID_TRANSITION` (fixed), `converted_at_bs` missing from the INTEGRATION.md digest (fixed), `docs/AI.md` stale (fixed — Leads module + RequireLeadAccess gate added), and local `PagedResult<T>` duplicating `@peppermint/admin`'s `ResourceListResponse<T>` (fixed — now reused). No access-control or pagination-loop bugs found.
 
 ## Phase 2 — List + categorization
 

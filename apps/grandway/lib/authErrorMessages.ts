@@ -42,6 +42,26 @@ export const ERROR_MESSAGES: Record<string, string> = {
   // Audit
   AUDIT_EVENT_NOT_FOUND: "That audit event couldn't be found.",
 
+  // Leads
+  LEADS_ACTOR_FORBIDDEN: "Your authority level may not perform this action.",
+  LEADS_LEAD_NOT_FOUND: "Lead not found.",
+  LEADS_CONTACT_REQUIRED: "At least one contact number is required.",
+  LEADS_STAGE_INVALID_TRANSITION:
+    "This stage cannot be selected directly; use the mark-lost or convert action.",
+  LEADS_STAGE_NOT_EDITABLE:
+    "This lead is lost or converted; reopen it before making this change.",
+  LEADS_LOSS_REASON_REQUIRED: "A loss reason is required to close a lead.",
+  LEADS_LOSS_DETAIL_REQUIRED: "This loss reason requires an explanation.",
+  LEADS_SOURCE_NOT_FOUND: "Lead source not found.",
+  LEADS_SOURCE_INACTIVE: "That lead source is no longer available.",
+  LEADS_SOURCE_DETAIL_REQUIRED:
+    "This lead source requires a short description.",
+  LEADS_SOURCE_CODE_TAKEN: "That source code is already in use.",
+  LEADS_LOSS_REASON_NOT_FOUND: "Loss reason not found.",
+  LEADS_LOSS_REASON_INACTIVE: "That loss reason is no longer available.",
+  LEADS_LOSS_REASON_CODE_TAKEN: "That loss reason code is already in use.",
+  LEADS_LEAD_NOT_LOST: "Only a lost or converted lead can be reopened.",
+
   // Framework-level
   VALIDATION_ERROR: "Please check the highlighted fields and try again.",
   AUTHENTICATION_REQUIRED: "Please sign in to continue.",

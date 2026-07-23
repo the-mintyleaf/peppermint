@@ -4,13 +4,24 @@ import { UserListIcon } from "@phosphor-icons/react/dist/csr/UserList";
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
 import { DesktopIcon } from "@phosphor-icons/react/dist/csr/Desktop";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
+import { AddressBookIcon } from "@phosphor-icons/react/dist/csr/AddressBook";
+
+export interface BuildAdminConfigOptions {
+  isAdmin?: boolean;
+  /** `admin` or `lead_manager` — the two tiers the leads backend accepts. `superadmin` is always excluded (`lead-management/docs/backend/INTEGRATION.md` §1). */
+  canAccessLeads?: boolean;
+}
 
 /**
  * Admin navigation. Identity & Access (Users, My Sessions) and Audit are admin/superadmin
  * only — a `lead_manager` never reaches `/admin/authenticate/*` or `/admin/audit`
- * (`authenticate/docs/INTEGRATION.md` §1, `audit/docs/INTEGRATION.md` §1).
+ * (`authenticate/docs/INTEGRATION.md` §1, `audit/docs/INTEGRATION.md` §1). Leads is the
+ * mirror image: visible to `admin`/`lead_manager`, never to `superadmin`.
  */
-export function buildAdminConfig(isAdmin?: boolean): AdminShellConfig {
+export function buildAdminConfig(
+  options: BuildAdminConfigOptions = {},
+): AdminShellConfig {
+  const { isAdmin, canAccessLeads } = options;
   return {
     brand: {
       icon: IdentificationCardIcon,
@@ -24,6 +35,17 @@ export function buildAdminConfig(isAdmin?: boolean): AdminShellConfig {
         label: "Home",
         href: "/admin",
       },
+      ...(canAccessLeads
+        ? [
+            {
+              kind: "page" as const,
+              id: "lead-management",
+              icon: AddressBookIcon,
+              label: "Leads",
+              href: "/admin/lead-management",
+            },
+          ]
+        : []),
       ...(isAdmin
         ? [
             {

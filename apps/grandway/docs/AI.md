@@ -2,21 +2,23 @@
 
 ## App purpose
 
-Identity & access admin for the **grandway** `authenticate` backend, plus the central
-**`audit`** activity log. Handles sign-in (username/password + device binding + optional
-TOTP MFA), forced first-login password change, forced superadmin MFA enrollment,
-self-service account settings, tier-scoped staff/admin account administration, and the
-read-only cross-app audit log.
+Identity & access admin for the **grandway** `authenticate` backend, the central
+**`audit`** activity log, and **`leads`** (enquiry tracking for the consultancy — a
+categorized board in progress, see Modules below). Handles sign-in (username/password +
+device binding + optional TOTP MFA), forced first-login password change, forced
+superadmin MFA enrollment, self-service account settings, tier-scoped staff/admin account
+administration, the read-only cross-app audit log, and lead management for
+`admin`/`lead_manager` accounts.
 
 Stack: Next.js App Router, Mantine (via `@peppermint/ui`), React Query, `@peppermint/admin`
-shells + primitives. Backend contract: `docs/backend/{authenticate,audit}/` (copied
-matched-triple docs — `CONCEPT.md`, `FLOWS.md`, `INTEGRATION.md` — from `.backend/` at the
-time this app was built) + `docs/backend/CORE_INTEGRATION.md` (global conventions). This is
-the single source the frontend integrates against — do not read `.backend/` directly for
-new work; re-sync these copies if the backend docs change.
+shells + primitives. Backend contract: `docs/backend/{authenticate,audit,lead-management}/`
+(copied matched-triple docs — `CONCEPT.md`, `FLOWS.md`, `INTEGRATION.md` — from `.backend/`
+at the time each app was integrated) + `docs/backend/CORE_INTEGRATION.md` (global
+conventions). This is the single source the frontend integrates against — do not read
+`.backend/` directly for new work; re-sync these copies if the backend docs change.
 
-Base API: `/api/v1/auth/` (authenticate) and `/api/v1/audit/` (audit) at
-`NEXT_PUBLIC_API_URL`.
+Base API: `/api/v1/auth/` (authenticate), `/api/v1/audit/` (audit), and `/api/v1/leads/`
+(leads) at `NEXT_PUBLIC_API_URL`.
 
 ---
 
@@ -57,39 +59,42 @@ apps/grandway/
 │   ├── mfa-enroll/          # → ModuleMfaEnrollForced (forced superadmin MFA)
 │   └── admin/
 │       ├── page.tsx         # → ModuleHome
-│       └── authenticate/{users,sessions}/, audit/
+│       ├── authenticate/{users,sessions}/, audit/
+│       └── lead-management/ # → ModuleLeadManagement
 ├── layouts/{app,admin}/     # LayoutApp (html/theme), LayoutAdmin (shell + authority nav)
 ├── lib/                     # api.ts, authTokens.ts, deviceId.ts, authErrorMessages.ts
 ├── config/{theme,nav}/      # Mantine theme + admin nav (authority-gated)
-├── components/              # RequireAuth, RequireStaff, QueryErrorState
+├── components/              # RequireAuth, RequireStaff, RequireLeadAccess, QueryErrorState
 └── modules/
     ├── sign-in/             # branded layout (SignIn.tsx) + components/SignInPanel (credentials/MFA form)
     ├── password-change/     # forced first-login change (FormWrapper), Paper withBorder card
     ├── mfa-enroll/          # forced superadmin MFA enrollment, same Paper withBorder card
     └── admin/
         ├── home/            # minimal ContainedModule landing
-        └── authenticate/
-            ├── _shared/     # types, useCurrentUser, useLogout, password/*, mfa/*, OneTimeSecretModal
-            ├── account-settings/  # self-service modal: Profile / Security / Sessions
-            ├── my-sessions/ # standalone full-page own-sessions view (nav entry)
-            └── users/       # tier-scoped account administration
-        └── audit/           # central audit log (read-only, admin/superadmin only)
+        ├── authenticate/
+        │   ├── _shared/     # types, useCurrentUser, useLogout, password/*, mfa/*, OneTimeSecretModal
+        │   ├── account-settings/  # self-service modal: Profile / Security / Sessions
+        │   ├── my-sessions/ # standalone full-page own-sessions view (nav entry)
+        │   └── users/       # tier-scoped account administration
+        ├── audit/           # central audit log (read-only, admin/superadmin only)
+        └── lead-management/ # categorized leads board — admin (all) / lead_manager (own) — in progress
 ```
 
 ---
 
 ## Modules
 
-| Module           | Path                                          | Route(s)                       | Notes                                                                                                                         |
-| ---------------- | --------------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| Sign In          | `modules/sign-in`                             | `/`                            | `ContainedModule`, public. Bespoke — see Auth model above                                                                     |
-| Password Change  | `modules/password-change`                     | `/password-change`             | forced first-login only; voluntary change lives in account-settings                                                           |
-| MFA Enroll       | `modules/mfa-enroll`                          | `/mfa-enroll`                  | forced superadmin enrollment only; voluntary enroll lives in account-settings                                                 |
-| Home             | `modules/admin/home`                          | `/admin`                       | `ContainedModule`; minimal landing, quick links for admin/superadmin                                                          |
-| Account Settings | `modules/admin/authenticate/account-settings` | modal (avatar menu)            | Profile (read-only) · Security (password + MFA) · Sessions (list + per-session/others/all revoke)                             |
-| My Sessions      | `modules/admin/authenticate/my-sessions`      | `/admin/authenticate/sessions` | standalone page reusing account-settings' `SessionsTab`                                                                       |
-| Users            | `modules/admin/authenticate/users`            | `/admin/authenticate/users`    | `ModalTableShell`; tier-scoped server-side (superadmin→admin, admin→lead_manager); no list filters/search (contract has none) |
-| Audit            | `modules/admin/audit`                         | `/admin/audit`                 | `DataTableShell`, read-only, admin/superadmin only; column filters only (no free-text search — contract has none)             |
+| Module           | Path                                          | Route(s)                       | Notes                                                                                                                                                                                                                                                                                                       |
+| ---------------- | --------------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sign In          | `modules/sign-in`                             | `/`                            | `ContainedModule`, public. Bespoke — see Auth model above                                                                                                                                                                                                                                                   |
+| Password Change  | `modules/password-change`                     | `/password-change`             | forced first-login only; voluntary change lives in account-settings                                                                                                                                                                                                                                         |
+| MFA Enroll       | `modules/mfa-enroll`                          | `/mfa-enroll`                  | forced superadmin enrollment only; voluntary enroll lives in account-settings                                                                                                                                                                                                                               |
+| Home             | `modules/admin/home`                          | `/admin`                       | `ContainedModule`; minimal landing, quick links for admin/superadmin                                                                                                                                                                                                                                        |
+| Account Settings | `modules/admin/authenticate/account-settings` | modal (avatar menu)            | Profile (read-only) · Security (password + MFA) · Sessions (list + per-session/others/all revoke)                                                                                                                                                                                                           |
+| My Sessions      | `modules/admin/authenticate/my-sessions`      | `/admin/authenticate/sessions` | standalone page reusing account-settings' `SessionsTab`                                                                                                                                                                                                                                                     |
+| Users            | `modules/admin/authenticate/users`            | `/admin/authenticate/users`    | `ModalTableShell`; tier-scoped server-side (superadmin→admin, admin→lead_manager); no list filters/search (contract has none)                                                                                                                                                                               |
+| Audit            | `modules/admin/audit`                         | `/admin/audit`                 | `DataTableShell`, read-only, admin/superadmin only; column filters only (no free-text search — contract has none)                                                                                                                                                                                           |
+| Leads            | `modules/admin/lead-management`               | `/admin/lead-management`       | `ContainedModule`, `admin`/`lead_manager` only (never `superadmin` — backend 403s it). **In progress:** Phase 1 scaffold only (types/api/gate/nav/route); the categorized `ModalTableShell` board, create/edit form, and lifecycle-action modals land in later phases — see `.todo/lead-management-todo.md` |
 
 ---
 
@@ -99,6 +104,10 @@ apps/grandway/
 - `RequireStaff` (`components/RequireStaff`) — `admin`/`superadmin` baseline; gates
   Users and Audit. A `lead_manager` never reaches `/admin/authenticate/users` or
   `/admin/audit`.
+- `RequireLeadAccess` (`components/RequireLeadAccess`) — `admin`/`lead_manager`; gates
+  Leads. Deliberately the mirror image of `RequireStaff`: a `superadmin` never reaches
+  `/admin/lead-management` (the leads backend 403s that tier on every endpoint), while a
+  `lead_manager` — who cannot use `RequireStaff`-gated areas — can use this one.
 - Within Users, every row action (block/restore/reset-password/reset-mfa/sessions/events)
   is uniformly available — the list itself is already scoped server-side to the tier the
   caller manages, so there is no finer per-action authority split (unlike mintway's old

@@ -93,11 +93,11 @@
 
 **Lead — list shape** (`GET /leads/` rows): `{ id, full_name_np, full_name_en, full_name_romanized, email, address, source: ReferenceEntry, source_detail, stage: enum, created_by: UserBrief, contact_numbers: ContactNumber[], last_followed_up_at?, last_followed_up_at_bs?: BsDate, created_at, updated_at }`
 
-**Lead — detail shape** (retrieve, create, update, and **every lifecycle action** — only the list endpoint returns the shorter shape above): list shape **plus** `{ study_interest?: StudyInterest|null, last_followed_up_by?: UserBrief, lost_reason?: ReferenceEntry, lost_detail, lost_at?, lost_at_bs?: BsDate, lost_by?: UserBrief, stage_before_loss, converted_at?, converted_by?: UserBrief }`.
+**Lead — detail shape** (retrieve, create, update, and **every lifecycle action** — only the list endpoint returns the shorter shape above): list shape **plus** `{ study_interest?: StudyInterest|null, last_followed_up_by?: UserBrief, lost_reason?: ReferenceEntry, lost_detail, lost_at?, lost_at_bs?: BsDate, lost_by?: UserBrief, stage_before_loss, converted_at?, converted_at_bs?: BsDate, converted_by?: UserBrief }`.
 
 - `study_interest` is `null` when absent.
 - The five `lost_*`/`stage_before_loss` fields populate together on mark-lost, clear together on reopen; `stage_before_loss` is `""` unless currently lost.
-- `converted_at`/`converted_by` are **always `null`** in this version — never render a "Convert" affordance.
+- `converted_at`/`converted_at_bs`/`converted_by` are **always `null`** in this version — never render a "Convert" affordance.
 
 **LeadNote** — `{ id, body, author: UserBrief, created_at }`. Append-only — no update/delete endpoint (405 if attempted).
 
