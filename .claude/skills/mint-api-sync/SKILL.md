@@ -41,6 +41,14 @@ When the user hands over new backend docs, put them here — never in `.todo/`
 (task-scoped, gets deleted) and never inside a module folder. One folder per
 backend domain/app (`events`, `organization`, `authenticate`, …).
 
+**Per-app override.** If `apps/<app>/docs/backend/` already has entries for other
+domains (e.g. grandway's `authenticate/`, `audit/`, `lead-management/` — each a
+three-file `CONCEPT.md`/`FLOWS.md`/`INTEGRATION.md` set sourced straight from
+that project's own backend repo, not staged through `docs/backend/`), mirror
+_that app's_ established shape and intake source for the new domain instead of
+the generic path/output below. Consistency within an app that already has a
+working convention wins over the generic default.
+
 ## 2. Read order
 
 1. `INTEGRATION.md` — the frontend-facing summary; conventions and DTO shapes.
@@ -53,7 +61,12 @@ backend domain/app (`events`, `organization`, `authenticate`, …).
 
 ## 3. Produce the contract digest
 
-Write `apps/<app>/docs/api-contracts/<domain>.md`:
+Under the per-app override (§1), write the app's established three-file set
+instead (e.g. `apps/<app>/docs/backend/<domain>/{CONCEPT,FLOWS,INTEGRATION}.md`)
+— match an existing sibling domain folder in that app file-for-file rather than
+the shape below.
+
+Otherwise, write `apps/<app>/docs/api-contracts/<domain>.md`:
 
 ```markdown
 # API Contract — <Domain>

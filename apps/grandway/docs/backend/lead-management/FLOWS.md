@@ -54,6 +54,18 @@
    - `LEADS_LEAD_NOT_LOST` → already active; refresh and hide the button.
 2. History still shows the original `lead_marked_lost` entry alongside the new `lead_reopened` one — reopening never erases history, and reopening a converted lead never undoes the conversion (keep any applicant link visible).
 
+## Flow: Convert a lead into a client
+
+**Actor:** Admin only · **Goal:** turn a qualified enquiry into a client with an applicant record and an initial study objective.
+
+1. `GET /api/v1/leads/<lead_id>/` — confirm the lead is in an active stage. Any active stage qualifies; `ready_for_conversion` is a signal, not a gate.
+2. "Convert to Applicant" → `POST /api/v1/leads/<lead_id>/convert/` (`leads.lead.convert`), empty body — creates an `Applicant` (`creation_source: lead_conversion`) plus a seed `ApplicantJourney` (`creation_source: lead_conversion`, seeded from `study_interest`) **(cross-app: `applicants`, `applicant_journeys`)**, links both onto the lead, moves the lead to terminal stage `converted`.
+   - Returns `{ lead, applicant_id, journey_id }` — navigate straight to the new applicant using `applicant_id`, no extra fetch needed.
+   - `LEADS_ACTOR_FORBIDDEN` → the caller is a Lead Manager or Superadmin; hide the action entirely for non-Admins.
+   - `LEADS_LEAD_ALREADY_CONVERTED` → read `converted_applicant_id` off the lead and navigate there instead of retrying.
+   - `LEADS_CONVERSION_NOT_READY` → the lead is lost or already converted; reopen it first.
+3. `GET /api/v1/leads/<lead_id>/` — now `stage: converted`, with `converted_applicant_id`/`converted_journey_id` populated; render a link to the applicant instead of the stage badge.
+
 ## Flow: Configure the pickers
 
 **Actor:** Admin only · **Goal:** maintain the source/loss-reason lists the whole team picks from.
@@ -91,19 +103,19 @@ _(Out of scope for this module's v1 build — no admin source/reason management 
 | `leads.lead.record_followup` | `POST /api/v1/leads/<id>/follow-up/`     | Work a lead through follow-up                |
 | `leads.lead.mark_lost`       | `POST /api/v1/leads/<id>/lost/`          | Close an enquiry                             |
 | `leads.lead.reopen`          | `POST /api/v1/leads/<id>/reopen/`        | Revive a closed enquiry                      |
+| `leads.lead.convert`         | `POST /api/v1/leads/<id>/convert/`       | Convert a lead into a client                 |
 | `leads.note.list`            | `GET /api/v1/leads/<id>/notes/`          | Review a lead's full story                   |
 | `leads.note.create`          | `POST /api/v1/leads/<id>/notes/`         | Work a lead through follow-up                |
 | `leads.lead.list_history`    | `GET /api/v1/leads/<id>/history/`        | Review a lead's full story                   |
 
 ## Cross-app dependencies
 
-- **References (outbound):** `history` is served from `audit`'s event log; every mutating endpoint writes to it. All flows require a session from `authenticate`.
-- **Referenced by other apps (inbound):** none yet. When `applicants`/`applicant_journeys` ship, the lead→applicant conversion becomes a cross-app flow — not yet defined.
+- **References (outbound):** `history` is served from `audit`'s event log; every mutating endpoint writes to it. Convert calls `applicants.services.create_applicant` and `applicant_journeys.services.create_journey` (**cross-app**). All flows require a session from `authenticate`.
+- **Referenced by other apps (inbound):** `applicants` — reads the applicant right after conversion creates it. `applicant_journeys` — the seed journey conversion creates.
 
 ## Open questions
 
 - No `UI screens & wireframe notes` section exists in the source concept doc — screen names here are proposed, not sourced.
-- Conversion has no flow yet — no endpoint backs it; a lead can reach `ready_for_conversion` and stop.
-- Direct applicant creation (skip-the-lead-lifecycle) belongs to the future `applicants` app.
+- Direct applicant creation (skip-the-lead-lifecycle) belongs to the `applicants` app, not here.
 - No funnel/dashboard endpoint is defined — `stage`/`source`/`search`/`fiscal_year` filters exist and are enough to build a client-aggregated one (this module's chosen approach — see the module plan), but there's no server-side multi-category aggregate.
 - Whether an Admin should get a `created_by`/owner filter on the lead list is undecided — no such param exists today.

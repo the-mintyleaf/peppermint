@@ -10,10 +10,11 @@
 
 ## Change History
 
-| Version | Date | Author | Summary |
-|---------|------|--------|---------|
-| 1.0.0 | 2026-07-21 | AI (Claude Opus 4.8) | Initial project-level integration entry point |
-| 1.1.0 | 2026-07-22 | AI (Claude Opus 4.8) | `authenticate` app shipped: real token-issuance (login/refresh) now exists — removed the stale "not callable" warning; added `authenticate` to the inventory and dependency graph |
+| Version | Date       | Author               | Summary                                                                                                                                                                                                                                                                   |
+| ------- | ---------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-07-21 | AI (Claude Opus 4.8) | Initial project-level integration entry point                                                                                                                                                                                                                             |
+| 1.1.0   | 2026-07-22 | AI (Claude Opus 4.8) | `authenticate` app shipped: real token-issuance (login/refresh) now exists — removed the stale "not callable" warning; added `authenticate` to the inventory and dependency graph                                                                                         |
+| 1.2.0   | 2026-07-23 | AI (Claude)          | Re-synced from `.backend/backend/core/docs/INTEGRATION.md` — grandway's copy was stale (missing `leads` entirely, despite `lead-management/` already being an integrated module). Added `leads`, `applicants`, `applicant_journeys` to the inventory and dependency graph |
 
 ---
 
@@ -24,6 +25,7 @@
 > Full contract: `authenticate/docs/INTEGRATION.md`.
 >
 > Two things still require out-of-band setup, and neither is resolvable from the client side:
+>
 > 1. **Base URL** — no host is published in this doc; obtain it from whoever runs the backend.
 > 2. **The first account** — there is no self-service signup. A backend operator creates the initial
 >    superadmin with `python manage.py bootstrap_superadmin` (shell access required); every other
@@ -57,7 +59,10 @@ Every app follows these unless its own `INTEGRATION.md` §3 explicitly states a 
 {
   "success": true,
   "message": "Policy applications retrieved.",
-  "data": { "id": "550e8400-e29b-41d4-a716-446655440000", "key": "policy_engine" },
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "key": "policy_engine"
+  },
   "meta": {}
 }
 ```
@@ -116,11 +121,23 @@ An unpaginated list endpoint returns the same bare array in `data` with `meta: {
 **Worked failure responses.** A 403 from a non-staff caller, and a 404 for an unknown key:
 
 ```json
-{ "success": false, "error": { "code": "PERMISSION_DENIED", "message": "Staff access required.", "details": {} }, "meta": {} }
+{
+  "success": false,
+  "error": {
+    "code": "PERMISSION_DENIED",
+    "message": "Staff access required.",
+    "details": {}
+  },
+  "meta": {}
+}
 ```
 
 ```json
-{ "success": false, "error": { "code": "NOT_FOUND", "message": "Not found.", "details": {} }, "meta": {} }
+{
+  "success": false,
+  "error": { "code": "NOT_FOUND", "message": "Not found.", "details": {} },
+  "meta": {}
+}
 ```
 
 **IDs.** Public identifiers are UUID strings. Auto-increment integer keys are never exposed. Some resources are addressed by a stable slug or key instead of a UUID; the owning app's §7 says which.
@@ -150,7 +167,7 @@ change revoke access immediately regardless of token lifetime.
 **Authorization today.** `authenticate`'s own protected endpoints (`logout`, `me`, `password/change`)
 are authenticated self-service (any signed-in user, acting on their own account). `core.policy_engine`
 still uses the interim check: authenticated **and** `is_staff`. There is no role- or permission-key-based
-enforcement in the request path yet — the Core Policy Engine *describes* the permission surface but does
+enforcement in the request path yet — the Core Policy Engine _describes_ the permission surface but does
 not yet gate requests with it (`CLAUDE.md` §9).
 
 Every endpoint denies by default. Any public endpoint is explicitly marked as such in its app's `INTEGRATION.md`.
@@ -163,19 +180,22 @@ Project defaults: 100 requests/hour for anonymous callers, 1000/hour for authent
 
 ## 6. App inventory
 
-| App | Base path | Purpose | Contract |
-|-----|-----------|---------|----------|
-| `authenticate` | `/api/v1/auth/` | Platform identity: username/password login (+ TOTP MFA), session-bound JWT, revocable device sessions (max 3), forced first-login password change, and admin account + session management (one-tier hierarchy: superadmin manages admins, admin manages lead managers) | `authenticate/docs/INTEGRATION.md` |
-| `audit` | `/api/v1/audit/` | Central, immutable, cross-app activity/change history. Read-only over HTTP (Admin/Superadmin); populated by other apps via an internal service call | `audit/docs/INTEGRATION.md` |
-| `core.policy_engine` | `/api/v1/policy/` | Read-only registry of every endpoint in this backend: permission keys, risk levels, dependency edges, version history, change log | `core/policy_engine/docs/INTEGRATION.md` |
+| App                  | Base path             | Purpose                                                                                                                                                                                                                                                                                                                                          | Contract                                 |
+| -------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------- |
+| `authenticate`       | `/api/v1/auth/`       | Platform identity: username/password login (+ TOTP MFA), session-bound JWT, revocable device sessions (max 3), forced first-login password change, and admin account + session management (one-tier hierarchy: superadmin manages admins, admin manages lead managers)                                                                           | `authenticate/docs/INTEGRATION.md`       |
+| `audit`              | `/api/v1/audit/`      | Central, immutable, cross-app activity/change history. Read-only over HTTP (Admin/Superadmin); populated by other apps via an internal service call                                                                                                                                                                                              | `audit/docs/INTEGRATION.md`              |
+| `core.policy_engine` | `/api/v1/policy/`     | Read-only registry of every endpoint in this backend: permission keys, risk levels, dependency edges, version history, change log                                                                                                                                                                                                                | `core/policy_engine/docs/INTEGRATION.md` |
+| `leads`              | `/api/v1/leads/`      | Enquiry tracking before applicant conversion: lead identity and contact details, configurable source attribution, preliminary study interest, eight-stage lifecycle, manual follow-up, notes, loss/reopen handling, and Admin-only conversion into an applicant plus initial journey. Owner-scoped — a Lead Manager sees only leads they created | `lead-management/INTEGRATION.md`         |
+| `applicants`         | `/api/v1/applicants/` | The permanent identity record of a person the consultancy works with: name, date of birth, contact numbers, addresses, passport, family, emergency contacts, and standing. Created by Admins only, by direct creation or lead conversion. **Shared** — every Admin and Lead Manager sees every applicant                                         | `applicants/INTEGRATION.md`              |
+| `applicant_journeys` | `/api/v1/journeys/`   | One overseas-study objective pursued by one applicant: destination, level, field, intake, budget, nine-stage lifecycle, deferment, closure, and outcome. One applicant may hold many. Shared, like applicants                                                                                                                                    | `applicant-journeys/INTEGRATION.md`      |
 
 **Routes outside `/api/v1/`.** `core` exposes three, and they are deliberately outside the registry-completeness guarantee in §9 (which covers `/api/v1/` only). They have no permission key and are not client API surface:
 
-| Route | Auth | For consumers |
-|-------|------|---------------|
-| `GET /health/` | none | Liveness probe. Returns 200 while the process is up. Safe to poll; excluded from rate limiting. |
-| `GET /ready/` | none | Readiness probe, includes DB connectivity. Returns 200 only when able to serve. Safe to poll; excluded from rate limiting. |
-| `/admin/` | session login | Django's built-in admin UI for internal staff. **Not an API** — no JSON contract, no stable surface. Never integrate against it. |
+| Route          | Auth          | For consumers                                                                                                                    |
+| -------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /health/` | none          | Liveness probe. Returns 200 while the process is up. Safe to poll; excluded from rate limiting.                                  |
+| `GET /ready/`  | none          | Readiness probe, includes DB connectivity. Returns 200 only when able to serve. Safe to poll; excluded from rate limiting.       |
+| `/admin/`      | session login | Django's built-in admin UI for internal staff. **Not an API** — no JSON contract, no stable surface. Never integrate against it. |
 
 ## 7. Cross-app dependency graph
 
@@ -184,24 +204,31 @@ Assembled from each app's `INTEGRATION.md` §2 `Requires`. Use it to determine i
 - `authenticate` → `core` (framework), `django-axes` (framework), `rest_framework_simplejwt` (framework), `argon2-cffi` (framework), `django-otp` (framework — TOTP MFA), `audit` (service call — emits auth events to the central audit log, best-effort)
 - `audit` → `core` (framework), `authenticate` (framework — supplies the request user for the `is_staff` read gate)
 - `core.policy_engine` → `core` (framework), `authenticate.User` (FK — the platform user model, since `AUTH_USER_MODEL = authenticate.User`), `rest_framework_simplejwt` (framework)
+- `leads` → `core` (framework), `authenticate` (framework — access token + `authority_type`; FK — ownership and every attribution field), `audit` (service call — history), `applicants` (service call + FK — conversion creates the applicant and links to it one-to-one), `applicant_journeys` (service call + FK — conversion creates the initial journey and links to it)
+- `applicants` → `core` (framework), `authenticate` (framework; FK — `created_by`), `audit` (service call — history)
+- `applicant_journeys` → `core` (framework), `applicants` (FK — every journey belongs to exactly one applicant), `authenticate` (framework; FK — `created_by`/`closed_by`/`deferred_by`), `audit` (service call — history)
 
-No app-to-app runtime coupling exists yet. When it does, each edge appears in **both** apps' §2 sections — the depended-on app records what would break, the depending app records why it needs it.
+Each edge appears in **both** apps' §2 sections — the depended-on app records what would break, the depending app records why it needs it.
+
+**Direction matters at the lead↔applicant boundary.** `leads` owns _both_ links into the applicant cycle (the FK and the service call), so `applicants`/`applicant_journeys` reference `leads` for nothing and work with no lead in the system at all — an Admin may create an applicant directly. The reverse lookup is available through the `OneToOneField`'s reverse accessor (`applicant.originating_lead`), which also makes two leads converting to one applicant impossible at the database level.
+
+**Not yet built.** `education` and `test_scores` have approved concept files but no code — visible at conversion, where a lead's `highest_qualification`/`language_test_status` land in the journey's free-text notes rather than structured records.
 
 ## 8. Machine-readable artifacts
 
 Generated from the endpoint registry, committed, and CI-checked for drift — they cannot silently fall out of sync with the code.
 
-| Artifact | Path | Authoritative for |
-|----------|------|-------------------|
+| Artifact        | Path                                           | Authoritative for                                                                                                                    |
+| --------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | Registry export | `core/policy_engine/docs/registry_export.json` | Every registered endpoint: permission key, app/model, route, method, operation type, risk level, version, category, dependency edges |
-| OpenAPI 3.1 | `core/policy_engine/docs/openapi.json` | Paths, methods, `operationId` (= permission key), `x-permission-key`, `x-risk-level`, bearer security, envelope components |
-| Registry schema | `core/policy_engine/docs/registry_schema.json` | The JSON Schema for one registry entry |
+| OpenAPI 3.1     | `core/policy_engine/docs/openapi.json`         | Paths, methods, `operationId` (= permission key), `x-permission-key`, `x-risk-level`, bearer security, envelope components           |
+| Registry schema | `core/policy_engine/docs/registry_schema.json` | The JSON Schema for one registry entry                                                                                               |
 
-**Limitation — read this before generating a client.** The OpenAPI document is authoritative for *paths, methods, permission keys, and risk*, but its request/response **body** schemas are generic: every operation returns the envelope with an opaque `data`. Field-level shapes live in each app's `INTEGRATION.md` §4 `Models`. A generated client will therefore have correct routes and auth but untyped payloads; type the payloads from §4.
+**Limitation — read this before generating a client.** The OpenAPI document is authoritative for _paths, methods, permission keys, and risk_, but its request/response **body** schemas are generic: every operation returns the envelope with an opaque `data`. Field-level shapes live in each app's `INTEGRATION.md` §4 `Models`. A generated client will therefore have correct routes and auth but untyped payloads; type the payloads from §4.
 
 ## 9. Guarantees and non-guarantees
 
-**Guaranteed.** Every routed `/api/v1/` endpoint is registered in the policy registry and appears in the artifacts above — CI rejects an endpoint that is not (`validate_policy_engine` rule 14). Every registered endpoint is documented in its app's `INTEGRATION.md` — CI rejects one that is not (`validate_integration_docs`). So the endpoint *inventory* is provably complete.
+**Guaranteed.** Every routed `/api/v1/` endpoint is registered in the policy registry and appears in the artifacts above — CI rejects an endpoint that is not (`validate_policy_engine` rule 14). Every registered endpoint is documented in its app's `INTEGRATION.md` — CI rejects one that is not (`validate_integration_docs`). So the endpoint _inventory_ is provably complete.
 
 **Not guaranteed.** Prose field descriptions inside a documented endpoint are not mechanically verified against the serializer. If a payload field seems wrong, the code is authoritative and the doc is a bug — report it.
 

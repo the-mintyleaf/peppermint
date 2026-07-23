@@ -39,7 +39,7 @@ preliminary and may be incomplete — not a finalized applicant journey.
 
 Selected manually from a dropdown. Eight V1 stages: New → Contact Attempted →
 Contacted → Counselling → Follow-up → Ready for Conversion, plus two terminal
-outcomes: Converted (Admin-only conversion, not yet built) and Lost (a
+outcomes: Converted (Admin-only conversion) and Lost (a
 mandatory-reason close). No separate disqualified/duplicate/archived stage —
 `Lost` is the single non-conversion terminal state.
 
@@ -67,11 +67,15 @@ converted) lead may be reopened — records who/when, moves to an active stage
 Reopening a converted lead never undoes the conversion or creates a second
 applicant.
 
-## Lead conversion (not yet built)
+## Lead conversion
 
-Only an Admin will be able to convert a lead into an applicant — a deliberate
-action, not a dropdown change. No endpoint exists yet; `converted` is an
-unreachable stage in the current version. Do not build a Convert affordance.
+Only an Admin may convert a lead into an applicant — a deliberate action, not
+a dropdown change. Any lead in an active stage qualifies (`ready_for_conversion`
+is a signal, not a gate); a lost or already-converted lead must be reopened
+first. Conversion creates an `Applicant` plus a seed `ApplicantJourney` in one
+step, links both back onto the lead permanently, and moves the lead to its
+terminal `converted` stage. Reopening a converted lead never undoes the
+conversion or creates a second applicant/journey.
 
 ## Permissions
 
@@ -81,7 +85,7 @@ a lost lead. May **not**: see another Lead Manager's leads, transfer/reassign,
 convert, delete history, delete a lead, manage global source/reason config.
 
 **Admin** may: everything above across all leads, plus configure sources and
-loss reasons, and (once built) convert leads.
+loss reasons, and convert leads into applicants.
 
 ## No archive or deletion workflow
 
