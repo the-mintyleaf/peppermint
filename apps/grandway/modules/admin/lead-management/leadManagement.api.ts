@@ -2,6 +2,7 @@ import { createResourceApi } from "@peppermint/admin";
 import type { ResourceListResponse } from "@peppermint/admin";
 import api from "@/lib/api";
 import type {
+  ConvertLeadResponse,
   FollowUpPayload,
   Lead,
   LeadCreatePayload,
@@ -53,6 +54,16 @@ export function markLeadLost(id: string, body: MarkLostPayload) {
 /** `POST /api/v1/leads/<id>/reopen/`. */
 export function reopenLead(id: string, body: ReopenPayload = {}) {
   return leadResource.action<LeadDetail>(id, "reopen", body);
+}
+
+/**
+ * `POST /api/v1/leads/<id>/convert/` — Admin only, empty body. Response shape
+ * differs from the other lifecycle actions (`{ lead, applicant_id,
+ * journey_id }`, not a bare `LeadDetail`) so it can't reuse the `<LeadDetail>`
+ * generic the others do.
+ */
+export function convertLead(id: string) {
+  return leadResource.action<ConvertLeadResponse>(id, "convert", {});
 }
 
 // ── Aggregated fetch for the categorized board ──────────────────────────────

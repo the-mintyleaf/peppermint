@@ -1,10 +1,16 @@
 "use client";
 
 import { useMemo } from "react";
-import { keepPreviousData, useQuery } from "@peppermint/ui";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@peppermint/ui";
 import { useAppMutation } from "@peppermint/admin";
 import {
   changeLeadStage,
+  convertLead,
   createLeadNote,
   fetchAllLeads,
   fetchLeadHistory,
@@ -25,6 +31,7 @@ import {
   lossReasonQueryKeys,
 } from "./leadManagement.queryKeys";
 import type {
+  ConvertLeadResponse,
   FollowUpPayload,
   LeadBoardRow,
   LeadCategory,
@@ -214,6 +221,28 @@ export function useReopenLead(leadId: string) {
     successMessage: "Lead reopened.",
     errorTitle: "Couldn't reopen lead",
     invalidateKeys: invalidateKeysFor(leadId),
+  });
+}
+
+/**
+ * Admin only (`LEADS_ACTOR_FORBIDDEN` for anyone else). Deliberately a plain
+ * `useMutation`, not `useAppMutation` — `LEADS_LEAD_ALREADY_CONVERTED` is a
+ * "someone else already did this" race, not a real failure, and the caller
+ * (`ConvertLeadModal`) navigates to the applicant that already exists rather
+ * than showing an error. `useAppMutation`'s notification is unconditional on
+ * every error, which would show a red "Couldn't convert lead" toast on top
+ * of that graceful redirect — this hook leaves all notification/redirect
+ * decisions to the caller instead.
+ */
+export function useConvertLead(leadId: string) {
+  const queryClient = useQueryClient();
+  return useMutation<ConvertLeadResponse, unknown, void>({
+    mutationFn: () => convertLead(leadId),
+    onSuccess: () => {
+      invalidateKeysFor(leadId).forEach((queryKey) => {
+        void queryClient.invalidateQueries({ queryKey });
+      });
+    },
   });
 }
 

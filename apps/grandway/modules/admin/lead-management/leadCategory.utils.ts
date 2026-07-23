@@ -97,6 +97,8 @@ export function toLeadBoardRow(
     converted_at: null,
     converted_at_bs: null,
     converted_by: null,
+    converted_applicant_id: null,
+    converted_journey_id: null,
     category: categorizeLead(lead, now),
   };
 }

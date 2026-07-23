@@ -143,6 +143,17 @@ export interface LeadDetail extends Lead {
   converted_at: string | null;
   converted_at_bs: BsDate | null;
   converted_by: UserBrief | null;
+  /** Populated together with `converted_at`/`converted_by`; never cleared, not even by reopen. */
+  converted_applicant_id: string | null;
+  /** Populated together with `converted_at`/`converted_by`; never cleared, not even by reopen. */
+  converted_journey_id: string | null;
+}
+
+/** `POST /leads/<id>/convert/` response — empty request body. */
+export interface ConvertLeadResponse {
+  lead: LeadDetail;
+  applicant_id: string;
+  journey_id: string;
 }
 
 export interface LeadNote {

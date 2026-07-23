@@ -17,9 +17,11 @@ const STAGE_OPTIONS = SELECTABLE_STAGES.map((stage) => ({
 }));
 
 /**
- * The only way back from `lost`. Defaults to `follow_up` when no stage is
- * picked, matching the backend's own default
- * (`docs/backend/lead-management/INTEGRATION.md` §7).
+ * The only way back from `lost` or `converted`. Defaults to `follow_up` when
+ * no stage is picked, matching the backend's own default
+ * (`docs/backend/lead-management/INTEGRATION.md` §7). Reopening a converted
+ * lead never undoes the conversion — the applicant/journey it created stay
+ * linked and visible on the Overview tab regardless of this lead's stage.
  */
 export function ReopenLeadModal({
   lead,
@@ -28,6 +30,7 @@ export function ReopenLeadModal({
 }: ReopenLeadModalProps) {
   const [stage, setStage] = useState<SelectableLeadStage | null>(null);
   const mutation = useReopenLead(lead.id);
+  const wasConverted = lead.stage === "converted";
 
   const handleClose = () => {
     setStage(null);
@@ -48,7 +51,9 @@ export function ReopenLeadModal({
           icon={<InfoIcon size={16} aria-hidden />}
           title="Brings this lead back to active follow-up"
         >
-          Its loss reason and history are kept, not erased.
+          {wasConverted
+            ? "This does not undo the conversion — the applicant and journey it created stay linked."
+            : "Its loss reason and history are kept, not erased."}
         </Alert>
 
         <Select

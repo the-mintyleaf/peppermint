@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { Badge, Divider, Group, Stack, Text, dayjs } from "@peppermint/ui";
+import { ArrowSquareOutIcon } from "@phosphor-icons/react/dist/csr/ArrowSquareOut";
 import { STAGE_COLORS, STAGE_LABELS } from "../../../../leadCategory.utils";
 import type { LeadDetail } from "../../../../leadManagement.types";
 
@@ -17,7 +19,6 @@ function Field({ label, value }: { label: string; value: string | null }) {
   );
 }
 
-/** `converted_at`/`converted_by` are always null in this version — deliberately never rendered. */
 export function LeadOverviewPanel({ lead }: { lead: LeadDetail }) {
   return (
     <Stack gap="sm">
@@ -119,6 +120,48 @@ export function LeadOverviewPanel({ lead }: { lead: LeadDetail }) {
           {lead.study_interest.interest_notes ? (
             <Field label="Notes" value={lead.study_interest.interest_notes} />
           ) : null}
+        </>
+      ) : null}
+
+      {lead.converted_applicant_id ? (
+        <>
+          {/* Keyed off the id, not `stage === "converted"` — reopening a
+              converted lead moves its stage to an active one but never
+              clears the conversion link, so the applicant/journey reference
+              must stay visible even after reopen. */}
+          <Divider label="Converted" labelPosition="left" />
+          <Field
+            label="Converted at"
+            value={
+              lead.converted_at
+                ? dayjs(lead.converted_at).format("MMM D, YYYY h:mm A")
+                : null
+            }
+          />
+          <Field
+            label="Converted by"
+            value={
+              lead.converted_by?.display_name ||
+              lead.converted_by?.username ||
+              null
+            }
+          />
+          <Group justify="space-between" gap="xs">
+            <Text size="xs" c="dimmed">
+              Applicant
+            </Text>
+            <Text
+              size="xs"
+              c="blue"
+              component={Link}
+              href={`/admin/applicants/${lead.converted_applicant_id}`}
+            >
+              <Group gap={4} wrap="nowrap">
+                View applicant
+                <ArrowSquareOutIcon size={12} aria-hidden />
+              </Group>
+            </Text>
+          </Group>
         </>
       ) : null}
 
