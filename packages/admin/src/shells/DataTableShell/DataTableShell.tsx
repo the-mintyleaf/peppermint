@@ -91,6 +91,11 @@ function DataTableShellInner<T extends object>({
   const useTable = useTableStore();
   const selection = useTable((s) => s.selection);
 
+  const activeTabFilterKeys = useMemo(
+    () => Object.keys(tabs[activeTab]?.filter ?? {}),
+    [tabs, activeTab],
+  );
+
   // Derive selectedRecords from rows + store selection — no duplicate state
   const selectedRecords = useMemo<T[]>(
     () =>
@@ -183,7 +188,10 @@ function DataTableShellInner<T extends object>({
               height: "calc(100vh - 210px)",
             }}
           >
-            <DataTableShellActiveFilters columns={columns} />
+            <DataTableShellActiveFilters
+              columns={columns}
+              hiddenKeys={activeTabFilterKeys}
+            />
             <Box
               style={{
                 flex: 1,

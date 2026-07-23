@@ -13,10 +13,19 @@ import {
 
 interface DataTableShellActiveFiltersProps<T extends object> {
   columns: DataTableShellColumn<T>[];
+  /**
+   * Filter keys owned by the currently active tab (`tabs[activeTab].filter`)
+   * — excluded from the removable-chip list. A tab's filter is a view mode,
+   * not an ad-hoc user filter: the active tab stays visually selected
+   * regardless, so a chip that "removes" it without switching tabs would
+   * desync the highlighted tab from what's actually being shown.
+   */
+  hiddenKeys?: string[];
 }
 
 export function DataTableShellActiveFilters<T extends object>({
   columns,
+  hiddenKeys,
 }: DataTableShellActiveFiltersProps<T>) {
   const useTable = useTableStore();
   const filters = useTable((s) => s.filters);
@@ -33,7 +42,10 @@ export function DataTableShellActiveFilters<T extends object>({
     return map;
   }, [columns]);
 
-  const entries = Object.entries(filters);
+  const hiddenKeySet = useMemo(() => new Set(hiddenKeys ?? []), [hiddenKeys]);
+  const entries = Object.entries(filters).filter(
+    ([key]) => !hiddenKeySet.has(key),
+  );
   const hasSearch = search.trim().length > 0;
   const hasFilters = entries.length > 0 || hasSearch;
 
