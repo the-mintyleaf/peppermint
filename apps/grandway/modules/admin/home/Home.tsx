@@ -3,9 +3,11 @@
 import Link from "next/link";
 import {
   Button,
+  Divider,
   Group,
   ModalPaper,
   ModuleHeader,
+  SimpleGrid,
   Stack,
   Text,
   Title,
@@ -14,9 +16,17 @@ import { UserListIcon } from "@phosphor-icons/react/dist/csr/UserList";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
 import { RequireAuth } from "@/components/RequireAuth";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
+import { ApplicantStatusPanel } from "./components/ApplicantStatusPanel";
+import { JourneyStagePanel } from "./components/JourneyStagePanel";
+import { RecentApplicantsPanel } from "./components/RecentApplicantsPanel";
 
 function HomeContent() {
-  const { user, isAdmin } = useCurrentUser();
+  const { user, isAdmin, isLeadManager, authorityType } = useCurrentUser();
+  // Same admin/lead_manager, never-superadmin rule as the modules themselves
+  // (`RequireLeadAccess`) — a Superadmin can't open either module, so
+  // widgets summarizing their data don't belong on their Home either. Not
+  // `isAdmin` alone — that flag is true for `superadmin` too.
+  const canSeeApplicantWidgets = authorityType === "admin" || isLeadManager;
 
   return (
     <>
@@ -49,6 +59,17 @@ function HomeContent() {
                 View audit log
               </Button>
             </Group>
+          ) : null}
+
+          {canSeeApplicantWidgets ? (
+            <>
+              <Divider />
+              <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
+                <ApplicantStatusPanel />
+                <JourneyStagePanel />
+              </SimpleGrid>
+              <RecentApplicantsPanel />
+            </>
           ) : null}
         </Stack>
       </ModalPaper>

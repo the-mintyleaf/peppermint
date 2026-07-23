@@ -22,13 +22,21 @@ import type { JourneyFormValues } from "../../form";
 import { getJourneysColumns } from "./journeys.columns";
 
 /**
- * `applicant` deep-links (`?applicant=<id>`) so a future Applicant Detail →
- * Journeys panel can send someone here pre-filtered to one person
- * (`docs/backend/applicant-journeys/FLOWS.md`), without being a column the
- * user picks from this table — same `forceFilters`-from-`useSearchParams`
- * convention `audit/events/pages/list/AuditLogList.tsx` uses for `actor_id`.
+ * `applicant` deep-links (`?applicant=<id>`) so `ApplicantJourneysPanel`'s
+ * "View in worklist" link can send someone here pre-filtered to one person,
+ * without being a column the user picks from this table — same
+ * `forceFilters`-from-`useSearchParams` convention
+ * `audit/events/pages/list/AuditLogList.tsx` uses for `actor_id`.
+ *
+ * Deliberately not doing the same for `stage`: unlike `applicant`, `stage`
+ * already has a user-editable column filter (`journeys.columns.tsx`), and
+ * `forceFilters` always wins over it in `DataTableWrapper`'s merge — a
+ * `?stage=` deep link would permanently lock that column's filter control
+ * rather than just seeding it, since there's no "seed once, then let the
+ * user override" mechanism in the shell. Home's stage tiles link to the
+ * plain worklist instead.
  */
-function useApplicantDeepLinkFilter() {
+function useDeepLinkFilters() {
   const searchParams = useSearchParams();
   const applicant = searchParams.get("applicant") ?? undefined;
   return useMemo(() => (applicant ? { applicant } : undefined), [applicant]);
@@ -55,7 +63,7 @@ function toUpdatePayload(values: JourneyFormValues): JourneyUpdatePayload {
  */
 function JourneyWorklistContent() {
   const router = useRouter();
-  const forceFilters = useApplicantDeepLinkFilter();
+  const forceFilters = useDeepLinkFilters();
 
   const columns = getJourneysColumns({
     onViewDetails: (journey) =>
