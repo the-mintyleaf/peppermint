@@ -35,7 +35,12 @@ export function ReopenLeadModal({
   };
 
   return (
-    <Modal opened={opened} onClose={handleClose} title="Reopen lead" centered>
+    <Modal
+      opened={opened}
+      onClose={handleClose}
+      title={`Reopen — ${lead.full_name_en || lead.full_name_np}`}
+      centered
+    >
       <Stack gap="md" p="md">
         <Alert
           variant="light"

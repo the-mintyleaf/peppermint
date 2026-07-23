@@ -34,7 +34,12 @@ export function ChangeStageModal({
   };
 
   return (
-    <Modal opened={opened} onClose={handleClose} title="Change stage" centered>
+    <Modal
+      opened={opened}
+      onClose={handleClose}
+      title={`Change stage — ${lead.full_name_en || lead.full_name_np}`}
+      centered
+    >
       <Stack gap="md" p="md">
         <Select
           label="New stage"

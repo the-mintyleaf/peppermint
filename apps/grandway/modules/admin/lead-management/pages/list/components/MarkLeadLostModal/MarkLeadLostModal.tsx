@@ -48,7 +48,7 @@ export function MarkLeadLostModal({
     <Modal
       opened={opened}
       onClose={handleClose}
-      title="Mark lead as lost"
+      title={`Mark as lost — ${lead.full_name_en || lead.full_name_np}`}
       centered
     >
       <Stack gap="md" p="md">
