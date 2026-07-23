@@ -26,13 +26,23 @@ Backend contract: `.backend/backend/leads/docs/{API,DATA_CONTRACT,INTEGRATION,SE
 
 ## Phase 2 — List + categorization
 
-- [ ] `leadCategory.utils.ts` — categorizeLead(), stage labels/colors, freshness thresholds
-- [ ] `pages/list/leadManagement.columns.tsx`
-- [ ] Tabs wired with live counts (Active / Needs attention today / Upcoming & follow-ups / Dead-closed)
-- [ ] In-shell source/stage column filters
-- [ ] Fiscal-year scope selector (real `fiscal_year=` server param)
-- [ ] Read-only board fully working end to end
-- [ ] Phase 2 verify + commit + dual adversarial review
+- [x] `leadCategory.utils.ts` — categorizeLead(), stage labels/colors, freshness thresholds
+- [x] `pages/list/leadManagement.columns.tsx`
+- [x] Tabs wired with live counts (Active / Needs attention today / Upcoming & follow-ups / Dead-closed)
+- [x] In-shell source/stage column filters
+- [x] Fiscal-year scope selector (real `fiscal_year=` server param)
+- [x] Read-only board fully working end to end
+- [x] Phase 2 verify + commit + dual adversarial review
+  - 3 review rounds (Codex + adversarial-reviewer in parallel, then 2 Codex-only follow-ups
+    chasing the same bug). Real bugs found and fixed: (1) `ModalTableShell`'s `tabs[].filter`
+    writes into the same store the active-filters bar renders as a removable chip — clicking
+    it away desynced the tab highlight from the actual filtered data, and `forceFilter` isn't
+    a safe alternative either (applied after client pagination, breaks totals). Fixed upstream
+    in `@peppermint/admin` (`DataTableShellActiveFilters` `hiddenKeys` prop, separate commit) —
+    confirmed the same latent bug already existed in every other tabs+filter consumer in the
+    repo. (2) Fiscal-year query-key sentinel (`fiscalYear ?? "all"`) collided with a user
+    literally typing "all" — fixed by making key length, not string content, the no-fiscal-year
+    signal.
 
 ## Phase 3 — Create/edit
 
