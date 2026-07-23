@@ -5,7 +5,13 @@ import type { DataTableShellColumn } from "../shells/DataTableShell";
 import { StatusBadge } from "./StatusBadge";
 import { accessorToTitle, getFieldValue } from "./columnValue";
 
-type Row = Record<string, unknown>;
+/**
+ * Matches `DataTableShellColumn<T extends object>`'s own constraint. Deliberately
+ * not the stricter index-signature shape — row access already goes through an
+ * internal `unknown` cast in `getFieldValue`, so nothing here needs one, and a
+ * plain domain-row interface must be able to satisfy it.
+ */
+type Row = object;
 
 /** Column-factory options minus the parts each factory computes itself. */
 type ColumnOverrides<T extends Row> = Omit<

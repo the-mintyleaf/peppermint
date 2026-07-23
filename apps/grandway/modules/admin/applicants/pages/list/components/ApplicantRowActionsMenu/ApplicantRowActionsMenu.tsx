@@ -1,0 +1,49 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { RowActionsMenu } from "@peppermint/admin";
+import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
+import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
+import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
+import type { Applicant } from "../../../../applicants.types";
+import type { ApplicantRowActionsMenuProps } from "./ApplicantRowActionsMenu.types";
+
+/**
+ * Routes, not modals — this is a `MultiPageModule` — so "View"/"Edit" push to
+ * their own URLs rather than opening a drawer/modal. Status changes always go
+ * through the header control on the detail page (never a form field,
+ * `docs/backend/applicants/CONCEPT.md`), so this menu opens the same
+ * `ChangeApplicantStatusModal` used there rather than a bespoke inline one.
+ */
+export function ApplicantRowActionsMenu({
+  applicant,
+  onViewDetails,
+  onChangeStatus,
+}: ApplicantRowActionsMenuProps) {
+  const router = useRouter();
+
+  return (
+    <RowActionsMenu<Applicant>
+      record={applicant}
+      aria-label={`Actions for ${applicant.full_name_en || applicant.full_name_np}`}
+      actions={[
+        {
+          label: "View details",
+          icon: <EyeIcon size={16} aria-hidden />,
+          onClick: onViewDetails,
+        },
+        {
+          label: "Edit",
+          icon: <PencilSimpleIcon size={16} aria-hidden />,
+          onClick: () => router.push(`/admin/applicants/${applicant.id}/edit`),
+        },
+        {
+          label: "Change status",
+          icon: <ArrowsClockwiseIcon size={16} aria-hidden />,
+          dividerBefore: true,
+          onClick: onChangeStatus,
+        },
+      ]}
+    />
+  );
+}

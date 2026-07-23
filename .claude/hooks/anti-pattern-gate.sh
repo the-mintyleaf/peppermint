@@ -82,7 +82,12 @@ fi
 # 'string' is missing"). The established codebase convention for a FormWrapper values type is
 # `interface FooValues extends Record<string, unknown>` (e.g. mintway's CreateUserValues) — so
 # an interface whose name ends in "Values" is exempt from this check.
-HIT=$(printf '%s\n' "$CONTENT" | grep -nE 'extends[[:space:]]+Record<[[:space:]]*string[[:space:]]*,[[:space:]]*unknown[[:space:]]*>' | grep -vE 'interface[[:space:]]+[A-Za-z0-9_]*Values[[:space:]]+extends' | head -3)
+# Comment-only mentions (explaining/citing the rule, e.g. "why this type deliberately
+# avoids extends Record<string, unknown>") are not code and must not trip this gate —
+# excluded by skipping lines whose trimmed content starts with a comment marker
+# (`*` for JSDoc continuation lines, `//` for line comments, `/*`/`/**` for a
+# block-comment opener). A real offending declaration never starts a line that way.
+HIT=$(printf '%s\n' "$CONTENT" | grep -nE 'extends[[:space:]]+Record<[[:space:]]*string[[:space:]]*,[[:space:]]*unknown[[:space:]]*>' | grep -vE 'interface[[:space:]]+[A-Za-z0-9_]*Values[[:space:]]+extends' | awk -F: '{ rest=$0; sub(/^[0-9]+:/, "", rest); trimmed=rest; sub(/^[[:space:]]*/, "", trimmed); if (trimmed !~ /^(\*|\/\/|\/\*)/) print }' | head -3)
 if [ -n "$HIT" ]; then
   REASONS="$REASONS
 [B] extends Record<string, unknown> on a domain type — shells constrain T extends object (a plain interface satisfies it). Remove the index signature; only React-Flow node data is exempt (if that is this case, use the escape hatch below):

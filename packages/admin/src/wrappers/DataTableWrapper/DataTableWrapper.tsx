@@ -164,9 +164,23 @@ export function DataTableWrapper<T = unknown>({
   const activeSearch = enableServerQuery ? debouncedSearch : search;
   const activeFilters = enableServerQuery ? debouncedFilters : filters;
   const filtersKey = JSON.stringify(activeFilters);
+  // `forceFilters` is read fresh from a ref inside queryFn (so its identity churning
+  // on every render doesn't force a refetch), but that means a genuine *value* change
+  // — e.g. a deep-linked id in the URL going from A to B — must still bust the cache.
+  // Stringify it into the key exactly like the user-editable filters above; omitted
+  // (`undefined`) callers are unaffected since JSON.stringify(undefined) is stable.
+  const forceFiltersKey = JSON.stringify(forceFilters);
 
   const fullQueryKey = enableServerQuery
-    ? [...parsedKey, page, pageSize, activeSearch, sortKey, filtersKey]
+    ? [
+        ...parsedKey,
+        page,
+        pageSize,
+        activeSearch,
+        sortKey,
+        filtersKey,
+        forceFiltersKey,
+      ]
     : parsedKey;
 
   const {

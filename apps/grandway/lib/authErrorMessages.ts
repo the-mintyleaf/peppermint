@@ -61,6 +61,33 @@ export const ERROR_MESSAGES: Record<string, string> = {
   LEADS_LOSS_REASON_INACTIVE: "That loss reason is no longer available.",
   LEADS_LOSS_REASON_CODE_TAKEN: "That loss reason code is already in use.",
   LEADS_LEAD_NOT_LOST: "Only a lost or converted lead can be reopened.",
+  LEADS_LEAD_ALREADY_CONVERTED:
+    "This lead has already been converted into an applicant.",
+  LEADS_CONVERSION_NOT_READY:
+    "A lost or converted lead must be reopened before it can be converted.",
+
+  // Applicants
+  APPLICANTS_ACTOR_FORBIDDEN:
+    "Your authority level may not perform this action.",
+  APPLICANTS_APPLICANT_NOT_FOUND: "Applicant not found.",
+  APPLICANTS_CONTACT_REQUIRED: "At least one contact number is required.",
+  APPLICANTS_PASSPORT_EXPIRY_INVALID:
+    "Expiry date must be after the issue date.",
+
+  // Applicant journeys
+  JOURNEYS_ACTOR_FORBIDDEN: "Your authority level may not perform this action.",
+  JOURNEYS_JOURNEY_NOT_FOUND: "Journey not found.",
+  JOURNEYS_APPLICANT_NOT_FOUND: "That applicant couldn't be found.",
+  JOURNEYS_STAGE_NOT_EDITABLE:
+    "This journey is completed, closed, or deferred; reopen it before making this change.",
+  JOURNEYS_STAGE_INVALID_TRANSITION:
+    "This stage cannot be selected directly; use the defer, close, or reopen action.",
+  JOURNEYS_DEFER_INTAKE_REQUIRED:
+    "An intake is required to defer this journey.",
+  JOURNEYS_OUTCOME_REQUIRED: "An outcome is required to close this journey.",
+  JOURNEYS_OUTCOME_DETAIL_REQUIRED: "Please explain this outcome.",
+  JOURNEYS_JOURNEY_NOT_TERMINAL:
+    "Only a completed, closed, or deferred journey can be reopened.",
 
   // Framework-level
   VALIDATION_ERROR: "Please check the highlighted fields and try again.",

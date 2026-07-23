@@ -12,10 +12,9 @@ Plan: `/Users/decoffee/.claude/plans/in-the-same-branch-mossy-ripple.md`
 
 ## Phase 1 — Build modules (parallel)
 
-- [ ] `/design-decisions` for `applicants` module
-- [ ] `/design-decisions` for `applicant-journeys` module
-- [ ] `/form-builder` for `ApplicantForm`
-- [ ] `/form-builder` for `JourneyForm`
+- [x] `/design-decisions` (both modules, consolidated): plain filtered applicant list (no tabs), plain stage-filter journey worklist (no tabs), passport expiry as colored badge in-panel (no banner)
+- [x] `/form-builder` for `ApplicantForm`: 4-step FormShell (Identity & Contact → Addresses → Passport → Family & Emergency Contacts), only full_name_np + contact_numbers required
+- [x] `/form-builder` for `JourneyForm`: single-view modal, grouped sections (Destination & Level / Timing & Budget / Notes), only `applicant` required
 - [ ] Dispatch `module-builder` for `applicants` (types/api/queryKeys/hooks, form, list/new/[id]/[id]/edit pages — panel component stubbed, wired in Phase 2)
 - [ ] Dispatch `module-builder` for `applicant-journeys` (types/api/queryKeys/hooks, form, list/[id] pages)
 - [ ] Dual adversarial review (Codex + adversarial-reviewer) on Phase 1 diff

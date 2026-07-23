@@ -93,7 +93,7 @@
 
 ### Request bodies
 
-- **Create:** `{ applicant (required, id), target_country?, target_institution_name?, target_program_name?, study_level?, field_of_study?, preferred_intake?, budget_amount?, budget_currency?, scholarship_interest? }`. `stage` not accepted — always starts `planning`.
+- **Create:** `{ applicant (required, id), target_country?, target_institution_name?, target_program_name?, study_level?, field_of_study?, preferred_intake?, budget_amount?, budget_currency?, scholarship_interest?, notes? }`. `stage` not accepted — always starts `planning`. (Corrected 2026-07-24 — an earlier revision of this digest dropped `notes` from this list by mistake; the raw backend's own `INTEGRATION.md` §7 always included it.)
 - **Update:** same shape minus `applicant` (immutable, dropped by the serializer).
 - **Change stage:** `{ stage (one of the 6 selectable) }`.
 - **Defer:** `{ to_intake (required), reason? }`.
