@@ -49,6 +49,10 @@ Functional components only. Props typed as `[Name]Props` in `<Name>.types.ts`.
 
 ## 2. Contained vs Not-Contained vs Custom — Decision Rule
 
+> Canonical module-type definitions live in `CLAUDE.md → Module Types`. This section is the
+> build-routing _view_ of them (which shell / reference file each maps to), not a second definition.
+> If it ever conflicts with CLAUDE.md, CLAUDE.md wins.
+
 Before building any module or page, classify it into one of **three** parts:
 
 ### Contained

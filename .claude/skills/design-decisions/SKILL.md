@@ -63,6 +63,15 @@ Read only what the module needs — do not scan speculatively:
 5. If the domain has backend docs: `apps/<app>/docs/api-contracts/<domain>.md` (the contract digest is
    the authority on the real entity, fields, statuses, and endpoints — the raw material of Phase 1).
 
+**On a backend- or externally-supplied wireframe/mockup.** If the backend engineer (or anyone outside
+design) hands you a wireframe built from the backend docs, treat it as a **capability inventory** — a
+map of what the endpoints already support — **not the UX spec.** It answers "what can the backend do,"
+never "what is the user's job, what leads the scan, modal vs page," and it is capability-only by
+construction (it cannot surface a compose-or-reuse-fields opportunity, nor argue a backend change
+worth its cost). Feed it into the Phase 1 content inventory; then run FRAME → CONFIRM → DECIDE anyway
+and expect your result to diverge from it — that divergence is the design working, not rework. This is
+guidance, not a gate: nothing blocks on it, and it is deliberately not enforced by any hook or check.
+
 ---
 
 ## Phase 1 — Frame (before any pixel)
@@ -202,6 +211,10 @@ it. Building the resulting **page** routes through `/plan-module` → `mint-modu
 is built inline in its parent (`ModalTableShell` / `FormWrapper`), never via the page builder.
 
 ### 2.2 Form order & layout
+
+> Decide the **intent** here (which fields lead, risk-tier grouping, sectioning); `form-builder`
+> finalizes control choice, exact order within sections, and disclosure. Intent → execution — not two
+> owners of the same call.
 
 - **Order fields by decision importance, not schema order.** Identity/name first, the fields the
   operator needs to think about next, and the highest-risk/most-consequential last.

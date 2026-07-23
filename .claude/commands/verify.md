@@ -100,6 +100,15 @@ grep -n "useQuery\|useSuspenseQuery" <file> | head -5
 
 If `useQuery` is present, look for conditional rendering that handles `isLoading`, `isError`, and the empty case (`data?.length === 0` or similar). If none are present in the same file, flag W2.
 
+**W3 — AI map stale after a structure change**
+
+```bash
+git diff --name-only HEAD 2>/dev/null | grep -E "modules/.*/(index\.ts|[^/]+\.tsx)$"
+git diff --name-only HEAD 2>/dev/null | grep -E "modules/.*/docs/AI\.md$"
+```
+
+If a module's structure changed (a component/file added, removed, or renamed under `modules/<group>/<module>/`) but that module's own `docs/AI.md` is **not** in the diff, flag W3 — the AI map is likely stale. Run `/update-ai-map` to reconcile it in the same pass, not weeks later.
+
 ### Severity summary rule
 
 - If any BLOCK check finds a violation: report it as `[BLOCK]`, list the file:line, and mark this step FAILED. The PR cannot proceed until the violation is fixed or explicitly dismissed.
@@ -116,6 +125,16 @@ If `useQuery` is present, look for conditional rendering that handles `isLoading
 ⚠ Mechanical scan only. Passing means no detectable violations, not that the design is sound.
   Run /design-check for the full pre-flight audit.
 ```
+
+## Step 2c — Contract completeness (only when a requirements artifact is in scope)
+
+Run this only when a `tuned_requirement.md` (or the feature's flow/requirements artifact) exists for the work in scope and a build is about to start. It turns "the contract is complete" from a promise into a check.
+
+```bash
+grep -nE "\[placeholder\]|\bTBD\b|\[fieldName\]|\[error\.code\]|\[roles\]|\[what shows\]|\[where the user lands\]|see Error → UI Behavior" docs/tuned_requirement.md
+```
+
+Every per-feature section — including the `UI States`, `Error → UI Behavior`, `Field → API Mapping`, `Permissions`, and `Post-success Navigation` sections produced by `mint-requirements-tuner` — must hold confirmed values, not template stubs. Any remaining bracket `[placeholder]` or unresolved `TBD` means the contract is incomplete: flag `[BLOCK]` and do not proceed to build until it is filled at the gate. The one exception is a `TBD` the user explicitly authorized as a deferral (per `mint-requirements-tuner` rule 3) — note it, do not block on it.
 
 ## Step 3 — Report results
 

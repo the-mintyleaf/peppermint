@@ -13,6 +13,18 @@ This skill never just "renders fields." Before writing anything, it _reasons_ ab
 
 > **Two layers, never confuse them.** _What the form should be_ (fields, controls, order, disclosure — sections 1–12 below) is design reasoning. _How it's wired in this repo_ (`FormWrapper` / `FormShell` / modal-shell form components — section 13) is a hard project contract. This skill owns the design reasoning; it defers the plumbing to the Peppermint form engine. Do both.
 
+**Division of authority — this skill owns exactly one layer (do not blur with the sibling skills):**
+
+- **`design-decisions`** owns the visual & page decisions — surface/route shape (modal vs full
+  page), page pattern, and the macro form intent (which fields lead, risk-tier sections). This skill
+  reads that decision; it does not make it.
+- **`mint-requirements-tuner`** owns the field _list_ and the requirements artifact. This skill turns
+  confirmed fields into the most fillable surface; it does not decide which fields exist.
+- **The contract digest** (`apps/<app>/docs/api-contracts/<domain>.md`) owns DTO shapes and field
+  names — never re-derive them here.
+- **This skill** owns **control choice, exact field order within sections, grouping, disclosure,
+  validation UX, and accessibility** — the fillability of the surface, nothing above it.
+
 ---
 
 ## Operating procedure

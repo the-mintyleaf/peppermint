@@ -117,6 +117,12 @@ Look for: animation that runs for > 300ms without a `useReducedMotion()` check, 
 
 ## 3. Audit the output contract states
 
+**If the feature's `tuned_requirement.md` records `### UI States` / `### Error → UI Behavior`**
+(produced by `mint-requirements-tuner`), audit the component against those recorded cells
+(required-vs-present) — they are the feature's agreed state contract — rather than re-deriving the
+list. Fall back to the table below when the artifact is absent or omits them. This reads an existing
+artifact; it is not a new rule.
+
 For each file, check which of the 11 required states are present. Map to the detected pattern to determine required vs. N/A.
 
 | State                         | Required for            | How to detect                                                   |

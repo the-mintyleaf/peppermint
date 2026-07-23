@@ -38,6 +38,9 @@ Before hand-rolling a fetch/query-key/mutation/column/menu, check the primitives
 
 ## Module type
 
+> Canonical definitions live in `CLAUDE.md → Module Types`; this is a quick mirror — if they ever
+> disagree, CLAUDE.md wins.
+
 | Type              | When                               | Shell                                          |
 | ----------------- | ---------------------------------- | ---------------------------------------------- |
 | `ContainedModule` | Single view, no nested routes      | `ModalTableShell`                              |

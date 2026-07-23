@@ -22,6 +22,20 @@ The **module breakdown with type tags** is the most important output of this
 skill. Every other detail (fields, tabs, columns) is secondary to getting the
 module type right, because the type determines the entire build strategy.
 
+**Division of authority — this skill owns exactly one layer:**
+
+- **`design-decisions`** owns the visual & page decisions (surface/route shape, page pattern, column
+  order, fidelity, form placement). This skill records the confirmed decisions; it does not make them.
+- **`form-builder`** owns the form's fillability — control choice, exact field order within sections,
+  grouping, disclosure, validation UX. This skill captures the field _list_ and intent, not the
+  control-level execution.
+- **The contract digest** (`apps/<app>/docs/api-contracts/<domain>.md`) owns DTO shapes, endpoints,
+  and error codes. Reference it; never re-derive or guess field shapes.
+- **`mint-module-builder`** owns the build mechanics (per-path file order, shells, wiring).
+- **This skill** owns the **structured requirements artifact** — module-type tags, field list, tabs,
+  columns, reuse map, dependency/parallel plan, and the flow-behavior capture (states, errors,
+  mapping, permissions, navigation). Structure and completeness, not visual design or control execution.
+
 ---
 
 ## Module Type Tags
@@ -137,6 +151,10 @@ Rules:
   interpretation and ask to confirm — do not silently apply it.
 - Ask about one module at a time if there are many.
 - Use `AskUserQuestion` for short choice questions (2–4 options).
+- Ask the gaps for the flow-behavior sections too: which UI states exist, what the UI does per
+  documented error, the form-field → API-field mapping wherever the digest is silent, allowed
+  roles + denied behavior, and post-success landing — plus confirm any surviving RED item's
+  fallback.
 - Do not proceed to Phase 5 until every gap is resolved.
 
 ### Phase 5 — Write
@@ -230,6 +248,8 @@ Before interviewing: check `apps/<app>/docs/api-contracts/<domain>.md` and `docs
 - [ ] Key that holds the array in the list response (e.g. `data`, `items`)
 - [ ] Key that holds pagination (e.g. `meta`, `pagination`)
 - [ ] Server-side or client-side filtering/sorting/pagination?
+- [ ] Field → API mapping — form field → DTO field, sourced from the digest + generated
+      `<module>.types.ts` (feeds the artifact's Field → API Mapping section; never guess a field)
 
 ### L. Reuse & Dependencies (all types)
 
@@ -243,6 +263,28 @@ rebuilding — this is the reuse map the builder relies on. Name **exact paths**
       route, or data)? Which one, and how?
 - [ ] Is each module **parallel-safe** (independent → dispatched concurrently) or
       must it build in a later wave (depends on a sibling)? See `.claude/PARALLEL.md`.
+
+### M. Flow Synthesis (CONTAINED, MULTI_PAGE, NOT_CONTAINED)
+
+**First, triage — this decides whether the rest of this section applies at all.** Is this an
+obvious Contained CRUD feature whose every step is GREEN — list, modal create/edit, and delete all
+mapping 1:1 to digest endpoints? If yes, take the **lightweight path**: fill the five behavior
+sections directly from the digest and SKIP the GREEN/YELLOW/RED synthesis below. A simple feature is
+never forced through classification. Reserve full synthesis for non-obvious, multi-step, or
+interaction-heavy features.
+
+Otherwise, backend is the BASE, not the ceiling — design the best flow within it, then classify
+every step:
+
+- [ ] **GREEN** — directly supported by a digest endpoint. Build freely.
+- [ ] **YELLOW** — achievable by composing existing endpoints or using response fields the naive
+      flow discards. The high-value zone — prefer it before reaching for RED.
+- [ ] **RED** — genuinely needs a backend change. Allowed ONLY after the best GREEN+YELLOW version
+      is designed and found genuinely insufficient. Each surviving RED records: what's bad without
+      it, how much better with it, cost, leverage (payoff ÷ cost), and a GREEN/YELLOW fallback that
+      ships now. RED never blocks the feature — it becomes a backend request + graceful fallback.
+
+Record surviving RED items in the artifact.
 
 ---
 
@@ -417,6 +459,46 @@ Validation: [rules]
 | Field       | References          | Type                               |
 | ----------- | ------------------- | ---------------------------------- |
 | [fieldName] | `Module[OtherName]` | select-one / select-many / display |
+
+---
+
+<!-- CONTAINED, MULTI_PAGE, NOT_CONTAINED — Field → API Mapping is CONTAINED/MULTI_PAGE only -->
+
+### UI States
+
+| State             | Trigger         | UI behavior                         |
+| ----------------- | --------------- | ----------------------------------- |
+| Idle / ready      | initial         | [what shows]                        |
+| Loading           | fetch in flight | [skeleton / spinner]                |
+| Empty             | no records      | [empty-state copy + primary action] |
+| Success           | data present    | [normal render]                     |
+| [error state]     | `[error.code]`  | see Error → UI Behavior             |
+| Permission-denied | 403             | [denied-state UI]                   |
+
+### Error → UI Behavior
+
+| `error.code` | UI does                            | Source                      |
+| ------------ | ---------------------------------- | --------------------------- |
+| `[code]`     | [notification / inline / redirect] | `api-contracts/<domain>.md` |
+
+### Field → API Mapping `[CONTAINED]` `[MULTI_PAGE]`
+
+> Sourced from `apps/<app>/docs/api-contracts/<domain>.md` + the generated `<module>.types.ts`.
+> Never guess a field — if the digest doesn't document it, record it under the module's gaps and
+> ask; do not invent the mapping.
+
+| Form field    | DTO field  | Type   | Required | Notes  |
+| ------------- | ---------- | ------ | -------- | ------ |
+| `[formField]` | `[dtoKey]` | [type] | yes / no | [note] |
+
+### Permissions
+
+- **Allowed roles:** [roles] (source: SECURITY.md / digest policy key)
+- **Denied behavior:** [what the UI shows on 403]
+
+### Post-success Navigation
+
+- **On create:** [where the user lands] · **On edit:** [...] · **On delete:** [...]
 
 ---
 ````

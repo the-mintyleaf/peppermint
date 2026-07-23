@@ -160,6 +160,14 @@ This is the base structure for **any component anywhere** in the monorepo — pa
 | Docs required     | `packages/<pkg>/docs/<Name>.md` + `usage-doc/<pkg>/<Name>.md` | None required (optional inline README for complex modules) |
 | App Router wiring | N/A                                                           | `app/` page must re-export from `modules/` or `layouts/`   |
 
+> **Canonical package-doc path (reconciled).** Package component implementation docs live at
+> `packages/<pkg>/docs/<Name>.md` — this is canonical and wins over the colocated
+> `packages/<pkg>/src/<group>/<Name>/docs/README.md` variant. It matches both the explicit rule
+> above and the majority on-disk convention (`packages/{admin,api-client,ui,utils}/docs/*.md`). Two
+> legacy outliers — `FormShell` and `ModalTableShell` (colocated `src/.../docs/README.md`) — should
+> migrate to the canonical path on their next substantive edit. Do **not** create new colocated
+> `docs/README.md` files for package components.
+
 ---
 
 ### Packages

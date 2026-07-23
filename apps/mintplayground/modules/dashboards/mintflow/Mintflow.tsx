@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -11,7 +10,6 @@ import {
   ModalPaper,
   ModuleHeader,
   ScrollArea,
-  SegmentedControl,
   Skeleton,
   Stack,
   Text,
@@ -36,31 +34,16 @@ import { WorkFilesRail } from "./components/WorkFilesRail";
 import { AttentionRail } from "./components/AttentionRail";
 import { MetricsRail } from "./components/MetricsRail";
 import { TaskDrawer } from "./components/TaskDrawer";
-import type { DashboardData, FocusTask, Person } from "./module.api";
+import type { FocusTask } from "./module.api";
 import { PlusIcon } from "@phosphor-icons/react";
 
 const GREETING_NAME = "Minister";
 const TODAY = "Wednesday, 16 July";
-
-/** Distinct people across the day's work files — the hero's avatar cluster. */
-function collectTeam(data: DashboardData): Person[] {
-  const seen = new Set<string>();
-  const team: Person[] = [];
-  for (const file of data.workFiles) {
-    for (const person of file.team) {
-      // Dedup on name — initials collide (two "AS" people would collapse).
-      if (seen.has(person.name)) continue;
-      seen.add(person.name);
-      team.push(person);
-    }
-  }
-  return team;
-}
+const VARIANT: DashboardVariant = "populated";
 
 export function ModuleMintflow() {
   const router = useRouter();
-  const [variant, setVariant] = useState<DashboardVariant>("populated");
-  const { data, isLoading, isError, refetch } = useDashboard(variant);
+  const { data, isLoading, isError, refetch } = useDashboard(VARIANT);
   const board = useDashboardBoard(data);
   const drawer = useDrawer();
   const isNarrow = useMediaQuery("(max-width: 60em)");
@@ -75,20 +58,6 @@ export function ModuleMintflow() {
   const onHoldNow = Object.values(board.flowByColumn)
     .flat()
     .filter((t) => t.onHold).length;
-
-  const previewControl = (
-    <SegmentedControl
-      size="xs"
-      radius="md"
-      value={variant}
-      onChange={(v) => setVariant(v as DashboardVariant)}
-      data={[
-        { value: "populated", label: "Today" },
-        { value: "empty", label: "First run" },
-      ]}
-      aria-label="Preview populated or first-run dashboard"
-    />
-  );
 
   return (
     <>
@@ -127,14 +96,12 @@ export function ModuleMintflow() {
                   greetingName={GREETING_NAME}
                   today={TODAY}
                   focus={board.focus}
-                  team={collectTeam(data)}
                   doneThisWeek={doneThisWeek}
                   onHoldNow={onHoldNow}
                   onToggleDone={board.toggleFocusDone}
                   onContinue={onStartFocus}
                   onSetState={board.setFocusState}
                   onChooseFocus={notConnected}
-                  previewControl={previewControl}
                 />
                 <Divider color={tokens.line} />
                 <Box style={{ padding: "18px 20px 22px" }}>
