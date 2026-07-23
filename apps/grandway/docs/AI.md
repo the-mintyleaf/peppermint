@@ -3,12 +3,11 @@
 ## App purpose
 
 Identity & access admin for the **grandway** `authenticate` backend, the central
-**`audit`** activity log, and **`leads`** (enquiry tracking for the consultancy — a
-categorized board in progress, see Modules below). Handles sign-in (username/password +
-device binding + optional TOTP MFA), forced first-login password change, forced
-superadmin MFA enrollment, self-service account settings, tier-scoped staff/admin account
-administration, the read-only cross-app audit log, and lead management for
-`admin`/`lead_manager` accounts.
+**`audit`** activity log, and **`leads`** (enquiry tracking for the consultancy, see
+Modules below). Handles sign-in (username/password + device binding + optional TOTP
+MFA), forced first-login password change, forced superadmin MFA enrollment, self-service
+account settings, tier-scoped staff/admin account administration, the read-only
+cross-app audit log, and lead management for `admin`/`lead_manager` accounts.
 
 Stack: Next.js App Router, Mantine (via `@peppermint/ui`), React Query, `@peppermint/admin`
 shells + primitives. Backend contract: `docs/backend/{authenticate,audit,lead-management}/`
@@ -77,24 +76,34 @@ apps/grandway/
         │   ├── my-sessions/ # standalone full-page own-sessions view (nav entry)
         │   └── users/       # tier-scoped account administration
         ├── audit/           # central audit log (read-only, admin/superadmin only)
-        └── lead-management/ # categorized leads board — admin (all) / lead_manager (own) — in progress
+        └── lead-management/ # categorized leads board — admin (all) / lead_manager (own)
+            ├── leadManagement.{types,api,queryKeys,hooks}.ts
+            ├── leadCategory.utils.ts     # categorizeLead(), toLeadBoardRow(), stage/category labels+colors
+            ├── form/                     # shared create+edit modal (LeadForm, ContactNumbersField, StudyInterestSection)
+            └── pages/list/
+                ├── LeadManagementBoard.tsx
+                ├── leadManagement.columns.tsx
+                └── components/
+                    ├── LeadRowActionsMenu/
+                    ├── ChangeStageModal/, RecordFollowUpModal/, MarkLeadLostModal/, ReopenLeadModal/
+                    └── LeadDetailDrawer/     # Overview / Notes / History tabs
 ```
 
 ---
 
 ## Modules
 
-| Module           | Path                                          | Route(s)                       | Notes                                                                                                                                                                                                                                                                                                       |
-| ---------------- | --------------------------------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Sign In          | `modules/sign-in`                             | `/`                            | `ContainedModule`, public. Bespoke — see Auth model above                                                                                                                                                                                                                                                   |
-| Password Change  | `modules/password-change`                     | `/password-change`             | forced first-login only; voluntary change lives in account-settings                                                                                                                                                                                                                                         |
-| MFA Enroll       | `modules/mfa-enroll`                          | `/mfa-enroll`                  | forced superadmin enrollment only; voluntary enroll lives in account-settings                                                                                                                                                                                                                               |
-| Home             | `modules/admin/home`                          | `/admin`                       | `ContainedModule`; minimal landing, quick links for admin/superadmin                                                                                                                                                                                                                                        |
-| Account Settings | `modules/admin/authenticate/account-settings` | modal (avatar menu)            | Profile (read-only) · Security (password + MFA) · Sessions (list + per-session/others/all revoke)                                                                                                                                                                                                           |
-| My Sessions      | `modules/admin/authenticate/my-sessions`      | `/admin/authenticate/sessions` | standalone page reusing account-settings' `SessionsTab`                                                                                                                                                                                                                                                     |
-| Users            | `modules/admin/authenticate/users`            | `/admin/authenticate/users`    | `ModalTableShell`; tier-scoped server-side (superadmin→admin, admin→lead_manager); no list filters/search (contract has none)                                                                                                                                                                               |
-| Audit            | `modules/admin/audit`                         | `/admin/audit`                 | `DataTableShell`, read-only, admin/superadmin only; column filters only (no free-text search — contract has none)                                                                                                                                                                                           |
-| Leads            | `modules/admin/lead-management`               | `/admin/lead-management`       | `ContainedModule`, `admin`/`lead_manager` only (never `superadmin` — backend 403s it). **In progress:** Phase 1 scaffold only (types/api/gate/nav/route); the categorized `ModalTableShell` board, create/edit form, and lifecycle-action modals land in later phases — see `.todo/lead-management-todo.md` |
+| Module           | Path                                          | Route(s)                       | Notes                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------------- | --------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Sign In          | `modules/sign-in`                             | `/`                            | `ContainedModule`, public. Bespoke — see Auth model above                                                                                                                                                                                                                                                                                                                |
+| Password Change  | `modules/password-change`                     | `/password-change`             | forced first-login only; voluntary change lives in account-settings                                                                                                                                                                                                                                                                                                      |
+| MFA Enroll       | `modules/mfa-enroll`                          | `/mfa-enroll`                  | forced superadmin enrollment only; voluntary enroll lives in account-settings                                                                                                                                                                                                                                                                                            |
+| Home             | `modules/admin/home`                          | `/admin`                       | `ContainedModule`; minimal landing, quick links for admin/superadmin                                                                                                                                                                                                                                                                                                     |
+| Account Settings | `modules/admin/authenticate/account-settings` | modal (avatar menu)            | Profile (read-only) · Security (password + MFA) · Sessions (list + per-session/others/all revoke)                                                                                                                                                                                                                                                                        |
+| My Sessions      | `modules/admin/authenticate/my-sessions`      | `/admin/authenticate/sessions` | standalone page reusing account-settings' `SessionsTab`                                                                                                                                                                                                                                                                                                                  |
+| Users            | `modules/admin/authenticate/users`            | `/admin/authenticate/users`    | `ModalTableShell`; tier-scoped server-side (superadmin→admin, admin→lead_manager); no list filters/search (contract has none)                                                                                                                                                                                                                                            |
+| Audit            | `modules/admin/audit`                         | `/admin/audit`                 | `DataTableShell`, read-only, admin/superadmin only; column filters only (no free-text search — contract has none)                                                                                                                                                                                                                                                        |
+| Leads            | `modules/admin/lead-management`               | `/admin/lead-management`       | `ContainedModule`, `admin`/`lead_manager` only (never `superadmin` — backend 403s it). Client-aggregated categorized board (`ModalTableShell`, 4 category tabs, no server-side multi-stage filter exists) + shared create/edit modal + 4 lifecycle-action dialogs + detail drawer (Overview/Notes/History). No delete, no conversion — neither exists on the backend yet |
 
 ---
 
@@ -127,9 +136,18 @@ apps/grandway/
 ## Conventions
 
 - All server state via React Query; query fns in `*.api.ts`, keys via `createQueryKeys`.
-- Module forms use `FormWrapper` (never hand-rolled `useForm`); the anti-pattern gate
-  blocks `extends Record<string, unknown>` on _any_ type including FormWrapper values
-  types — use a plain interface (see `apps/mintflow-admin/.../CreateOrganizationForm.types.ts`
-  for the established precedent).
+- Module forms use `FormWrapper` (never hand-rolled `useForm`). `FormWrapper<T extends
+FormValues>`'s generic bound (`FormValues = Record<string, unknown>`) is genuinely
+  stricter than a shell's `T extends object` — a plain interface does **not** structurally
+  satisfy it (confirmed by `tsc`: "Index signature for type 'string' is missing"). The
+  anti-pattern gate (`.claude/hooks/anti-pattern-gate.sh`) knows this: an interface whose
+  name ends in `Values` is exempt from the "no `extends Record<string, unknown>`" check —
+  use that suffix (`CreateUserValues`, `LeadFormValues`, …) for any type passed as
+  `FormWrapper<T>`'s type argument. Domain/row types (table rows, API DTOs) still follow
+  the plain-interface rule — only the FormWrapper values type gets the exemption.
+- `leadManagement.hooks.ts` adopts `createResourceApi`/`useAppMutation` from
+  `@peppermint/admin` (documented but otherwise unused elsewhere in this app, which
+  hand-rolls `*.api.ts` + `useMutation` directly) — a deliberate choice, not a drift; both
+  patterns are valid, pick per new module rather than treating either as canonical.
 - Error copy resolved by `lib/authErrorMessages.ts` `getApiErrorMessage`.
 - QR rendering (`react-qr-code`) is used only in `_shared/mfa/MfaEnrollPanel.tsx`.
