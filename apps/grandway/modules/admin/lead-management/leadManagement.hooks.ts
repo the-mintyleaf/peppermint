@@ -2,13 +2,37 @@
 
 import { useMemo } from "react";
 import { keepPreviousData, useQuery } from "@peppermint/ui";
-import { fetchAllLeads, fetchLeadSources } from "./leadManagement.api";
+import { useAppMutation } from "@peppermint/admin";
+import {
+  changeLeadStage,
+  createLeadNote,
+  fetchAllLeads,
+  fetchLeadHistory,
+  fetchLeadNotes,
+  fetchLeadSources,
+  fetchLossReasons,
+  getLead,
+  markLeadLost,
+  recordLeadFollowUp,
+  reopenLead,
+} from "./leadManagement.api";
 import { emptyCategoryCounts, toLeadBoardRow } from "./leadCategory.utils";
 import {
+  leadHistoryKey,
   leadManagementQueryKeys,
+  leadNotesKey,
   leadSourceQueryKeys,
+  lossReasonQueryKeys,
 } from "./leadManagement.queryKeys";
-import type { LeadBoardRow, LeadCategory } from "./leadManagement.types";
+import type {
+  FollowUpPayload,
+  LeadBoardRow,
+  LeadCategory,
+  LeadNoteCreatePayload,
+  MarkLostPayload,
+  ReopenPayload,
+  StageChangePayload,
+} from "./leadManagement.types";
 
 export interface LeadBoardQueryResult {
   data: LeadBoardRow[];
@@ -100,5 +124,110 @@ export function useLeadSources() {
   return useQuery({
     queryKey: leadSourceQueryKeys.lists(),
     queryFn: fetchLeadSources,
+  });
+}
+
+/** Loss reasons for the mark-lost dialog's picker. Unpaginated. */
+export function useLossReasons() {
+  return useQuery({
+    queryKey: lossReasonQueryKeys.lists(),
+    queryFn: fetchLossReasons,
+  });
+}
+
+/** Full detail for the detail drawer's Overview tab — always the real fetch, never the board's trimmed row. */
+export function useLeadDetail(leadId: string | null) {
+  return useQuery({
+    queryKey: leadId
+      ? leadManagementQueryKeys.detail(leadId)
+      : ["lead-management.leads", "detail", "none"],
+    queryFn: () => getLead(leadId as string),
+    enabled: leadId !== null,
+  });
+}
+
+export function useLeadNotes(leadId: string | null) {
+  return useQuery({
+    queryKey: leadId
+      ? leadNotesKey(leadId)
+      : ["lead-management.leads", "notes", "none"],
+    queryFn: () => fetchLeadNotes(leadId as string),
+    enabled: leadId !== null,
+  });
+}
+
+export function useLeadHistory(leadId: string | null) {
+  return useQuery({
+    queryKey: leadId
+      ? leadHistoryKey(leadId)
+      : ["lead-management.leads", "history", "none"],
+    queryFn: () => fetchLeadHistory(leadId as string),
+    enabled: leadId !== null,
+  });
+}
+
+/**
+ * Every stage-affecting mutation invalidates the board's aggregate list (so
+ * category tabs/counts refresh) and this lead's own detail query. `useQuery`
+ * invalidation is prefix-based, and `leadNotesKey`/`leadHistoryKey` are both
+ * `[...detail(id), "notes"|"history"]`, so `detail(id)` is a strict prefix of
+ * both — invalidating `detail(id)` alone already refreshes an open
+ * Notes/History tab too; listing those keys separately would be redundant.
+ */
+function invalidateKeysFor(leadId: string) {
+  return [
+    leadManagementQueryKeys.lists(),
+    leadManagementQueryKeys.detail(leadId),
+  ];
+}
+
+export function useChangeLeadStage(leadId: string) {
+  return useAppMutation<unknown, StageChangePayload>({
+    mutationFn: (body) => changeLeadStage(leadId, body),
+    successMessage: "Stage updated.",
+    errorTitle: "Couldn't update stage",
+    invalidateKeys: invalidateKeysFor(leadId),
+  });
+}
+
+export function useRecordLeadFollowUp(leadId: string) {
+  return useAppMutation<unknown, FollowUpPayload>({
+    mutationFn: (body) => recordLeadFollowUp(leadId, body),
+    successMessage: "Follow-up recorded.",
+    errorTitle: "Couldn't record follow-up",
+    invalidateKeys: invalidateKeysFor(leadId),
+  });
+}
+
+export function useMarkLeadLost(leadId: string) {
+  return useAppMutation<unknown, MarkLostPayload>({
+    mutationFn: (body) => markLeadLost(leadId, body),
+    successMessage: "Lead marked as lost.",
+    errorTitle: "Couldn't mark lead as lost",
+    invalidateKeys: invalidateKeysFor(leadId),
+  });
+}
+
+export function useReopenLead(leadId: string) {
+  return useAppMutation<unknown, ReopenPayload>({
+    mutationFn: (body) => reopenLead(leadId, body),
+    successMessage: "Lead reopened.",
+    errorTitle: "Couldn't reopen lead",
+    invalidateKeys: invalidateKeysFor(leadId),
+  });
+}
+
+export function useCreateLeadNote(leadId: string) {
+  return useAppMutation<unknown, LeadNoteCreatePayload>({
+    mutationFn: (body) => createLeadNote(leadId, body),
+    successMessage: "Note added.",
+    errorTitle: "Couldn't add note",
+    // Deliberately narrower than `invalidateKeysFor` — a note changes no
+    // board-visible field (category, counts, `last_followed_up_at`), so
+    // invalidating `lists()` here would trigger the board's full
+    // up-to-10-page aggregate refetch for data that didn't change.
+    // `detail(leadId)` alone still refreshes the open Notes tab (prefix
+    // match, see `invalidateKeysFor`'s comment).
+    invalidateKeys: [leadManagementQueryKeys.detail(leadId)],
   });
 }

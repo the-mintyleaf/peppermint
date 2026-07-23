@@ -22,6 +22,7 @@ import type {
   LeadCreatePayload,
   LeadUpdatePayload,
 } from "../../leadManagement.types";
+import { LeadDetailDrawer } from "./components/LeadDetailDrawer";
 import { getLeadManagementColumns } from "./leadManagement.columns";
 
 const CATEGORY_ICONS: Record<
@@ -63,8 +64,12 @@ function LeadManagementBoardContent() {
   const { counts, capped, isLoading, boardQueryKey, queryFn } =
     useLeadBoardData(fiscalYear);
   const { data: sources = [] } = useLeadSources();
+  const [detailLeadId, setDetailLeadId] = useState<string | null>(null);
 
-  const columns = getLeadManagementColumns({ sources });
+  const columns = getLeadManagementColumns({
+    sources,
+    onViewDetails: (lead) => setDetailLeadId(lead.id),
+  });
 
   const tabs: DataTableShellTab[] = (
     Object.keys(CATEGORY_LABELS) as LeadCategory[]
@@ -162,6 +167,12 @@ function LeadManagementBoardContent() {
           by fiscal year to see the rest.
         </Alert>
       ) : null}
+
+      <LeadDetailDrawer
+        leadId={detailLeadId}
+        opened={detailLeadId !== null}
+        onClose={() => setDetailLeadId(null)}
+      />
     </>
   );
 }

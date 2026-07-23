@@ -69,13 +69,23 @@ Backend contract: `.backend/backend/leads/docs/{API,DATA_CONTRACT,INTEGRATION,SE
 
 ## Phase 4 — Lifecycle actions + detail
 
-- [ ] `pages/list/components/LeadRowActionsMenu/`
-- [ ] `ChangeStageModal/` (6 selectable stages only)
-- [ ] `RecordFollowUpModal/`
-- [ ] `MarkLeadLostModal/` (required reason + conditional detail)
-- [ ] `ReopenLeadModal/`
-- [ ] `LeadDetailDrawer/` — Overview / Notes / History tabs
-- [ ] Phase 4 verify + commit + dual adversarial review
+- [x] `pages/list/components/LeadRowActionsMenu/`
+- [x] `ChangeStageModal/` (6 selectable stages only)
+- [x] `RecordFollowUpModal/`
+- [x] `MarkLeadLostModal/` (required reason + conditional detail)
+- [x] `ReopenLeadModal/`
+- [x] `LeadDetailDrawer/` — Overview / Notes / History tabs (split into LeadOverviewPanel/LeadNotesPanel/LeadHistoryPanel once the drawer exceeded ~200 lines)
+- [x] Phase 4 verify + commit + dual adversarial review
+  - 2 rounds (Codex + adversarial-reviewer in parallel, then a Codex-only follow-up on the
+    fixes). Real bugs found and fixed: mutation invalidation missed the history query for
+    4 of 5 actions (only note-creation covered it originally); notes/history panels silently
+    truncated at the backend's default page_size=20 with no indication (now fetch 100 +
+    show a "showing N most recent" disclosure); note-creation was invalidating the board's
+    expensive up-to-10-page aggregate for data that never affects board display (removed —
+    also discovered `detail(id)` already prefix-covers the nested notes/history keys, so
+    listing them separately was redundant). `LeadDetailDrawer.tsx` split into
+    LeadOverviewPanel/LeadNotesPanel/LeadHistoryPanel once it exceeded the ~200-line
+    component-structure threshold.
 
 ## Phase 5 — Polish/verify
 

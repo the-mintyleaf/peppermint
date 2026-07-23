@@ -5,13 +5,16 @@ import type { DataTableShellColumn } from "@peppermint/admin";
 import { StatusBadge } from "@peppermint/admin";
 import { STAGE_COLORS, STAGE_LABELS } from "../../leadCategory.utils";
 import type { LeadBoardRow, LeadSource } from "../../leadManagement.types";
+import { LeadRowActionsMenu } from "./components/LeadRowActionsMenu";
 
 interface LeadManagementColumnsOptions {
   sources: LeadSource[];
+  onViewDetails: (lead: LeadBoardRow) => void;
 }
 
 export function getLeadManagementColumns({
   sources,
+  onViewDetails,
 }: LeadManagementColumnsOptions): DataTableShellColumn<LeadBoardRow>[] {
   return [
     {
@@ -98,6 +101,14 @@ export function getLeadManagementColumns({
       defaultVisible: false,
       render: (lead: LeadBoardRow) => (
         <Text size="xs">{dayjs(lead.created_at).format("MMM D, YYYY")}</Text>
+      ),
+    },
+    {
+      accessor: "actions",
+      title: "",
+      textAlign: "right",
+      render: (lead: LeadBoardRow) => (
+        <LeadRowActionsMenu lead={lead} onViewDetails={onViewDetails} />
       ),
     },
   ];

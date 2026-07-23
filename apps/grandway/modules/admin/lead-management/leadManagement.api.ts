@@ -1,5 +1,5 @@
 import { createResourceApi } from "@peppermint/admin";
-import type { QueryParams, ResourceListResponse } from "@peppermint/admin";
+import type { ResourceListResponse } from "@peppermint/admin";
 import api from "@/lib/api";
 import type {
   FollowUpPayload,
@@ -131,16 +131,23 @@ export async function fetchLossReasons(): Promise<LossReason[]> {
 // primitive's `ResourceListResponse` for the `meta.count → total` remap instead
 // of re-declaring an identical local type.
 
-/** `GET /api/v1/leads/<id>/notes/` — paginated, newest-first. */
+/**
+ * `GET /api/v1/leads/<id>/notes/` — paginated, newest-first. The detail
+ * drawer shows recent activity, not a full paginated history browser, so
+ * this requests a generous single page (`pageSize`, default 100) rather than
+ * the backend's own default of 20 — a lead with more notes than that is an
+ * edge case this view doesn't yet handle, not a silent one (the panel shows
+ * a "showing the N most recent" disclosure when `meta.total` exceeds it).
+ */
 export async function fetchLeadNotes(
   id: string,
-  params?: QueryParams,
+  pageSize = 100,
 ): Promise<ResourceListResponse<LeadNote>> {
   const { data } = await api.get<{
     data: LeadNote[];
     meta: { count: number } & Record<string, unknown>;
   }>(`/api/v1/leads/${id}/notes/`, {
-    params: { page: params?.page, page_size: params?.pageSize },
+    params: { page: 1, page_size: pageSize },
   });
   return { data: data.data, meta: { ...data.meta, total: data.meta.count } };
 }
@@ -154,16 +161,19 @@ export async function createLeadNote(
   return data;
 }
 
-/** `GET /api/v1/leads/<id>/history/` — paginated, newest-first, backed by the central audit log. */
+/**
+ * `GET /api/v1/leads/<id>/history/` — paginated, newest-first, backed by the
+ * central audit log. Same generous-single-page approach as `fetchLeadNotes`.
+ */
 export async function fetchLeadHistory(
   id: string,
-  params?: QueryParams,
+  pageSize = 100,
 ): Promise<ResourceListResponse<HistoryEntry>> {
   const { data } = await api.get<{
     data: HistoryEntry[];
     meta: { count: number } & Record<string, unknown>;
   }>(`/api/v1/leads/${id}/history/`, {
-    params: { page: params?.page, page_size: params?.pageSize },
+    params: { page: 1, page_size: pageSize },
   });
   return { data: data.data, meta: { ...data.meta, total: data.meta.count } };
 }
