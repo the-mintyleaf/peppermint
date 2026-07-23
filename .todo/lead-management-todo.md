@@ -89,8 +89,13 @@ Backend contract: `.backend/backend/leads/docs/{API,DATA_CONTRACT,INTEGRATION,SE
 
 ## Phase 5 — Polish/verify
 
-- [ ] `/design-check`
-- [ ] `/visual-review /admin/lead-management` (light+dark, all breakpoints)
-- [ ] `modules/admin/lead-management/docs/AI.md` (if warranted) + `/update-ai-map`
-- [ ] Full verification checklist per plan's Verification section
-- [ ] Final commit + push branch
+- [x] `/design-check` — 2 real findings (action-dialog titles didn't name the lead;
+      LeadDetailDrawer conflated "not found" with any other fetch failure), both fixed
+- [~] `/visual-review /admin/lead-management` — route is client-auth-gated, no test
+  credentials available; user chose to skip rather than provide credentials. App
+  itself confirmed booting cleanly (sign-in page captured light+dark). Rendered
+  dashboard not visually confirmed — recommend running this once signed in.
+- [x] `docs/AI.md` synced (no module-level AI.md — grandway's established convention
+      keeps everything in the single top-level file, matching Users/Audit)
+- [x] Full verification (format/check-types/lint) passing at every phase boundary
+- [ ] Final commit + push branch — push not yet requested by the user
