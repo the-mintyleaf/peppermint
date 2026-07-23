@@ -46,12 +46,26 @@ Backend contract: `.backend/backend/leads/docs/{API,DATA_CONTRACT,INTEGRATION,SE
 
 ## Phase 3 — Create/edit
 
-- [ ] Run `/form-builder`
-- [ ] `form/LeadForm.tsx` + `LeadForm.types.ts`
-- [ ] `form/ContactNumbersField.tsx` (repeater, whole-set-replace, single primary)
-- [ ] `form/StudyInterestSection.tsx` (collapsible optional block)
-- [ ] Wire `onCreateApi` / `onEditApi` / `onEditTrigger`
-- [ ] Phase 3 verify + commit + dual adversarial review
+- [x] Run `/form-builder`
+- [x] `form/LeadForm.tsx` + `LeadForm.types.ts`
+- [x] `form/ContactNumbersField.tsx` (repeater, whole-set-replace, single primary)
+- [x] `form/StudyInterestSection.tsx` (collapsible optional block)
+- [x] Wire `onCreateApi` / `onEditApi` / `onEditTrigger`
+- [x] `LeadBoardRow` restructured to extend `LeadDetail` (not trimmed `Lead`) so `onEditTrigger` can return real fetched detail without a second row type; `toLeadBoardRow()` fills detail-only fields with safe defaults for list rows
+- [x] Phase 3 verify + commit + dual adversarial review
+  - 4 review rounds (Codex + adversarial-reviewer in parallel, then 3 Codex-only follow-ups
+    as fixes surfaced new edge cases each time — converged to zero findings on the final pass).
+    Real bugs found and fixed: frozen zod validation (`FormWrapper` freezes `validation` at
+    mount — added a live-closure safety-net check in `finalSubmitFn`, which _is_ kept fresh);
+    blank `study_interest` always sent (now omitted unless touched or the record already had
+    one — the latter distinction matters so clearing existing data actually clears it, not
+    silently no-ops under PATCH semantics); editing a lead with a retired source always 400'd
+    (backend rejects any PATCH containing an inactive source even unchanged — fixed via
+    `toUpdatePayload` in the board, which has the original record to compare against);
+    contact-number `id` sent despite the write contract not accepting it; Mantine
+    Select/NumberInput clearing to `null`/`""` instead of `""`/`null` breaking zod validation;
+    pre-existing malformed contact_numbers (zero/multiple primaries) never normalized on edit-load;
+    stale `source_detail` surviving a source change.
 
 ## Phase 4 — Lifecycle actions + detail
 

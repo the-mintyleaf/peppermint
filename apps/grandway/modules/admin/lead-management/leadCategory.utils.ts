@@ -1,4 +1,9 @@
-import type { Lead, LeadCategory, LeadStage } from "./leadManagement.types";
+import type {
+  Lead,
+  LeadBoardRow,
+  LeadCategory,
+  LeadStage,
+} from "./leadManagement.types";
 
 /**
  * The backend has no scheduled next-follow-up date or reminder field (leads
@@ -65,6 +70,35 @@ export function categorizeLead(
   // `contacted` — successful contact happened but no stage progression yet;
   // not stalled long enough by itself to warrant "needs attention".
   return "active";
+}
+
+/**
+ * `GET /leads/` returns the trimmed list shape — no `study_interest`, no
+ * lifecycle/loss/conversion fields. `LeadBoardRow` is `LeadDetail`-shaped
+ * (see its doc comment) so `onEditTrigger` can hand back real fetched detail
+ * without a second row type; a freshly-listed row fills those detail-only
+ * fields with safe empty defaults that nothing reads until the row has
+ * actually been through `onEditTrigger` or the detail drawer's own fetch.
+ */
+export function toLeadBoardRow(
+  lead: Lead,
+  now: Date = new Date(),
+): LeadBoardRow {
+  return {
+    ...lead,
+    study_interest: null,
+    last_followed_up_by: null,
+    lost_reason: null,
+    lost_detail: "",
+    lost_at: null,
+    lost_at_bs: null,
+    lost_by: null,
+    stage_before_loss: "",
+    converted_at: null,
+    converted_at_bs: null,
+    converted_by: null,
+    category: categorizeLead(lead, now),
+  };
 }
 
 export const CATEGORY_ORDER: LeadCategory[] = [

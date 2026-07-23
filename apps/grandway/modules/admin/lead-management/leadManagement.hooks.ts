@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { keepPreviousData, useQuery } from "@peppermint/ui";
 import { fetchAllLeads, fetchLeadSources } from "./leadManagement.api";
-import { categorizeLead, emptyCategoryCounts } from "./leadCategory.utils";
+import { emptyCategoryCounts, toLeadBoardRow } from "./leadCategory.utils";
 import {
   leadManagementQueryKeys,
   leadSourceQueryKeys,
@@ -40,10 +40,7 @@ function makeLeadBoardQueryFn(
     const { data, meta } = await fetchAllLeads({
       fiscalYear: fiscalYear ?? undefined,
     });
-    const rows: LeadBoardRow[] = data.map((lead) => ({
-      ...lead,
-      category: categorizeLead(lead),
-    }));
+    const rows: LeadBoardRow[] = data.map((lead) => toLeadBoardRow(lead));
     return { data: rows, meta };
   };
 }

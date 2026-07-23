@@ -12,9 +12,16 @@ import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
+import { LeadForm } from "../../form";
 import { CATEGORY_LABELS } from "../../leadCategory.utils";
+import { createLead, getLead, updateLead } from "../../leadManagement.api";
 import { useLeadBoardData, useLeadSources } from "../../leadManagement.hooks";
-import type { LeadBoardRow, LeadCategory } from "../../leadManagement.types";
+import type {
+  LeadBoardRow,
+  LeadCategory,
+  LeadCreatePayload,
+  LeadUpdatePayload,
+} from "../../leadManagement.types";
 import { getLeadManagementColumns } from "./leadManagement.columns";
 
 const CATEGORY_ICONS: Record<
@@ -26,6 +33,27 @@ const CATEGORY_ICONS: Record<
   upcoming: CalendarCheckIcon,
   dead: ProhibitIcon,
 };
+
+/**
+ * The backend rejects *any* PATCH whose body includes an inactive `source`,
+ * even when it's unchanged — there's no "same value, don't re-validate"
+ * exemption. `LeadForm` always emits a complete payload (it has no way to
+ * know the record's original source is now retired), so the board — which
+ * has the original record to compare against — drops `source` entirely when
+ * it wasn't touched and is inactive, letting the PATCH proceed without
+ * forcing an unrelated edit to also mean "pick a new source."
+ */
+function toUpdatePayload(
+  values: LeadCreatePayload,
+  record: LeadBoardRow,
+): LeadUpdatePayload {
+  if (values.source === record.source.id && !record.source.is_active) {
+    const rest: LeadUpdatePayload = { ...values };
+    delete rest.source;
+    return rest;
+  }
+  return values;
+}
 
 function LeadManagementBoardContent() {
   const { isLeadManager } = useCurrentUser();
@@ -58,7 +86,7 @@ function LeadManagementBoardContent() {
 
   return (
     <>
-      <ModalTableShell<LeadBoardRow>
+      <ModalTableShell<LeadBoardRow, LeadCreatePayload, LeadCreatePayload>
         queryKey={boardQueryKey}
         queryGetFn={queryFn}
         enableServerQuery={false}
@@ -74,6 +102,19 @@ function LeadManagementBoardContent() {
             ? "Your assigned leads"
             : "All leads across the team",
         }}
+        createModalTitle="Add lead"
+        editModalTitle="Edit lead"
+        modalWidth={640}
+        createFormComponent={LeadForm}
+        editFormComponent={LeadForm}
+        onCreateApi={(values) => createLead(values)}
+        onEditApi={(values, record) =>
+          updateLead(record.id, toUpdatePayload(values, record))
+        }
+        onEditTrigger={async (record) => ({
+          ...(await getLead(record.id)),
+          category: record.category,
+        })}
         disableReviewButton
         getErrorMessage={getApiErrorMessage}
         pageSizes={[10, 20, 30, 50]}

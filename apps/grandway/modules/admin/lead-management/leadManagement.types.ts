@@ -187,7 +187,18 @@ export interface HistoryEntry {
 /** Board category — computed client-side, never sent to or received from the backend. */
 export type LeadCategory = "active" | "needs_attention" | "upcoming" | "dead";
 
-export interface LeadBoardRow extends Lead {
+/**
+ * Based on `LeadDetail`, not the trimmed `Lead` list shape, even though the
+ * board's aggregate fetch only ever gets list-shape rows from the backend —
+ * so `onEditTrigger` (which must return `Promise<TRow>` for whatever `TRow`
+ * the table uses) can hand back the *real* full detail it just fetched,
+ * simply adding `category`, instead of needing a second, incompatible row
+ * type for the edit modal. List-shape rows fill the detail-only fields with
+ * safe empty defaults (see `toLeadBoardRow` in `leadManagement.hooks.ts`) —
+ * nothing reads them until a row has actually been through `onEditTrigger`
+ * or the detail drawer's own fetch.
+ */
+export interface LeadBoardRow extends LeadDetail {
   category: LeadCategory;
 }
 
