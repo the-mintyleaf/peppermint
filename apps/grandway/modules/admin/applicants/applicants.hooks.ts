@@ -22,11 +22,16 @@ import type {
   StatusChangePayload,
 } from "./applicants.types";
 
-/** Backs the list page's `DataTableShell` — server-side pagination/filter/search. */
-export function useApplicantList(params?: QueryParams) {
+/**
+ * Backs the list page's `DataTableShell` (server-side pagination/filter/
+ * search) and any other consumer needing a plain applicant list/search —
+ * `enabled` lets a picker skip firing on an empty/too-short search term.
+ */
+export function useApplicantList(params?: QueryParams, enabled = true) {
   return useQuery({
     queryKey: applicantsQueryKeys.list(params),
     queryFn: () => listApplicants(params),
+    enabled,
   });
 }
 

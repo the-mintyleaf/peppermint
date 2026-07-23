@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   FormWrapper,
   useFormControls,
@@ -18,10 +18,16 @@ import {
   Text,
   Textarea,
   TextInput,
-  useQuery,
 } from "@peppermint/ui";
+import { useDebounce } from "@peppermint/utils";
 import { z } from "zod";
-import api from "@/lib/api";
+// Concrete-file import, not the `applicants` barrel — that barrel's
+// `ApplicantDetail.tsx` pulls in this module's own `ApplicantJourneysPanel`,
+// which needs this form; importing the barrel here would close that cycle.
+import {
+  useApplicantDetail,
+  useApplicantList,
+} from "@/modules/admin/applicants/applicants.hooks";
 import type {
   ApplicantJourney,
   ApplicantJourneyDetail,
@@ -124,9 +130,8 @@ export interface JourneyFormProps extends ModalFormComponentProps<
   /**
    * When provided, the applicant picker is hidden and the value is locked to
    * this id — for opening the form from a context that already knows the
-   * applicant (e.g. Applicant Detail → Journeys panel "New journey"). That
-   * panel doesn't exist yet; this prop is the hook for the orchestrator to
-   * wire it in a later phase without touching this form's internals.
+   * applicant. Used by `ApplicantJourneysPanel`'s "New journey" button on
+   * Applicant Detail.
    */
   applicantId?: string;
 }
@@ -338,50 +343,8 @@ function SubmitButton({
 // only a locked, read-only field. Create mode shows either a locked field
 // (when `applicantId` is preset by the caller) or a live search picker.
 
-interface ApplicantOption {
-  value: string;
-  label: string;
-}
-
-// TODO(orchestrator): the `applicants` module doesn't yet export a stable,
-// cleanly-importable search hook at the time this form was built — swap this
-// inline debounced fetch for `useApplicantList`/`useApplicantDetail` from
-// "@/modules/admin/applicants" once that module's barrel settles, keeping
-// the same `ApplicantOption[]` shape this picker already renders.
-async function searchApplicantsInline(
-  search: string,
-): Promise<ApplicantOption[]> {
-  const { data } = await api.get<{
-    data: Array<{ id: string; full_name_en: string; full_name_np: string }>;
-  }>("/api/v1/applicants/", { params: { search, page_size: 20 } });
-  return data.data.map((a) => ({
-    value: a.id,
-    label: a.full_name_en || a.full_name_np,
-  }));
-}
-
-async function fetchApplicantLabelInline(
-  id: string,
-): Promise<ApplicantOption | null> {
-  try {
-    const { data } = await api.get<{
-      id: string;
-      full_name_en: string;
-      full_name_np: string;
-    }>(`/api/v1/applicants/${id}/`);
-    return { value: data.id, label: data.full_name_en || data.full_name_np };
-  } catch {
-    return null;
-  }
-}
-
-function useDebouncedText(value: string, delay = 300): string {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(id);
-  }, [value, delay]);
-  return debounced;
+function applicantLabel(a: { full_name_en: string; full_name_np: string }) {
+  return a.full_name_en || a.full_name_np;
 }
 
 function ApplicantField({
@@ -415,16 +378,13 @@ function ApplicantField({
 }
 
 function PresetApplicantField({ applicantId }: { applicantId: string }) {
-  const { data } = useQuery({
-    queryKey: ["applicant-journeys.applicant-label", applicantId],
-    queryFn: () => fetchApplicantLabelInline(applicantId),
-  });
+  const { data } = useApplicantDetail(applicantId);
 
   return (
     <TextInput
       label="Applicant"
       description="This journey is being added for this applicant"
-      value={data?.label ?? applicantId}
+      value={data ? applicantLabel(data) : applicantId}
       disabled
     />
   );
@@ -433,14 +393,31 @@ function PresetApplicantField({ applicantId }: { applicantId: string }) {
 function ApplicantSearchField({ isLoading }: { isLoading: boolean }) {
   const { form } = useFormInstance<JourneyFormValues>();
   const [searchInput, setSearchInput] = useState("");
-  const debouncedSearch = useDebouncedText(searchInput);
+  const debouncedSearch = useDebounce(searchInput, 300);
   const trimmed = debouncedSearch.trim();
 
-  const { data: options = [], isFetching } = useQuery({
-    queryKey: ["applicant-journeys.applicant-search", trimmed],
-    queryFn: () => searchApplicantsInline(trimmed),
-    enabled: trimmed.length >= 2,
-  });
+  // The label shown once a value is picked is tracked independently of the
+  // live search — re-searching on the picked name (a prior version did this)
+  // can come back without that exact row (diacritic/script mismatch, a
+  // better-ranked namesake), leaving the Select looking blank despite
+  // `form.values.applicant` being set correctly underneath.
+  const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
+
+  const { data, isFetching } = useApplicantList(
+    { page: 1, pageSize: 20, search: trimmed, sort: [], filters: {} },
+    trimmed.length >= 2,
+  );
+  const options = (data?.data ?? []).map((a) => ({
+    value: a.id,
+    label: applicantLabel(a),
+  }));
+  const selectData =
+    selectedLabel && form.values.applicant
+      ? [
+          { value: form.values.applicant, label: selectedLabel },
+          ...options.filter((o) => o.value !== form.values.applicant),
+        ]
+      : options;
 
   return (
     <Stack gap={4}>
@@ -452,7 +429,7 @@ function ApplicantSearchField({ isLoading }: { isLoading: boolean }) {
         searchable
         searchValue={searchInput}
         onSearchChange={setSearchInput}
-        data={options}
+        data={selectData}
         nothingFoundMessage={
           trimmed.length < 2
             ? "Type at least 2 characters"
@@ -465,7 +442,7 @@ function ApplicantSearchField({ isLoading }: { isLoading: boolean }) {
         onChange={(value) => {
           form.setFieldValue("applicant", value ?? "");
           const selected = options.find((o) => o.value === value);
-          if (selected) setSearchInput(selected.label);
+          setSelectedLabel(selected?.label ?? null);
         }}
       />
       <Text size="xs" c="dimmed">

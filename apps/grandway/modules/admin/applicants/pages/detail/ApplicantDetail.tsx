@@ -24,6 +24,7 @@ import { getApiError } from "@/lib/authErrorMessages";
 import { useApplicantDetail } from "../../applicants.hooks";
 import type { ApplicantDetail as ApplicantDetailRecord } from "../../applicants.types";
 import { ApplicantHistoryPanel } from "./components/ApplicantHistoryPanel";
+import { ApplicantJourneysPanel } from "./components/ApplicantJourneysPanel";
 import { ApplicantOverviewPanel } from "./components/ApplicantOverviewPanel";
 import { ApplicantPassportFamilyPanel } from "./components/ApplicantPassportFamilyPanel";
 import { ChangeApplicantStatusModal } from "./components/ChangeApplicantStatusModal";
@@ -40,12 +41,7 @@ const STATUS_LABELS: Record<string, string> = {
   archived: "Archived",
 };
 
-/**
- * Data-driven, not a hardcoded switch — appending the Journeys tab in a
- * later phase (orchestrator-owned; cross-module) means adding one entry
- * here, not restructuring this component's JSX
- * (`{ value: "journeys", label: "Journeys", panel: <ApplicantJourneysPanel applicantId={applicant.id} /> }`).
- */
+/** Data-driven, not a hardcoded switch — a tab is one array entry. */
 function getApplicantDetailTabs(applicant: ApplicantDetailRecord) {
   return [
     {
@@ -59,12 +55,15 @@ function getApplicantDetailTabs(applicant: ApplicantDetailRecord) {
       panel: <ApplicantPassportFamilyPanel applicant={applicant} />,
     },
     {
+      value: "journeys",
+      label: "Journeys",
+      panel: <ApplicantJourneysPanel applicantId={applicant.id} />,
+    },
+    {
       value: "history",
       label: "History",
       panel: <ApplicantHistoryPanel applicantId={applicant.id} />,
     },
-    // Journeys panel intentionally omitted — cross-module, built by the
-    // orchestrator in a later phase (see this module's build report).
   ];
 }
 

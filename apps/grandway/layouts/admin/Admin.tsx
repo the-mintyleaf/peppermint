@@ -40,6 +40,8 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
         // Deliberately not `isAdmin` — that flag is true for `superadmin` too,
         // and the leads backend forbids `superadmin` on every endpoint.
         canAccessLeads: authorityType === "admin" || isLeadManager,
+        // Same reasoning — applicants/applicant_journeys forbid `superadmin` too.
+        canAccessApplicants: authorityType === "admin" || isLeadManager,
       }),
       linkComponent: Link,
       onNavigate: (href: string) => router.push(href),

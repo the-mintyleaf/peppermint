@@ -32,10 +32,10 @@ import type {
  * Standalone paginated fetch over `GET /journeys/` — independent of the
  * worklist's own `ModalTableShell` wiring, so any other consumer can just
  * ask for a filtered page of journeys. Exported from the module barrel for
- * exactly that reason: a future Applicant Detail → Journeys panel calls this
- * with `{ filters: { applicant: id } }` rather than re-deriving the fetch
- * (`docs/backend/applicant-journeys/FLOWS.md` "Record a new study
- * objective" — the per-person view is the primary entry point).
+ * exactly that reason: `ApplicantJourneysPanel` (in the `applicants` module's
+ * detail page) calls this with `{ filters: { applicant: id } }` rather than
+ * re-deriving the fetch (`docs/backend/applicant-journeys/FLOWS.md` "Record a
+ * new study objective" — the per-person view is the primary entry point).
  */
 export function useJourneyList(params?: QueryParams) {
   return useQuery({
@@ -116,8 +116,8 @@ export function useReopenJourney(journeyId: string) {
  * Not used by this module's own `JourneyWorklist` — its `ModalTableShell`
  * calls `createJourney`/`updateJourney` directly (the shell owns its own
  * create/edit mutation + notification, same pattern `LeadManagementBoard`
- * uses). Exported for other consumers, e.g. a future Applicant Detail →
- * Journeys panel's own "New journey" affordance outside a table shell.
+ * uses). Used by `ApplicantJourneysPanel`'s own "New journey" affordance,
+ * which opens a plain `Modal` outside any table shell.
  */
 export function useCreateJourney() {
   return useAppMutation<ApplicantJourneyDetail, JourneyCreatePayload>({
