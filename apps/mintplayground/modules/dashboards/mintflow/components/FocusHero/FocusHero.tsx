@@ -58,6 +58,7 @@ function HeroStat({
 }
 
 export function FocusHero({
+  greeting,
   greetingName,
   today,
   focus,
@@ -111,7 +112,7 @@ export function FocusHero({
                 letterSpacing: "-0.5px",
               }}
             >
-              Good morning, {greetingName}.{" "}
+              {greeting}, {greetingName}.{" "}
               <Text component="span" inherit c={tokens.accent}>
                 {inFocusPhrase(total)}
               </Text>
