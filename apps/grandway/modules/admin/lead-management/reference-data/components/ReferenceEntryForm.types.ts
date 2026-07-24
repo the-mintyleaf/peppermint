@@ -17,6 +17,10 @@ export interface ReferenceEntryFormProps {
   mode: "create" | "edit";
   /** Required when `mode === "edit"` — supplies `code` (read-only) and the initial values. */
   initialEntry?: ReferenceEntry;
+  /** `mode === "create"` only — e.g. a quick-create trigger's search text, once script-sniffed. */
+  prefillNameNp?: string;
+  /** `mode === "create"` only — same as `prefillNameNp`, for text that isn't Devanagari. */
+  prefillNameEn?: string;
   isSubmitting: boolean;
   onSubmit: (
     values: ReferenceEntryFormValues,

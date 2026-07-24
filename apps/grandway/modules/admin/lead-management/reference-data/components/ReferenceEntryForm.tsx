@@ -41,11 +41,13 @@ function buildSchema(mode: "create" | "edit") {
 
 function toInitialValues(
   entry: ReferenceEntryFormProps["initialEntry"],
+  prefillNameNp?: string,
+  prefillNameEn?: string,
 ): ReferenceEntryFormValues {
   return {
     code: entry?.code ?? "",
-    name_np: entry?.name_np ?? "",
-    name_en: entry?.name_en ?? "",
+    name_np: entry?.name_np ?? prefillNameNp ?? "",
+    name_en: entry?.name_en ?? prefillNameEn ?? "",
     requires_detail: entry?.requires_detail ?? false,
     display_order: entry?.display_order ?? 0,
   };
@@ -54,12 +56,14 @@ function toInitialValues(
 export function ReferenceEntryForm({
   mode,
   initialEntry,
+  prefillNameNp,
+  prefillNameEn,
   isSubmitting,
   onSubmit,
   onCancel,
 }: ReferenceEntryFormProps) {
   const schema = buildSchema(mode);
-  const initial = toInitialValues(initialEntry);
+  const initial = toInitialValues(initialEntry, prefillNameNp, prefillNameEn);
 
   return (
     <FormWrapper<ReferenceEntryFormValues>
