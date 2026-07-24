@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ModalPaper } from "@peppermint/ui";
+import { ModalPaper, ModuleHeader } from "@peppermint/ui";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { useCreateApplicant } from "../../applicants.hooks";
 import { ApplicantForm } from "../../form/ApplicantForm";
@@ -16,21 +16,42 @@ function ApplicantCreatePageContent() {
   const mutation = useCreateApplicant();
 
   return (
-    <ModalPaper withBorder>
-      <ApplicantForm
-        mode="create"
-        onBack={() => history.back()}
-        onSubmit={async (payload) => {
-          try {
-            const created = await mutation.mutateAsync(payload);
-            router.push(`/admin/applicants/${created.id}`);
-          } catch {
-            // `useCreateApplicant` (useAppMutation) already showed the
-            // failure notification — nothing further to do here.
-          }
-        }}
+    <>
+      {/* Same convention as `ApplicantDetail.tsx` / `ApplicantsList.tsx` —
+       * `ModuleHeader` sits outside `ModalPaper`, not inside it.
+       * `FormShell` (rendered inside `ApplicantForm`) also renders its own
+       * internal `ModuleHeader` with no breadcrumbs — that's a known,
+       * accepted blank strip inside the card until `FormShell` grows an
+       * opt-out for it. */}
+      <ModuleHeader
+        breadcrumbItems={[
+          { label: "Applicants", href: "/admin/applicants" },
+          { label: "New applicant", href: "/admin/applicants/new" },
+        ]}
       />
-    </ModalPaper>
+      {/* `ModalPaper` uses its default height here (`calc(100% - header)`)
+       * since `ModuleHeader` is now a real sibling above it — the flex
+       * column style still lets `FormShell`'s `flex: 1` scroll region get a
+       * bounded height to scroll within instead of clipping. */}
+      <ModalPaper
+        withBorder
+        style={{ display: "flex", flexDirection: "column" }}
+      >
+        <ApplicantForm
+          mode="create"
+          onBack={() => history.back()}
+          onSubmit={async (payload) => {
+            try {
+              const created = await mutation.mutateAsync(payload);
+              router.push(`/admin/applicants/${created.id}`);
+            } catch {
+              // `useCreateApplicant` (useAppMutation) already showed the
+              // failure notification — nothing further to do here.
+            }
+          }}
+        />
+      </ModalPaper>
+    </>
   );
 }
 
