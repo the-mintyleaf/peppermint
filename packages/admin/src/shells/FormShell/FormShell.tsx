@@ -41,7 +41,7 @@ export function FormShell({
 
   return (
     <>
-      <ModuleHeader breadcrumbItems={breadcrumbItems} />
+      <ModuleHeader />
 
       {/* Title + guarded Back button. Back confirms first when the form is dirty. */}
       <FormShellHeader
