@@ -13,6 +13,9 @@ import type {
   LeadUpdatePayload,
   LossReason,
   MarkLostPayload,
+  ReferenceEntry,
+  ReferenceEntryCreatePayload,
+  ReferenceEntryUpdatePayload,
   ReopenPayload,
   StageChangePayload,
   HistoryEntry,
@@ -121,7 +124,7 @@ export async function fetchAllLeads(
   return { data: collected, meta: { total, capped } };
 }
 
-// ── Reference data (read-only in this module — no admin source/reason management UI) ──
+// ── Reference data — read (picker-facing, active only) ──────────────────────
 
 /** `GET /api/v1/leads/sources/` — unpaginated; omit `include_inactive` so retired entries stay hidden. */
 export async function fetchLeadSources(): Promise<LeadSource[]> {
@@ -134,6 +137,48 @@ export async function fetchLossReasons(): Promise<LossReason[]> {
   const { data } = await api.get<LossReason[]>("/api/v1/leads/loss-reasons/");
   return data;
 }
+
+// ── Reference data admin — Admin only (FLOWS.md "Configure the pickers") ────
+//
+// `.list()`/`.remove()` from `createResourceApi` deliberately unused: the list
+// response here is a bare array, not the shell's `{data, meta}` envelope
+// (`toListResponse` doesn't apply), and there's no delete — only `.create`/
+// `.update` map onto this endpoint's real shape.
+
+function createReferenceEntryAdminApi(basePath: string) {
+  const resource = createResourceApi<
+    ReferenceEntry,
+    ReferenceEntryCreatePayload,
+    ReferenceEntryUpdatePayload
+  >({ client: api, basePath });
+
+  return {
+    /** `?include_inactive=true` — only this admin view ever passes it. */
+    fetchAll: async (): Promise<ReferenceEntry[]> => {
+      const { data } = await api.get<ReferenceEntry[]>(`${basePath}/`, {
+        params: { include_inactive: true },
+      });
+      return data;
+    },
+    create: resource.create,
+    update: resource.update,
+  };
+}
+
+const leadSourceAdminApi = createReferenceEntryAdminApi(
+  "/api/v1/leads/sources",
+);
+const lossReasonAdminApi = createReferenceEntryAdminApi(
+  "/api/v1/leads/loss-reasons",
+);
+
+export const fetchAllLeadSources = leadSourceAdminApi.fetchAll;
+export const createLeadSource = leadSourceAdminApi.create;
+export const updateLeadSource = leadSourceAdminApi.update;
+
+export const fetchAllLossReasons = lossReasonAdminApi.fetchAll;
+export const createLossReason = lossReasonAdminApi.create;
+export const updateLossReason = lossReasonAdminApi.update;
 
 // ── Notes and history ────────────────────────────────────────────────────────
 //

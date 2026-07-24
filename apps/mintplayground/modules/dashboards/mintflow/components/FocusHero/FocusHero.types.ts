@@ -1,6 +1,7 @@
 import type { FocusState, FocusTask } from "../../module.api";
 
 export interface FocusHeroProps {
+  greeting: string;
   greetingName: string;
   today: string;
   focus: FocusTask[];

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -41,12 +42,27 @@ const GREETING_NAME = "Minister";
 const TODAY = "Wednesday, 16 July";
 const VARIANT: DashboardVariant = "populated";
 
+function greetingForHour(hour: number): string {
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
 export function ModuleMintflow() {
   const router = useRouter();
   const { data, isLoading, isError, refetch } = useDashboard(VARIANT);
   const board = useDashboardBoard(data);
   const drawer = useDrawer();
   const isNarrow = useMediaQuery("(max-width: 60em)");
+  const [greeting, setGreeting] = useState("Hello");
+
+  useEffect(() => {
+    // Client-only value (depends on the viewer's local clock) — must start
+    // as "Hello" on the server/first paint and correct after mount to avoid
+    // a hydration mismatch, so the setState can't move out of the effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setGreeting(greetingForHour(new Date().getHours()));
+  }, []);
 
   const onStartFocus = (_task: FocusTask) => {
     void _task;
@@ -76,7 +92,7 @@ export function ModuleMintflow() {
         }
       />
 
-      <ModalPaper withBorder>
+      <ModalPaper withBorder p="xs">
         <ScrollArea h="100%">
           {isLoading ? (
             <LoadingState />
@@ -93,6 +109,7 @@ export function ModuleMintflow() {
               {/* Primary column — focus hero, a line, then the flow board */}
               <Stack gap={0} style={{ flex: "1 1 560px", minWidth: 0 }}>
                 <FocusHero
+                  greeting={greeting}
                   greetingName={GREETING_NAME}
                   today={TODAY}
                   focus={board.focus}

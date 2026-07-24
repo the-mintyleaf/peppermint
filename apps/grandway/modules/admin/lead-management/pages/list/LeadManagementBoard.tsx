@@ -3,11 +3,19 @@
 import { useState } from "react";
 import { ModalTableShell } from "@peppermint/admin";
 import type { DataTableShellTab } from "@peppermint/admin";
-import { ActionIcon, Alert, ModalPaper, TextInput } from "@peppermint/ui";
+import {
+  ActionIcon,
+  Alert,
+  Button,
+  Group,
+  ModalPaper,
+  TextInput,
+} from "@peppermint/ui";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { TrendUpIcon } from "@phosphor-icons/react/dist/csr/TrendUp";
 import { CalendarCheckIcon } from "@phosphor-icons/react/dist/csr/CalendarCheck";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
+import { TagIcon } from "@phosphor-icons/react/dist/csr/Tag";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
@@ -16,6 +24,7 @@ import { LeadForm } from "../../form";
 import { CATEGORY_LABELS } from "../../leadCategory.utils";
 import { createLead, getLead, updateLead } from "../../leadManagement.api";
 import { useLeadBoardData, useLeadSources } from "../../leadManagement.hooks";
+import { ReferenceDataModal } from "../../reference-data";
 import type {
   LeadBoardRow,
   LeadCategory,
@@ -57,9 +66,10 @@ function toUpdatePayload(
 }
 
 function LeadManagementBoardContent() {
-  const { isLeadManager } = useCurrentUser();
+  const { isLeadManager, authorityType } = useCurrentUser();
   const [fiscalYearInput, setFiscalYearInput] = useState("");
   const [fiscalYear, setFiscalYear] = useState<string | null>(null);
+  const [referenceDataOpen, setReferenceDataOpen] = useState(false);
 
   const { counts, capped, isLoading, boardQueryKey, queryFn } =
     useLeadBoardData(fiscalYear);
@@ -128,30 +138,42 @@ function LeadManagementBoardContent() {
         mainComponent={ModalPaper}
         mainComponentProps={{ withBorder: true }}
         headerRight={
-          <TextInput
-            size="xs"
-            placeholder="e.g. 2081/82"
-            description="Nepali fiscal year"
-            value={fiscalYearInput}
-            onChange={(e) => setFiscalYearInput(e.currentTarget.value)}
-            onBlur={applyFiscalYear}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") applyFiscalYear();
-            }}
-            rightSection={
-              fiscalYear ? (
-                <ActionIcon
-                  variant="subtle"
-                  size="sm"
-                  aria-label="Clear fiscal year filter"
-                  onClick={clearFiscalYear}
-                >
-                  <XIcon size={14} aria-hidden />
-                </ActionIcon>
-              ) : null
-            }
-            w={160}
-          />
+          <Group gap="xs" align="flex-end">
+            {authorityType === "admin" ? (
+              <Button
+                size="xs"
+                variant="default"
+                leftSection={<TagIcon size={14} aria-hidden />}
+                onClick={() => setReferenceDataOpen(true)}
+              >
+                Manage sources
+              </Button>
+            ) : null}
+            <TextInput
+              size="xs"
+              placeholder="e.g. 2081/82"
+              description="Nepali fiscal year"
+              value={fiscalYearInput}
+              onChange={(e) => setFiscalYearInput(e.currentTarget.value)}
+              onBlur={applyFiscalYear}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") applyFiscalYear();
+              }}
+              rightSection={
+                fiscalYear ? (
+                  <ActionIcon
+                    variant="subtle"
+                    size="sm"
+                    aria-label="Clear fiscal year filter"
+                    onClick={clearFiscalYear}
+                  >
+                    <XIcon size={14} aria-hidden />
+                  </ActionIcon>
+                ) : null
+              }
+              w={160}
+            />
+          </Group>
         }
       />
 
@@ -173,6 +195,13 @@ function LeadManagementBoardContent() {
         opened={detailLeadId !== null}
         onClose={() => setDetailLeadId(null)}
       />
+
+      {authorityType === "admin" ? (
+        <ReferenceDataModal
+          opened={referenceDataOpen}
+          onClose={() => setReferenceDataOpen(false)}
+        />
+      ) : null}
     </>
   );
 }

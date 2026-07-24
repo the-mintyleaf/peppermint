@@ -6,6 +6,7 @@ import {
   Center,
   Loader,
   ModalPaper,
+  ModuleHeader,
   Stack,
   Text,
 } from "@peppermint/ui";
@@ -81,23 +82,50 @@ function ApplicantEditPageContent() {
     );
   }
 
+  const displayName =
+    applicant.full_name_en ||
+    applicant.full_name_np ||
+    applicant.full_name_romanized;
+
   return (
-    <ModalPaper withBorder>
-      <ApplicantForm
-        mode="edit"
-        initialValues={applicant}
-        onBack={() => history.back()}
-        onSubmit={async (payload) => {
-          try {
-            await mutation.mutateAsync(payload);
-            router.push(`/admin/applicants/${id}`);
-          } catch {
-            // `useUpdateApplicant` (useAppMutation) already showed the
-            // failure notification — nothing further to do here.
-          }
-        }}
+    <>
+      {/* Same convention as `ApplicantDetail.tsx` / `ApplicantsList.tsx` —
+       * `ModuleHeader` sits outside `ModalPaper`, not inside it.
+       * `FormShell` (rendered inside `ApplicantForm`) also renders its own
+       * internal `ModuleHeader` with no breadcrumbs — that's a known,
+       * accepted blank strip inside the card until `FormShell` grows an
+       * opt-out for it. */}
+      <ModuleHeader
+        breadcrumbItems={[
+          { label: "Applicants", href: "/admin/applicants" },
+          { label: displayName, href: `/admin/applicants/${id}` },
+          { label: "Edit", href: `/admin/applicants/${id}/edit` },
+        ]}
       />
-    </ModalPaper>
+      {/* `ModalPaper` uses its default height here (`calc(100% - header)`)
+       * since `ModuleHeader` is now a real sibling above it — the flex
+       * column style still lets `FormShell`'s `flex: 1` scroll region get a
+       * bounded height to scroll within instead of clipping. */}
+      <ModalPaper
+        withBorder
+        style={{ display: "flex", flexDirection: "column" }}
+      >
+        <ApplicantForm
+          mode="edit"
+          initialValues={applicant}
+          onBack={() => history.back()}
+          onSubmit={async (payload) => {
+            try {
+              await mutation.mutateAsync(payload);
+              router.push(`/admin/applicants/${id}`);
+            } catch {
+              // `useUpdateApplicant` (useAppMutation) already showed the
+              // failure notification — nothing further to do here.
+            }
+          }}
+        />
+      </ModalPaper>
+    </>
   );
 }
 

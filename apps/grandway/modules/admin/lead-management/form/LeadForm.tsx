@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   FormWrapper,
   useFormControls,
@@ -8,23 +9,32 @@ import {
 import type { ModalFormComponentProps } from "@peppermint/admin";
 import {
   Button,
+  Card,
   Group,
   Select,
   Stack,
+  Text,
   Textarea,
   TextInput,
 } from "@peppermint/ui";
 import { z } from "zod";
-import { useLeadSources } from "../leadManagement.hooks";
+import { getApiErrorMessage } from "@/lib/authErrorMessages";
+import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
+import { useCreateLeadSource, useLeadSources } from "../leadManagement.hooks";
 import type {
   ContactNumberInput,
   LeadBoardRow,
   LeadCreatePayload,
   LeadSource,
 } from "../leadManagement.types";
+import { ReferenceEntryForm } from "../reference-data/components/ReferenceEntryForm";
 import { ContactNumbersField } from "./ContactNumbersField";
 import { StudyInterestSection } from "./StudyInterestSection";
 import type { LeadFormValues, StudyInterestFormValues } from "./LeadForm.types";
+
+const CREATE_SOURCE_VALUE = "__create_new_source__";
+/** Devanagari Unicode block — used to route search text to `name_np` vs `name_en` when prefilling a quick-created source. */
+const DEVANAGARI_PATTERN = /[ऀ-ॿ]/;
 
 const INITIAL_STUDY_INTEREST: StudyInterestFormValues = {
   interested_countries: [],
@@ -278,22 +288,51 @@ function Fields({
   isLoading: boolean;
 }) {
   const { form } = useFormInstance<LeadFormValues>();
+  const { authorityType } = useCurrentUser();
+  // Deliberately narrower than `useCurrentUser().isAdmin`, which also covers
+  // `superadmin` — the backend rejects a source create from `superadmin` too
+  // (`LEADS_ACTOR_FORBIDDEN`, INTEGRATION.md §6), so this option must stay
+  // gated on the exact tier, not the broader flag.
+  const isAdmin = authorityType === "admin";
   const selectedSource = sources.find((s) => s.id === form.values.source);
+  const [sourceSearch, setSourceSearch] = useState("");
+  const [creatingSource, setCreatingSource] = useState(false);
+  const createSourceMutation = useCreateLeadSource();
 
   // `fetchLeadSources()` never sends `include_inactive=true` (retired
-  // sources must stay hidden from every picker except the not-yet-built
-  // admin config screen — `docs/backend/lead-management/FLOWS.md`
-  // "Configure the pickers"), so `sources` never contains a retired entry
-  // to resolve a label from. Editing a lead whose source has since been
-  // retired shows this field blank — a known, accepted limitation shared
-  // with every other reference-data picker in this app, not something to
-  // work around here. `toUpdatePayload` (LeadManagementBoard.tsx) still
-  // omits `source` from the PATCH when it's untouched, so leaving the field
-  // alone doesn't block saving the rest of the edit.
+  // sources must stay hidden from every picker except the reference-data
+  // admin screen), so `sources` never contains a retired entry to resolve a
+  // label from. Editing a lead whose source has since been retired shows
+  // this field blank — a known, accepted limitation shared with every other
+  // reference-data picker in this app, not something to work around here.
+  // `toUpdatePayload` (LeadManagementBoard.tsx) still omits `source` from
+  // the PATCH when it's untouched, so leaving the field alone doesn't block
+  // saving the rest of the edit.
   const sourceOptions = sources.map((s) => ({
     value: s.id,
     label: s.name_en || s.name_np,
   }));
+
+  const trimmedSearch = sourceSearch.trim();
+  const filteredSourceOptions = trimmedSearch
+    ? sourceOptions.filter((o) =>
+        o.label.toLowerCase().includes(trimmedSearch.toLowerCase()),
+      )
+    : sourceOptions;
+  // Only Admins may create a source (`LEADS_ACTOR_FORBIDDEN` for anyone else
+  // — `docs/backend/lead-management/INTEGRATION.md` §6), so this option only
+  // ever appears for `authorityType === "admin"`.
+  const showCreateSourceOption = isAdmin && filteredSourceOptions.length === 0;
+  const selectData = showCreateSourceOption
+    ? [
+        {
+          value: CREATE_SOURCE_VALUE,
+          label: trimmedSearch
+            ? `+ Add "${trimmedSearch}" as a new lead source`
+            : "+ Add a new lead source",
+        },
+      ]
+    : filteredSourceOptions;
 
   return (
     <>
@@ -323,13 +362,24 @@ function Fields({
         />
         <Select
           label="Lead source"
-          placeholder="How did they hear about us?"
-          data={sourceOptions}
+          placeholder={
+            creatingSource
+              ? "Creating a new source below…"
+              : "How did they hear about us?"
+          }
+          data={selectData}
+          filter={({ options }) => options}
           searchable
+          searchValue={sourceSearch}
+          onSearchChange={setSourceSearch}
           required
-          disabled={isLoading}
+          disabled={isLoading || creatingSource}
           {...form.getInputProps("source")}
           onChange={(value) => {
+            if (value === CREATE_SOURCE_VALUE) {
+              setCreatingSource(true);
+              return;
+            }
             form.setFieldValue("source", value ?? "");
             // Always clear on any source change, not just when the new
             // source doesn't require one — an explanation written for the
@@ -348,6 +398,51 @@ function Fields({
           disabled={isLoading}
           {...form.getInputProps("source_detail")}
         />
+      ) : null}
+
+      {creatingSource ? (
+        <Card withBorder padding="sm" radius="md">
+          <Stack gap="xs">
+            <Text size="sm" fw={600}>
+              New lead source
+            </Text>
+            <ReferenceEntryForm
+              mode="create"
+              prefillNameNp={
+                DEVANAGARI_PATTERN.test(trimmedSearch)
+                  ? trimmedSearch
+                  : undefined
+              }
+              prefillNameEn={
+                trimmedSearch && !DEVANAGARI_PATTERN.test(trimmedSearch)
+                  ? trimmedSearch
+                  : undefined
+              }
+              isSubmitting={createSourceMutation.isPending}
+              onSubmit={async (values) => {
+                try {
+                  const created =
+                    await createSourceMutation.mutateAsync(values);
+                  form.setFieldValue("source", created.id);
+                  form.setFieldValue("source_detail", "");
+                  setCreatingSource(false);
+                  setSourceSearch("");
+                  return { ok: true };
+                } catch (error) {
+                  // `useCreateLeadSource`'s own toast already fired; passing
+                  // the same resolved message here (rather than leaving it
+                  // blank) keeps `FormWrapper`'s own notification from
+                  // showing a second, vaguer "Something went wrong."
+                  return { ok: false, message: getApiErrorMessage(error) };
+                }
+              }}
+              onCancel={() => {
+                setCreatingSource(false);
+                setSourceSearch("");
+              }}
+            />
+          </Stack>
+        </Card>
       ) : null}
 
       <Textarea
