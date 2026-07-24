@@ -12,7 +12,11 @@ import {
   changeLeadStage,
   convertLead,
   createLeadNote,
+  createLeadSource,
+  createLossReason,
   fetchAllLeads,
+  fetchAllLeadSources,
+  fetchAllLossReasons,
   fetchLeadHistory,
   fetchLeadNotes,
   fetchLeadSources,
@@ -21,6 +25,8 @@ import {
   markLeadLost,
   recordLeadFollowUp,
   reopenLead,
+  updateLeadSource,
+  updateLossReason,
 } from "./leadManagement.api";
 import { emptyCategoryCounts, toLeadBoardRow } from "./leadCategory.utils";
 import {
@@ -37,6 +43,9 @@ import type {
   LeadCategory,
   LeadNoteCreatePayload,
   MarkLostPayload,
+  ReferenceEntry,
+  ReferenceEntryCreatePayload,
+  ReferenceEntryUpdatePayload,
   ReopenPayload,
   StageChangePayload,
 } from "./leadManagement.types";
@@ -139,6 +148,102 @@ export function useLossReasons() {
   return useQuery({
     queryKey: lossReasonQueryKeys.lists(),
     queryFn: fetchLossReasons,
+  });
+}
+
+// ── Reference data admin (Admin only — the "Reference data" modal) ─────────
+//
+// A distinct cache entry from the picker query above (`.list({...})` vs
+// `.lists()`) since this one includes retired entries — but `.lists()` is a
+// prefix of `.list({...})`'s key, so every mutation below invalidating
+// `.lists()` still refreshes both this view and the picker.
+
+/** Admin management view — includes retired entries, unlike `useLeadSources`. */
+export function useLeadSourcesAdmin() {
+  return useQuery({
+    queryKey: leadSourceQueryKeys.list({ includeInactive: true }),
+    queryFn: fetchAllLeadSources,
+  });
+}
+
+/** Admin management view — includes retired entries, unlike `useLossReasons`. */
+export function useLossReasonsAdmin() {
+  return useQuery({
+    queryKey: lossReasonQueryKeys.list({ includeInactive: true }),
+    queryFn: fetchAllLossReasons,
+  });
+}
+
+export function useCreateLeadSource() {
+  return useAppMutation<ReferenceEntry, ReferenceEntryCreatePayload>({
+    mutationFn: createLeadSource,
+    successMessage: "Lead source added.",
+    errorTitle: "Couldn't add lead source",
+    invalidateKeys: [leadSourceQueryKeys.lists()],
+  });
+}
+
+/**
+ * Unlike `useChangeLeadStage`/`useMarkLeadLost` (bound to one lead id at hook
+ * call time — they mount inside a single-lead modal), this panel renders a
+ * *list* of entries, so the id travels with the mutate call instead of being
+ * bound at the hook call site.
+ */
+export function useUpdateLeadSource() {
+  return useAppMutation<
+    ReferenceEntry,
+    { id: string; body: ReferenceEntryUpdatePayload }
+  >({
+    mutationFn: ({ id, body }) => updateLeadSource(id, body),
+    successMessage: "Lead source updated.",
+    errorTitle: "Couldn't update lead source",
+    invalidateKeys: [leadSourceQueryKeys.lists()],
+  });
+}
+
+/** Row-level retire/reactivate — separate from `useUpdateLeadSource` so the toast names the actual consequence. */
+export function useSetLeadSourceActive() {
+  return useAppMutation<ReferenceEntry, { id: string; isActive: boolean }>({
+    mutationFn: ({ id, isActive }) =>
+      updateLeadSource(id, { is_active: isActive }),
+    successMessage: (_data, { isActive }) =>
+      isActive ? "Lead source reactivated." : "Lead source retired.",
+    errorTitle: "Couldn't update lead source",
+    invalidateKeys: [leadSourceQueryKeys.lists()],
+  });
+}
+
+export function useCreateLossReason() {
+  return useAppMutation<ReferenceEntry, ReferenceEntryCreatePayload>({
+    mutationFn: createLossReason,
+    successMessage: "Loss reason added.",
+    errorTitle: "Couldn't add loss reason",
+    invalidateKeys: [lossReasonQueryKeys.lists()],
+  });
+}
+
+/** See `useUpdateLeadSource` — id travels with the mutate call, not bound at hook call time. */
+export function useUpdateLossReason() {
+  return useAppMutation<
+    ReferenceEntry,
+    { id: string; body: ReferenceEntryUpdatePayload }
+  >({
+    mutationFn: ({ id, body }) => updateLossReason(id, body),
+    successMessage: "Loss reason updated.",
+    errorTitle: "Couldn't update loss reason",
+    invalidateKeys: [lossReasonQueryKeys.lists()],
+  });
+}
+
+/** Row-level retire/reactivate — separate from `useUpdateLossReason` so the toast names the actual consequence. */
+export function useSetLossReasonActive() {
+  return useAppMutation<ReferenceEntry, { id: string; isActive: boolean }>({
+    mutationFn: ({ id, isActive }) =>
+      updateLossReason(id, { is_active: isActive }),
+    successMessage: (_data, { isActive }) =>
+      isActive ? "Loss reason reactivated." : "Loss reason retired.",
+    errorTitle: "Couldn't update loss reason",
+    invalidateKeys: [lossReasonQueryKeys.lists()],
   });
 }
 

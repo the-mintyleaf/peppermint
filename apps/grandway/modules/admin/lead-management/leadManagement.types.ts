@@ -271,3 +271,22 @@ export interface ReopenPayload {
 export interface LeadNoteCreatePayload {
   body: string;
 }
+
+/**
+ * `code` is immutable after creation (INTEGRATION.md §8) — present here since
+ * this is the *create* shape, but never rendered as an editable field once a
+ * `ReferenceEntryUpdatePayload` is in play.
+ */
+export interface ReferenceEntryCreatePayload {
+  code: string;
+  name_np: string;
+  name_en?: string;
+  requires_detail?: boolean;
+  is_active?: boolean;
+  display_order?: number;
+}
+
+/** Same shape minus `code` — omitted entirely, not just optional, since the backend rejects it on update. */
+export type ReferenceEntryUpdatePayload = Partial<
+  Omit<ReferenceEntryCreatePayload, "code">
+>;
