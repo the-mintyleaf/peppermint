@@ -213,6 +213,18 @@ export function configureApiClient(
         return Promise.reject(error);
       }
 
+      // A 401 on a request that never carried a Bearer token in the first place
+      // (login, refresh, or any other public endpoint) is a normal business
+      // response for the caller to handle — wrong credentials, MFA required,
+      // an expired refresh credential — not a signal that an access token needs
+      // refreshing. Treating it as one here means every such response also
+      // triggers a doomed refresh attempt (no session exists to refresh) that
+      // ends in `handleAuthFailure()`'s hard redirect, stomping on whatever the
+      // caller's own error handling just did (e.g. showing an MFA prompt).
+      if (!original.headers?.Authorization) {
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           refreshQueue.push({ resolve, reject, config: original });
