@@ -21,6 +21,8 @@ import { ArrowsLeftRightIcon } from "@phosphor-icons/react/dist/csr/ArrowsLeftRi
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiError } from "@/lib/authErrorMessages";
+import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
+import { ApplicantDocumentsPanel } from "@/modules/admin/documents";
 import { useApplicantDetail } from "../../applicants.hooks";
 import type { ApplicantDetail as ApplicantDetailRecord } from "../../applicants.types";
 import { ApplicantHistoryPanel } from "./components/ApplicantHistoryPanel";
@@ -41,8 +43,16 @@ const STATUS_LABELS: Record<string, string> = {
   archived: "Archived",
 };
 
-/** Data-driven, not a hardcoded switch — a tab is one array entry. */
-function getApplicantDetailTabs(applicant: ApplicantDetailRecord) {
+/**
+ * Data-driven, not a hardcoded switch — a tab is one array entry. The Documents tab is
+ * included only for admins: documents are Admin-only including reads, and a lead manager
+ * must not even see the tab (an empty tab would itself disclose that documents may exist —
+ * `documents/docs/SECURITY.md`).
+ */
+function getApplicantDetailTabs(
+  applicant: ApplicantDetailRecord,
+  includeDocuments: boolean,
+) {
   return [
     {
       value: "overview",
@@ -59,6 +69,20 @@ function getApplicantDetailTabs(applicant: ApplicantDetailRecord) {
       label: "Journeys",
       panel: <ApplicantJourneysPanel applicantId={applicant.id} />,
     },
+    ...(includeDocuments
+      ? [
+          {
+            value: "documents",
+            label: "Documents",
+            panel: (
+              <ApplicantDocumentsPanel
+                applicantId={applicant.id}
+                applicantName={applicant.full_name_en || applicant.full_name_np}
+              />
+            ),
+          },
+        ]
+      : []),
     {
       value: "history",
       label: "History",
@@ -70,6 +94,8 @@ function getApplicantDetailTabs(applicant: ApplicantDetailRecord) {
 function ApplicantDetailContent() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { authorityType } = useCurrentUser();
+  const isAdmin = authorityType === "admin";
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const {
     data: applicant,
@@ -126,7 +152,7 @@ function ApplicantDetailContent() {
     );
   }
 
-  const tabs = getApplicantDetailTabs(applicant);
+  const tabs = getApplicantDetailTabs(applicant, isAdmin);
   const displayName =
     applicant.full_name_en ||
     applicant.full_name_np ||
