@@ -14,6 +14,11 @@ import { BriefcaseIcon } from "@phosphor-icons/react/dist/csr/Briefcase";
 import { HandshakeIcon } from "@phosphor-icons/react/dist/csr/Handshake";
 import { FilesIcon } from "@phosphor-icons/react/dist/csr/Files";
 import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
+import { ChartBarIcon } from "@phosphor-icons/react/dist/csr/ChartBar";
+import { ListChecksIcon } from "@phosphor-icons/react/dist/csr/ListChecks";
+import { FileMagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/FileMagnifyingGlass";
+import { BellIcon } from "@phosphor-icons/react/dist/csr/Bell";
+import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
 
 export interface BuildAdminConfigOptions {
   isAdmin?: boolean;
@@ -29,6 +34,16 @@ export interface BuildAdminConfigOptions {
   canAccessOffers?: boolean;
   /** `documents` — the strictest model: Admin only, reads included; `lead_manager` AND `superadmin` are both 403'd on every route (`documents/docs/SECURITY.md`). Hidden entirely for non-admins, never read-only. */
   canAccessDocuments?: boolean;
+  /** `checklists` — reads (worklist, awaiting-setup, templates) are admin/lead_manager; template authoring is Admin-only and self-gated inline within the module. `superadmin` denied on every route (`checklists/docs/backend/INTEGRATION.md` §1). */
+  canAccessChecklists?: boolean;
+  /** `dashboard` — admin/lead_manager only; `superadmin` gets 403 on every section (`dashboard/docs/backend/INTEGRATION.md` §1/§8) — hide the entry entirely rather than link to an empty page. */
+  canAccessDashboard?: boolean;
+  /** The Admin-only file review queue (`/admin/files/review`) — verify/archive/restore are Admin-only; a `lead_manager` never reaches this screen (`uploaded-files/docs/backend/INTEGRATION.md` §1). Files themselves have no standalone nav entry — every other files screen is embedded in another module's detail page. */
+  canAccessFileReview?: boolean;
+  /** The notifications bell (sidebar `additional`) — admin/lead_manager only, `superadmin` refused on every endpoint (`notifications/docs/backend/INTEGRATION.md` §1). */
+  canAccessNotifications?: boolean;
+  /** Unread notification count for the bell's badge — `undefined`/`0` renders no badge. */
+  unreadNotificationCount?: number;
 }
 
 /**
@@ -50,6 +65,11 @@ export function buildAdminConfig(
     canAccessClients,
     canAccessOffers,
     canAccessDocuments,
+    canAccessChecklists,
+    canAccessDashboard,
+    canAccessFileReview,
+    canAccessNotifications,
+    unreadNotificationCount,
   } = options;
   return {
     brand: {
@@ -64,6 +84,17 @@ export function buildAdminConfig(
         label: "Home",
         href: "/admin",
       },
+      ...(canAccessDashboard
+        ? [
+            {
+              kind: "page" as const,
+              id: "dashboard",
+              icon: ChartBarIcon,
+              label: "Dashboard",
+              href: "/admin/dashboard",
+            },
+          ]
+        : []),
       ...(canAccessLeads
         ? [
             {
@@ -151,6 +182,41 @@ export function buildAdminConfig(
             },
           ]
         : []),
+      ...(canAccessChecklists
+        ? [
+            {
+              kind: "module" as const,
+              id: "checklists",
+              icon: ListChecksIcon,
+              label: "Checklists",
+              subNav: {
+                homeHref: "/admin/checklists",
+                groups: [
+                  {
+                    label: "Checklists",
+                    items: [
+                      {
+                        label: "Worklist",
+                        href: "/admin/checklists",
+                        icon: ListChecksIcon,
+                      },
+                      {
+                        label: "Awaiting setup",
+                        href: "/admin/checklists/awaiting-setup",
+                        icon: ClockIcon,
+                      },
+                      {
+                        label: "Templates",
+                        href: "/admin/checklists/templates",
+                        icon: BooksIcon,
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
       ...(canAccessDocuments
         ? [
             {
@@ -178,6 +244,17 @@ export function buildAdminConfig(
                   },
                 ],
               },
+            },
+          ]
+        : []),
+      ...(canAccessFileReview
+        ? [
+            {
+              kind: "page" as const,
+              id: "file-review",
+              icon: FileMagnifyingGlassIcon,
+              label: "File Review",
+              href: "/admin/files/review",
             },
           ]
         : []),
@@ -230,5 +307,18 @@ export function buildAdminConfig(
           ]
         : []),
     ],
+    additional: canAccessNotifications
+      ? [
+          {
+            id: "notifications",
+            icon: BellIcon,
+            label: "Notifications",
+            href: "/admin/notifications",
+            badge: unreadNotificationCount
+              ? String(unreadNotificationCount)
+              : undefined,
+          },
+        ]
+      : undefined,
   };
 }

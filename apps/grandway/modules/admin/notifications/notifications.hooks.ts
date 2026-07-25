@@ -19,11 +19,21 @@ import type {
   NotificationSummaryParams,
 } from "./notifications.types";
 
-/** No push channel exists (§9) — this is the only sanctioned poll in this module. Pauses when the tab is hidden, refreshes on refocus. */
-export function useNotificationSummary(params?: NotificationSummaryParams) {
+/**
+ * No push channel exists (§9) — this is the only sanctioned poll in this
+ * module. Pauses when the tab is hidden, refreshes on refocus. `enabled`
+ * defaults to `true`; the sidebar bell passes `false` for a Superadmin
+ * session, which gets `NOTIFICATIONS_ACTOR_FORBIDDEN` on every endpoint (§1)
+ * — polling anyway would just be a 403 every 30 seconds.
+ */
+export function useNotificationSummary(
+  params?: NotificationSummaryParams,
+  enabled = true,
+) {
   return useQuery({
     queryKey: summaryKey(params),
     queryFn: () => fetchSummary(params),
+    enabled,
     refetchInterval: 30_000,
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,

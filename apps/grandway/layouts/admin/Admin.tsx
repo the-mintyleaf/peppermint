@@ -11,6 +11,7 @@ import { buildAdminConfig } from "@/config/nav/admin-nav";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import { useLogout } from "@/modules/admin/authenticate/_shared/useLogout";
 import { AccountSettingsModal } from "@/modules/admin/authenticate/account-settings";
+import { useNotificationSummary } from "@/modules/admin/notifications/notifications.hooks";
 import { hasAccessToken } from "@/lib/authTokens";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import styles from "./Admin.module.css";
@@ -26,6 +27,15 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
   const { user, authorityType, isAdmin, isLeadManager } = useCurrentUser();
   const { mutate: logoutMutate } = useLogout();
   const [settingsOpened, settingsHandlers] = useDisclosure(false);
+
+  // Same reasoning as every other admin/lead_manager-shared module below —
+  // `superadmin` gets `NOTIFICATIONS_ACTOR_FORBIDDEN` on every endpoint, so
+  // polling for one would just be a 403 every 30 seconds.
+  const canAccessNotifications = authorityType === "admin" || isLeadManager;
+  const { data: notificationSummary } = useNotificationSummary(
+    undefined,
+    canAccessNotifications,
+  );
 
   useEffect(() => {
     if (!hasAccessToken()) {
@@ -50,6 +60,15 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
         canAccessOffers: authorityType === "admin" || isLeadManager,
         // documents: Admin ONLY (reads included) — superadmin AND lead_manager both denied.
         canAccessDocuments: authorityType === "admin",
+        // checklists: reads shared admin/lead_manager; template authoring is
+        // Admin-only and self-gated inline within the module. Superadmin denied.
+        canAccessChecklists: authorityType === "admin" || isLeadManager,
+        // dashboard: admin/lead_manager only; superadmin 403s on every section.
+        canAccessDashboard: authorityType === "admin" || isLeadManager,
+        // file review queue: Admin ONLY (verify/archive/restore).
+        canAccessFileReview: authorityType === "admin",
+        canAccessNotifications,
+        unreadNotificationCount: notificationSummary?.unread,
       }),
       linkComponent: Link,
       onNavigate: (href: string) => router.push(href),
@@ -73,6 +92,8 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
       isLeadManager,
       user,
       authorityType,
+      canAccessNotifications,
+      notificationSummary?.unread,
       logoutMutate,
       settingsHandlers.open,
       router,
