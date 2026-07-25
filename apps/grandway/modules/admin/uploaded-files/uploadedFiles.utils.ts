@@ -1,7 +1,6 @@
 import { dayjs } from "@peppermint/ui";
 import type {
   AcceptedExtension,
-  BsDate,
   FileCategory,
   FileOwnerScope,
 } from "./uploadedFiles.types";
@@ -37,28 +36,19 @@ export const PREVIEWABLE_CATEGORIES = new Set<FileCategory>([
 ]);
 
 /**
- * Resolve the single owner key set on a scope object. Exactly one is always
+ * Resolve the single owner key set on a scope object. Exactly one must be
  * set — a database constraint on the backend, not only validation (§4).
- * Throws rather than silently uploading against the wrong/no owner.
+ * Throws rather than silently uploading against the wrong (or an
+ * ambiguously-scoped) owner if a caller ever passes zero or more than one.
  */
 export function getOwnerEntry(scope: FileOwnerScope): [string, string] {
-  const entry = Object.entries(scope).find(([, value]) => Boolean(value));
-  if (!entry) {
+  const entries = Object.entries(scope).filter(([, value]) => Boolean(value));
+  if (entries.length !== 1) {
     throw new Error(
-      "uploaded-files: exactly one owner key must be set on `scope`.",
+      `uploaded-files: exactly one owner key must be set on \`scope\` (got ${entries.length}).`,
     );
   }
-  return entry as [string, string];
-}
-
-/** User-facing date display; appends the BS sibling's `display` when present (§3 — read either, never recompute). */
-export function formatFileDate(
-  gregorian: string | null | undefined,
-  bs?: BsDate | null,
-): string {
-  if (!gregorian) return "—";
-  const formatted = dayjs(gregorian).format("MMM D, YYYY");
-  return bs?.display ? `${formatted} (${bs.display})` : formatted;
+  return entries[0] as [string, string];
 }
 
 /** ISO datetime → readable local string, `—` when null. */

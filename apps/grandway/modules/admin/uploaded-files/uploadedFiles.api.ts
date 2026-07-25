@@ -78,13 +78,25 @@ export async function fetchFileVersions(
 }
 
 /**
+ * The app's Axios instance sets a default `Content-Type: application/json`
+ * header (`@peppermint/api-client`). Axios's request transformer stringifies
+ * `FormData` to JSON whenever a JSON content type is already present on the
+ * request, which would silently break every multipart upload. Passing
+ * `Content-Type: undefined` here removes that default for this call only, so
+ * the browser sets the multipart boundary itself.
+ */
+const MULTIPART_HEADERS = { "Content-Type": undefined };
+
+/**
  * `POST /api/v1/files/` — 201, `multipart/form-data`. Takes a pre-built
  * `FormData` (owner key/id, `category`, `file`, optional `notes`) — see
  * `UploadFileModal`'s `finalSubmitFn`, which is where the owner scope is
  * resolved into the right form field name.
  */
 export async function uploadFile(formData: FormData): Promise<UploadedFile> {
-  const { data } = await api.post<UploadedFile>(`${FILES}/`, formData);
+  const { data } = await api.post<UploadedFile>(`${FILES}/`, formData, {
+    headers: MULTIPART_HEADERS,
+  });
   return data;
 }
 
@@ -101,6 +113,7 @@ export async function replaceFile(
   const { data } = await api.post<UploadedFile>(
     `${FILES}/${id}/replace/`,
     formData,
+    { headers: MULTIPART_HEADERS },
   );
   return data;
 }
