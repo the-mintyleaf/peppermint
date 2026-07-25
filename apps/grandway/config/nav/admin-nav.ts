@@ -12,6 +12,8 @@ import { BooksIcon } from "@phosphor-icons/react/dist/csr/Books";
 import { BuildingsIcon } from "@phosphor-icons/react/dist/csr/Buildings";
 import { BriefcaseIcon } from "@phosphor-icons/react/dist/csr/Briefcase";
 import { HandshakeIcon } from "@phosphor-icons/react/dist/csr/Handshake";
+import { FilesIcon } from "@phosphor-icons/react/dist/csr/Files";
+import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
 
 export interface BuildAdminConfigOptions {
   isAdmin?: boolean;
@@ -25,6 +27,8 @@ export interface BuildAdminConfigOptions {
   canAccessClients?: boolean;
   /** `offers` — full rights for admin AND lead_manager alike (no read/write split), `superadmin` denied (`offers/docs/backend/INTEGRATION.md` §1). */
   canAccessOffers?: boolean;
+  /** `documents` — the strictest model: Admin only, reads included; `lead_manager` AND `superadmin` are both 403'd on every route (`documents/docs/SECURITY.md`). Hidden entirely for non-admins, never read-only. */
+  canAccessDocuments?: boolean;
 }
 
 /**
@@ -45,6 +49,7 @@ export function buildAdminConfig(
     canAccessCatalogue,
     canAccessClients,
     canAccessOffers,
+    canAccessDocuments,
   } = options;
   return {
     brand: {
@@ -143,6 +148,36 @@ export function buildAdminConfig(
               icon: HandshakeIcon,
               label: "Offers",
               href: "/admin/offers",
+            },
+          ]
+        : []),
+      ...(canAccessDocuments
+        ? [
+            {
+              kind: "module" as const,
+              id: "documents",
+              icon: FilesIcon,
+              label: "Documents",
+              subNav: {
+                homeHref: "/admin/documents",
+                groups: [
+                  {
+                    label: "Documents",
+                    items: [
+                      {
+                        label: "Workspaces",
+                        href: "/admin/documents",
+                        icon: FilesIcon,
+                      },
+                      {
+                        label: "All documents",
+                        href: "/admin/documents/all",
+                        icon: FileTextIcon,
+                      },
+                    ],
+                  },
+                ],
+              },
             },
           ]
         : []),

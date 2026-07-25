@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
+import { RequireDocumentAccess } from "@/components/RequireDocumentAccess";
 import { DocumentEditorProvider } from "../../context";
 import { DocHeader } from "../../components/DocHeader";
 import { DocToolbar } from "../../components/DocToolbar";
@@ -87,17 +88,29 @@ function DocumentEditorInner() {
   );
 }
 
+/**
+ * The full-screen document editor. Serves both the applicant-workspace route
+ * (`/admin/documents/workspace/[applicantId]`) and the standalone-document route
+ * (`/admin/documents/standalone/[documentId]`). Admin-only — `RequireDocumentAccess`
+ * refuses lead managers and superadmins on reads too (`documents/docs/SECURITY.md`).
+ */
 export function DocumentEditor() {
   const params = useParams();
-  const applicantId = params?.applicantId as string;
+  const applicantId = (params?.applicantId as string | undefined) ?? null;
+  const documentId = (params?.documentId as string | undefined) ?? null;
 
-  if (!applicantId) {
+  if (!applicantId && !documentId) {
     return null;
   }
 
   return (
-    <DocumentEditorProvider applicantId={applicantId}>
-      <DocumentEditorInner />
-    </DocumentEditorProvider>
+    <RequireDocumentAccess>
+      <DocumentEditorProvider
+        applicantId={applicantId}
+        standaloneDocumentId={documentId}
+      >
+        <DocumentEditorInner />
+      </DocumentEditorProvider>
+    </RequireDocumentAccess>
   );
 }

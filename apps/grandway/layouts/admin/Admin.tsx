@@ -48,6 +48,8 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
         canAccessClients: authorityType === "admin" || isLeadManager,
         // offers: admin + lead_manager have identical full rights; superadmin denied.
         canAccessOffers: authorityType === "admin" || isLeadManager,
+        // documents: Admin ONLY (reads included) — superadmin AND lead_manager both denied.
+        canAccessDocuments: authorityType === "admin",
       }),
       linkComponent: Link,
       onNavigate: (href: string) => router.push(href),
