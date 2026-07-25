@@ -9,9 +9,9 @@
 
 ## Change History
 
-| Version | Date | Author | Summary |
-|---------|------|--------|---------|
-| 1.0.0 | 2026-07-22 | AI (Claude Opus 4.8) | Initial contract — read-only central audit log (Phase 4) |
+| Version | Date       | Author               | Summary                                                  |
+| ------- | ---------- | -------------------- | -------------------------------------------------------- |
+| 1.0.0   | 2026-07-22 | AI (Claude Opus 4.8) | Initial contract — read-only central audit log (Phase 4) |
 
 ---
 
@@ -23,9 +23,9 @@
 
 ## 2. Requires
 
-| Depends on | Kind | Why | What breaks without it |
-|------------|------|-----|------------------------|
-| `core` | framework | Response envelope, pagination, exception handler | Responses lose the `{ success, message, data, meta }` shape |
+| Depends on     | Kind      | Why                                                                                         | What breaks without it                                                          |
+| -------------- | --------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `core`         | framework | Response envelope, pagination, exception handler                                            | Responses lose the `{ success, message, data, meta }` shape                     |
 | `authenticate` | framework | Supplies the request user; the read gate reads `request.user.is_authenticated` + `is_staff` | Every endpoint returns 401/403; no caller can be recognised as an administrator |
 
 **Note for consumers:** `audit` has NO write API and does not import any other app's models. Actors and affected records are stored as type + UUID values passed in by the emitting app, so audit stays decoupled. `authenticate` depends on `audit` (it emits events); the reverse is only the framework-level user dependency above.
@@ -36,11 +36,30 @@
 - **Error:** `{ success: false, error: { code, message, details }, meta }`.
 
 ```json
-{ "success": true, "message": "Audit events retrieved.", "data": [ { "…AuditEvent…": "" } ], "meta": { "count": 1, "page": 1, "page_size": 20, "next": null, "previous": null } }
+{
+  "success": true,
+  "message": "Audit events retrieved.",
+  "data": [{ "…AuditEvent…": "" }],
+  "meta": {
+    "count": 1,
+    "page": 1,
+    "page_size": 20,
+    "next": null,
+    "previous": null
+  }
+}
 ```
 
 ```json
-{ "success": false, "error": { "code": "AUDIT_EVENT_NOT_FOUND", "message": "Audit event not found.", "details": {} }, "meta": {} }
+{
+  "success": false,
+  "error": {
+    "code": "AUDIT_EVENT_NOT_FOUND",
+    "message": "Audit event not found.",
+    "details": {}
+  },
+  "meta": {}
+}
 ```
 
 - **Auth failures:** `AUTHENTICATION_REQUIRED` (401) when no/invalid token; `PERMISSION_DENIED` (403) when authenticated but not an administrator (`is_staff`).
@@ -51,6 +70,7 @@
 ## 4. Models
 
 **AuditEvent** — `{ id:uuid, actor_type:string[enum], actor_id:uuid|null, actor_label:string, app_label:string, action:string, entity_type:string, entity_id:uuid|null, reason:string, source:string, ip_address:string|null, success:bool, summary:string, changes:json, metadata:json, created_at:string }`
+
 - Read-only. To read a record's timeline, filter by `entity_type` + `entity_id`.
 - **Nullable / empty:** `actor_id` is null and `actor_label` may be empty for `system`/`ai`/unknown actors; `entity_id` is null (and `entity_type` empty) when the action is not scoped to a single record; `ip_address` is null when not applicable; `reason`/`source`/`summary` may be empty strings. `summary` is a best-effort human label and is often empty — do not rely on it as the sole row text.
 - **`changes`** is a compact before/after map `{ "<field>": { "old": <any-json>, "new": <any-json> } }` — `old`/`new` are arbitrary JSON (string, number, bool, null, object); default `{}`.
@@ -100,6 +120,7 @@
 **Use it when:** an administrator reviews system-wide activity, investigates what happened to a record (filter by `entity_type`+`entity_id`), or reviews an actor's actions (filter by `actor_id`).
 
 **Methods:**
+
 - `GET /api/v1/audit/events/` (`audit.event.list`)
 - `GET /api/v1/audit/events/<id>/` (`audit.event.read`)
 
@@ -112,21 +133,25 @@
 **Side effects:** none — these endpoints never write.
 
 **Notes:**
+
 - The log is append-only and populated by other apps; there is no create/update/delete endpoint by design.
 - A record's timeline is the list endpoint filtered by `entity_type` + `entity_id`.
 
 **Errors:**
+
 - `AUDIT_EVENT_NOT_FOUND` (404) — no event with that id (detail only).
 - `VALIDATION_ERROR` (400) — a malformed list filter (bad UUID, non-boolean `success`, bad `fiscal_year`); per-field messages in `error.details`.
 
 ## 8. Flows
 
 **Review system activity**
+
 1. `GET /api/v1/audit/events/` (optionally `?app=authenticate&action=login_failure&fiscal_year=2082/83`) → a paginated, newest-first list.
 2. `GET /api/v1/audit/events/<id>/` for full detail including `changes` before/after.
    - Failure `AUTHENTICATION_REQUIRED`/`PERMISSION_DENIED` → not an administrator; hide the audit UI.
 
 **Reconstruct a record's history**
+
 1. `GET /api/v1/audit/events/?entity_type=authenticate.user&entity_id=<uuid>` → every event affecting that record, newest first.
 2. Reverse-read for the oldest-to-newest timeline (there is no ascending-order param in V1).
 

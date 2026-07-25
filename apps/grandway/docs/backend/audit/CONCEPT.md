@@ -1,5 +1,4 @@
-CONCEPT — Audit
-===============
+# CONCEPT — Audit
 
 Ideation / grounding file for the `audit` app (CLAUDE.md §36). Freeform prose —
 the formal schema/endpoint contracts live in the app's docs/ folder later. This
@@ -7,9 +6,7 @@ file grounds the work; it does not by itself authorize building. Draft prepared
 for review — adjust anything that does not match the intended design before the
 app is built.
 
-
-Purpose
--------
+## Purpose
 
 The audit app is Grandway's accountability backbone. It owns one immutable,
 queryable history of every important action and change across the whole system —
@@ -25,9 +22,7 @@ app is the central, cross-app record other domains write their important events
 into so there is a single place to review activity spanning leads, applicants,
 journeys, documents, offers, files, and account/authentication actions.
 
-
-Actors / Users
---------------
+## Actors / Users
 
 - System / other apps: the primary writers. Every app records its important
   actions here through an audit service call — never by writing the table
@@ -44,9 +39,7 @@ Actors / Users
 
 The applicant is never a direct actor here (consistent with V1).
 
-
-Core entities
--------------
+## Core entities
 
 - Audit event: one immutable record of a single important action. It captures
   the traceability model already defined in project_overview.txt:
@@ -74,9 +67,7 @@ Core entities
 Audit events are append-only: once written they are never edited or deleted.
 There are no "statuses" on an event — it is a fact that happened.
 
-
-Key user flows
---------------
+## Key user flows
 
 1. Record an event (system): an app completes an important action -> it calls
    the audit service with actor, authority, action, scope, time, reason, source,
@@ -95,9 +86,7 @@ Key user flows
    slice of (3) scoped to auth events for a given user — reconciled with the
    per-account review the authenticate app already exposes.
 
-
-UI screens & wireframe notes
-----------------------------
+## UI screens & wireframe notes
 
 - Audit log: a filterable, paginated table of events, newest first. Columns:
   time (NPT + BS), actor, authority, action, affected record (type + link),
@@ -113,9 +102,7 @@ UI screens & wireframe notes
 - Authentication activity: a pre-filtered audit log scoped to one account's auth
   events; serves flow 4. Shares the log layout.
 
-
-Constraints / Out of scope
---------------------------
+## Constraints / Out of scope
 
 - Append-only and immutable: no edit, no delete, no soft-delete of events. Any
   attempt is a bug. (Mirrors the immutability the authenticate.AuthEvent log and
@@ -141,9 +128,7 @@ Constraints / Out of scope
   Log-based undo/rollback is explicitly NOT a goal; audit records history, it
   does not reverse it.
 
-
-Resolved decisions (V1)
------------------------
+## Resolved decisions (V1)
 
 - Central vs federated: FEDERATED. Each app keeps its own log (e.g.
   authenticate.AuthEvent stays authoritative for its own review endpoint) AND
@@ -157,9 +142,8 @@ Resolved decisions (V1)
   Managers have no audit-read access. Own-scope Lead Manager access is deferred
   until record-ownership lives in the operational apps that own those records.
 
+## Open questions
 
-Open questions
---------------
 - Before/after capture: how is "previous value / new value" produced uniformly
   across very different models without each app hand-rolling it — a shared helper,
   a serializer contract, or app-provided change dicts?

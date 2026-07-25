@@ -20,13 +20,13 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `POST /api/v1/auth/login/` (`authenticate.session.login`)
    - **Requires state:** the account exists and is active; the `(username, ip)` pair is not locked; fewer than 3 active devices unless reusing an existing `device_id`.
    - **Side effects:** creates a session (replacing this device's prior session if any); sets `last_login`; issues an access token + refresh credential (cookie in prod, body in dev).
-   - *Failure — `AUTH_CREDENTIALS_INVALID`:* inline non-specific "invalid username or password" under the form (never reveal which field or that the account is locked).
-   - *Failure — `AUTH_DEVICE_LIMIT_REACHED`:* blocking dialog — "You're signed in on the maximum number of devices"; offer to continue to the Session management screen.
+   - _Failure — `AUTH_CREDENTIALS_INVALID`:_ inline non-specific "invalid username or password" under the form (never reveal which field or that the account is locked).
+   - _Failure — `AUTH_DEVICE_LIMIT_REACHED`:_ blocking dialog — "You're signed in on the maximum number of devices"; offer to continue to the Session management screen.
 2. **Current-user load** — after login, hydrate the signed-in user →
    `GET /api/v1/auth/me/` (`authenticate.user.me`)
    - **Requires state:** a valid access token.
    - **Side effects:** none.
-   - *Failure — `AUTHENTICATION_REQUIRED`:* redirect back to the Login screen.
+   - _Failure — `AUTHENTICATION_REQUIRED`:_ redirect back to the Login screen.
 
 ## Flow: First login — forced password change
 
@@ -40,13 +40,13 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `POST /api/v1/auth/login/` (`authenticate.session.login`)
    - **Requires state:** account active; temporary password valid.
    - **Side effects:** returns `must_change_password: true`; the frontend routes to the Forced password change screen instead of the home area.
-   - *Failure — `AUTH_CREDENTIALS_INVALID`:* inline form error (as above).
+   - _Failure — `AUTH_CREDENTIALS_INVALID`:_ inline form error (as above).
 2. **Forced password change screen** — submit temporary password + new password →
    `POST /api/v1/auth/password/change/` (`authenticate.user.change_password`)
    - **Requires state:** a valid access token (allowed even while `must_change_password` is set).
    - **Side effects:** clears `must_change_password`; **revokes ALL sessions** — the user must sign in again.
-   - *Failure — `AUTH_PASSWORD_INCORRECT`:* inline error on the current-password field.
-   - *Failure — `AUTH_PASSWORD_WEAK`:* inline errors on the new-password field from `error.details.new_password`.
+   - _Failure — `AUTH_PASSWORD_INCORRECT`:_ inline error on the current-password field.
+   - _Failure — `AUTH_PASSWORD_WEAK`:_ inline errors on the new-password field from `error.details.new_password`.
 3. **Login screen** — sign in again with the new password → `POST /api/v1/auth/login/` (`authenticate.session.login`) (see the sign-in flow).
 
 ## Flow: Stay signed in and sign out
@@ -61,13 +61,13 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `POST /api/v1/auth/refresh/` (`authenticate.session.refresh`)
    - **Requires state:** a currently-active session whose refresh credential the client holds (cookie in prod; stored token in dev); not past idle (12h) / absolute (7d) limits.
    - **Side effects:** issues a new access token and rotates the refresh credential; the old refresh token is retired.
-   - *Failure — `AUTH_REFRESH_INVALID`:* redirect to the Login screen.
-   - *Failure — `AUTH_REFRESH_REUSED`:* the device family was revoked (possible token theft) — redirect to the Login screen and surface a "you were signed out for security" notice.
+   - _Failure — `AUTH_REFRESH_INVALID`:_ redirect to the Login screen.
+   - _Failure — `AUTH_REFRESH_REUSED`:_ the device family was revoked (possible token theft) — redirect to the Login screen and surface a "you were signed out for security" notice.
 2. **Any authenticated screen** — sign out →
    `POST /api/v1/auth/logout/` (`authenticate.session.logout`)
    - **Requires state:** a valid access token.
    - **Side effects:** revokes the current session; clears the refresh cookie (prod).
-   - *Failure — `AUTHENTICATION_REQUIRED`:* treat as already signed out; go to the Login screen.
+   - _Failure — `AUTHENTICATION_REQUIRED`:_ treat as already signed out; go to the Login screen.
 
 ## Flow: Enroll and use MFA
 
@@ -81,15 +81,15 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `POST /api/v1/auth/mfa/enroll/` (`authenticate.mfa.enroll`)
    - **Requires state:** a valid access token; MFA not already active.
    - **Side effects:** creates a pending TOTP device; returns `secret` + `otpauth_url` once.
-   - *Failure — `AUTH_MFA_ALREADY_ENROLLED`:* MFA already on — skip to a "manage MFA" view.
+   - _Failure — `AUTH_MFA_ALREADY_ENROLLED`:_ MFA already on — skip to a "manage MFA" view.
 2. **Security settings screen** — render `otpauth_url` as a QR, user scans, submits a code →
    `POST /api/v1/auth/mfa/verify/` (`authenticate.mfa.verify`)
    - **Requires state:** a pending enrollment from step 1.
    - **Side effects:** activates MFA; all future logins require `otp_code`.
-   - *Failure — `AUTH_MFA_INVALID`:* wrong/expired code — prompt to re-enter.
+   - _Failure — `AUTH_MFA_INVALID`:_ wrong/expired code — prompt to re-enter.
 3. **Login screen (next sign-in)** — submit username/password/`device_id` →
    `POST /api/v1/auth/login/` (`authenticate.session.login`) returns `AUTH_MFA_REQUIRED`; resubmit with `otp_code`.
-   - *Failure — `AUTH_MFA_INVALID`:* wrong/expired code — prompt again.
+   - _Failure — `AUTH_MFA_INVALID`:_ wrong/expired code — prompt again.
 
 ## Flow: Superadmin mandatory MFA
 
@@ -121,8 +121,8 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `POST /api/v1/auth/users/` (`authenticate.user.create`)
    - **Requires state:** caller's tier is exactly one above the requested `authority_type`.
    - **Side effects:** account created `must_change_password`; `temporary_password` returned once.
-   - *Failure — `AUTH_INVALID_AUTHORITY`:* the chosen tier isn't creatable by you.
-   - *Failure — `AUTH_USERNAME_TAKEN`:* choose another username.
+   - _Failure — `AUTH_INVALID_AUTHORITY`:_ the chosen tier isn't creatable by you.
+   - _Failure — `AUTH_USERNAME_TAKEN`:_ choose another username.
 3. Deliver the temp password out-of-band; the user then follows the **First login — forced password change** flow.
 
 ## Flow: Recover or secure a subordinate
@@ -135,7 +135,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
 
 1. **Account detail screen** — load the account and its state →
    `GET /api/v1/auth/users/<id>/` (`authenticate.user.read`).
-   - *Failure — `AUTH_USER_NOT_FOUND`:* the account is outside your authority (or absent) — show not-found.
+   - _Failure — `AUTH_USER_NOT_FOUND`:_ the account is outside your authority (or absent) — show not-found.
 2. **Account detail screen** — pick a remedy:
    - Lost password → `POST /api/v1/auth/users/<id>/reset-password/` (`authenticate.user.reset_password`) → `temporary_password` once; sessions revoked.
    - Lost authenticator → `POST /api/v1/auth/users/<id>/reset-mfa/` (`authenticate.user.reset_mfa`) → MFA removed; sessions revoked.
@@ -155,35 +155,35 @@ Authored and updated by the backend author in the same commit as any endpoint ch
 2. **My sessions screen** — revoke one, all-others, or all →
    `POST /api/v1/auth/sessions/revoke/` (`authenticate.session.revoke`) with `{ session_id }` or `{ others_only: true }` or empty.
    - **Side effects:** selected sessions end; revoking the current one requires re-login.
-   - *Failure — `AUTH_SESSION_NOT_FOUND`:* the `session_id` isn't yours.
+   - _Failure — `AUTH_SESSION_NOT_FOUND`:_ the `session_id` isn't yours.
 
 ---
 
 ## Endpoint coverage
 
-| `permission_key` | `METHOD /path` | Used by flow(s) | Notes |
-|------------------|----------------|-----------------|-------|
-| `authenticate.session.login` | `POST /api/v1/auth/login/` | Sign in; First login; Stay signed in | Public |
-| `authenticate.session.refresh` | `POST /api/v1/auth/refresh/` | Stay signed in and sign out | Public (credential is the refresh token) |
-| `authenticate.session.logout` | `POST /api/v1/auth/logout/` | Stay signed in and sign out | |
-| `authenticate.user.me` | `GET /api/v1/auth/me/` | Sign in and load the current user | |
-| `authenticate.user.change_password` | `POST /api/v1/auth/password/change/` | First login — forced password change | Also used for voluntary change; revokes all sessions |
-| `authenticate.mfa.enroll` | `POST /api/v1/auth/mfa/enroll/` | Enroll MFA; Superadmin mandatory MFA | Returns secret + otpauth URL once |
-| `authenticate.mfa.verify` | `POST /api/v1/auth/mfa/verify/` | Enroll MFA; Superadmin mandatory MFA | Activates MFA |
-| `authenticate.mfa.disable` | `POST /api/v1/auth/mfa/disable/` | Disable MFA | Not permitted for superadmin; revokes all sessions |
-| `authenticate.user.list` | `GET /api/v1/auth/users/` | Provision a subordinate; Manage a subordinate | Paginated; scoped to managed tier |
-| `authenticate.user.create` | `POST /api/v1/auth/users/` | Provision a subordinate | Returns temp password once |
-| `authenticate.user.read` | `GET /api/v1/auth/users/<id>/` | Manage a subordinate | |
-| `authenticate.user.update` | `PATCH /api/v1/auth/users/<id>/` | Manage a subordinate | Profile fields only |
-| `authenticate.user.block` | `POST /api/v1/auth/users/<id>/block/` | Recover/secure a subordinate | Revokes all sessions |
-| `authenticate.user.restore` | `POST /api/v1/auth/users/<id>/restore/` | Recover/secure a subordinate | |
-| `authenticate.user.reset_password` | `POST /api/v1/auth/users/<id>/reset-password/` | Recover/secure a subordinate | Temp password once; revokes sessions |
-| `authenticate.user.reset_mfa` | `POST /api/v1/auth/users/<id>/reset-mfa/` | Recover/secure a subordinate | Removes MFA; revokes sessions |
-| `authenticate.user.list_sessions` | `GET /api/v1/auth/users/<id>/sessions/` | Review a subordinate | |
-| `authenticate.user.revoke_sessions` | `POST /api/v1/auth/users/<id>/sessions/revoke/` | Review a subordinate | One or all |
-| `authenticate.user.list_events` | `GET /api/v1/auth/users/<id>/events/` | Review a subordinate | Paginated; auth-activity review |
-| `authenticate.session.list` | `GET /api/v1/auth/sessions/` | Manage my own devices | |
-| `authenticate.session.revoke` | `POST /api/v1/auth/sessions/revoke/` | Manage my own devices | One / others / all |
+| `permission_key`                    | `METHOD /path`                                  | Used by flow(s)                               | Notes                                                |
+| ----------------------------------- | ----------------------------------------------- | --------------------------------------------- | ---------------------------------------------------- |
+| `authenticate.session.login`        | `POST /api/v1/auth/login/`                      | Sign in; First login; Stay signed in          | Public                                               |
+| `authenticate.session.refresh`      | `POST /api/v1/auth/refresh/`                    | Stay signed in and sign out                   | Public (credential is the refresh token)             |
+| `authenticate.session.logout`       | `POST /api/v1/auth/logout/`                     | Stay signed in and sign out                   |                                                      |
+| `authenticate.user.me`              | `GET /api/v1/auth/me/`                          | Sign in and load the current user             |                                                      |
+| `authenticate.user.change_password` | `POST /api/v1/auth/password/change/`            | First login — forced password change          | Also used for voluntary change; revokes all sessions |
+| `authenticate.mfa.enroll`           | `POST /api/v1/auth/mfa/enroll/`                 | Enroll MFA; Superadmin mandatory MFA          | Returns secret + otpauth URL once                    |
+| `authenticate.mfa.verify`           | `POST /api/v1/auth/mfa/verify/`                 | Enroll MFA; Superadmin mandatory MFA          | Activates MFA                                        |
+| `authenticate.mfa.disable`          | `POST /api/v1/auth/mfa/disable/`                | Disable MFA                                   | Not permitted for superadmin; revokes all sessions   |
+| `authenticate.user.list`            | `GET /api/v1/auth/users/`                       | Provision a subordinate; Manage a subordinate | Paginated; scoped to managed tier                    |
+| `authenticate.user.create`          | `POST /api/v1/auth/users/`                      | Provision a subordinate                       | Returns temp password once                           |
+| `authenticate.user.read`            | `GET /api/v1/auth/users/<id>/`                  | Manage a subordinate                          |                                                      |
+| `authenticate.user.update`          | `PATCH /api/v1/auth/users/<id>/`                | Manage a subordinate                          | Profile fields only                                  |
+| `authenticate.user.block`           | `POST /api/v1/auth/users/<id>/block/`           | Recover/secure a subordinate                  | Revokes all sessions                                 |
+| `authenticate.user.restore`         | `POST /api/v1/auth/users/<id>/restore/`         | Recover/secure a subordinate                  |                                                      |
+| `authenticate.user.reset_password`  | `POST /api/v1/auth/users/<id>/reset-password/`  | Recover/secure a subordinate                  | Temp password once; revokes sessions                 |
+| `authenticate.user.reset_mfa`       | `POST /api/v1/auth/users/<id>/reset-mfa/`       | Recover/secure a subordinate                  | Removes MFA; revokes sessions                        |
+| `authenticate.user.list_sessions`   | `GET /api/v1/auth/users/<id>/sessions/`         | Review a subordinate                          |                                                      |
+| `authenticate.user.revoke_sessions` | `POST /api/v1/auth/users/<id>/sessions/revoke/` | Review a subordinate                          | One or all                                           |
+| `authenticate.user.list_events`     | `GET /api/v1/auth/users/<id>/events/`           | Review a subordinate                          | Paginated; auth-activity review                      |
+| `authenticate.session.list`         | `GET /api/v1/auth/sessions/`                    | Manage my own devices                         |                                                      |
+| `authenticate.session.revoke`       | `POST /api/v1/auth/sessions/revoke/`            | Manage my own devices                         | One / others / all                                   |
 
 ## Cross-app dependencies
 
