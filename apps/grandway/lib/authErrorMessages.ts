@@ -107,6 +107,28 @@ export const ERROR_MESSAGES: Record<string, string> = {
   INSTITUTIONS_TUITION_INCOMPLETE:
     "Tuition needs both a currency and a fee period.",
 
+  // Offers (admission decisions)
+  OFFERS_ACTOR_FORBIDDEN: "Your authority level may not perform this action.",
+  OFFERS_OFFER_NOT_FOUND: "That offer couldn't be found.",
+  OFFERS_CONDITION_NOT_FOUND: "That condition couldn't be found.",
+  OFFERS_JOURNEY_NOT_FOUND: "That journey couldn't be found.",
+  OFFERS_PROGRAM_REFERENCE_REQUIRED:
+    "Choose a catalogue program, or enter the institution and program name.",
+  OFFERS_CATALOGUE_REFERENCE_INVALID:
+    "That catalogue reference is invalid or doesn't match the institution.",
+  OFFERS_AMOUNT_INCOMPLETE: "Every amount needs a currency.",
+  OFFERS_REFERENCE_IMMUTABLE:
+    "The journey, catalogue reference, and status can't be changed after creation.",
+  OFFERS_OFFER_NOT_ISSUABLE: "Only a draft offer can be issued.",
+  OFFERS_OFFER_NOT_DECIDABLE:
+    "A decision has already been recorded for this offer.",
+  OFFERS_ACCEPTED_OFFER_EXISTS: "This journey already has an accepted offer.",
+  OFFERS_DECISION_REASON_REQUIRED:
+    "A reason is required to reject or withdraw an offer.",
+  OFFERS_DEFER_INTAKE_REQUIRED: "An intake is required to defer an offer.",
+  OFFERS_CONDITION_NOTE_REQUIRED:
+    "A note is required to waive or mark a condition not applicable.",
+
   // Clients (partner directory)
   CLIENTS_ACTOR_FORBIDDEN: "Your authority level may not perform this action.",
   CLIENTS_CLIENT_NOT_FOUND: "That client couldn't be found.",

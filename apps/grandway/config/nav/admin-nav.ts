@@ -11,6 +11,7 @@ import { GraduationCapIcon } from "@phosphor-icons/react/dist/csr/GraduationCap"
 import { BooksIcon } from "@phosphor-icons/react/dist/csr/Books";
 import { BuildingsIcon } from "@phosphor-icons/react/dist/csr/Buildings";
 import { BriefcaseIcon } from "@phosphor-icons/react/dist/csr/Briefcase";
+import { HandshakeIcon } from "@phosphor-icons/react/dist/csr/Handshake";
 
 export interface BuildAdminConfigOptions {
   isAdmin?: boolean;
@@ -22,6 +23,8 @@ export interface BuildAdminConfigOptions {
   canAccessCatalogue?: boolean;
   /** `clients` directory — same shared-read / admin-write / never-superadmin model as the catalogue (`clients/docs/backend/INTEGRATION.md` §1). */
   canAccessClients?: boolean;
+  /** `offers` — full rights for admin AND lead_manager alike (no read/write split), `superadmin` denied (`offers/docs/backend/INTEGRATION.md` §1). */
+  canAccessOffers?: boolean;
 }
 
 /**
@@ -41,6 +44,7 @@ export function buildAdminConfig(
     canAccessApplicants,
     canAccessCatalogue,
     canAccessClients,
+    canAccessOffers,
   } = options;
   return {
     brand: {
@@ -128,6 +132,17 @@ export function buildAdminConfig(
                   },
                 ],
               },
+            },
+          ]
+        : []),
+      ...(canAccessOffers
+        ? [
+            {
+              kind: "page" as const,
+              id: "offers",
+              icon: HandshakeIcon,
+              label: "Offers",
+              href: "/admin/offers",
             },
           ]
         : []),

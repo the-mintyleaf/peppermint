@@ -46,6 +46,8 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
         // superadmin — identical nav-visibility rule; the modules self-gate writes.
         canAccessCatalogue: authorityType === "admin" || isLeadManager,
         canAccessClients: authorityType === "admin" || isLeadManager,
+        // offers: admin + lead_manager have identical full rights; superadmin denied.
+        canAccessOffers: authorityType === "admin" || isLeadManager,
       }),
       linkComponent: Link,
       onNavigate: (href: string) => router.push(href),
