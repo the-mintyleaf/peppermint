@@ -351,7 +351,12 @@ function ChecklistDetailContent() {
 
           <Divider />
 
-          <RecordAlertsPanel sourceEntityId={checklist.id} />
+          <RecordAlertsPanel
+            sourceEntityId={[
+              checklist.id,
+              ...checklist.items.map((item) => item.id),
+            ]}
+          />
         </Stack>
       </ModalPaper>
 

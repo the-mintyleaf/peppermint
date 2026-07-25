@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@peppermint/ui";
+import { useQueries, useQuery } from "@peppermint/ui";
 import { useAppMutation } from "@peppermint/admin";
 import type { QueryParams } from "@peppermint/admin";
 import {
@@ -69,6 +69,43 @@ export function useNotificationList(filters: NotificationListFilters) {
     queryKey: notificationQueryKeys.list(filters),
     queryFn: () => listNotifications(toListQueryParams(filters)),
   });
+}
+
+/**
+ * "Your alerts" for MULTIPLE source entity ids, merged into one newest-first,
+ * deduplicated list. The backend's `source_entity_id` filter is a single
+ * exact match — no multi-value syntax (§3) — but one record on screen can
+ * have alerts keyed to more than one entity id: a checklist's own
+ * `missing_documents`/`assignment_received` alerts key to the checklist id,
+ * while `checklist_item_due`/`checklist_item_overdue` key to the *item's* id
+ * (§4 source-triple table). `RecordAlertsPanel` fires one query per id in
+ * the caller-supplied set and combines the results client-side.
+ */
+export function useNotificationsForEntities(entityIds: string[]) {
+  const results = useQueries({
+    queries: entityIds.map((id) => ({
+      queryKey: notificationQueryKeys.list({ source_entity_id: id }),
+      queryFn: () =>
+        listNotifications(toListQueryParams({ source_entity_id: id })),
+    })),
+  });
+
+  const byId = new Map<string, Notification>();
+  for (const result of results) {
+    for (const notification of result.data?.data ?? []) {
+      byId.set(notification.id, notification);
+    }
+  }
+
+  return {
+    notifications: Array.from(byId.values()).sort((a, b) =>
+      b.created_at.localeCompare(a.created_at),
+    ),
+    isLoading: results.some((r) => r.isLoading),
+    isError: results.some((r) => r.isError),
+    isRefetching: results.some((r) => r.isRefetching),
+    refetch: () => results.forEach((r) => r.refetch()),
+  };
 }
 
 /**

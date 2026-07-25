@@ -93,7 +93,18 @@ function getApplicantDetailTabs(
     {
       value: "alerts",
       label: "Alerts",
-      panel: <RecordAlertsPanel sourceEntityId={applicant.id} />,
+      // No notification type keys `source_entity_id` to the applicant's own
+      // id (notifications/docs/backend/INTEGRATION.md §4 source-triple
+      // table has no `source_entity_type: "applicant"` row) — the one
+      // applicant-adjacent type, `passport_expiring`, keys to the nested
+      // `PassportDetail`'s own id instead. Pass that id when a passport is
+      // on file; an empty array is the honest "nothing to query" case
+      // rather than a permanently-wrong filter.
+      panel: (
+        <RecordAlertsPanel
+          sourceEntityId={applicant.passport?.id ? [applicant.passport.id] : []}
+        />
+      ),
     },
     {
       value: "history",

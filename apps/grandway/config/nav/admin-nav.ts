@@ -314,8 +314,12 @@ export function buildAdminConfig(
             icon: BellIcon,
             label: "Notifications",
             href: "/admin/notifications",
+            // Capped so a very active feed doesn't overflow the sidebar's
+            // small icon-corner indicator.
             badge: unreadNotificationCount
-              ? String(unreadNotificationCount)
+              ? unreadNotificationCount > 99
+                ? "99+"
+                : String(unreadNotificationCount)
               : undefined,
           },
         ]
