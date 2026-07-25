@@ -24,20 +24,20 @@ Plan: `~/.claude/plans/you-are-to-also-temporal-lynx.md`
 
 ### checklists
 
-- [ ] `checklists.{api,queryKeys,hooks,types,labels}.ts` (templates + checklists + dual-response awaiting-setup)
-- [ ] Templates: `ChecklistTemplatesList.tsx` + `TemplateDetail.tsx` + routes (RequireDocumentAccess)
-- [ ] Instances: `ChecklistWorklist.tsx` + `AwaitingSetupList.tsx` + `ChecklistDetail.tsx` + routes (RequireLeadAccess)
-- [ ] `EvidencePickerModal.tsx` (consumes uploaded-files `useFilesList`)
-- [ ] Module barrel `index.ts`
+- [x] `checklists.{api,queryKeys,hooks,types,labels}.ts` (templates + checklists + dual-response awaiting-setup)
+- [x] Templates: `ChecklistTemplatesList.tsx` + `TemplateDetail.tsx` + routes (RequireLeadAccess read, admin-gated authoring — corrected from RequireDocumentAccess during review)
+- [x] Instances: `ChecklistWorklist.tsx` + `AwaitingSetupList.tsx` + `ChecklistDetail.tsx` + routes (RequireLeadAccess)
+- [x] `EvidencePickerModal.tsx` (consumes uploaded-files `useFilesList`)
+- [x] Module barrel `index.ts`
 
 ### notifications
 
-- [ ] `notifications.{api,queryKeys,hooks,types}.ts` + `useNotificationSummary` (polled)
-- [ ] `_shared/RecordAlertsPanel.tsx` (reusable embed)
-- [ ] `pages/centre/NotificationCentre.tsx` + route `app/admin/notifications/page.tsx` (RequireLeadAccess)
-- [ ] Module barrel `index.ts`
+- [x] `notifications.{api,queryKeys,hooks,types}.ts` + `useNotificationSummary` (polled)
+- [x] `_shared/RecordAlertsPanel.tsx` (reusable embed)
+- [x] `pages/centre/NotificationCentre.tsx` + route `app/admin/notifications/page.tsx` (RequireLeadAccess)
+- [x] Module barrel `index.ts`
 
-- [ ] Commit Phase 2 + dual review per sub-module
+- [x] Commit Phase 2 + dual review per sub-module
 
 ## Phase 3 — dashboard
 
