@@ -1,0 +1,393 @@
+.root {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--mantine-color-gray-3);
+  font-size: var(--mantine-font-size-xs);
+  line-height: var(--mantine-line-height-xs);
+}
+
+.mainHeader {
+  flex-shrink: 0;
+  height: 40px;
+  min-height: 40px;
+  z-index: 20;
+}
+
+.bar {
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  background: #fff;
+  border-bottom: 1px solid var(--mantine-color-gray-3);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.barChrome {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.barMain {
+  background: #111;
+  border-bottom-color: #2c2c2c;
+  color: #fff;
+}
+
+.barMain .barTitle,
+.barMain .barCenter {
+  color: #fff;
+}
+
+.barCloseBtn {
+  color: #fff;
+}
+
+.barCloseBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.barLeft {
+  justify-self: start;
+  min-width: 0;
+}
+
+.barCenter {
+  justify-self: center;
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  text-align: center;
+}
+
+.barRightGroup {
+  justify-self: end;
+  color: #fff;
+}
+
+.barAppBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: var(--mantine-radius-xs);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  line-height: 1;
+}
+
+.barDate {
+  color: #fff;
+  opacity: 0.66;
+  white-space: nowrap;
+}
+
+.barTitle {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.barMeta {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workspace {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.resizablePanel {
+  position: relative;
+  flex-shrink: 0;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  z-index: 2;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.resizeHandleRight {
+  right: -3px;
+}
+
+.resizeHandleLeft {
+  left: -3px;
+}
+
+.resizeHandle:hover,
+.resizeHandle:focus-visible {
+  background: var(--mantine-color-brand-2);
+}
+
+.sidebar {
+  background: #fff;
+  border-right: 1px solid var(--mantine-color-gray-3);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  font-size: var(--mantine-font-size-xs);
+}
+
+.sidebarBody {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.activityHistory {
+  flex: 6;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.activityCustomizations {
+  flex: 4;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--mantine-color-gray-3);
+  overflow: hidden;
+}
+
+.sidebarRight {
+  border-right: none;
+  border-left: 1px solid var(--mantine-color-gray-3);
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--mantine-color-gray-3);
+  height: 40px;
+  min-height: 40px;
+  flex-shrink: 0;
+}
+
+.centerPanel {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--mantine-color-gray-3);
+  font-size: var(--mantine-font-size-xs);
+}
+
+.subHeader {
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.centerContent {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.pageItem {
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: var(--mantine-radius-xs);
+  transition: border-color 0.15s ease;
+  padding: 6px;
+}
+
+.pageItem:hover {
+  border-color: var(--mantine-color-gray-4);
+}
+
+.pageItemActive {
+  border-color: var(--mantine-color-brand-6);
+}
+
+.pageItemActive .pageThumb {
+  background: var(--mantine-color-brand-1);
+  border-color: var(--mantine-color-brand-3);
+}
+
+.pageThumb {
+  aspect-ratio: 210 / 297;
+  min-height: 120px;
+  max-height: 120px;
+  background: var(--mantine-color-brand-0);
+  border: 1px solid var(--mantine-color-brand-2);
+  border-radius: var(--mantine-radius-xs);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  overflow: hidden;
+}
+
+.historyCard {
+  border: 1px solid var(--mantine-color-gray-3);
+  border-radius: var(--mantine-radius-xs);
+  background: #fff;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.historyCard:hover {
+  border-color: var(--mantine-color-gray-4);
+}
+
+.historyCardActive {
+  border-color: var(--mantine-color-brand-6);
+  box-shadow: 0 0 0 1px var(--mantine-color-brand-6);
+}
+
+.iconBtn {
+  width: 28px;
+  height: 28px;
+}
+
+.editDocumentBtn {
+  position: absolute;
+  /* Sits just below the 40px main header + 40px sub-header toolbar, top-right. */
+  top: 96px;
+  z-index: 15;
+  box-shadow: var(--mantine-shadow-md);
+  transition: right 0.15s ease;
+}
+
+/* Print: isolate the document paper. The editor shell is a fixed, overflow-hidden,
+   background-painted full-screen layout, so without these rules the browser captures the
+   whole viewport (chrome + sidebars + shell backgrounds + one clipped screen) instead of
+   the flowing A4 paper. */
+@media print {
+  /* Each template renders a fixed A4 paper (210 × 297mm) with its own internal padding,
+     so the sheet itself must have zero margin. */
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  /* Strip every shell/app background — otherwise, with "background graphics" enabled, the
+     gray editor surface and the dark app gradient (inline on <html>) paint onto pages.
+     The <html> gradient is an inline style, which a plain declaration cannot beat, so use
+     !important. */
+  html,
+  body,
+  .root,
+  .workspace,
+  .centerPanel,
+  .centerContent {
+    background: #fff !important;
+    background-image: none !important;
+  }
+
+  /* Collapse the fixed, overflow-clipped shell into natural static flow with no forced
+     height, so total height is exactly the sum of the pages and nothing bleeds past them. */
+  .root,
+  .workspace,
+  .centerPanel,
+  .centerContent {
+    position: static !important;
+    display: block !important;
+    flex: none !important;
+    overflow: visible !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  /* Hide every non-document surface (activates the existing no-print markers too). */
+  .mainHeader,
+  .subHeader,
+  .resizablePanel,
+  .editDocumentBtn,
+  :global(.no-print) {
+    display: none !important;
+  }
+
+  /* The Mantine ScrollArea clips the paper to one screen and its viewport-wrapper adds
+     padding/min-height. Neutralize the viewport, its scrollbars, and the direct wrapper. */
+  .centerContent :global(.mantine-ScrollArea-viewport) {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .centerContent :global(.mantine-ScrollArea-scrollbar) {
+    display: none !important;
+  }
+
+  /* Collapse the wrappers between the viewport and the print root. Mantine nests
+     viewport > .mantine-ScrollArea-content > [padding Box] > … , so the viewport's direct
+     child is the content wrapper — the Box carrying the on-screen "12px 8px" breathing room
+     sits one level deeper. Zeroing only the viewport's direct child (as before) left that
+     Box's 24px of vertical padding intact, which tips a full-height (297mm) page just past
+     the sheet boundary and emits a trailing blank page. Reset the content wrapper and its
+     child too so the print root sits flush at the page origin. */
+  .centerContent :global(.mantine-ScrollArea-viewport) > *,
+  .centerContent :global(.mantine-ScrollArea-content),
+  .centerContent :global(.mantine-ScrollArea-content) > * {
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 0 !important;
+  }
+
+  /* Force each document (a direct child of the print root) to be EXACTLY one A4 page and
+     clip any hairline overflow — templates size themselves with aspect-ratio / min-height,
+     which can tip a page past the boundary and emit a trailing blank page. Fixing the height
+     (a hair under a full sheet) makes the flow deterministically N clean pages. */
+  :global([data-print-root]) > * {
+    box-sizing: border-box !important;
+    display: block !important;
+    width: 210mm !important;
+    height: calc(297mm - 1px) !important;
+    min-height: 0 !important;
+    max-height: calc(297mm - 1px) !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    break-inside: avoid;
+  }
+
+  :global([data-print-root]) > * + * {
+    break-before: page;
+  }
+}

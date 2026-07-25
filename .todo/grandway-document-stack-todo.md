@@ -5,12 +5,12 @@ Plan: `~/.claude/plans/in-this-backend-i-synthetic-chipmunk.md`
 
 ## Phase 0 — Doc intake (blocking; parallel × 5)
 
-- [ ] Sync `documents` backend docs → `apps/grandway/docs/backend/documents/`
-- [ ] Sync `document_history` → `apps/grandway/docs/backend/document-history/`
-- [ ] Sync `document_templates` → `apps/grandway/docs/backend/document-templates/`
-- [ ] Sync `checklists` → `apps/grandway/docs/backend/checklists/`
-- [ ] Sync `dashboard` (dashboards app) → `apps/grandway/docs/backend/dashboard/`
-- [ ] Commit Phase 0 (docs) — skip dual-review (docs-only)
+- [x] Sync `documents` backend docs → `apps/grandway/docs/backend/documents/`
+- [x] Sync `document_history` → `apps/grandway/docs/backend/document-history/`
+- [x] Sync `document_templates` → `apps/grandway/docs/backend/document-templates/`
+- [x] Sync `checklists` → `apps/grandway/docs/backend/checklists/`
+- [x] Sync `dashboard` (dashboards app) → `apps/grandway/docs/backend/dashboard/`
+- [x] Commit Phase 0 (docs) — skip dual-review (docs-only)
 
 ## Phase 1 — Independent modules (parallel)
 

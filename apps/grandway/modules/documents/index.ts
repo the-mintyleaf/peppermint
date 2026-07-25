@@ -1,0 +1,73 @@
+import { DocumentEditor } from "./pages/editor/DocumentEditor";
+
+/**
+ * The full-screen document editor. Rendered by the admin-scoped Documents module routes
+ * (`@/modules/admin/documents`) for both applicant workspaces and standalone documents.
+ */
+export const ModuleDocuments = {
+  editor: DocumentEditor,
+};
+
+export { DocumentEditor } from "./pages/editor/DocumentEditor";
+export { DocumentEditorProvider, useDocumentEditor } from "./context";
+export { useDocumentActions } from "./hooks/useDocumentActions";
+export { useDocumentHistory } from "./hooks/useDocumentHistory";
+export { useSignatures } from "./hooks/useSignatures";
+
+// Shared engine surface consumed by the admin-scoped Documents module + panels.
+export { documentsApi } from "./documents.api";
+export type {
+  DocumentListParams,
+  DocumentsListResult,
+  DocumentCatalogTemplate,
+} from "./documents.api";
+export { documentHistoryApi } from "./documentHistory.api";
+export {
+  documentQueryKeys,
+  documentWorkspacesKey,
+  documentHistoryKey,
+} from "./documents.queryKeys";
+export { documentTypeList, getDocumentTypeConfig } from "./documentTypeConfig";
+export {
+  STATUS_META,
+  getNextStatusAction,
+  isEditableStatus,
+  canArchiveStatus,
+} from "./documents.status";
+export {
+  formatValidityRange,
+  getSignatureValidity,
+  signatureValiditySuffix,
+} from "./utils/signatureValidity";
+export type { SignatureValidity } from "./utils/signatureValidity";
+
+export type {
+  Document,
+  DocumentListItem,
+  DocumentType,
+  DocumentStatus,
+  DocumentStatusValue,
+  DocumentFamily,
+  DocumentContent,
+  LorContent,
+  DocumentHistoryEvent,
+  DocumentHistoryAction,
+  DocumentFormProps,
+  DocumentTemplateProps,
+  DocumentConfigBarProps,
+  DocumentTypeConfig,
+  DocumentWorkspaceSummary,
+  CreateDocumentInput,
+  UpdateDocumentInput,
+  Signature,
+  StudentFullData,
+  HistoricalSnapshot,
+  BsDate,
+} from "./documents.types";
+export type {
+  DocumentSnapshot,
+  DocumentSnapshotDetail,
+  DocumentPrintEvent,
+  PrintEventType,
+  CaptureSnapshotInput,
+} from "./documentHistory.types";
