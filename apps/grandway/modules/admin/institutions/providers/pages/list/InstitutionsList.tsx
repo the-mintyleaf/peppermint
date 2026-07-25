@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ModalTableShell } from "@peppermint/admin";
-import { ModalPaper } from "@peppermint/ui";
+import { ModalPaper, useQueryClient } from "@peppermint/ui";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
@@ -12,7 +12,10 @@ import {
   updateInstitution,
 } from "../../../institutions.api";
 import { useCountries } from "../../../institutions.hooks";
-import { institutionQueryKeys } from "../../../institutions.queryKeys";
+import {
+  institutionQueryKeys,
+  programQueryKeys,
+} from "../../../institutions.queryKeys";
 import type {
   Institution,
   InstitutionCreatePayload,
@@ -43,6 +46,7 @@ function toUpdatePayload(v: InstitutionFormValues): InstitutionUpdatePayload {
 function InstitutionsListContent() {
   const { authorityType } = useCurrentUser();
   const canManage = authorityType === "admin";
+  const queryClient = useQueryClient();
   const { data: countries = [] } = useCountries();
   const [campusInstitution, setCampusInstitution] =
     useState<Institution | null>(null);
@@ -81,6 +85,13 @@ function InstitutionsListContent() {
         onEditApi={(values, record) =>
           updateInstitution(record.id, toUpdatePayload(values))
         }
+        onEditSuccess={() => {
+          // Editing an institution's country/availability cascades to its
+          // programs' derived country and to the chain-aware program search.
+          void queryClient.invalidateQueries({
+            queryKey: programQueryKeys.lists(),
+          });
+        }}
         disableReviewButton
         getErrorMessage={getApiErrorMessage}
         pageSizes={[10, 20, 30, 50]}

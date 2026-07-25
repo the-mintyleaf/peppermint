@@ -50,12 +50,14 @@ export const programSchema = z
   .superRefine((values, ctx) => {
     refineAvailabilityNote(values, ctx);
     if (values.tuition_amount.trim() !== "") {
-      const amount = Number(values.tuition_amount);
-      if (Number.isNaN(amount) || amount < 0) {
+      // Money is a decimal string end-to-end (never parsed to a JS number, which
+      // would accept `1e309`/`Infinity` and lose precision). Enforce a plain
+      // non-negative decimal with at most two fractional digits.
+      if (!/^\d+(\.\d{1,2})?$/.test(values.tuition_amount.trim())) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["tuition_amount"],
-          message: "Enter a valid amount (0 or more).",
+          message: "Enter a valid amount (e.g. 12000 or 12000.50).",
         });
       }
       if (!values.tuition_currency.trim()) {

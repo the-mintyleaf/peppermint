@@ -116,7 +116,10 @@ export function useUpdateCountry() {
     mutationFn: ({ id, body }) => updateCountry(id, body),
     successMessage: "Country updated.",
     errorTitle: "Couldn't update country",
-    invalidateKeys: [countryQueryKeys.lists()],
+    // The program search is chain-aware (country availability drops a program
+    // from the default results) and renders each program's derived country, so
+    // any country change must refresh it too.
+    invalidateKeys: [countryQueryKeys.lists(), programQueryKeys.lists()],
   });
 }
 
@@ -130,7 +133,7 @@ export function useWithdrawCountry() {
       }),
     successMessage: "Country withdrawn from use.",
     errorTitle: "Couldn't withdraw country",
-    invalidateKeys: [countryQueryKeys.lists()],
+    invalidateKeys: [countryQueryKeys.lists(), programQueryKeys.lists()],
   });
 }
 
@@ -176,7 +179,8 @@ export function useWithdrawInstitution() {
       }),
     successMessage: "Institution withdrawn from use.",
     errorTitle: "Couldn't withdraw institution",
-    invalidateKeys: [institutionQueryKeys.lists()],
+    // Institution availability is part of the program-search chain — refresh it.
+    invalidateKeys: [institutionQueryKeys.lists(), programQueryKeys.lists()],
   });
 }
 
@@ -199,6 +203,8 @@ export function useUpdateCampus(institutionId: string) {
     invalidateKeys: [
       campusesByInstitutionKey(institutionId),
       campusQueryKeys.lists(),
+      // Campus availability is part of the program-search chain.
+      programQueryKeys.lists(),
     ],
   });
 }
@@ -212,7 +218,10 @@ export function useWithdrawCampus(institutionId: string) {
       }),
     successMessage: "Campus withdrawn from use.",
     errorTitle: "Couldn't withdraw campus",
-    invalidateKeys: [campusesByInstitutionKey(institutionId)],
+    invalidateKeys: [
+      campusesByInstitutionKey(institutionId),
+      programQueryKeys.lists(),
+    ],
   });
 }
 
