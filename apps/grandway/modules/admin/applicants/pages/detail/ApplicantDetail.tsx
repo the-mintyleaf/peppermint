@@ -23,6 +23,8 @@ import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiError } from "@/lib/authErrorMessages";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import { ApplicantDocumentsPanel } from "@/modules/admin/documents";
+import { RecordAlertsPanel } from "@/modules/admin/notifications/_shared/RecordAlertsPanel";
+import { FilesPanel } from "@/modules/admin/uploaded-files/_shared/FilesPanel";
 import { useApplicantDetail } from "../../applicants.hooks";
 import type { ApplicantDetail as ApplicantDetailRecord } from "../../applicants.types";
 import { ApplicantHistoryPanel } from "./components/ApplicantHistoryPanel";
@@ -83,6 +85,16 @@ function getApplicantDetailTabs(
           },
         ]
       : []),
+    {
+      value: "files",
+      label: "Files",
+      panel: <FilesPanel scope={{ applicant: applicant.id }} />,
+    },
+    {
+      value: "alerts",
+      label: "Alerts",
+      panel: <RecordAlertsPanel sourceEntityId={applicant.id} />,
+    },
     {
       value: "history",
       label: "History",

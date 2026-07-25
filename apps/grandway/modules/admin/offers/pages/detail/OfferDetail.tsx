@@ -24,6 +24,8 @@ import {
   STAGE_COLORS,
   STAGE_LABELS,
 } from "@/modules/admin/applicant-journeys/applicantJourneys.labels";
+import { RecordAlertsPanel } from "@/modules/admin/notifications/_shared/RecordAlertsPanel";
+import { FilesPanel } from "@/modules/admin/uploaded-files/_shared/FilesPanel";
 import { useOfferDetail } from "../../offers.hooks";
 import { OFFER_STATUS_COLORS, OFFER_STATUS_LABELS } from "../../offers.labels";
 import { IssueOfferModal } from "./components/IssueOfferModal";
@@ -167,6 +169,8 @@ function OfferDetailContent() {
             <Tabs.List>
               <Tabs.Tab value="overview">Overview</Tabs.Tab>
               <Tabs.Tab value="conditions">Conditions</Tabs.Tab>
+              <Tabs.Tab value="files">Files</Tabs.Tab>
+              <Tabs.Tab value="alerts">Alerts</Tabs.Tab>
               <Tabs.Tab value="history">History</Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="overview" pt="md">
@@ -174,6 +178,12 @@ function OfferDetailContent() {
             </Tabs.Panel>
             <Tabs.Panel value="conditions" pt="md">
               <OfferConditionsPanel offer={offer} />
+            </Tabs.Panel>
+            <Tabs.Panel value="files" pt="md">
+              <FilesPanel scope={{ offer: offer.id }} />
+            </Tabs.Panel>
+            <Tabs.Panel value="alerts" pt="md">
+              <RecordAlertsPanel sourceEntityId={offer.id} />
             </Tabs.Panel>
             <Tabs.Panel value="history" pt="md">
               <OfferHistoryPanel offerId={offer.id} />

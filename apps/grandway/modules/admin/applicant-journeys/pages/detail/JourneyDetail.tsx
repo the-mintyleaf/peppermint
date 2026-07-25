@@ -22,6 +22,7 @@ import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiError } from "@/lib/authErrorMessages";
+import { FilesPanel } from "@/modules/admin/uploaded-files/_shared/FilesPanel";
 import { useJourneyDetail } from "../../applicantJourneys.hooks";
 import { STAGE_COLORS, STAGE_LABELS } from "../../applicantJourneys.labels";
 import { ChangeJourneyStageModal } from "../list/components/ChangeJourneyStageModal";
@@ -183,10 +184,14 @@ function JourneyDetailContent() {
           <Tabs defaultValue="overview">
             <Tabs.List>
               <Tabs.Tab value="overview">Overview</Tabs.Tab>
+              <Tabs.Tab value="files">Files</Tabs.Tab>
               <Tabs.Tab value="history">History</Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="overview" pt="md">
               <JourneyOverviewPanel journey={journey} />
+            </Tabs.Panel>
+            <Tabs.Panel value="files" pt="md">
+              <FilesPanel scope={{ journey: journey.id }} />
             </Tabs.Panel>
             <Tabs.Panel value="history" pt="md">
               <JourneyHistoryPanel journeyId={journey.id} />

@@ -7,6 +7,7 @@ import {
   Badge,
   Button,
   Center,
+  Divider,
   Group,
   Loader,
   ModalPaper,
@@ -23,6 +24,7 @@ import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowC
 import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiError } from "@/lib/authErrorMessages";
+import { RecordAlertsPanel } from "@/modules/admin/notifications/_shared/RecordAlertsPanel";
 import {
   useArchiveChecklist,
   useChecklistDetail,
@@ -346,6 +348,10 @@ function ChecklistDetailContent() {
             checklist={checklist}
             outstandingIds={pendingItemIds ?? undefined}
           />
+
+          <Divider />
+
+          <RecordAlertsPanel sourceEntityId={checklist.id} />
         </Stack>
       </ModalPaper>
 
