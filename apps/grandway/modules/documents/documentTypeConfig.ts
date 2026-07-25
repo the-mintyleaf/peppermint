@@ -1,4 +1,5 @@
 import type { DocumentType, DocumentTypeConfig } from "./documents.types";
+import { UnavailableTemplate } from "./components/UnavailableTemplate";
 import {
   WODA_VARIANTS,
   BANK_INSTITUTIONS,
@@ -435,10 +436,27 @@ export const documentTypeRegistry: Record<DocumentType, DocumentTypeConfig> = {
 
 export const documentTypeList = Object.values(documentTypeRegistry);
 
+/**
+ * A document's `template_key` is never validated by the backend against the registry
+ * (`documents/INTEGRATION.md` §9), and the catalogue seed may not cover every slug this
+ * build renders. An unknown slug therefore returns a safe fallback config (an "unavailable"
+ * template + no form) rather than `undefined`, so renderers never crash on `.Template`.
+ */
+function makeFallbackConfig(type: DocumentType): DocumentTypeConfig {
+  return {
+    type,
+    label: type,
+    uniquePerStudent: false,
+    requiresStudent: false,
+    Form: () => null,
+    Template: UnavailableTemplate,
+  };
+}
+
 export function getDocumentTypeConfig(type: DocumentType): DocumentTypeConfig {
-  return documentTypeRegistry[type];
+  return documentTypeRegistry[type] ?? makeFallbackConfig(type);
 }
 
 export function getDefaultLabel(type: DocumentType): string {
-  return documentTypeRegistry[type].label;
+  return documentTypeRegistry[type]?.label ?? type;
 }
