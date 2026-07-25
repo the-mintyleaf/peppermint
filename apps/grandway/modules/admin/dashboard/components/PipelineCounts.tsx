@@ -36,6 +36,7 @@ import {
   APPLICANT_STATUS_COLORS,
   APPLICANT_STATUS_LABELS,
 } from "../dashboard.labels";
+import type { DashboardFilters } from "../dashboard.types";
 import { SectionState } from "./SectionState";
 
 interface CountRow {
@@ -110,9 +111,9 @@ function CountMapCard({
  * and exists only to caption the panel honestly when a country filter is set
  * elsewhere on screen — it is not a real filter toggle.
  */
-export function PipelineCounts() {
+export function PipelineCounts({ filters }: { filters: DashboardFilters }) {
   const { data, isPending, isError, refetch, isRefetching } =
-    useDashboardPipeline();
+    useDashboardPipeline(filters);
 
   return (
     <Stack gap="sm">

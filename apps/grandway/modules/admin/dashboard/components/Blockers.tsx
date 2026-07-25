@@ -28,6 +28,7 @@ import { BLOCKER_GROUP_LABELS } from "../dashboard.labels";
 import { formatDate, formatDateTime } from "../dashboard.utils";
 import type {
   ChecklistItemRow,
+  DashboardFilters,
   FileRow,
   JourneyRow,
   OfferRow,
@@ -172,9 +173,9 @@ function RejectedFileRowView({ row }: { row: FileRow }) {
  * five different people act on them (INTEGRATION.md §7 "blockers"). An empty
  * group is a healthy state, rendered neutrally, not as an error.
  */
-export function Blockers() {
+export function Blockers({ filters }: { filters: DashboardFilters }) {
   const { data, isPending, isError, refetch, isRefetching } =
-    useDashboardBlockers();
+    useDashboardBlockers(filters);
 
   return (
     <Stack gap="sm" id="blockers">

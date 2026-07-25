@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Anchor, Card, Group, SimpleGrid, Stack, Text } from "@peppermint/ui";
 import { useDashboardSummary } from "../dashboard.hooks";
+import type { DashboardFilters } from "../dashboard.types";
 import { SectionState } from "./SectionState";
 
 /**
@@ -37,9 +38,9 @@ const ALERT_LABELS: Record<string, string> = {
   journeys_without_a_checklist: "Journeys without a checklist",
 };
 
-export function SummaryStrip() {
+export function SummaryStrip({ filters }: { filters: DashboardFilters }) {
   const { data, isPending, isError, refetch, isRefetching } =
-    useDashboardSummary();
+    useDashboardSummary(filters);
 
   return (
     <SectionState

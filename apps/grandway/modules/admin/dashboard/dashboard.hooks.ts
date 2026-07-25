@@ -18,65 +18,70 @@ import type { DashboardFilters } from "./dashboard.types";
 // Eight INDEPENDENT hooks — never combined into one parent query. Each has its
 // own loading/error state so a slow section never blocks a fast one from
 // painting (FLOWS.md "Morning triage" step 2: "a client that awaits all eight
-// before painting discards the only reason they were split").
+// before painting discards the only reason they were split"). All eight take
+// the same `{fiscalYear, country}` filter pair (INTEGRATION.md §3 — one
+// shared, optional filter set across all eight endpoints); not every section
+// *honours* both (per-section notes in §7), but every section *accepts* them.
 
-export function useDashboardSummary() {
-  return useQuery({
-    queryKey: dashboardQueryKeys.summary(),
-    queryFn: fetchSummary,
-  });
-}
+type DashboardFilterInput = { fiscalYear: string; country: string };
 
-export function useDashboardToday() {
-  return useQuery({
-    queryKey: dashboardQueryKeys.today(),
-    queryFn: fetchToday,
-  });
-}
-
-export function useDashboardPipeline() {
-  return useQuery({
-    queryKey: dashboardQueryKeys.pipeline(),
-    queryFn: fetchPipeline,
-  });
-}
-
-export function useDashboardBlockers() {
-  return useQuery({
-    queryKey: dashboardQueryKeys.blockers(),
-    queryFn: fetchBlockers,
-  });
-}
-
-export function useDashboardWorkload() {
-  return useQuery({
-    queryKey: dashboardQueryKeys.workload(),
-    queryFn: fetchWorkload,
-  });
-}
-
-export function useDashboardConversion(params: {
-  fiscalYear: string;
-  country: string;
-}) {
-  const apiParams = {
-    fiscal_year: params.fiscalYear || undefined,
-    country: params.country || undefined,
+function toApiParams({ fiscalYear, country }: DashboardFilterInput) {
+  return {
+    fiscal_year: fiscalYear || undefined,
+    country: country || undefined,
   };
+}
+
+export function useDashboardSummary(filters: DashboardFilterInput) {
+  const apiParams = toApiParams(filters);
+  return useQuery({
+    queryKey: dashboardQueryKeys.summary(apiParams),
+    queryFn: () => fetchSummary(apiParams),
+  });
+}
+
+export function useDashboardToday(filters: DashboardFilterInput) {
+  const apiParams = toApiParams(filters);
+  return useQuery({
+    queryKey: dashboardQueryKeys.today(apiParams),
+    queryFn: () => fetchToday(apiParams),
+  });
+}
+
+export function useDashboardPipeline(filters: DashboardFilterInput) {
+  const apiParams = toApiParams(filters);
+  return useQuery({
+    queryKey: dashboardQueryKeys.pipeline(apiParams),
+    queryFn: () => fetchPipeline(apiParams),
+  });
+}
+
+export function useDashboardBlockers(filters: DashboardFilterInput) {
+  const apiParams = toApiParams(filters);
+  return useQuery({
+    queryKey: dashboardQueryKeys.blockers(apiParams),
+    queryFn: () => fetchBlockers(apiParams),
+  });
+}
+
+export function useDashboardWorkload(filters: DashboardFilterInput) {
+  const apiParams = toApiParams(filters);
+  return useQuery({
+    queryKey: dashboardQueryKeys.workload(apiParams),
+    queryFn: () => fetchWorkload(apiParams),
+  });
+}
+
+export function useDashboardConversion(filters: DashboardFilterInput) {
+  const apiParams = toApiParams(filters);
   return useQuery({
     queryKey: dashboardQueryKeys.conversion(apiParams),
     queryFn: () => fetchConversion(apiParams),
   });
 }
 
-export function useDashboardOutcomes(params: {
-  fiscalYear: string;
-  country: string;
-}) {
-  const apiParams = {
-    fiscal_year: params.fiscalYear || undefined,
-    country: params.country || undefined,
-  };
+export function useDashboardOutcomes(filters: DashboardFilterInput) {
+  const apiParams = toApiParams(filters);
   return useQuery({
     queryKey: dashboardQueryKeys.outcomes(apiParams),
     queryFn: () => fetchOutcomes(apiParams),

@@ -63,9 +63,9 @@ function DashboardOverviewContent() {
       <ModalPaper withBorder>
         <Stack gap="lg" p="md">
           <Text size="xs" c="dimmed">
-            Every figure is derived live at request time — there is no caching,
-            so numbers reflect the moment each section last loaded. Use Refresh
-            all to see the latest.
+            There is no refresh contract — the backend does not say when a
+            figure goes stale, so numbers reflect the moment each section was
+            last fetched. Use Refresh all to see the latest.
           </Text>
 
           <DashboardFilterBar
@@ -78,31 +78,31 @@ function DashboardOverviewContent() {
           <Divider />
 
           <ModuleErrorBoundary resetKeys={resetKeys}>
-            <SummaryStrip />
+            <SummaryStrip filters={filters} />
           </ModuleErrorBoundary>
 
           <Divider />
 
           <ModuleErrorBoundary resetKeys={resetKeys}>
-            <TodayWorklists />
+            <TodayWorklists filters={filters} />
           </ModuleErrorBoundary>
 
           <Divider />
 
           <ModuleErrorBoundary resetKeys={resetKeys}>
-            <PipelineCounts />
+            <PipelineCounts filters={filters} />
           </ModuleErrorBoundary>
 
           <Divider />
 
           <ModuleErrorBoundary resetKeys={resetKeys}>
-            <Blockers />
+            <Blockers filters={filters} />
           </ModuleErrorBoundary>
 
           <Divider />
 
           <ModuleErrorBoundary resetKeys={resetKeys}>
-            <Workload />
+            <Workload filters={filters} />
           </ModuleErrorBoundary>
 
           <Divider />
@@ -120,7 +120,10 @@ function DashboardOverviewContent() {
           <Divider />
 
           <ModuleErrorBoundary resetKeys={resetKeys}>
-            <ActivityFeed fiscalYear={filters.fiscalYear} />
+            <ActivityFeed
+              key={filters.fiscalYear}
+              fiscalYear={filters.fiscalYear}
+            />
           </ModuleErrorBoundary>
         </Stack>
       </ModalPaper>

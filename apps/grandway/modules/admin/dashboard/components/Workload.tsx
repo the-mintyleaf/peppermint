@@ -15,6 +15,7 @@ import { useDashboardWorkload } from "../dashboard.hooks";
 import { WORKLOAD_LIST_LABELS } from "../dashboard.labels";
 import type {
   ChecklistWorkloadRow,
+  DashboardFilters,
   LeadWorkloadRow,
   OfferWorkloadRow,
 } from "../dashboard.types";
@@ -146,10 +147,18 @@ function OfferWorkloadTable({ rows }: { rows: OfferWorkloadRow[] }) {
  * §7 "workload") — never infer team size from row count. The three lists are
  * NOT joinable into one row per person and must never be summed, so each
  * renders as its own table, never merged.
+ *
+ * Scoping itself is server-side, not something this component filters:
+ * `leads` already holds at most the caller's own row when
+ * `is_scoped_to_caller` is true, while `checklist_items` is explicitly
+ * **never** owner-scoped even for a Lead Manager (the unassigned bucket must
+ * stay visible to everyone). This component's only job for the flag is the
+ * heading — "My workload" vs "Workload by owner" — never re-filtering rows
+ * the backend has already decided to include.
  */
-export function Workload() {
+export function Workload({ filters }: { filters: DashboardFilters }) {
   const { data, isPending, isError, refetch, isRefetching } =
-    useDashboardWorkload();
+    useDashboardWorkload(filters);
 
   return (
     <Stack gap="sm">

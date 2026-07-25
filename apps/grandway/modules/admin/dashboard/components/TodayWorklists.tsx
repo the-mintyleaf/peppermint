@@ -24,6 +24,7 @@ import {
 import { formatDate, formatDateTime } from "../dashboard.utils";
 import type {
   ChecklistItemRow,
+  DashboardFilters,
   DocumentRow,
   FileRow,
   LeadRow,
@@ -169,9 +170,9 @@ function StaleLeadRowView({ row }: { row: LeadRow }) {
  * `due_soon_checklist_items` are disjoint, so (and ONLY so) their totals are
  * summed in the section heading below; nothing else on the page may be.
  */
-export function TodayWorklists() {
+export function TodayWorklists({ filters }: { filters: DashboardFilters }) {
   const { data, isPending, isError, refetch, isRefetching } =
-    useDashboardToday();
+    useDashboardToday(filters);
 
   return (
     <Stack gap="sm" id="today-worklists">

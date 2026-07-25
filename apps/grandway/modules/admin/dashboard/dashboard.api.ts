@@ -12,45 +12,69 @@ import type {
 
 const DASHBOARD = "/api/v1/dashboard";
 
-// Five of the eight sections never receive a query param from this app: the
-// contract's per-section "honoured filters" list (INTEGRATION.md §7) does not
-// name `fiscal_year`/`country` for summary/today/pipeline/blockers/workload, and
-// the UI must not send a filter a section silently ignores (§3 "must not
-// present an ignored control as active"). Only conversion/outcomes read
-// `{fiscal_year, country}`, and activity reads only `fiscal_year` (+ paging).
-
-export async function fetchSummary(): Promise<DashboardSummary> {
-  const { data } = await api.get<DashboardSummary>(`${DASHBOARD}/summary/`);
-  return data;
-}
-
-export async function fetchToday(): Promise<DashboardToday> {
-  const { data } = await api.get<DashboardToday>(`${DASHBOARD}/today/`);
-  return data;
-}
-
-export async function fetchPipeline(): Promise<DashboardPipeline> {
-  const { data } = await api.get<DashboardPipeline>(`${DASHBOARD}/pipeline/`);
-  return data;
-}
-
-export async function fetchBlockers(): Promise<DashboardBlockers> {
-  const { data } = await api.get<DashboardBlockers>(`${DASHBOARD}/blockers/`);
-  return data;
-}
-
-export async function fetchWorkload(): Promise<DashboardWorkload> {
-  const { data } = await api.get<DashboardWorkload>(`${DASHBOARD}/workload/`);
-  return data;
-}
-
-export interface ConversionOutcomesParams {
+/**
+ * `fiscal_year`/`country` are one shared, optional filter set accepted by
+ * ALL EIGHT endpoints (INTEGRATION.md §3 "Filter params — one set, all eight
+ * endpoints, all optional" / §7's per-section table) — earlier drafts of
+ * this module sent them only to conversion/outcomes, which left
+ * summary/today/pipeline/blockers/workload unfiltered no matter what the
+ * filter bar was set to. Not every section *honours* every filter (e.g.
+ * `today.documents_in_progress` ignores `country`; `activity` honours only
+ * `fiscal_year` — see `fetchActivity`), but every section still *accepts*
+ * both, so both are always sent.
+ */
+export interface DashboardFilterParams {
   fiscal_year?: string;
   country?: string;
 }
 
+export async function fetchSummary(
+  params: DashboardFilterParams,
+): Promise<DashboardSummary> {
+  const { data } = await api.get<DashboardSummary>(`${DASHBOARD}/summary/`, {
+    params,
+  });
+  return data;
+}
+
+export async function fetchToday(
+  params: DashboardFilterParams,
+): Promise<DashboardToday> {
+  const { data } = await api.get<DashboardToday>(`${DASHBOARD}/today/`, {
+    params,
+  });
+  return data;
+}
+
+export async function fetchPipeline(
+  params: DashboardFilterParams,
+): Promise<DashboardPipeline> {
+  const { data } = await api.get<DashboardPipeline>(`${DASHBOARD}/pipeline/`, {
+    params,
+  });
+  return data;
+}
+
+export async function fetchBlockers(
+  params: DashboardFilterParams,
+): Promise<DashboardBlockers> {
+  const { data } = await api.get<DashboardBlockers>(`${DASHBOARD}/blockers/`, {
+    params,
+  });
+  return data;
+}
+
+export async function fetchWorkload(
+  params: DashboardFilterParams,
+): Promise<DashboardWorkload> {
+  const { data } = await api.get<DashboardWorkload>(`${DASHBOARD}/workload/`, {
+    params,
+  });
+  return data;
+}
+
 export async function fetchConversion(
-  params: ConversionOutcomesParams,
+  params: DashboardFilterParams,
 ): Promise<DashboardConversion> {
   const { data } = await api.get<DashboardConversion>(
     `${DASHBOARD}/conversion/`,
@@ -60,7 +84,7 @@ export async function fetchConversion(
 }
 
 export async function fetchOutcomes(
-  params: ConversionOutcomesParams,
+  params: DashboardFilterParams,
 ): Promise<DashboardOutcomes> {
   const { data } = await api.get<DashboardOutcomes>(`${DASHBOARD}/outcomes/`, {
     params,

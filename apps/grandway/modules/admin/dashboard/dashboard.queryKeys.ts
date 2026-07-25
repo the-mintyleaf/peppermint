@@ -9,17 +9,23 @@ import { createQueryKeys } from "@peppermint/admin";
  */
 const dashboardBase = createQueryKeys("dashboard");
 
+/** All eight sections share the `{fiscal_year, country}` filter set — every key is parameterized by it so a filter change is a cache miss, not stale data. */
+type FilterParams = { fiscal_year?: string; country?: string };
+
 export const dashboardQueryKeys = {
-  /** Unfiltered sections — no params ever sent (see `dashboard.api.ts`). */
-  summary: () => dashboardBase.detail("summary"),
-  today: () => dashboardBase.detail("today"),
-  pipeline: () => dashboardBase.detail("pipeline"),
-  blockers: () => dashboardBase.detail("blockers"),
-  workload: () => dashboardBase.detail("workload"),
-  /** Filtered sections — parameterized so a filter change is a cache miss, not stale data. */
-  conversion: (params: { fiscal_year?: string; country?: string }) =>
+  summary: (params: FilterParams) =>
+    [...dashboardBase.detail("summary"), params] as const,
+  today: (params: FilterParams) =>
+    [...dashboardBase.detail("today"), params] as const,
+  pipeline: (params: FilterParams) =>
+    [...dashboardBase.detail("pipeline"), params] as const,
+  blockers: (params: FilterParams) =>
+    [...dashboardBase.detail("blockers"), params] as const,
+  workload: (params: FilterParams) =>
+    [...dashboardBase.detail("workload"), params] as const,
+  conversion: (params: FilterParams) =>
     [...dashboardBase.detail("conversion"), params] as const,
-  outcomes: (params: { fiscal_year?: string; country?: string }) =>
+  outcomes: (params: FilterParams) =>
     [...dashboardBase.detail("outcomes"), params] as const,
   activity: (params: {
     fiscal_year?: string;
