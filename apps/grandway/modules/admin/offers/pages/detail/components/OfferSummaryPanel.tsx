@@ -1,6 +1,6 @@
 "use client";
 
-import { Alert, Divider, Group, Stack, Text } from "@peppermint/ui";
+import { Alert, Badge, Divider, Group, Stack, Text } from "@peppermint/ui";
 import { PaperclipIcon } from "@phosphor-icons/react/dist/csr/Paperclip";
 import {
   OFFER_STATUS_LABELS,
@@ -72,13 +72,24 @@ export function OfferSummaryPanel({ offer }: { offer: OfferDetail }) {
         label="Issue date"
         value={formatOfferDate(offer.issue_date, offer.issue_date_bs)}
       />
-      <Field
-        label="Response deadline"
-        value={formatOfferDate(
-          offer.response_deadline,
-          offer.response_deadline_bs,
-        )}
-      />
+      <Group justify="space-between" wrap="nowrap" gap="md" align="flex-start">
+        <Text size="xs" c="dimmed">
+          Response deadline
+        </Text>
+        <Group gap="xs" justify="flex-end" wrap="wrap">
+          <Text size="xs" ta="right">
+            {formatOfferDate(
+              offer.response_deadline,
+              offer.response_deadline_bs,
+            )}
+          </Text>
+          {offer.is_response_overdue ? (
+            <Badge size="xs" color="red" variant="light">
+              Overdue
+            </Badge>
+          ) : null}
+        </Group>
+      </Group>
 
       <Divider label="Money" labelPosition="left" />
       <Field

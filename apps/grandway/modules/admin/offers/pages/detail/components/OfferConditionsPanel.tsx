@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Badge, Box, Button, Group, Paper, Stack, Text } from "@peppermint/ui";
+import { Badge, Button, Group, Paper, Stack, Text } from "@peppermint/ui";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import {
   CONDITION_STATUS_COLORS,
@@ -12,6 +12,7 @@ import type { Condition, OfferDetail } from "../../../offers.types";
 import { formatOfferDate } from "../../../offers.utils";
 import { AddConditionModal } from "./AddConditionModal";
 import { ConditionStatusModal } from "./ConditionStatusModal";
+import { EditConditionModal } from "./EditConditionModal";
 
 /**
  * Conditions come nested in the offer detail (no separate fetch). Each row
@@ -23,6 +24,7 @@ import { ConditionStatusModal } from "./ConditionStatusModal";
 export function OfferConditionsPanel({ offer }: { offer: OfferDetail }) {
   const [addOpen, setAddOpen] = useState(false);
   const [statusFor, setStatusFor] = useState<Condition | null>(null);
+  const [editFor, setEditFor] = useState<Condition | null>(null);
 
   const conditions = offer.conditions;
 
@@ -80,7 +82,15 @@ export function OfferConditionsPanel({ offer }: { offer: OfferDetail }) {
                     </Text>
                   ) : null}
                 </Stack>
-                <Box>
+                <Group gap="xs" wrap="nowrap">
+                  <Button
+                    size="xs"
+                    variant="subtle"
+                    color="gray"
+                    onClick={() => setEditFor(condition)}
+                  >
+                    Edit
+                  </Button>
                   <Button
                     size="xs"
                     variant="default"
@@ -88,7 +98,7 @@ export function OfferConditionsPanel({ offer }: { offer: OfferDetail }) {
                   >
                     Update status
                   </Button>
-                </Box>
+                </Group>
               </Group>
             </Paper>
           ))}
@@ -106,6 +116,14 @@ export function OfferConditionsPanel({ offer }: { offer: OfferDetail }) {
           condition={statusFor}
           opened={statusFor !== null}
           onClose={() => setStatusFor(null)}
+        />
+      ) : null}
+      {editFor ? (
+        <EditConditionModal
+          offerId={offer.id}
+          condition={editFor}
+          opened={editFor !== null}
+          onClose={() => setEditFor(null)}
         />
       ) : null}
     </Stack>
