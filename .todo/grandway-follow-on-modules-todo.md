@@ -41,12 +41,12 @@ Plan: `~/.claude/plans/you-are-to-also-temporal-lynx.md`
 
 ## Phase 3 — dashboard
 
-- [ ] `dashboard.{api,queryKeys,hooks,types,labels}.ts` (8 independent sections)
-- [ ] `pages/DashboardOverview.tsx` + 8 section card components + filter bar (fiscal_year + country only)
-- [ ] Route `app/admin/dashboard/page.tsx` (RequireLeadAccess, hide+guard superadmin)
-- [ ] Drill-through links wired to offers/checklists/files/applicants/journeys
-- [ ] Module barrel `index.ts`
-- [ ] Commit Phase 3 + dual review
+- [x] `dashboard.{api,queryKeys,hooks,types,labels}.ts` (8 independent sections, shared fiscal_year+country filter set)
+- [x] `pages/DashboardOverview.tsx` + 8 section card components + filter bar (fiscal_year + country only)
+- [x] Route `app/admin/dashboard/page.tsx` (RequireLeadAccess, hide+guard superadmin)
+- [x] Drill-through links wired to offers/checklists/files/applicants/journeys
+- [x] Module barrel `index.ts`
+- [x] Commit Phase 3 + dual review
 
 ## Phase 4 — Cross-module wiring (single owner)
 
