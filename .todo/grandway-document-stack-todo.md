@@ -1,3 +1,8 @@
+> STATUS (updated): Documents stack COMPLETE and committed on dev/grandway-document-stack
+> (engine port + data layer + editor chrome + admin list surfaces + routes + nav + applicant
+> panel + unknown-slug crash fix). check-types + lint green. Deferred from the original 5-domain
+> plan: dashboard, document-templates admin UI, checklists.
+
 # Grandway Document Stack + Checklists + Dashboard — Build Todo
 
 Branch: `dev/grandway-document-stack`
