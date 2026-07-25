@@ -42,6 +42,10 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
         canAccessLeads: authorityType === "admin" || isLeadManager,
         // Same reasoning — applicants/applicant_journeys forbid `superadmin` too.
         canAccessApplicants: authorityType === "admin" || isLeadManager,
+        // institutions & clients: shared reads (admin + lead_manager), never
+        // superadmin — identical nav-visibility rule; the modules self-gate writes.
+        canAccessCatalogue: authorityType === "admin" || isLeadManager,
+        canAccessClients: authorityType === "admin" || isLeadManager,
       }),
       linkComponent: Link,
       onNavigate: (href: string) => router.push(href),

@@ -89,6 +89,35 @@ export const ERROR_MESSAGES: Record<string, string> = {
   JOURNEYS_JOURNEY_NOT_TERMINAL:
     "Only a completed, closed, or deferred journey can be reopened.",
 
+  // Institutions (catalogue)
+  INSTITUTIONS_ACTOR_FORBIDDEN:
+    "Admin authority is required to maintain the catalogue.",
+  INSTITUTIONS_FIELD_NOT_FOUND: "That study field couldn't be found.",
+  INSTITUTIONS_COUNTRY_NOT_FOUND: "That country couldn't be found.",
+  INSTITUTIONS_INSTITUTION_NOT_FOUND: "That institution couldn't be found.",
+  INSTITUTIONS_CAMPUS_NOT_FOUND: "That campus couldn't be found.",
+  INSTITUTIONS_PROGRAM_NOT_FOUND: "That program couldn't be found.",
+  INSTITUTIONS_CODE_DUPLICATE: "That code is already in use.",
+  INSTITUTIONS_CAMPUS_DUPLICATE:
+    "This institution already has a campus with that name.",
+  INSTITUTIONS_AVAILABILITY_NOTE_REQUIRED:
+    "A note is required when availability isn't active.",
+  INSTITUTIONS_CAMPUS_INSTITUTION_MISMATCH:
+    "That campus belongs to a different institution.",
+  INSTITUTIONS_TUITION_INCOMPLETE:
+    "Tuition needs both a currency and a fee period.",
+
+  // Clients (partner directory)
+  CLIENTS_ACTOR_FORBIDDEN: "Your authority level may not perform this action.",
+  CLIENTS_CLIENT_NOT_FOUND: "That client couldn't be found.",
+  CLIENTS_STATUS_IMMUTABLE:
+    "A client's status is changed through retire or restore, not editing.",
+  CLIENTS_CONTACT_NUMBER_DUPLICATE:
+    "The same number appears more than once. Remove the duplicate.",
+  CLIENTS_STATUS_NOTE_REQUIRED: "A reason is required to retire a client.",
+  CLIENTS_CLIENT_ALREADY_RETIRED: "This client is already retired.",
+  CLIENTS_CLIENT_NOT_RETIRED: "This client is already active.",
+
   // Framework-level
   VALIDATION_ERROR: "Please check the highlighted fields and try again.",
   AUTHENTICATION_REQUIRED: "Please sign in to continue.",

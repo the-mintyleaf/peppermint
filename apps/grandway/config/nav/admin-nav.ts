@@ -7,6 +7,10 @@ import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockC
 import { AddressBookIcon } from "@phosphor-icons/react/dist/csr/AddressBook";
 import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
 import { CompassIcon } from "@phosphor-icons/react/dist/csr/Compass";
+import { GraduationCapIcon } from "@phosphor-icons/react/dist/csr/GraduationCap";
+import { BooksIcon } from "@phosphor-icons/react/dist/csr/Books";
+import { BuildingsIcon } from "@phosphor-icons/react/dist/csr/Buildings";
+import { BriefcaseIcon } from "@phosphor-icons/react/dist/csr/Briefcase";
 
 export interface BuildAdminConfigOptions {
   isAdmin?: boolean;
@@ -14,6 +18,10 @@ export interface BuildAdminConfigOptions {
   canAccessLeads?: boolean;
   /** Same rule as `canAccessLeads` — `applicants`/`applicant_journeys` share the identical admin/lead_manager, never-superadmin access model. */
   canAccessApplicants?: boolean;
+  /** `institutions` catalogue — reads are shared with `lead_manager`, writes are Admin-only, `superadmin` denied (`institutions/docs/backend/INTEGRATION.md` §1). Same nav-visibility rule as leads/applicants; the module self-gates writes. */
+  canAccessCatalogue?: boolean;
+  /** `clients` directory — same shared-read / admin-write / never-superadmin model as the catalogue (`clients/docs/backend/INTEGRATION.md` §1). */
+  canAccessClients?: boolean;
 }
 
 /**
@@ -27,7 +35,13 @@ export interface BuildAdminConfigOptions {
 export function buildAdminConfig(
   options: BuildAdminConfigOptions = {},
 ): AdminShellConfig {
-  const { isAdmin, canAccessLeads, canAccessApplicants } = options;
+  const {
+    isAdmin,
+    canAccessLeads,
+    canAccessApplicants,
+    canAccessCatalogue,
+    canAccessClients,
+  } = options;
   return {
     brand: {
       icon: IdentificationCardIcon,
@@ -84,6 +98,47 @@ export function buildAdminConfig(
                   },
                 ],
               },
+            },
+          ]
+        : []),
+      ...(canAccessCatalogue
+        ? [
+            {
+              kind: "module" as const,
+              id: "institutions",
+              icon: GraduationCapIcon,
+              label: "Catalogue",
+              subNav: {
+                homeHref: "/admin/institutions",
+                groups: [
+                  {
+                    label: "Study catalogue",
+                    items: [
+                      {
+                        label: "Programs",
+                        href: "/admin/institutions",
+                        icon: BooksIcon,
+                      },
+                      {
+                        label: "Institutions",
+                        href: "/admin/institutions/providers",
+                        icon: BuildingsIcon,
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
+      ...(canAccessClients
+        ? [
+            {
+              kind: "page" as const,
+              id: "clients",
+              icon: BriefcaseIcon,
+              label: "Clients",
+              href: "/admin/clients",
             },
           ]
         : []),
