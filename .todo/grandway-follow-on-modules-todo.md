@@ -11,13 +11,13 @@ Plan: `~/.claude/plans/you-are-to-also-temporal-lynx.md`
 
 ## Phase 1 — uploaded-files
 
-- [ ] `uploadedFiles.{api,queryKeys,hooks,types,labels}.ts`
-- [ ] `_shared/FilesPanel.tsx` (reusable embed)
-- [ ] `_shared/useFileBlob.ts` + `_shared/downloadFile.ts` (auth-blob helpers)
-- [ ] `pages/detail/FileDetail.tsx` + route `app/admin/files/[id]/page.tsx`
-- [ ] `pages/review/FileReviewQueue.tsx` + route `app/admin/files/review/page.tsx`
-- [ ] Modals: UploadFileModal, ReplaceFileModal, VerifyFileModal, EditFileModal
-- [ ] Module barrel `index.ts`
+- [x] `uploadedFiles.{api,queryKeys,hooks,types,labels}.ts` (+ `uploadedFiles.utils.ts`)
+- [x] `_shared/FilesPanel/` (reusable embed — built as a component folder per Component Structure, not a flat file)
+- [x] `_shared/useFileBlob.ts` + `_shared/downloadFile.ts` (auth-blob helpers)
+- [x] `pages/detail/FileDetail.tsx` + route `app/admin/files/[id]/page.tsx`
+- [x] `pages/review/FileReviewQueue.tsx` + route `app/admin/files/review/page.tsx`
+- [x] Modals: UploadFileModal, ReplaceFileModal, VerifyFileModal, EditFileModal
+- [x] Module barrel `index.ts`
 - [ ] Commit Phase 1 + dual review (Codex + adversarial-reviewer)
 
 ## Phase 2 — checklists + notifications (parallel)
