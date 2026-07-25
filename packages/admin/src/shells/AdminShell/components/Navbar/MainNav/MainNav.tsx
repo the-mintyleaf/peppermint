@@ -142,6 +142,7 @@ export function MainNav({
                   href={item.href}
                   linkComponent={linkComponent}
                   onClick={item.onClick}
+                  badge={item.badge}
                 />
               ))}
             </Stack>
