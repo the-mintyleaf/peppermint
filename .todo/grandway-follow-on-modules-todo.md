@@ -18,7 +18,7 @@ Plan: `~/.claude/plans/you-are-to-also-temporal-lynx.md`
 - [x] `pages/review/FileReviewQueue.tsx` + route `app/admin/files/review/page.tsx`
 - [x] Modals: UploadFileModal, ReplaceFileModal, VerifyFileModal, EditFileModal
 - [x] Module barrel `index.ts`
-- [ ] Commit Phase 1 + dual review (Codex + adversarial-reviewer)
+- [x] Commit Phase 1 + dual review (Codex + adversarial-reviewer)
 
 ## Phase 2 — checklists + notifications (parallel)
 
