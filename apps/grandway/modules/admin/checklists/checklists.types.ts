@@ -292,8 +292,8 @@ export interface UpdateItemPayload {
   item_type?: ItemType;
   is_required?: boolean;
   display_order?: number;
-  assigned_to?: string;
-  due_at?: string;
+  assigned_to?: string | null;
+  due_at?: string | null;
   evidence_note?: string;
 }
 

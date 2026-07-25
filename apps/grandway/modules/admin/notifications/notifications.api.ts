@@ -58,19 +58,35 @@ export async function fetchSummary(
   return data;
 }
 
+/**
+ * `POST /<id>/read/`, `/unread/`, `/dismiss/` — no body under any method (§7).
+ * `createResourceApi.action()` defaults an omitted body to `{}` rather than
+ * sending none, so these three call `api.post` directly (matching
+ * `markAllRead` below) to match the contract exactly.
+ */
+
 /** `POST /<id>/read/` — no body. Idempotent; a second call keeps the first `read_at`. Does not change `status` (§7). */
-export function markNotificationRead(id: string) {
-  return notificationResource.action<Notification>(id, "read");
+export async function markNotificationRead(id: string): Promise<Notification> {
+  const { data } = await api.post<Notification>(`${NOTIFICATIONS}/${id}/read/`);
+  return data;
 }
 
 /** `POST /<id>/unread/` — no body. Clears `read_at`. Exists so opening a row is a safe act, not because any flow depends on it (§7). */
-export function markNotificationUnread(id: string) {
-  return notificationResource.action<Notification>(id, "unread");
+export async function markNotificationUnread(
+  id: string,
+): Promise<Notification> {
+  const { data } = await api.post<Notification>(
+    `${NOTIFICATIONS}/${id}/unread/`,
+  );
+  return data;
 }
 
 /** `POST /<id>/dismiss/` — no body, no reason. The only irreversible action in this app (§7). */
-export function dismissNotification(id: string) {
-  return notificationResource.action<Notification>(id, "dismiss");
+export async function dismissNotification(id: string): Promise<Notification> {
+  const { data } = await api.post<Notification>(
+    `${NOTIFICATIONS}/${id}/dismiss/`,
+  );
+  return data;
 }
 
 /**

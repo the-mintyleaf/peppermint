@@ -17,8 +17,9 @@ import {
 import { PaperPlaneTiltIcon } from "@phosphor-icons/react/dist/csr/PaperPlaneTilt";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
-import { RequireDocumentAccess } from "@/components/RequireDocumentAccess";
+import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiError } from "@/lib/authErrorMessages";
+import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import {
   useTemplateDetail,
   useUpdateTemplate,
@@ -34,6 +35,8 @@ function TemplateDetailContent() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [addItemOpen, setAddItemOpen] = useState(false);
+  const { authorityType } = useCurrentUser();
+  const isAdmin = authorityType === "admin";
   const {
     data: template,
     isLoading,
@@ -90,8 +93,8 @@ function TemplateDetailContent() {
     );
   }
 
-  const canPublish = template.status === "draft";
-  const canRetire = template.status === "active";
+  const canPublish = isAdmin && template.status === "draft";
+  const canRetire = isAdmin && template.status === "active";
 
   return (
     <>
@@ -153,14 +156,16 @@ function TemplateDetailContent() {
                   Retire template
                 </Button>
               ) : null}
-              <Button
-                size="xs"
-                variant="light"
-                leftSection={<PlusIcon size={14} aria-hidden />}
-                onClick={() => setAddItemOpen(true)}
-              >
-                Add requirement
-              </Button>
+              {isAdmin ? (
+                <Button
+                  size="xs"
+                  variant="light"
+                  leftSection={<PlusIcon size={14} aria-hidden />}
+                  onClick={() => setAddItemOpen(true)}
+                >
+                  Add requirement
+                </Button>
+              ) : null}
             </Group>
           </Group>
 
@@ -171,24 +176,30 @@ function TemplateDetailContent() {
           <Text size="sm" fw={500}>
             Requirements
           </Text>
-          <TemplateItemsList template={template} />
+          <TemplateItemsList template={template} isAdmin={isAdmin} />
         </Stack>
       </ModalPaper>
 
-      <AddTemplateItemModal
-        templateId={template.id}
-        opened={addItemOpen}
-        onClose={() => setAddItemOpen(false)}
-      />
+      {isAdmin ? (
+        <AddTemplateItemModal
+          templateId={template.id}
+          opened={addItemOpen}
+          onClose={() => setAddItemOpen(false)}
+        />
+      ) : null}
     </>
   );
 }
 
-/** Authoring is Admin-only (§1) — same exact-admin gate the templates list uses. */
+/**
+ * Read is Admin or Lead Manager; publish/retire/add-item/edit-item are
+ * Admin-only (§1) — gated inline above and in `TemplateItemsList`, not by
+ * blocking the whole screen (a Lead Manager can view templates read-only).
+ */
 export function ModuleTemplateDetail() {
   return (
-    <RequireDocumentAccess>
+    <RequireLeadAccess>
       <TemplateDetailContent />
-    </RequireDocumentAccess>
+    </RequireLeadAccess>
   );
 }

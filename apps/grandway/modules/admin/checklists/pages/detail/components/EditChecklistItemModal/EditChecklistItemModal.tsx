@@ -51,8 +51,8 @@ export function EditChecklistItemModal({
     if (displayOrder !== "" && displayOrder !== item.display_order)
       body.display_order = displayOrder;
     if (assignedTo.trim() !== (item.assigned_to?.id ?? ""))
-      body.assigned_to = assignedTo.trim();
-    if ((dueAt || "") !== (item.due_at || "")) body.due_at = dueAt ?? undefined;
+      body.assigned_to = assignedTo.trim() || null;
+    if ((dueAt || null) !== (item.due_at || null)) body.due_at = dueAt || null;
     if (evidenceNote.trim() !== item.evidence_note)
       body.evidence_note = evidenceNote.trim();
 

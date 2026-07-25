@@ -15,6 +15,7 @@ import { EditTemplateItemModal } from "./EditTemplateItemModal";
 
 interface TemplateItemsListProps {
   template: ChecklistTemplate;
+  isAdmin: boolean;
 }
 
 /**
@@ -22,9 +23,14 @@ interface TemplateItemsListProps {
  * contract requires these stay visible, greyed, never hidden (§7). Server
  * order already sorts active-first (§4), so this renders as-given. Retire /
  * restore is a quick row toggle (`is_active`), not a full modal — there is no
- * delete for template items, only this reversible flag.
+ * delete for template items, only this reversible flag. Editing and
+ * retiring/restoring are Admin-only authoring actions (§1) — hidden rather
+ * than shown-and-403'd for a Lead Manager, who can otherwise read this list.
  */
-export function TemplateItemsList({ template }: TemplateItemsListProps) {
+export function TemplateItemsList({
+  template,
+  isAdmin,
+}: TemplateItemsListProps) {
   const [editFor, setEditFor] = useState<ChecklistTemplateItem | null>(null);
   const updateItem = useUpdateTemplateItem(template.id);
 
@@ -72,38 +78,40 @@ export function TemplateItemsList({ template }: TemplateItemsListProps) {
                 </Text>
               ) : null}
             </Stack>
-            <Group gap="xs" wrap="nowrap">
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                aria-label={`Edit ${item.label}`}
-                onClick={() => setEditFor(item)}
-              >
-                <PencilSimpleIcon size={16} aria-hidden />
-              </ActionIcon>
-              <ActionIcon
-                variant="subtle"
-                color={item.is_active ? "red" : "teal"}
-                aria-label={
-                  item.is_active
-                    ? `Retire ${item.label}`
-                    : `Restore ${item.label}`
-                }
-                disabled={updateItem.isPending}
-                onClick={() =>
-                  updateItem.mutate({
-                    itemId: item.id,
-                    body: { is_active: !item.is_active },
-                  })
-                }
-              >
-                {item.is_active ? (
-                  <ProhibitIcon size={16} aria-hidden />
-                ) : (
-                  <ArrowCounterClockwiseIcon size={16} aria-hidden />
-                )}
-              </ActionIcon>
-            </Group>
+            {isAdmin ? (
+              <Group gap="xs" wrap="nowrap">
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  aria-label={`Edit ${item.label}`}
+                  onClick={() => setEditFor(item)}
+                >
+                  <PencilSimpleIcon size={16} aria-hidden />
+                </ActionIcon>
+                <ActionIcon
+                  variant="subtle"
+                  color={item.is_active ? "red" : "teal"}
+                  aria-label={
+                    item.is_active
+                      ? `Retire ${item.label}`
+                      : `Restore ${item.label}`
+                  }
+                  disabled={updateItem.isPending}
+                  onClick={() =>
+                    updateItem.mutate({
+                      itemId: item.id,
+                      body: { is_active: !item.is_active },
+                    })
+                  }
+                >
+                  {item.is_active ? (
+                    <ProhibitIcon size={16} aria-hidden />
+                  ) : (
+                    <ArrowCounterClockwiseIcon size={16} aria-hidden />
+                  )}
+                </ActionIcon>
+              </Group>
+            ) : null}
           </Group>
         </Paper>
       ))}

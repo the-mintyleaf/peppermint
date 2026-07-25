@@ -31,7 +31,6 @@ export function getTemplatesColumns({
       accessor: "label",
       title: "Template",
       icon: TagIcon,
-      sortable: true,
     },
     {
       accessor: "country",

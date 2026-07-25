@@ -25,10 +25,18 @@ MultiPageModule with TWO distinct route trees under one module: Templates
 
 ## Access (critical)
 
-- **Templates (authoring)** — the four template-authoring routes are
-  **Admin-only** (`RequireDocumentAccess`, the exact-admin gate reused from
-  `uploaded-files/FileReviewQueue` — same rule: `authorityType === "admin"`,
-  nothing else). A Lead Manager never even sees these pages.
+- **Templates (read)** — `GET /templates/` and `GET /templates/<id>/` are
+  **Admin or Lead Manager** (§1) — both list and detail screens are gated
+  `RequireLeadAccess`, not exact-admin. A Lead Manager can browse templates
+  read-only.
+- **Templates (authoring)** — only the four write routes (create/update
+  template, create/update template item) are **Admin-only**. These are gated
+  **inline**, not at the page level: `createFormComponent`/`onCreateApi`/
+  `onEditApi` on `ChecklistTemplatesList` and the publish/retire/add-item/
+  edit-item controls on `TemplateDetail`/`TemplateItemsList`/
+  `TemplateRowActionsMenu` are all `undefined`/hidden when
+  `authorityType !== "admin"`. Do not reach for `RequireDocumentAccess` here —
+  it blocks Lead Manager reads this module's contract explicitly grants.
 - **Instances (tracking)** — Admin AND Lead Manager share identical read/write
   rights (`RequireLeadAccess`). `superadmin` is refused on **every** route in
   this module.
@@ -136,3 +144,22 @@ MultiPageModule with TWO distinct route trees under one module: Templates
 - Do not import applicant-journeys / institutions / uploaded-files via their
   barrels; use concrete files.
 - Do not fetch in `useEffect`; do not import Mantine directly.
+
+## Known gaps (deliberately not fixed in this pass)
+
+- `ChecklistWorklist`/`AwaitingSetupList` render `ModalTableShell`/
+  `DataTableShell`'s default toolbar search box, but neither
+  `GET /checklists/` nor `?journey_missing_checklist=true` supports `?search=`
+  (§3/§9 — no search param anywhere in this API). Typing in it is a silently
+  dead control. There is no shell-level prop to disable search alone
+  (`hideToolbar` hides tabs/filters too) — fixing this needs a
+  `@peppermint/admin` change, out of scope here.
+- `ItemStatusModal`/`AddChecklistItemModal`/`EditChecklistItemModal`/
+  `AddTemplateItemModal`/`EditTemplateItemModal` hand-roll `useState` forms
+  rather than building on `FormWrapper`, unlike this module's own
+  `TemplateForm`/`ChecklistCreateForm`/`ChecklistEditForm`. CLAUDE.md's Forms
+  rule calls for `FormWrapper` everywhere; two real bugs (missing-`null`
+  clearing on `due_at`/`assigned_to` in `EditChecklistItemModal`) were found
+  and fixed in this hand-rolled diff logic during review — the same class of
+  bug `FormWrapper`'s dirty-tracking exists to prevent. Converting all five
+  is a follow-up, not folded into this build.

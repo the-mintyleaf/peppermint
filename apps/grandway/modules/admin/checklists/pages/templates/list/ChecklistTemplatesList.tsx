@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { ModalTableShell } from "@peppermint/admin";
 import { ModalPaper } from "@peppermint/ui";
-import { RequireDocumentAccess } from "@/components/RequireDocumentAccess";
+import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
+import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import {
   createTemplate,
   getTemplate,
@@ -22,12 +23,17 @@ import type { CreateTemplateValues, UpdateTemplateValues } from "../../../form";
 import { getTemplatesColumns } from "./templates.columns";
 
 /**
- * Authoring is Admin-only (§1) — `RequireDocumentAccess` is reused for its
- * exact-admin gate (identical rule: `authorityType === "admin"`, nothing else),
- * same reuse the dispatch brief calls for and `FileReviewQueue` already does.
+ * Read (list + detail) is Admin **or** Lead Manager; only the four
+ * authoring routes (create/update template, create/update template item)
+ * are Admin-only (§1) — `RequireLeadAccess` gates the screen itself, and
+ * create/edit are additionally gated to `isAdmin` here so a Lead Manager
+ * can browse templates read-only without the create/edit controls ever
+ * being offered (mirrors `ClientDirectory`'s `isAdmin ? Form : undefined`).
  */
 function ChecklistTemplatesListContent() {
   const router = useRouter();
+  const { authorityType } = useCurrentUser();
+  const isAdmin = authorityType === "admin";
   const columns = getTemplatesColumns({
     onViewDetails: (template) =>
       router.push(`/admin/checklists/templates/${template.id}`),
@@ -53,11 +59,18 @@ function ChecklistTemplatesListContent() {
       }}
       createModalTitle="New template"
       editModalTitle="Edit template"
-      createFormComponent={TemplateForm}
-      editFormComponent={TemplateForm}
-      onCreateApi={(values) => createTemplate(toCreateTemplatePayload(values))}
-      onEditApi={(values, record) =>
-        updateTemplate(record.id, toUpdateTemplatePayload(values))
+      createFormComponent={isAdmin ? TemplateForm : undefined}
+      editFormComponent={isAdmin ? TemplateForm : undefined}
+      onCreateApi={
+        isAdmin
+          ? (values) => createTemplate(toCreateTemplatePayload(values))
+          : undefined
+      }
+      onEditApi={
+        isAdmin
+          ? (values, record) =>
+              updateTemplate(record.id, toUpdateTemplatePayload(values))
+          : undefined
       }
       onEditTrigger={(record) => getTemplate(record.id)}
       getErrorMessage={getApiErrorMessage}
@@ -73,8 +86,8 @@ function ChecklistTemplatesListContent() {
 
 export function ModuleChecklistTemplatesList() {
   return (
-    <RequireDocumentAccess>
+    <RequireLeadAccess>
       <ChecklistTemplatesListContent />
-    </RequireDocumentAccess>
+    </RequireLeadAccess>
   );
 }
