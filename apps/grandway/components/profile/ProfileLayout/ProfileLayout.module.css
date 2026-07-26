@@ -5,13 +5,6 @@
   align-items: start;
 }
 
-/* From md up, split into the 5/12 sidebar + 7/12 content columns. */
-@media (min-width: 62em) {
-  .grid {
-    grid-template-columns: 5fr 7fr;
-  }
-}
-
 .sidebar {
   min-width: 0;
 }
@@ -20,13 +13,30 @@
   min-width: 0;
 }
 
+/* The full-height cut line between the two panes — shown only on the 2-column
+   layout (hidden while the columns are stacked). */
+.divider {
+  display: none;
+}
+
 @media (min-width: 62em) {
-  .sidebar {
+  .grid {
+    grid-template-columns: 5fr 1px 7fr;
+    gap: 0;
+    /* Stretch so the divider track spans the full height of the taller pane. */
+    align-items: stretch;
+  }
+
+  .divider {
+    display: block;
+    background: var(--mantine-color-default-border);
+  }
+
+  /* The column stretches (full height for the divider); its content sticks. */
+  .sidebarSticky {
     position: sticky;
-    top: var(--mantine-spacing-md);
-    /* When the sidebar is taller than the viewport, scroll it internally so the
-       docked actions at its foot stay reachable instead of pinned off-screen. */
-    max-height: calc(100vh - var(--mantine-spacing-md) * 2);
+    top: 0;
+    max-height: 100vh;
     overflow-y: auto;
   }
 }

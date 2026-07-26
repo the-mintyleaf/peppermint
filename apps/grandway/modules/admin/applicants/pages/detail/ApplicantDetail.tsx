@@ -1,13 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-  Badge,
-  Box,
   Button,
-  Card,
   Center,
+  Group,
   Loader,
   ModalPaper,
   ModuleHeader,
@@ -15,7 +12,6 @@ import {
   Text,
 } from "@peppermint/ui";
 import { AirplaneTakeoffIcon } from "@phosphor-icons/react/dist/csr/AirplaneTakeoff";
-import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
 import { BellIcon } from "@phosphor-icons/react/dist/csr/Bell";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
 import { FolderIcon } from "@phosphor-icons/react/dist/csr/Folder";
@@ -40,19 +36,7 @@ import { ApplicantHistoryPanel } from "./components/ApplicantHistoryPanel";
 import { ApplicantJourneysPanel } from "./components/ApplicantJourneysPanel";
 import { ApplicantOverviewPanel } from "./components/ApplicantOverviewPanel";
 import { ApplicantPassportFamilyPanel } from "./components/ApplicantPassportFamilyPanel";
-import { ChangeApplicantStatusModal } from "./components/ChangeApplicantStatusModal";
-
-const STATUS_COLORS: Record<string, string> = {
-  active: "green",
-  dormant: "yellow",
-  archived: "gray",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  active: "Active",
-  dormant: "Dormant",
-  archived: "Archived",
-};
+import { ApplicantStatusSwitch } from "../list/components/ApplicantStatusSwitch";
 
 function applicantName(applicant: ApplicantDetailRecord): string {
   return (
@@ -136,7 +120,6 @@ function ApplicantDetailContent() {
   const router = useRouter();
   const { authorityType } = useCurrentUser();
   const isAdmin = authorityType === "admin";
-  const [statusModalOpen, setStatusModalOpen] = useState(false);
   const {
     data: applicant,
     isLoading,
@@ -202,73 +185,47 @@ function ApplicantDetailContent() {
           { label: "Applicants", href: "/admin/applicants" },
           { label: displayName, href: `/admin/applicants/${id}` },
         ]}
+        right={
+          <Group gap="xs" wrap="nowrap">
+            {/* Status is the interactive control (current value + dropdown),
+                Edit is the action — different look, different position. */}
+            <ApplicantStatusSwitch applicant={applicant} />
+            <Button
+              size="xs"
+              variant="default"
+              leftSection={<PencilSimpleIcon size={14} aria-hidden />}
+              onClick={() =>
+                router.push(`/admin/applicants/${applicant.id}/edit`)
+              }
+            >
+              Edit applicant
+            </Button>
+          </Group>
+        }
       />
 
       {/* ModalPaper is fixed-height (`calc(100% - header)`) with `overflow: hidden`;
           override to scroll vertically so a tall profile is fully reachable (the
-          sticky sidebar sticks within this scroll container). */}
+          sticky sidebar sticks within this scroll container). No padding — the
+          ProfileLayout owns its own column spacing + divider. */}
       <ModalPaper withBorder style={{ overflowY: "auto" }}>
-        <Box p="md">
-          <ProfileLayout
-            sidebar={
-              <ProfileSidebar
-                name={displayName}
-                subtitle={
-                  applicant.full_name_romanized &&
-                  applicant.full_name_romanized !== displayName
-                    ? applicant.full_name_romanized
-                    : undefined
-                }
-                status={
-                  <Badge
-                    size="sm"
-                    variant="light"
-                    color={STATUS_COLORS[applicant.status]}
-                  >
-                    {STATUS_LABELS[applicant.status]}
-                  </Badge>
-                }
-                fields={<ApplicantOverviewPanel applicant={applicant} />}
-                actions={
-                  <>
-                    <Button
-                      fullWidth
-                      size="xs"
-                      leftSection={<PencilSimpleIcon size={14} aria-hidden />}
-                      onClick={() =>
-                        router.push(`/admin/applicants/${applicant.id}/edit`)
-                      }
-                    >
-                      Edit applicant
-                    </Button>
-                    <Button
-                      fullWidth
-                      size="xs"
-                      variant="default"
-                      leftSection={
-                        <ArrowsClockwiseIcon size={14} aria-hidden />
-                      }
-                      onClick={() => setStatusModalOpen(true)}
-                    >
-                      Change status
-                    </Button>
-                  </>
-                }
-              />
-            }
-          >
-            <Card withBorder radius="md" padding="md">
-              <ProfileTabs tabs={tabs} defaultValue="passport-family" />
-            </Card>
-          </ProfileLayout>
-        </Box>
+        <ProfileLayout
+          sidebar={
+            <ProfileSidebar
+              name={displayName}
+              subtitle={
+                applicant.full_name_romanized &&
+                applicant.full_name_romanized !== displayName
+                  ? applicant.full_name_romanized
+                  : undefined
+              }
+              fields={<ApplicantOverviewPanel applicant={applicant} />}
+            />
+          }
+        >
+          <ProfileTabs tabs={tabs} defaultValue="passport-family" />
+        </ProfileLayout>
       </ModalPaper>
-
-      <ChangeApplicantStatusModal
-        applicant={applicant}
-        opened={statusModalOpen}
-        onClose={() => setStatusModalOpen(false)}
-      />
     </>
   );
 }

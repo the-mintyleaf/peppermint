@@ -6,9 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import {
   Anchor,
   Badge,
-  Box,
   Button,
-  Card,
   Center,
   Loader,
   ModalPaper,
@@ -157,88 +155,85 @@ function JourneyDetailContent() {
 
       {/* ModalPaper is fixed-height (`calc(100% - header)`) with `overflow: hidden`;
           override to scroll vertically so a tall profile is fully reachable (the
-          sticky sidebar sticks within this scroll container). */}
+          sticky sidebar sticks within this scroll container). No padding — the
+          ProfileLayout owns its own column spacing + divider. */}
       <ModalPaper withBorder style={{ overflowY: "auto" }}>
-        <Box p="md">
-          <ProfileLayout
-            sidebar={
-              <ProfileSidebar
-                name={destination}
-                avatarLabel={journey.target_country || displayName}
-                subtitle={
-                  <Anchor
-                    size="sm"
-                    component={Link}
-                    href={`/admin/applicants/${journey.applicant.id}`}
+        <ProfileLayout
+          sidebar={
+            <ProfileSidebar
+              name={destination}
+              avatarLabel={journey.target_country || displayName}
+              subtitle={
+                <Anchor
+                  size="sm"
+                  component={Link}
+                  href={`/admin/applicants/${journey.applicant.id}`}
+                >
+                  {displayName}
+                </Anchor>
+              }
+              status={
+                <Badge
+                  size="sm"
+                  variant="light"
+                  color={STAGE_COLORS[journey.stage]}
+                >
+                  {STAGE_LABELS[journey.stage]}
+                </Badge>
+              }
+              fields={<JourneyOverviewPanel journey={journey} />}
+              actions={
+                isTerminal ? (
+                  <Button
+                    fullWidth
+                    size="xs"
+                    color="teal"
+                    leftSection={
+                      <ArrowCounterClockwiseIcon size={14} aria-hidden />
+                    }
+                    onClick={() => setActiveModal("reopen")}
                   >
-                    {displayName}
-                  </Anchor>
-                }
-                status={
-                  <Badge
-                    size="sm"
-                    variant="light"
-                    color={STAGE_COLORS[journey.stage]}
-                  >
-                    {STAGE_LABELS[journey.stage]}
-                  </Badge>
-                }
-                fields={<JourneyOverviewPanel journey={journey} />}
-                actions={
-                  isTerminal ? (
+                    Reopen
+                  </Button>
+                ) : (
+                  <>
                     <Button
                       fullWidth
                       size="xs"
-                      color="teal"
                       leftSection={
-                        <ArrowCounterClockwiseIcon size={14} aria-hidden />
+                        <ArrowsClockwiseIcon size={14} aria-hidden />
                       }
-                      onClick={() => setActiveModal("reopen")}
+                      onClick={() => setActiveModal("stage")}
                     >
-                      Reopen
+                      Change stage
                     </Button>
-                  ) : (
-                    <>
-                      <Button
-                        fullWidth
-                        size="xs"
-                        leftSection={
-                          <ArrowsClockwiseIcon size={14} aria-hidden />
-                        }
-                        onClick={() => setActiveModal("stage")}
-                      >
-                        Change stage
-                      </Button>
-                      <Button
-                        fullWidth
-                        size="xs"
-                        variant="default"
-                        color="orange"
-                        leftSection={<PauseCircleIcon size={14} aria-hidden />}
-                        onClick={() => setActiveModal("defer")}
-                      >
-                        Defer
-                      </Button>
-                      <Button
-                        fullWidth
-                        size="xs"
-                        color="red"
-                        leftSection={<ProhibitIcon size={14} aria-hidden />}
-                        onClick={() => setActiveModal("close")}
-                      >
-                        Close
-                      </Button>
-                    </>
-                  )
-                }
-              />
-            }
-          >
-            <Card withBorder radius="md" padding="md">
-              <ProfileTabs tabs={tabs} defaultValue="worklist" />
-            </Card>
-          </ProfileLayout>
-        </Box>
+                    <Button
+                      fullWidth
+                      size="xs"
+                      variant="default"
+                      color="orange"
+                      leftSection={<PauseCircleIcon size={14} aria-hidden />}
+                      onClick={() => setActiveModal("defer")}
+                    >
+                      Defer
+                    </Button>
+                    <Button
+                      fullWidth
+                      size="xs"
+                      color="red"
+                      leftSection={<ProhibitIcon size={14} aria-hidden />}
+                      onClick={() => setActiveModal("close")}
+                    >
+                      Close
+                    </Button>
+                  </>
+                )
+              }
+            />
+          }
+        >
+          <ProfileTabs tabs={tabs} defaultValue="worklist" />
+        </ProfileLayout>
       </ModalPaper>
 
       <ChangeJourneyStageModal
