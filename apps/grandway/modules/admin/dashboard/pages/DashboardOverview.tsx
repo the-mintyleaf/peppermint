@@ -2,8 +2,8 @@
 
 import { ModuleErrorBoundary } from "@peppermint/admin";
 import {
-  Box,
   Button,
+  ModalPaper,
   ModuleHeader,
   Stack,
   Text,
@@ -63,8 +63,8 @@ function DashboardOverviewContent() {
         }
       />
 
-      <Box px={{ base: "md", md: "lg" }} pb="xl">
-        <Stack gap="lg">
+      <ModalPaper withBorder>
+        <Stack gap="lg" p="md">
           <DashboardHero fiscalYear={filters.fiscalYear} />
 
           <Text size="xs" c="dimmed">
@@ -167,7 +167,7 @@ function DashboardOverviewContent() {
             computed server-side.
           </Text>
         </Stack>
-      </Box>
+      </ModalPaper>
     </>
   );
 }
