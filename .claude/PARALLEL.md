@@ -35,6 +35,16 @@ context, so a spawn is only worth it when it buys real parallelism or an indepen
 perspective. Never dispatch an agent to do what a single inline Bash command or a single
 inline build would do — that pays the context-reload cost for no benefit.
 
+**Builder model:** `module-builder` defaults to **Sonnet** — it only ever builds the
+scaffolded `[CONTAINED]`/`[MULTI_PAGE]` types, downstream of the Opus-run decision
+skills (`/design-decisions`, `mint-requirements-tuner`, `/form-builder`) that already
+fixed the pages, fields, and columns, with write-time hooks + typecheck + review gating
+the output. That is execution, not judgment. **Override to Opus per dispatch** (the
+Agent tool's `model` param beats the frontmatter) for a genuinely complex or novel
+module — a thin/ambiguous spec, tricky generics, or heavy cross-primitive composition.
+`[NOT_CONTAINED]`/`[CUSTOM]` modules never reach a builder — the orchestrator builds
+those inline on its own (Opus) session.
+
 ## 2. Independence test
 
 Units are parallel-safe if and only if they are **file-disjoint**:
