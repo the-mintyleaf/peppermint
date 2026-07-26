@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Anchor, Badge, Group, SimpleGrid, Stack, Text } from "@peppermint/ui";
+import { Anchor, Badge, Card, Group, Stack, Text } from "@peppermint/ui";
 import {
   ITEM_STATUS_COLORS,
   ITEM_STATUS_LABELS,
@@ -30,8 +30,8 @@ import type {
   LeadRow,
   OfferRow,
 } from "../dashboard.types";
+import { PreviewTabs } from "./PreviewTabs";
 import { SectionState } from "./SectionState";
-import { WorklistPreviewCard } from "./WorklistPreviewCard";
 
 function ChecklistItemRowView({ row }: { row: ChecklistItemRow }) {
   return (
@@ -39,6 +39,7 @@ function ChecklistItemRowView({ row }: { row: ChecklistItemRow }) {
       component={Link}
       href={`/admin/checklists/${row.checklist_id}`}
       underline="never"
+      c="inherit"
     >
       <Group justify="space-between" wrap="nowrap" gap="xs">
         <Stack gap={0}>
@@ -62,7 +63,12 @@ function ChecklistItemRowView({ row }: { row: ChecklistItemRow }) {
 
 function OfferAwaitingResponseRowView({ row }: { row: OfferRow }) {
   return (
-    <Anchor component={Link} href={`/admin/offers/${row.id}`} underline="never">
+    <Anchor
+      component={Link}
+      href={`/admin/offers/${row.id}`}
+      underline="never"
+      c="inherit"
+    >
       <Group justify="space-between" wrap="nowrap" gap="xs">
         <Stack gap={0}>
           <Text size="sm">{row.applicant_name}</Text>
@@ -89,7 +95,12 @@ function OfferAwaitingResponseRowView({ row }: { row: OfferRow }) {
  */
 function FileAwaitingVerificationRowView({ row }: { row: FileRow }) {
   return (
-    <Anchor component={Link} href={`/admin/files/${row.id}`} underline="never">
+    <Anchor
+      component={Link}
+      href={`/admin/files/${row.id}`}
+      underline="never"
+      c="inherit"
+    >
       <Group justify="space-between" wrap="nowrap" gap="xs">
         <Stack gap={0}>
           <Text size="sm">{row.original_filename}</Text>
@@ -118,7 +129,7 @@ function DocumentInProgressRowView({ row }: { row: DocumentRow }) {
     ? `/admin/documents/workspace/${row.applicant_id}`
     : `/admin/documents/standalone/${row.id}`;
   return (
-    <Anchor component={Link} href={href} underline="never">
+    <Anchor component={Link} href={href} underline="never" c="inherit">
       <Group justify="space-between" wrap="nowrap" gap="xs">
         <Stack gap={0}>
           <Text size="sm">{row.label}</Text>
@@ -143,7 +154,12 @@ function DocumentInProgressRowView({ row }: { row: DocumentRow }) {
 /** No per-lead route exists (the board opens a lead via drawer state, not a URL) — link to the board. */
 function StaleLeadRowView({ row }: { row: LeadRow }) {
   return (
-    <Anchor component={Link} href="/admin/lead-management" underline="never">
+    <Anchor
+      component={Link}
+      href="/admin/lead-management"
+      underline="never"
+      c="inherit"
+    >
       <Group justify="space-between" wrap="nowrap" gap="xs">
         <Stack gap={0}>
           <Text size="sm">{row.full_name}</Text>
@@ -165,29 +181,17 @@ function StaleLeadRowView({ row }: { row: LeadRow }) {
 }
 
 /**
- * Six Preview worklists — the worklist this module exists for
- * (INTEGRATION.md §7 "today"). `overdue_checklist_items` and
+ * Six Preview worklists — the worklist this module exists for (INTEGRATION.md §7
+ * "today"), now presented as tabs. `overdue_checklist_items` and
  * `due_soon_checklist_items` are disjoint, so (and ONLY so) their totals are
- * summed in the section heading below; nothing else on the page may be.
+ * summed in the caption; nothing else on the page may be.
  */
 export function TodayWorklists({ filters }: { filters: DashboardFilters }) {
   const { data, isPending, isError, refetch, isRefetching } =
     useDashboardToday(filters);
 
   return (
-    <Stack gap="sm" id="today-worklists">
-      <Group justify="space-between">
-        <Text fw={700}>Today&apos;s work</Text>
-        {data ? (
-          <Text size="xs" c="dimmed">
-            {data.overdue_checklist_items.total +
-              data.due_soon_checklist_items.total}{" "}
-            checklist items due or overdue · due-soon horizon{" "}
-            {data.due_within_days} days
-          </Text>
-        ) : null}
-      </Group>
-
+    <Card withBorder radius="lg" p="lg">
       <SectionState
         isPending={isPending}
         isError={isError}
@@ -197,59 +201,90 @@ export function TodayWorklists({ filters }: { filters: DashboardFilters }) {
         skeletonHeight={320}
       >
         {data ? (
-          <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="sm">
-            <WorklistPreviewCard
-              title={TODAY_WORKLIST_LABELS.overdue_checklist_items}
-              preview={data.overdue_checklist_items}
-              getRowKey={(row) => row.id}
-              renderRow={(row) => <ChecklistItemRowView row={row} />}
-              emptyMessage="No overdue checklist items."
-              seeAllHref="/admin/checklists"
+          <Stack gap="md">
+            <Group justify="flex-end">
+              <Text size="xs" c="dimmed">
+                {data.overdue_checklist_items.total +
+                  data.due_soon_checklist_items.total}{" "}
+                checklist items due or overdue · due-soon horizon{" "}
+                {data.due_within_days} days
+              </Text>
+            </Group>
+            <PreviewTabs
+              ariaLabel="Today's worklists"
+              tabs={[
+                {
+                  value: "overdue",
+                  label: TODAY_WORKLIST_LABELS.overdue_checklist_items,
+                  total: data.overdue_checklist_items.total,
+                  hasMore: data.overdue_checklist_items.has_more,
+                  seeAllHref: "/admin/checklists",
+                  emptyMessage: "No overdue checklist items.",
+                  rows: data.overdue_checklist_items.items.map((row) => (
+                    <ChecklistItemRowView key={row.id} row={row} />
+                  )),
+                },
+                {
+                  value: "due-soon",
+                  label: TODAY_WORKLIST_LABELS.due_soon_checklist_items,
+                  total: data.due_soon_checklist_items.total,
+                  hasMore: data.due_soon_checklist_items.has_more,
+                  seeAllHref: "/admin/checklists",
+                  emptyMessage: "Nothing due soon.",
+                  rows: data.due_soon_checklist_items.items.map((row) => (
+                    <ChecklistItemRowView key={row.id} row={row} />
+                  )),
+                },
+                {
+                  value: "offers",
+                  label: TODAY_WORKLIST_LABELS.offers_awaiting_response,
+                  total: data.offers_awaiting_response.total,
+                  hasMore: data.offers_awaiting_response.has_more,
+                  seeAllHref: "/admin/offers",
+                  emptyMessage: "No offers awaiting a response.",
+                  rows: data.offers_awaiting_response.items.map((row) => (
+                    <OfferAwaitingResponseRowView key={row.id} row={row} />
+                  )),
+                },
+                {
+                  value: "files",
+                  label: TODAY_WORKLIST_LABELS.files_awaiting_verification,
+                  total: data.files_awaiting_verification.total,
+                  hasMore: data.files_awaiting_verification.has_more,
+                  seeAllHref: "/admin/files/review",
+                  emptyMessage: "No files awaiting verification.",
+                  rows: data.files_awaiting_verification.items.map((row) => (
+                    <FileAwaitingVerificationRowView key={row.id} row={row} />
+                  )),
+                },
+                {
+                  value: "documents",
+                  label: TODAY_WORKLIST_LABELS.documents_in_progress,
+                  total: data.documents_in_progress.total,
+                  hasMore: data.documents_in_progress.has_more,
+                  seeAllHref: "/admin/documents/all",
+                  emptyMessage: "No documents in progress.",
+                  caption: "Ignores the country filter.",
+                  rows: data.documents_in_progress.items.map((row) => (
+                    <DocumentInProgressRowView key={row.id} row={row} />
+                  )),
+                },
+                {
+                  value: "stale-leads",
+                  label: TODAY_WORKLIST_LABELS.stale_leads,
+                  total: data.stale_leads.total,
+                  hasMore: data.stale_leads.has_more,
+                  seeAllHref: "/admin/lead-management",
+                  emptyMessage: "No stale leads (7+ days without follow-up).",
+                  rows: data.stale_leads.items.map((row) => (
+                    <StaleLeadRowView key={row.id} row={row} />
+                  )),
+                },
+              ]}
             />
-            <WorklistPreviewCard
-              title={TODAY_WORKLIST_LABELS.due_soon_checklist_items}
-              preview={data.due_soon_checklist_items}
-              getRowKey={(row) => row.id}
-              renderRow={(row) => <ChecklistItemRowView row={row} />}
-              emptyMessage="Nothing due soon."
-              seeAllHref="/admin/checklists"
-            />
-            <WorklistPreviewCard
-              title={TODAY_WORKLIST_LABELS.offers_awaiting_response}
-              preview={data.offers_awaiting_response}
-              getRowKey={(row) => row.id}
-              renderRow={(row) => <OfferAwaitingResponseRowView row={row} />}
-              emptyMessage="No offers awaiting a response."
-              seeAllHref="/admin/offers"
-            />
-            <WorklistPreviewCard
-              title={TODAY_WORKLIST_LABELS.files_awaiting_verification}
-              preview={data.files_awaiting_verification}
-              getRowKey={(row) => row.id}
-              renderRow={(row) => <FileAwaitingVerificationRowView row={row} />}
-              emptyMessage="No files awaiting verification."
-              seeAllHref="/admin/files/review"
-            />
-            <WorklistPreviewCard
-              title={TODAY_WORKLIST_LABELS.documents_in_progress}
-              preview={data.documents_in_progress}
-              getRowKey={(row) => row.id}
-              renderRow={(row) => <DocumentInProgressRowView row={row} />}
-              emptyMessage="No documents in progress."
-              caption="Ignores the country filter."
-              seeAllHref="/admin/documents/all"
-            />
-            <WorklistPreviewCard
-              title={TODAY_WORKLIST_LABELS.stale_leads}
-              preview={data.stale_leads}
-              getRowKey={(row) => row.id}
-              renderRow={(row) => <StaleLeadRowView row={row} />}
-              emptyMessage="No stale leads (7+ days without follow-up)."
-              seeAllHref="/admin/lead-management"
-            />
-          </SimpleGrid>
+          </Stack>
         ) : null}
       </SectionState>
-    </Stack>
+    </Card>
   );
 }

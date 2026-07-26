@@ -1,136 +1,185 @@
 "use client";
 
-import { Badge, Card, Group, SimpleGrid, Stack, Text } from "@peppermint/ui";
+import { Card, Grid, Stack, Text } from "@peppermint/ui";
 import { OUTCOME_LABELS } from "@/modules/admin/applicant-journeys/applicantJourneys.labels";
 import { DECISION_OUTCOME_LABELS } from "@/modules/admin/offers/offers.labels";
 import { useDashboardOutcomes } from "../dashboard.hooks";
+import {
+  JOURNEY_OUTCOME_COLORS,
+  OFFER_DECISION_COLORS,
+} from "../dashboard.labels";
+import { ColumnChart } from "./ColumnChart";
+import { DonutStat } from "./DonutStat";
+import { MeterBar } from "./MeterBar";
 import { SectionState } from "./SectionState";
 import type { OutcomesProps } from "./Outcomes.types";
 
-function CountTile({ label, count }: { label: string; count: number }) {
-  return (
-    <Stack gap={0} align="center">
-      <Text size="lg" fw={700}>
-        {count}
-      </Text>
-      <Text size="xs" c="dimmed" ta="center">
-        {label}
-      </Text>
-    </Stack>
-  );
-}
-
 /**
- * `journey_outcomes` is windowed on when a journey ENDED; `journeys_completed`/
- * `journeys_closed` (same payload) on when it was CREATED (INTEGRATION.md §7
- * "outcomes") — rendered as two visually separate groups with distinct
- * captions, never combined into one total.
+ * `journey_outcomes` is windowed on when a journey ENDED; every other count here
+ * (`journeys_completed`/`journeys_closed`, applicant + checklist figures) is
+ * windowed on CREATION (INTEGRATION.md §7). They are rendered as three visually
+ * separate cards with distinct captions, never combined into one total.
  */
 export function Outcomes({ filters }: OutcomesProps) {
   const { data, isPending, isError, refetch, isRefetching } =
     useDashboardOutcomes(filters);
 
   return (
-    <Stack gap="sm">
-      <Text fw={700}>Final outcomes</Text>
-      <SectionState
-        isPending={isPending}
-        isError={isError}
-        errorMessage="Couldn't load final outcomes."
-        onRetry={() => refetch()}
-        isRetrying={isRefetching}
-        skeletonHeight={260}
-      >
-        {data ? (
-          <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="sm">
-            <Card withBorder radius="md" p="md">
-              <Stack gap="xs">
-                <Text size="sm" fw={600}>
-                  Journey outcomes
-                </Text>
-                <Text size="xs" c="dimmed">
-                  Windowed on when each journey ended.
-                </Text>
-                <Group gap="lg">
-                  {(
-                    Object.keys(data.journey_outcomes) as Array<
-                      keyof typeof data.journey_outcomes
-                    >
-                  ).map((key) => (
-                    <Badge key={key} variant="light" size="lg">
-                      {OUTCOME_LABELS[key]}: {data.journey_outcomes[key]}
-                    </Badge>
-                  ))}
-                </Group>
+    <SectionState
+      isPending={isPending}
+      isError={isError}
+      errorMessage="Couldn't load final outcomes."
+      onRetry={() => refetch()}
+      isRetrying={isRefetching}
+      skeletonHeight={220}
+    >
+      {data ? (
+        <Grid>
+          <Grid.Col span={{ base: 12, md: 4 }}>
+            <Card withBorder radius="lg" p="lg" h="100%">
+              <Stack gap="md">
+                <Stack gap={2}>
+                  <Text fw={600} size="sm">
+                    Journey outcomes
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    Windowed on when each journey ended.
+                  </Text>
+                </Stack>
+                <JourneyOutcomesDonut outcomes={data.journey_outcomes} />
               </Stack>
             </Card>
+          </Grid.Col>
 
-            <Card withBorder radius="md" p="md">
-              <Stack gap="xs">
-                <Text size="sm" fw={600}>
-                  Offer decisions
-                </Text>
-                <Text size="xs" c="dimmed">
-                  Keyed on when each decision was recorded.
-                </Text>
-                <Group gap="lg">
-                  {(
+          <Grid.Col span={{ base: 12, md: 4 }}>
+            <Card withBorder radius="lg" p="lg" h="100%">
+              <Stack gap="md">
+                <Stack gap={2}>
+                  <Text fw={600} size="sm">
+                    Offer decisions
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    Keyed on when each decision was recorded.
+                  </Text>
+                </Stack>
+                <ColumnChart
+                  items={(
                     Object.keys(data.offer_decisions) as Array<
                       keyof typeof data.offer_decisions
                     >
-                  ).map((key) => (
-                    <Badge key={key} variant="light" size="lg">
-                      {DECISION_OUTCOME_LABELS[key]}:{" "}
-                      {data.offer_decisions[key]}
-                    </Badge>
-                  ))}
-                </Group>
+                  ).map((key) => ({
+                    label: DECISION_OUTCOME_LABELS[key],
+                    value: data.offer_decisions[key],
+                    color: OFFER_DECISION_COLORS[key],
+                  }))}
+                />
               </Stack>
             </Card>
+          </Grid.Col>
 
-            <Card withBorder radius="md" p="md">
-              <Stack gap="xs">
-                <Text size="sm" fw={600}>
-                  Journeys — created in this window
-                </Text>
-                <Group gap="lg">
-                  <CountTile
-                    label="Completed"
-                    count={data.journeys_completed}
-                  />
-                  <CountTile label="Closed" count={data.journeys_closed} />
-                </Group>
+          <Grid.Col span={{ base: 12, md: 4 }}>
+            <Card withBorder radius="lg" p="lg" h="100%">
+              <Stack gap="md">
+                <Stack gap={2}>
+                  <Text fw={600} size="sm">
+                    Closed &amp; archived
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    Created in this window — a separate count from the outcomes
+                    ring.
+                  </Text>
+                </Stack>
+                <ClosedArchivedBars data={data} />
               </Stack>
             </Card>
+          </Grid.Col>
+        </Grid>
+      ) : null}
+    </SectionState>
+  );
+}
 
-            <Card withBorder radius="md" p="md">
-              <Stack gap="xs">
-                <Text size="sm" fw={600}>
-                  Applicants and checklists — created in this window
-                </Text>
-                <Group gap="lg">
-                  <CountTile
-                    label="Applicants archived"
-                    count={data.applicants_archived}
-                  />
-                  <CountTile
-                    label="Applicants dormant"
-                    count={data.applicants_dormant}
-                  />
-                  <CountTile
-                    label="Checklists completed"
-                    count={data.checklists_completed}
-                  />
-                  <CountTile
-                    label="Checklists archived"
-                    count={data.checklists_archived}
-                  />
-                </Group>
-              </Stack>
-            </Card>
-          </SimpleGrid>
-        ) : null}
-      </SectionState>
+function JourneyOutcomesDonut({
+  outcomes,
+}: {
+  outcomes: Record<string, number>;
+}) {
+  const items = (
+    Object.keys(outcomes) as Array<keyof typeof OUTCOME_LABELS>
+  ).map((key) => ({
+    label: OUTCOME_LABELS[key],
+    value: outcomes[key],
+    color: JOURNEY_OUTCOME_COLORS[key],
+  }));
+  const total = items.reduce((sum, item) => sum + item.value, 0);
+  return (
+    <DonutStat
+      items={items}
+      centerValue={total}
+      centerLabel="closed"
+      layout="horizontal"
+      size={118}
+    />
+  );
+}
+
+function ClosedArchivedBars({
+  data,
+}: {
+  data: {
+    journeys_completed: number;
+    journeys_closed: number;
+    checklists_completed: number;
+    checklists_archived: number;
+    applicants_dormant: number;
+    applicants_archived: number;
+  };
+}) {
+  const rows = [
+    {
+      key: "journeys_completed",
+      label: "Journeys completed",
+      value: data.journeys_completed,
+    },
+    {
+      key: "journeys_closed",
+      label: "Journeys closed",
+      value: data.journeys_closed,
+    },
+    {
+      key: "checklists_completed",
+      label: "Checklists completed",
+      value: data.checklists_completed,
+    },
+    {
+      key: "checklists_archived",
+      label: "Checklists archived",
+      value: data.checklists_archived,
+    },
+    {
+      key: "applicants_dormant",
+      label: "Applicants dormant",
+      value: data.applicants_dormant,
+    },
+    {
+      key: "applicants_archived",
+      label: "Applicants archived",
+      value: data.applicants_archived,
+    },
+  ];
+  const max = Math.max(1, ...rows.map((r) => r.value));
+  return (
+    <Stack gap="xs">
+      {rows.map((r) => (
+        <MeterBar
+          key={r.key}
+          label={r.label}
+          value={r.value}
+          max={max}
+          muted={r.value === 0}
+          labelWidth={148}
+        />
+      ))}
     </Stack>
   );
 }

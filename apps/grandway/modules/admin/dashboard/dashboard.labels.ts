@@ -5,7 +5,12 @@
 // no existing home: the two enums neither `applicants` nor `documents` export
 // a reusable map for, plus the dashboard's own section/group headings.
 
-import type { ApplicantStatusKey, DocumentRow } from "./dashboard.types";
+import type {
+  ApplicantStatusKey,
+  DocumentRow,
+  JourneyOutcomeKey,
+  OfferDecisionKey,
+} from "./dashboard.types";
 
 // ── Enum labels with no existing reusable map elsewhere ───────────────────────
 
@@ -20,6 +25,30 @@ export const APPLICANT_STATUS_COLORS: Record<ApplicantStatusKey, string> = {
   active: "green",
   dormant: "yellow",
   archived: "gray",
+};
+
+/**
+ * No owning module exports a color map for these two outcome enums (only
+ * `OUTCOME_LABELS` / `DECISION_OUTCOME_LABELS` exist), so the dashboard defines
+ * the color pairing here — meaning-carrying and calm: a good outcome is green, a
+ * hard rejection red, expected attrition stays neutral gray so the eye isn't
+ * pulled to a normal state.
+ */
+export const JOURNEY_OUTCOME_COLORS: Record<JourneyOutcomeKey, string> = {
+  successful: "green",
+  withdrawn: "gray",
+  rejected: "red",
+  not_qualified: "orange",
+  cancelled: "gray",
+  other: "gray",
+};
+
+export const OFFER_DECISION_COLORS: Record<OfferDecisionKey, string> = {
+  accepted: "green",
+  rejected: "red",
+  withdrawn: "gray",
+  deferred: "grape",
+  expired: "dark",
 };
 
 /** `documents.status.ts`'s `STATUS_META` already covers label+color for `DocumentStatusKey`. */

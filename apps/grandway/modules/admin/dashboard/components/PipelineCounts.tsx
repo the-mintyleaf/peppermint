@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import {
   Anchor,
-  Badge,
+  Box,
   Card,
+  Grid,
   Group,
-  SimpleGrid,
+  Progress,
   Stack,
   Text,
 } from "@peppermint/ui";
@@ -37,50 +39,51 @@ import {
   APPLICANT_STATUS_LABELS,
 } from "../dashboard.labels";
 import type { DashboardFilters } from "../dashboard.types";
+import { ColumnChart } from "./ColumnChart";
+import { DonutStat } from "./DonutStat";
+import { MeterBar } from "./MeterBar";
 import { SectionState } from "./SectionState";
 
-interface CountRow {
+interface Datum {
   key: string;
   label: string;
   color: string;
-  count: number;
+  value: number;
 }
 
-function toCountRows<K extends string>(
+function toData<K extends string>(
   counts: Record<K, number>,
   labels: Record<K, string>,
   colors: Record<K, string>,
-): CountRow[] {
+): Datum[] {
   return (Object.keys(counts) as K[]).map((key) => ({
     key,
     label: labels[key],
     color: colors[key],
-    count: counts[key],
+    value: counts[key],
   }));
 }
 
 /**
- * One zero-filled count map. Links to the owning app's PLAIN (unfiltered)
- * list — this app's own `?status=`/`?stage=` deep-link is documented as unsafe
- * (`docs/AI.md` "Cross-module integration": `forceFilters` always wins over a
- * column filter, so a URL-seeded filter would permanently lock the control
- * instead of just seeding it). There is also no drill-down contract for which
- * query params reproduce this section's window on the target list
- * (INTEGRATION.md §9), so a per-key filtered link would be a guess either way.
+ * One pipeline card: a title, a "View list" link to the OWNING app's PLAIN
+ * (unfiltered) list — this app's own `?status=`/`?stage=` deep-link is unsafe
+ * (`docs/AI.md`: `forceFilters` always wins, so a URL-seeded filter would lock
+ * the control), and there is no drill-down contract for reproducing this
+ * section's window (§9) — and the chart body.
  */
-function CountMapCard({
+function PipelineCard({
   title,
   href,
-  rows,
+  children,
 }: {
   title: string;
   href: string;
-  rows: CountRow[];
+  children: ReactNode;
 }) {
   return (
-    <Card withBorder radius="md" p="md">
-      <Stack gap="xs">
-        <Group justify="space-between">
+    <Card withBorder radius="lg" p="lg" h="100%">
+      <Stack gap="md" h="100%">
+        <Group justify="space-between" align="baseline">
           <Text fw={600} size="sm">
             {title}
           </Text>
@@ -88,124 +91,243 @@ function CountMapCard({
             View list
           </Anchor>
         </Group>
-        <Stack gap={4}>
-          {rows.map((row) => (
-            <Group key={row.key} justify="space-between" gap="xs">
-              <Badge size="sm" color={row.color} variant="light">
-                {row.label}
-              </Badge>
-              <Text size="sm" fw={600}>
-                {row.count}
-              </Text>
-            </Group>
-          ))}
-        </Stack>
+        {children}
       </Stack>
     </Card>
   );
 }
 
+/** Horizontal status bars scaled to the largest count in the map. */
+function BarList({ data }: { data: Datum[] }) {
+  const max = Math.max(1, ...data.map((d) => d.value));
+  return (
+    <Stack gap="xs">
+      {data.map((d) => (
+        <MeterBar
+          key={d.key}
+          label={d.label}
+          value={d.value}
+          max={max}
+          color={d.color}
+          muted={d.value === 0}
+          labelWidth={104}
+        />
+      ))}
+    </Stack>
+  );
+}
+
+/** A single full-width distribution bar (heading · total, stacked bar, legend). */
+function DistributionBar({
+  heading,
+  data,
+}: {
+  heading: string;
+  data: Datum[];
+}) {
+  const total = data.reduce((sum, d) => sum + d.value, 0);
+  return (
+    <Stack gap="xs">
+      <Text
+        size="xs"
+        fw={600}
+        c="dimmed"
+        tt="uppercase"
+        style={{ letterSpacing: "0.06em" }}
+      >
+        {heading} · {total}
+      </Text>
+      <Progress.Root size="lg" radius="sm">
+        {data.map((d) => (
+          <Progress.Section
+            key={d.key}
+            value={total > 0 ? (d.value / total) * 100 : 0}
+            color={d.color}
+            title={`${d.label}: ${d.value}`}
+            aria-label={`${d.label}: ${d.value}`}
+          />
+        ))}
+      </Progress.Root>
+      <Group gap="md" wrap="wrap">
+        {data.map((d) => (
+          <Group key={d.key} gap={6} wrap="nowrap">
+            <Box
+              aria-hidden
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                background:
+                  d.value === 0
+                    ? "var(--mantine-color-gray-3)"
+                    : `var(--mantine-color-${d.color}-6)`,
+              }}
+            />
+            <Text size="xs" c={d.value === 0 ? "dimmed" : undefined}>
+              {d.label} {d.value}
+            </Text>
+          </Group>
+        ))}
+      </Group>
+    </Stack>
+  );
+}
+
 /**
- * Seven zero-filled count maps, windowed on CREATION date (INTEGRATION.md §7
- * "pipeline"). `documents_by_status_is_country_filtered` is always `false`
- * and exists only to caption the panel honestly when a country filter is set
- * elsewhere on screen — it is not a real filter toggle.
+ * Seven zero-filled count maps, windowed on CREATION date (INTEGRATION.md §7).
+ * `documents_by_status_is_country_filtered` is always `false` and only captions
+ * the panel honestly when a country filter is set elsewhere — not a real toggle.
  */
 export function PipelineCounts({ filters }: { filters: DashboardFilters }) {
   const { data, isPending, isError, refetch, isRefetching } =
     useDashboardPipeline(filters);
 
   return (
-    <Stack gap="sm">
-      <Text fw={700}>Pipeline health</Text>
-      <SectionState
-        isPending={isPending}
-        isError={isError}
-        errorMessage="Couldn't load pipeline counts."
-        onRetry={() => refetch()}
-        isRetrying={isRefetching}
-        skeletonHeight={280}
-      >
-        {data ? (
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="sm">
-            <CountMapCard
-              title="Leads by stage"
-              href="/admin/lead-management"
-              rows={toCountRows(
-                data.leads_by_stage,
-                LEAD_STAGE_LABELS,
-                LEAD_STAGE_COLORS,
-              )}
-            />
-            <CountMapCard
-              title="Applicants by status"
-              href="/admin/applicants"
-              rows={toCountRows(
-                data.applicants_by_status,
-                APPLICANT_STATUS_LABELS,
-                APPLICANT_STATUS_COLORS,
-              )}
-            />
-            <CountMapCard
+    <SectionState
+      isPending={isPending}
+      isError={isError}
+      errorMessage="Couldn't load pipeline counts."
+      onRetry={() => refetch()}
+      isRetrying={isRefetching}
+      skeletonHeight={280}
+    >
+      {data ? (
+        <Grid>
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <PipelineCard title="Leads by stage" href="/admin/lead-management">
+              <BarList
+                data={toData(
+                  data.leads_by_stage,
+                  LEAD_STAGE_LABELS,
+                  LEAD_STAGE_COLORS,
+                )}
+              />
+            </PipelineCard>
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <PipelineCard
               title="Journeys by stage"
               href="/admin/applicant-journeys"
-              rows={toCountRows(
-                data.journeys_by_stage,
-                JOURNEY_STAGE_LABELS,
-                JOURNEY_STAGE_COLORS,
-              )}
-            />
-            <CountMapCard
-              title="Offers by status"
-              href="/admin/offers"
-              rows={toCountRows(
-                data.offers_by_status,
-                OFFER_STATUS_LABELS,
-                OFFER_STATUS_COLORS,
-              )}
-            />
-            <CountMapCard
-              title="Checklists by status"
-              href="/admin/checklists"
-              rows={toCountRows(
-                data.checklists_by_status,
-                CHECKLIST_STATUS_LABELS,
-                CHECKLIST_STATUS_COLORS,
-              )}
-            />
-            <CountMapCard
-              title="Documents by status"
-              href="/admin/documents/all"
-              rows={(
-                Object.keys(data.documents_by_status) as Array<
-                  keyof typeof data.documents_by_status
-                >
-              ).map((key) => ({
-                key,
-                label: DOCUMENT_STATUS_META[key].label,
-                color: DOCUMENT_STATUS_META[key].color,
-                count: data.documents_by_status[key],
-              }))}
-            />
-            <CountMapCard
-              title="Files by verification"
-              href="/admin/files/review"
-              rows={toCountRows(
-                data.files_by_verification,
-                VERIFICATION_STATUS_LABELS,
-                VERIFICATION_STATUS_COLORS,
-              )}
-            />
-          </SimpleGrid>
-        ) : null}
+            >
+              <BarList
+                data={toData(
+                  data.journeys_by_stage,
+                  JOURNEY_STAGE_LABELS,
+                  JOURNEY_STAGE_COLORS,
+                )}
+              />
+            </PipelineCard>
+          </Grid.Col>
 
-        {data?.documents_by_status_is_country_filtered === false ? (
-          <Text size="xs" c="dimmed" mt="xs">
-            Documents by status is never narrowed by the country filter — a
-            document belongs to an applicant, not a study destination.
-          </Text>
-        ) : null}
-      </SectionState>
-    </Stack>
+          <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
+            <PipelineCard title="Applicants by status" href="/admin/applicants">
+              <ApplicantsDonut
+                data={toData(
+                  data.applicants_by_status,
+                  APPLICANT_STATUS_LABELS,
+                  APPLICANT_STATUS_COLORS,
+                )}
+              />
+            </PipelineCard>
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
+            <PipelineCard title="Offers by status" href="/admin/offers">
+              <OffersDonut
+                data={toData(
+                  data.offers_by_status,
+                  OFFER_STATUS_LABELS,
+                  OFFER_STATUS_COLORS,
+                )}
+              />
+            </PipelineCard>
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
+            <PipelineCard title="Checklists by status" href="/admin/checklists">
+              <ColumnChart
+                items={toData(
+                  data.checklists_by_status,
+                  CHECKLIST_STATUS_LABELS,
+                  CHECKLIST_STATUS_COLORS,
+                ).map((d) => ({
+                  label: d.label,
+                  value: d.value,
+                  color: d.color,
+                }))}
+              />
+            </PipelineCard>
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
+            <PipelineCard title="Documents & files" href="/admin/documents/all">
+              <Stack gap="lg">
+                <DistributionBar
+                  heading="Documents"
+                  data={(
+                    Object.keys(data.documents_by_status) as Array<
+                      keyof typeof data.documents_by_status
+                    >
+                  ).map((key) => ({
+                    key,
+                    label: DOCUMENT_STATUS_META[key].label,
+                    color: DOCUMENT_STATUS_META[key].color,
+                    value: data.documents_by_status[key],
+                  }))}
+                />
+                <DistributionBar
+                  heading="Files"
+                  data={toData(
+                    data.files_by_verification,
+                    VERIFICATION_STATUS_LABELS,
+                    VERIFICATION_STATUS_COLORS,
+                  )}
+                />
+              </Stack>
+            </PipelineCard>
+          </Grid.Col>
+
+          {data.documents_by_status_is_country_filtered === false ? (
+            <Grid.Col span={12}>
+              <Text size="xs" c="dimmed">
+                Documents by status is never narrowed by the country filter — a
+                document belongs to an applicant, not a study destination.
+              </Text>
+            </Grid.Col>
+          ) : null}
+        </Grid>
+      ) : null}
+    </SectionState>
+  );
+}
+
+function ApplicantsDonut({ data }: { data: Datum[] }) {
+  const total = data.reduce((sum, d) => sum + d.value, 0);
+  return (
+    <DonutStat
+      items={data.map((d) => ({
+        label: d.label,
+        value: d.value,
+        color: d.color,
+      }))}
+      centerValue={total}
+      centerLabel="applicants"
+    />
+  );
+}
+
+function OffersDonut({ data }: { data: Datum[] }) {
+  const total = data.reduce((sum, d) => sum + d.value, 0);
+  return (
+    <DonutStat
+      items={data.map((d) => ({
+        label: d.label,
+        value: d.value,
+        color: d.color,
+      }))}
+      centerValue={total}
+      centerLabel="offers"
+    />
   );
 }

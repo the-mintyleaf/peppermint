@@ -5,8 +5,8 @@ import {
   Anchor,
   Badge,
   Button,
+  Card,
   Group,
-  SimpleGrid,
   Stack,
   Text,
 } from "@peppermint/ui";
@@ -34,8 +34,8 @@ import type {
   OfferRow,
   PassportRow,
 } from "../dashboard.types";
+import { PreviewTabs } from "./PreviewTabs";
 import { SectionState } from "./SectionState";
-import { WorklistPreviewCard } from "./WorklistPreviewCard";
 
 function BlockedChecklistItemRowView({ row }: { row: ChecklistItemRow }) {
   return (
@@ -43,6 +43,7 @@ function BlockedChecklistItemRowView({ row }: { row: ChecklistItemRow }) {
       component={Link}
       href={`/admin/checklists/${row.checklist_id}`}
       underline="never"
+      c="inherit"
     >
       <Group justify="space-between" wrap="nowrap" gap="xs">
         <Stack gap={0}>
@@ -60,10 +61,10 @@ function BlockedChecklistItemRowView({ row }: { row: ChecklistItemRow }) {
 }
 
 /**
- * The safety net behind automatic checklist inheritance — an empty group is
- * the healthy state, not a missing feature (INTEGRATION.md §7). Each row
- * offers BOTH drill-throughs the concept calls for: view the journey, and
- * author the destination country's template so future journeys inherit one.
+ * The safety net behind automatic checklist inheritance — an empty group is the
+ * healthy state, not a missing feature (INTEGRATION.md §7). Each row offers BOTH
+ * drill-throughs the concept calls for: view the journey, and author the
+ * destination country's template so future journeys inherit one.
  */
 function JourneyWithoutChecklistRowView({ row }: { row: JourneyRow }) {
   return (
@@ -105,6 +106,7 @@ function ExpiringPassportRowView({ row }: { row: PassportRow }) {
       component={Link}
       href={`/admin/applicants/${row.applicant_id}`}
       underline="never"
+      c="inherit"
     >
       <Group justify="space-between" wrap="nowrap" gap="xs">
         <Stack gap={0}>
@@ -129,7 +131,12 @@ function ExpiringPassportRowView({ row }: { row: PassportRow }) {
 /** Only deadlines already PAST — approaching ones live in Today's work instead. */
 function OverdueOfferRowView({ row }: { row: OfferRow }) {
   return (
-    <Anchor component={Link} href={`/admin/offers/${row.id}`} underline="never">
+    <Anchor
+      component={Link}
+      href={`/admin/offers/${row.id}`}
+      underline="never"
+      c="inherit"
+    >
       <Group justify="space-between" wrap="nowrap" gap="xs">
         <Stack gap={0}>
           <Text size="sm">{row.applicant_name}</Text>
@@ -148,7 +155,12 @@ function OverdueOfferRowView({ row }: { row: OfferRow }) {
 /** Shows only files still current (already-superseded rejections are excluded). */
 function RejectedFileRowView({ row }: { row: FileRow }) {
   return (
-    <Anchor component={Link} href={`/admin/files/${row.id}`} underline="never">
+    <Anchor
+      component={Link}
+      href={`/admin/files/${row.id}`}
+      underline="never"
+      c="inherit"
+    >
       <Stack gap={0}>
         <Group justify="space-between" wrap="nowrap" gap="xs">
           <Text size="sm">{row.original_filename}</Text>
@@ -171,15 +183,16 @@ function RejectedFileRowView({ row }: { row: FileRow }) {
 /**
  * Five groups, GROUPED BY CAUSE, never merged into one urgency-sorted list —
  * five different people act on them (INTEGRATION.md §7 "blockers"). An empty
- * group is a healthy state, rendered neutrally, not as an error.
+ * group is a healthy state, rendered neutrally, not as an error. Presented as
+ * tabs; the design's per-tab reason breakdown has no backing aggregation, so the
+ * honest content is the affected-rows preview.
  */
 export function Blockers({ filters }: { filters: DashboardFilters }) {
   const { data, isPending, isError, refetch, isRefetching } =
     useDashboardBlockers(filters);
 
   return (
-    <Stack gap="sm" id="blockers">
-      <Text fw={700}>Blockers and risk</Text>
+    <Card withBorder radius="lg" p="lg">
       <SectionState
         isPending={isPending}
         isError={isError}
@@ -189,50 +202,68 @@ export function Blockers({ filters }: { filters: DashboardFilters }) {
         skeletonHeight={320}
       >
         {data ? (
-          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="sm">
-            <WorklistPreviewCard
-              title={BLOCKER_GROUP_LABELS.blocked_checklist_items}
-              preview={data.blocked_checklist_items}
-              getRowKey={(row) => row.id}
-              renderRow={(row) => <BlockedChecklistItemRowView row={row} />}
-              emptyMessage="No blocked checklist items — healthy."
-              seeAllHref="/admin/checklists"
-            />
-            <WorklistPreviewCard
-              title={BLOCKER_GROUP_LABELS.journeys_without_a_checklist}
-              preview={data.journeys_without_a_checklist}
-              getRowKey={(row) => row.id}
-              renderRow={(row) => <JourneyWithoutChecklistRowView row={row} />}
-              emptyMessage="Every journey has a checklist — healthy."
-              seeAllHref="/admin/applicant-journeys"
-            />
-            <WorklistPreviewCard
-              title={BLOCKER_GROUP_LABELS.expiring_passports}
-              preview={data.expiring_passports}
-              getRowKey={(row) => row.applicant_id}
-              renderRow={(row) => <ExpiringPassportRowView row={row} />}
-              emptyMessage={`No passports expiring within ${data.passport_within_days} days.`}
-              seeAllHref="/admin/applicants"
-            />
-            <WorklistPreviewCard
-              title={BLOCKER_GROUP_LABELS.overdue_offers}
-              preview={data.overdue_offers}
-              getRowKey={(row) => row.id}
-              renderRow={(row) => <OverdueOfferRowView row={row} />}
-              emptyMessage="No overdue offers — healthy."
-              seeAllHref="/admin/offers"
-            />
-            <WorklistPreviewCard
-              title={BLOCKER_GROUP_LABELS.rejected_files}
-              preview={data.rejected_files}
-              getRowKey={(row) => row.id}
-              renderRow={(row) => <RejectedFileRowView row={row} />}
-              emptyMessage="No current rejected files — healthy."
-              seeAllHref="/admin/files/review"
-            />
-          </SimpleGrid>
+          <PreviewTabs
+            ariaLabel="Blockers"
+            tabs={[
+              {
+                value: "blocked-items",
+                label: BLOCKER_GROUP_LABELS.blocked_checklist_items,
+                total: data.blocked_checklist_items.total,
+                hasMore: data.blocked_checklist_items.has_more,
+                seeAllHref: "/admin/checklists",
+                emptyMessage: "No blocked checklist items — healthy.",
+                rows: data.blocked_checklist_items.items.map((row) => (
+                  <BlockedChecklistItemRowView key={row.id} row={row} />
+                )),
+              },
+              {
+                value: "no-checklist",
+                label: BLOCKER_GROUP_LABELS.journeys_without_a_checklist,
+                total: data.journeys_without_a_checklist.total,
+                hasMore: data.journeys_without_a_checklist.has_more,
+                seeAllHref: "/admin/applicant-journeys",
+                emptyMessage: "Every journey has a checklist — healthy.",
+                rows: data.journeys_without_a_checklist.items.map((row) => (
+                  <JourneyWithoutChecklistRowView key={row.id} row={row} />
+                )),
+              },
+              {
+                value: "passports",
+                label: BLOCKER_GROUP_LABELS.expiring_passports,
+                total: data.expiring_passports.total,
+                hasMore: data.expiring_passports.has_more,
+                seeAllHref: "/admin/applicants",
+                emptyMessage: `No passports expiring within ${data.passport_within_days} days.`,
+                rows: data.expiring_passports.items.map((row) => (
+                  <ExpiringPassportRowView key={row.applicant_id} row={row} />
+                )),
+              },
+              {
+                value: "overdue-offers",
+                label: BLOCKER_GROUP_LABELS.overdue_offers,
+                total: data.overdue_offers.total,
+                hasMore: data.overdue_offers.has_more,
+                seeAllHref: "/admin/offers",
+                emptyMessage: "No overdue offers — healthy.",
+                rows: data.overdue_offers.items.map((row) => (
+                  <OverdueOfferRowView key={row.id} row={row} />
+                )),
+              },
+              {
+                value: "rejected-files",
+                label: BLOCKER_GROUP_LABELS.rejected_files,
+                total: data.rejected_files.total,
+                hasMore: data.rejected_files.has_more,
+                seeAllHref: "/admin/files/review",
+                emptyMessage: "No current rejected files — healthy.",
+                rows: data.rejected_files.items.map((row) => (
+                  <RejectedFileRowView key={row.id} row={row} />
+                )),
+              },
+            ]}
+          />
         ) : null}
       </SectionState>
-    </Stack>
+    </Card>
   );
 }

@@ -24,30 +24,69 @@ Folder is **singular** (`dashboard/`) to match the API base path
 
 ## Data layer (one file per concern, not per section)
 
-| File                     | Carries                                                                                                                                                                                                                                                              |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dashboard.types.ts`     | All 8 section response shapes + shared row/wrapper shapes (§4)                                                                                                                                                                                                       |
-| `dashboard.queryKeys.ts` | `dashboardQueryKeys.{summary,today,pipeline,blockers,workload,conversion,outcomes,activity}`                                                                                                                                                                         |
-| `dashboard.api.ts`       | 8 `fetch*` functions — only `fetchConversion`/`fetchOutcomes` take `{fiscal_year, country}`; `fetchActivity` takes only `{fiscal_year, page, page_size}`                                                                                                             |
-| `dashboard.hooks.ts`     | 8 independent `useQuery` hooks (`useDashboard{Summary,Today,Pipeline,Blockers,Workload,Conversion,Outcomes,Activity}`) + `useDashboardFilters` (URL-synced `fiscal_year`/`country`)                                                                                  |
-| `dashboard.labels.ts`    | Only labels with no existing home (`ApplicantStatusKey`, `DocumentRow.family`) + section/group headings. Every owned enum (offer/checklist/journey/lead/file status, journey outcome, offer decision) is imported CONCRETELY from its owning module, never redefined |
-| `dashboard.utils.ts`     | `formatDate`/`formatDateTime`/`formatRatePercent`                                                                                                                                                                                                                    |
+| File                     | Carries                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dashboard.types.ts`     | All 8 section response shapes + shared row/wrapper shapes (§4)                                                                                                                                                                                                                                                                                                                           |
+| `dashboard.queryKeys.ts` | `dashboardQueryKeys.{summary,today,pipeline,blockers,workload,conversion,outcomes,activity}`                                                                                                                                                                                                                                                                                             |
+| `dashboard.api.ts`       | 8 `fetch*` functions — only `fetchConversion`/`fetchOutcomes` take `{fiscal_year, country}`; `fetchActivity` takes only `{fiscal_year, page, page_size}`                                                                                                                                                                                                                                 |
+| `dashboard.hooks.ts`     | 8 independent `useQuery` hooks (`useDashboard{Summary,Today,Pipeline,Blockers,Workload,Conversion,Outcomes,Activity}`) + `useDashboardFilters` (URL-synced `fiscal_year`/`country`)                                                                                                                                                                                                      |
+| `dashboard.labels.ts`    | Only labels/colors with no existing home (`ApplicantStatusKey`, `DocumentRow.family`, `JOURNEY_OUTCOME_COLORS`/`OFFER_DECISION_COLORS` — the owning modules export the outcome/decision LABELS but no color map) + section/group headings. Every enum whose owning module already exports a color map (offer/checklist/journey/lead/file status) is imported CONCRETELY, never redefined |
+| `dashboard.utils.ts`     | `formatDate`/`formatDateTime`/`formatRatePercent` + `chartColor(name, shade)` (Mantine color name/hex → CSS var for custom bar/SVG fills)                                                                                                                                                                                                                                                |
+
+## Visual design (Mobility Ops redesign)
+
+Restyled to the "Mobility Ops Dashboard" design while keeping every integration.
+Three confirmed design decisions drive the look:
+
+1. **Adapt honestly** — the mockup's monthly trend line, per-worklist age/day
+   buckets, per-blocker reason breakdowns, and 14-day activity sparkline have NO
+   backing endpoint (the API returns totals + ≤10 preview rows, not
+   aggregations). They are NOT faked; each is replaced with the real data
+   (preview row lists, the alert bars, the `meta.count` total).
+2. **Meaningful color** — status charts reuse each owning module's status→color
+   map (so a slice/bar means the same here as on that module's list); pure
+   quantities are neutral gray; the brand accent (orange, `color="brand"`) is
+   reserved for the page anchor (`DashboardHero`) and the conversion gauges.
+   Never color alone — every bar/slice carries a word + value.
+3. **Flat signal board** — charts are lightweight `Progress`/`RingProgress` +
+   minimal SVG (no `@peppermint/ui/charts`/recharts): static, tooltip-light,
+   at-a-glance. `chartColor()` in `dashboard.utils.ts` turns a Mantine color
+   name/hex into a CSS var for custom `<div>`/`<svg>` fills; `Progress`/
+   `RingProgress` take the color name directly and don't need it.
+
+Layout: page owns the `SectionHeading` bands + per-section `ModuleErrorBoundary`;
+each section renders only its own card(s) with an internal `Grid`. Anchors
+`#today-worklists` / `#blockers` live on those section headings.
 
 ## Components (`components/`, flat — no per-component folder; only non-trivial props get a `.types.ts`)
 
-| Component             | Backs                                                                                                                                         |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DashboardFilterBar`  | fiscal_year + country ONLY — no other filter control (§9: the rest are validated-and-ignored)                                                 |
-| `SummaryStrip`        | Alert strip — each alert links to its in-page section anchor (`#today-worklists`/`#blockers`), not an external route (no drill-down contract) |
-| `TodayWorklists`      | 6 worklists via `WorklistPreviewCard`                                                                                                         |
-| `PipelineCounts`      | 7 zero-filled maps via local `CountMapCard`; each links to the OWNING APP'S PLAIN (unfiltered) list — see "Do not do"                         |
-| `Blockers`            | 5 groups via `WorklistPreviewCard`, rendered SEPARATELY                                                                                       |
-| `Workload`            | Branches on `is_scoped_to_caller`; 3 separate `Table`s, never joined/summed                                                                   |
-| `Conversion`          | 4 independent `Rate`s + `by_source` table; takes `filters` prop                                                                               |
-| `Outcomes`            | `journey_outcomes` vs `journeys_completed`/`journeys_closed` — two visually separate cards; takes `filters` prop                              |
-| `ActivityFeed`        | The only paginated section; takes `fiscalYear` only (never `country`)                                                                         |
-| `SectionState`        | Shared loading/error/empty chrome — every section wraps its content in this                                                                   |
-| `WorklistPreviewCard` | Shared `Preview<T>` renderer (has_more → "see all", never length comparison) — reused by Today (6x) + Blockers (5x)                           |
+### Section components (one per endpoint)
+
+| Component            | Backs                                                                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `DashboardHero`      | Page anchor — eyebrow + "Placement overview" + time range (fiscal year) + role·user from `useCurrentUser`                       |
+| `DashboardFilterBar` | fiscal_year + country ONLY — no other filter control (§9: the rest are validated-and-ignored)                                   |
+| `SummaryStrip`       | Hero volume stats + "Needs attention" `MeterBar`s (relative volume = value/max); each alert links to its in-page section anchor |
+| `TodayWorklists`     | 6 worklists as `PreviewTabs` (real preview rows; no invented bucket chart)                                                      |
+| `PipelineCounts`     | 7 zero-filled maps as bars/columns/donuts/stacked; each links to the OWNING APP'S PLAIN (unfiltered) list — see "Do not do"     |
+| `Blockers`           | 5 groups as `PreviewTabs` (real rows; no invented reason breakdown), never merged                                               |
+| `Workload`           | Branches on `is_scoped_to_caller` (caption only); 3 tabbed per-owner bar measures, never joined/summed                          |
+| `Conversion`         | 4 independent `Gauge`s + `by_source` `StackedMeter` rows; takes `filters` prop                                                  |
+| `Outcomes`           | `journey_outcomes` donut vs created-window `ColumnChart`/`MeterBar`s — separate cards; takes `filters` prop                     |
+| `ActivityFeed`       | The only paginated section, as a `Table`; real total from `meta.count` (no sparkline); `fiscalYear` only (never `country`)      |
+| `SectionState`       | Shared loading/error/empty chrome — every section wraps its content in this                                                     |
+
+### Flat-chart primitives (presentational; states handled by the section's `SectionState`)
+
+| Primitive        | Renders                                                                                   |
+| ---------------- | ----------------------------------------------------------------------------------------- |
+| `MeterBar`       | One labelled horizontal bar (label · `Progress` · value); optional `href` for alert links |
+| `StackedMeter`   | Segmented `Progress.Root` bar + `trailing` slot (by-source, checklist workload)           |
+| `ColumnChart`    | Compact vertical bars for a small fixed set (checklists, offer decisions)                 |
+| `DonutStat`      | `RingProgress` + center total + word+color+value legend (applicants/offers/outcomes)      |
+| `Gauge`          | Flat half-circle SVG rate gauge; brand arc; null percent → empty arc + "—"                |
+| `PreviewTabs`    | Shared tabbed `Preview<T>` viewer (count badge = real `total`; `has_more` → "see all")    |
+| `SectionHeading` | Title + "how to read this" subtitle band; carries the section anchor `id`                 |
 
 ## State ownership
 

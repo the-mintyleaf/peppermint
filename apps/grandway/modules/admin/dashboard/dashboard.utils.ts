@@ -21,3 +21,14 @@ export function formatDate(
 export function formatRatePercent(percent: number | null): string {
   return percent === null ? "—" : `${percent}%`;
 }
+
+/**
+ * A Mantine color name (`"blue"`, `"brand"`, `"gray"`, …) or a raw hex is turned
+ * into a CSS color usable in a custom bar/SVG fill. The status→color maps this
+ * module imports from the owning apps are all Mantine names, so this keeps their
+ * meaning while letting the flat chart primitives paint plain `<div>`/`<svg>`
+ * fills. RingProgress/Progress accept the name directly, so they don't need this.
+ */
+export function chartColor(name: string, shade = 6): string {
+  return name.startsWith("#") ? name : `var(--mantine-color-${name}-${shade})`;
+}

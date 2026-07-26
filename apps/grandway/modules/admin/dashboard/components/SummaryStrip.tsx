@@ -1,31 +1,29 @@
 "use client";
 
-import Link from "next/link";
-import { Anchor, Card, Group, SimpleGrid, Stack, Text } from "@peppermint/ui";
+import { Card, Grid, Group, SimpleGrid, Stack, Text } from "@peppermint/ui";
 import { useDashboardSummary } from "../dashboard.hooks";
 import type { DashboardFilters } from "../dashboard.types";
+import { MeterBar } from "./MeterBar";
 import { SectionState } from "./SectionState";
 
 /**
  * The alert strip — `useDashboardSummary()`. Every alert is a number PLUS a
- * destination (CONCEPT.md "Alert strip"): each links to the in-page section
- * that carries the fuller detail (INTEGRATION.md §4 "every figure is
- * duplicated in a fuller section below") rather than an external list route —
- * there is no drill-down contract for query params on the owning apps' list
- * views (§9), so an in-page anchor is the honest destination, not a guess.
- * Volumes are context, not alerts, so they render as plain stat tiles with no
- * link.
+ * destination (CONCEPT.md "Alert strip"): each links to the in-page section that
+ * carries the fuller detail (INTEGRATION.md §4) rather than an external route —
+ * there is no drill-down contract for query params on the owning apps' lists
+ * (§9), so an in-page anchor is the honest destination. Volumes are context, not
+ * alerts, so they render as plain hero stats with no link.
  */
-const ALERT_DESTINATIONS: Record<string, string> = {
-  overdue_checklist_items: "#today-worklists",
-  due_soon_checklist_items: "#today-worklists",
-  blocked_checklist_items: "#blockers",
-  offers_awaiting_response: "#today-worklists",
-  files_awaiting_verification: "#today-worklists",
-  rejected_files: "#blockers",
-  stale_leads: "#today-worklists",
-  journeys_without_a_checklist: "#blockers",
-};
+const ALERT_ORDER = [
+  "overdue_checklist_items",
+  "rejected_files",
+  "blocked_checklist_items",
+  "stale_leads",
+  "journeys_without_a_checklist",
+  "offers_awaiting_response",
+  "files_awaiting_verification",
+  "due_soon_checklist_items",
+] as const;
 
 const ALERT_LABELS: Record<string, string> = {
   overdue_checklist_items: "Overdue checklist items",
@@ -38,6 +36,44 @@ const ALERT_LABELS: Record<string, string> = {
   journeys_without_a_checklist: "Journeys without a checklist",
 };
 
+const ALERT_DESTINATIONS: Record<string, string> = {
+  overdue_checklist_items: "#today-worklists",
+  due_soon_checklist_items: "#today-worklists",
+  blocked_checklist_items: "#blockers",
+  offers_awaiting_response: "#today-worklists",
+  files_awaiting_verification: "#today-worklists",
+  rejected_files: "#blockers",
+  stale_leads: "#today-worklists",
+  journeys_without_a_checklist: "#blockers",
+};
+
+// Severity is paired with the word + number + position, never carried by color
+// alone: red = an SLA already breached, orange = at-risk/aging, gray = a routine
+// queue of outstanding work.
+const ALERT_COLORS: Record<string, string> = {
+  overdue_checklist_items: "red",
+  rejected_files: "red",
+  blocked_checklist_items: "orange",
+  stale_leads: "orange",
+  journeys_without_a_checklist: "orange",
+  offers_awaiting_response: "gray",
+  files_awaiting_verification: "gray",
+  due_soon_checklist_items: "gray",
+};
+
+function VolumeStat({ value, label }: { value: number; label: string }) {
+  return (
+    <Stack gap={2}>
+      <Text fz={30} fw={700} lh={1} style={{ letterSpacing: "-0.03em" }}>
+        {value.toLocaleString()}
+      </Text>
+      <Text size="xs" c="dimmed">
+        {label}
+      </Text>
+    </Stack>
+  );
+}
+
 export function SummaryStrip({ filters }: { filters: DashboardFilters }) {
   const { data, isPending, isError, refetch, isRefetching } =
     useDashboardSummary(filters);
@@ -49,50 +85,72 @@ export function SummaryStrip({ filters }: { filters: DashboardFilters }) {
       errorMessage="Couldn't load the alert strip."
       onRetry={() => refetch()}
       isRetrying={isRefetching}
-      skeletonHeight={100}
+      skeletonHeight={180}
     >
       {data ? (
-        <Stack gap="sm">
-          <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="sm">
-            {(Object.keys(data.alerts) as Array<keyof typeof data.alerts>).map(
-              (key) => (
-                <Card key={key} withBorder radius="md" p="sm">
-                  <Stack gap={2}>
-                    <Text size="xl" fw={700}>
-                      {data.alerts[key]}
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      {ALERT_LABELS[key]}
-                    </Text>
-                    <Anchor
-                      component={Link}
-                      href={ALERT_DESTINATIONS[key]}
-                      size="xs"
-                    >
-                      View
-                    </Anchor>
-                  </Stack>
-                </Card>
-              ),
-            )}
-          </SimpleGrid>
+        <Grid>
+          <Grid.Col span={{ base: 12, md: 5 }}>
+            <Card withBorder radius="lg" p="lg" h="100%">
+              <Stack gap="lg" justify="space-between" h="100%">
+                <SimpleGrid cols={3} spacing="lg">
+                  <VolumeStat
+                    value={data.volumes.leads_total}
+                    label="Total leads"
+                  />
+                  <VolumeStat
+                    value={data.volumes.applicants_active}
+                    label="Active applicants"
+                  />
+                  <VolumeStat
+                    value={data.volumes.journeys_total}
+                    label="Total journeys"
+                  />
+                </SimpleGrid>
+                <Text size="xs" c="dimmed">
+                  Due-soon horizon: {data.due_within_days} days. Figures reflect
+                  the moment this section was last fetched.
+                </Text>
+              </Stack>
+            </Card>
+          </Grid.Col>
 
-          <Group gap="lg">
-            <Text size="sm" c="dimmed">
-              {data.volumes.leads_total} leads total
-            </Text>
-            <Text size="sm" c="dimmed">
-              {data.volumes.applicants_active} active applicants
-            </Text>
-            <Text size="sm" c="dimmed">
-              {data.volumes.journeys_total} journeys total
-            </Text>
-            <Text size="sm" c="dimmed">
-              Due-soon horizon: {data.due_within_days} days
-            </Text>
-          </Group>
-        </Stack>
+          <Grid.Col span={{ base: 12, md: 7 }}>
+            <Card withBorder radius="lg" p="lg" h="100%">
+              <Stack gap="md">
+                <Group justify="space-between" align="baseline">
+                  <Text fw={600} size="sm">
+                    Needs attention
+                  </Text>
+                  <Text size="xs" c="dimmed" ff="monospace">
+                    relative volume
+                  </Text>
+                </Group>
+                <AlertBars alerts={data.alerts} />
+              </Stack>
+            </Card>
+          </Grid.Col>
+        </Grid>
       ) : null}
     </SectionState>
+  );
+}
+
+function AlertBars({ alerts }: { alerts: Record<string, number> }) {
+  const max = Math.max(1, ...ALERT_ORDER.map((key) => alerts[key] ?? 0));
+
+  return (
+    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm" verticalSpacing="sm">
+      {ALERT_ORDER.map((key) => (
+        <MeterBar
+          key={key}
+          label={ALERT_LABELS[key]}
+          value={alerts[key] ?? 0}
+          max={max}
+          color={ALERT_COLORS[key]}
+          href={ALERT_DESTINATIONS[key]}
+          labelWidth={140}
+        />
+      ))}
+    </SimpleGrid>
   );
 }
