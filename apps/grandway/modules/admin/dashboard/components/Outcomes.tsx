@@ -8,7 +8,6 @@ import {
   JOURNEY_OUTCOME_COLORS,
   OFFER_DECISION_COLORS,
 } from "../dashboard.labels";
-import { ColumnChart } from "./ColumnChart";
 import { DonutStat } from "./DonutStat";
 import { MeterBar } from "./MeterBar";
 import { SectionState } from "./SectionState";
@@ -62,17 +61,7 @@ export function Outcomes({ filters }: OutcomesProps) {
                     Keyed on when each decision was recorded.
                   </Text>
                 </Stack>
-                <ColumnChart
-                  items={(
-                    Object.keys(data.offer_decisions) as Array<
-                      keyof typeof data.offer_decisions
-                    >
-                  ).map((key) => ({
-                    label: DECISION_OUTCOME_LABELS[key],
-                    value: data.offer_decisions[key],
-                    color: OFFER_DECISION_COLORS[key],
-                  }))}
-                />
+                <OfferDecisionsDonut decisions={data.offer_decisions} />
               </Stack>
             </Card>
           </Grid.Col>
@@ -117,6 +106,30 @@ function JourneyOutcomesDonut({
       items={items}
       centerValue={total}
       centerLabel="closed"
+      layout="horizontal"
+      size={118}
+    />
+  );
+}
+
+function OfferDecisionsDonut({
+  decisions,
+}: {
+  decisions: Record<string, number>;
+}) {
+  const items = (
+    Object.keys(decisions) as Array<keyof typeof DECISION_OUTCOME_LABELS>
+  ).map((key) => ({
+    label: DECISION_OUTCOME_LABELS[key],
+    value: decisions[key],
+    color: OFFER_DECISION_COLORS[key],
+  }));
+  const total = items.reduce((sum, item) => sum + item.value, 0);
+  return (
+    <DonutStat
+      items={items}
+      centerValue={total}
+      centerLabel="decisions"
       layout="horizontal"
       size={118}
     />

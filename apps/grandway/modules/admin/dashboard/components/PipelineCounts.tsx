@@ -12,14 +12,8 @@ import {
   Stack,
   Text,
 } from "@peppermint/ui";
-import {
-  STAGE_COLORS as LEAD_STAGE_COLORS,
-  STAGE_LABELS as LEAD_STAGE_LABELS,
-} from "@/modules/admin/lead-management/leadCategory.utils";
-import {
-  STAGE_COLORS as JOURNEY_STAGE_COLORS,
-  STAGE_LABELS as JOURNEY_STAGE_LABELS,
-} from "@/modules/admin/applicant-journeys/applicantJourneys.labels";
+import { STAGE_LABELS as LEAD_STAGE_LABELS } from "@/modules/admin/lead-management/leadCategory.utils";
+import { STAGE_LABELS as JOURNEY_STAGE_LABELS } from "@/modules/admin/applicant-journeys/applicantJourneys.labels";
 import {
   OFFER_STATUS_COLORS,
   OFFER_STATUS_LABELS,
@@ -39,9 +33,8 @@ import {
   APPLICANT_STATUS_LABELS,
 } from "../dashboard.labels";
 import type { DashboardFilters } from "../dashboard.types";
-import { ColumnChart } from "./ColumnChart";
+import { CategoryBarChart } from "./CategoryBarChart";
 import { DonutStat } from "./DonutStat";
-import { MeterBar } from "./MeterBar";
 import { SectionState } from "./SectionState";
 
 interface Datum {
@@ -60,6 +53,17 @@ function toData<K extends string>(
     key,
     label: labels[key],
     color: colors[key],
+    value: counts[key],
+  }));
+}
+
+/** Bare `{label,value}` list for a single-hue magnitude bar chart (no status color). */
+function toItems<K extends string>(
+  counts: Record<K, number>,
+  labels: Record<K, string>,
+): { label: string; value: number }[] {
+  return (Object.keys(counts) as K[]).map((key) => ({
+    label: labels[key],
     value: counts[key],
   }));
 }
@@ -97,23 +101,25 @@ function PipelineCard({
   );
 }
 
-/** Horizontal status bars scaled to the largest count in the map. */
-function BarList({ data }: { data: Datum[] }) {
-  const max = Math.max(1, ...data.map((d) => d.value));
+/** A status breakdown ring — total in the centre, word+color+value legend below. */
+function StatusDonut({
+  data,
+  centerLabel,
+}: {
+  data: Datum[];
+  centerLabel: string;
+}) {
+  const total = data.reduce((sum, d) => sum + d.value, 0);
   return (
-    <Stack gap="xs">
-      {data.map((d) => (
-        <MeterBar
-          key={d.key}
-          label={d.label}
-          value={d.value}
-          max={max}
-          color={d.color}
-          muted={d.value === 0}
-          labelWidth={104}
-        />
-      ))}
-    </Stack>
+    <DonutStat
+      items={data.map((d) => ({
+        label: d.label,
+        value: d.value,
+        color: d.color,
+      }))}
+      centerValue={total}
+      centerLabel={centerLabel}
+    />
   );
 }
 
@@ -175,6 +181,9 @@ function DistributionBar({
 
 /**
  * Seven zero-filled count maps, windowed on CREATION date (INTEGRATION.md §7).
+ * A status *breakdown* renders as a `DonutStat`; leads/journeys by stage are an
+ * ordered *magnitude* so they render as a single-hue `CategoryBarChart`; documents &
+ * files stay as compact `Progress` distribution bars (heterogeneous mini-legends).
  * `documents_by_status_is_country_filtered` is always `false` and only captions
  * the panel honestly when a country filter is set elsewhere — not a real toggle.
  */
@@ -195,12 +204,11 @@ export function PipelineCounts({ filters }: { filters: DashboardFilters }) {
         <Grid>
           <Grid.Col span={{ base: 12, md: 6 }}>
             <PipelineCard title="Leads by stage" href="/admin/lead-management">
-              <BarList
-                data={toData(
-                  data.leads_by_stage,
-                  LEAD_STAGE_LABELS,
-                  LEAD_STAGE_COLORS,
-                )}
+              <CategoryBarChart
+                orientation="horizontal"
+                color="brand"
+                ariaLabel="Leads by stage"
+                items={toItems(data.leads_by_stage, LEAD_STAGE_LABELS)}
               />
             </PipelineCard>
           </Grid.Col>
@@ -210,19 +218,19 @@ export function PipelineCounts({ filters }: { filters: DashboardFilters }) {
               title="Journeys by stage"
               href="/admin/applicant-journeys"
             >
-              <BarList
-                data={toData(
-                  data.journeys_by_stage,
-                  JOURNEY_STAGE_LABELS,
-                  JOURNEY_STAGE_COLORS,
-                )}
+              <CategoryBarChart
+                orientation="vertical"
+                color="brand"
+                ariaLabel="Journeys by stage"
+                items={toItems(data.journeys_by_stage, JOURNEY_STAGE_LABELS)}
               />
             </PipelineCard>
           </Grid.Col>
 
           <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
             <PipelineCard title="Applicants by status" href="/admin/applicants">
-              <ApplicantsDonut
+              <StatusDonut
+                centerLabel="applicants"
                 data={toData(
                   data.applicants_by_status,
                   APPLICANT_STATUS_LABELS,
@@ -234,7 +242,8 @@ export function PipelineCounts({ filters }: { filters: DashboardFilters }) {
 
           <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
             <PipelineCard title="Offers by status" href="/admin/offers">
-              <OffersDonut
+              <StatusDonut
+                centerLabel="offers"
                 data={toData(
                   data.offers_by_status,
                   OFFER_STATUS_LABELS,
@@ -246,16 +255,13 @@ export function PipelineCounts({ filters }: { filters: DashboardFilters }) {
 
           <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
             <PipelineCard title="Checklists by status" href="/admin/checklists">
-              <ColumnChart
-                items={toData(
+              <StatusDonut
+                centerLabel="checklists"
+                data={toData(
                   data.checklists_by_status,
                   CHECKLIST_STATUS_LABELS,
                   CHECKLIST_STATUS_COLORS,
-                ).map((d) => ({
-                  label: d.label,
-                  value: d.value,
-                  color: d.color,
-                }))}
+                )}
               />
             </PipelineCard>
           </Grid.Col>
@@ -299,35 +305,5 @@ export function PipelineCounts({ filters }: { filters: DashboardFilters }) {
         </Grid>
       ) : null}
     </SectionState>
-  );
-}
-
-function ApplicantsDonut({ data }: { data: Datum[] }) {
-  const total = data.reduce((sum, d) => sum + d.value, 0);
-  return (
-    <DonutStat
-      items={data.map((d) => ({
-        label: d.label,
-        value: d.value,
-        color: d.color,
-      }))}
-      centerValue={total}
-      centerLabel="applicants"
-    />
-  );
-}
-
-function OffersDonut({ data }: { data: Datum[] }) {
-  const total = data.reduce((sum, d) => sum + d.value, 0);
-  return (
-    <DonutStat
-      items={data.map((d) => ({
-        label: d.label,
-        value: d.value,
-        color: d.color,
-      }))}
-      centerValue={total}
-      centerLabel="offers"
-    />
   );
 }

@@ -1,44 +1,22 @@
 "use client";
 
-import {
-  Box,
-  Card,
-  Grid,
-  Group,
-  SimpleGrid,
-  Stack,
-  Text,
-} from "@peppermint/ui";
+import { Card, Grid, SimpleGrid, Stack, Text } from "@peppermint/ui";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import { useDashboardConversion } from "../dashboard.hooks";
 import type { SourceConversionRow } from "../dashboard.types";
 import { Gauge } from "./Gauge";
 import { SectionState } from "./SectionState";
-import { StackedMeter } from "./StackedMeter";
+import { StackedBarChart } from "./StackedBarChart";
 import type { ConversionProps } from "./Conversion.types";
 
-// Meaningful, calm colors: converted = a good outcome (green), in-progress =
-// still live (blue), lost = expected attrition, kept neutral (gray) rather than
-// alarm-red so the eye isn't pulled to a normal state.
-const SOURCE_SEGMENTS = [
-  { key: "converted", label: "Converted", color: "green" },
-  { key: "in_progress", label: "In progress", color: "blue" },
-  { key: "lost", label: "Lost", color: "gray" },
-] as const;
-
-function LegendDot({ color }: { color: string }) {
-  return (
-    <Box
-      aria-hidden
-      style={{
-        width: 8,
-        height: 8,
-        borderRadius: 2,
-        background: `var(--mantine-color-${color}-6)`,
-      }}
-    />
-  );
-}
+// Meaningful, calm colors: converted = a good outcome (green), in-progress = still
+// live (blue), lost = expected attrition, kept neutral (gray) rather than alarm-red so
+// the eye isn't pulled to a normal state.
+const SOURCE_SERIES = [
+  { name: "converted", label: "Converted", color: "green" },
+  { name: "in_progress", label: "In progress", color: "blue" },
+  { name: "lost", label: "Lost", color: "gray" },
+];
 
 function BySource({ rows }: { rows: SourceConversionRow[] }) {
   if (rows.length === 0) {
@@ -48,40 +26,19 @@ function BySource({ rows }: { rows: SourceConversionRow[] }) {
       </Text>
     );
   }
-  const max = Math.max(1, ...rows.map((r) => r.total));
+  const data = rows.map((row) => ({
+    source: row.source_name,
+    converted: row.converted,
+    in_progress: row.in_progress,
+    lost: row.lost,
+  }));
   return (
-    <Stack gap="md">
-      <Group gap="md" wrap="wrap">
-        {SOURCE_SEGMENTS.map((seg) => (
-          <Group key={seg.key} gap={6} wrap="nowrap">
-            <LegendDot color={seg.color} />
-            <Text size="xs" c="dimmed">
-              {seg.label}
-            </Text>
-          </Group>
-        ))}
-      </Group>
-      <Stack gap="xs">
-        {rows.map((row) => (
-          <StackedMeter
-            key={row.source_id}
-            label={row.source_name}
-            max={max}
-            labelWidth={112}
-            segments={SOURCE_SEGMENTS.map((seg) => ({
-              label: seg.label,
-              color: seg.color,
-              value: row[seg.key],
-            }))}
-            trailing={
-              <Text size="xs" fw={600} ff="monospace" w={34} ta="right">
-                {row.total}
-              </Text>
-            }
-          />
-        ))}
-      </Stack>
-    </Stack>
+    <StackedBarChart
+      data={data}
+      indexKey="source"
+      series={SOURCE_SERIES}
+      ariaLabel="Leads by source, split into converted, in progress and lost"
+    />
   );
 }
 

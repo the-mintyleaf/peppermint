@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Anchor, Box, Card, Group, Stack, Tabs, Text } from "@peppermint/ui";
+import { Anchor, Card, Stack, Tabs, Text } from "@peppermint/ui";
 import { useDashboardWorkload } from "../dashboard.hooks";
 import { WORKLOAD_LIST_LABELS } from "../dashboard.labels";
 import type {
@@ -9,73 +9,25 @@ import type {
   DashboardFilters,
   LeadWorkloadRow,
   OfferWorkloadRow,
-  OwnerRow,
 } from "../dashboard.types";
-import { MeterBar } from "./MeterBar";
+import { CategoryBarChart } from "./CategoryBarChart";
 import { SectionState } from "./SectionState";
-import { StackedMeter } from "./StackedMeter";
-
-function OwnerLabel({ row }: { row: OwnerRow }) {
-  // The unassigned bucket is the work most likely to be missed — kept visible
-  // and dimmed-but-present, never filtered out.
-  const unassigned = row.owner_id == null;
-  return (
-    <Text
-      size="xs"
-      c={unassigned ? "dimmed" : undefined}
-      fs={unassigned ? "italic" : undefined}
-      truncate
-    >
-      {row.owner_display_name}
-    </Text>
-  );
-}
-
-function LegendItem({ color, label }: { color: string; label: string }) {
-  return (
-    <Group gap={6} wrap="nowrap">
-      <Box
-        aria-hidden
-        style={{
-          width: 8,
-          height: 8,
-          borderRadius: 2,
-          background: `var(--mantine-color-${color}-6)`,
-        }}
-      />
-      <Text size="xs" c="dimmed">
-        {label}
-      </Text>
-    </Group>
-  );
-}
-
-function MetricText({ label, value }: { label: string; value: number }) {
-  return (
-    <Text size="xs" ff="monospace" c="dimmed" style={{ whiteSpace: "nowrap" }}>
-      {label} {value}
-    </Text>
-  );
-}
+import { StackedBarChart } from "./StackedBarChart";
 
 function LeadsPanel({ rows }: { rows: LeadWorkloadRow[] }) {
   if (rows.length === 0) {
     return <EmptyRow message="No leads on any owner's book." />;
   }
-  const max = Math.max(1, ...rows.map((r) => r.open_leads));
   return (
-    <Stack gap="xs">
-      {rows.map((row) => (
-        <MeterBar
-          key={row.owner_id ?? "unassigned"}
-          label={<OwnerLabel row={row} />}
-          value={row.open_leads}
-          max={max}
-          color="blue"
-          labelWidth={150}
-        />
-      ))}
-    </Stack>
+    <CategoryBarChart
+      orientation="horizontal"
+      color="blue"
+      ariaLabel="Open leads by owner"
+      items={rows.map((row) => ({
+        label: row.owner_display_name,
+        value: row.open_leads,
+      }))}
+    />
   );
 }
 
@@ -83,40 +35,22 @@ function ChecklistPanel({ rows }: { rows: ChecklistWorkloadRow[] }) {
   if (rows.length === 0) {
     return <EmptyRow message="No open checklist items." />;
   }
-  const max = Math.max(
-    1,
-    ...rows.map((r) => r.open_items + r.overdue_items + r.blocked_items),
-  );
   return (
-    <Stack gap="sm">
-      <Group gap="md" wrap="wrap">
-        <LegendItem color="blue" label="Open" />
-        <LegendItem color="red" label="Overdue" />
-        <LegendItem color="grape" label="Blocked" />
-      </Group>
-      <Stack gap="xs">
-        {rows.map((row) => (
-          <StackedMeter
-            key={row.owner_id ?? "unassigned"}
-            label={<OwnerLabel row={row} />}
-            max={max}
-            labelWidth={150}
-            segments={[
-              { label: "Open", color: "blue", value: row.open_items },
-              { label: "Overdue", color: "red", value: row.overdue_items },
-              { label: "Blocked", color: "grape", value: row.blocked_items },
-            ]}
-            trailing={
-              <Group gap="sm" wrap="nowrap" w={190} justify="flex-end">
-                <MetricText label="open" value={row.open_items} />
-                <MetricText label="overdue" value={row.overdue_items} />
-                <MetricText label="blocked" value={row.blocked_items} />
-              </Group>
-            }
-          />
-        ))}
-      </Stack>
-    </Stack>
+    <StackedBarChart
+      indexKey="owner"
+      ariaLabel="Open, overdue and blocked checklist items by owner"
+      data={rows.map((row) => ({
+        owner: row.owner_display_name,
+        open: row.open_items,
+        overdue: row.overdue_items,
+        blocked: row.blocked_items,
+      }))}
+      series={[
+        { name: "open", label: "Open", color: "blue" },
+        { name: "overdue", label: "Overdue", color: "red" },
+        { name: "blocked", label: "Blocked", color: "grape" },
+      ]}
+    />
   );
 }
 
@@ -124,20 +58,16 @@ function OffersPanel({ rows }: { rows: OfferWorkloadRow[] }) {
   if (rows.length === 0) {
     return <EmptyRow message="No offers awaiting a response." />;
   }
-  const max = Math.max(1, ...rows.map((r) => r.awaiting_response));
   return (
-    <Stack gap="xs">
-      {rows.map((row) => (
-        <MeterBar
-          key={row.owner_id ?? "unassigned"}
-          label={<OwnerLabel row={row} />}
-          value={row.awaiting_response}
-          max={max}
-          color="violet"
-          labelWidth={150}
-        />
-      ))}
-    </Stack>
+    <CategoryBarChart
+      orientation="horizontal"
+      color="violet"
+      ariaLabel="Offers awaiting response by owner"
+      items={rows.map((row) => ({
+        label: row.owner_display_name,
+        value: row.awaiting_response,
+      }))}
+    />
   );
 }
 
@@ -152,10 +82,10 @@ function EmptyRow({ message }: { message: string }) {
 /**
  * Branch on `is_scoped_to_caller` for the caption only (INTEGRATION.md §7
  * "workload") — never infer team size from row count, never re-filter rows the
- * backend already decided to include (the unassigned bucket must stay visible to
- * everyone). The three measures are NOT joinable into one row per person and are
- * never summed, so each is its own tab, never merged. "Recorded by" (not an
- * assignee) is who is counted on the offers measure.
+ * backend already decided to include (the unassigned "Unassigned" bucket stays a
+ * visible bar for everyone). The three measures are NOT joinable into one row per
+ * person and are never summed, so each is its own tab, never merged. "Recorded by"
+ * (not an assignee) is who is counted on the offers measure.
  */
 export function Workload({ filters }: { filters: DashboardFilters }) {
   const { data, isPending, isError, refetch, isRefetching } =

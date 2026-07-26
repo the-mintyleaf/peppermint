@@ -15,16 +15,16 @@
 
 ## Phase 2 — Rebuild visualizations on @peppermint/ui/charts
 
-- [ ] `dashboard.chartConfig.ts` — shared series-color helpers + common chart props
-- [ ] `DonutStat` → `DonutChart` (applicants / offers / journey-outcomes)
-- [ ] `ColumnChart` → `BarChart` vertical (journeys / checklists / offer-decisions)
-- [ ] Leads-by-stage → `BarChart` horizontal
-- [ ] `Gauge` → `RadialBarChart` semicircle (conversion rates)
-- [ ] Leads-by-source (`StackedMeter`) → `BarChart` horizontal stacked
-- [ ] Workload tabs → `BarChart` horizontal + stacked
-- [ ] Verify meters kept as Progress (needs-attention / docs+files / closed+archived)
-- [ ] Light/dark, all-zero empty states, tooltips, a11y labels on every chart
-- [ ] Commit Phase 2 + post-phase review
+- [x] `dashboard.chartConfig.ts` — shared series-color helpers + common chart props
+- [x] `DonutStat` → `DonutChart` (applicants / offers / journey-outcomes)
+- [x] `ColumnChart` → `BarChart` vertical (journeys / checklists / offer-decisions)
+- [x] Leads-by-stage → `BarChart` horizontal
+- [x] `Gauge` → `RadialBarChart` semicircle (conversion rates)
+- [x] Leads-by-source (`StackedMeter`) → `BarChart` horizontal stacked
+- [x] Workload tabs → `BarChart` horizontal + stacked
+- [x] Verify meters kept as Progress (needs-attention / docs+files / closed+archived)
+- [x] Light/dark, all-zero empty states, tooltips, a11y labels on every chart
+- [x] Commit Phase 2 + post-phase review
 
 ## Phase 3 — Docs + verification
 

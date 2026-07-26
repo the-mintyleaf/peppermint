@@ -1,6 +1,8 @@
 "use client";
 
-import { Box, Group, RingProgress, Stack, Text } from "@peppermint/ui";
+import { Box, Group, Stack, Text } from "@peppermint/ui";
+import { DonutChart } from "@peppermint/ui/charts";
+import { CHART_TRACK_COLOR, toChartColor } from "../dashboard.chartConfig";
 import type { DonutStatItem, DonutStatProps } from "./DonutStat.types";
 
 function Legend({ items }: { items: DonutStatItem[] }) {
@@ -43,12 +45,12 @@ function Legend({ items }: { items: DonutStatItem[] }) {
 }
 
 /**
- * A ring split by a status breakdown (applicants by status, offers by status,
- * journey outcomes) with the total in the centre and a word+color+value legend
- * beside or below it. Colors come from the owning module's status map so a slice
- * means the same thing here as on that module's own list. When every value is 0
- * the ring shows an empty gray track and the centre reads "0" — a real, healthy
- * state, not an error.
+ * A `DonutChart` split by a status breakdown (applicants/offers by status, checklists,
+ * journey outcomes, offer decisions) with the total overlaid in the centre and a
+ * word+color+value legend beside or below it. Slice colors come from the owning
+ * module's status map, so a slice means the same thing here as on that module's list.
+ * When every value is 0 the ring shows a neutral gray track (tooltip suppressed) and
+ * the centre reads its total — a real, healthy state, not an error.
  */
 export function DonutStat({
   items,
@@ -59,35 +61,42 @@ export function DonutStat({
   layout = "vertical",
 }: DonutStatProps) {
   const total = items.reduce((sum, item) => sum + item.value, 0);
-  const sections =
+  const data =
     total > 0
       ? items
           .filter((item) => item.value > 0)
           .map((item) => ({
-            value: (item.value / total) * 100,
-            color: item.color,
-            tooltip: `${item.label}: ${item.value}`,
+            name: item.label,
+            value: item.value,
+            color: toChartColor(item.color),
           }))
-      : [];
+      : [{ name: "None", value: 1, color: CHART_TRACK_COLOR }];
 
   const ring = (
-    <RingProgress
-      size={size}
-      thickness={thickness}
-      roundCaps={false}
-      sections={sections}
-      rootColor="gray.1"
-      label={
-        <Stack gap={0} align="center">
-          <Text size="lg" fw={700} lh={1}>
-            {centerValue}
-          </Text>
-          <Text size="xs" c="dimmed">
-            {centerLabel}
-          </Text>
-        </Stack>
-      }
-    />
+    <Box style={{ position: "relative", width: size, height: size }}>
+      <DonutChart
+        data={data}
+        size={size}
+        thickness={thickness}
+        withTooltip={total > 0}
+        tooltipDataSource="segment"
+        paddingAngle={total > 0 && data.length > 1 ? 2 : 0}
+        strokeWidth={0}
+      />
+      <Stack
+        gap={0}
+        align="center"
+        justify="center"
+        style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
+      >
+        <Text size="lg" fw={700} lh={1}>
+          {centerValue}
+        </Text>
+        <Text size="xs" c="dimmed">
+          {centerLabel}
+        </Text>
+      </Stack>
+    </Box>
   );
 
   if (layout === "horizontal") {
