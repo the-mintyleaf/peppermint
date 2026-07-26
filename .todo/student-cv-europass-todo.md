@@ -34,6 +34,7 @@
 ## Phase 5 — Verify + finalize
 
 - [x] `pnpm format && pnpm check-types && pnpm lint` (green; only pre-existing warnings)
-- [ ] Dual adversarial review + apply fixes
-- [ ] Commit; delete this todo file
+- [x] Dual adversarial review (Codex + adversarial-reviewer)
+- [x] Apply fixes: persist reads freshest content + flushes on unmount (no lost/clobbered writes); #1/#3 confirmed false positives (DocumentCustomizations keyed by doc id)
+- [x] Commit
 - [ ] Manual/visual test by user (add type, swatch/font change, reload persistence, multipage print)

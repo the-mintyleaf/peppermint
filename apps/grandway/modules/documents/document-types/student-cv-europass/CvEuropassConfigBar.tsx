@@ -1,13 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Stack,
   Group,
   Text,
   ColorSwatch,
   SegmentedControl,
-  useDebouncedCallback,
 } from "@peppermint/ui";
 import { Check as CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
 import {
@@ -18,6 +17,8 @@ import {
 } from "@/components/templates/student-cv-europass/appearance";
 import type { DocumentConfigBarProps, CvContent } from "../../documents.types";
 
+const PERSIST_DEBOUNCE_MS = 400;
+
 export function CvEuropassConfigBar({
   document: doc,
   onUpdate,
@@ -25,10 +26,13 @@ export function CvEuropassConfigBar({
   disabled,
 }: DocumentConfigBarProps) {
   const content = doc.content as CvContent;
-  // Latest-content ref read by the debounced persist (not during render).
+  // Latest content / persist target, read at flush time (not during render).
   const contentRef = useRef(content);
+  const onPersistRef = useRef(onPersist);
   // eslint-disable-next-line react-hooks/refs
   contentRef.current = content;
+  // eslint-disable-next-line react-hooks/refs
+  onPersistRef.current = onPersist;
 
   const appearance = {
     ...DEFAULT_EUROPASS_APPEARANCE,
@@ -38,18 +42,49 @@ export function CvEuropassConfigBar({
   const [fontFamily, setFontFamily] = useState<EuropassFontFamily>(
     appearance.fontFamily,
   );
+  // The chosen appearance, read at flush time so the persist reflects the final choice.
+  const appearanceRef = useRef({ headerColor, fontFamily });
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const debouncedPersist = useDebouncedCallback((next: CvContent) => {
-    onPersist?.(next);
-  }, 400);
+  // Persist from the FRESHEST content + latest appearance — never a snapshot taken when
+  // the swatch was clicked. Content saves wholesale, so merging the latest cache content
+  // avoids a delayed appearance PATCH clobbering an intervening save.
+  const persistNow = useCallback(() => {
+    onPersistRef.current?.({
+      ...(contentRef.current as CvContent),
+      appearance: appearanceRef.current,
+    });
+  }, []);
+
+  const schedulePersist = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      timerRef.current = null;
+      persistNow();
+    }, PERSIST_DEBOUNCE_MS);
+  }, [persistNow]);
+
+  // Flush a pending change if the panel/instance unmounts (panel closed or active
+  // document switched) inside the debounce window, so the save is never silently lost.
+  // Cleanup runs before the next document's ConfigBar mounts and reads this instance's
+  // own refs, so it always persists to the document that was being edited.
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+        persistNow();
+      }
+    };
+  }, [persistNow]);
 
   const apply = (color: string, family: EuropassFontFamily) => {
-    const next: CvContent = {
+    appearanceRef.current = { headerColor: color, fontFamily: family };
+    onUpdate({
       ...(contentRef.current as CvContent),
-      appearance: { headerColor: color, fontFamily: family },
-    };
-    onUpdate(next); // instant live preview (local cache)
-    debouncedPersist(next); // persist to backend
+      appearance: appearanceRef.current,
+    }); // instant live preview (local cache)
+    schedulePersist(); // persist to backend from the freshest content
   };
 
   const handleColor = (color: string) => {
