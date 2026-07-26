@@ -2,45 +2,34 @@
 
 import { Stack, Text } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
-import { dateColumn, statusColumn } from "@peppermint/admin";
+import { dateColumn } from "@peppermint/admin";
 import { ArrowsLeftRightIcon } from "@phosphor-icons/react/dist/csr/ArrowsLeftRight";
 import { CalendarIcon } from "@phosphor-icons/react/dist/csr/Calendar";
 import { EnvelopeSimpleIcon } from "@phosphor-icons/react/dist/csr/EnvelopeSimple";
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
 import { PulseIcon } from "@phosphor-icons/react/dist/csr/Pulse";
+import { STATUS_LABELS } from "../../applicants.labels";
 import type { Applicant } from "../../applicants.types";
 import { ApplicantRowActionsMenu } from "./components/ApplicantRowActionsMenu";
-
-const STATUS_COLORS: Record<string, string> = {
-  active: "green",
-  dormant: "yellow",
-  archived: "gray",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  active: "Active",
-  dormant: "Dormant",
-  archived: "Archived",
-};
+import { ApplicantStatusSwitch } from "./components/ApplicantStatusSwitch";
 
 interface ApplicantsColumnsOptions {
   onViewDetails: (applicant: Applicant) => void;
-  onChangeStatus: (applicant: Applicant) => void;
 }
 
 export function getApplicantsColumns({
   onViewDetails,
-  onChangeStatus,
 }: ApplicantsColumnsOptions): DataTableShellColumn<Applicant>[] {
   return [
     {
-      accessor: "full_name_en",
+      accessor: "full_name",
       title: "Applicant",
       icon: IdentificationCardIcon,
       render: (applicant: Applicant) => (
         <Stack gap={0}>
           <Text size="xs" fw={500}>
-            {applicant.full_name_en ||
+            {applicant.full_name ||
+              applicant.full_name_en ||
               applicant.full_name_np ||
               applicant.full_name_romanized}
           </Text>
@@ -57,20 +46,24 @@ export function getApplicantsColumns({
         </Stack>
       ),
     },
-    statusColumn<Applicant>("status", {
+    {
+      // Interactive inline switch (not a read-only badge) — picking a status
+      // inline-confirms and mutates in place; status stays an explicit manual
+      // change (`docs/backend/applicants/CONCEPT.md`).
+      accessor: "status",
       title: "Status",
       icon: PulseIcon,
-      colorMap: STATUS_COLORS,
-      labelMap: STATUS_LABELS,
       filter: {
         type: "select",
-        options: [
-          { label: "Active", value: "active" },
-          { label: "Dormant", value: "dormant" },
-          { label: "Archived", value: "archived" },
-        ],
+        options: Object.entries(STATUS_LABELS).map(([value, label]) => ({
+          value,
+          label,
+        })),
       },
-    }),
+      render: (applicant: Applicant) => (
+        <ApplicantStatusSwitch applicant={applicant} />
+      ),
+    },
     {
       // The list-shape response has no `contact_numbers` (only the detail
       // shape does — `docs/backend/applicants/INTEGRATION.md` §4), so this
@@ -98,7 +91,6 @@ export function getApplicantsColumns({
         <ApplicantRowActionsMenu
           applicant={applicant}
           onViewDetails={onViewDetails}
-          onChangeStatus={onChangeStatus}
         />
       ),
     },
