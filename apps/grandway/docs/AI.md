@@ -76,7 +76,7 @@ apps/grandway/
 ├── layouts/{app,admin}/     # LayoutApp (html/theme), LayoutAdmin (shell + authority nav)
 ├── lib/                     # api.ts, authTokens.ts, deviceId.ts, authErrorMessages.ts
 ├── config/{theme,nav}/      # Mantine theme + admin nav (authority-gated)
-├── components/              # RequireAuth, RequireStaff, RequireLeadAccess, QueryErrorState, StatusSwitchButton, InlineStageSwitch (shared inline stage/status cell switch)
+├── components/              # RequireAuth, RequireStaff, RequireLeadAccess, QueryErrorState, StatusSwitchButton, InlineStageSwitch (shared inline stage/status cell switch), FormSection (divider+heading form-section wrapper)
 └── modules/
     ├── sign-in/             # branded layout (SignIn.tsx) + components/SignInPanel (credentials/MFA form)
     ├── password-change/     # forced first-login change (FormWrapper), Paper withBorder card

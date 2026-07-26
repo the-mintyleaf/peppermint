@@ -93,6 +93,11 @@ function ModeFields({ isLoading }: { isLoading: boolean }) {
           variant="subtle"
           size="xs"
           disabled={isLoading}
+          aria-label={
+            mode === "template"
+              ? "Checklist source is set to a template. Switch to a blank checklist."
+              : "Checklist source is set to a blank checklist. Switch to a template."
+          }
           onClick={() =>
             form.setFieldValue(
               "mode",

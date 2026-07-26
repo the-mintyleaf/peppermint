@@ -135,7 +135,7 @@ function fieldLabel(field: WodaField): string {
 
 /**
  * Schema-driven renderer for every WODA create/edit form. Picks the right control per
- * field, groups fields into accessible `Fieldset` sections, pairs half-width fields onto
+ * field, groups fields into accessible `FormSection` sections, pairs half-width fields onto
  * one row, and merges saved `initialContent` over the schema defaults so editing an
  * existing document opens prefilled (the old factory opened blank and discarded values).
  */

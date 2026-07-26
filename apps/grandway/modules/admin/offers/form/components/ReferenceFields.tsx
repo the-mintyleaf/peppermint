@@ -41,6 +41,11 @@ export function ReferenceFields({ isLoading }: { isLoading: boolean }) {
           variant="subtle"
           size="xs"
           disabled={isLoading}
+          aria-label={
+            mode === "catalogue"
+              ? "Program reference is set to a catalogue program. Switch to manual entry."
+              : "Program reference is set to manual entry. Switch to a catalogue program."
+          }
           onClick={() =>
             form.setFieldValue(
               "reference_mode",
