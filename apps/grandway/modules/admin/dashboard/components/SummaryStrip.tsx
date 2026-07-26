@@ -64,7 +64,7 @@ const ALERT_COLORS: Record<string, string> = {
 function VolumeStat({ value, label }: { value: number; label: string }) {
   return (
     <Stack gap={2}>
-      <Text fz={30} fw={700} lh={1} style={{ letterSpacing: "-0.03em" }}>
+      <Text fz={26} fw={700} lh={1} style={{ letterSpacing: "-0.03em" }}>
         {value.toLocaleString()}
       </Text>
       <Text size="xs" c="dimmed">

@@ -34,7 +34,7 @@ export function DashboardHero({ fiscalYear }: { fiscalYear: string }) {
         >
           Placement operations
         </Text>
-        <Title order={1} fz={28} fw={600} style={{ letterSpacing: "-0.02em" }}>
+        <Title order={1} fz={32} fw={700} style={{ letterSpacing: "-0.02em" }}>
           Placement overview
         </Title>
       </Stack>

@@ -43,7 +43,7 @@ export function ActivityFeed({ fiscalYear }: ActivityFeedProps) {
         errorMessage="Couldn't load recent activity."
         onRetry={() => refetch()}
         isRetrying={isRefetching}
-        isEmpty={!isPending && !isError && rows.length === 0}
+        isEmpty={!isPending && !isError && total === 0}
         emptyMessage="No recorded activity yet."
         skeletonHeight={320}
       >
@@ -57,54 +57,63 @@ export function ActivityFeed({ fiscalYear }: ActivityFeedProps) {
             </Text>
           </Group>
 
-          <Table.ScrollContainer minWidth={720}>
-            <Table verticalSpacing="sm" horizontalSpacing="md">
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>App</Table.Th>
-                  <Table.Th>Action</Table.Th>
-                  <Table.Th>Actor</Table.Th>
-                  <Table.Th>Summary</Table.Th>
-                  <Table.Th>Result</Table.Th>
-                  <Table.Th ta="right">When</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                {rows.map((row) => (
-                  <Table.Tr key={row.id}>
-                    <Table.Td>
-                      <Text size="xs">{row.app_label}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="xs" ff="monospace" c="dimmed">
-                        {row.action}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="xs">{row.actor_label}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="xs">{row.summary}</Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Badge
-                        size="sm"
-                        variant="light"
-                        color={row.success ? "green" : "red"}
-                      >
-                        {row.success ? "ok" : "failed"}
-                      </Badge>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="xs" c="dimmed" ff="monospace" ta="right">
-                        {formatDate(row.created_at, row.created_at_bs)}
-                      </Text>
-                    </Table.Td>
+          {rows.length === 0 ? (
+            // total > 0 but this page has no rows — the dataset shrank under a
+            // stale page number. Keep the pagination below reachable so the user
+            // can step back, rather than trapping them on a blank page.
+            <Text size="sm" c="dimmed" py="xs">
+              No events on this page — step back a page.
+            </Text>
+          ) : (
+            <Table.ScrollContainer minWidth={720}>
+              <Table verticalSpacing="sm" horizontalSpacing="md">
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>App</Table.Th>
+                    <Table.Th>Action</Table.Th>
+                    <Table.Th>Actor</Table.Th>
+                    <Table.Th>Summary</Table.Th>
+                    <Table.Th>Result</Table.Th>
+                    <Table.Th ta="right">When</Table.Th>
                   </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
-          </Table.ScrollContainer>
+                </Table.Thead>
+                <Table.Tbody>
+                  {rows.map((row) => (
+                    <Table.Tr key={row.id}>
+                      <Table.Td>
+                        <Text size="xs">{row.app_label}</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="xs" ff="monospace" c="dimmed">
+                          {row.action}
+                        </Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="xs">{row.actor_label}</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="xs">{row.summary}</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Badge
+                          size="sm"
+                          variant="light"
+                          color={row.success ? "green" : "red"}
+                        >
+                          {row.success ? "ok" : "failed"}
+                        </Badge>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="xs" c="dimmed" ff="monospace" ta="right">
+                          {formatDate(row.created_at, row.created_at_bs)}
+                        </Text>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </Table.ScrollContainer>
+          )}
 
           <Group justify="space-between" align="center">
             <Text size="xs" c="dimmed">
