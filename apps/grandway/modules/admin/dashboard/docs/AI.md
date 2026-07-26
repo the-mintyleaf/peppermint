@@ -19,7 +19,7 @@ Folder is **singular** (`dashboard/`) to match the API base path
 `ModuleAdminHome`, which renders the dashboard for `admin`/`lead_manager` and a minimal
 identity/audit landing (`SuperadminLanding`) for `superadmin` (403'd on every dashboard
 section, so they must not land on it). The old `/admin/dashboard` route and the old
-`modules/admin/home/` module are gone; the nav "Dashboard" entry points at `/admin`.
+`modules/admin/home/` module are gone; there is no separate "Dashboard" rail entry — the always-shown "Home" entry is the dashboard.
 
 ## Entry files
 
