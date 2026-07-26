@@ -7,6 +7,7 @@ description: >
   check against the backend Change History instead of blindly overwriting. Use
   whenever backend docs arrive or change, or before building a module whose
   domain has backend docs.
+model: sonnet
 ---
 
 # Backend API Contract Sync
