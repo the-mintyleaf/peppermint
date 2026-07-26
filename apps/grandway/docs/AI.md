@@ -76,7 +76,7 @@ apps/grandway/
 ├── layouts/{app,admin}/     # LayoutApp (html/theme), LayoutAdmin (shell + authority nav)
 ├── lib/                     # api.ts, authTokens.ts, deviceId.ts, authErrorMessages.ts
 ├── config/{theme,nav}/      # Mantine theme + admin nav (authority-gated)
-├── components/              # RequireAuth, RequireStaff, RequireLeadAccess, QueryErrorState
+├── components/              # RequireAuth, RequireStaff, RequireLeadAccess, QueryErrorState, StatusSwitchButton, InlineStageSwitch (shared inline stage/status cell switch)
 └── modules/
     ├── sign-in/             # branded layout (SignIn.tsx) + components/SignInPanel (credentials/MFA form)
     ├── password-change/     # forced first-login change (FormWrapper), Paper withBorder card
@@ -102,14 +102,15 @@ apps/grandway/
         │       ├── LeadManagementBoard.tsx
         │       ├── leadManagement.columns.tsx
         │       └── components/
-        │           ├── LeadRowActionsMenu/
-        │           ├── ChangeStageModal/, RecordFollowUpModal/, MarkLeadLostModal/, ReopenLeadModal/, ConvertLeadModal/
+        │           ├── LeadRowActionsMenu/   # View / Edit / Record follow-up only
+        │           ├── LeadStageSwitch/      # inline Stage-column switch: plain moves inline-confirm; Mark lost / Convert (Admin) / Reopen open the modals below
+        │           ├── RecordFollowUpModal/, MarkLeadLostModal/, ReopenLeadModal/, ConvertLeadModal/
         │           └── LeadDetailDrawer/     # Overview (incl. converted-applicant link) / Notes / History tabs
         ├── applicants/       # MultiPageModule — identity/contact/passport/family CRUD
         │   ├── applicants.{types,api,queryKeys,hooks}.ts
         │   ├── form/                     # shared create+edit multi-step form (ApplicantForm + 5 field components)
         │   └── pages/
-        │       ├── list/                 # DataTableShell, plain status filter column (no category board)
+        │       ├── list/                 # DataTableShell; inline ApplicantStatusSwitch in Status column (row menu: View/Edit). Detail header keeps ChangeApplicantStatusModal
         │       ├── new/, edit/           # FormShell-wrapped ApplicantForm
         │       └── detail/               # Overview / Passport & Family / Journeys / History tabs
         │           └── components/ApplicantJourneysPanel.tsx  # cross-module: embeds applicant-journeys
@@ -117,8 +118,8 @@ apps/grandway/
         │   ├── applicantJourneys.{types,api,queryKeys,hooks,labels}.ts
         │   ├── form/JourneyForm.tsx      # shared create+edit modal form (applicantId prop for embedded use)
         │   └── pages/
-        │       ├── list/                 # ModalTableShell worklist + 4 lifecycle dialogs
-        │       └── detail/               # Journey Detail — Overview / History, inline lifecycle actions
+        │       ├── list/                 # ModalTableShell worklist; inline JourneyStageSwitch in Stage column (Defer/Close/Reopen open the list's lifecycle dialogs); row menu View/Edit. ChangeJourneyStageModal here is used by the detail page
+        │       └── detail/               # Journey Detail — Overview / History, inline lifecycle actions (own ChangeJourneyStageModal/Defer/Close/Reopen)
         ├── institutions/     # study-opportunity catalogue — 5 resources (fields/countries/institutions/campuses/programs)
         │   ├── institutions.{types,constants,api,queryKeys,hooks}.ts   # one createResourceApi/createQueryKeys per resource
         │   ├── programs/     # ModuleInstitutionPrograms — /admin/institutions (search + rich form + detail drawer)
@@ -230,7 +231,7 @@ apps/grandway/
   view means navigating to the plain `/admin/audit`).
 - `modules/admin/audit` exports `useEntityAuditTrail(entityType, entityId)` for any future
   module to embed a record's timeline without re-deriving the filter shape.
-- **Lead → Applicant conversion.** `LeadRowActionsMenu`'s "Convert to applicant" action
+- **Lead → Applicant conversion.** `LeadStageSwitch`'s "Convert to applicant" action
   (Admin-only) opens `ConvertLeadModal`, which calls `POST /leads/<id>/convert/` and
   navigates straight to `/admin/applicants/<applicant_id>` on success using the ids the
   response already returns — no extra fetch. On the rare `LEADS_LEAD_ALREADY_CONVERTED`
