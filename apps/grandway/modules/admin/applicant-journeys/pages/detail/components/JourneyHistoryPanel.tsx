@@ -1,21 +1,50 @@
 "use client";
 
-import { Loader, Stack, Text, dayjs } from "@peppermint/ui";
+import type { ReactNode } from "react";
+import { Center, Loader, Text } from "@peppermint/ui";
+import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
+import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
+import { PauseCircleIcon } from "@phosphor-icons/react/dist/csr/PauseCircle";
+import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
+import { PlusCircleIcon } from "@phosphor-icons/react/dist/csr/PlusCircle";
+import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
+import { HistoryTimeline } from "@/components/profile";
 import { QueryErrorState } from "@/components/QueryErrorState";
 import { useJourneyHistory } from "../../../applicantJourneys.hooks";
 
-function renderValue(value: unknown): string {
-  if (value === null || value === undefined || value === "") return "—";
-  if (typeof value === "string") return value;
-  return JSON.stringify(value);
-}
+/** Best-effort per-action glyphs; `HistoryTimeline` falls back to a clock. */
+const ICONS: Record<string, { icon: ReactNode; color: string }> = {
+  journey_created: {
+    icon: <PlusCircleIcon size={14} aria-hidden />,
+    color: "blue",
+  },
+  journey_updated: {
+    icon: <PencilSimpleIcon size={14} aria-hidden />,
+    color: "gray",
+  },
+  journey_stage_changed: {
+    icon: <ArrowsClockwiseIcon size={14} aria-hidden />,
+    color: "grape",
+  },
+  journey_closed: {
+    icon: <ProhibitIcon size={14} aria-hidden />,
+    color: "red",
+  },
+  journey_deferred: {
+    icon: <PauseCircleIcon size={14} aria-hidden />,
+    color: "orange",
+  },
+  journey_reopened: {
+    icon: <ArrowCounterClockwiseIcon size={14} aria-hidden />,
+    color: "teal",
+  },
+};
 
 /**
- * Read-only, server-written, backed by the central audit log — `summary` is
- * the primary label per entry; `changes` is from→to detail. Closure/
- * deferment **reasons** live on the journey record, not the history entry —
- * the Overview panel is where those show
- * (`docs/backend/applicant-journeys/FLOWS.md` "Review a journey's history").
+ * Read-only, server-written, backed by the central audit log — the same
+ * card-led timeline as every other profile (`HistoryTimeline`). Closure/
+ * deferment **reasons** live on the journey record and show in the Overview,
+ * not here (`docs/backend/applicant-journeys/FLOWS.md`).
  */
 export function JourneyHistoryPanel({ journeyId }: { journeyId: string }) {
   const { data, isLoading, isError, isRefetching, refetch } =
@@ -23,7 +52,13 @@ export function JourneyHistoryPanel({ journeyId }: { journeyId: string }) {
   const entries = data?.data ?? [];
   const truncated = (data?.meta.total ?? 0) > entries.length;
 
-  if (isLoading) return <Loader size="sm" />;
+  if (isLoading) {
+    return (
+      <Center py="xl">
+        <Loader size="sm" />
+      </Center>
+    );
+  }
 
   if (isError) {
     return (
@@ -44,36 +79,14 @@ export function JourneyHistoryPanel({ journeyId }: { journeyId: string }) {
   }
 
   return (
-    <Stack gap="md">
-      {entries.map((entry) => {
-        const changeEntries = Object.entries(entry.changes);
-        return (
-          <Stack key={entry.id} gap={2}>
-            <Text size="xs" c="dimmed">
-              {dayjs(entry.created_at).format("MMM D, YYYY h:mm A")} ·{" "}
-              {entry.actor_label || `(${entry.actor_type})`}
-            </Text>
-            <Text size="xs" fw={500}>
-              {entry.summary || entry.action.replace(/_/g, " ")}
-            </Text>
-            {entry.reason ? (
-              <Text size="xs" c="dimmed">
-                Reason: {entry.reason}
-              </Text>
-            ) : null}
-            {changeEntries.map(([field, change]) => (
-              <Text key={field} size="xs" c="dimmed">
-                {field}: {renderValue(change.from)} → {renderValue(change.to)}
-              </Text>
-            ))}
-          </Stack>
-        );
-      })}
-      {truncated ? (
-        <Text size="xs" c="dimmed">
-          Showing the {entries.length} most recent entries.
-        </Text>
-      ) : null}
-    </Stack>
+    <HistoryTimeline
+      entries={entries}
+      iconFor={(action) => ICONS[action]}
+      truncatedNote={
+        truncated
+          ? `Showing the ${entries.length} most recent entries.`
+          : undefined
+      }
+    />
   );
 }

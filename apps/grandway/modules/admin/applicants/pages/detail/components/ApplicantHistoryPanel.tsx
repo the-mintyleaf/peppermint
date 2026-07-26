@@ -1,22 +1,58 @@
 "use client";
 
-import { Loader, Stack, Text, dayjs } from "@peppermint/ui";
+import type { ReactNode } from "react";
+import { Center, Loader, Text } from "@peppermint/ui";
+import { AddressBookIcon } from "@phosphor-icons/react/dist/csr/AddressBook";
+import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
+import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
+import { MapPinIcon } from "@phosphor-icons/react/dist/csr/MapPin";
+import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
+import { PlusCircleIcon } from "@phosphor-icons/react/dist/csr/PlusCircle";
+import { UsersThreeIcon } from "@phosphor-icons/react/dist/csr/UsersThree";
+import { HistoryTimeline } from "@/components/profile";
 import { QueryErrorState } from "@/components/QueryErrorState";
 import { useApplicantHistory } from "../../../applicants.hooks";
 
-function renderValue(value: unknown): string {
-  if (value === null || value === undefined || value === "") return "—";
-  if (typeof value === "string") return value;
-  return JSON.stringify(value);
-}
+const ICONS: Record<string, { icon: ReactNode; color: string }> = {
+  applicant_created: {
+    icon: <PlusCircleIcon size={14} aria-hidden />,
+    color: "blue",
+  },
+  applicant_updated: {
+    icon: <PencilSimpleIcon size={14} aria-hidden />,
+    color: "gray",
+  },
+  applicant_status_changed: {
+    icon: <ArrowsClockwiseIcon size={14} aria-hidden />,
+    color: "grape",
+  },
+  applicant_contact_changed: {
+    icon: <AddressBookIcon size={14} aria-hidden />,
+    color: "teal",
+  },
+  applicant_address_changed: {
+    icon: <MapPinIcon size={14} aria-hidden />,
+    color: "teal",
+  },
+  applicant_passport_changed: {
+    icon: <IdentificationCardIcon size={14} aria-hidden />,
+    color: "indigo",
+  },
+  applicant_family_changed: {
+    icon: <UsersThreeIcon size={14} aria-hidden />,
+    color: "orange",
+  },
+  applicant_emergency_contact_changed: {
+    icon: <UsersThreeIcon size={14} aria-hidden />,
+    color: "orange",
+  },
+};
 
 /**
- * Read-only, server-written, backed by the central audit log — `summary` is
- * the primary label per entry; `changes` renders from→to when present.
- * Nested-collection events carry only a **count** in `metadata`, never the
- * replaced values — this is not a diff viewer
- * (`docs/backend/applicants/INTEGRATION.md` §4). Same rendering approach as
- * `LeadHistoryPanel`.
+ * Read-only, server-written, backed by the central audit log — same card-led
+ * timeline as every other profile (`HistoryTimeline`). Nested-collection events
+ * carry only a **count** in `metadata`, never the replaced values — this is not
+ * a diff viewer (`docs/backend/applicants/INTEGRATION.md` §4).
  */
 export function ApplicantHistoryPanel({
   applicantId,
@@ -28,7 +64,13 @@ export function ApplicantHistoryPanel({
   const entries = data?.data ?? [];
   const truncated = (data?.meta.total ?? 0) > entries.length;
 
-  if (isLoading) return <Loader size="sm" />;
+  if (isLoading) {
+    return (
+      <Center py="xl">
+        <Loader size="sm" />
+      </Center>
+    );
+  }
 
   if (isError) {
     return (
@@ -49,36 +91,14 @@ export function ApplicantHistoryPanel({
   }
 
   return (
-    <Stack gap="md">
-      {entries.map((entry) => {
-        const changeEntries = Object.entries(entry.changes);
-        return (
-          <Stack key={entry.id} gap={2}>
-            <Text size="xs" c="dimmed">
-              {dayjs(entry.created_at).format("MMM D, YYYY h:mm A")} ·{" "}
-              {entry.actor_label || `(${entry.actor_type})`}
-            </Text>
-            <Text size="xs" fw={500}>
-              {entry.summary || entry.action.replace(/_/g, " ")}
-            </Text>
-            {entry.reason ? (
-              <Text size="xs" c="dimmed">
-                Reason: {entry.reason}
-              </Text>
-            ) : null}
-            {changeEntries.map(([field, change]) => (
-              <Text key={field} size="xs" c="dimmed">
-                {field}: {renderValue(change.from)} → {renderValue(change.to)}
-              </Text>
-            ))}
-          </Stack>
-        );
-      })}
-      {truncated ? (
-        <Text size="xs" c="dimmed">
-          Showing the {entries.length} most recent entries.
-        </Text>
-      ) : null}
-    </Stack>
+    <HistoryTimeline
+      entries={entries}
+      iconFor={(action) => ICONS[action]}
+      truncatedNote={
+        truncated
+          ? `Showing the ${entries.length} most recent entries.`
+          : undefined
+      }
+    />
   );
 }

@@ -4,27 +4,35 @@ import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
+  Anchor,
   Badge,
   Button,
+  Card,
   Center,
-  Group,
   Loader,
   ModalPaper,
   ModuleHeader,
   Stack,
-  Tabs,
   Text,
-  Title,
 } from "@peppermint/ui";
+import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
+import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
+import { PaperclipIcon } from "@phosphor-icons/react/dist/csr/Paperclip";
 import { PauseCircleIcon } from "@phosphor-icons/react/dist/csr/PauseCircle";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
-import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
+import {
+  ProfileLayout,
+  ProfileSidebar,
+  ProfileTabs,
+  type ProfileTab,
+} from "@/components/profile";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiError } from "@/lib/authErrorMessages";
 import { FilesPanel } from "@/modules/admin/uploaded-files/_shared/FilesPanel";
 import { useJourneyDetail } from "../../applicantJourneys.hooks";
 import { STAGE_COLORS, STAGE_LABELS } from "../../applicantJourneys.labels";
+import type { ApplicantJourneyDetail } from "../../applicantJourneys.types";
 import { ChangeJourneyStageModal } from "../list/components/ChangeJourneyStageModal";
 import { CloseJourneyModal } from "../list/components/CloseJourneyModal";
 import { DeferJourneyModal } from "../list/components/DeferJourneyModal";
@@ -35,6 +43,31 @@ import { JourneyOverviewPanel } from "./components/JourneyOverviewPanel";
 type ActiveModal = "stage" | "defer" | "close" | "reopen" | null;
 
 const TERMINAL_STAGES = new Set(["completed", "closed", "deferred"]);
+
+function applicantName(journey: ApplicantJourneyDetail): string {
+  return (
+    journey.applicant.full_name ||
+    journey.applicant.full_name_en ||
+    journey.applicant.full_name_np
+  );
+}
+
+function getJourneyTabs(journey: ApplicantJourneyDetail): ProfileTab[] {
+  return [
+    {
+      value: "files",
+      label: "Files",
+      icon: <PaperclipIcon size={14} aria-hidden />,
+      panel: <FilesPanel scope={{ journey: journey.id }} />,
+    },
+    {
+      value: "history",
+      label: "History",
+      icon: <ClockCounterClockwiseIcon size={14} aria-hidden />,
+      panel: <JourneyHistoryPanel journeyId={journey.id} />,
+    },
+  ];
+}
 
 function JourneyDetailContent() {
   const { id } = useParams<{ id: string }>();
@@ -95,10 +128,11 @@ function JourneyDetailContent() {
     );
   }
 
-  const displayName =
-    journey.applicant.full_name_en || journey.applicant.full_name_np;
+  const displayName = applicantName(journey);
+  const destination = journey.target_country || "No destination set";
   const isTerminal = TERMINAL_STAGES.has(journey.stage);
   const closeModal = () => setActiveModal(null);
+  const tabs = getJourneyTabs(journey);
 
   return (
     <>
@@ -111,63 +145,35 @@ function JourneyDetailContent() {
           },
         ]}
       />
-      <ModalPaper withBorder>
-        <Stack gap="md" p="md">
-          <Group justify="space-between" align="flex-start" wrap="wrap">
-            <Stack gap={4}>
-              <Group gap="xs">
-                <Title order={4}>
-                  {journey.target_country || "No destination set"}
-                </Title>
-                <Badge
-                  size="sm"
-                  variant="light"
-                  color={STAGE_COLORS[journey.stage]}
-                >
-                  {STAGE_LABELS[journey.stage]}
-                </Badge>
-              </Group>
-              <Text
-                size="xs"
-                c="blue"
+
+      <ProfileLayout
+        sidebar={
+          <ProfileSidebar
+            name={destination}
+            avatarLabel={journey.target_country || displayName}
+            subtitle={
+              <Anchor
+                size="sm"
                 component={Link}
                 href={`/admin/applicants/${journey.applicant.id}`}
               >
                 {displayName}
-              </Text>
-            </Stack>
-
-            <Group gap="xs">
-              {!isTerminal ? (
-                <>
-                  <Button
-                    size="xs"
-                    variant="default"
-                    leftSection={<ArrowsClockwiseIcon size={14} aria-hidden />}
-                    onClick={() => setActiveModal("stage")}
-                  >
-                    Change stage
-                  </Button>
-                  <Button
-                    size="xs"
-                    variant="default"
-                    color="orange"
-                    leftSection={<PauseCircleIcon size={14} aria-hidden />}
-                    onClick={() => setActiveModal("defer")}
-                  >
-                    Defer
-                  </Button>
-                  <Button
-                    size="xs"
-                    color="red"
-                    leftSection={<ProhibitIcon size={14} aria-hidden />}
-                    onClick={() => setActiveModal("close")}
-                  >
-                    Close
-                  </Button>
-                </>
-              ) : (
+              </Anchor>
+            }
+            status={
+              <Badge
+                size="sm"
+                variant="light"
+                color={STAGE_COLORS[journey.stage]}
+              >
+                {STAGE_LABELS[journey.stage]}
+              </Badge>
+            }
+            fields={<JourneyOverviewPanel journey={journey} />}
+            actions={
+              isTerminal ? (
                 <Button
+                  fullWidth
                   size="xs"
                   color="teal"
                   leftSection={
@@ -177,28 +183,45 @@ function JourneyDetailContent() {
                 >
                   Reopen
                 </Button>
-              )}
-            </Group>
-          </Group>
-
-          <Tabs defaultValue="overview">
-            <Tabs.List>
-              <Tabs.Tab value="overview">Overview</Tabs.Tab>
-              <Tabs.Tab value="files">Files</Tabs.Tab>
-              <Tabs.Tab value="history">History</Tabs.Tab>
-            </Tabs.List>
-            <Tabs.Panel value="overview" pt="md">
-              <JourneyOverviewPanel journey={journey} />
-            </Tabs.Panel>
-            <Tabs.Panel value="files" pt="md">
-              <FilesPanel scope={{ journey: journey.id }} />
-            </Tabs.Panel>
-            <Tabs.Panel value="history" pt="md">
-              <JourneyHistoryPanel journeyId={journey.id} />
-            </Tabs.Panel>
-          </Tabs>
-        </Stack>
-      </ModalPaper>
+              ) : (
+                <>
+                  <Button
+                    fullWidth
+                    size="xs"
+                    leftSection={<ArrowsClockwiseIcon size={14} aria-hidden />}
+                    onClick={() => setActiveModal("stage")}
+                  >
+                    Change stage
+                  </Button>
+                  <Button
+                    fullWidth
+                    size="xs"
+                    variant="default"
+                    color="orange"
+                    leftSection={<PauseCircleIcon size={14} aria-hidden />}
+                    onClick={() => setActiveModal("defer")}
+                  >
+                    Defer
+                  </Button>
+                  <Button
+                    fullWidth
+                    size="xs"
+                    color="red"
+                    leftSection={<ProhibitIcon size={14} aria-hidden />}
+                    onClick={() => setActiveModal("close")}
+                  >
+                    Close
+                  </Button>
+                </>
+              )
+            }
+          />
+        }
+      >
+        <Card withBorder radius="md" padding="md">
+          <ProfileTabs tabs={tabs} defaultValue="files" />
+        </Card>
+      </ProfileLayout>
 
       <ChangeJourneyStageModal
         journey={journey}

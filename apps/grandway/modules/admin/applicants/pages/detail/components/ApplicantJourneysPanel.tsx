@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Badge,
   Button,
-  Card,
   Center,
   Group,
   Loader,
@@ -13,9 +12,15 @@ import {
   SimpleGrid,
   Stack,
   Text,
+  TextInput,
+  ThemeIcon,
+  dayjs,
 } from "@peppermint/ui";
+import { AirplaneTakeoffIcon } from "@phosphor-icons/react/dist/csr/AirplaneTakeoff";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react/dist/csr/ArrowSquareOut";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
+import { ProfileCard, ProfileSection } from "@/components/profile";
 import { QueryErrorState } from "@/components/QueryErrorState";
 // Concrete-file imports, not the `applicant-journeys` barrel — that barrel's
 // `form/index.ts` re-exports `JourneyForm`, which itself imports the
@@ -37,10 +42,9 @@ import {
 } from "@/modules/admin/applicant-journeys/form/JourneyForm";
 
 /**
- * The per-person view `CONCEPT.md` calls the primary entry point for
- * journeys (the standalone worklist is secondary). Cards, not a table —
- * this is a related-records region on a Detail page (`DESIGN.md` Part 5B),
- * not the module's own list surface.
+ * The per-person view `CONCEPT.md` calls the primary entry point for journeys
+ * (the standalone worklist is secondary). Cards, not a table — this is a
+ * related-records region on a Detail page (`DESIGN.md` Part 5B).
  */
 export function ApplicantJourneysPanel({
   applicantId,
@@ -48,6 +52,7 @@ export function ApplicantJourneysPanel({
   applicantId: string;
 }) {
   const [createOpen, setCreateOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const { data, isLoading, isError, isRefetching, refetch } = useJourneyList({
     page: 1,
     pageSize: 50,
@@ -55,16 +60,43 @@ export function ApplicantJourneysPanel({
     sort: [],
     filters: { applicant: applicantId },
   });
-  const journeys = data?.data ?? [];
+  const journeys = useMemo(() => data?.data ?? [], [data?.data]);
   const createMutation = useCreateJourney();
+  // Search filters only the loaded page (capped at 50). When more exist
+  // server-side, say so — a local "no match" isn't proof none exist.
+  const truncated = (data?.meta.total ?? 0) > journeys.length;
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return journeys;
+    return journeys.filter((j) =>
+      [
+        j.target_country,
+        j.target_institution_name,
+        j.target_program_name,
+        j.preferred_intake,
+      ]
+        .filter(Boolean)
+        .some((field) => field.toLowerCase().includes(q)),
+    );
+  }, [journeys, search]);
 
   return (
-    <Stack gap="md">
-      <Group justify="space-between" align="center">
-        <Text size="sm" c="dimmed">
-          Study objectives for this applicant
-        </Text>
-        <Group gap="xs">
+    <ProfileSection
+      title="Journeys"
+      description="Study objectives for this applicant"
+      action={
+        <Group gap="xs" wrap="nowrap">
+          {journeys.length > 0 ? (
+            <TextInput
+              size="xs"
+              placeholder="Search journeys"
+              aria-label="Search journeys"
+              leftSection={<MagnifyingGlassIcon size={14} aria-hidden />}
+              value={search}
+              onChange={(e) => setSearch(e.currentTarget.value)}
+            />
+          ) : null}
           <Button
             size="xs"
             variant="default"
@@ -72,18 +104,18 @@ export function ApplicantJourneysPanel({
             href={`/admin/applicant-journeys?applicant=${applicantId}`}
             rightSection={<ArrowSquareOutIcon size={14} aria-hidden />}
           >
-            View in worklist
+            Worklist
           </Button>
           <Button
             size="xs"
             leftSection={<PlusIcon size={14} aria-hidden />}
             onClick={() => setCreateOpen(true)}
           >
-            New journey
+            New
           </Button>
         </Group>
-      </Group>
-
+      }
+    >
       {isLoading ? (
         <Center py="md">
           <Loader size="sm" />
@@ -98,12 +130,28 @@ export function ApplicantJourneysPanel({
         <Text size="xs" c="dimmed">
           No journeys yet — add this applicant&apos;s first study objective.
         </Text>
+      ) : filtered.length === 0 ? (
+        <Text size="xs" c="dimmed">
+          No journeys match &ldquo;{search}&rdquo;
+          {truncated
+            ? " on this page — open the worklist to search them all"
+            : ""}
+          .
+        </Text>
       ) : (
-        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-          {journeys.map((journey) => (
-            <JourneyCard key={journey.id} journey={journey} />
-          ))}
-        </SimpleGrid>
+        <Stack gap="sm">
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+            {filtered.map((journey) => (
+              <JourneyCard key={journey.id} journey={journey} />
+            ))}
+          </SimpleGrid>
+          {truncated ? (
+            <Text size="xs" c="dimmed" ta="center">
+              Showing the {journeys.length} most recent journeys — open the
+              worklist for the full list.
+            </Text>
+          ) : null}
+        </Stack>
       )}
 
       <Modal
@@ -121,31 +169,57 @@ export function ApplicantJourneysPanel({
           }}
         />
       </Modal>
-    </Stack>
+    </ProfileSection>
   );
 }
 
 function JourneyCard({ journey }: { journey: ApplicantJourney }) {
+  const subtitle =
+    journey.target_institution_name ||
+    journey.target_program_name ||
+    journey.preferred_intake ||
+    "Objective not detailed yet";
+
   return (
-    <Card
-      withBorder
-      padding="sm"
-      component={Link}
-      href={`/admin/applicant-journeys/${journey.id}`}
-    >
-      <Stack gap={4}>
-        <Group justify="space-between" align="flex-start" wrap="nowrap">
-          <Text size="sm" fw={500}>
-            {journey.target_country || "Destination not decided"}
+    <ProfileCard href={`/admin/applicant-journeys/${journey.id}`}>
+      <Group align="flex-start" wrap="nowrap" gap="sm">
+        <ThemeIcon variant="light" color="blue" size="md" radius="xl">
+          <AirplaneTakeoffIcon size={14} aria-hidden />
+        </ThemeIcon>
+        <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
+          <Group
+            justify="space-between"
+            align="flex-start"
+            wrap="nowrap"
+            gap="xs"
+          >
+            <Text size="sm" fw={600}>
+              {journey.target_country || "Destination not decided"}
+            </Text>
+            <Badge
+              size="xs"
+              variant="light"
+              color={STAGE_COLORS[journey.stage]}
+            >
+              {STAGE_LABELS[journey.stage]}
+            </Badge>
+          </Group>
+          <Text size="xs" c="dimmed" lineClamp={1}>
+            {subtitle}
           </Text>
-          <Badge size="xs" color={STAGE_COLORS[journey.stage]}>
-            {STAGE_LABELS[journey.stage]}
-          </Badge>
-        </Group>
-        <Text size="xs" c="dimmed">
-          {journey.preferred_intake || "Intake not set"}
-        </Text>
-      </Stack>
-    </Card>
+          <Group gap={6} wrap="nowrap">
+            <Text size="xs" c="dimmed">
+              {journey.preferred_intake || "Intake not set"}
+            </Text>
+            <Text size="xs" c="dimmed">
+              ·
+            </Text>
+            <Text size="xs" c="dimmed">
+              Added {dayjs(journey.created_at).format("MMM D, YYYY")}
+            </Text>
+          </Group>
+        </Stack>
+      </Group>
+    </ProfileCard>
   );
 }

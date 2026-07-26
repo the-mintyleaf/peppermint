@@ -1,34 +1,44 @@
 "use client";
 
-import { Badge, Divider, Group, Stack, Text, dayjs } from "@peppermint/ui";
-import type { ApplicantDetail } from "../../../applicants.types";
+import Link from "next/link";
+import {
+  Anchor,
+  Badge,
+  Group,
+  SimpleGrid,
+  Stack,
+  Text,
+  dayjs,
+} from "@peppermint/ui";
+import { ArrowsLeftRightIcon } from "@phosphor-icons/react/dist/csr/ArrowsLeftRight";
+import { ProfileField } from "@/components/profile";
+import type {
+  ApplicantDetail,
+  ApplicantAddress,
+} from "../../../applicants.types";
 
-const STATUS_COLORS: Record<string, string> = {
-  active: "green",
-  dormant: "yellow",
-  archived: "gray",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  active: "Active",
-  dormant: "Dormant",
-  archived: "Archived",
-};
-
-function Field({ label, value }: { label: string; value: string | null }) {
+function formatAddress(address: ApplicantAddress | undefined): string | null {
+  if (!address) return null;
   return (
-    <Group justify="space-between" wrap="nowrap" gap="md" align="flex-start">
-      <Text size="xs" c="dimmed">
-        {label}
-      </Text>
-      <Text size="xs" ta="right" c={value ? undefined : "dimmed"}>
-        {value || "—"}
-      </Text>
-    </Group>
+    [
+      address.street_address,
+      address.municipality,
+      address.ward ? `Ward ${address.ward}` : null,
+      address.district,
+      address.province,
+      address.country,
+      address.postal_code,
+    ]
+      .filter(Boolean)
+      .join(", ") || null
   );
 }
 
-/** Identity, contact numbers, and addresses — the fields most files are read for day to day. */
+/**
+ * The applicant's key facts — the body of the sticky profile sidebar. Identity
+ * essentials tile two-up; the longer contact/address fields run full width.
+ * Status lives above this (in the sidebar header) as the record's indicator.
+ */
 export function ApplicantOverviewPanel({
   applicant,
 }: {
@@ -40,97 +50,75 @@ export function ApplicantOverviewPanel({
   const current = applicant.addresses.find((a) => a.address_type === "current");
 
   return (
-    <Stack gap="sm">
-      <Group gap="xs">
-        <Badge
-          size="xs"
-          variant="light"
-          color={STATUS_COLORS[applicant.status]}
-        >
-          {STATUS_LABELS[applicant.status]}
-        </Badge>
-      </Group>
+    <Stack gap="md">
+      <SimpleGrid cols={2} spacing="sm" verticalSpacing="sm">
+        <ProfileField
+          label="Date of birth"
+          value={
+            applicant.date_of_birth
+              ? dayjs(applicant.date_of_birth).format("MMM D, YYYY")
+              : null
+          }
+        />
+        <ProfileField label="Gender" value={applicant.gender || null} />
+        <ProfileField label="Nationality" value={applicant.nationality} />
+        <ProfileField
+          label="Added"
+          value={dayjs(applicant.created_at).format("MMM D, YYYY")}
+        />
+      </SimpleGrid>
 
-      <Divider label="Identity" labelPosition="left" />
-      <Field label="Full name (Nepali)" value={applicant.full_name_np} />
-      <Field label="Full name (English)" value={applicant.full_name_en} />
-      <Field label="Romanized name" value={applicant.full_name_romanized} />
-      <Field
-        label="Date of birth"
+      <ProfileField label="Email" value={applicant.email} />
+
+      <ProfileField
+        label="Phone"
         value={
-          applicant.date_of_birth
-            ? dayjs(applicant.date_of_birth).format("MMM D, YYYY")
-            : null
+          applicant.contact_numbers.length === 0 ? null : (
+            <Stack gap={4}>
+              {applicant.contact_numbers.map((c) => (
+                <Group key={c.id ?? c.number} gap={6} wrap="nowrap">
+                  <Text size="xs" fw={500}>
+                    {c.number}
+                  </Text>
+                  <Text size="xs" c="dimmed" tt="capitalize">
+                    {c.label}
+                  </Text>
+                  {c.is_primary ? (
+                    <Badge size="xs" variant="light" color="blue">
+                      Primary
+                    </Badge>
+                  ) : null}
+                </Group>
+              ))}
+            </Stack>
+          )
         }
       />
-      <Field label="Gender" value={applicant.gender} />
-      <Field label="Nationality" value={applicant.nationality} />
-      <Field label="Email" value={applicant.email} />
 
-      <Divider label="Contact numbers" labelPosition="left" />
-      {applicant.contact_numbers.length === 0 ? (
-        <Text size="xs" c="dimmed">
-          No contact numbers on file.
-        </Text>
-      ) : (
-        applicant.contact_numbers.map((c) => (
-          <Group key={c.id ?? c.number} justify="space-between" gap="xs">
-            <Text size="xs">{c.number}</Text>
-            <Group gap={4}>
-              <Text size="xs" c="dimmed" tt="capitalize">
-                {c.label}
-              </Text>
-              {c.is_primary ? (
-                <Badge size="xs" variant="light" color="blue">
-                  Primary
-                </Badge>
-              ) : null}
-            </Group>
-          </Group>
-        ))
-      )}
+      <ProfileField
+        label="Permanent address"
+        value={formatAddress(permanent)}
+      />
+      <ProfileField label="Current address" value={formatAddress(current)} />
 
-      <Divider label="Permanent address" labelPosition="left" />
-      {permanent ? (
-        <Text size="xs">
-          {[
-            permanent.street_address,
-            permanent.municipality,
-            permanent.ward ? `Ward ${permanent.ward}` : null,
-            permanent.district,
-            permanent.province,
-            permanent.country,
-            permanent.postal_code,
-          ]
-            .filter(Boolean)
-            .join(", ")}
-        </Text>
-      ) : (
-        <Text size="xs" c="dimmed">
-          Not on file.
-        </Text>
-      )}
-
-      <Divider label="Current address" labelPosition="left" />
-      {current ? (
-        <Text size="xs">
-          {[
-            current.street_address,
-            current.municipality,
-            current.ward ? `Ward ${current.ward}` : null,
-            current.district,
-            current.province,
-            current.country,
-            current.postal_code,
-          ]
-            .filter(Boolean)
-            .join(", ")}
-        </Text>
-      ) : (
-        <Text size="xs" c="dimmed">
-          Not on file.
-        </Text>
-      )}
+      {applicant.originating_lead_id ? (
+        <ProfileField
+          label="Origin"
+          value={
+            <Anchor
+              size="xs"
+              fw={500}
+              component={Link}
+              href="/admin/lead-management"
+            >
+              <Group gap={4} wrap="nowrap">
+                <ArrowsLeftRightIcon size={13} aria-hidden />
+                Converted from a lead
+              </Group>
+            </Anchor>
+          }
+        />
+      ) : null}
     </Stack>
   );
 }

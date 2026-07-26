@@ -1,0 +1,32 @@
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--mantine-spacing-lg);
+  align-items: start;
+}
+
+/* From md up, split into the 5/12 sidebar + 7/12 content columns. */
+@media (min-width: 62em) {
+  .grid {
+    grid-template-columns: 5fr 7fr;
+  }
+}
+
+.sidebar {
+  min-width: 0;
+}
+
+.content {
+  min-width: 0;
+}
+
+@media (min-width: 62em) {
+  .sidebar {
+    position: sticky;
+    top: var(--mantine-spacing-md);
+    /* When the sidebar is taller than the viewport, scroll it internally so the
+       docked actions at its foot stay reachable instead of pinned off-screen. */
+    max-height: calc(100vh - var(--mantine-spacing-md) * 2);
+    overflow-y: auto;
+  }
+}
