@@ -2,20 +2,17 @@
 
 import { ModuleErrorBoundary } from "@peppermint/admin";
 import {
-  Button,
   ModalPaper,
   ModuleHeader,
   Stack,
   Text,
   useQueryClient,
 } from "@peppermint/ui";
-import { ArrowClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowClockwise";
-import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { useDashboardFilters } from "../dashboard.hooks";
 import { ActivityFeed } from "../components/ActivityFeed";
 import { Blockers } from "../components/Blockers";
 import { Conversion } from "../components/Conversion";
-import { DashboardFilterBar } from "../components/DashboardFilterBar";
+import { DashboardHeaderControls } from "../components/DashboardHeaderControls";
 import { DashboardHero } from "../components/DashboardHero";
 import { Outcomes } from "../components/Outcomes";
 import { PipelineCounts } from "../components/PipelineCounts";
@@ -37,7 +34,7 @@ import { Workload } from "../components/Workload";
  * contract (§9 "the client decides when to refetch") — "Refresh all" simply
  * invalidates every `dashboard` query; nothing here polls.
  */
-function DashboardOverviewContent() {
+export function DashboardOverview() {
   const filters = useDashboardFilters();
   const queryClient = useQueryClient();
   const resetKeys = [filters.fiscalYear, filters.country];
@@ -45,40 +42,29 @@ function DashboardOverviewContent() {
   return (
     <>
       <ModuleHeader
-        breadcrumbItems={[
-          { label: "Home", href: "/admin" },
-          { label: "Dashboard", href: "/admin/dashboard" },
-        ]}
+        breadcrumbItems={[{ label: "Home", href: "/admin" }]}
         right={
-          <Button
-            size="xs"
-            variant="default"
-            leftSection={<ArrowClockwiseIcon size={14} aria-hidden />}
-            onClick={() =>
+          <DashboardHeaderControls
+            fiscalYear={filters.fiscalYear}
+            country={filters.country}
+            onFiscalYearChange={filters.setFiscalYear}
+            onCountryChange={filters.setCountry}
+            onRefresh={() =>
               queryClient.invalidateQueries({ queryKey: ["dashboard"] })
             }
-          >
-            Refresh all
-          </Button>
+          />
         }
       />
 
       <ModalPaper withBorder>
         <Stack gap="lg" p="md">
-          <DashboardHero fiscalYear={filters.fiscalYear} />
+          <DashboardHero />
 
           <Text size="xs" c="dimmed">
-            There is no refresh contract — the backend does not say when a
-            figure goes stale, so numbers reflect the moment each section was
-            last fetched. Use Refresh all to see the latest.
+            Fiscal year and destination country (top right) scope the sections
+            below. There is no refresh contract — figures reflect the moment
+            each section was last fetched; use Refresh to pull the latest.
           </Text>
-
-          <DashboardFilterBar
-            fiscalYear={filters.fiscalYear}
-            country={filters.country}
-            onFiscalYearChange={filters.setFiscalYear}
-            onCountryChange={filters.setCountry}
-          />
 
           <Stack gap="xl">
             <ModuleErrorBoundary resetKeys={resetKeys}>
@@ -169,19 +155,5 @@ function DashboardOverviewContent() {
         </Stack>
       </ModalPaper>
     </>
-  );
-}
-
-/**
- * `RequireLeadAccess` already restricts to `admin`/`lead_manager` and refuses
- * `superadmin` (its own gate logic) — the exact rule INTEGRATION.md §1 needs
- * (`DASHBOARDS_ACTOR_FORBIDDEN` for every Superadmin call). No additional
- * authority check is needed here.
- */
-export function ModuleDashboardOverview() {
-  return (
-    <RequireLeadAccess>
-      <DashboardOverviewContent />
-    </RequireLeadAccess>
   );
 }

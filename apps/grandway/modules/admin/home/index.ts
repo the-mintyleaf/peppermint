@@ -1,1 +1,0 @@
-export { ModuleHome } from "./Home";

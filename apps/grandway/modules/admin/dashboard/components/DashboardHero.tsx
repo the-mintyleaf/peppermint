@@ -10,16 +10,14 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 /**
- * The page-level anchor band: a quiet eyebrow, the "Placement overview" title,
- * and — on the right — the time range in scope (the fiscal year) plus who is
- * looking (role · name). DESIGN.md requires a dashboard to state its time range;
- * the fiscal year is that range, shown here rather than left implicit in the
- * filter bar.
+ * The page-level anchor band: a quiet eyebrow, the "Placement overview" title, and —
+ * on the right — who is looking (role · name). The time range in scope (fiscal year)
+ * and destination country now live as controls in the module header's right slot, so
+ * they are no longer restated here.
  */
-export function DashboardHero({ fiscalYear }: { fiscalYear: string }) {
+export function DashboardHero() {
   const { user, authorityType } = useCurrentUser();
 
-  const rangeLabel = fiscalYear ? `FY ${fiscalYear} BS` : "All fiscal years";
   const roleLabel = authorityType ? ROLE_LABELS[authorityType] : null;
 
   return (
@@ -38,21 +36,11 @@ export function DashboardHero({ fiscalYear }: { fiscalYear: string }) {
           Placement overview
         </Title>
       </Stack>
-      <Group gap="sm" c="dimmed">
+      {roleLabel && user ? (
         <Text size="sm" c="dimmed">
-          {rangeLabel}
+          {roleLabel} · {user.display_name || user.username}
         </Text>
-        {roleLabel && user ? (
-          <>
-            <Text size="sm" c="dimmed" aria-hidden>
-              ·
-            </Text>
-            <Text size="sm" c="dimmed">
-              {roleLabel} · {user.display_name || user.username}
-            </Text>
-          </>
-        ) : null}
-      </Group>
+      ) : null}
     </Group>
   );
 }

@@ -1,3 +1,3 @@
-import { ModuleHome } from "@/modules/admin/home";
+import { ModuleAdminHome } from "@/modules/admin/dashboard";
 
-export default ModuleHome;
+export default ModuleAdminHome;

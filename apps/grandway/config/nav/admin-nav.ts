@@ -95,13 +95,16 @@ export function buildAdminConfig(
     },
   ];
 
+  // The Placement dashboard is now the `/admin` home (it replaced the old welcome
+  // page). Lead-access tiers get this labelled rail entry pointing at the home route;
+  // a superadmin (no dashboard access) lands on the identity/audit fallback instead.
   if (canAccessDashboard) {
     mainNav.push({
       kind: "page",
       id: "dashboard",
       icon: ChartBarIcon,
       label: "Dashboard",
-      href: "/admin/dashboard",
+      href: "/admin",
     });
   }
 

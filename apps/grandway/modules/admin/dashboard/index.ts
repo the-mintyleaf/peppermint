@@ -1,1 +1,1 @@
-export { ModuleDashboardOverview } from "./pages/DashboardOverview";
+export { ModuleAdminHome } from "./pages/AdminHome";
