@@ -2,10 +2,10 @@
 
 import { Stack, Text, dayjs } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
-import { StatusBadge } from "@peppermint/admin";
-import { STAGE_COLORS, STAGE_LABELS } from "../../leadCategory.utils";
+import { STAGE_LABELS } from "../../leadCategory.utils";
 import type { LeadBoardRow, LeadSource } from "../../leadManagement.types";
 import { LeadRowActionsMenu } from "./components/LeadRowActionsMenu";
+import { LeadStageSwitch } from "./components/LeadStageSwitch";
 
 interface LeadManagementColumnsOptions {
   sources: LeadSource[];
@@ -18,12 +18,15 @@ export function getLeadManagementColumns({
 }: LeadManagementColumnsOptions): DataTableShellColumn<LeadBoardRow>[] {
   return [
     {
-      accessor: "full_name_en",
+      accessor: "full_name",
       title: "Lead",
       render: (lead: LeadBoardRow) => (
         <Stack gap={0}>
           <Text size="xs" fw={500}>
-            {lead.full_name_en || lead.full_name_np || lead.full_name_romanized}
+            {lead.full_name ||
+              lead.full_name_en ||
+              lead.full_name_np ||
+              lead.full_name_romanized}
           </Text>
           {lead.email ? (
             <Text size="xs" c="dimmed">
@@ -43,13 +46,7 @@ export function getLeadManagementColumns({
           label,
         })),
       },
-      render: (lead: LeadBoardRow) => (
-        <StatusBadge
-          value={lead.stage}
-          colorMap={STAGE_COLORS}
-          labelMap={STAGE_LABELS}
-        />
-      ),
+      render: (lead: LeadBoardRow) => <LeadStageSwitch lead={lead} />,
     },
     {
       accessor: "source.id",
@@ -58,11 +55,13 @@ export function getLeadManagementColumns({
         type: "select",
         options: sources.map((source) => ({
           value: source.id,
-          label: source.name_en || source.name_np,
+          label: source.name || source.name_en || source.name_np,
         })),
       },
       render: (lead: LeadBoardRow) => (
-        <Text size="xs">{lead.source.name_en || lead.source.name_np}</Text>
+        <Text size="xs">
+          {lead.source.name || lead.source.name_en || lead.source.name_np}
+        </Text>
       ),
     },
     {

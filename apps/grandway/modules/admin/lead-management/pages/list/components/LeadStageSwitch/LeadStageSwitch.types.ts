@@ -1,7 +1,5 @@
 import type { LeadBoardRow } from "../../../../leadManagement.types";
 
-export interface ChangeStageModalProps {
+export interface LeadStageSwitchProps {
   lead: LeadBoardRow;
-  opened: boolean;
-  onClose: () => void;
 }
