@@ -39,6 +39,7 @@ export function getLeadManagementColumns({
     {
       accessor: "stage",
       title: "Stage",
+      width: 300,
       filter: {
         type: "select",
         options: Object.entries(STAGE_LABELS).map(([value, label]) => ({

@@ -87,6 +87,7 @@ export function getJourneysColumns({
       accessor: "stage",
       title: "Stage",
       icon: FlagIcon,
+      width: 300,
       filter: {
         type: "select",
         options: Object.entries(STAGE_LABELS).map(([value, label]) => ({

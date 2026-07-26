@@ -53,6 +53,7 @@ export function getApplicantsColumns({
       accessor: "status",
       title: "Status",
       icon: PulseIcon,
+      width: 300,
       filter: {
         type: "select",
         options: Object.entries(STATUS_LABELS).map(([value, label]) => ({
