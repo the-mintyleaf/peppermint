@@ -115,6 +115,7 @@ export interface CvContent {
   last_name?: string;
   full_name?: string;
   date_of_birth?: string;
+  place_of_birth?: string;
   gender?: string;
   current_address?: string;
   email?: string;
@@ -124,6 +125,16 @@ export interface CvContent {
   // Extended personal info
   nationality?: string;
   languages_known?: string;
+  // Europass structured languages (CEFR self-assessment grid)
+  mother_tongue?: string;
+  languages?: Array<{
+    language: string;
+    listening?: string;
+    reading?: string;
+    spoken_production?: string;
+    spoken_interaction?: string;
+    writing?: string;
+  }>;
   religion?: string;
   alternate_email?: string;
   // Passport
@@ -186,6 +197,14 @@ export interface CvContent {
     reading: string;
   }>;
   batch_detail?: { course?: string; name?: string };
+  /**
+   * Europass CV appearance controls, set from the right-nav Customizations panel and
+   * persisted with the document content. Optional — the other CV variants ignore it.
+   */
+  appearance?: {
+    headerColor?: string;
+    fontFamily?: "serif" | "sans";
+  };
 }
 
 export type WodaContent = Record<string, unknown> & {
@@ -449,7 +468,13 @@ export interface DocumentTemplateProps {
 
 export interface DocumentConfigBarProps {
   document: Document;
+  /** Render-only update — reflected in the local cache for live preview, never persisted. */
   onUpdate: (content: DocumentContent) => void;
+  /**
+   * Persisting update — PATCHes the content to the backend so the change survives reload/print.
+   * Optional: config bars that only tweak the live preview (e.g. bank padding) omit it.
+   */
+  onPersist?: (content: DocumentContent) => void;
   signatures?: Signature[];
   disabled?: boolean;
 }

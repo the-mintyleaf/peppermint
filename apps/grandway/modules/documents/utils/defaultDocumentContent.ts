@@ -325,6 +325,28 @@ export function getDefaultDocumentContent(type: DocumentType): DocumentContent {
     } satisfies CvContent;
   }
 
+  if (type === "student-cv-europass") {
+    return {
+      nationality: "Nepali",
+      place_of_birth: "",
+      summary: "",
+      skills: "",
+      passport_number: "",
+      mother_tongue: "",
+      languages: [
+        {
+          language: "",
+          listening: "",
+          reading: "",
+          spoken_production: "",
+          spoken_interaction: "",
+          writing: "",
+        },
+      ],
+      appearance: { headerColor: "#f3f3f3", fontFamily: "sans" },
+    } satisfies CvContent;
+  }
+
   const lorVariant = LOR_INSTITUTIONS.find((l) => l.slug === type);
   if (lorVariant) {
     return {
@@ -373,6 +395,7 @@ export function usesCreateModal(type: DocumentType): boolean {
     type === "student-certificate" ||
     type === "student-cv" ||
     type === "student-cv-standard" ||
-    type === "student-cv-extended"
+    type === "student-cv-extended" ||
+    type === "student-cv-europass"
   );
 }

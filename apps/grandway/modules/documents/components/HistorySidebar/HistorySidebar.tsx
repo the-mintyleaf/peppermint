@@ -37,6 +37,7 @@ interface DocumentCustomizationsProps {
   ConfigBar: ComponentType<DocumentConfigBarProps> | undefined;
   document: Document | null;
   onUpdate: (content: DocumentContent) => void;
+  onPersist: (content: DocumentContent) => void;
   editable: boolean;
   isHistoryPreview: boolean;
 }
@@ -45,6 +46,7 @@ const DocumentCustomizations = memo(function DocumentCustomizations({
   ConfigBar,
   document,
   onUpdate,
+  onPersist,
   editable,
   isHistoryPreview,
 }: DocumentCustomizationsProps) {
@@ -64,7 +66,9 @@ const DocumentCustomizations = memo(function DocumentCustomizations({
       </Text>
     );
   }
-  return <ConfigBar document={document} onUpdate={onUpdate} />;
+  return (
+    <ConfigBar document={document} onUpdate={onUpdate} onPersist={onPersist} />
+  );
 });
 
 export function HistorySidebar({ onClose }: HistorySidebarProps) {
@@ -75,6 +79,7 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
     setActiveHistoricalLog,
     printableContentRef,
     updateDocumentContentLocal,
+    updateDocumentContent,
   } = useDocumentEditor();
 
   const { snapshots, isLoading, loadSnapshotPreview, recover, isRecovering } =
@@ -90,7 +95,8 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
     ? getDocumentTypeConfig(activeDocument.type).ConfigBar
     : undefined;
 
-  // Customizations are print-layout render tweaks — apply them locally only, never persist.
+  // Live preview: reflect a customization in the local cache only (used for instant feedback
+  // and for render-only tweaks like bank padding that are never saved).
   const handleUpdate = useCallback(
     (content: DocumentContent) => {
       if (activeDocument) {
@@ -98,6 +104,17 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
       }
     },
     [activeDocument, updateDocumentContentLocal],
+  );
+
+  // Persisting update: config bars whose choices should survive reload/print (e.g. the
+  // Europass CV appearance) call this to PATCH the content to the backend.
+  const handlePersist = useCallback(
+    (content: DocumentContent) => {
+      if (activeDocument) {
+        updateDocumentContent(activeDocument.id, content);
+      }
+    },
+    [activeDocument, updateDocumentContent],
   );
 
   // Selecting a snapshot fetches its frozen body so it can preview in place of the live doc.
@@ -307,6 +324,7 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
               ConfigBar={ConfigBar}
               document={activeDocument ?? null}
               onUpdate={handleUpdate}
+              onPersist={handlePersist}
               editable={
                 !activeHistoricalLog &&
                 !!activeDocument &&

@@ -46,6 +46,7 @@ export function getStudentMenuTypes(
       "student-cv",
       "student-cv-standard",
       "student-cv-extended",
+      "student-cv-europass",
     ] as const
   ).filter((type) => available.has(type));
 }

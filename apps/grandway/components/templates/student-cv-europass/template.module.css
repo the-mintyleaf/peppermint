@@ -1,0 +1,212 @@
+/* Europass CV — print/page layout. The page is a natural-flow A4 sheet; long content
+   paginates under @media print exactly like the other CV templates (data-print-page). */
+
+.page {
+  width: 210mm;
+  min-height: 297mm;
+  background: #ffffff;
+  color: #111111;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Header band — the color the user controls via the Customizations panel. */
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.28in;
+  padding: 0.4in 0.55in;
+}
+
+.photoWrap {
+  flex: 0 0 auto;
+}
+
+.photo {
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.photoPlaceholder {
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.infoCol {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.topRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.2in;
+}
+
+.name {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.headerRule {
+  height: 0;
+  border: 0;
+  border-top: 1px solid currentColor;
+  opacity: 0.55;
+  margin: 8px 0 10px;
+}
+
+.personalInfo {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.personalInfo b {
+  font-weight: 700;
+}
+
+/* Europass wordmark placeholder (not the trademarked raster). */
+.mark {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.markFlag {
+  width: 26px;
+  height: 18px;
+  border-radius: 2px;
+  background: #003399;
+  color: #ffcc00;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* Body sections */
+.body {
+  padding: 0.1in 0.55in 0.5in;
+}
+
+.section {
+  margin-top: 0.22in;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sectionDot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #7a7a7a;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.sectionRule {
+  flex: 1 1 auto;
+  height: 0;
+  border: 0;
+  border-top: 1px solid #cfcfcf;
+}
+
+.sectionBody {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.entry {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.entry + .entry {
+  margin-top: 12px;
+}
+
+.entryMeta {
+  font-size: 11px;
+  color: #555555;
+}
+
+.entryTitle {
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.bullets {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.bullets li {
+  font-size: 12.5px;
+  line-height: 1.45;
+  margin-bottom: 2px;
+}
+
+.skills {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.langTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.langTable th,
+.langTable td {
+  border: 1px solid #d7d7d7;
+  padding: 5px 8px;
+  text-align: center;
+}
+
+.langTable thead th {
+  font-weight: 700;
+  background: #fafafa;
+}
+
+.langName {
+  font-weight: 700;
+  text-align: center;
+}
+
+.legend {
+  font-size: 10.5px;
+  font-style: italic;
+  color: #555555;
+  margin-top: 8px;
+}

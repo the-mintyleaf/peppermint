@@ -20,6 +20,11 @@ import {
   CvExtendedTemplate,
 } from "./document-types/student-cv-extended";
 import {
+  CvEuropassForm,
+  CvEuropassTemplate,
+  CvEuropassConfigBar,
+} from "./document-types/student-cv-europass";
+import {
   WodaAddressForm,
   WodaAddressTemplate,
 } from "./document-types/woda-address";
@@ -427,6 +432,15 @@ export const documentTypeRegistry: Record<DocumentType, DocumentTypeConfig> = {
     requiresStudent: true,
     Form: CvExtendedForm,
     Template: CvExtendedTemplate,
+  },
+  "student-cv-europass": {
+    type: "student-cv-europass",
+    label: "CV — Europass",
+    uniquePerStudent: false,
+    requiresStudent: true,
+    Form: CvEuropassForm,
+    Template: CvEuropassTemplate,
+    ConfigBar: CvEuropassConfigBar,
   },
   ...wodaRegistry,
   ...lorRegistry,

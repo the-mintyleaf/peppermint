@@ -125,6 +125,7 @@ export const STUDENT_DOCUMENT_TYPES = [
   "student-cv",
   "student-cv-standard",
   "student-cv-extended",
+  "student-cv-europass",
 ] as const;
 
 export const LOR_INSTITUTIONS = [
