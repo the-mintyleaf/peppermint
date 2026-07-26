@@ -1,4 +1,8 @@
-import type { AdminShellConfig } from "@peppermint/admin";
+import type {
+  AdminShellConfig,
+  AdminShellMainNavItem,
+  AdminShellNavGroup,
+} from "@peppermint/admin";
 import { HouseIcon } from "@phosphor-icons/react/dist/csr/House";
 import { UserListIcon } from "@phosphor-icons/react/dist/csr/UserList";
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
@@ -6,6 +10,7 @@ import { DesktopIcon } from "@phosphor-icons/react/dist/csr/Desktop";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
 import { AddressBookIcon } from "@phosphor-icons/react/dist/csr/AddressBook";
 import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
+import { UsersThreeIcon } from "@phosphor-icons/react/dist/csr/UsersThree";
 import { CompassIcon } from "@phosphor-icons/react/dist/csr/Compass";
 import { GraduationCapIcon } from "@phosphor-icons/react/dist/csr/GraduationCap";
 import { BooksIcon } from "@phosphor-icons/react/dist/csr/Books";
@@ -47,12 +52,20 @@ export interface BuildAdminConfigOptions {
 }
 
 /**
- * Admin navigation. Identity & Access (Users, My Sessions) and Audit are admin/superadmin
- * only — a `lead_manager` never reaches `/admin/authenticate/*` or `/admin/audit`
- * (`authenticate/docs/INTEGRATION.md` §1, `audit/docs/INTEGRATION.md` §1). Leads and
- * Applicants are the mirror image: visible to `admin`/`lead_manager`, never to
- * `superadmin` (`applicants`/`applicant_journeys` INTEGRATION.md §1 — identical
- * access model to leads).
+ * Admin navigation, organised as workflow groups rather than a flat list of
+ * modules. The rail mirrors the applicant lifecycle: **Recruitment**
+ * (Leads → Applicants → Journeys → Offers), **Catalogue** (the study catalogue
+ * and the country requirement checklists), **Documents** (workspaces + file
+ * review), then **Clients** and **Administration** (Identity & Access + Audit).
+ *
+ * Access gating lives on the individual sub-nav items, not the rail entry: a
+ * `module` group is only shown when the current role can reach at least one item
+ * inside it (see `filterGroups` / the `push`-if-non-empty pattern below). So a
+ * `lead_manager` — who cannot see Documents or Administration at all — never
+ * gets an empty rail icon. Identity & Access and Audit are `isAdmin`-gated
+ * (admin/superadmin), while Leads/Applicants/Offers are the mirror image:
+ * admin/lead_manager, never superadmin
+ * (`authenticate`/`audit`/`applicants` INTEGRATION.md §1).
  */
 export function buildAdminConfig(
   options: BuildAdminConfigOptions = {},
@@ -71,242 +84,246 @@ export function buildAdminConfig(
     canAccessNotifications,
     unreadNotificationCount,
   } = options;
+
+  const mainNav: AdminShellMainNavItem[] = [
+    {
+      kind: "page",
+      id: "home",
+      icon: HouseIcon,
+      label: "Home",
+      href: "/admin",
+    },
+  ];
+
+  if (canAccessDashboard) {
+    mainNav.push({
+      kind: "page",
+      id: "dashboard",
+      icon: ChartBarIcon,
+      label: "Dashboard",
+      href: "/admin/dashboard",
+    });
+  }
+
+  // ─── Recruitment ─── the applicant lifecycle funnel.
+  const recruitmentGroups = (
+    [
+      canAccessLeads && {
+        label: "Enquiries",
+        items: [
+          {
+            label: "Leads",
+            href: "/admin/lead-management",
+            icon: AddressBookIcon,
+          },
+        ],
+      },
+      canAccessApplicants && {
+        label: "Applicants",
+        items: [
+          {
+            label: "All Applicants",
+            href: "/admin/applicants",
+            icon: UsersIcon,
+          },
+        ],
+      },
+      (canAccessApplicants || canAccessOffers) && {
+        label: "Journeys",
+        items: [
+          ...(canAccessApplicants
+            ? [
+                {
+                  label: "Journeys",
+                  href: "/admin/applicant-journeys",
+                  icon: CompassIcon,
+                },
+              ]
+            : []),
+          ...(canAccessOffers
+            ? [
+                {
+                  label: "Offers",
+                  href: "/admin/offers",
+                  icon: HandshakeIcon,
+                },
+              ]
+            : []),
+        ],
+      },
+    ] as (AdminShellNavGroup | false)[]
+  ).filter(Boolean) as AdminShellNavGroup[];
+
+  if (recruitmentGroups.length > 0) {
+    mainNav.push({
+      kind: "module",
+      id: "recruitment",
+      icon: UsersThreeIcon,
+      label: "Recruitment",
+      subNav: {
+        homeHref: "/admin/lead-management",
+        groups: recruitmentGroups,
+      },
+    });
+  }
+
+  // ─── Catalogue ─── study catalogue + country requirement checklists.
+  const catalogueGroups = (
+    [
+      canAccessCatalogue && {
+        label: "Study catalogue",
+        items: [
+          {
+            label: "Institutions",
+            href: "/admin/institutions/providers",
+            icon: BuildingsIcon,
+          },
+          {
+            label: "Programs",
+            href: "/admin/institutions",
+            icon: BooksIcon,
+          },
+        ],
+      },
+      canAccessChecklists && {
+        label: "Requirements",
+        items: [
+          {
+            label: "Worklist",
+            href: "/admin/checklists",
+            icon: ListChecksIcon,
+          },
+          {
+            label: "Awaiting setup",
+            href: "/admin/checklists/awaiting-setup",
+            icon: ClockIcon,
+          },
+          {
+            label: "Requirement templates",
+            href: "/admin/checklists/templates",
+            icon: BooksIcon,
+          },
+        ],
+      },
+    ] as (AdminShellNavGroup | false)[]
+  ).filter(Boolean) as AdminShellNavGroup[];
+
+  if (catalogueGroups.length > 0) {
+    mainNav.push({
+      kind: "module",
+      id: "catalogue",
+      icon: GraduationCapIcon,
+      label: "Catalogue",
+      subNav: {
+        homeHref: "/admin/institutions",
+        groups: catalogueGroups,
+      },
+    });
+  }
+
+  // ─── Documents ─── editable document workspaces + the file review queue.
+  // `reserved:` Document Templates (`/admin/documents/templates`) and Print
+  // History (`/admin/documents/history`) belong in a "Templates & history"
+  // group here — omitted until those routes exist so we never render a dead link.
+  const documentsGroups = (
+    [
+      canAccessDocuments && {
+        label: "Documents",
+        items: [
+          {
+            label: "Workspaces",
+            href: "/admin/documents",
+            icon: FilesIcon,
+          },
+          {
+            label: "All documents",
+            href: "/admin/documents/all",
+            icon: FileTextIcon,
+          },
+        ],
+      },
+      canAccessFileReview && {
+        label: "Files",
+        items: [
+          {
+            label: "File review",
+            href: "/admin/files/review",
+            icon: FileMagnifyingGlassIcon,
+          },
+        ],
+      },
+    ] as (AdminShellNavGroup | false)[]
+  ).filter(Boolean) as AdminShellNavGroup[];
+
+  if (documentsGroups.length > 0) {
+    mainNav.push({
+      kind: "module",
+      id: "documents",
+      icon: FilesIcon,
+      label: "Documents",
+      subNav: {
+        homeHref: "/admin/documents",
+        groups: documentsGroups,
+      },
+    });
+  }
+
+  if (canAccessClients) {
+    mainNav.push({
+      kind: "page",
+      id: "clients",
+      icon: BriefcaseIcon,
+      label: "Clients",
+      href: "/admin/clients",
+    });
+  }
+
+  // ─── Administration ─── Identity & Access + the Audit trail (admin/superadmin).
+  if (isAdmin) {
+    mainNav.push({
+      kind: "module",
+      id: "administration",
+      icon: IdentificationCardIcon,
+      label: "Administration",
+      subNav: {
+        homeHref: "/admin/authenticate/users",
+        groups: [
+          {
+            label: "Access",
+            items: [
+              {
+                label: "Users",
+                href: "/admin/authenticate/users",
+                icon: UserListIcon,
+              },
+              {
+                label: "My Sessions",
+                href: "/admin/authenticate/sessions",
+                icon: DesktopIcon,
+              },
+            ],
+          },
+          {
+            label: "Activity",
+            items: [
+              {
+                label: "Audit",
+                href: "/admin/audit",
+                icon: ClockCounterClockwiseIcon,
+              },
+            ],
+          },
+        ],
+      },
+    });
+  }
+
   return {
     brand: {
       icon: IdentificationCardIcon,
       href: "/admin",
     },
-    mainNav: [
-      {
-        kind: "page",
-        id: "home",
-        icon: HouseIcon,
-        label: "Home",
-        href: "/admin",
-      },
-      ...(canAccessDashboard
-        ? [
-            {
-              kind: "page" as const,
-              id: "dashboard",
-              icon: ChartBarIcon,
-              label: "Dashboard",
-              href: "/admin/dashboard",
-            },
-          ]
-        : []),
-      ...(canAccessLeads
-        ? [
-            {
-              kind: "page" as const,
-              id: "lead-management",
-              icon: AddressBookIcon,
-              label: "Leads",
-              href: "/admin/lead-management",
-            },
-          ]
-        : []),
-      ...(canAccessApplicants
-        ? [
-            {
-              kind: "module" as const,
-              id: "applicants",
-              icon: UsersIcon,
-              label: "Applicants",
-              subNav: {
-                homeHref: "/admin/applicants",
-                groups: [
-                  {
-                    label: "Records",
-                    items: [
-                      {
-                        label: "All Applicants",
-                        href: "/admin/applicants",
-                        icon: UsersIcon,
-                      },
-                    ],
-                  },
-                  {
-                    label: "Journeys",
-                    items: [
-                      {
-                        label: "Journey Worklist",
-                        href: "/admin/applicant-journeys",
-                        icon: CompassIcon,
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-          ]
-        : []),
-      ...(canAccessCatalogue
-        ? [
-            {
-              kind: "module" as const,
-              id: "institutions",
-              icon: GraduationCapIcon,
-              label: "Catalogue",
-              subNav: {
-                homeHref: "/admin/institutions",
-                groups: [
-                  {
-                    label: "Study catalogue",
-                    items: [
-                      {
-                        label: "Programs",
-                        href: "/admin/institutions",
-                        icon: BooksIcon,
-                      },
-                      {
-                        label: "Institutions",
-                        href: "/admin/institutions/providers",
-                        icon: BuildingsIcon,
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-          ]
-        : []),
-      ...(canAccessOffers
-        ? [
-            {
-              kind: "page" as const,
-              id: "offers",
-              icon: HandshakeIcon,
-              label: "Offers",
-              href: "/admin/offers",
-            },
-          ]
-        : []),
-      ...(canAccessChecklists
-        ? [
-            {
-              kind: "module" as const,
-              id: "checklists",
-              icon: ListChecksIcon,
-              label: "Checklists",
-              subNav: {
-                homeHref: "/admin/checklists",
-                groups: [
-                  {
-                    label: "Checklists",
-                    items: [
-                      {
-                        label: "Worklist",
-                        href: "/admin/checklists",
-                        icon: ListChecksIcon,
-                      },
-                      {
-                        label: "Awaiting setup",
-                        href: "/admin/checklists/awaiting-setup",
-                        icon: ClockIcon,
-                      },
-                      {
-                        label: "Templates",
-                        href: "/admin/checklists/templates",
-                        icon: BooksIcon,
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-          ]
-        : []),
-      ...(canAccessDocuments
-        ? [
-            {
-              kind: "module" as const,
-              id: "documents",
-              icon: FilesIcon,
-              label: "Documents",
-              subNav: {
-                homeHref: "/admin/documents",
-                groups: [
-                  {
-                    label: "Documents",
-                    items: [
-                      {
-                        label: "Workspaces",
-                        href: "/admin/documents",
-                        icon: FilesIcon,
-                      },
-                      {
-                        label: "All documents",
-                        href: "/admin/documents/all",
-                        icon: FileTextIcon,
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-          ]
-        : []),
-      ...(canAccessFileReview
-        ? [
-            {
-              kind: "page" as const,
-              id: "file-review",
-              icon: FileMagnifyingGlassIcon,
-              label: "File Review",
-              href: "/admin/files/review",
-            },
-          ]
-        : []),
-      ...(canAccessClients
-        ? [
-            {
-              kind: "page" as const,
-              id: "clients",
-              icon: BriefcaseIcon,
-              label: "Clients",
-              href: "/admin/clients",
-            },
-          ]
-        : []),
-      ...(isAdmin
-        ? [
-            {
-              kind: "module" as const,
-              id: "authenticate",
-              icon: IdentificationCardIcon,
-              label: "Identity & Access",
-              subNav: {
-                homeHref: "/admin/authenticate/users",
-                groups: [
-                  {
-                    label: "Accounts",
-                    items: [
-                      {
-                        label: "Users",
-                        href: "/admin/authenticate/users",
-                        icon: UserListIcon,
-                      },
-                      {
-                        label: "My Sessions",
-                        href: "/admin/authenticate/sessions",
-                        icon: DesktopIcon,
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-            {
-              kind: "page" as const,
-              id: "audit",
-              icon: ClockCounterClockwiseIcon,
-              label: "Audit",
-              href: "/admin/audit",
-            },
-          ]
-        : []),
-    ],
+    mainNav,
     additional: canAccessNotifications
       ? [
           {
