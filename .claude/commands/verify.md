@@ -24,10 +24,13 @@ is parallelized per `.claude/PARALLEL.md`:
 3. pnpm lint — must pass with zero errors
 4. pnpm build — must pass before opening a PR
 
-**Dispatch rule:** after the format pass, dispatch check-types, lint, and
-format:check as concurrent `verifier` agents in a single message. `build` runs
-alone, only after types and lint pass. Never run write-mode `pnpm format`
-concurrently with anything.
+**Dispatch rule (per `.claude/PARALLEL.md` §6):** for a normal-sized change (a
+handful of files/packages), run check-types and lint **inline** in the main session
+(`pnpm check-types && pnpm lint`) — turbo already parallelizes internally, so spawning
+a `verifier` per command just pays a context reload to run one cached command. Fan out
+to concurrent `verifier` agents **only** when the surface is large enough that parallel
+`--filter` runs across many packages are genuinely faster. `build` runs alone, only
+after types and lint pass. Never run write-mode `pnpm format` concurrently with anything.
 
 **Filter scoping:** if $ARGUMENTS includes --filter name, apply the filter to
 check-types, lint, and build only. `format`/`format:check` exist at the repo root

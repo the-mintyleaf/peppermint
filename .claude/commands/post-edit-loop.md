@@ -21,13 +21,16 @@ Skip files where the change was trivial (fewer than 10 lines changed or purely a
 ## Step 3 — Verify (parallel)
 
 First run `pnpm format` (main session, write mode — Step 2 edited files, and code
-must never be committed unformatted). Then dispatch two `verifier` agents
-concurrently in a single message (per `.claude/PARALLEL.md`):
+must never be committed unformatted). Then run verification (per `.claude/PARALLEL.md`
+§6):
 
-- One running `pnpm check-types` (the repo's typecheck script)
-- One running `pnpm lint`
+- **Normal-sized scope (default):** run `pnpm check-types && pnpm lint` **inline** in
+  the main session — no spawn, no context reload.
+- **Large multi-package scope only:** dispatch two `verifier` agents concurrently in a
+  single message (one `pnpm check-types`, one `pnpm lint`) when parallel runs are
+  genuinely faster.
 
-The main session fixes any reported failures itself (verifiers never fix), then re-dispatches only the failed scope. Do not proceed until both scopes pass.
+The main session fixes any reported failures itself (verifiers never fix), then re-runs only the failed scope. Do not proceed until both pass.
 
 ## Step 4 — Verify docs
 

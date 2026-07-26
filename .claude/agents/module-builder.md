@@ -31,11 +31,13 @@ If any of these is missing from your prompt, stop and report the gap instead of 
    `reference/contained-single-page.md` for `[CONTAINED]`,
    `reference/contained-multi-page.md` for `[MULTI_PAGE]`. That reference file holds your
    step-by-step build order — do not build from the router alone.
-2. `.claude/CLAUDE.md` — stack rules, naming conventions, component structure.
-3. `.claude/rules.md` — quick reference.
-4. The parent domain's `docs/AI.md`.
-5. The reference sibling sub-module.
-6. `apps/<app>/docs/api-contracts/<domain>.md` if it exists — the authority on DTO
+2. `.claude/CLAUDE.md` — stack rules, naming conventions, component structure. It is
+   already in your context; do **not** additionally read `.claude/rules.md`, which is
+   only a compact mirror of it (CLAUDE.md wins on any disagreement) — reading both
+   double-loads the same rules for no gain.
+3. The parent domain's `docs/AI.md`.
+4. The reference sibling sub-module.
+5. `apps/<app>/docs/api-contracts/<domain>.md` if it exists — the authority on DTO
    shapes, endpoints, and envelopes. Never guess an API shape it answers; if your
    domain has `docs/backend/<domain>/` but no digest, report it as a blocker so the
    orchestrator runs `/sync-api` first.
