@@ -11,8 +11,11 @@ import {
 import { Check as CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
 import {
   DEFAULT_EUROPASS_APPEARANCE,
+  EUROPASS_BRIGHTNESS_LEVELS,
   EUROPASS_HEADER_SWATCHES,
   readableTextColor,
+  shadeHex,
+  type EuropassBrightness,
   type EuropassFontFamily,
 } from "@/components/templates/student-cv-europass/appearance";
 import type { DocumentConfigBarProps, CvContent } from "../../documents.types";
@@ -39,11 +42,14 @@ export function CvEuropassConfigBar({
     ...(content.appearance ?? {}),
   };
   const [headerColor, setHeaderColor] = useState(appearance.headerColor);
+  const [headerBrightness, setHeaderBrightness] = useState<EuropassBrightness>(
+    appearance.headerBrightness,
+  );
   const [fontFamily, setFontFamily] = useState<EuropassFontFamily>(
     appearance.fontFamily,
   );
   // The chosen appearance, read at flush time so the persist reflects the final choice.
-  const appearanceRef = useRef({ headerColor, fontFamily });
+  const appearanceRef = useRef({ headerColor, headerBrightness, fontFamily });
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Persist from the FRESHEST content + latest appearance — never a snapshot taken when
@@ -78,8 +84,16 @@ export function CvEuropassConfigBar({
     };
   }, [persistNow]);
 
-  const apply = (color: string, family: EuropassFontFamily) => {
-    appearanceRef.current = { headerColor: color, fontFamily: family };
+  const apply = (
+    color: string,
+    brightness: EuropassBrightness,
+    family: EuropassFontFamily,
+  ) => {
+    appearanceRef.current = {
+      headerColor: color,
+      headerBrightness: brightness,
+      fontFamily: family,
+    };
     onUpdate({
       ...(contentRef.current as CvContent),
       appearance: appearanceRef.current,
@@ -89,13 +103,18 @@ export function CvEuropassConfigBar({
 
   const handleColor = (color: string) => {
     setHeaderColor(color);
-    apply(color, fontFamily);
+    apply(color, headerBrightness, fontFamily);
+  };
+
+  const handleBrightness = (brightness: EuropassBrightness) => {
+    setHeaderBrightness(brightness);
+    apply(headerColor, brightness, fontFamily);
   };
 
   const handleFamily = (value: string) => {
     const family = value === "serif" ? "serif" : "sans";
     setFontFamily(family);
-    apply(headerColor, family);
+    apply(headerColor, headerBrightness, family);
   };
 
   return (
@@ -120,6 +139,40 @@ export function CvEuropassConfigBar({
                 style={{
                   cursor: disabled ? "not-allowed" : "pointer",
                   color: readableTextColor(swatch.value),
+                  outline: selected
+                    ? "2px solid var(--mantine-color-brand-6)"
+                    : "none",
+                  outlineOffset: 2,
+                }}
+              >
+                {selected && <CheckIcon size={14} aria-hidden />}
+              </ColorSwatch>
+            );
+          })}
+        </Group>
+      </Stack>
+
+      <Stack gap={6}>
+        <Text fz="xs" fw={500} c="dimmed">
+          Brightness
+        </Text>
+        <Group gap="xs">
+          {EUROPASS_BRIGHTNESS_LEVELS.map((level) => {
+            const shade = shadeHex(headerColor, level.mix);
+            const selected = level.value === headerBrightness;
+            return (
+              <ColorSwatch
+                key={level.value}
+                component="button"
+                type="button"
+                color={shade}
+                onClick={() => !disabled && handleBrightness(level.value)}
+                aria-label={level.label}
+                aria-pressed={selected}
+                title={level.label}
+                style={{
+                  cursor: disabled ? "not-allowed" : "pointer",
+                  color: readableTextColor(shade),
                   outline: selected
                     ? "2px solid var(--mantine-color-brand-6)"
                     : "none",

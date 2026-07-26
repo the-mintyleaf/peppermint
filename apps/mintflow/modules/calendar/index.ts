@@ -1,1 +1,0 @@
-export { ModuleCalendar } from "./Calendar";

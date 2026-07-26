@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import {
   Anchor,
   Badge,
+  Box,
   Button,
   Card,
   Center,
@@ -18,6 +19,7 @@ import {
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
+import { ListChecksIcon } from "@phosphor-icons/react/dist/csr/ListChecks";
 import { PaperclipIcon } from "@phosphor-icons/react/dist/csr/Paperclip";
 import { PauseCircleIcon } from "@phosphor-icons/react/dist/csr/PauseCircle";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
@@ -37,6 +39,7 @@ import { ChangeJourneyStageModal } from "../list/components/ChangeJourneyStageMo
 import { CloseJourneyModal } from "../list/components/CloseJourneyModal";
 import { DeferJourneyModal } from "../list/components/DeferJourneyModal";
 import { ReopenJourneyModal } from "../list/components/ReopenJourneyModal";
+import { JourneyChecklistPanel } from "./components/JourneyChecklistPanel";
 import { JourneyHistoryPanel } from "./components/JourneyHistoryPanel";
 import { JourneyOverviewPanel } from "./components/JourneyOverviewPanel";
 
@@ -54,6 +57,12 @@ function applicantName(journey: ApplicantJourneyDetail): string {
 
 function getJourneyTabs(journey: ApplicantJourneyDetail): ProfileTab[] {
   return [
+    {
+      value: "worklist",
+      label: "Worklist",
+      icon: <ListChecksIcon size={14} aria-hidden />,
+      panel: <JourneyChecklistPanel journey={journey} />,
+    },
     {
       value: "files",
       label: "Files",
@@ -146,82 +155,91 @@ function JourneyDetailContent() {
         ]}
       />
 
-      <ProfileLayout
-        sidebar={
-          <ProfileSidebar
-            name={destination}
-            avatarLabel={journey.target_country || displayName}
-            subtitle={
-              <Anchor
-                size="sm"
-                component={Link}
-                href={`/admin/applicants/${journey.applicant.id}`}
-              >
-                {displayName}
-              </Anchor>
-            }
-            status={
-              <Badge
-                size="sm"
-                variant="light"
-                color={STAGE_COLORS[journey.stage]}
-              >
-                {STAGE_LABELS[journey.stage]}
-              </Badge>
-            }
-            fields={<JourneyOverviewPanel journey={journey} />}
-            actions={
-              isTerminal ? (
-                <Button
-                  fullWidth
-                  size="xs"
-                  color="teal"
-                  leftSection={
-                    <ArrowCounterClockwiseIcon size={14} aria-hidden />
-                  }
-                  onClick={() => setActiveModal("reopen")}
-                >
-                  Reopen
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    fullWidth
-                    size="xs"
-                    leftSection={<ArrowsClockwiseIcon size={14} aria-hidden />}
-                    onClick={() => setActiveModal("stage")}
+      {/* ModalPaper is fixed-height (`calc(100% - header)`) with `overflow: hidden`;
+          override to scroll vertically so a tall profile is fully reachable (the
+          sticky sidebar sticks within this scroll container). */}
+      <ModalPaper withBorder style={{ overflowY: "auto" }}>
+        <Box p="md">
+          <ProfileLayout
+            sidebar={
+              <ProfileSidebar
+                name={destination}
+                avatarLabel={journey.target_country || displayName}
+                subtitle={
+                  <Anchor
+                    size="sm"
+                    component={Link}
+                    href={`/admin/applicants/${journey.applicant.id}`}
                   >
-                    Change stage
-                  </Button>
-                  <Button
-                    fullWidth
-                    size="xs"
-                    variant="default"
-                    color="orange"
-                    leftSection={<PauseCircleIcon size={14} aria-hidden />}
-                    onClick={() => setActiveModal("defer")}
+                    {displayName}
+                  </Anchor>
+                }
+                status={
+                  <Badge
+                    size="sm"
+                    variant="light"
+                    color={STAGE_COLORS[journey.stage]}
                   >
-                    Defer
-                  </Button>
-                  <Button
-                    fullWidth
-                    size="xs"
-                    color="red"
-                    leftSection={<ProhibitIcon size={14} aria-hidden />}
-                    onClick={() => setActiveModal("close")}
-                  >
-                    Close
-                  </Button>
-                </>
-              )
+                    {STAGE_LABELS[journey.stage]}
+                  </Badge>
+                }
+                fields={<JourneyOverviewPanel journey={journey} />}
+                actions={
+                  isTerminal ? (
+                    <Button
+                      fullWidth
+                      size="xs"
+                      color="teal"
+                      leftSection={
+                        <ArrowCounterClockwiseIcon size={14} aria-hidden />
+                      }
+                      onClick={() => setActiveModal("reopen")}
+                    >
+                      Reopen
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        fullWidth
+                        size="xs"
+                        leftSection={
+                          <ArrowsClockwiseIcon size={14} aria-hidden />
+                        }
+                        onClick={() => setActiveModal("stage")}
+                      >
+                        Change stage
+                      </Button>
+                      <Button
+                        fullWidth
+                        size="xs"
+                        variant="default"
+                        color="orange"
+                        leftSection={<PauseCircleIcon size={14} aria-hidden />}
+                        onClick={() => setActiveModal("defer")}
+                      >
+                        Defer
+                      </Button>
+                      <Button
+                        fullWidth
+                        size="xs"
+                        color="red"
+                        leftSection={<ProhibitIcon size={14} aria-hidden />}
+                        onClick={() => setActiveModal("close")}
+                      >
+                        Close
+                      </Button>
+                    </>
+                  )
+                }
+              />
             }
-          />
-        }
-      >
-        <Card withBorder radius="md" padding="md">
-          <ProfileTabs tabs={tabs} defaultValue="files" />
-        </Card>
-      </ProfileLayout>
+          >
+            <Card withBorder radius="md" padding="md">
+              <ProfileTabs tabs={tabs} defaultValue="worklist" />
+            </Card>
+          </ProfileLayout>
+        </Box>
+      </ModalPaper>
 
       <ChangeJourneyStageModal
         journey={journey}

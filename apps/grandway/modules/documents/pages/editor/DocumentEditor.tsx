@@ -90,8 +90,8 @@ function DocumentEditorInner() {
 
 /**
  * The full-screen document editor. Serves both the applicant-workspace route
- * (`/admin/documents/workspace/[applicantId]`) and the standalone-document route
- * (`/admin/documents/standalone/[documentId]`). Admin-only — `RequireDocumentAccess`
+ * (`/documents/workspace/[applicantId]`) and the standalone-document route
+ * (`/documents/standalone/[documentId]`). Admin-only — `RequireDocumentAccess`
  * refuses lead managers and superadmins on reads too (`documents/docs/SECURITY.md`).
  */
 export function DocumentEditor() {

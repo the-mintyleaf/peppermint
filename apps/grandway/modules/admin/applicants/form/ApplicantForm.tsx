@@ -40,8 +40,7 @@ const EMPTY_ADDRESS: AddressSectionValues = {
 };
 
 const INITIAL: ApplicantFormValues = {
-  full_name_np: "",
-  full_name_en: "",
+  full_name: "",
   date_of_birth: null,
   gender: "",
   nationality: "",
@@ -61,8 +60,7 @@ const INITIAL: ApplicantFormValues = {
 /** Only step 1 has a required-field schema — steps 2–4 stay fully optional
  * (`docs/backend/applicants/CONCEPT.md`: "Only name is required"). */
 const identitySchema = z.object({
-  full_name_np: z.string().min(1, "Required").max(255),
-  full_name_en: z.string().max(255),
+  full_name: z.string().min(1, "Required").max(255),
   date_of_birth: z.string().nullable(),
   gender: z.enum(["male", "female", "other", "undisclosed", ""]),
   nationality: z.string().max(255),
@@ -165,8 +163,7 @@ STEP_VALIDATION[3] = familyEmergencySchema;
 
 const STEP_FIELDS: string[][] = [
   [
-    "full_name_np",
-    "full_name_en",
+    "full_name",
     "date_of_birth",
     "gender",
     "nationality",
@@ -233,8 +230,8 @@ function findAddress(
 function toFormValues(record?: ApplicantDetail): ApplicantFormValues {
   if (!record) return INITIAL;
   return {
-    full_name_np: record.full_name_np ?? "",
-    full_name_en: record.full_name_en ?? "",
+    full_name:
+      record.full_name ?? record.full_name_en ?? record.full_name_np ?? "",
     date_of_birth: record.date_of_birth,
     gender: record.gender ?? "",
     nationality: record.nationality ?? "",
@@ -322,8 +319,7 @@ export function toApplicantPayload(
   ].filter((a): a is AddressInput => a !== null);
 
   const payload: ApplicantCreatePayload = {
-    full_name_np: values.full_name_np.trim(),
-    full_name_en: values.full_name_en.trim(),
+    full_name: values.full_name.trim(),
     nationality: values.nationality.trim(),
     email: values.email.trim(),
     contact_numbers: values.contact_numbers.map((c) => ({
@@ -384,18 +380,12 @@ function StepIdentity() {
   const { form } = useFormInstance<ApplicantFormValues>();
   return (
     <Stack gap="md">
-      <Group grow align="flex-start">
-        <TextInput
-          label="Full name (Nepali)"
-          description="Canonical identity — Devanagari"
-          required
-          {...form.getInputProps("full_name_np")}
-        />
-        <TextInput
-          label="Full name (English)"
-          {...form.getInputProps("full_name_en")}
-        />
-      </Group>
+      <TextInput
+        label="Full name"
+        placeholder="Ram Bahadur Shrestha"
+        required
+        {...form.getInputProps("full_name")}
+      />
 
       <Group grow align="flex-start">
         <DateInput

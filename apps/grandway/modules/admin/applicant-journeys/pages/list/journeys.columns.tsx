@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Text } from "@peppermint/ui";
+import { Group, Text } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
 import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
 import { GlobeIcon } from "@phosphor-icons/react/dist/csr/Globe";
@@ -15,6 +15,7 @@ import {
 import type { ApplicantJourney } from "../../applicantJourneys.types";
 import { JourneyRowActionsMenu } from "./components/JourneyRowActionsMenu";
 import { JourneyStageSwitch } from "./components/JourneyStageSwitch";
+import { OpenWorklistButton } from "./components/OpenWorklistButton";
 
 interface JourneysColumnsOptions {
   onViewDetails: (journey: ApplicantJourney) => void;
@@ -104,10 +105,16 @@ export function getJourneysColumns({
       title: "",
       textAlign: "right",
       render: (journey: ApplicantJourney) => (
-        <JourneyRowActionsMenu
-          journey={journey}
-          onViewDetails={onViewDetails}
-        />
+        <Group gap={4} justify="flex-end" wrap="nowrap">
+          {/* Quick worklist access only while the journey is in Profile Building */}
+          {journey.stage === "profile_building" ? (
+            <OpenWorklistButton journey={journey} />
+          ) : null}
+          <JourneyRowActionsMenu
+            journey={journey}
+            onViewDetails={onViewDetails}
+          />
+        </Group>
       ),
     },
   ];

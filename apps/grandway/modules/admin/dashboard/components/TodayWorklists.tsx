@@ -126,8 +126,8 @@ function FileAwaitingVerificationRowView({ row }: { row: FileRow }) {
 
 function DocumentInProgressRowView({ row }: { row: DocumentRow }) {
   const href = row.applicant_id
-    ? `/admin/documents/workspace/${row.applicant_id}`
-    : `/admin/documents/standalone/${row.id}`;
+    ? `/documents/workspace/${row.applicant_id}`
+    : `/documents/standalone/${row.id}`;
   return (
     <Anchor component={Link} href={href} underline="never" c="inherit">
       <Group justify="space-between" wrap="nowrap" gap="xs">

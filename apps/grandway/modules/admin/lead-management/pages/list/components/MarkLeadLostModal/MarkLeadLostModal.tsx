@@ -48,7 +48,7 @@ export function MarkLeadLostModal({
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={`Mark as lost — ${lead.full_name_en || lead.full_name_np}`}
+      title={`Mark as lost — ${lead.full_name || lead.full_name_en || lead.full_name_np}`}
       centered
     >
       <Stack gap="md" p="md">
@@ -66,7 +66,7 @@ export function MarkLeadLostModal({
           placeholder="Why isn't this proceeding?"
           data={reasons.map((r) => ({
             value: r.id,
-            label: r.name_en || r.name_np,
+            label: r.name || r.name_en || r.name_np,
           }))}
           required
           disabled={mutation.isPending}

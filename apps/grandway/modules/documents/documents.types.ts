@@ -203,6 +203,7 @@ export interface CvContent {
    */
   appearance?: {
     headerColor?: string;
+    headerBrightness?: "light-2" | "light-1" | "default" | "dark-1" | "dark-2";
     fontFamily?: "serif" | "sans";
   };
 }

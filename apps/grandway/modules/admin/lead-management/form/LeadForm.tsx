@@ -50,8 +50,7 @@ const INITIAL_STUDY_INTEREST: StudyInterestFormValues = {
 };
 
 const INITIAL: LeadFormValues = {
-  full_name_np: "",
-  full_name_en: "",
+  full_name: "",
   email: "",
   address: "",
   source: "",
@@ -81,8 +80,8 @@ function toFormValues(record?: Partial<LeadBoardRow>): LeadFormValues {
   if (!record) return INITIAL;
   const interest = record.study_interest;
   return {
-    full_name_np: record.full_name_np ?? "",
-    full_name_en: record.full_name_en ?? "",
+    full_name:
+      record.full_name ?? record.full_name_en ?? record.full_name_np ?? "",
     email: record.email ?? "",
     address: record.address ?? "",
     source: record.source?.id ?? "",
@@ -141,8 +140,7 @@ function toLeadPayload(
   hadExistingStudyInterest: boolean,
 ): LeadCreatePayload {
   const payload: LeadCreatePayload = {
-    full_name_np: values.full_name_np.trim(),
-    full_name_en: values.full_name_en.trim(),
+    full_name: values.full_name.trim(),
     email: values.email.trim(),
     address: values.address.trim(),
     source: values.source,
@@ -178,8 +176,7 @@ function toLeadPayload(
 function buildSchema(sources: LeadSource[]) {
   return z
     .object({
-      full_name_np: z.string().min(1, "Required").max(255),
-      full_name_en: z.string().max(255),
+      full_name: z.string().min(1, "Required").max(255),
       email: z
         .string()
         .refine((v) => !v || /^\S+@\S+\.\S+$/.test(v), "Invalid email"),
@@ -310,13 +307,13 @@ function Fields({
   // saving the rest of the edit.
   const sourceOptions = sources.map((s) => ({
     value: s.id,
-    label: s.name_en || s.name_np,
+    label: s.name || s.name_en || s.name_np,
   }));
 
   const trimmedSearch = sourceSearch.trim();
   const filteredSourceOptions = trimmedSearch
     ? sourceOptions.filter((o) =>
-        o.label.toLowerCase().includes(trimmedSearch.toLowerCase()),
+        (o.label ?? "").toLowerCase().includes(trimmedSearch.toLowerCase()),
       )
     : sourceOptions;
   // Only Admins may create a source (`LEADS_ACTOR_FORBIDDEN` for anyone else
@@ -336,20 +333,13 @@ function Fields({
 
   return (
     <>
-      <Group grow align="flex-start">
-        <TextInput
-          label="Full name (Nepali)"
-          description="Canonical identity — Devanagari"
-          required
-          disabled={isLoading}
-          {...form.getInputProps("full_name_np")}
-        />
-        <TextInput
-          label="Full name (English)"
-          disabled={isLoading}
-          {...form.getInputProps("full_name_en")}
-        />
-      </Group>
+      <TextInput
+        label="Full name"
+        placeholder="Ram Bahadur Shrestha"
+        required
+        disabled={isLoading}
+        {...form.getInputProps("full_name")}
+      />
 
       <Group grow align="flex-start">
         <TextInput

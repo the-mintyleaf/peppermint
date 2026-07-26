@@ -165,14 +165,14 @@ export function buildAdminConfig(
         label: "Study catalogue",
         items: [
           {
-            label: "Institutions",
-            href: "/admin/institutions/providers",
-            icon: BuildingsIcon,
-          },
-          {
             label: "Programs",
             href: "/admin/institutions",
             icon: BooksIcon,
+          },
+          {
+            label: "Institutions",
+            href: "/admin/institutions/providers",
+            icon: BuildingsIcon,
           },
         ],
       },

@@ -56,11 +56,11 @@ export function documentEditorHref(row: {
   id: string;
 }): string {
   return row.applicantId
-    ? `/admin/documents/workspace/${row.applicantId}`
-    : `/admin/documents/standalone/${row.id}`;
+    ? `/documents/workspace/${row.applicantId}`
+    : `/documents/standalone/${row.id}`;
 }
 
 /** The applicant-workspace editor route. */
 export function workspaceEditorHref(applicantId: string): string {
-  return `/admin/documents/workspace/${applicantId}`;
+  return `/documents/workspace/${applicantId}`;
 }

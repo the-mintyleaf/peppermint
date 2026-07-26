@@ -91,6 +91,9 @@ export interface UserBrief {
  */
 export interface ApplicantBrief {
   id: string;
+  // Live backend returns a single `full_name`; the bilingual fields remain
+  // optional so reads stay robust across both contract shapes.
+  full_name?: string;
   full_name_np: string;
   full_name_en: string;
   status: string;

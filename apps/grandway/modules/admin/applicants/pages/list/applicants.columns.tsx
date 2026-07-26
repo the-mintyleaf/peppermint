@@ -1,6 +1,6 @@
 "use client";
 
-import { Stack, Text } from "@peppermint/ui";
+import { Group, Stack, Text } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
 import { dateColumn } from "@peppermint/admin";
 import { ArrowsLeftRightIcon } from "@phosphor-icons/react/dist/csr/ArrowsLeftRight";
@@ -12,6 +12,8 @@ import { STATUS_LABELS } from "../../applicants.labels";
 import type { Applicant } from "../../applicants.types";
 import { ApplicantRowActionsMenu } from "./components/ApplicantRowActionsMenu";
 import { ApplicantStatusSwitch } from "./components/ApplicantStatusSwitch";
+import { OpenDocumentButton } from "./components/OpenDocumentButton";
+import { OpenJourneysButton } from "./components/OpenJourneysButton";
 
 interface ApplicantsColumnsOptions {
   onViewDetails: (applicant: Applicant) => void;
@@ -89,10 +91,20 @@ export function getApplicantsColumns({
       title: "",
       textAlign: "right",
       render: (applicant: Applicant) => (
-        <ApplicantRowActionsMenu
-          applicant={applicant}
-          onViewDetails={onViewDetails}
-        />
+        <Group gap={4} justify="flex-end" wrap="nowrap">
+          {/*
+            OpenDocumentButton self-gates to admins: documents answer non-admins with
+            404 (not 403), so the affordance itself must not render for them — showing
+            it would leak that documents may exist and fire a request that can only
+            fail (documents/docs/SECURITY.md).
+          */}
+          <OpenJourneysButton applicant={applicant} />
+          <OpenDocumentButton applicant={applicant} />
+          <ApplicantRowActionsMenu
+            applicant={applicant}
+            onViewDetails={onViewDetails}
+          />
+        </Group>
       ),
     },
   ];

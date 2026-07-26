@@ -1,3 +1,5 @@
+"use client";
+
 import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";

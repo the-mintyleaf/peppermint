@@ -116,6 +116,9 @@ export interface EmergencyContact {
 /** `GET /applicants/` row shape — trimmed relative to detail (no nested collections). */
 export interface Applicant {
   id: string;
+  // Live backend returns a single `full_name`; the bilingual fields remain
+  // optional so reads stay robust across both contract shapes.
+  full_name?: string;
   full_name_np: string;
   full_name_en: string;
   full_name_romanized: string;
@@ -218,8 +221,7 @@ export interface EmergencyContactInput {
  * through the dedicated status-change action.
  */
 export interface ApplicantCreatePayload {
-  full_name_np: string;
-  full_name_en?: string;
+  full_name: string;
   /** `null` explicitly clears the field — `undefined`/omitted leaves it untouched (PATCH semantics). */
   date_of_birth?: string | null;
   /** `""` explicitly clears to blank/undisclosed — matches the model's own blank-when-unknown state. */

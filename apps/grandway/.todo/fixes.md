@@ -1,0 +1,2 @@
+- In catalogue, Institution should be above program.
+- Applicant name not being shown in the column of applicants or applicant journey

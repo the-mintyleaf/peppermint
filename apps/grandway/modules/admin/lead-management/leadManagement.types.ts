@@ -78,6 +78,9 @@ export interface UserBrief {
 export interface ReferenceEntry {
   id: string;
   code: string;
+  // Live backend returns a single `name`; the bilingual fields remain optional
+  // so reads stay robust across both contract shapes.
+  name?: string;
   name_np: string;
   name_en: string;
   name_romanized: string;
@@ -114,6 +117,9 @@ export interface StudyInterest {
 /** `GET /leads/` row shape — trimmed relative to detail (no `study_interest`/lifecycle fields). */
 export interface Lead {
   id: string;
+  // Live backend returns a single `full_name`; the bilingual fields remain
+  // optional so reads stay robust across both contract shapes.
+  full_name?: string;
   full_name_np: string;
   full_name_en: string;
   full_name_romanized: string;
@@ -237,8 +243,7 @@ export interface StudyInterestInput {
 
 /** `stage` is deliberately absent — not writable via create/update (INTEGRATION.md §7). */
 export interface LeadCreatePayload {
-  full_name_np: string;
-  full_name_en?: string;
+  full_name: string;
   email?: string;
   address?: string;
   source: string;

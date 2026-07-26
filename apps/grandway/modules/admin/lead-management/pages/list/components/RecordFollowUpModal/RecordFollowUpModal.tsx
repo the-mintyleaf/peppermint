@@ -49,7 +49,7 @@ export function RecordFollowUpModal({
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={`Record follow-up — ${lead.full_name_en || lead.full_name_np}`}
+      title={`Record follow-up — ${lead.full_name || lead.full_name_en || lead.full_name_np}`}
       centered
     >
       <Stack gap="md" p="md">

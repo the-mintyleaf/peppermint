@@ -10,7 +10,11 @@ import type { ApplicantJourney } from "@/modules/admin/applicant-journeys/applic
 import type { OfferCreateValues } from "../OfferCreateForm.types";
 
 function journeyLabel(journey: ApplicantJourney): string {
-  const name = journey.applicant.full_name_en || journey.applicant.full_name_np;
+  const name =
+    journey.applicant.full_name ||
+    journey.applicant.full_name_en ||
+    journey.applicant.full_name_np ||
+    "Unnamed applicant";
   const target =
     journey.target_institution_name ||
     journey.target_program_name ||
@@ -57,8 +61,8 @@ export function JourneyPickerField({ isLoading }: { isLoading: boolean }) {
   return (
     <Stack gap={4}>
       <Select
-        label="Journey"
-        description="Which study objective is this offer for? Not changeable later."
+        label="Select applicant"
+        description="Which applicant journey is this offer for? Not changeable later."
         placeholder="Search by applicant or destination"
         required
         searchable

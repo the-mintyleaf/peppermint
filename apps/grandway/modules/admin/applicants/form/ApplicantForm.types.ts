@@ -41,8 +41,7 @@ export interface EmergencyContactFormRow {
  */
 export interface ApplicantFormValues extends Record<string, unknown> {
   // Step 1 — Identity & Contact
-  full_name_np: string;
-  full_name_en: string;
+  full_name: string;
   date_of_birth: string | null;
   gender: Gender | "";
   nationality: string;

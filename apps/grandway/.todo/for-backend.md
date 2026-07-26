@@ -1,0 +1,1 @@
+- Nepali is compulsory, English is not

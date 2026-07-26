@@ -40,7 +40,7 @@ export function ReferenceEntryCard({
         <Stack gap={4}>
           <Group gap="xs" wrap="wrap">
             <Text fw={600} size="sm">
-              {entry.name_np}
+              {entry.name || entry.name_np || entry.name_en}
             </Text>
             {entry.name_en ? (
               <Text size="sm" c="dimmed">
@@ -72,7 +72,7 @@ export function ReferenceEntryCard({
             <ActionIcon
               variant="subtle"
               size="sm"
-              aria-label={`Edit ${entry.name_np}`}
+              aria-label={`Edit ${entry.name || entry.name_np}`}
               onClick={onEdit}
               disabled={activeToggleDisabled}
             >
@@ -85,7 +85,7 @@ export function ReferenceEntryCard({
                 variant="subtle"
                 color="red"
                 size="sm"
-                aria-label={`Retire ${entry.name_np}`}
+                aria-label={`Retire ${entry.name || entry.name_np}`}
                 onClick={handleRetire}
                 loading={isSettingActive}
                 disabled={activeToggleDisabled}
@@ -98,7 +98,7 @@ export function ReferenceEntryCard({
               <ActionIcon
                 variant="subtle"
                 size="sm"
-                aria-label={`Reactivate ${entry.name_np}`}
+                aria-label={`Reactivate ${entry.name || entry.name_np}`}
                 onClick={() => onSetActive(true)}
                 loading={isSettingActive}
                 disabled={activeToggleDisabled}

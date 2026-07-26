@@ -42,7 +42,9 @@ export function ChangeApplicantStatusModal({
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={`Change status — ${applicant.full_name_en || applicant.full_name_np}`}
+      title={`Change status — ${
+        applicant.full_name || applicant.full_name_en || applicant.full_name_np
+      }`}
       centered
     >
       <Stack gap="md" p="md">

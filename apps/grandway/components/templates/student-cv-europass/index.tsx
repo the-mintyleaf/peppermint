@@ -7,6 +7,7 @@ import {
   DEFAULT_EUROPASS_APPEARANCE,
   fontStackFor,
   readableTextColor,
+  resolveHeaderColor,
 } from "./appearance";
 import styles from "./template.module.css";
 
@@ -72,8 +73,10 @@ export function TemplateStudentCVEuropass({
     ...(d.appearance ?? {}),
   };
   const font = fontStackFor(appearance.fontFamily);
-  const headerBg =
-    appearance.headerColor || DEFAULT_EUROPASS_APPEARANCE.headerColor;
+  const headerBg = resolveHeaderColor(
+    appearance.headerColor,
+    appearance.headerBrightness,
+  );
   const headerText = readableTextColor(headerBg);
 
   const name = String(d.full_name || "").trim();

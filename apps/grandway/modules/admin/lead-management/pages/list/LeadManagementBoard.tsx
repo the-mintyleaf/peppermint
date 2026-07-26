@@ -152,7 +152,7 @@ function LeadManagementBoardContent() {
             <TextInput
               size="xs"
               placeholder="e.g. 2081/82"
-              description="Nepali fiscal year"
+              aria-label="Nepali fiscal year"
               value={fiscalYearInput}
               onChange={(e) => setFiscalYearInput(e.currentTarget.value)}
               onBlur={applyFiscalYear}

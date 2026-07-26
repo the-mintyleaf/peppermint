@@ -6,13 +6,23 @@
 
 export type EuropassFontFamily = "serif" | "sans";
 
+/** Brightness step applied to the chosen header color, lightest → darkest. */
+export type EuropassBrightness =
+  | "light-2"
+  | "light-1"
+  | "default"
+  | "dark-1"
+  | "dark-2";
+
 export interface EuropassAppearance {
   headerColor: string;
+  headerBrightness: EuropassBrightness;
   fontFamily: EuropassFontFamily;
 }
 
 export const DEFAULT_EUROPASS_APPEARANCE: EuropassAppearance = {
   headerColor: "#f3f3f3",
+  headerBrightness: "default",
   fontFamily: "sans",
 };
 
@@ -25,6 +35,48 @@ export const EUROPASS_HEADER_SWATCHES: Array<{ label: string; value: string }> =
     { label: "Maroon", value: "#7f1d1d" },
     { label: "Slate", value: "#334155" },
   ];
+
+/**
+ * Brightness steps offered per header color. `mix` blends the base color toward white
+ * (positive) or black (negative) by that fraction; `default` (0) is the base color itself.
+ */
+export const EUROPASS_BRIGHTNESS_LEVELS: Array<{
+  value: EuropassBrightness;
+  label: string;
+  mix: number;
+}> = [
+  { value: "light-2", label: "Light 2", mix: 0.4 },
+  { value: "light-1", label: "Light 1", mix: 0.2 },
+  { value: "default", label: "Default", mix: 0 },
+  { value: "dark-1", label: "Dark 1", mix: -0.2 },
+  { value: "dark-2", label: "Dark 2", mix: -0.4 },
+];
+
+/**
+ * Blends `hex` toward white (mix > 0) or black (mix < 0) by |mix|. Returns the input
+ * unchanged when it can't be parsed, so an unexpected value never breaks rendering.
+ */
+export function shadeHex(hex: string, mix: number): string {
+  const rgb = parseHex(hex);
+  if (!rgb) return hex;
+  const target = mix >= 0 ? 255 : 0;
+  const t = Math.min(1, Math.abs(mix));
+  const channel = (c: number) =>
+    Math.round(c + (target - c) * t)
+      .toString(16)
+      .padStart(2, "0");
+  return `#${channel(rgb.r)}${channel(rgb.g)}${channel(rgb.b)}`;
+}
+
+/** Resolves the displayed header background from a base color + brightness step. */
+export function resolveHeaderColor(
+  headerColor: string | undefined,
+  brightness: EuropassBrightness | undefined,
+): string {
+  const base = headerColor || DEFAULT_EUROPASS_APPEARANCE.headerColor;
+  const level = EUROPASS_BRIGHTNESS_LEVELS.find((l) => l.value === brightness);
+  return shadeHex(base, level?.mix ?? 0);
+}
 
 const SERIF_STACK = "'Times New Roman', Georgia, serif";
 const SANS_STACK = "Arial, Helvetica, 'Segoe UI', sans-serif";

@@ -10,42 +10,36 @@ Branch: `dev/grandway-document-stack` (stay on it). App: `apps/grandway`.
 - [x] Verify DTO shapes against §4 Models (ignore stale "Send" duplicate names)
 - [x] Commit Phase 0
 
-## Phase 1 — Clients + Institutions (parallel module-builders)
+## Phase 1 — Clients + Institutions — DONE (commits 308ecd7, 5179a65)
 
-### Clients (ContainedModule)
+- [x] Clients ContainedModule (list/CRUD/retire/restore/history/detail drawer)
+- [x] Institutions sub-nav group (programs + providers + reference-data modal)
+- [x] Availability-note rule enforced client-side
+- [x] Routes + nav + CLIENTS*/INSTITUTIONS* error copy wired; check-types + lint clean
+- [x] Dual adversarial review (Codex + Opus); fixes applied + committed
 
-- [ ] `clients.{api,queryKeys,types,hooks}.ts` + `index.ts`
-- [ ] `form/ClientForm.tsx` (+ contact-numbers repeater, logo_url URL field)
-- [ ] `pages/list/ClientDirectory.tsx` + `clients.columns.tsx`
-- [ ] `components/`: RowActionsMenu, DetailDrawer (+history), RetireClientModal, restore
-- [ ] Route `app/admin/clients/page.tsx`
+### Known limitations (accepted, bounded scale — follow-ups if catalogue grows)
 
-### Institutions (sub-nav group)
+- Option pickers (country/institution/field/campus) fetch page 1 only (page_size 100); >100 institutions unreachable in the program-form Select + column filters. Add server-search/pagination if a catalogue exceeds this.
+- Program "Offerable only" switch is silently overridden when the Availability column filter is set (backend precedence).
+- CountryCard/FieldCard rely on the reference modal being admin-only (not internally re-gated like CampusCard).
 
-- [ ] Shared `institutions.{api,queryKeys,types,hooks}.ts` (5 resources) + `index.ts`
-- [ ] `programs/` primary list+filters + rich ProgramForm + detail drawer → `/admin/institutions`
-- [ ] `providers/` institution list + campuses-on-detail (nested endpoint) → `/admin/institutions/providers`
-- [ ] `reference-data/` Countries+Fields tabbed modal (ReferenceEntryPanel trio)
-- [ ] Availability-note rule enforced client-side
-- [ ] Routes `app/admin/institutions/{page,providers/page}.tsx`
+## Phase 2 — Offers (MultiPageModule) — DONE (commits 3a265c9, aa7430b)
 
-- [ ] Orchestrator: nav wiring + barrels
-- [ ] Commit Phase 1 + dual adversarial review + fixes
+- [x] Data layer (offers + conditions + issue/decision/history actions)
+- [x] OffersWorklist + columns (overdue + open-conditions badges)
+- [x] OfferDetail `/admin/offers/[id]` (summary, conditions, actions, history)
+- [x] OfferCreateForm (journey + program/manual reference + money + conditions) + OfferEditForm (changed-fields-only)
+- [x] Action modals: Issue, RecordDecision, ConditionStatus, AddCondition, EditCondition
+- [x] Routes + nav + OFFERS\_ error copy; check-types + lint clean
+- [x] Dual adversarial review (Codex clean; Opus minor); fixes applied + committed
 
-## Phase 2 — Offers (MultiPageModule)
+## Phase 3 — Wiring, docs, verification — DONE (commit b84a9bb)
 
-- [ ] `offers.{api,queryKeys,types,hooks}.ts` (offers + conditions + actions)
-- [ ] `pages/list/OffersWorklist.tsx` + `offers.columns.tsx`
-- [ ] `pages/detail/OfferDetail.tsx` → `/admin/offers/[id]`
-- [ ] `form/OfferForm.tsx` (journey picker + program picker + manual fallback + conditions)
-- [ ] Action modals: IssueOfferModal, RecordDecisionModal, condition status
-- [ ] Routes `app/admin/offers/{page,[id]/page}.tsx`
-- [ ] Commit Phase 2 + dual adversarial review + fixes
+- [x] Nav entries in `config/nav/admin-nav.ts` (Catalogue group + Offers + Clients + gating flags)
+- [x] `docs/AI.md` per module + app-level map registered (`/update-ai-map`)
+- [x] `pnpm check-types` + `pnpm lint` clean (0 errors; 3 pre-existing warnings, none in new code)
+- [ ] `/design-check` + `/visual-review` on the 3 routes — DEFERRED: needs the app running against the live backend (not available in this headless session). Recommend the user run these.
 
-## Phase 3 — Wiring, docs, verification
-
-- [ ] Nav entries in `config/nav/admin-nav.ts` (3 entries + gating)
-- [ ] `docs/AI.md` per module + `/update-ai-map`
-- [ ] `pnpm format && pnpm check-types && pnpm lint`
-- [ ] `/design-check` + `/visual-review` on 3 routes
-- [ ] Delete this file when complete
+Commits: Phase 0 `bbf524e` · Phase 1 `308ecd7`,`5179a65` · Phase 2 `3a265c9`,`aa7430b` · Phase 3 `b84a9bb`.
+Keep this file until the visual audits are run; then delete.

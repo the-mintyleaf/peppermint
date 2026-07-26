@@ -28,8 +28,7 @@ export interface StudyInterestFormValues {
  * object`; see the anti-pattern gate's own `*Values`-suffix exemption.
  */
 export interface LeadFormValues extends Record<string, unknown> {
-  full_name_np: string;
-  full_name_en: string;
+  full_name: string;
   email: string;
   address: string;
   source: string;

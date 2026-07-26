@@ -3,6 +3,7 @@
 import {
   Button,
   Center,
+  Divider,
   Drawer,
   Loader,
   Stack,
@@ -63,19 +64,16 @@ export function LeadDetailDrawer({
   const notFound =
     isError && getApiError(error).code === "LEADS_LEAD_NOT_FOUND";
 
-  // The Drawer's `title` is the dialog's accessible name — it must identify the
-  // record, not read "Lead profile" for every lead (a screen reader would
-  // otherwise announce every drawer identically). The big in-body heading is
-  // the visual anchor; this keeps the two in sync per record.
-  const accessibleName = lead ? leadDisplayName(lead) : "Lead";
-
+  // The header names the surface ("Lead Profile"), not the record — the lead's
+  // own name is the big in-body heading below, so the drawer identifies who it's
+  // about without duplicating the name in the chrome.
   return (
     <Drawer
       opened={opened}
       onClose={onClose}
       position="right"
       size="xl"
-      title={accessibleName}
+      title={<Title order={4}>Lead Profile</Title>}
     >
       {isLoading ? (
         <Center h={200}>
@@ -100,10 +98,20 @@ export function LeadDetailDrawer({
 
           <LeadOverviewPanel lead={lead} />
 
+          <Divider />
+
           <Tabs defaultValue="notes">
             <Tabs.List>
-              <Tabs.Tab value="notes">Notes</Tabs.Tab>
-              <Tabs.Tab value="history">History</Tabs.Tab>
+              <Tabs.Tab value="notes">
+                <Text size="xs" fw={600}>
+                  Notes
+                </Text>
+              </Tabs.Tab>
+              <Tabs.Tab value="history">
+                <Text size="xs" fw={600}>
+                  History
+                </Text>
+              </Tabs.Tab>
             </Tabs.List>
 
             <Tabs.Panel value="notes" pt="md">

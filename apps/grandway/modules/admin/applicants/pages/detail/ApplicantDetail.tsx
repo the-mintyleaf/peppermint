@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Badge,
+  Box,
   Button,
   Card,
   Center,
@@ -203,56 +204,65 @@ function ApplicantDetailContent() {
         ]}
       />
 
-      <ProfileLayout
-        sidebar={
-          <ProfileSidebar
-            name={displayName}
-            subtitle={
-              applicant.full_name_romanized &&
-              applicant.full_name_romanized !== displayName
-                ? applicant.full_name_romanized
-                : undefined
+      {/* ModalPaper is fixed-height (`calc(100% - header)`) with `overflow: hidden`;
+          override to scroll vertically so a tall profile is fully reachable (the
+          sticky sidebar sticks within this scroll container). */}
+      <ModalPaper withBorder style={{ overflowY: "auto" }}>
+        <Box p="md">
+          <ProfileLayout
+            sidebar={
+              <ProfileSidebar
+                name={displayName}
+                subtitle={
+                  applicant.full_name_romanized &&
+                  applicant.full_name_romanized !== displayName
+                    ? applicant.full_name_romanized
+                    : undefined
+                }
+                status={
+                  <Badge
+                    size="sm"
+                    variant="light"
+                    color={STATUS_COLORS[applicant.status]}
+                  >
+                    {STATUS_LABELS[applicant.status]}
+                  </Badge>
+                }
+                fields={<ApplicantOverviewPanel applicant={applicant} />}
+                actions={
+                  <>
+                    <Button
+                      fullWidth
+                      size="xs"
+                      leftSection={<PencilSimpleIcon size={14} aria-hidden />}
+                      onClick={() =>
+                        router.push(`/admin/applicants/${applicant.id}/edit`)
+                      }
+                    >
+                      Edit applicant
+                    </Button>
+                    <Button
+                      fullWidth
+                      size="xs"
+                      variant="default"
+                      leftSection={
+                        <ArrowsClockwiseIcon size={14} aria-hidden />
+                      }
+                      onClick={() => setStatusModalOpen(true)}
+                    >
+                      Change status
+                    </Button>
+                  </>
+                }
+              />
             }
-            status={
-              <Badge
-                size="sm"
-                variant="light"
-                color={STATUS_COLORS[applicant.status]}
-              >
-                {STATUS_LABELS[applicant.status]}
-              </Badge>
-            }
-            fields={<ApplicantOverviewPanel applicant={applicant} />}
-            actions={
-              <>
-                <Button
-                  fullWidth
-                  size="xs"
-                  leftSection={<PencilSimpleIcon size={14} aria-hidden />}
-                  onClick={() =>
-                    router.push(`/admin/applicants/${applicant.id}/edit`)
-                  }
-                >
-                  Edit applicant
-                </Button>
-                <Button
-                  fullWidth
-                  size="xs"
-                  variant="default"
-                  leftSection={<ArrowsClockwiseIcon size={14} aria-hidden />}
-                  onClick={() => setStatusModalOpen(true)}
-                >
-                  Change status
-                </Button>
-              </>
-            }
-          />
-        }
-      >
-        <Card withBorder radius="md" padding="md">
-          <ProfileTabs tabs={tabs} defaultValue="passport-family" />
-        </Card>
-      </ProfileLayout>
+          >
+            <Card withBorder radius="md" padding="md">
+              <ProfileTabs tabs={tabs} defaultValue="passport-family" />
+            </Card>
+          </ProfileLayout>
+        </Box>
+      </ModalPaper>
 
       <ChangeApplicantStatusModal
         applicant={applicant}

@@ -71,12 +71,14 @@ apps/grandway/
 │       ├── clients/page.tsx                             # → ModuleClients
 │       ├── files/{[id],review}/page.tsx                 # → ModuleFileDetail, ModuleFileReviewQueue (Admin-only)
 │       ├── checklists/{page,[id],templates/{page,[id]},awaiting-setup}.tsx  # → ModuleChecklist{Worklist,Detail,TemplatesList,TemplateDetail,AwaitingSetupList}
+│       ├── documents/{page,all}.tsx                      # → Documents worklists (Admin-only). NOTE: the editor is NOT here — see app/documents/ below
 │       └── notifications/page.tsx                       # → ModuleNotificationCentre
 │       (no /admin/dashboard route — the dashboard IS /admin, via ModuleAdminHome)
-├── layouts/{app,admin}/     # LayoutApp (html/theme), LayoutAdmin (shell + authority nav)
+├── documents/{workspace/[applicantId],standalone/[documentId]}/page.tsx  # → DocumentEditor — full-screen, DELIBERATELY OUTSIDE app/admin (no AdminShell/sidenav); uses LayoutDocuments
+├── layouts/{app,admin,documents}/  # LayoutApp (html/theme), LayoutAdmin (shell + authority nav), LayoutDocuments (chrome-less editor shell — no sidenav)
 ├── lib/                     # api.ts, authTokens.ts, deviceId.ts, authErrorMessages.ts
 ├── config/{theme,nav}/      # Mantine theme + admin nav (authority-gated)
-├── components/              # RequireAuth, RequireStaff, RequireLeadAccess, QueryErrorState, StatusSwitchButton, InlineStageSwitch (shared inline stage/status cell switch), FormSection (divider+heading form-section wrapper)
+├── components/              # RequireAuth, RequireStaff, RequireLeadAccess, QueryErrorState, StatusSwitchButton, InlineStageSwitch (shared inline stage/status cell switch), FormSection (divider+heading form-section wrapper), profile/ (shared profile design language: ProfileLayout 2-col sticky, ProfileSidebar, ProfileField, ProfileSection, ProfileCard, ProfileTabs pills, HistoryTimeline)
 └── modules/
     ├── sign-in/             # branded layout (SignIn.tsx) + components/SignInPanel (credentials/MFA form)
     ├── password-change/     # forced first-login change (FormWrapper), Paper withBorder card
@@ -103,21 +105,21 @@ apps/grandway/
         │           ├── LeadRowActionsMenu/   # View / Edit / Record follow-up only
         │           ├── LeadStageSwitch/      # inline Stage-column switch: plain moves inline-confirm; Mark lost / Convert (Admin) / Reopen open the modals below
         │           ├── RecordFollowUpModal/, MarkLeadLostModal/, ReopenLeadModal/, ConvertLeadModal/
-        │           └── LeadDetailDrawer/     # Overview (incl. converted-applicant link) / Notes / History tabs
+        │           └── LeadDetailDrawer/     # big heading + inline LeadStageSwitch; always-on grouped-card Overview (Contact/Source/Follow-up/Study interest/Lifecycle incl. converted-applicant link) above Notes / History tabs. components/: DetailCard, DetailField
         ├── applicants/       # MultiPageModule — identity/contact/passport/family CRUD
         │   ├── applicants.{types,api,queryKeys,hooks}.ts
         │   ├── form/                     # shared create+edit multi-step form (ApplicantForm + 5 field components)
         │   └── pages/
-        │       ├── list/                 # DataTableShell; inline ApplicantStatusSwitch in Status column (row menu: View/Edit). Detail header keeps ChangeApplicantStatusModal
+        │       ├── list/                 # DataTableShell; inline ApplicantStatusSwitch in Status column; row actions: OpenDocumentButton (admin-only, open/create doc workspace) + menu (View/Edit). Detail header keeps ChangeApplicantStatusModal
         │       ├── new/, edit/           # FormShell-wrapped ApplicantForm
-        │       └── detail/               # Overview / Passport & Family / Journeys / History tabs
-        │           └── components/ApplicantJourneysPanel.tsx  # cross-module: embeds applicant-journeys
+        │       └── detail/               # 2-col ProfileLayout: sticky Overview sidebar (identity + key facts + Edit/Change-status) | pills tabs Passport & Family / Journeys / Documents / Files / Alerts / History
+        │           └── components/ApplicantJourneysPanel.tsx  # cross-module: embeds applicant-journeys (ProfileSection + searchable journey cards)
         ├── applicant-journeys/  # MultiPageModule — study-objective lifecycle
         │   ├── applicantJourneys.{types,api,queryKeys,hooks,labels}.ts
         │   ├── form/JourneyForm.tsx      # shared create+edit modal form (applicantId prop for embedded use)
         │   └── pages/
         │       ├── list/                 # ModalTableShell worklist; inline JourneyStageSwitch in Stage column (Defer/Close/Reopen open the list's lifecycle dialogs); row menu View/Edit. ChangeJourneyStageModal here is used by the detail page
-        │       └── detail/               # Journey Detail — Overview / History, inline lifecycle actions (own ChangeJourneyStageModal/Defer/Close/Reopen)
+        │       └── detail/               # Journey Detail — 2-col ProfileLayout: sticky Overview sidebar (destination + objective facts + Change-stage/Defer/Close/Reopen) | pills tabs Files / History
         ├── institutions/     # study-opportunity catalogue — 5 resources (fields/countries/institutions/campuses/programs)
         │   ├── institutions.{types,constants,api,queryKeys,hooks}.ts   # one createResourceApi/createQueryKeys per resource
         │   ├── programs/     # ModuleInstitutionPrograms — /admin/institutions (search + rich form + detail drawer)
@@ -245,7 +247,13 @@ apps/grandway/
   Journeys tab) embeds the applicant-journeys module: a card list filtered by
   `applicant`, a "New journey" modal (`JourneyForm` with `applicantId` preset, hiding the
   picker), and a "View in worklist" link to `/admin/applicant-journeys?applicant=<id>`
-  (read via `useSearchParams`/`forceFilters`, same convention as Audit's `actor_id`).
+  (read via `useSearchParams`/`forceFilters`, same convention as Audit's `actor_id`). The
+  **Applicants list** embeds the same module a second way: a row-action
+  `OpenJourneysButton` (`pages/list/components/`, the journeys analog of
+  `OpenDocumentButton`) that fetch-checks the applicant's journeys via
+  `queryClient.fetchQuery(journeyQueryKeys.list({ filters: { applicant } }))` and either
+  opens the worklist deep-linked to that applicant or, when they have none, opens the
+  `JourneyForm` create modal with the applicant preset.
   `JourneyForm`'s standalone-create applicant picker uses `applicants`' own
   `useApplicantList`/`useApplicantDetail` hooks. **Both cross-imports go through the other
   module's concrete files (`applicants.hooks.ts` / `applicantJourneys.hooks.ts`,
@@ -279,6 +287,26 @@ apps/grandway/
   Applicant Detail (Alerts tab), Offer Detail (Alerts tab), and Checklist Detail (appended
   below the item list — that screen has no tab strip). It shows only alerts addressed to
   the calling user ("Your alerts for this record"), never a full cross-user history.
+- **Applicant Journeys → Checklists (per-journey "worklist").** In the journey UI the backend
+  `checklist` is surfaced as the journey's **worklist** (journey-facing copy — its items are
+  the checklist that comes from it; the underlying entity/endpoints are unchanged). The
+  journey detail page's first/default tab is **"Worklist"** → `JourneyChecklistPanel`
+  (`applicant-journeys/pages/detail/components/`), which reads the journey's checklist via
+  checklists' `useChecklistsList({ journey })` → `useChecklistDetail(row.id)` and **reuses**
+  `ChecklistItemsList` + `AddChecklistItemModal` (deep imports of
+  `checklists/pages/detail/components/…`) so ticking flows through the same `ItemStatusModal`
+  — never a second implementation. Shared list params live in `applicantJourneys.checklist.ts`
+  so the panel and the stage side effect share a cache key. Creation goes through
+  `useCreateJourneyWorklist` (`applicantJourneys.hooks.ts`) — a thin `useAppMutation` wrapper
+  over checklists' raw `createChecklist` that swaps in journey copy ("Worklist created for
+  this journey.") instead of checklists' own "Checklist created." Side effect:
+  `useChangeJourneyStage`, on a transition to `profile_building`, ensures the journey has an
+  **active** worklist — fetches by journey with `status: "active"` (archived rows must count
+  as none) and, if there are none, creates one via `useCreateJourneyWorklist`
+  (`{ journey, title: "Profile Building" }`) so a real failure surfaces its own toast and
+  never gets swallowed. In practice this only fires for journeys with no country (a country
+  already auto-creates it, so no duplicate). All cross-imports use checklists' concrete files,
+  never its barrel (no cycle: those files don't import journeys).
 - **Checklists → Uploaded Files (evidence).** `ChecklistDetail`'s `EvidencePickerModal`
   calls uploaded-files' `useFilesList({ applicant: checklist.applicant.id })` (concrete
   import) to scope the evidence picker to the checklist's own applicant, matching the

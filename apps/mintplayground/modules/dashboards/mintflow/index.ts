@@ -1,1 +1,0 @@
-export { ModuleMintflow } from "./Mintflow";

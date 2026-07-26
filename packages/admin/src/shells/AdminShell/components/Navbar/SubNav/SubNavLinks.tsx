@@ -10,6 +10,7 @@ import {
   UnstyledButton,
 } from "@peppermint/ui";
 import type { AdminShellNavGroup } from "../../../AdminShell.types";
+import { resolveActiveHref } from "../../../nav.utils";
 import styles from "./SubNavLinks.module.css";
 
 interface SubNavLinksProps {
@@ -24,6 +25,10 @@ export function SubNavLinks({
   linkComponent,
 }: SubNavLinksProps) {
   const LinkEl = linkComponent ?? "a";
+  const activeHref = resolveActiveHref(
+    pathname,
+    groups.flatMap((group) => group.items.map((item) => item.href)),
+  );
   return (
     <>
       {groups.map((group) => (
@@ -51,8 +56,7 @@ export function SubNavLinks({
           )}
 
           {group.items.map((item) => {
-            const isActive =
-              pathname === item.href || pathname.startsWith(item.href + "/");
+            const isActive = item.href === activeHref;
             const Icon = item.icon;
 
             return (

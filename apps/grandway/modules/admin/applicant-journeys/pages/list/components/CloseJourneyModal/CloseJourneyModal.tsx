@@ -51,7 +51,7 @@ export function CloseJourneyModal({
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={`Close — ${journey.applicant.full_name_en || journey.applicant.full_name_np}`}
+      title={`Close — ${journey.applicant.full_name || journey.applicant.full_name_en || journey.applicant.full_name_np}`}
       centered
     >
       <Stack gap="md" p="md">
