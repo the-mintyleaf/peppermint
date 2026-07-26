@@ -5,6 +5,7 @@ import {
   Avatar,
   Button,
   Center,
+  Divider,
   Group,
   Loader,
   Paper,
@@ -119,30 +120,28 @@ function NoteComposer({ leadId }: { leadId: string }) {
   );
 }
 
-/** One appended note — a contained card, author and time in a quiet header. */
-function NoteCard({ note }: { note: LeadNote }) {
+/** One appended note — a plain row (the list separates rows with dividers, not borders). */
+function NoteRow({ note }: { note: LeadNote }) {
   const author = note.author.display_name || note.author.username;
   return (
-    <Paper withBorder radius="md" p="md">
-      <Stack gap="xs">
-        <Group justify="space-between" wrap="nowrap" gap="xs">
-          <Group gap="xs" wrap="nowrap">
-            <Avatar size="sm" radius="xl" color="blue">
-              {initials(author)}
-            </Avatar>
-            <Text size="sm" fw={600}>
-              {author}
-            </Text>
-          </Group>
-          <Text size="xs" c="dimmed">
-            {dayjs(note.created_at).format("MMM D, YYYY h:mm A")}
+    <Stack gap="xs">
+      <Group justify="space-between" wrap="nowrap" gap="xs">
+        <Group gap="xs" wrap="nowrap">
+          <Avatar size="sm" radius="xl" color="blue">
+            {initials(author)}
+          </Avatar>
+          <Text size="sm" fw={600}>
+            {author}
           </Text>
         </Group>
-        <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
-          {note.body}
+        <Text size="xs" c="dimmed">
+          {dayjs(note.created_at).format("MMM D, YYYY h:mm A")}
         </Text>
-      </Stack>
-    </Paper>
+      </Group>
+      <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
+        {note.body}
+      </Text>
+    </Stack>
   );
 }
 
@@ -169,14 +168,20 @@ export function LeadNotesPanel({ leadId }: { leadId: string }) {
           </Text>
         </Stack>
       ) : (
-        <Stack gap="sm">
-          {notes.map((note) => (
-            <NoteCard key={note.id} note={note} />
+        <Stack gap={0}>
+          {notes.map((note, i) => (
+            <Stack key={note.id} gap={0}>
+              {i > 0 ? <Divider my="sm" /> : null}
+              <NoteRow note={note} />
+            </Stack>
           ))}
           {truncated ? (
-            <Text size="xs" c="dimmed" ta="center">
-              Showing the {notes.length} most recent notes.
-            </Text>
+            <>
+              <Divider my="sm" />
+              <Text size="xs" c="dimmed" ta="center">
+                Showing the {notes.length} most recent notes.
+              </Text>
+            </>
           ) : null}
         </Stack>
       )}

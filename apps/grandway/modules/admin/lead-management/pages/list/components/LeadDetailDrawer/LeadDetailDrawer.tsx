@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Box,
   Button,
   Center,
   Drawer,
@@ -12,10 +11,8 @@ import {
   Title,
 } from "@peppermint/ui";
 import { getApiError } from "@/lib/authErrorMessages";
-import { categorizeLead } from "../../../../leadCategory.utils";
 import { useLeadDetail } from "../../../../leadManagement.hooks";
 import type { LeadDetail } from "../../../../leadManagement.types";
-import { LeadStageSwitch } from "../LeadStageSwitch";
 import { LeadHistoryPanel } from "./LeadHistoryPanel";
 import { LeadNotesPanel } from "./LeadNotesPanel";
 import { LeadOverviewPanel } from "./LeadOverviewPanel";
@@ -25,28 +22,20 @@ function leadDisplayName(lead: LeadDetail): string {
   return lead.full_name || lead.full_name_en || lead.full_name_np;
 }
 
-/** Big heading + the interactive stage switch — the profile's anchor and its one primary lever. */
+/** Big heading — the profile's anchor. Stage lives in the property list below (as its switch). */
 function LeadProfileHeader({ lead }: { lead: LeadDetail }) {
   const displayName = leadDisplayName(lead);
   const romanized = lead.full_name_romanized;
   const showRomanized = romanized && romanized !== displayName;
 
   return (
-    <Stack gap="sm">
-      <Stack gap={2}>
-        <Title order={2}>{displayName}</Title>
-        {showRomanized ? (
-          <Text size="sm" c="dimmed">
-            {romanized}
-          </Text>
-        ) : null}
-      </Stack>
-      <Box w={{ base: "100%", xs: 260 }}>
-        {/* The switch and its modals type `lead` as the board row; the drawer
-            has the full detail, so we attach the same client-computed category
-            the board derives rather than widen four shared contracts. */}
-        <LeadStageSwitch lead={{ ...lead, category: categorizeLead(lead) }} />
-      </Box>
+    <Stack gap={2}>
+      <Title order={2}>{displayName}</Title>
+      {showRomanized ? (
+        <Text size="sm" c="dimmed">
+          {romanized}
+        </Text>
+      ) : null}
     </Stack>
   );
 }
