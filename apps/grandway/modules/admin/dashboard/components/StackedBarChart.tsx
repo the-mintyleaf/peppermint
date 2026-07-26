@@ -42,6 +42,9 @@ export function StackedBarChart({
       withYAxis
       yAxisProps={{ width: 132 }}
       barProps={{ radius: 2 }}
+      // `role="img"` so the aria-label names the chart — Mantine forwards these to the
+      // root `<div>`, whose default `generic` role would otherwise drop the label.
+      role="img"
       aria-label={ariaLabel}
     />
   );

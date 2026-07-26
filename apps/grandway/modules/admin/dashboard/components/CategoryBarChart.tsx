@@ -42,6 +42,9 @@ export function CategoryBarChart({
       yAxisProps={bars ? { width: 132 } : undefined}
       getBarColor={(value) => (value === 0 ? CHART_ZERO_COLOR : seriesColor)}
       barProps={{ radius: 4, maxBarSize: 46 }}
+      // `role="img"` so the aria-label names the chart — Mantine forwards these to the
+      // root `<div>`, whose default `generic` role would otherwise drop the label.
+      role="img"
       aria-label={ariaLabel}
     />
   );

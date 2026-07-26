@@ -63,8 +63,6 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
         // checklists: reads shared admin/lead_manager; template authoring is
         // Admin-only and self-gated inline within the module. Superadmin denied.
         canAccessChecklists: authorityType === "admin" || isLeadManager,
-        // dashboard: admin/lead_manager only; superadmin 403s on every section.
-        canAccessDashboard: authorityType === "admin" || isLeadManager,
         // file review queue: Admin ONLY (verify/archive/restore).
         canAccessFileReview: authorityType === "admin",
         canAccessNotifications,

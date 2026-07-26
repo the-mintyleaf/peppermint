@@ -19,7 +19,6 @@ import { BriefcaseIcon } from "@phosphor-icons/react/dist/csr/Briefcase";
 import { HandshakeIcon } from "@phosphor-icons/react/dist/csr/Handshake";
 import { FilesIcon } from "@phosphor-icons/react/dist/csr/Files";
 import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
-import { ChartBarIcon } from "@phosphor-icons/react/dist/csr/ChartBar";
 import { ListChecksIcon } from "@phosphor-icons/react/dist/csr/ListChecks";
 import { FileMagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/FileMagnifyingGlass";
 import { BellIcon } from "@phosphor-icons/react/dist/csr/Bell";
@@ -41,8 +40,6 @@ export interface BuildAdminConfigOptions {
   canAccessDocuments?: boolean;
   /** `checklists` — reads (worklist, awaiting-setup, templates) are admin/lead_manager; template authoring is Admin-only and self-gated inline within the module. `superadmin` denied on every route (`checklists/docs/backend/INTEGRATION.md` §1). */
   canAccessChecklists?: boolean;
-  /** `dashboard` — admin/lead_manager only; `superadmin` gets 403 on every section (`dashboard/docs/backend/INTEGRATION.md` §1/§8) — hide the entry entirely rather than link to an empty page. */
-  canAccessDashboard?: boolean;
   /** The Admin-only file review queue (`/admin/files/review`) — verify/archive/restore are Admin-only; a `lead_manager` never reaches this screen (`uploaded-files/docs/backend/INTEGRATION.md` §1). Files themselves have no standalone nav entry — every other files screen is embedded in another module's detail page. */
   canAccessFileReview?: boolean;
   /** The notifications bell (sidebar `additional`) — admin/lead_manager only, `superadmin` refused on every endpoint (`notifications/docs/backend/INTEGRATION.md` §1). */
@@ -79,12 +76,16 @@ export function buildAdminConfig(
     canAccessOffers,
     canAccessDocuments,
     canAccessChecklists,
-    canAccessDashboard,
     canAccessFileReview,
     canAccessNotifications,
     unreadNotificationCount,
   } = options;
 
+  // The Placement dashboard is now the `/admin` home itself (it replaced the old
+  // welcome page), so "Home" IS the dashboard for admin/lead_manager and the
+  // identity/audit landing for superadmin — no separate "Dashboard" rail entry (a
+  // second entry on the same `/admin` href would duplicate the destination and could
+  // never show active, since the router matches the first `page` item for a pathname).
   const mainNav: AdminShellMainNavItem[] = [
     {
       kind: "page",
@@ -94,19 +95,6 @@ export function buildAdminConfig(
       href: "/admin",
     },
   ];
-
-  // The Placement dashboard is now the `/admin` home (it replaced the old welcome
-  // page). Lead-access tiers get this labelled rail entry pointing at the home route;
-  // a superadmin (no dashboard access) lands on the identity/audit fallback instead.
-  if (canAccessDashboard) {
-    mainNav.push({
-      kind: "page",
-      id: "dashboard",
-      icon: ChartBarIcon,
-      label: "Dashboard",
-      href: "/admin",
-    });
-  }
 
   // ─── Recruitment ─── the applicant lifecycle funnel.
   const recruitmentGroups = (
