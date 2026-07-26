@@ -1,7 +1,8 @@
 "use client";
 
-import { Button, Center, Divider, Loader, Stack, Text } from "@peppermint/ui";
+import { Button, Center, Loader, Stack, Text } from "@peppermint/ui";
 import { FormWrapper, useFormControls } from "@peppermint/admin";
+import { FormSection } from "@/components/FormSection";
 import { useProgramDetail } from "../../institutions.hooks";
 import type { ProgramFormValues } from "../../institutions.types";
 import { ProgramCoreFields } from "./fields/ProgramCoreFields";
@@ -56,12 +57,15 @@ export function ProgramForm({
     >
       <Stack gap="md" p="md">
         <ProgramCoreFields disabled={isLoading} institutionLocked={isEdit} />
-        <Divider label="Tuition" labelPosition="left" />
-        <ProgramTuitionFields disabled={isLoading} />
-        <Divider label="Entry expectations" labelPosition="left" />
-        <ProgramEntryFields disabled={isLoading} />
-        <Divider label="More" labelPosition="left" />
-        <ProgramMetaFields disabled={isLoading} />
+        <FormSection title="Tuition">
+          <ProgramTuitionFields disabled={isLoading} />
+        </FormSection>
+        <FormSection title="Entry expectations">
+          <ProgramEntryFields disabled={isLoading} />
+        </FormSection>
+        <FormSection title="More">
+          <ProgramMetaFields disabled={isLoading} />
+        </FormSection>
         <SubmitButton isLoading={isLoading} isEdit={isEdit} />
       </Stack>
     </FormWrapper>
