@@ -56,7 +56,11 @@ export function DashboardOverview() {
         }
       />
 
-      <ModalPaper withBorder>
+      {/* ModalPaper is a fixed-height (`calc(100% - header)`) box with
+          `overflow: hidden` — list modules scroll inside their DataTableShell, but
+          this long report has no internal scroll, so it would be clipped. Override to
+          scroll vertically inside the paper (horizontal stays clipped). */}
+      <ModalPaper withBorder style={{ overflowY: "auto" }}>
         <Stack gap="lg" p="md">
           <DashboardHero />
 
