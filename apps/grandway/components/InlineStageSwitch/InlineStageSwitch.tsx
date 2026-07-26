@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Box, Button, Group, Menu, Text } from "@peppermint/ui";
 import { StatusBadge } from "@peppermint/admin";
 import { DotIcon } from "@phosphor-icons/react/dist/csr/Dot";
@@ -34,21 +34,6 @@ export function InlineStageSwitch({
 }: InlineStageSwitchProps) {
   const [opened, setOpened] = useState(false);
   const [confirming, setConfirming] = useState<string>();
-  const [busy, setBusy] = useState(false);
-
-  // Guards for the async confirm. `mounted` avoids a state update after the
-  // cell unmounts (a successful move can invalidate a board and drop this row);
-  // `seq` invalidates an in-flight confirm the moment the menu closes or a new
-  // one starts, so a slow request can't later force the menu shut and silently
-  // discard a target the user has since re-picked.
-  const mounted = useRef(true);
-  const seq = useRef(0);
-  useEffect(
-    () => () => {
-      mounted.current = false;
-    },
-    [],
-  );
 
   const currentLabel = labelMap[current] ?? current;
 
@@ -62,25 +47,21 @@ export function InlineStageSwitch({
   const hasActions = actions.length > 0;
 
   const close = () => {
-    seq.current += 1;
     setOpened(false);
     setConfirming(undefined);
-    setBusy(false);
   };
 
-  const handleConfirm = async () => {
-    if (!confirming || busy) return;
-    const token = (seq.current += 1);
-    setBusy(true);
-    try {
-      await onConfirm(confirming);
-      if (mounted.current && token === seq.current) close();
-    } catch {
-      // Error surfaces through the app's mutation notification; keep the
-      // confirm panel open so the user can retry or cancel — unless this
-      // request was superseded or the cell unmounted meanwhile.
-      if (mounted.current && token === seq.current) setBusy(false);
-    }
+  const handleConfirm = () => {
+    if (!confirming) return;
+    const value = confirming;
+    // Close immediately — a stage/status move is reversible, so we don't hold
+    // the dropdown open for the server round-trip and the background refetch it
+    // triggers. Success and failure are both reported by the app's mutation
+    // notification, and the cell reconciles to the new value when the list
+    // query settles. Fire-and-forget with a swallowed rejection so an error
+    // toast (raised inside the mutation) isn't also an unhandled rejection.
+    close();
+    void Promise.resolve(onConfirm(value)).catch(() => {});
   };
 
   return (
@@ -116,14 +97,12 @@ export function InlineStageSwitch({
                 size="xs"
                 variant="default"
                 onClick={() => setConfirming(undefined)}
-                disabled={busy}
               >
                 Cancel
               </Button>
               <Button
                 size="xs"
                 color={colorMap[confirming] ?? "gray"}
-                loading={busy}
                 onClick={handleConfirm}
                 data-autofocus
                 autoFocus
