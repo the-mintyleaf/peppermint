@@ -1,20 +1,14 @@
 "use client";
 
 import { z } from "zod";
-import {
-  Button,
-  Divider,
-  Stack,
-  Text,
-  Textarea,
-  TextInput,
-} from "@peppermint/ui";
+import { Button, Stack, Text, Textarea, TextInput } from "@peppermint/ui";
 import {
   FormWrapper,
   useFormControls,
   useFormInstance,
 } from "@peppermint/admin";
 import type { ModalFormComponentProps } from "@peppermint/admin";
+import { FormSection } from "@/components/FormSection";
 import type { OfferCreatePayload, OfferDetail } from "../offers.types";
 import { ConditionsRepeater } from "./components/ConditionsRepeater";
 import { JourneyPickerField } from "./components/JourneyPickerField";
@@ -210,16 +204,32 @@ export function OfferCreateForm({
     >
       <Stack gap="md" p="md">
         <JourneyPickerField isLoading={isLoading} />
-        <ReferenceFields isLoading={isLoading} />
-        <IntakeField isLoading={isLoading} />
-        <Divider label="Offer details" labelPosition="left" />
-        <OfferBasicsFields isLoading={isLoading} />
-        <MoneyFields isLoading={isLoading} />
-        <NotesField isLoading={isLoading} />
-        <ConditionsRepeater isLoading={isLoading} />
-        <SubmitButton isLoading={isLoading} />
+        <OfferFormBody isLoading={isLoading} />
       </Stack>
     </FormWrapper>
+  );
+}
+
+/**
+ * Everything after the applicant picker. Hidden until a journey is chosen so the
+ * form reveals itself one decision at a time — nothing else is answerable before
+ * the offer's journey is known.
+ */
+function OfferFormBody({ isLoading }: { isLoading: boolean }) {
+  const { form } = useFormInstance<OfferCreateValues>();
+  if (!form.values.journey) return null;
+  return (
+    <>
+      <ReferenceFields isLoading={isLoading} />
+      <IntakeField isLoading={isLoading} />
+      <FormSection title="Offer details">
+        <OfferBasicsFields isLoading={isLoading} />
+      </FormSection>
+      <MoneyFields isLoading={isLoading} />
+      <NotesField isLoading={isLoading} />
+      <ConditionsRepeater isLoading={isLoading} />
+      <SubmitButton isLoading={isLoading} />
+    </>
   );
 }
 

@@ -9,7 +9,6 @@ import {
 import type { ModalFormComponentProps } from "@peppermint/admin";
 import {
   Button,
-  Fieldset,
   Group,
   NumberInput,
   Select,
@@ -20,6 +19,7 @@ import {
   TextInput,
 } from "@peppermint/ui";
 import { useDebounce } from "@peppermint/utils";
+import { FormSection } from "@/components/FormSection";
 import { z } from "zod";
 // Concrete-file import, not the `applicants` barrel — that barrel's
 // `ApplicantDetail.tsx` pulls in this module's own `ApplicantJourneysPanel`,
@@ -196,21 +196,17 @@ function Fields({
         existingApplicant={existingApplicant}
       />
 
-      <Fieldset legend="Destination & level">
-        <Stack gap="md">
-          <DestinationLevelFields isLoading={isLoading} />
-        </Stack>
-      </Fieldset>
+      <FormSection title="Destination & level">
+        <DestinationLevelFields isLoading={isLoading} />
+      </FormSection>
 
-      <Fieldset legend="Timing & budget">
-        <Stack gap="md">
-          <TimingBudgetFields isLoading={isLoading} />
-        </Stack>
-      </Fieldset>
+      <FormSection title="Timing & budget">
+        <TimingBudgetFields isLoading={isLoading} />
+      </FormSection>
 
-      <Fieldset legend="Notes (optional)">
+      <FormSection title="Notes (optional)">
         <NotesField isLoading={isLoading} />
-      </Fieldset>
+      </FormSection>
     </>
   );
 }
@@ -343,8 +339,16 @@ function SubmitButton({
 // only a locked, read-only field. Create mode shows either a locked field
 // (when `applicantId` is preset by the caller) or a live search picker.
 
-function applicantLabel(a: { full_name_en: string; full_name_np: string }) {
-  return a.full_name_en || a.full_name_np;
+// Never returns `undefined` — a searchable Mantine `Select` calls
+// `.toLowerCase()` on every option label while filtering, so an applicant
+// arriving without either name key (backend payload drift) must degrade to a
+// readable fallback instead of white-screening the whole form.
+function applicantLabel(a: {
+  full_name?: string | null;
+  full_name_en?: string | null;
+  full_name_np?: string | null;
+}) {
+  return a.full_name || a.full_name_en || a.full_name_np || "Unnamed applicant";
 }
 
 function ApplicantField({
@@ -357,6 +361,7 @@ function ApplicantField({
 
   if (isEdit) {
     const label =
+      existingApplicant?.full_name ||
       existingApplicant?.full_name_en ||
       existingApplicant?.full_name_np ||
       form.values.applicant;

@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import {
-  Fieldset,
+  Button,
   Group,
-  SegmentedControl,
   Select,
   Stack,
   Text,
@@ -13,14 +12,12 @@ import {
 } from "@peppermint/ui";
 import { useFormInstance } from "@peppermint/admin";
 import { useDebounce } from "@peppermint/utils";
+import { FormSection } from "@/components/FormSection";
 // Concrete-file imports, never the institutions barrel — cycle-safe.
 import { fetchPrograms } from "@/modules/admin/institutions/institutions.api";
 import type { Program } from "@/modules/admin/institutions/institutions.types";
 import { QUALIFICATION_LEVEL_OPTIONS } from "../../offers.labels";
-import type {
-  OfferCreateValues,
-  ReferenceMode,
-} from "../OfferCreateForm.types";
+import type { OfferCreateValues } from "../OfferCreateForm.types";
 
 function programLabel(program: Program): string {
   return `${program.title} — ${program.institution.name}`;
@@ -37,27 +34,30 @@ export function ReferenceFields({ isLoading }: { isLoading: boolean }) {
   const mode = form.values.reference_mode;
 
   return (
-    <Fieldset legend="Program reference">
-      <Stack gap="md">
-        <SegmentedControl
-          fullWidth
+    <FormSection
+      title="Program reference"
+      actions={
+        <Button
+          variant="subtle"
+          size="xs"
           disabled={isLoading}
-          value={mode}
-          onChange={(value) =>
-            form.setFieldValue("reference_mode", value as ReferenceMode)
+          onClick={() =>
+            form.setFieldValue(
+              "reference_mode",
+              mode === "catalogue" ? "manual" : "catalogue",
+            )
           }
-          data={[
-            { label: "Catalogue program", value: "catalogue" },
-            { label: "Manual entry", value: "manual" },
-          ]}
-        />
-        {mode === "catalogue" ? (
-          <CatalogueProgramField isLoading={isLoading} />
-        ) : (
-          <ManualReferenceFields isLoading={isLoading} />
-        )}
-      </Stack>
-    </Fieldset>
+        >
+          {mode === "catalogue" ? "Enter manually" : "Choose from catalogue"}
+        </Button>
+      }
+    >
+      {mode === "catalogue" ? (
+        <CatalogueProgramField isLoading={isLoading} />
+      ) : (
+        <ManualReferenceFields isLoading={isLoading} />
+      )}
+    </FormSection>
   );
 }
 

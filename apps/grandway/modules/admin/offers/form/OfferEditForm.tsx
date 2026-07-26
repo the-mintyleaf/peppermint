@@ -9,6 +9,7 @@ import {
 } from "@peppermint/admin";
 import type { ModalFormComponentProps } from "@peppermint/admin";
 import { InfoIcon } from "@phosphor-icons/react/dist/csr/Info";
+import { FormSection } from "@/components/FormSection";
 import type { OfferDetail, OfferUpdatePayload } from "../offers.types";
 import { MoneyFields } from "./components/MoneyFields";
 import { OfferBasicsFields } from "./components/OfferBasicsFields";
@@ -190,7 +191,9 @@ export function OfferEditForm({
           The journey, program reference, and snapshot details are fixed once an
           offer is created. To change those, record a new offer.
         </Alert>
-        <OfferBasicsFields isLoading={isLoading} />
+        <FormSection title="Offer details">
+          <OfferBasicsFields isLoading={isLoading} />
+        </FormSection>
         <MoneyFields isLoading={isLoading} />
         <NotesField isLoading={isLoading} />
         <SubmitButton isLoading={isLoading} />

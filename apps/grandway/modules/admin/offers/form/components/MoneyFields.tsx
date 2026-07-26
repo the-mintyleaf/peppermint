@@ -2,7 +2,6 @@
 
 import {
   DateInput,
-  Fieldset,
   Group,
   Select,
   Stack,
@@ -10,6 +9,7 @@ import {
   TextInput,
 } from "@peppermint/ui";
 import { useFormInstance } from "@peppermint/admin";
+import { FormSection } from "@/components/FormSection";
 import { TUITION_FEE_PERIOD_OPTIONS } from "../../offers.labels";
 import type { TuitionFeePeriod } from "../../offers.types";
 
@@ -38,7 +38,7 @@ export function MoneyFields({ isLoading }: { isLoading: boolean }) {
 
   return (
     <Stack gap="md">
-      <Fieldset legend="Tuition">
+      <FormSection title="Tuition">
         <Group grow align="flex-start">
           <TextInput
             label="Amount"
@@ -67,74 +67,70 @@ export function MoneyFields({ isLoading }: { isLoading: boolean }) {
             }
           />
         </Group>
-      </Fieldset>
+      </FormSection>
 
-      <Fieldset legend="Scholarship">
-        <Stack gap="md">
-          <Group grow align="flex-start">
-            <TextInput
-              label="Amount"
-              placeholder="10000.00"
-              inputMode="decimal"
-              disabled={isLoading}
-              {...form.getInputProps("scholarship_amount")}
-            />
-            <TextInput
-              label="Currency"
-              placeholder="AUD"
-              maxLength={3}
-              w={110}
-              disabled={isLoading}
-              {...form.getInputProps("scholarship_currency")}
-            />
-          </Group>
-          <Textarea
-            label="Scholarship notes"
-            placeholder="Merit scholarship, renewable on results…"
-            autosize
-            minRows={2}
+      <FormSection title="Scholarship">
+        <Group grow align="flex-start">
+          <TextInput
+            label="Amount"
+            placeholder="10000.00"
+            inputMode="decimal"
             disabled={isLoading}
-            {...form.getInputProps("scholarship_notes")}
+            {...form.getInputProps("scholarship_amount")}
           />
-        </Stack>
-      </Fieldset>
+          <TextInput
+            label="Currency"
+            placeholder="AUD"
+            maxLength={3}
+            w={110}
+            disabled={isLoading}
+            {...form.getInputProps("scholarship_currency")}
+          />
+        </Group>
+        <Textarea
+          label="Scholarship notes"
+          placeholder="Merit scholarship, renewable on results…"
+          autosize
+          minRows={2}
+          disabled={isLoading}
+          {...form.getInputProps("scholarship_notes")}
+        />
+      </FormSection>
 
-      <Fieldset legend="Deposit">
-        <Stack gap="md">
-          <Group grow align="flex-start">
-            <TextInput
-              label="Amount"
-              placeholder="5000.00"
-              inputMode="decimal"
-              disabled={isLoading}
-              {...form.getInputProps("deposit_amount")}
-            />
-            <TextInput
-              label="Currency"
-              placeholder="AUD"
-              maxLength={3}
-              w={110}
-              disabled={isLoading}
-              {...form.getInputProps("deposit_currency")}
-            />
-            <DateInput
-              label="Due date"
-              valueFormat="YYYY-MM-DD"
-              clearable
-              disabled={isLoading}
-              {...form.getInputProps("deposit_due_date")}
-            />
-          </Group>
-          <Textarea
-            label="Deposit notes"
-            placeholder="Non-refundable, secures the place…"
-            autosize
-            minRows={2}
+      <FormSection title="Deposit">
+        <Group grow align="flex-start">
+          <TextInput
+            label="Amount"
+            placeholder="5000.00"
+            inputMode="decimal"
             disabled={isLoading}
-            {...form.getInputProps("deposit_notes")}
+            {...form.getInputProps("deposit_amount")}
           />
-        </Stack>
-      </Fieldset>
+          <TextInput
+            label="Currency"
+            placeholder="AUD"
+            maxLength={3}
+            w={110}
+            disabled={isLoading}
+            {...form.getInputProps("deposit_currency")}
+          />
+          <DateInput
+            label="Due date"
+            valueFormat="YYYY-MM-DD"
+            clearable
+            disabled={isLoading}
+            {...form.getInputProps("deposit_due_date")}
+          />
+        </Group>
+        <Textarea
+          label="Deposit notes"
+          placeholder="Non-refundable, secures the place…"
+          autosize
+          minRows={2}
+          disabled={isLoading}
+          {...form.getInputProps("deposit_notes")}
+        />
+      </FormSection>
     </Stack>
   );
 }

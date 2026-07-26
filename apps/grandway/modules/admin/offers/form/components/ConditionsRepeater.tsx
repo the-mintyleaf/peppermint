@@ -5,7 +5,6 @@ import {
   Box,
   Button,
   DateInput,
-  Fieldset,
   Group,
   Select,
   Stack,
@@ -15,6 +14,7 @@ import {
 import { useFormInstance } from "@peppermint/admin";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
+import { FormSection } from "@/components/FormSection";
 import { CONDITION_TYPE_OPTIONS } from "../../offers.labels";
 import type {
   ConditionDraft,
@@ -38,73 +38,70 @@ export function ConditionsRepeater({ isLoading }: { isLoading: boolean }) {
   const conditions = form.values.conditions;
 
   return (
-    <Fieldset legend="Conditions (optional)">
-      <Stack gap="md">
-        {conditions.length === 0 ? (
-          <Text size="xs" c="dimmed">
-            No conditions yet. Add any the applicant must satisfy.
-          </Text>
-        ) : null}
+    <FormSection
+      title="Conditions (optional)"
+      actions={
+        <Button
+          variant="subtle"
+          size="xs"
+          leftSection={<PlusIcon size={14} aria-hidden />}
+          disabled={isLoading}
+          onClick={() =>
+            form.insertListItem("conditions", { ...EMPTY_CONDITION })
+          }
+        >
+          Add condition
+        </Button>
+      }
+    >
+      {conditions.length === 0 ? (
+        <Text size="xs" c="dimmed">
+          No conditions yet. Add any the applicant must satisfy.
+        </Text>
+      ) : null}
 
-        {conditions.map((_, index) => (
-          <Box key={index}>
-            <Group align="flex-start" gap="xs" wrap="nowrap">
-              <Stack gap="xs" style={{ flex: 1 }}>
-                <Group grow align="flex-start">
-                  <Select
-                    label="Type"
-                    data={CONDITION_TYPE_OPTIONS}
-                    allowDeselect={false}
-                    disabled={isLoading}
-                    {...form.getInputProps(
-                      `conditions.${index}.condition_type`,
-                    )}
-                  />
-                  <DateInput
-                    label="Due date"
-                    valueFormat="YYYY-MM-DD"
-                    clearable
-                    disabled={isLoading}
-                    {...form.getInputProps(`conditions.${index}.due_date`)}
-                  />
-                </Group>
-                <Textarea
-                  label="Description"
-                  placeholder="e.g. Achieve IELTS 6.5 with no band below 6.0"
-                  autosize
-                  minRows={1}
+      {conditions.map((_, index) => (
+        <Box key={index}>
+          <Group align="flex-start" gap="xs" wrap="nowrap">
+            <Stack gap="xs" style={{ flex: 1 }}>
+              <Group grow align="flex-start">
+                <Select
+                  label="Type"
+                  data={CONDITION_TYPE_OPTIONS}
+                  allowDeselect={false}
                   disabled={isLoading}
-                  {...form.getInputProps(`conditions.${index}.description`)}
+                  {...form.getInputProps(`conditions.${index}.condition_type`)}
                 />
-              </Stack>
-              <ActionIcon
-                variant="subtle"
-                color="red"
-                mt={28}
-                aria-label={`Remove condition ${index + 1}`}
+                <DateInput
+                  label="Due date"
+                  valueFormat="YYYY-MM-DD"
+                  clearable
+                  disabled={isLoading}
+                  {...form.getInputProps(`conditions.${index}.due_date`)}
+                />
+              </Group>
+              <Textarea
+                label="Description"
+                placeholder="e.g. Achieve IELTS 6.5 with no band below 6.0"
+                autosize
+                minRows={1}
                 disabled={isLoading}
-                onClick={() => form.removeListItem("conditions", index)}
-              >
-                <TrashIcon size={16} aria-hidden />
-              </ActionIcon>
-            </Group>
-          </Box>
-        ))}
-
-        <Group>
-          <Button
-            variant="light"
-            size="xs"
-            leftSection={<PlusIcon size={14} aria-hidden />}
-            disabled={isLoading}
-            onClick={() =>
-              form.insertListItem("conditions", { ...EMPTY_CONDITION })
-            }
-          >
-            Add condition
-          </Button>
-        </Group>
-      </Stack>
-    </Fieldset>
+                {...form.getInputProps(`conditions.${index}.description`)}
+              />
+            </Stack>
+            <ActionIcon
+              variant="subtle"
+              color="red"
+              mt={28}
+              aria-label={`Remove condition ${index + 1}`}
+              disabled={isLoading}
+              onClick={() => form.removeListItem("conditions", index)}
+            >
+              <TrashIcon size={16} aria-hidden />
+            </ActionIcon>
+          </Group>
+        </Box>
+      ))}
+    </FormSection>
   );
 }

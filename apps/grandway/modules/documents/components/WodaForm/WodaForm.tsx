@@ -5,18 +5,17 @@ import {
   Autocomplete,
   Button,
   DateInput,
-  Fieldset,
   Input,
   NumberInput,
   SegmentedControl,
   SimpleGrid,
   Stack,
   Switch,
-  Text,
   TextInput,
   Textarea,
   useForm,
 } from "@peppermint/ui";
+import { FormSection } from "@/components/FormSection";
 import type { DocumentContent } from "../../documents.types";
 import type { WodaField, WodaSelectOption } from "../../utils/wodaFormSchema";
 import { OccupationsField } from "./OccupationsField";
@@ -328,16 +327,13 @@ export function WodaForm(props: WodaFormProps) {
     <form onSubmit={handleSubmit}>
       <Stack gap="lg" p="md">
         {schema.sections.map((section) => (
-          <Fieldset key={section.title} legend={section.title} variant="filled">
-            <Stack gap="sm">
-              {section.description && (
-                <Text size="xs" c="dimmed">
-                  {section.description}
-                </Text>
-              )}
-              {renderFields(section.fields)}
-            </Stack>
-          </Fieldset>
+          <FormSection
+            key={section.title}
+            title={section.title}
+            description={section.description}
+          >
+            {renderFields(section.fields)}
+          </FormSection>
         ))}
         <Button type="submit" loading={isLoading} fullWidth>
           {schema.submitLabel ?? "Create Document"}

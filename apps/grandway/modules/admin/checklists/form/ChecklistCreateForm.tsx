@@ -4,8 +4,6 @@ import { z } from "zod";
 import {
   Button,
   DateInput,
-  Fieldset,
-  SegmentedControl,
   Stack,
   Text,
   Textarea,
@@ -17,14 +15,12 @@ import {
   useFormInstance,
 } from "@peppermint/admin";
 import type { ModalFormComponentProps } from "@peppermint/admin";
+import { FormSection } from "@/components/FormSection";
 import type { Checklist } from "../checklists.types";
 import { JourneyPickerField } from "./components/JourneyPickerField";
 import { TemplatePickerField } from "./components/TemplatePickerField";
 import { CHECKLIST_CREATE_INITIAL } from "./ChecklistCreateForm.utils";
-import type {
-  ChecklistCreateMode,
-  ChecklistCreateValues,
-} from "./ChecklistCreateForm.types";
+import type { ChecklistCreateValues } from "./ChecklistCreateForm.types";
 
 const schema = z
   .object({
@@ -90,27 +86,30 @@ function ModeFields({ isLoading }: { isLoading: boolean }) {
   const mode = form.values.mode;
 
   return (
-    <Fieldset legend="How is this checklist built?">
-      <Stack gap="md">
-        <SegmentedControl
-          fullWidth
+    <FormSection
+      title="Checklist source"
+      actions={
+        <Button
+          variant="subtle"
+          size="xs"
           disabled={isLoading}
-          value={mode}
-          onChange={(value) =>
-            form.setFieldValue("mode", value as ChecklistCreateMode)
+          onClick={() =>
+            form.setFieldValue(
+              "mode",
+              mode === "template" ? "blank" : "template",
+            )
           }
-          data={[
-            { label: "From template", value: "template" },
-            { label: "Blank checklist", value: "blank" },
-          ]}
-        />
-        {mode === "template" ? (
-          <TemplatePickerField isLoading={isLoading} />
-        ) : (
-          <BlankChecklistFields isLoading={isLoading} />
-        )}
-      </Stack>
-    </Fieldset>
+        >
+          {mode === "template" ? "Start blank" : "Use a template"}
+        </Button>
+      }
+    >
+      {mode === "template" ? (
+        <TemplatePickerField isLoading={isLoading} />
+      ) : (
+        <BlankChecklistFields isLoading={isLoading} />
+      )}
+    </FormSection>
   );
 }
 
