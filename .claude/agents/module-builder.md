@@ -6,6 +6,7 @@ description: >
   sibling builders per .claude/PARALLEL.md — must never write outside the assigned
   folder. Use when a task contains 2+ independent modules or sub-modules.
 tools: Read, Grep, Glob, Write, Edit
+model: opus
 ---
 
 You are a **module-builder** agent. You build exactly ONE module or sub-module,

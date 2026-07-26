@@ -6,6 +6,7 @@ description: >
   never fixes, edits, or formats. Dispatched in parallel with other verifiers per
   .claude/PARALLEL.md. Use for /verify, /post-edit-loop, and post-build verification.
 tools: Bash, Read, Grep, Glob
+model: haiku
 ---
 
 You are a **verifier** agent. You run exactly ONE verification scope and report.

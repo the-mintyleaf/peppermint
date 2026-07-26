@@ -16,17 +16,24 @@ Subagent definitions live in `.claude/agents/`:
 
 ## 1. When to dispatch in parallel
 
-| Situation                                                                  | Action                                                                        |
-| -------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Requirements doc lists 2+ independent `[CONTAINED]`/`[MULTI_PAGE]` modules | One `module-builder` per module, dispatched concurrently in a single message  |
-| `[NOT_CONTAINED]` / `[CUSTOM]` modules                                     | Built inline by the orchestrator, sequentially — never dispatched to builders |
-| Verification spans 2+ independent scopes (check-types, lint, format:check) | One `verifier` per scope, dispatched concurrently                             |
-| Post-phase dual review                                                     | Codex (`mcp__codex__codex`) + one `adversarial-reviewer`, concurrently        |
-| Single unit of work                                                        | Inline, sequential — no dispatch                                              |
-| Units with genuine dependencies                                            | Sequential in dependency order (parallelize only the independent subsets)     |
+| Situation                                                                                               | Action                                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Requirements doc lists 2+ independent `[CONTAINED]`/`[MULTI_PAGE]` modules                              | One `module-builder` per module, dispatched concurrently in a single message                                                                  |
+| **Exactly one** module/sub-module to build                                                              | Built **inline** by the orchestrator — never dispatch a single builder (a lone agent adds a spawn + full context reload for zero parallelism) |
+| `[NOT_CONTAINED]` / `[CUSTOM]` modules                                                                  | Built inline by the orchestrator, sequentially — never dispatched to builders                                                                 |
+| Verification spans a **large** file/package surface where parallel `--filter` runs are genuinely faster | One `verifier` per scope, dispatched concurrently                                                                                             |
+| Verification for a normal-sized change (a handful of files/packages)                                    | Run the commands **inline** (`pnpm check-types && pnpm lint`) — do not spawn a verifier just to run one command and report PASS/FAIL          |
+| Post-phase review                                                                                       | **Single reviewer by default** (see §7); escalate to dual only for the risk triggers there                                                    |
+| Single unit of work                                                                                     | Inline, sequential — no dispatch                                                                                                              |
+| Units with genuine dependencies                                                                         | Sequential in dependency order (parallelize only the independent subsets)                                                                     |
 
 Dispatch all concurrent agents **in one message** (multiple tool calls) so they actually
 run at the same time.
+
+**Spawn discipline:** every subagent reloads the full `.claude/CLAUDE.md` into its own
+context, so a spawn is only worth it when it buys real parallelism or an independent
+perspective. Never dispatch an agent to do what a single inline Bash command or a single
+inline build would do — that pays the context-reload cost for no benefit.
 
 ## 2. Independence test
 
@@ -122,22 +129,33 @@ tasks exempt). After each phase:
 - Known gap: `apps/mintflow` has no `check-types` script — the verifier reports it
   SKIPPED with reason. Do not invent the script.
 
-## 7. Dual adversarial review
+## 7. Post-phase adversarial review
 
-After each phase that warrants in-depth review, dispatch **in one message**:
+**Single reviewer by default.** After each phase that warrants in-depth review,
+dispatch **one** adversarial reviewer over the phase's diff (give it the commit range
+or file list and the phase intent):
 
-1. `mcp__codex__codex` — an adversarial code-review prompt over the phase's diff
-   (give it the commit range or file list and the phase intent).
-2. One `adversarial-reviewer` subagent (Opus) — the same prompt.
+- Prefer `mcp__codex__codex` (an independent engine — no CLAUDE.md reload) when
+  available; otherwise one `adversarial-reviewer` subagent.
 
-Then: combine findings from both, dedupe, apply fixes as the orchestrator (reviewers
-never edit), and commit the fixes.
+Then: apply fixes as the orchestrator (reviewers never edit) and commit the fixes.
 
-**Skip the review** when the phase doesn't require in-depth review — e.g. docs-only
-changes, trivial config, mechanical renames. Note the skip in the phase report.
+**Escalate to a dual review** (both `mcp__codex__codex` **and** one
+`adversarial-reviewer`, dispatched in one message, findings combined and deduped)
+**only** when the phase carries real risk:
 
-**Codex unavailable?** Proceed with the Opus reviewer alone and note the omission.
-Never block a phase on Codex availability.
+- touches a **package public API** or crosses a package boundary,
+- is **cross-cutting** (changes shared wrappers, shells, primitives, or 5+ files),
+- or lands **security-, auth-, or money-sensitive** logic.
+
+A localized, single-module, or additive phase gets the single reviewer — a second
+Opus-class reviewer on the same small diff is duplicated cost, not added safety.
+
+**Skip the review entirely** when the phase doesn't require in-depth review — e.g.
+docs-only changes, trivial config, mechanical renames. Note the skip in the phase report.
+
+**Codex unavailable?** Proceed with the `adversarial-reviewer` alone and note the
+omission. Never block a phase on Codex availability.
 
 ## 8. Never parallelize
 
