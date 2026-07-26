@@ -3,22 +3,18 @@
 import Link from "next/link";
 import { Text } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
-import { statusColumn } from "@peppermint/admin";
 import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
 import { GlobeIcon } from "@phosphor-icons/react/dist/csr/Globe";
 import { GraduationCapIcon } from "@phosphor-icons/react/dist/csr/GraduationCap";
 import { CalendarBlankIcon } from "@phosphor-icons/react/dist/csr/CalendarBlank";
 import { FlagIcon } from "@phosphor-icons/react/dist/csr/Flag";
 import {
-  STAGE_COLORS,
   STAGE_LABELS,
   STUDY_LEVEL_LABELS,
 } from "../../applicantJourneys.labels";
-import type {
-  ApplicantJourney,
-  JourneyStage,
-} from "../../applicantJourneys.types";
+import type { ApplicantJourney } from "../../applicantJourneys.types";
 import { JourneyRowActionsMenu } from "./components/JourneyRowActionsMenu";
+import { JourneyStageSwitch } from "./components/JourneyStageSwitch";
 
 interface JourneysColumnsOptions {
   onViewDetails: (journey: ApplicantJourney) => void;
@@ -37,7 +33,7 @@ export function getJourneysColumns({
 }: JourneysColumnsOptions): DataTableShellColumn<ApplicantJourney>[] {
   return [
     {
-      accessor: "applicant.full_name_en",
+      accessor: "applicant.full_name",
       title: "Applicant",
       icon: UserIcon,
       render: (journey: ApplicantJourney) => (
@@ -47,7 +43,9 @@ export function getJourneysColumns({
           component={Link}
           href={`/admin/applicants/${journey.applicant.id}`}
         >
-          {journey.applicant.full_name_en || journey.applicant.full_name_np}
+          {journey.applicant.full_name ||
+            journey.applicant.full_name_en ||
+            journey.applicant.full_name_np}
         </Text>
       ),
     },
@@ -82,11 +80,13 @@ export function getJourneysColumns({
         </Text>
       ),
     },
-    statusColumn<ApplicantJourney, JourneyStage>("stage", {
+    {
+      // Interactive inline switch (not a read-only badge) — picking a stage
+      // inline-confirms and mutates in place; Defer/Close/Reopen open their
+      // structured modals from the switch.
+      accessor: "stage",
       title: "Stage",
       icon: FlagIcon,
-      colorMap: STAGE_COLORS,
-      labelMap: STAGE_LABELS,
       filter: {
         type: "select",
         options: Object.entries(STAGE_LABELS).map(([value, label]) => ({
@@ -94,7 +94,10 @@ export function getJourneysColumns({
           label,
         })),
       },
-    }),
+      render: (journey: ApplicantJourney) => (
+        <JourneyStageSwitch journey={journey} />
+      ),
+    },
     {
       accessor: "actions",
       title: "",
