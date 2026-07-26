@@ -28,8 +28,8 @@
 
 ## Phase 3 — Docs + verification
 
-- [ ] Update `dashboard/docs/AI.md` (charts direction + re-home + header)
-- [ ] Update `apps/grandway/docs/AI.md` (home/route change)
+- [x] Update `dashboard/docs/AI.md` (charts direction + re-home + header)
+- [x] Update `apps/grandway/docs/AI.md` (home/route change)
 - [ ] `pnpm format && pnpm check-types && pnpm lint`
 - [ ] `/design-check` + `/visual-review /admin`
 - [ ] Commit Phase 3

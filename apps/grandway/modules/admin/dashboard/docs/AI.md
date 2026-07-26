@@ -15,44 +15,58 @@ Folder is **singular** (`dashboard/`) to match the API base path
 
 ## Route
 
-`/admin/dashboard`
+`/admin` — **the dashboard is the admin home.** `app/admin/page.tsx` re-exports
+`ModuleAdminHome`, which renders the dashboard for `admin`/`lead_manager` and a minimal
+identity/audit landing (`SuperadminLanding`) for `superadmin` (403'd on every dashboard
+section, so they must not land on it). The old `/admin/dashboard` route and the old
+`modules/admin/home/` module are gone; the nav "Dashboard" entry points at `/admin`.
 
 ## Entry files
 
-- `pages/DashboardOverview.tsx` → `ModuleDashboardOverview`
-- `index.ts`
+- `pages/AdminHome.tsx` → `ModuleAdminHome` — the `/admin` entry: `RequireAuth` + role branch
+- `pages/DashboardOverview.tsx` → `DashboardOverview` — the section stack (no auth gate of its
+  own; `AdminHome` decides who reaches it)
+- `components/SuperadminLanding.tsx` — the superadmin fallback home
+- `index.ts` (exports `ModuleAdminHome`)
 
 ## Data layer (one file per concern, not per section)
 
-| File                     | Carries                                                                                                                                                                                                                                                                                                                                                                                  |
-| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dashboard.types.ts`     | All 8 section response shapes + shared row/wrapper shapes (§4)                                                                                                                                                                                                                                                                                                                           |
-| `dashboard.queryKeys.ts` | `dashboardQueryKeys.{summary,today,pipeline,blockers,workload,conversion,outcomes,activity}`                                                                                                                                                                                                                                                                                             |
-| `dashboard.api.ts`       | 8 `fetch*` functions — only `fetchConversion`/`fetchOutcomes` take `{fiscal_year, country}`; `fetchActivity` takes only `{fiscal_year, page, page_size}`                                                                                                                                                                                                                                 |
-| `dashboard.hooks.ts`     | 8 independent `useQuery` hooks (`useDashboard{Summary,Today,Pipeline,Blockers,Workload,Conversion,Outcomes,Activity}`) + `useDashboardFilters` (URL-synced `fiscal_year`/`country`)                                                                                                                                                                                                      |
-| `dashboard.labels.ts`    | Only labels/colors with no existing home (`ApplicantStatusKey`, `DocumentRow.family`, `JOURNEY_OUTCOME_COLORS`/`OFFER_DECISION_COLORS` — the owning modules export the outcome/decision LABELS but no color map) + section/group headings. Every enum whose owning module already exports a color map (offer/checklist/journey/lead/file status) is imported CONCRETELY, never redefined |
-| `dashboard.utils.ts`     | `formatDate`/`formatDateTime`/`formatRatePercent` + `chartColor(name, shade)` (Mantine color name/hex → CSS var for custom bar/SVG fills)                                                                                                                                                                                                                                                |
+| File                       | Carries                                                                                                                                                                                                                                                                                                                                                                                  |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dashboard.types.ts`       | All 8 section response shapes + shared row/wrapper shapes (§4)                                                                                                                                                                                                                                                                                                                           |
+| `dashboard.queryKeys.ts`   | `dashboardQueryKeys.{summary,today,pipeline,blockers,workload,conversion,outcomes,activity}`                                                                                                                                                                                                                                                                                             |
+| `dashboard.api.ts`         | 8 `fetch*` functions — only `fetchConversion`/`fetchOutcomes` take `{fiscal_year, country}`; `fetchActivity` takes only `{fiscal_year, page, page_size}`                                                                                                                                                                                                                                 |
+| `dashboard.hooks.ts`       | 8 independent `useQuery` hooks (`useDashboard{Summary,Today,Pipeline,Blockers,Workload,Conversion,Outcomes,Activity}`) + `useDashboardFilters` (URL-synced `fiscal_year`/`country`)                                                                                                                                                                                                      |
+| `dashboard.labels.ts`      | Only labels/colors with no existing home (`ApplicantStatusKey`, `DocumentRow.family`, `JOURNEY_OUTCOME_COLORS`/`OFFER_DECISION_COLORS` — the owning modules export the outcome/decision LABELS but no color map) + section/group headings. Every enum whose owning module already exports a color map (offer/checklist/journey/lead/file status) is imported CONCRETELY, never redefined |
+| `dashboard.utils.ts`       | `formatDate`/`formatDateTime`/`formatRatePercent`                                                                                                                                                                                                                                                                                                                                        |
+| `dashboard.chartConfig.ts` | `toChartColor(name, shade)` (status color name → Mantine chart shade, e.g. `blue.6`) + `CHART_TRACK_COLOR`/`CHART_ZERO_COLOR`; the shared chart-grammar notes                                                                                                                                                                                                                            |
 
-## Visual design (Mobility Ops redesign)
+## Visual design (Mobility Ops redesign, on Mantine Charts)
 
 Restyled to the "Mobility Ops Dashboard" design while keeping every integration.
-Three confirmed design decisions drive the look:
+Three design decisions drive the look:
 
 1. **Adapt honestly** — the mockup's monthly trend line, per-worklist age/day
    buckets, per-blocker reason breakdowns, and 14-day activity sparkline have NO
    backing endpoint (the API returns totals + ≤10 preview rows, not
    aggregations). They are NOT faked; each is replaced with the real data
    (preview row lists, the alert bars, the `meta.count` total).
-2. **Meaningful color** — status charts reuse each owning module's status→color
-   map (so a slice/bar means the same here as on that module's list); pure
-   quantities are neutral gray; the brand accent (orange, `color="brand"`) is
-   reserved for the page anchor (`DashboardHero`) and the conversion gauges.
-   Never color alone — every bar/slice carries a word + value.
-3. **Flat signal board** — charts are lightweight `Progress`/`RingProgress` +
-   minimal SVG (no `@peppermint/ui/charts`/recharts): static, tooltip-light,
-   at-a-glance. `chartColor()` in `dashboard.utils.ts` turns a Mantine color
-   name/hex into a CSS var for custom `<div>`/`<svg>` fills; `Progress`/
-   `RingProgress` take the color name directly and don't need it.
+2. **Meaningful color** — status breakdowns reuse each owning module's status→color
+   map (so a slice means the same here as on that module's list); magnitude bars are
+   single-hue with the value printed on them; the brand accent (orange, `color="brand"`)
+   is reserved for the page anchor (`DashboardHero`), the stage-magnitude bars, and the
+   conversion gauges. Never color alone — every bar/slice carries a word + value.
+3. **Chart grammar on `@peppermint/ui/charts`** (Mantine Charts / recharts) — a **breakdown**
+   of a total is a `DonutChart` (`DonutStat`); a **magnitude** comparison is a single-hue
+   `BarChart` (`CategoryBarChart`) with value labels; a multi-part **comparison** is a
+   stacked `BarChart` (`StackedBarChart`); a **rate** is a semicircle `DonutChart` gauge
+   (`Gauge`). A few **navigational meters** stay as `@peppermint/ui` `Progress` — the
+   needs-attention alert links, the docs/files distribution bars, and the six "do-not-sum"
+   closed/archived counts — because a full chart's axes/ticks would strip their per-item
+   links or heterogeneous legends. `toChartColor()` in `dashboard.chartConfig.ts` maps a
+   status color name to the chart shade so slices match their legend dots.
+   _(This reverses the earlier "flat signal board, no charts" decision, at the user's
+   direction — the visualizations are now real chart components.)_
 
 Layout: page owns the `SectionHeading` bands + per-section `ModuleErrorBoundary`;
 each section renders only its own card(s) with an internal `Grid`. Anchors
@@ -62,31 +76,33 @@ each section renders only its own card(s) with an internal `Grid`. Anchors
 
 ### Section components (one per endpoint)
 
-| Component            | Backs                                                                                                                           |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `DashboardHero`      | Page anchor — eyebrow + "Placement overview" + time range (fiscal year) + role·user from `useCurrentUser`                       |
-| `DashboardFilterBar` | fiscal_year + country ONLY — no other filter control (§9: the rest are validated-and-ignored)                                   |
-| `SummaryStrip`       | Hero volume stats + "Needs attention" `MeterBar`s (relative volume = value/max); each alert links to its in-page section anchor |
-| `TodayWorklists`     | 6 worklists as `PreviewTabs` (real preview rows; no invented bucket chart)                                                      |
-| `PipelineCounts`     | 7 zero-filled maps as bars/columns/donuts/stacked; each links to the OWNING APP'S PLAIN (unfiltered) list — see "Do not do"     |
-| `Blockers`           | 5 groups as `PreviewTabs` (real rows; no invented reason breakdown), never merged                                               |
-| `Workload`           | Branches on `is_scoped_to_caller` (caption only); 3 tabbed per-owner bar measures, never joined/summed                          |
-| `Conversion`         | 4 independent `Gauge`s + `by_source` `StackedMeter` rows; takes `filters` prop                                                  |
-| `Outcomes`           | `journey_outcomes` donut vs created-window `ColumnChart`/`MeterBar`s — separate cards; takes `filters` prop                     |
-| `ActivityFeed`       | The only paginated section, as a `Table`; real total from `meta.count` (no sparkline); `fiscalYear` only (never `country`)      |
-| `SectionState`       | Shared loading/error/empty chrome — every section wraps its content in this                                                     |
+| Component                 | Backs                                                                                                                                                              |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `AdminHome`               | `/admin` entry — `RequireAuth` + role branch: dashboard for admin/lead_manager, `SuperadminLanding` for superadmin                                                 |
+| `SuperadminLanding`       | Superadmin fallback home — Welcome + Users/Audit quick-links (no dashboard access)                                                                                 |
+| `DashboardHero`           | Page anchor — eyebrow + "Placement overview" + role·user from `useCurrentUser` (fiscal year now lives in the header controls)                                      |
+| `DashboardHeaderControls` | fiscal_year + country + "Refresh" in the module header's right slot — the only live filters (§9: the rest are validated-and-ignored)                               |
+| `SummaryStrip`            | Hero volume stats + "Needs attention" `MeterBar`s (relative volume = value/max); each alert links to its in-page section anchor                                    |
+| `TodayWorklists`          | 6 worklists as `PreviewTabs` (real preview rows; no invented bucket chart)                                                                                         |
+| `PipelineCounts`          | 7 zero-filled maps — stage magnitudes as `CategoryBarChart`, status breakdowns as `DonutStat`, docs/files as `Progress`; each links to the OWNING APP'S PLAIN list |
+| `Blockers`                | 5 groups as `PreviewTabs` (real rows; no invented reason breakdown), never merged                                                                                  |
+| `Workload`                | Branches on `is_scoped_to_caller` (caption only); 3 tabbed per-owner measures (`CategoryBarChart` + `StackedBarChart`), never joined/summed                        |
+| `Conversion`              | 4 independent `Gauge`s + `by_source` `StackedBarChart`; takes `filters` prop                                                                                       |
+| `Outcomes`                | `journey_outcomes` + `offer_decisions` as `DonutStat`, created-window counts as `MeterBar`s — separate cards; takes `filters` prop                                 |
+| `ActivityFeed`            | The only paginated section, as a `Table`; real total from `meta.count` (no sparkline); `fiscalYear` only (never `country`)                                         |
+| `SectionState`            | Shared loading/error/empty chrome — every section wraps its content in this                                                                                        |
 
-### Flat-chart primitives (presentational; states handled by the section's `SectionState`)
+### Chart primitives (presentational; states handled by the section's `SectionState`)
 
-| Primitive        | Renders                                                                                   |
-| ---------------- | ----------------------------------------------------------------------------------------- |
-| `MeterBar`       | One labelled horizontal bar (label · `Progress` · value); optional `href` for alert links |
-| `StackedMeter`   | Segmented `Progress.Root` bar + `trailing` slot (by-source, checklist workload)           |
-| `ColumnChart`    | Compact vertical bars for a small fixed set (checklists, offer decisions)                 |
-| `DonutStat`      | `RingProgress` + center total + word+color+value legend (applicants/offers/outcomes)      |
-| `Gauge`          | Flat half-circle SVG rate gauge; brand arc; null percent → empty arc + "—"                |
-| `PreviewTabs`    | Shared tabbed `Preview<T>` viewer (count badge = real `total`; `has_more` → "see all")    |
-| `SectionHeading` | Title + "how to read this" subtitle band; carries the section anchor `id`                 |
+| Primitive          | Renders                                                                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| `DonutStat`        | `DonutChart` + center-total overlay + word+color+value legend (all status breakdowns); gray track when all-zero                 |
+| `CategoryBarChart` | Single-hue `BarChart` (columns or bars) with value labels for a magnitude set; zero bar → muted gray                            |
+| `StackedBarChart`  | Horizontal stacked `BarChart` + legend + tooltip (leads by source, per-owner checklist load)                                    |
+| `Gauge`            | Semicircle `DonutChart` rate gauge; brand arc; null percent → empty track + "—"                                                 |
+| `MeterBar`         | One labelled horizontal `Progress` bar (label · bar · value); optional `href` for alert links (kept — a nav meter, not a chart) |
+| `PreviewTabs`      | Shared tabbed `Preview<T>` viewer (count badge = real `total`; `has_more` → "see all")                                          |
+| `SectionHeading`   | Title + "how to read this" subtitle band; carries the section anchor `id`                                                       |
 
 ## State ownership
 
@@ -104,10 +120,10 @@ each section renders only its own card(s) with an internal `Grid`. Anchors
 - Do not merge `blockers`' five groups into one sorted list.
 - Do not join/sum `workload`'s three lists, and never filter out the `owner_id: null` "Unassigned" row.
 - Do not seed a pipeline count's link with a `?status=`/`?stage=` query param — `apps/grandway/docs/AI.md` "Cross-module integration" documents that `forceFilters` always wins over a column filter on the Applicants/Journeys shells, so a URL-seeded filter would permanently lock the control rather than just seed it; the same shell mechanics apply to Offers/Checklists/Documents/Files. Pipeline links go to the PLAIN unfiltered list.
-- Do not add a superadmin-specific check beyond `RequireLeadAccess` — it already excludes superadmin (admin/lead_manager only), matching `DASHBOARDS_ACTOR_FORBIDDEN`.
+- Do not add a per-section superadmin check inside `DashboardOverview` — access is decided once at the home route (`AdminHome` branches on `authority_type`; superadmin never reaches the dashboard content, matching `DASHBOARDS_ACTOR_FORBIDDEN`). Do not point a superadmin at the dashboard — they get `SuperadminLanding`.
 
 ## Known risks / open items (flagged to the orchestrator)
 
-- **No route/nav wiring yet** — `app/admin/dashboard/page.tsx` and the admin nav entry are orchestrator-owned (see module-builder report).
+- **Chart labels are axis/legend text**, not per-element ARIA — each chart carries an `aria-label` summary, but Mantine Charts don't expose per-bar/slice SR text the way the old `Progress` `aria-label`s did. Exact per-segment numbers on the stacked bars are tooltip-only.
 - **Pipeline/Workload links point at PLAIN list routes**, not filtered ones — a deliberate deviation from a literal "link with a filter query" reading of the build brief, made because the contract has no drill-down guarantee (§9) and this app's own shells lock a URL-seeded filter permanently once set (see "Do not do" above).
 - **No per-lead route exists** — `today.stale_leads` and any lead row link to `/admin/lead-management` (the board), not a specific lead (the board opens a lead via drawer state, not a URL).
