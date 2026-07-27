@@ -47,6 +47,20 @@ const schema = z
     }
   });
 
+export interface ChecklistCreateFormProps extends ModalFormComponentProps<
+  Checklist,
+  ChecklistCreateValues
+> {
+  /**
+   * When provided, the journey picker is hidden and the value is locked to this
+   * id — for opening the form from a context that already knows the journey.
+   * Used by the Journey profile's Worklist tab.
+   */
+  journeyId?: string;
+  /** Submit-button copy. The journey UI calls this entity a "worklist". */
+  submitLabel?: string;
+}
+
 /**
  * The manual override (`POST /`) — the normal path is auto-inheritance and
  * calls no endpoint at all (§7). Two mutually exclusive shapes: apply an
@@ -57,10 +71,12 @@ const schema = z
 export function ChecklistCreateForm({
   onSubmit,
   isLoading,
-}: ModalFormComponentProps<Checklist, ChecklistCreateValues>) {
+  journeyId,
+  submitLabel = "Create checklist",
+}: ChecklistCreateFormProps) {
   return (
     <FormWrapper<ChecklistCreateValues>
-      initial={CHECKLIST_CREATE_INITIAL}
+      initial={{ ...CHECKLIST_CREATE_INITIAL, journey: journeyId ?? "" }}
       validation={[schema]}
       finalSubmitFn={async (values) => {
         onSubmit(values);
@@ -68,14 +84,18 @@ export function ChecklistCreateForm({
       }}
     >
       <Stack gap="md" p="md">
-        <Text size="xs" c="dimmed">
-          There is no button for this on the applicant&apos;s journey by design
-          — setting the journey&apos;s destination country creates the checklist
-          automatically. Use this only to build a checklist by hand.
-        </Text>
-        <JourneyPickerField isLoading={isLoading} />
+        {journeyId ? null : (
+          <>
+            <Text size="xs" c="dimmed">
+              Setting the journey&apos;s destination country creates its
+              checklist automatically. Use this to build one by hand, or to
+              apply a non-default template.
+            </Text>
+            <JourneyPickerField isLoading={isLoading} />
+          </>
+        )}
         <ModeFields isLoading={isLoading} />
-        <SubmitButton isLoading={isLoading} />
+        <SubmitButton isLoading={isLoading} label={submitLabel} />
       </Stack>
     </FormWrapper>
   );
@@ -161,11 +181,17 @@ function BlankChecklistFields({ isLoading }: { isLoading: boolean }) {
   );
 }
 
-function SubmitButton({ isLoading }: { isLoading: boolean }) {
+function SubmitButton({
+  isLoading,
+  label,
+}: {
+  isLoading: boolean;
+  label: string;
+}) {
   const { handleSubmit, isLoading: submitting } = useFormControls();
   return (
     <Button onClick={handleSubmit} loading={isLoading || submitting} fullWidth>
-      Create checklist
+      {label}
     </Button>
   );
 }

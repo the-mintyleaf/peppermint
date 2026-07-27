@@ -11,6 +11,7 @@ export {
 } from "./TemplateForm.utils";
 
 export { ChecklistCreateForm } from "./ChecklistCreateForm";
+export type { ChecklistCreateFormProps } from "./ChecklistCreateForm";
 export type {
   ChecklistCreateMode,
   ChecklistCreateValues,

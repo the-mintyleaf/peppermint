@@ -119,7 +119,7 @@ apps/grandway/
         │   ├── form/JourneyForm.tsx      # shared create+edit modal form (applicantId prop for embedded use); exports toJourneyPayload (create) and toJourneyUpdatePayload (edit — drops the immutable `applicant`)
         │   └── pages/
         │       ├── list/                 # ModalTableShell worklist; inline JourneyStageSwitch in Stage column (plain moves inline; Defer/Close/Reopen open their modals) — the SAME switch is the detail page's header control; row menu View/Edit
-        │       └── detail/               # Journey Detail — 2-col ProfileLayout: JourneyStageSwitch in the ModuleHeader right (mirrors the applicant's status switch) | sticky sidebar grouped Objective/Funding/Notes/Outcome-or-Deferment | underline tabs Worklist / Files / History, each with a ProfilePanelHeader
+        │       └── detail/               # Journey Detail — 2-col ProfileLayout: JourneyStageSwitch in the ModuleHeader right (mirrors the applicant's status switch) | sticky sidebar grouped Objective/Funding/Notes/Outcome-or-Deferment | underline tabs Worklist / Files / History, each with a ProfilePanelHeader. Worklist tab creates via ChecklistCreateForm (pick a template or start blank) — a blank one is created `draft` and then activated, since every per-journey read filters `status=active`
         ├── institutions/     # study-opportunity catalogue — 5 resources (fields/countries/institutions/campuses/programs)
         │   ├── institutions.{types,constants,api,queryKeys,hooks}.ts   # one createResourceApi/createQueryKeys per resource
         │   ├── programs/     # ModuleInstitutionPrograms — /admin/institutions (search + rich form + detail drawer)
@@ -144,7 +144,7 @@ apps/grandway/
         │   └── pages/{detail,review}/     # FileDetail ([id]), FileReviewQueue (Admin-only)
         ├── checklists/       # MultiPageModule — country requirement templates + per-applicant instances
         │   ├── checklists.{types,api,queryKeys,hooks,labels}.ts   # 2 createResourceApi (templates + checklists) + dual-response awaiting-setup
-        │   ├── form/         # TemplateForm, ChecklistCreateForm, ChecklistEditForm
+        │   ├── form/         # TemplateForm, ChecklistCreateForm (template-or-blank; `journeyId` prop presets+hides the journey picker for the Journey profile's Worklist tab), ChecklistEditForm
         │   └── pages/
         │       ├── templates/{list,detail}/   # Admin-authored (reads shared with lead_manager; writes admin-gated inline)
         │       ├── list/      # ChecklistWorklist + AwaitingSetupList (separate — different resource, journeys not checklists)

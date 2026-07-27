@@ -2,18 +2,22 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button, Center, Loader, Stack, Text } from "@peppermint/ui";
+import { Button, Center, Loader, Modal, Stack, Text } from "@peppermint/ui";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react/dist/csr/ArrowSquareOut";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { ProfilePanelHeader } from "@/components/profile";
 import { QueryErrorState } from "@/components/QueryErrorState";
-// Concrete-file / deep imports of the `checklists` module — the per-journey
-// checklist and its tickable items already live there, so the journey surfaces
-// them rather than rebuilding. (No cycle: these files don't import journeys.)
+// Concrete-file / deep imports of the `checklists` module, never its barrel —
+// the per-journey checklist, its create form and its tickable items already
+// live there, so the journey surfaces them rather than rebuilding. The create
+// form reaches back into this module for its journey picker, but only through
+// concrete files (`applicantJourneys.api`), so no barrel-to-barrel cycle closes.
 import {
   useChecklistDetail,
   useChecklistsList,
 } from "@/modules/admin/checklists/checklists.hooks";
+import { ChecklistCreateForm } from "@/modules/admin/checklists/form/ChecklistCreateForm";
+import { toCreateChecklistPayload } from "@/modules/admin/checklists/form/ChecklistCreateForm.utils";
 import { AddChecklistItemModal } from "@/modules/admin/checklists/pages/detail/components/AddChecklistItemModal";
 import { ChecklistItemsList } from "@/modules/admin/checklists/pages/detail/components/ChecklistItemsList";
 import { journeyChecklistListParams } from "../../../../applicantJourneys.checklist";
@@ -32,6 +36,7 @@ import type { JourneyChecklistPanelProps } from "./JourneyChecklistPanel.types";
  */
 export function JourneyChecklistPanel({ journey }: JourneyChecklistPanelProps) {
   const [addOpen, setAddOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const listQuery = useChecklistsList(journeyChecklistListParams(journey.id));
   const checklistRow = listQuery.data?.data[0] ?? null;
   const detailQuery = useChecklistDetail(checklistRow?.id ?? null);
@@ -90,18 +95,14 @@ export function JourneyChecklistPanel({ journey }: JourneyChecklistPanelProps) {
       ) : !checklistRow ? (
         <Stack gap="sm" align="flex-start">
           <Text size="xs" c="dimmed">
-            No worklist for this journey yet.
+            No worklist for this journey yet. Setting the journey&apos;s
+            destination country creates one automatically from that
+            country&apos;s template.
           </Text>
           <Button
             size="xs"
             leftSection={<PlusIcon size={14} aria-hidden />}
-            loading={createMutation.isPending}
-            onClick={() =>
-              createMutation.mutate({
-                journey: journey.id,
-                title: "Profile Building",
-              })
-            }
+            onClick={() => setCreateOpen(true)}
           >
             Create worklist
           </Button>
@@ -123,6 +124,23 @@ export function JourneyChecklistPanel({ journey }: JourneyChecklistPanelProps) {
           onClose={() => setAddOpen(false)}
         />
       ) : null}
+
+      <Modal
+        opened={createOpen}
+        onClose={() => setCreateOpen(false)}
+        title="Create worklist"
+      >
+        <ChecklistCreateForm
+          journeyId={journey.id}
+          submitLabel="Create worklist"
+          isLoading={createMutation.isPending}
+          onSubmit={(values) => {
+            createMutation.mutate(toCreateChecklistPayload(values), {
+              onSuccess: () => setCreateOpen(false),
+            });
+          }}
+        />
+      </Modal>
     </Stack>
   );
 }
