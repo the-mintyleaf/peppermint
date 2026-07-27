@@ -16,6 +16,7 @@ import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import { documentsApi, documentQueryKeys } from "@/modules/documents";
 import { workspaceEditorHref } from "@/modules/admin/documents/documents.queries";
+import { applicantDisplayName } from "../../../../applicants.labels";
 import type { OpenDocumentButtonProps } from "./OpenDocumentButton.types";
 
 /**
@@ -35,7 +36,7 @@ export function OpenDocumentButton({ applicant }: OpenDocumentButtonProps) {
   const { authorityType } = useCurrentUser();
   const [isChecking, setChecking] = useState(false);
 
-  const displayName = applicant.full_name;
+  const displayName = applicantDisplayName(applicant);
 
   const goToEditor = () => router.push(workspaceEditorHref(applicant.id));
 

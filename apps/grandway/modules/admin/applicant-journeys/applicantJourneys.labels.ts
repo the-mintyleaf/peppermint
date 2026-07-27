@@ -54,3 +54,15 @@ export const STUDY_LEVEL_LABELS: Record<StudyLevel, string> = {
   phd: "PhD",
   other: "Other",
 };
+
+/**
+ * A journey never stores a name of its own — it displays the embedded
+ * `ApplicantBrief`. Same empty-name guard as the `applicants` module's own
+ * helper; duplicated rather than imported because this module deliberately
+ * does not depend on that sibling's barrel (import cycle).
+ */
+export function journeyApplicantName(journey: {
+  applicant: { full_name: string };
+}): string {
+  return journey.applicant.full_name.trim() || "Unnamed applicant";
+}

@@ -3,6 +3,7 @@
 import { RowActionsMenu, useModalTableShellContext } from "@peppermint/admin";
 import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
+import { journeyApplicantName } from "../../../../applicantJourneys.labels";
 import type { ApplicantJourney } from "../../../../applicantJourneys.types";
 import type { JourneyRowActionsMenuProps } from "./JourneyRowActionsMenu.types";
 
@@ -22,7 +23,7 @@ export function JourneyRowActionsMenu({
   return (
     <RowActionsMenu<ApplicantJourney>
       record={journey}
-      aria-label={`Actions for ${journey.applicant.full_name}`}
+      aria-label={`Actions for ${journeyApplicantName(journey)}`}
       actions={[
         {
           label: "View",

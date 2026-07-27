@@ -24,6 +24,7 @@ import {
   toJourneyPayload,
 } from "@/modules/admin/applicant-journeys/form/JourneyForm";
 import type { OpenJourneysButtonProps } from "./OpenJourneysButton.types";
+import { applicantDisplayName } from "../../../../applicants.labels";
 
 /**
  * List-row quick entry into an applicant's journeys — the row-level analog of
@@ -43,7 +44,7 @@ export function OpenJourneysButton({ applicant }: OpenJourneysButtonProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const createMutation = useCreateJourney();
 
-  const displayName = applicant.full_name;
+  const displayName = applicantDisplayName(applicant);
 
   // Same params the detail panel uses, so the fetch primes/reuses that cache.
   const listParams = {

@@ -8,7 +8,10 @@ import {
   SELECTABLE_STAGES,
   type SelectableJourneyStage,
 } from "../../../../applicantJourneys.types";
-import { STAGE_LABELS } from "../../../../applicantJourneys.labels";
+import {
+  STAGE_LABELS,
+  journeyApplicantName,
+} from "../../../../applicantJourneys.labels";
 import type { ReopenJourneyModalProps } from "./ReopenJourneyModal.types";
 
 const STAGE_OPTIONS = SELECTABLE_STAGES.map((stage) => ({
@@ -41,7 +44,7 @@ export function ReopenJourneyModal({
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={`Reopen — ${journey.applicant.full_name}`}
+      title={`Reopen — ${journeyApplicantName(journey)}`}
       centered
     >
       <Stack gap="md" p="md">

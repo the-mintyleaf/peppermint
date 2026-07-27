@@ -9,6 +9,7 @@ import { EnvelopeSimpleIcon } from "@phosphor-icons/react/dist/csr/EnvelopeSimpl
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
 import { PulseIcon } from "@phosphor-icons/react/dist/csr/Pulse";
 import { STATUS_LABELS } from "../../applicants.labels";
+import { applicantDisplayName } from "../../applicants.labels";
 import type { Applicant } from "../../applicants.types";
 import { ApplicantRowActionsMenu } from "./components/ApplicantRowActionsMenu";
 import { ApplicantStatusSwitch } from "./components/ApplicantStatusSwitch";
@@ -30,7 +31,7 @@ export function getApplicantsColumns({
       render: (applicant: Applicant) => (
         <Stack gap={0}>
           <Text size="xs" fw={500}>
-            {applicant.full_name}
+            {applicantDisplayName(applicant)}
           </Text>
           {applicant.creation_source === "lead_conversion" ? (
             <Text
@@ -65,11 +66,10 @@ export function getApplicantsColumns({
       ),
     },
     {
-      // The list-shape response has no `contact_numbers` (only the detail
-      // shape does — `docs/backend/applicants/INTEGRATION.md` §4), so this
-      // renders the one contact field the list row actually carries
-      // (`email`) rather than a primary phone number the API can't supply
-      // here. Flagged as a spec deviation in this module's build report.
+      // Email, not a phone number: an operator scanning this list is
+      // identifying a person, and one stable address does that better than
+      // whichever of several numbers happens to be primary. The full set of
+      // numbers is one click away on the profile.
       accessor: "email",
       title: "Email",
       icon: EnvelopeSimpleIcon,

@@ -12,7 +12,10 @@ import {
 } from "@peppermint/ui";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { useCloseJourney } from "../../../../applicantJourneys.hooks";
-import { OUTCOME_LABELS } from "../../../../applicantJourneys.labels";
+import {
+  OUTCOME_LABELS,
+  journeyApplicantName,
+} from "../../../../applicantJourneys.labels";
 import type { JourneyOutcome } from "../../../../applicantJourneys.types";
 import type { CloseJourneyModalProps } from "./CloseJourneyModal.types";
 
@@ -51,7 +54,7 @@ export function CloseJourneyModal({
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={`Close — ${journey.applicant.full_name}`}
+      title={`Close — ${journeyApplicantName(journey)}`}
       centered
     >
       <Stack gap="md" p="md">

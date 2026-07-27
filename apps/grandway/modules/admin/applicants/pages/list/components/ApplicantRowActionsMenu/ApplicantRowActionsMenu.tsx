@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { RowActionsMenu } from "@peppermint/admin";
 import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
+import { applicantDisplayName } from "../../../../applicants.labels";
 import type { Applicant } from "../../../../applicants.types";
 import type { ApplicantRowActionsMenuProps } from "./ApplicantRowActionsMenu.types";
 
@@ -23,7 +24,7 @@ export function ApplicantRowActionsMenu({
   return (
     <RowActionsMenu<Applicant>
       record={applicant}
-      aria-label={`Actions for ${applicant.full_name}`}
+      aria-label={`Actions for ${applicantDisplayName(applicant)}`}
       actions={[
         {
           label: "View details",

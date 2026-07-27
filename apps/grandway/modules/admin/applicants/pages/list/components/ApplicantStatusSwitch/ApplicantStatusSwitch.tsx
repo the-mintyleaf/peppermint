@@ -6,6 +6,7 @@ import {
   APPLICANT_STATUSES,
   STATUS_COLORS,
   STATUS_LABELS,
+  applicantDisplayName,
 } from "../../../../applicants.labels";
 import type { ApplicantStatus } from "../../../../applicants.types";
 import type { ApplicantStatusSwitchProps } from "./ApplicantStatusSwitch.types";
@@ -30,7 +31,7 @@ export function ApplicantStatusSwitch({
       labelMap={STATUS_LABELS}
       targets={targets}
       menuLabel="Set status"
-      entityLabel={applicant.full_name}
+      entityLabel={applicantDisplayName(applicant)}
       onConfirm={(value) =>
         mutation.mutateAsync({ status: value as ApplicantStatus })
       }

@@ -32,6 +32,7 @@ import { getApiError } from "@/lib/authErrorMessages";
 import { FilesPanel } from "@/modules/admin/uploaded-files/_shared/FilesPanel";
 import { useJourneyDetail } from "../../applicantJourneys.hooks";
 import { STAGE_COLORS, STAGE_LABELS } from "../../applicantJourneys.labels";
+import { journeyApplicantName } from "../../applicantJourneys.labels";
 import type { ApplicantJourneyDetail } from "../../applicantJourneys.types";
 import { ChangeJourneyStageModal } from "../list/components/ChangeJourneyStageModal";
 import { CloseJourneyModal } from "../list/components/CloseJourneyModal";
@@ -127,7 +128,7 @@ function JourneyDetailContent() {
     );
   }
 
-  const displayName = journey.applicant.full_name;
+  const displayName = journeyApplicantName(journey);
   const destination = journey.target_country || "No destination set";
   const isTerminal = TERMINAL_STAGES.has(journey.stage);
   const closeModal = () => setActiveModal(null);

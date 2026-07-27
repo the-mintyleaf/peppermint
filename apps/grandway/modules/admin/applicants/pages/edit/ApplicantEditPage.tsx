@@ -13,6 +13,7 @@ import {
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiError } from "@/lib/authErrorMessages";
 import { useApplicantDetail, useUpdateApplicant } from "../../applicants.hooks";
+import { applicantDisplayName } from "../../applicants.labels";
 import { ApplicantForm } from "../../form/ApplicantForm";
 
 /**
@@ -82,7 +83,7 @@ function ApplicantEditPageContent() {
     );
   }
 
-  const displayName = applicant.full_name;
+  const displayName = applicantDisplayName(applicant);
 
   return (
     <>

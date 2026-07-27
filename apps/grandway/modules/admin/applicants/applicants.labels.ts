@@ -18,3 +18,14 @@ export const STATUS_COLORS: Record<ApplicantStatus, string> = {
   dormant: "yellow",
   archived: "gray",
 };
+
+/**
+ * The one place an applicant's name is turned into display text. `full_name` is
+ * non-blank at the model level, but rows migrated from the old bilingual
+ * columns can carry an empty string — and an empty name silently becomes an
+ * empty aria-label or an empty modal title, which reads as a broken control
+ * rather than as missing data.
+ */
+export function applicantDisplayName(applicant: { full_name: string }): string {
+  return applicant.full_name.trim() || "Unnamed applicant";
+}

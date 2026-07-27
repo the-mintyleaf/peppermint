@@ -145,9 +145,9 @@ export function ApplicantPassportFamilyPanel({
           </Text>
         ) : (
           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-            {applicant.family_members.map((member, index) => (
+            {applicant.family_members.map((member) => (
               <PersonCard
-                key={member.id ?? `${member.relationship}-${index}`}
+                key={member.id ?? `${member.relationship}:${member.full_name}`}
                 name={member.full_name || "Unnamed"}
                 relationship={member.relationship}
                 lines={[member.occupation, member.contact_number].filter(
@@ -175,9 +175,11 @@ export function ApplicantPassportFamilyPanel({
           </Text>
         ) : (
           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-            {applicant.emergency_contacts.map((contact, index) => (
+            {applicant.emergency_contacts.map((contact) => (
               <PersonCard
-                key={contact.id ?? `${contact.relationship}-${index}`}
+                key={
+                  contact.id ?? `${contact.relationship}:${contact.full_name}`
+                }
                 name={contact.full_name || "Unnamed"}
                 relationship={contact.relationship}
                 lines={[

@@ -110,7 +110,11 @@ export interface EmergencyContact {
   address?: string;
 }
 
-/** `GET /applicants/` row shape — trimmed relative to detail (no nested collections). */
+/**
+ * `GET /applicants/` row shape — trimmed relative to detail: it carries
+ * `contact_numbers`, but not the addresses/passport/family/emergency
+ * collections.
+ */
 export interface Applicant {
   id: string;
   /**
@@ -127,13 +131,13 @@ export interface Applicant {
   status: ApplicantStatus;
   creation_source: CreationSource;
   created_by: UserBrief;
+  contact_numbers: ApplicantContactNumber[];
   created_at: string;
   updated_at: string;
 }
 
 /** Returned by retrieve, create, update, and the status-change action. */
 export interface ApplicantDetail extends Applicant {
-  contact_numbers: ApplicantContactNumber[];
   addresses: ApplicantAddress[];
   passport: PassportDetail | null;
   family_members: FamilyMember[];

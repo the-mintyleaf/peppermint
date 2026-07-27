@@ -11,6 +11,7 @@ import { FlagIcon } from "@phosphor-icons/react/dist/csr/Flag";
 import {
   STAGE_LABELS,
   STUDY_LEVEL_LABELS,
+  journeyApplicantName,
 } from "../../applicantJourneys.labels";
 import type { ApplicantJourney } from "../../applicantJourneys.types";
 import { JourneyRowActionsMenu } from "./components/JourneyRowActionsMenu";
@@ -44,7 +45,7 @@ export function getJourneysColumns({
           component={Link}
           href={`/admin/applicants/${journey.applicant.id}`}
         >
-          {journey.applicant.full_name}
+          {journeyApplicantName(journey)}
         </Text>
       ),
     },

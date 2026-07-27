@@ -31,6 +31,7 @@ import { ApplicantDocumentsPanel } from "@/modules/admin/documents";
 import { RecordAlertsPanel } from "@/modules/admin/notifications/_shared/RecordAlertsPanel";
 import { FilesPanel } from "@/modules/admin/uploaded-files/_shared/FilesPanel";
 import { useApplicantDetail } from "../../applicants.hooks";
+import { applicantDisplayName } from "../../applicants.labels";
 import type { ApplicantDetail as ApplicantDetailRecord } from "../../applicants.types";
 import { ApplicantHistoryPanel } from "./components/ApplicantHistoryPanel";
 import { ApplicantJourneysPanel } from "./components/ApplicantJourneysPanel";
@@ -45,6 +46,7 @@ import { ApplicantStatusSwitch } from "../list/components/ApplicantStatusSwitch"
  */
 function getApplicantTabs(
   applicant: ApplicantDetailRecord,
+  displayName: string,
   includeDocuments: boolean,
 ): ProfileTab[] {
   return [
@@ -72,7 +74,7 @@ function getApplicantTabs(
             panel: (
               <ApplicantDocumentsPanel
                 applicantId={applicant.id}
-                applicantName={applicant.full_name}
+                applicantName={displayName}
               />
             ),
           } satisfies ProfileTab,
@@ -166,8 +168,8 @@ function ApplicantDetailContent() {
     );
   }
 
-  const displayName = applicant.full_name;
-  const tabs = getApplicantTabs(applicant, isAdmin);
+  const displayName = applicantDisplayName(applicant);
+  const tabs = getApplicantTabs(applicant, displayName, isAdmin);
 
   return (
     <>

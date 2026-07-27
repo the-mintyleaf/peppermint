@@ -12,6 +12,7 @@ import { useChangeJourneyStage } from "../../../../applicantJourneys.hooks";
 import {
   STAGE_COLORS,
   STAGE_LABELS,
+  journeyApplicantName,
 } from "../../../../applicantJourneys.labels";
 import {
   SELECTABLE_STAGES,
@@ -78,7 +79,7 @@ export function JourneyStageSwitch({ journey }: JourneyStageSwitchProps) {
         labelMap={STAGE_LABELS}
         targets={targets}
         menuLabel="Move to stage"
-        entityLabel={journey.applicant.full_name}
+        entityLabel={journeyApplicantName(journey)}
         terminal={isTerminal}
         actions={actions}
         onConfirm={(value) =>

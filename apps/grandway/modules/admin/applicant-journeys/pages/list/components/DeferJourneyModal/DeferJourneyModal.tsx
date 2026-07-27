@@ -12,6 +12,7 @@ import {
 } from "@peppermint/ui";
 import { InfoIcon } from "@phosphor-icons/react/dist/csr/Info";
 import { useDeferJourney } from "../../../../applicantJourneys.hooks";
+import { journeyApplicantName } from "../../../../applicantJourneys.labels";
 import type { DeferJourneyModalProps } from "./DeferJourneyModal.types";
 
 /**
@@ -39,7 +40,7 @@ export function DeferJourneyModal({
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={`Defer — ${journey.applicant.full_name}`}
+      title={`Defer — ${journeyApplicantName(journey)}`}
       centered
     >
       <Stack gap="md" p="md">
