@@ -1,14 +1,14 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Center, Loader, Text } from "@peppermint/ui";
+import { Center, Loader, Stack, Text } from "@peppermint/ui";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
 import { PauseCircleIcon } from "@phosphor-icons/react/dist/csr/PauseCircle";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { PlusCircleIcon } from "@phosphor-icons/react/dist/csr/PlusCircle";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
-import { HistoryTable } from "@/components/profile";
+import { HistoryTable, ProfilePanelHeader } from "@/components/profile";
 import { QueryErrorState } from "@/components/QueryErrorState";
 import { useJourneyHistory } from "../../../applicantJourneys.hooks";
 
@@ -52,41 +52,38 @@ export function JourneyHistoryPanel({ journeyId }: { journeyId: string }) {
   const entries = data?.data ?? [];
   const truncated = (data?.meta.total ?? 0) > entries.length;
 
-  if (isLoading) {
-    return (
-      <Center py="xl">
-        <Loader size="sm" />
-      </Center>
-    );
-  }
-
-  if (isError) {
-    return (
-      <QueryErrorState
-        message="Couldn't load history."
-        onRetry={() => refetch()}
-        isRetrying={isRefetching}
-      />
-    );
-  }
-
-  if (entries.length === 0) {
-    return (
-      <Text size="xs" c="dimmed">
-        No history yet.
-      </Text>
-    );
-  }
-
   return (
-    <HistoryTable
-      entries={entries}
-      iconFor={(action) => ICONS[action]}
-      truncatedNote={
-        truncated
-          ? `Showing the ${entries.length} most recent entries.`
-          : undefined
-      }
-    />
+    <Stack gap="md">
+      <ProfilePanelHeader
+        title="History"
+        description="Recorded automatically — read only"
+      />
+
+      {isLoading ? (
+        <Center py="xl">
+          <Loader size="sm" />
+        </Center>
+      ) : isError ? (
+        <QueryErrorState
+          message="Couldn't load history."
+          onRetry={() => refetch()}
+          isRetrying={isRefetching}
+        />
+      ) : entries.length === 0 ? (
+        <Text size="xs" c="dimmed">
+          No history yet.
+        </Text>
+      ) : (
+        <HistoryTable
+          entries={entries}
+          iconFor={(action) => ICONS[action]}
+          truncatedNote={
+            truncated
+              ? `Showing the ${entries.length} most recent entries.`
+              : undefined
+          }
+        />
+      )}
+    </Stack>
   );
 }

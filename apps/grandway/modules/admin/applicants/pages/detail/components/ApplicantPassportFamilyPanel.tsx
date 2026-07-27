@@ -1,18 +1,11 @@
 "use client";
 
+import { Badge, Group, SimpleGrid, Stack, Text, dayjs } from "@peppermint/ui";
 import {
-  Badge,
-  Group,
-  SimpleGrid,
-  Stack,
-  Text,
-  ThemeIcon,
-  dayjs,
-} from "@peppermint/ui";
-import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
-import {
-  ProfileCard,
   ProfileField,
+  ProfileList,
+  ProfileListRow,
+  ProfilePanelHeader,
   ProfileSection,
 } from "@/components/profile";
 import type { ApplicantDetail } from "../../../applicants.types";
@@ -29,39 +22,37 @@ function expiryTone(expiryDate: string): { color: string; label: string } {
   return { color: "green", label: "Valid" };
 }
 
-/** A named person card — one shape for both family members and emergency contacts. */
-function PersonCard({
+/**
+ * One row per named person — the same shape for family members and emergency
+ * contacts. A list, not cards: these are short records whose whole content is
+ * a name, a relationship and a couple of contact facts, and a card per person
+ * spent a border and half the column width on each of them.
+ */
+function PersonRow({
   name,
   relationship,
-  lines,
+  facts,
 }: {
   name: string;
   relationship: string;
-  lines: string[];
+  facts: string[];
 }) {
   return (
-    <ProfileCard>
-      <Group align="flex-start" wrap="nowrap" gap="sm">
-        <ThemeIcon variant="light" color="gray" size="md" radius="xl">
-          <UserIcon size={14} aria-hidden />
-        </ThemeIcon>
-        <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
-          <Group justify="space-between" wrap="nowrap" gap="xs">
-            <Text size="sm" fw={600}>
-              {name}
-            </Text>
-            <Badge size="xs" variant="light" tt="capitalize">
-              {relationship}
-            </Badge>
-          </Group>
-          {lines.map((line) => (
-            <Text key={line} size="xs" c="dimmed">
-              {line}
-            </Text>
-          ))}
+    <ProfileListRow>
+      <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
+        <Stack gap={2} style={{ minWidth: 0 }}>
+          <Text size="sm" fw={600}>
+            {name}
+          </Text>
+          <Text size="xs" c="dimmed">
+            {facts.length > 0 ? facts.join(" · ") : "No contact details"}
+          </Text>
         </Stack>
+        <Badge size="xs" variant="light" tt="capitalize">
+          {relationship}
+        </Badge>
       </Group>
-    </ProfileCard>
+    </ProfileListRow>
   );
 }
 
@@ -76,7 +67,12 @@ export function ApplicantPassportFamilyPanel({
     : null;
 
   return (
-    <Stack gap="xl">
+    <Stack gap="lg">
+      <ProfilePanelHeader
+        title="Passport & Family"
+        description="Travel document, next of kin, and who to call"
+      />
+
       <ProfileSection title="Passport">
         {passport ? (
           <SimpleGrid
@@ -109,7 +105,7 @@ export function ApplicantPassportFamilyPanel({
               value={
                 passport.expiry_date ? (
                   <Group gap={6} wrap="nowrap">
-                    <Text size="xs" fw={500}>
+                    <Text size="sm" fw={500}>
                       {dayjs(passport.expiry_date).format("MMM D, YYYY")}
                     </Text>
                     {expiry ? (
@@ -144,18 +140,18 @@ export function ApplicantPassportFamilyPanel({
             No family members on file.
           </Text>
         ) : (
-          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+          <ProfileList>
             {applicant.family_members.map((member) => (
-              <PersonCard
+              <PersonRow
                 key={member.id ?? `${member.relationship}:${member.full_name}`}
                 name={member.full_name || "Unnamed"}
                 relationship={member.relationship}
-                lines={[member.occupation, member.contact_number].filter(
-                  (l): l is string => Boolean(l),
+                facts={[member.occupation, member.contact_number].filter(
+                  (f): f is string => Boolean(f),
                 )}
               />
             ))}
-          </SimpleGrid>
+          </ProfileList>
         )}
       </ProfileSection>
 
@@ -174,22 +170,22 @@ export function ApplicantPassportFamilyPanel({
             No emergency contacts on file.
           </Text>
         ) : (
-          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+          <ProfileList>
             {applicant.emergency_contacts.map((contact) => (
-              <PersonCard
+              <PersonRow
                 key={
                   contact.id ?? `${contact.relationship}:${contact.full_name}`
                 }
                 name={contact.full_name || "Unnamed"}
                 relationship={contact.relationship}
-                lines={[
+                facts={[
                   contact.contact_number,
                   contact.email,
                   contact.address,
-                ].filter((l): l is string => Boolean(l))}
+                ].filter((f): f is string => Boolean(f))}
               />
             ))}
-          </SimpleGrid>
+          </ProfileList>
         )}
       </ProfileSection>
     </Stack>

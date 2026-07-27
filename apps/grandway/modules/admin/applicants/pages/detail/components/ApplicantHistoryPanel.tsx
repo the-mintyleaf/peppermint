@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Center, Loader, Text } from "@peppermint/ui";
+import { Center, Loader, Stack, Text } from "@peppermint/ui";
 import { AddressBookIcon } from "@phosphor-icons/react/dist/csr/AddressBook";
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
@@ -9,7 +9,7 @@ import { MapPinIcon } from "@phosphor-icons/react/dist/csr/MapPin";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { PlusCircleIcon } from "@phosphor-icons/react/dist/csr/PlusCircle";
 import { UsersThreeIcon } from "@phosphor-icons/react/dist/csr/UsersThree";
-import { HistoryTable } from "@/components/profile";
+import { HistoryTable, ProfilePanelHeader } from "@/components/profile";
 import { QueryErrorState } from "@/components/QueryErrorState";
 import { useApplicantHistory } from "../../../applicants.hooks";
 
@@ -64,41 +64,38 @@ export function ApplicantHistoryPanel({
   const entries = data?.data ?? [];
   const truncated = (data?.meta.total ?? 0) > entries.length;
 
-  if (isLoading) {
-    return (
-      <Center py="xl">
-        <Loader size="sm" />
-      </Center>
-    );
-  }
-
-  if (isError) {
-    return (
-      <QueryErrorState
-        message="Couldn't load history."
-        onRetry={() => refetch()}
-        isRetrying={isRefetching}
-      />
-    );
-  }
-
-  if (entries.length === 0) {
-    return (
-      <Text size="xs" c="dimmed">
-        No history yet.
-      </Text>
-    );
-  }
-
   return (
-    <HistoryTable
-      entries={entries}
-      iconFor={(action) => ICONS[action]}
-      truncatedNote={
-        truncated
-          ? `Showing the ${entries.length} most recent entries.`
-          : undefined
-      }
-    />
+    <Stack gap="md">
+      <ProfilePanelHeader
+        title="History"
+        description="Recorded automatically — read only"
+      />
+
+      {isLoading ? (
+        <Center py="xl">
+          <Loader size="sm" />
+        </Center>
+      ) : isError ? (
+        <QueryErrorState
+          message="Couldn't load history."
+          onRetry={() => refetch()}
+          isRetrying={isRefetching}
+        />
+      ) : entries.length === 0 ? (
+        <Text size="xs" c="dimmed">
+          No history yet.
+        </Text>
+      ) : (
+        <HistoryTable
+          entries={entries}
+          iconFor={(action) => ICONS[action]}
+          truncatedNote={
+            truncated
+              ? `Showing the ${entries.length} most recent entries.`
+              : undefined
+          }
+        />
+      )}
+    </Stack>
   );
 }

@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { RowActionsMenu } from "@peppermint/admin";
 import {
   Badge,
   Button,
@@ -9,18 +11,22 @@ import {
   Group,
   Loader,
   Modal,
-  SimpleGrid,
   Stack,
   Text,
   TextInput,
-  ThemeIcon,
   dayjs,
 } from "@peppermint/ui";
-import { AirplaneTakeoffIcon } from "@phosphor-icons/react/dist/csr/AirplaneTakeoff";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react/dist/csr/ArrowSquareOut";
+import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
+import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
-import { ProfileCard, ProfileSection } from "@/components/profile";
+import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
+import {
+  ProfileList,
+  ProfileListRow,
+  ProfilePanelHeader,
+} from "@/components/profile";
 import { QueryErrorState } from "@/components/QueryErrorState";
 // Concrete-file imports, not the `applicant-journeys` barrel — that barrel's
 // `form/index.ts` re-exports `JourneyForm`, which itself imports the
@@ -29,7 +35,9 @@ import { QueryErrorState } from "@/components/QueryErrorState";
 // applicant-journeys barrel -> JourneyForm -> applicants barrel).
 import {
   useCreateJourney,
+  useJourneyDetail,
   useJourneyList,
+  useUpdateJourney,
 } from "@/modules/admin/applicant-journeys/applicantJourneys.hooks";
 import {
   STAGE_COLORS,
@@ -40,19 +48,34 @@ import {
   JourneyForm,
   toJourneyPayload,
 } from "@/modules/admin/applicant-journeys/form/JourneyForm";
+import { CloseJourneyModal } from "@/modules/admin/applicant-journeys/pages/list/components/CloseJourneyModal";
+
+/** Already ended — Close would have nothing left to do (`FLOWS.md`, "End an objective"). */
+const ENDED_STAGES = new Set(["completed", "closed"]);
 
 /**
  * The per-person view `CONCEPT.md` calls the primary entry point for journeys
- * (the standalone worklist is secondary). Cards, not a table — this is a
- * related-records region on a Detail page (`DESIGN.md` Part 5B).
+ * (the standalone worklist is secondary). A full-width list, not cards: a
+ * journey row has to carry a destination, a stage, an intake, a date and its
+ * own actions menu, and a half-column card could not hold all five on one line.
+ *
+ * There is no delete. A journey that should not have existed is closed with the
+ * `cancelled` outcome (`applicant_journeys/docs/API.md` §1.4) — reversible via
+ * Reopen and kept in the audit trail, which a delete would destroy.
  */
 export function ApplicantJourneysPanel({
   applicantId,
 }: {
   applicantId: string;
 }) {
+  const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [closingJourney, setClosingJourney] = useState<ApplicantJourney | null>(
+    null,
+  );
   const [search, setSearch] = useState("");
+
   const { data, isLoading, isError, isRefetching, refetch } = useJourneyList({
     page: 1,
     pageSize: 50,
@@ -82,40 +105,43 @@ export function ApplicantJourneysPanel({
   }, [journeys, search]);
 
   return (
-    <ProfileSection
-      title="Journeys"
-      description="Study objectives for this applicant"
-      action={
-        <Group gap="xs" wrap="nowrap">
-          {journeys.length > 0 ? (
-            <TextInput
+    <Stack gap="md">
+      <ProfilePanelHeader
+        title="Journeys"
+        description="Study objectives for this applicant"
+        count={journeys.length || undefined}
+        action={
+          <>
+            {journeys.length > 0 ? (
+              <TextInput
+                size="xs"
+                placeholder="Search journeys"
+                aria-label="Search journeys"
+                leftSection={<MagnifyingGlassIcon size={14} aria-hidden />}
+                value={search}
+                onChange={(e) => setSearch(e.currentTarget.value)}
+              />
+            ) : null}
+            <Button
               size="xs"
-              placeholder="Search journeys"
-              aria-label="Search journeys"
-              leftSection={<MagnifyingGlassIcon size={14} aria-hidden />}
-              value={search}
-              onChange={(e) => setSearch(e.currentTarget.value)}
-            />
-          ) : null}
-          <Button
-            size="xs"
-            variant="default"
-            component={Link}
-            href={`/admin/applicant-journeys?applicant=${applicantId}`}
-            rightSection={<ArrowSquareOutIcon size={14} aria-hidden />}
-          >
-            Worklist
-          </Button>
-          <Button
-            size="xs"
-            leftSection={<PlusIcon size={14} aria-hidden />}
-            onClick={() => setCreateOpen(true)}
-          >
-            New
-          </Button>
-        </Group>
-      }
-    >
+              variant="default"
+              component={Link}
+              href={`/admin/applicant-journeys?applicant=${applicantId}`}
+              rightSection={<ArrowSquareOutIcon size={14} aria-hidden />}
+            >
+              Worklist
+            </Button>
+            <Button
+              size="xs"
+              leftSection={<PlusIcon size={14} aria-hidden />}
+              onClick={() => setCreateOpen(true)}
+            >
+              New
+            </Button>
+          </>
+        }
+      />
+
       {isLoading ? (
         <Center py="md">
           <Loader size="sm" />
@@ -140,11 +166,19 @@ export function ApplicantJourneysPanel({
         </Text>
       ) : (
         <Stack gap="sm">
-          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+          <ProfileList>
             {filtered.map((journey) => (
-              <JourneyCard key={journey.id} journey={journey} />
+              <JourneyRow
+                key={journey.id}
+                journey={journey}
+                onView={() =>
+                  router.push(`/admin/applicant-journeys/${journey.id}`)
+                }
+                onEdit={() => setEditingId(journey.id)}
+                onClose={() => setClosingJourney(journey)}
+              />
             ))}
-          </SimpleGrid>
+          </ProfileList>
           {truncated ? (
             <Text size="xs" c="dimmed" ta="center">
               Showing the {journeys.length} most recent journeys — open the
@@ -169,32 +203,92 @@ export function ApplicantJourneysPanel({
           }}
         />
       </Modal>
-    </ProfileSection>
+
+      <EditJourneyModal
+        journeyId={editingId}
+        onClose={() => setEditingId(null)}
+      />
+
+      {closingJourney ? (
+        <CloseJourneyModal
+          journey={closingJourney}
+          opened
+          onClose={() => setClosingJourney(null)}
+        />
+      ) : null}
+    </Stack>
   );
 }
 
-function JourneyCard({ journey }: { journey: ApplicantJourney }) {
+/**
+ * Edit always works from the **detail** fetch, never from the list row the menu
+ * was opened on. The list shape omits `notes`, and `PATCH` replaces what it is
+ * sent — prefilling from a list row would silently blank the notes on save.
+ */
+function EditJourneyModal({
+  journeyId,
+  onClose,
+}: {
+  journeyId: string | null;
+  onClose: () => void;
+}) {
+  const { data, isLoading, isError, isRefetching, refetch } =
+    useJourneyDetail(journeyId);
+  const updateMutation = useUpdateJourney(journeyId ?? "");
+
+  return (
+    <Modal opened={journeyId !== null} onClose={onClose} title="Edit journey">
+      {isLoading ? (
+        <Center py="xl">
+          <Loader size="sm" />
+        </Center>
+      ) : isError || !data ? (
+        <Stack p="md">
+          <QueryErrorState
+            message="Couldn't load this journey."
+            onRetry={() => refetch()}
+            isRetrying={isRefetching}
+          />
+        </Stack>
+      ) : (
+        <JourneyForm
+          initialValues={data}
+          isLoading={updateMutation.isPending}
+          onSubmit={(values) => {
+            updateMutation.mutate(toJourneyPayload(values), {
+              onSuccess: onClose,
+            });
+          }}
+        />
+      )}
+    </Modal>
+  );
+}
+
+function JourneyRow({
+  journey,
+  onView,
+  onEdit,
+  onClose,
+}: {
+  journey: ApplicantJourney;
+  onView: () => void;
+  onEdit: () => void;
+  onClose: () => void;
+}) {
   const subtitle =
     journey.target_institution_name ||
     journey.target_program_name ||
-    journey.preferred_intake ||
     "Objective not detailed yet";
+  const destination = journey.target_country || "Destination not decided";
 
   return (
-    <ProfileCard href={`/admin/applicant-journeys/${journey.id}`}>
-      <Group align="flex-start" wrap="nowrap" gap="sm">
-        <ThemeIcon variant="light" color="blue" size="md" radius="xl">
-          <AirplaneTakeoffIcon size={14} aria-hidden />
-        </ThemeIcon>
-        <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
-          <Group
-            justify="space-between"
-            align="flex-start"
-            wrap="nowrap"
-            gap="xs"
-          >
-            <Text size="sm" fw={600}>
-              {journey.target_country || "Destination not decided"}
+    <ProfileListRow>
+      <Group justify="space-between" align="flex-start" wrap="nowrap" gap="md">
+        <Stack gap={2} style={{ minWidth: 0 }}>
+          <Group gap="xs" wrap="nowrap">
+            <Text size="sm" fw={600} truncate>
+              {destination}
             </Text>
             <Badge
               size="xs"
@@ -207,19 +301,36 @@ function JourneyCard({ journey }: { journey: ApplicantJourney }) {
           <Text size="xs" c="dimmed" lineClamp={1}>
             {subtitle}
           </Text>
-          <Group gap={6} wrap="nowrap">
-            <Text size="xs" c="dimmed">
-              {journey.preferred_intake || "Intake not set"}
-            </Text>
-            <Text size="xs" c="dimmed">
-              ·
-            </Text>
-            <Text size="xs" c="dimmed">
-              Added {dayjs(journey.created_at).format("MMM D, YYYY")}
-            </Text>
-          </Group>
+          <Text size="xs" c="dimmed">
+            {journey.preferred_intake || "Intake not set"} · Added{" "}
+            {dayjs(journey.created_at).format("MMM D, YYYY")}
+          </Text>
         </Stack>
+        <RowActionsMenu<ApplicantJourney>
+          record={journey}
+          aria-label={`Actions for the ${destination} journey`}
+          actions={[
+            {
+              label: "View",
+              icon: <EyeIcon size={16} aria-hidden />,
+              onClick: onView,
+            },
+            {
+              label: "Edit",
+              icon: <PencilSimpleIcon size={16} aria-hidden />,
+              onClick: onEdit,
+            },
+            {
+              label: "Close",
+              icon: <ProhibitIcon size={16} aria-hidden />,
+              color: "red",
+              dividerBefore: true,
+              hidden: (record) => ENDED_STAGES.has(record.stage),
+              onClick: onClose,
+            },
+          ]}
+        />
       </Group>
-    </ProfileCard>
+    </ProfileListRow>
   );
 }

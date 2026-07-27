@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader, Stack, Text } from "@peppermint/ui";
+import { ProfilePanelHeader } from "@/components/profile";
 import { QueryErrorState } from "@/components/QueryErrorState";
 import { useNotificationsForEntities } from "../../notifications.hooks";
 import { NotificationRow } from "../NotificationRow";
@@ -40,10 +41,11 @@ export function RecordAlertsPanel({ sourceEntityId }: RecordAlertsPanelProps) {
     useNotificationsForEntities(entityIds);
 
   return (
-    <Stack gap="sm">
-      <Text size="sm" fw={500}>
-        Your alerts for this record
-      </Text>
+    <Stack gap="md">
+      <ProfilePanelHeader
+        title="Alerts"
+        description="Your alerts for this record — other staff see their own"
+      />
 
       {isLoading ? <Loader size="sm" /> : null}
 
