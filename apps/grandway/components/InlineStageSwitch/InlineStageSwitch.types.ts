@@ -45,4 +45,11 @@ export interface InlineStageSwitchProps {
   entityLabel: string;
   /** Section label above the target list, e.g. "Move to stage" / "Set status". */
   menuLabel?: string;
+  /**
+   * Stretch the pill to its container. `true` (the default) is right in a table
+   * cell, where the column is a fixed width and a ragged pill edge reads as
+   * noise. A page header sizes to its content instead — pass `false` there, or
+   * the pill eats the whole header row.
+   */
+  fullWidth?: boolean;
 }

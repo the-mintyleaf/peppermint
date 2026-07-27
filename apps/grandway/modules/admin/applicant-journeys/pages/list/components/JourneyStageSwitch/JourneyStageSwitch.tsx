@@ -36,7 +36,10 @@ const TERMINAL_STAGES = new Set(["completed", "closed", "deferred"]);
  * plain targets, only Reopen — the single path back for all three
  * (`CONCEPT.md` "Reopening").
  */
-export function JourneyStageSwitch({ journey }: JourneyStageSwitchProps) {
+export function JourneyStageSwitch({
+  journey,
+  fullWidth = true,
+}: JourneyStageSwitchProps) {
   const mutation = useChangeJourneyStage(journey.id);
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
 
@@ -74,6 +77,7 @@ export function JourneyStageSwitch({ journey }: JourneyStageSwitchProps) {
   return (
     <>
       <InlineStageSwitch
+        fullWidth={fullWidth}
         current={journey.stage}
         colorMap={STAGE_COLORS}
         labelMap={STAGE_LABELS}

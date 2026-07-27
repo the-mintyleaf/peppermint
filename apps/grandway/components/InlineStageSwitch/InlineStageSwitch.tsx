@@ -31,6 +31,7 @@ export function InlineStageSwitch({
   disabled = false,
   entityLabel,
   menuLabel = "Move to",
+  fullWidth = true,
 }: InlineStageSwitchProps) {
   const [opened, setOpened] = useState(false);
   const [confirming, setConfirming] = useState<string>();
@@ -75,7 +76,7 @@ export function InlineStageSwitch({
     >
       <Menu.Target>
         <StatusSwitchButton
-          fullWidth
+          fullWidth={fullWidth}
           terminal={terminal}
           label={currentLabel}
           color={colorMap[current] ?? "gray"}

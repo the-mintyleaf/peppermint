@@ -20,12 +20,14 @@ import type { ApplicantStatusSwitchProps } from "./ApplicantStatusSwitch.types";
  */
 export function ApplicantStatusSwitch({
   applicant,
+  fullWidth = true,
 }: ApplicantStatusSwitchProps) {
   const mutation = useChangeApplicantStatus(applicant.id);
   const targets = APPLICANT_STATUSES.filter((s) => s !== applicant.status);
 
   return (
     <InlineStageSwitch
+      fullWidth={fullWidth}
       current={applicant.status}
       colorMap={STATUS_COLORS}
       labelMap={STATUS_LABELS}

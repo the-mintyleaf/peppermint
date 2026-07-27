@@ -182,7 +182,7 @@ function ApplicantDetailContent() {
           <Group gap="xs" wrap="nowrap">
             {/* Status is the interactive control (current value + dropdown),
                 Edit is the action — different look, different position. */}
-            <ApplicantStatusSwitch applicant={applicant} />
+            <ApplicantStatusSwitch applicant={applicant} fullWidth={false} />
             <Button
               size="xs"
               variant="default"

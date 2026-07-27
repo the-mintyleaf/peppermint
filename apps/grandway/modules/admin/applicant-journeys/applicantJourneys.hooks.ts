@@ -9,6 +9,7 @@ import type { QueryParams } from "@peppermint/admin";
 // wrapped with journey-facing copy rather than checklists' own "Checklist
 // created." (`useCreateJourneyWorklist` below).
 import {
+  activateChecklist,
   createChecklist,
   listChecklists,
 } from "@/modules/admin/checklists/checklists.api";
@@ -99,7 +100,20 @@ function invalidateKeysFor(journeyId: string) {
  */
 export function useCreateJourneyWorklist() {
   return useAppMutation<ChecklistDetail, CreateChecklistPayload>({
-    mutationFn: (body) => createChecklist(body),
+    // Create, then activate. `POST /checklists/` with a `title` and no
+    // `template` starts the checklist as a **draft** (`API.md` §2.2), and every
+    // per-journey read filters `status=active` — so a bare create reported
+    // success and then showed nothing, because the new worklist was invisible
+    // to the query that was meant to display it. Activation is the documented
+    // second half of the blank-checklist path (`API.md` §2.5: "this only ever
+    // applies to a blank checklist"), so the button now delivers what it
+    // promises: a usable worklist.
+    mutationFn: async (body) => {
+      const created = await createChecklist(body);
+      return created.status === "draft"
+        ? await activateChecklist(created.id)
+        : created;
+    },
     successMessage: "Worklist created for this journey.",
     errorTitle: "Couldn't create worklist",
     invalidateKeys: [checklistQueryKeys.lists()],
