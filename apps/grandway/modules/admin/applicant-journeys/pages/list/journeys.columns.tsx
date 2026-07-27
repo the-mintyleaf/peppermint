@@ -44,9 +44,7 @@ export function getJourneysColumns({
           component={Link}
           href={`/admin/applicants/${journey.applicant.id}`}
         >
-          {journey.applicant.full_name ||
-            journey.applicant.full_name_en ||
-            journey.applicant.full_name_np}
+          {journey.applicant.full_name}
         </Text>
       ),
     },

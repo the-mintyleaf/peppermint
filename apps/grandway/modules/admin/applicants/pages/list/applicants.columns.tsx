@@ -30,10 +30,7 @@ export function getApplicantsColumns({
       render: (applicant: Applicant) => (
         <Stack gap={0}>
           <Text size="xs" fw={500}>
-            {applicant.full_name ||
-              applicant.full_name_en ||
-              applicant.full_name_np ||
-              applicant.full_name_romanized}
+            {applicant.full_name}
           </Text>
           {applicant.creation_source === "lead_conversion" ? (
             <Text

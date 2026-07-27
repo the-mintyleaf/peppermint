@@ -39,7 +39,7 @@ export function DeferJourneyModal({
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={`Defer — ${journey.applicant.full_name || journey.applicant.full_name_en || journey.applicant.full_name_np}`}
+      title={`Defer — ${journey.applicant.full_name}`}
       centered
     >
       <Stack gap="md" p="md">

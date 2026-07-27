@@ -99,8 +99,7 @@ interface RawTemplate {
 
 interface RawApplicantSummary {
   id: string;
-  full_name_en?: string;
-  full_name_np?: string;
+  full_name?: string;
   email?: string;
   nationality?: string;
   created_at?: string;
@@ -405,7 +404,7 @@ export const documentsApi = {
     );
     return {
       id: data.id,
-      fullName: data.full_name_en || data.full_name_np || "",
+      fullName: data.full_name ?? "",
       email: data.email ?? "",
       phone: data.contact_numbers?.[0]?.contact_number ?? "",
       program: "",

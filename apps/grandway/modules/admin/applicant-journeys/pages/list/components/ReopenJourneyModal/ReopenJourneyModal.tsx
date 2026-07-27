@@ -41,7 +41,7 @@ export function ReopenJourneyModal({
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={`Reopen — ${journey.applicant.full_name || journey.applicant.full_name_en || journey.applicant.full_name_np}`}
+      title={`Reopen — ${journey.applicant.full_name}`}
       centered
     >
       <Stack gap="md" p="md">

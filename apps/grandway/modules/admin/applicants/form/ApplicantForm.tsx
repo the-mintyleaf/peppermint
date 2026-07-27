@@ -119,21 +119,23 @@ const passportSchema = z
     }
   });
 
-/** A row, once added, requires the backend's non-optional fields for that collection. */
+/**
+ * A row, once added, requires the backend's non-optional fields for that
+ * collection — plus `full_name`, which the backend allows blank but which the
+ * form insists on: a nameless person is not a record anyone can act on.
+ */
 const familyEmergencySchema = z.object({
   family_members: z.array(
     z.object({
       relationship: z.string().min(1, "Select a relationship"),
-      full_name_np: z.string().min(1, "Required"),
-      full_name_en: z.string(),
+      full_name: z.string().min(1, "Required"),
       occupation: z.string(),
       contact_number: z.string(),
     }),
   ),
   emergency_contacts: z.array(
     z.object({
-      full_name_np: z.string().min(1, "Required"),
-      full_name_en: z.string(),
+      full_name: z.string().min(1, "Required"),
       relationship: z.string().min(1, "Required"),
       contact_number: z
         .string()
@@ -230,8 +232,7 @@ function findAddress(
 function toFormValues(record?: ApplicantDetail): ApplicantFormValues {
   if (!record) return INITIAL;
   return {
-    full_name:
-      record.full_name ?? record.full_name_en ?? record.full_name_np ?? "",
+    full_name: record.full_name ?? "",
     date_of_birth: record.date_of_birth,
     gender: record.gender ?? "",
     nationality: record.nationality ?? "",
@@ -253,14 +254,12 @@ function toFormValues(record?: ApplicantDetail): ApplicantFormValues {
     expiry_date: record.passport?.expiry_date ?? null,
     family_members: (record.family_members ?? []).map((m) => ({
       relationship: m.relationship,
-      full_name_np: m.full_name_np,
-      full_name_en: m.full_name_en ?? "",
+      full_name: m.full_name ?? "",
       occupation: m.occupation ?? "",
       contact_number: m.contact_number ?? "",
     })),
     emergency_contacts: (record.emergency_contacts ?? []).map((e) => ({
-      full_name_np: e.full_name_np,
-      full_name_en: e.full_name_en ?? "",
+      full_name: e.full_name ?? "",
       relationship: e.relationship,
       contact_number: e.contact_number,
       email: e.email ?? "",
@@ -330,14 +329,12 @@ export function toApplicantPayload(
     addresses,
     family_members: values.family_members.map((m) => ({
       relationship: m.relationship as FamilyRelationship,
-      full_name_np: m.full_name_np.trim(),
-      full_name_en: m.full_name_en.trim(),
+      full_name: m.full_name.trim(),
       occupation: m.occupation.trim(),
       contact_number: m.contact_number.trim(),
     })),
     emergency_contacts: values.emergency_contacts.map((e) => ({
-      full_name_np: e.full_name_np.trim(),
-      full_name_en: e.full_name_en.trim(),
+      full_name: e.full_name.trim(),
       relationship: e.relationship.trim(),
       contact_number: e.contact_number.trim(),
       email: e.email.trim(),
@@ -532,7 +529,7 @@ export function ApplicantForm({
         title={mode === "create" ? "New applicant" : "Edit applicant"}
         description={
           mode === "create"
-            ? "Only the Nepali name is required — the rest can be completed later."
+            ? "Only the name is required — the rest can be completed later."
             : "Nested collections (contact numbers, addresses, family, emergency contacts) are replaced as a complete set."
         }
         onBack={onBack}

@@ -22,7 +22,7 @@ export function JourneyRowActionsMenu({
   return (
     <RowActionsMenu<ApplicantJourney>
       record={journey}
-      aria-label={`Actions for ${journey.applicant.full_name || journey.applicant.full_name_en || journey.applicant.full_name_np}`}
+      aria-label={`Actions for ${journey.applicant.full_name}`}
       actions={[
         {
           label: "View",

@@ -37,7 +37,7 @@ export function ChangeJourneyStageModal({
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={`Change stage — ${journey.applicant.full_name_en || journey.applicant.full_name_np}`}
+      title={`Change stage — ${journey.applicant.full_name}`}
       centered
     >
       <Stack gap="md" p="md">

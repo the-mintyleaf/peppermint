@@ -341,14 +341,10 @@ function SubmitButton({
 
 // Never returns `undefined` — a searchable Mantine `Select` calls
 // `.toLowerCase()` on every option label while filtering, so an applicant
-// arriving without either name key (backend payload drift) must degrade to a
-// readable fallback instead of white-screening the whole form.
-function applicantLabel(a: {
-  full_name?: string | null;
-  full_name_en?: string | null;
-  full_name_np?: string | null;
-}) {
-  return a.full_name || a.full_name_en || a.full_name_np || "Unnamed applicant";
+// arriving without a name (backend payload drift) must degrade to a readable
+// fallback instead of white-screening the whole form.
+function applicantLabel(a: { full_name?: string | null }) {
+  return a.full_name || "Unnamed applicant";
 }
 
 function ApplicantField({
@@ -360,11 +356,7 @@ function ApplicantField({
   const { form } = useFormInstance<JourneyFormValues>();
 
   if (isEdit) {
-    const label =
-      existingApplicant?.full_name ||
-      existingApplicant?.full_name_en ||
-      existingApplicant?.full_name_np ||
-      form.values.applicant;
+    const label = existingApplicant?.full_name || form.values.applicant;
     return (
       <TextInput
         label="Applicant"

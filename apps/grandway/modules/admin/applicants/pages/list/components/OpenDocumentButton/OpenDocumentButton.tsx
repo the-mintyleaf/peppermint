@@ -35,11 +35,7 @@ export function OpenDocumentButton({ applicant }: OpenDocumentButtonProps) {
   const { authorityType } = useCurrentUser();
   const [isChecking, setChecking] = useState(false);
 
-  const displayName =
-    applicant.full_name ||
-    applicant.full_name_en ||
-    applicant.full_name_np ||
-    applicant.full_name_romanized;
+  const displayName = applicant.full_name;
 
   const goToEditor = () => router.push(workspaceEditorHref(applicant.id));
 

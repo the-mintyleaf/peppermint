@@ -45,14 +45,6 @@ type ActiveModal = "stage" | "defer" | "close" | "reopen" | null;
 
 const TERMINAL_STAGES = new Set(["completed", "closed", "deferred"]);
 
-function applicantName(journey: ApplicantJourneyDetail): string {
-  return (
-    journey.applicant.full_name ||
-    journey.applicant.full_name_en ||
-    journey.applicant.full_name_np
-  );
-}
-
 function getJourneyTabs(journey: ApplicantJourneyDetail): ProfileTab[] {
   return [
     {
@@ -135,7 +127,7 @@ function JourneyDetailContent() {
     );
   }
 
-  const displayName = applicantName(journey);
+  const displayName = journey.applicant.full_name;
   const destination = journey.target_country || "No destination set";
   const isTerminal = TERMINAL_STAGES.has(journey.stage);
   const closeModal = () => setActiveModal(null);

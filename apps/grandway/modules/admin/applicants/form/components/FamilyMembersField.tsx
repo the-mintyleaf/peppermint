@@ -31,16 +31,15 @@ const RELATIONSHIP_OPTIONS = [
 
 const EMPTY_ROW: FamilyMemberFormRow = {
   relationship: "",
-  full_name_np: "",
-  full_name_en: "",
+  full_name: "",
   occupation: "",
   contact_number: "",
 };
 
 /**
  * Whole-set-replace on submit, fully optional overall — a row, once added,
- * requires `relationship` + `full_name_np` (the backend's non-optional
- * `FamilyMember` fields; `ApplicantForm.schemas.ts`'s step-4 schema).
+ * requires `relationship` + `full_name` (step-4 schema in `ApplicantForm.tsx`).
+ * One name field: the backend went English-only in DATA_CONTRACT v1.3.0.
  */
 export function FamilyMembersField() {
   const { form } = useFormInstance<ApplicantFormValues>();
@@ -82,18 +81,9 @@ export function FamilyMembersField() {
               </Grid.Col>
               <Grid.Col span={{ base: 12, sm: 3 }}>
                 <TextInput
-                  label="Full name (Nepali)"
-                  {...form.getInputProps(
-                    `family_members.${index}.full_name_np`,
-                  )}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, sm: 3 }}>
-                <TextInput
-                  label="Full name (English)"
-                  {...form.getInputProps(
-                    `family_members.${index}.full_name_en`,
-                  )}
+                  label="Full name"
+                  required
+                  {...form.getInputProps(`family_members.${index}.full_name`)}
                 />
               </Grid.Col>
               <Grid.Col span={{ base: 12, sm: 2 }}>
@@ -102,7 +92,7 @@ export function FamilyMembersField() {
                   {...form.getInputProps(`family_members.${index}.occupation`)}
                 />
               </Grid.Col>
-              <Grid.Col span={{ base: 10, sm: 4 }}>
+              <Grid.Col span={{ base: 10, sm: 3 }}>
                 <TextInput
                   label="Contact number"
                   {...form.getInputProps(
@@ -110,7 +100,7 @@ export function FamilyMembersField() {
                   )}
                 />
               </Grid.Col>
-              <Grid.Col span={{ base: 2 }}>
+              <Grid.Col span={{ base: 2, sm: 1 }}>
                 <ActionIcon
                   variant="subtle"
                   color="red"

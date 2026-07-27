@@ -20,8 +20,7 @@ import type {
 } from "../ApplicantForm.types";
 
 const EMPTY_ROW: EmergencyContactFormRow = {
-  full_name_np: "",
-  full_name_en: "",
+  full_name: "",
   relationship: "",
   contact_number: "",
   email: "",
@@ -32,9 +31,9 @@ const EMPTY_ROW: EmergencyContactFormRow = {
  * Kept distinct from `family_members` — an emergency contact may be a friend
  * or landlord, not a relative (`docs/backend/applicants/CONCEPT.md`), so
  * `relationship` here is free text, not the family enum. Whole-set-replace on
- * submit; a row, once added, requires `full_name_np` + `relationship` +
- * `contact_number` (the backend's non-optional `EmergencyContact` fields;
- * `ApplicantForm.schemas.ts`'s step-4 schema).
+ * submit; a row, once added, requires `full_name` + `relationship` +
+ * `contact_number` (step-4 schema in `ApplicantForm.tsx`). One name field: the
+ * backend went English-only in DATA_CONTRACT v1.3.0.
  */
 export function EmergencyContactsField() {
   const { form } = useFormInstance<ApplicantFormValues>();
@@ -67,20 +66,12 @@ export function EmergencyContactsField() {
           rows.map((_, index) => (
             <Stack key={index} gap="xs">
               <Grid align="flex-end">
-                <Grid.Col span={{ base: 12, sm: 3 }}>
+                <Grid.Col span={{ base: 12, sm: 4 }}>
                   <TextInput
-                    label="Full name (Nepali)"
+                    label="Full name"
                     required
                     {...form.getInputProps(
-                      `emergency_contacts.${index}.full_name_np`,
-                    )}
-                  />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, sm: 3 }}>
-                  <TextInput
-                    label="Full name (English)"
-                    {...form.getInputProps(
-                      `emergency_contacts.${index}.full_name_en`,
+                      `emergency_contacts.${index}.full_name`,
                     )}
                   />
                 </Grid.Col>
@@ -94,7 +85,7 @@ export function EmergencyContactsField() {
                     )}
                   />
                 </Grid.Col>
-                <Grid.Col span={{ base: 10, sm: 3 }}>
+                <Grid.Col span={{ base: 10, sm: 4 }}>
                   <TextInput
                     label="Contact number"
                     required
@@ -103,7 +94,7 @@ export function EmergencyContactsField() {
                     )}
                   />
                 </Grid.Col>
-                <Grid.Col span={{ base: 2 }}>
+                <Grid.Col span={{ base: 2, sm: 1 }}>
                   <ActionIcon
                     variant="subtle"
                     color="red"

@@ -48,10 +48,8 @@ export interface BsDate {
   year: number;
   month: number;
   day: number;
-  month_name_en: string;
-  month_name_np: string;
-  display_en: string;
-  display_np: string;
+  month_name: string;
+  display: string;
 }
 
 export interface UserBrief {
@@ -93,11 +91,11 @@ export interface PassportDetail {
   expiry_date_bs?: BsDate;
 }
 
+/** `full_name` may be blank — only `relationship` is required (DATA_CONTRACT §5). */
 export interface FamilyMember {
   id?: string;
   relationship: FamilyRelationship;
-  full_name_np: string;
-  full_name_en?: string;
+  full_name?: string;
   occupation?: string;
   contact_number?: string;
 }
@@ -105,8 +103,7 @@ export interface FamilyMember {
 /** `relationship` here is free text — deliberately not the `FamilyRelationship` enum. */
 export interface EmergencyContact {
   id?: string;
-  full_name_np: string;
-  full_name_en?: string;
+  full_name?: string;
   relationship: string;
   contact_number: string;
   email?: string;
@@ -116,12 +113,12 @@ export interface EmergencyContact {
 /** `GET /applicants/` row shape — trimmed relative to detail (no nested collections). */
 export interface Applicant {
   id: string;
-  // Live backend returns a single `full_name`; the bilingual fields remain
-  // optional so reads stay robust across both contract shapes.
-  full_name?: string;
-  full_name_np: string;
-  full_name_en: string;
-  full_name_romanized: string;
+  /**
+   * The one name field. English-only since DATA_CONTRACT v1.3.0 dropped the
+   * `_np`/`_romanized` columns and renamed `_en` to bare — "a Roman name, an
+   * independent identity, not a translation".
+   */
+  full_name: string;
   date_of_birth: string | null;
   date_of_birth_bs: BsDate | null;
   gender: Gender;
@@ -199,15 +196,13 @@ export interface PassportInput {
 
 export interface FamilyMemberInput {
   relationship: FamilyRelationship;
-  full_name_np: string;
-  full_name_en?: string;
+  full_name?: string;
   occupation?: string;
   contact_number?: string;
 }
 
 export interface EmergencyContactInput {
-  full_name_np: string;
-  full_name_en?: string;
+  full_name?: string;
   relationship: string;
   contact_number: string;
   email?: string;

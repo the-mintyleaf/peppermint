@@ -78,11 +78,7 @@ export function JourneyStageSwitch({ journey }: JourneyStageSwitchProps) {
         labelMap={STAGE_LABELS}
         targets={targets}
         menuLabel="Move to stage"
-        entityLabel={
-          journey.applicant.full_name ||
-          journey.applicant.full_name_en ||
-          journey.applicant.full_name_np
-        }
+        entityLabel={journey.applicant.full_name}
         terminal={isTerminal}
         actions={actions}
         onConfirm={(value) =>

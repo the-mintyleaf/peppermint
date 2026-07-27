@@ -82,11 +82,7 @@ function ApplicantEditPageContent() {
     );
   }
 
-  const displayName =
-    applicant.full_name ||
-    applicant.full_name_en ||
-    applicant.full_name_np ||
-    applicant.full_name_romanized;
+  const displayName = applicant.full_name;
 
   return (
     <>

@@ -70,10 +70,8 @@ export interface BsDate {
   year: number;
   month: number;
   day: number;
-  month_name_en: string;
-  month_name_np: string;
-  display_en: string;
-  display_np: string;
+  month_name: string;
+  display: string;
 }
 
 export interface UserBrief {
@@ -91,11 +89,7 @@ export interface UserBrief {
  */
 export interface ApplicantBrief {
   id: string;
-  // Live backend returns a single `full_name`; the bilingual fields remain
-  // optional so reads stay robust across both contract shapes.
-  full_name?: string;
-  full_name_np: string;
-  full_name_en: string;
+  full_name: string;
   status: string;
 }
 

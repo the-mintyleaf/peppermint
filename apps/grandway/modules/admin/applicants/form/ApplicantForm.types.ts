@@ -16,15 +16,13 @@ export interface AddressSectionValues {
 
 export interface FamilyMemberFormRow {
   relationship: FamilyRelationship | "";
-  full_name_np: string;
-  full_name_en: string;
+  full_name: string;
   occupation: string;
   contact_number: string;
 }
 
 export interface EmergencyContactFormRow {
-  full_name_np: string;
-  full_name_en: string;
+  full_name: string;
   relationship: string;
   contact_number: string;
   email: string;

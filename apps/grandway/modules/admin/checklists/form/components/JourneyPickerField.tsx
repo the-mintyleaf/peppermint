@@ -10,7 +10,7 @@ import type { ApplicantJourney } from "@/modules/admin/applicant-journeys/applic
 import type { ChecklistCreateValues } from "../ChecklistCreateForm.types";
 
 function journeyLabel(journey: ApplicantJourney): string {
-  const name = journey.applicant.full_name_en || journey.applicant.full_name_np;
+  const name = journey.applicant.full_name;
   const target =
     journey.target_institution_name ||
     journey.target_program_name ||

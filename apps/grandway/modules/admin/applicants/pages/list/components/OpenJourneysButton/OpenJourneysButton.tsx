@@ -43,11 +43,7 @@ export function OpenJourneysButton({ applicant }: OpenJourneysButtonProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const createMutation = useCreateJourney();
 
-  const displayName =
-    applicant.full_name ||
-    applicant.full_name_en ||
-    applicant.full_name_np ||
-    applicant.full_name_romanized;
+  const displayName = applicant.full_name;
 
   // Same params the detail panel uses, so the fetch primes/reuses that cache.
   const listParams = {

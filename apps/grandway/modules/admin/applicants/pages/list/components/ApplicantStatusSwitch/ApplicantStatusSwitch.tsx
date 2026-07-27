@@ -30,12 +30,7 @@ export function ApplicantStatusSwitch({
       labelMap={STATUS_LABELS}
       targets={targets}
       menuLabel="Set status"
-      entityLabel={
-        applicant.full_name ||
-        applicant.full_name_en ||
-        applicant.full_name_np ||
-        applicant.full_name_romanized
-      }
+      entityLabel={applicant.full_name}
       onConfirm={(value) =>
         mutation.mutateAsync({ status: value as ApplicantStatus })
       }

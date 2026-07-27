@@ -10,11 +10,7 @@ import type { ApplicantJourney } from "@/modules/admin/applicant-journeys/applic
 import type { OfferCreateValues } from "../OfferCreateForm.types";
 
 function journeyLabel(journey: ApplicantJourney): string {
-  const name =
-    journey.applicant.full_name ||
-    journey.applicant.full_name_en ||
-    journey.applicant.full_name_np ||
-    "Unnamed applicant";
+  const name = journey.applicant.full_name || "Unnamed applicant";
   const target =
     journey.target_institution_name ||
     journey.target_program_name ||

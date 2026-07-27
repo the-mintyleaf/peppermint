@@ -38,15 +38,6 @@ import { ApplicantOverviewPanel } from "./components/ApplicantOverviewPanel";
 import { ApplicantPassportFamilyPanel } from "./components/ApplicantPassportFamilyPanel";
 import { ApplicantStatusSwitch } from "../list/components/ApplicantStatusSwitch";
 
-function applicantName(applicant: ApplicantDetailRecord): string {
-  return (
-    applicant.full_name ||
-    applicant.full_name_en ||
-    applicant.full_name_np ||
-    applicant.full_name_romanized
-  );
-}
-
 /**
  * Content-column tabs (Overview is the sidebar, not a tab). Documents is
  * admin-only — a lead manager must not even see the tab, since an empty tab
@@ -81,7 +72,7 @@ function getApplicantTabs(
             panel: (
               <ApplicantDocumentsPanel
                 applicantId={applicant.id}
-                applicantName={applicantName(applicant)}
+                applicantName={applicant.full_name}
               />
             ),
           } satisfies ProfileTab,
@@ -175,7 +166,7 @@ function ApplicantDetailContent() {
     );
   }
 
-  const displayName = applicantName(applicant);
+  const displayName = applicant.full_name;
   const tabs = getApplicantTabs(applicant, isAdmin);
 
   return (
@@ -213,12 +204,6 @@ function ApplicantDetailContent() {
           sidebar={
             <ProfileSidebar
               name={displayName}
-              subtitle={
-                applicant.full_name_romanized &&
-                applicant.full_name_romanized !== displayName
-                  ? applicant.full_name_romanized
-                  : undefined
-              }
               fields={<ApplicantOverviewPanel applicant={applicant} />}
             />
           }
