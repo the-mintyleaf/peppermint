@@ -8,11 +8,11 @@ import { PauseCircleIcon } from "@phosphor-icons/react/dist/csr/PauseCircle";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { PlusCircleIcon } from "@phosphor-icons/react/dist/csr/PlusCircle";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
-import { HistoryTimeline } from "@/components/profile";
+import { HistoryTable } from "@/components/profile";
 import { QueryErrorState } from "@/components/QueryErrorState";
 import { useJourneyHistory } from "../../../applicantJourneys.hooks";
 
-/** Best-effort per-action glyphs; `HistoryTimeline` falls back to a clock. */
+/** Best-effort per-action glyphs; `HistoryTable` falls back to a clock. */
 const ICONS: Record<string, { icon: ReactNode; color: string }> = {
   journey_created: {
     icon: <PlusCircleIcon size={14} aria-hidden />,
@@ -42,7 +42,7 @@ const ICONS: Record<string, { icon: ReactNode; color: string }> = {
 
 /**
  * Read-only, server-written, backed by the central audit log — the same
- * card-led timeline as every other profile (`HistoryTimeline`). Closure/
+ * table as every other profile (`HistoryTable`). Closure/
  * deferment **reasons** live on the journey record and show in the Overview,
  * not here (`docs/backend/applicant-journeys/FLOWS.md`).
  */
@@ -79,7 +79,7 @@ export function JourneyHistoryPanel({ journeyId }: { journeyId: string }) {
   }
 
   return (
-    <HistoryTimeline
+    <HistoryTable
       entries={entries}
       iconFor={(action) => ICONS[action]}
       truncatedNote={

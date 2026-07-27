@@ -4,14 +4,15 @@ export { ProfileSidebar } from "./ProfileSidebar";
 export type { ProfileSidebarProps } from "./ProfileSidebar";
 export { ProfileField } from "./ProfileField";
 export type { ProfileFieldProps } from "./ProfileField";
+export { ProfilePanelHeader } from "./ProfilePanelHeader";
+export type { ProfilePanelHeaderProps } from "./ProfilePanelHeader";
 export { ProfileSection } from "./ProfileSection";
 export type { ProfileSectionProps } from "./ProfileSection";
+export { ProfileList, ProfileListRow } from "./ProfileList";
+export type { ProfileListProps, ProfileListRowProps } from "./ProfileList";
 export { ProfileCard } from "./ProfileCard";
 export type { ProfileCardProps } from "./ProfileCard";
 export { ProfileTabs } from "./ProfileTabs";
 export type { ProfileTab, ProfileTabsProps } from "./ProfileTabs";
-export { HistoryTimeline } from "./HistoryTimeline";
-export type {
-  HistoryTimelineEntry,
-  HistoryTimelineProps,
-} from "./HistoryTimeline";
+export { HistoryTable } from "./HistoryTable";
+export type { HistoryTableEntry, HistoryTableProps } from "./HistoryTable";

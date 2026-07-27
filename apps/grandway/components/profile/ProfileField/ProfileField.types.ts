@@ -10,6 +10,12 @@ export interface ProfileFieldProps {
    * (badge, link, the stage switch) renders as-is.
    */
   value?: ReactNode;
-  /** Font size for both label and value. Defaults to `xs`. */
-  size?: MantineSize;
+  /** Font size for the label. Defaults to `xs` — the quiet half of the pair. */
+  labelSize?: MantineSize;
+  /**
+   * Font size for the value. Defaults to `sm`, one step above the label: the
+   * data is what the operator came to read, so it outranks its own caption.
+   * A `ReactNode` value has to carry this size itself.
+   */
+  valueSize?: MantineSize;
 }

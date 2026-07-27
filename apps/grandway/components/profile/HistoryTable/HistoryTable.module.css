@@ -1,0 +1,10 @@
+/* The timestamp column never wraps — a date broken across two lines is
+   unreadable as a sort key, and this table is scanned top-down by time. */
+.whenCell {
+  white-space: nowrap;
+  vertical-align: top;
+}
+
+.cell {
+  vertical-align: top;
+}

@@ -9,7 +9,7 @@ import { MapPinIcon } from "@phosphor-icons/react/dist/csr/MapPin";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { PlusCircleIcon } from "@phosphor-icons/react/dist/csr/PlusCircle";
 import { UsersThreeIcon } from "@phosphor-icons/react/dist/csr/UsersThree";
-import { HistoryTimeline } from "@/components/profile";
+import { HistoryTable } from "@/components/profile";
 import { QueryErrorState } from "@/components/QueryErrorState";
 import { useApplicantHistory } from "../../../applicants.hooks";
 
@@ -49,8 +49,8 @@ const ICONS: Record<string, { icon: ReactNode; color: string }> = {
 };
 
 /**
- * Read-only, server-written, backed by the central audit log — same card-led
- * timeline as every other profile (`HistoryTimeline`). Nested-collection events
+ * Read-only, server-written, backed by the central audit log — the same table
+ * as every other profile (`HistoryTable`). Nested-collection events
  * carry only a **count** in `metadata`, never the replaced values — this is not
  * a diff viewer (`docs/backend/applicants/INTEGRATION.md` §4).
  */
@@ -91,7 +91,7 @@ export function ApplicantHistoryPanel({
   }
 
   return (
-    <HistoryTimeline
+    <HistoryTable
       entries={entries}
       iconFor={(action) => ICONS[action]}
       truncatedNote={

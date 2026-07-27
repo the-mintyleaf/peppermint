@@ -1,0 +1,32 @@
+.row {
+  display: block;
+  padding: var(--mantine-spacing-sm) 0;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Only rows that are themselves links get a hover affordance — a plain row
+   must not look clickable when nothing happens on click. The negative inline
+   margin lets the tint bleed past the text without indenting the list. */
+.linkRow {
+  margin-inline: calc(var(--mantine-spacing-xs) * -1);
+  padding-inline: var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-sm);
+  transition: background-color 120ms ease;
+}
+
+.linkRow:hover {
+  background-color: var(--mantine-color-default-hover);
+}
+
+.linkRow:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .linkRow {
+    transition: none;
+  }
+}

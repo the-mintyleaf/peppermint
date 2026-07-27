@@ -37,7 +37,7 @@ export function JourneyOverviewPanel({
         value={journey.target_program_name}
       />
 
-      <SimpleGrid cols={2} spacing="sm" verticalSpacing="sm">
+      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm" verticalSpacing="sm">
         <ProfileField
           label="Study level"
           value={

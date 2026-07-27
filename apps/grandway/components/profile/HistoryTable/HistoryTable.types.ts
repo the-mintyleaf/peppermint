@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export interface HistoryTimelineEntry {
+export interface HistoryTableEntry {
   id: string;
   action: string;
   actor_label?: string | null;
@@ -11,13 +11,13 @@ export interface HistoryTimelineEntry {
   created_at: string;
 }
 
-export interface HistoryTimelineProps {
-  entries: HistoryTimelineEntry[];
+export interface HistoryTableProps {
+  entries: HistoryTableEntry[];
   /**
    * Per-action glyph + tint (recognition over recall). Returns `undefined` to
    * fall back to the neutral clock icon.
    */
   iconFor?: (action: string) => { icon: ReactNode; color: string } | undefined;
-  /** Shown under the list when the server returned more than is displayed. */
+  /** Shown under the table when the server returned more than is displayed. */
   truncatedNote?: string;
 }
