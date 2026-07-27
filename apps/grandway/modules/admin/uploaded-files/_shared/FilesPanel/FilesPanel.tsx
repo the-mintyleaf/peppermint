@@ -1,39 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  Badge,
+  Anchor,
   Button,
   Center,
   Group,
-  Image,
   Loader,
-  Paper,
   Stack,
   Text,
-  ThemeIcon,
+  TextInput,
 } from "@peppermint/ui";
-import { FileIcon } from "@phosphor-icons/react/dist/csr/File";
+import { CaretRightIcon } from "@phosphor-icons/react/dist/csr/CaretRight";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
+import { ProfilePanelHeader } from "@/components/profile";
 import { QueryErrorState } from "@/components/QueryErrorState";
+import { FileFolderGrid, type FileFolder } from "./components/FileFolderGrid";
+import { FileTileGrid } from "./components/FileTileGrid";
 import { EditFileModal } from "../components/EditFileModal";
-import { FileRowActionsMenu } from "../components/FileRowActionsMenu";
 import { ReplaceFileModal } from "../components/ReplaceFileModal";
 import { UploadFileModal } from "../components/UploadFileModal";
 import { VerifyFileModal } from "../components/VerifyFileModal";
-import { useFileBlob } from "../useFileBlob";
 import { useFilesList } from "../../uploadedFiles.hooks";
-import {
-  FILE_CATEGORY_LABELS,
-  VERIFICATION_STATUS_COLORS,
-  VERIFICATION_STATUS_LABELS,
-} from "../../uploadedFiles.labels";
-import type { UploadedFile } from "../../uploadedFiles.types";
-import {
-  PREVIEWABLE_CATEGORIES,
-  formatFileSize,
-} from "../../uploadedFiles.utils";
+import { FILE_CATEGORY_LABELS } from "../../uploadedFiles.labels";
+import type { FileCategory, UploadedFile } from "../../uploadedFiles.types";
 import type { FilesPanelProps } from "./FilesPanel.types";
+
+/** Category display order — the label map's own key order, so it stays one source. */
+const CATEGORY_ORDER = Object.keys(FILE_CATEGORY_LABELS) as FileCategory[];
 
 /**
  * The reusable "files for this record" panel — every applicant/journey/offer
@@ -43,32 +38,106 @@ import type { FilesPanelProps } from "./FilesPanel.types";
  * the CALLER's responsibility (only mount this inside an admin-gated screen
  * for those owners); this panel itself only gates its own admin-only row
  * actions (Verify/Archive/Restore).
+ *
+ * Presented as folders, drilled into: a flat single-column list gave a
+ * twenty-file record twenty full-width rows to scroll, when the operator
+ * almost always knows the *kind* of file they want. `category` is the only
+ * grouping the API models, and it happens to be exactly how people ask for
+ * these ("the transcripts", "the offer letter") — so category is the folder.
  */
 export function FilesPanel({ scope }: FilesPanelProps) {
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [openCategory, setOpenCategory] = useState<FileCategory | null>(null);
+  const [search, setSearch] = useState("");
   const [replaceFor, setReplaceFor] = useState<UploadedFile | null>(null);
   const [editFor, setEditFor] = useState<UploadedFile | null>(null);
   const [verifyFor, setVerifyFor] = useState<UploadedFile | null>(null);
 
   const { data, isLoading, isError, isRefetching, refetch } =
     useFilesList(scope);
-  const files = data?.data ?? [];
+  const files = useMemo(() => data?.data ?? [], [data?.data]);
+
+  const folders = useMemo<FileFolder[]>(() => {
+    const counts = new Map<FileCategory, number>();
+    for (const file of files) {
+      counts.set(file.category, (counts.get(file.category) ?? 0) + 1);
+    }
+    return CATEGORY_ORDER.filter((category) => counts.has(category)).map(
+      (category) => ({
+        category,
+        label: FILE_CATEGORY_LABELS[category],
+        count: counts.get(category) ?? 0,
+      }),
+    );
+  }, [files]);
+
+  const folderFiles = useMemo(() => {
+    if (!openCategory) return [];
+    const inFolder = files.filter((file) => file.category === openCategory);
+    const q = search.trim().toLowerCase();
+    if (!q) return inFolder;
+    return inFolder.filter((file) =>
+      file.original_filename.toLowerCase().includes(q),
+    );
+  }, [files, openCategory, search]);
+
+  const closeFolder = () => {
+    setOpenCategory(null);
+    setSearch("");
+  };
+
+  const openFolder = (category: FileCategory) => {
+    setOpenCategory(category);
+    setSearch("");
+  };
 
   return (
-    <Stack gap="sm">
-      <Group justify="space-between" align="center">
-        <Text size="sm" fw={500}>
-          Files
-        </Text>
-        <Button
-          size="xs"
-          variant="light"
-          leftSection={<PlusIcon size={14} aria-hidden />}
-          onClick={() => setUploadOpen(true)}
-        >
-          Upload file
-        </Button>
-      </Group>
+    <Stack gap="md">
+      <ProfilePanelHeader
+        title="Files"
+        description="Uploaded scans and attachments for this record"
+        count={isLoading ? undefined : files.length}
+        action={
+          <>
+            {openCategory ? (
+              <TextInput
+                size="xs"
+                placeholder="Search this folder"
+                aria-label={`Search ${FILE_CATEGORY_LABELS[openCategory]}`}
+                leftSection={<MagnifyingGlassIcon size={14} aria-hidden />}
+                value={search}
+                onChange={(e) => setSearch(e.currentTarget.value)}
+              />
+            ) : null}
+            <Button
+              size="xs"
+              leftSection={<PlusIcon size={14} aria-hidden />}
+              onClick={() => setUploadOpen(true)}
+            >
+              Upload file
+            </Button>
+          </>
+        }
+      />
+
+      {/* The trail is the only way back out of a folder, so it renders as a
+          real link rather than a breadcrumb-shaped label. */}
+      {openCategory ? (
+        <Group gap={4} wrap="nowrap">
+          <Anchor
+            size="xs"
+            component="button"
+            type="button"
+            onClick={closeFolder}
+          >
+            Files
+          </Anchor>
+          <CaretRightIcon size={12} aria-hidden />
+          <Text size="xs" fw={500}>
+            {FILE_CATEGORY_LABELS[openCategory]}
+          </Text>
+        </Group>
+      ) : null}
 
       {isLoading ? (
         <Center py="md">
@@ -82,20 +151,22 @@ export function FilesPanel({ scope }: FilesPanelProps) {
         />
       ) : files.length === 0 ? (
         <Text size="xs" c="dimmed">
-          No files yet.
+          No files yet — upload the first scan for this record.
+        </Text>
+      ) : !openCategory ? (
+        <FileFolderGrid folders={folders} onOpen={openFolder} />
+      ) : folderFiles.length === 0 ? (
+        <Text size="xs" c="dimmed">
+          No files in {FILE_CATEGORY_LABELS[openCategory]} match &ldquo;
+          {search}&rdquo;.
         </Text>
       ) : (
-        <Stack gap="xs">
-          {files.map((file) => (
-            <FileCard
-              key={file.id}
-              file={file}
-              onReplace={setReplaceFor}
-              onEdit={setEditFor}
-              onVerify={setVerifyFor}
-            />
-          ))}
-        </Stack>
+        <FileTileGrid
+          files={folderFiles}
+          onReplace={setReplaceFor}
+          onEdit={setEditFor}
+          onVerify={setVerifyFor}
+        />
       )}
 
       <UploadFileModal
@@ -125,83 +196,5 @@ export function FilesPanel({ scope }: FilesPanelProps) {
         />
       ) : null}
     </Stack>
-  );
-}
-
-interface FileCardProps {
-  file: UploadedFile;
-  onReplace: (file: UploadedFile) => void;
-  onEdit: (file: UploadedFile) => void;
-  onVerify: (file: UploadedFile) => void;
-}
-
-/**
- * One card per file — filename, category + verification badges, version
- * count. A thumbnail preview only for the two image categories (§9 — no
- * preview endpoint anywhere; `useFileBlob` fetches the bytes and builds an
- * object URL). `Image` here renders a blob: URL, not a static asset, so
- * `next/image` (which needs a resolvable remote/local path) doesn't apply —
- * same reasoning as `ClientForm`'s external-logo `Avatar`.
- */
-function FileCard({ file, onReplace, onEdit, onVerify }: FileCardProps) {
-  const previewable = PREVIEWABLE_CATEGORIES.has(file.category);
-  const { url: previewUrl } = useFileBlob(file.id, previewable);
-
-  return (
-    <Paper withBorder p="sm" radius="sm">
-      <Group justify="space-between" align="flex-start" wrap="nowrap">
-        <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-          {previewable && previewUrl ? (
-            <Image
-              src={previewUrl}
-              alt={file.original_filename}
-              w={40}
-              h={40}
-              radius="sm"
-              fit="cover"
-            />
-          ) : (
-            <ThemeIcon variant="light" size={40} radius="sm" color="gray">
-              <FileIcon size={20} aria-hidden />
-            </ThemeIcon>
-          )}
-          <Stack gap={2} style={{ minWidth: 0, flex: 1 }}>
-            <Text size="xs" fw={500} truncate>
-              {file.original_filename}
-            </Text>
-            <Group gap={4}>
-              <Badge size="xs" variant="light" color="gray">
-                {FILE_CATEGORY_LABELS[file.category]}
-              </Badge>
-              <Badge
-                size="xs"
-                color={VERIFICATION_STATUS_COLORS[file.verification_status]}
-              >
-                {VERIFICATION_STATUS_LABELS[file.verification_status]}
-              </Badge>
-              {file.is_archived ? (
-                <Badge size="xs" color="gray" variant="outline">
-                  Archived
-                </Badge>
-              ) : null}
-              {!file.is_current ? (
-                <Badge size="xs" color="gray" variant="outline">
-                  Superseded
-                </Badge>
-              ) : null}
-            </Group>
-            <Text size="xs" c="dimmed">
-              v{file.version_number} · {formatFileSize(file.size_bytes)}
-            </Text>
-          </Stack>
-        </Group>
-        <FileRowActionsMenu
-          file={file}
-          onReplace={onReplace}
-          onEdit={onEdit}
-          onVerify={onVerify}
-        />
-      </Group>
-    </Paper>
   );
 }

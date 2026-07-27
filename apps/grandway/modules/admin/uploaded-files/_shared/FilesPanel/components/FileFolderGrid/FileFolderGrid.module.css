@@ -1,0 +1,29 @@
+.folder {
+  display: block;
+  width: 100%;
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-sm);
+  border: 1px solid transparent;
+  border-radius: var(--mantine-radius-md);
+  background: none;
+  cursor: pointer;
+  text-align: center;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.folder:hover {
+  background-color: var(--mantine-color-default-hover);
+  border-color: var(--mantine-color-default-border);
+}
+
+.folder:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .folder {
+    transition: none;
+  }
+}

@@ -1,0 +1,38 @@
+.tile {
+  position: relative;
+  padding: var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-md);
+  border: 1px solid transparent;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.tile:hover {
+  background-color: var(--mantine-color-default-hover);
+  border-color: var(--mantine-color-default-border);
+}
+
+/* The actions menu sits in the tile's corner rather than on its own line —
+   the tile is already the smallest thing that identifies a file. */
+.tileMenu {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+
+/* Fixed square so a portrait scan and a landscape one leave the filenames
+   below them on the same baseline. */
+.preview {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile {
+    transition: none;
+  }
+}
