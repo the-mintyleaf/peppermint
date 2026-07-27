@@ -1,8 +1,8 @@
 "use client";
 
-import { Children } from "react";
+import { Children, Fragment, isValidElement } from "react";
 import Link from "next/link";
-import { Box, Divider, Stack } from "@peppermint/ui";
+import { Divider, Stack } from "@peppermint/ui";
 import type {
   ProfileListProps,
   ProfileListRowProps,
@@ -25,10 +25,14 @@ export function ProfileList({ children }: ProfileListProps) {
   return (
     <Stack gap={0}>
       {rows.map((row, index) => (
-        <Box key={index}>
+        // The wrapper carries the CHILD's key, never the index. These lists are
+        // filtered by a search box, so an index key would let React reuse the
+        // previous row's subtree at the same position — attaching an open
+        // actions menu or the focus ring to the wrong record.
+        <Fragment key={isValidElement(row) ? row.key : index}>
           {index > 0 ? <Divider /> : null}
           {row}
-        </Box>
+        </Fragment>
       ))}
     </Stack>
   );

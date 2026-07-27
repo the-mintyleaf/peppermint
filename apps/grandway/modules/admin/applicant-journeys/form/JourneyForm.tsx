@@ -31,6 +31,7 @@ import {
 import type {
   ApplicantJourney,
   ApplicantJourneyDetail,
+  JourneyUpdatePayload,
 } from "../applicantJourneys.types";
 import type { JourneyFormValues } from "./JourneyForm.types";
 
@@ -107,6 +108,20 @@ export function toJourneyPayload(values: JourneyFormValues) {
     scholarship_interest: values.scholarship_interest,
     notes: values.notes.trim(),
   };
+}
+
+/**
+ * `applicant` is immutable once a journey exists — the update payload drops it
+ * rather than sending a field the backend refuses. Shared by every edit path
+ * (the worklist's `onEditApi` and the applicant profile's Journeys tab) so
+ * only one of them can ever be wrong.
+ */
+export function toJourneyUpdatePayload(
+  values: JourneyFormValues,
+): JourneyUpdatePayload {
+  const { applicant, ...rest } = toJourneyPayload(values);
+  void applicant;
+  return rest;
 }
 
 const journeySchema = z.object({

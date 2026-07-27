@@ -6,7 +6,11 @@ import { ModalTableShell } from "@peppermint/admin";
 import { ModalPaper } from "@peppermint/ui";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
-import { JourneyForm, toJourneyPayload } from "../../form";
+import {
+  JourneyForm,
+  toJourneyPayload,
+  toJourneyUpdatePayload,
+} from "../../form";
 import {
   createJourney,
   getJourney,
@@ -14,10 +18,7 @@ import {
   updateJourney,
 } from "../../applicantJourneys.api";
 import { journeyQueryKeys } from "../../applicantJourneys.queryKeys";
-import type {
-  ApplicantJourney,
-  JourneyUpdatePayload,
-} from "../../applicantJourneys.types";
+import type { ApplicantJourney } from "../../applicantJourneys.types";
 import type { JourneyFormValues } from "../../form";
 import { getJourneysColumns } from "./journeys.columns";
 
@@ -40,13 +41,6 @@ function useDeepLinkFilters() {
   const searchParams = useSearchParams();
   const applicant = searchParams.get("applicant") ?? undefined;
   return useMemo(() => (applicant ? { applicant } : undefined), [applicant]);
-}
-
-/** `applicant` is immutable on edit — dropped before `PATCH`, never sent. */
-function toUpdatePayload(values: JourneyFormValues): JourneyUpdatePayload {
-  const { applicant, ...rest } = toJourneyPayload(values);
-  void applicant; // immutable on update — deliberately not forwarded
-  return rest;
 }
 
 /**
@@ -93,7 +87,7 @@ function JourneyWorklistContent() {
       editFormComponent={JourneyForm}
       onCreateApi={(values) => createJourney(toJourneyPayload(values))}
       onEditApi={(values, record) =>
-        updateJourney(record.id, toUpdatePayload(values))
+        updateJourney(record.id, toJourneyUpdatePayload(values))
       }
       onEditTrigger={(record) => getJourney(record.id)}
       disableReviewButton

@@ -95,12 +95,10 @@ export function HistoryTable({
   return (
     <Stack gap="xs">
       <Table.ScrollContainer minWidth={560}>
-        <Table
-          highlightOnHover
-          verticalSpacing="xs"
-          horizontalSpacing="sm"
-          stickyHeader
-        >
+        {/* No `stickyHeader`: vertical scrolling belongs to the profile's own
+            scroll container, not to this wrapper, so a sticky header here would
+            never actually stick. The container's job is horizontal overflow. */}
+        <Table highlightOnHover verticalSpacing="xs" horizontalSpacing="sm">
           <Table.Thead>
             <Table.Tr>
               <Table.Th>

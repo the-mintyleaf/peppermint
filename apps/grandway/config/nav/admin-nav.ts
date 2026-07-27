@@ -150,7 +150,7 @@ export function buildAdminConfig(
       kind: "module",
       id: "recruitment",
       icon: UsersThreeIcon,
-      label: "Recruitment",
+      label: "Applicant Management",
       subNav: {
         homeHref: "/admin/lead-management",
         groups: recruitmentGroups,

@@ -47,6 +47,7 @@ import type { ApplicantJourney } from "@/modules/admin/applicant-journeys/applic
 import {
   JourneyForm,
   toJourneyPayload,
+  toJourneyUpdatePayload,
 } from "@/modules/admin/applicant-journeys/form/JourneyForm";
 import { CloseJourneyModal } from "@/modules/admin/applicant-journeys/pages/list/components/CloseJourneyModal";
 
@@ -255,7 +256,7 @@ function EditJourneyModal({
           initialValues={data}
           isLoading={updateMutation.isPending}
           onSubmit={(values) => {
-            updateMutation.mutate(toJourneyPayload(values), {
+            updateMutation.mutate(toJourneyUpdatePayload(values), {
               onSuccess: onClose,
             });
           }}
