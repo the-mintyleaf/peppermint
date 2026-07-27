@@ -1,4 +1,4 @@
-import type { ApplicantStatus } from "./applicants.types";
+import type { ApplicantStatus, CreationSource } from "./applicants.types";
 
 /** All statuses in display order — freely interchangeable, no terminal state. */
 export const APPLICANT_STATUSES: ApplicantStatus[] = [
@@ -11,6 +11,12 @@ export const STATUS_LABELS: Record<ApplicantStatus, string> = {
   active: "Active",
   dormant: "Dormant",
   archived: "Archived",
+};
+
+/** Server-set and immutable — a fact about the record's provenance. */
+export const CREATION_SOURCE_LABELS: Record<CreationSource, string> = {
+  lead_conversion: "Converted lead",
+  direct_admin: "Added directly",
 };
 
 export const STATUS_COLORS: Record<ApplicantStatus, string> = {
