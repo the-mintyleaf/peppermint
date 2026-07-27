@@ -1,12 +1,17 @@
 # Integration — Applicants
 
 **Owner app:** `applicants`
-**Version:** 1.0.0
+**Version:** 1.3.0
 **Status:** Active
-**Synced:** 2026-07-23 (from `.backend/backend/applicants/docs/{API,DATA_CONTRACT,INTEGRATION,SECURITY}.md`)
+**Synced:** 2026-07-27 (from `.backend/backend/applicants/docs/{API,DATA_CONTRACT,INTEGRATION,SECURITY}.md`)
 
 > Re-sync with `/sync-api grandway applicants` when the backend's Change History
-> moves past version 1.0.0.
+> moves past DATA_CONTRACT 1.3.0 / API 1.2.0.
+>
+> **1.3.0 — breaking, English-only names.** The `_np` and `_romanized` columns
+> were dropped and the `_en` fields renamed to a bare `full_name` on Applicant,
+> FamilyMember and EmergencyContact. A Roman name is an independent identity
+> here, not a translation of a Nepali one.
 
 ---
 
@@ -49,13 +54,13 @@
 - **404 is always genuine.** Unlike `leads`, there is no ownership to hide — `APPLICANTS_APPLICANT_NOT_FOUND` never means "not yours."
 - **Pagination:** page-number based, `page`/`page_size` (default 20, max 100). `meta`: `count`, `page`, `page_size`, `next`, `previous`.
 - **IDs:** UUID strings. **Times:** ISO 8601 UTC. `date_of_birth`, passport `issued_date`/`expiry_date` carry a `<field>_bs` Bikram Sambat sibling; `created_at`/`updated_at` never do.
-- **Filter/search params — `GET /applicants/` only:** `status` (`active`/`dormant`/`archived`), `creation_source` (`lead_conversion`/`direct_admin`), `search` (OR `icontains` across `full_name_np`/`full_name_en`/`full_name_romanized`, trigram-indexed), `fiscal_year` (`YYYY/YY`, filters on `created_at`). Newest first, no client-controlled ordering.
+- **Filter/search params — `GET /applicants/` only:** `status` (`active`/`dormant`/`archived`), `creation_source` (`lead_conversion`/`direct_admin`), `search` (`icontains` on `full_name` and `email`, trigram-indexed), `fiscal_year` (`YYYY/YY`, filters on `created_at`). Newest first, no client-controlled ordering.
 - **Nested sub-resources — contact numbers, addresses, passport, family members, emergency contacts — have no standalone endpoints.** All managed inside the applicant payload. `contact_numbers`/`addresses`/`family_members`/`emergency_contacts` **replace the whole set** on update (never a delta); `passport` **upserts** the single record.
 - `creation_source` and `created_by` are never accepted from a client on any endpoint.
 
 ## 4. Models
 
-**BsDate** — `{ year, month, day, month_name_en, month_name_np, display_en, display_np }` — never sent by a client.
+**BsDate** — `{ year, month, day, month_name, display }` — never sent by a client.
 
 **UserBrief** — `{ id, username, display_name }`.
 
@@ -65,13 +70,13 @@
 
 **PassportDetail** — `{ id, passport_number, issuing_country?, place_of_issue?, issued_date?, issued_date_bs?, expiry_date?, expiry_date_bs? }`. `expiry_date` must be after `issued_date` when both are present. One per applicant — a renewal overwrites it.
 
-**FamilyMember** — `{ id, relationship: enum, full_name_np, full_name_en?, occupation?, contact_number? }`.
+**FamilyMember** — `{ id, relationship: enum, full_name?, occupation?, contact_number? }`. Only `relationship` is required; `full_name` may be blank.
 
-**EmergencyContact** — `{ id, full_name_np, full_name_en?, relationship (free text), contact_number, email?, address? }`.
+**EmergencyContact** — `{ id, full_name?, relationship (free text), contact_number, email?, address? }`. `contact_number` is required — an emergency contact with no number serves no purpose.
 
-**Applicant — list shape** (`GET /applicants/` rows): `{ id, full_name_np, full_name_en, full_name_romanized, date_of_birth?, date_of_birth_bs?: BsDate, gender, nationality, email, status: enum, creation_source: enum, created_by: UserBrief, created_at, updated_at }`.
+**Applicant — list shape** (`GET /applicants/` rows): `{ id, full_name, date_of_birth?, date_of_birth_bs?: BsDate, gender, nationality, email, status: enum, creation_source: enum, created_by: UserBrief, contact_numbers: ApplicantContactNumber[], destinations: Destination[], created_at, updated_at }`. **`contact_numbers` IS in the list shape** — only the addresses/passport/family/emergency collections are detail-only. `destinations` (added in API 1.1.0) is not yet consumed by this app.
 
-**Applicant — detail shape** (retrieve, create, update, status-change): list shape **plus** `{ contact_numbers: ApplicantContactNumber[], addresses: ApplicantAddress[], passport: PassportDetail|null, family_members: FamilyMember[], emergency_contacts: EmergencyContact[], originating_lead_id: string|null }`.
+**Applicant — detail shape** (retrieve, create, update, status-change): list shape **plus** `{ addresses: ApplicantAddress[], passport: PassportDetail|null, family_members: FamilyMember[], emergency_contacts: EmergencyContact[], originating_lead_id: string|null }`.
 
 - `originating_lead_id` is read through the reverse accessor `applicant.originating_lead` — `leads.Lead` owns the link; `null` for a directly created applicant.
 
@@ -106,7 +111,7 @@
 
 ### Request bodies
 
-- **Create:** `{ full_name_np (required), full_name_en?, date_of_birth?, gender?, nationality?, email?, contact_numbers (required, ≥1), addresses? (≤1 per type), passport? (issued_date+expiry_date), family_members?, emergency_contacts? }`. `status` not accepted — always starts `active`.
+- **Create:** `{ full_name (required), date_of_birth?, gender?, nationality?, email?, contact_numbers (required, ≥1), addresses? (≤1 per type), passport? (issued_date+expiry_date), family_members?, emergency_contacts? }`. `status` not accepted — always starts `active`.
 - **Update:** same shape, every field optional; any nested collection sent replaces the whole set. `status`/`creation_source`/`created_by` silently ignored if sent.
 - **Status change:** `{ status: "active"|"dormant"|"archived" }`.
 

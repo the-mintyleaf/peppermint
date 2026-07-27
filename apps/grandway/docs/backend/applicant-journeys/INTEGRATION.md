@@ -53,7 +53,7 @@
 
 ## 4. Models
 
-**ApplicantJourney — list shape** (`GET /journeys/` rows): `{ id, applicant: {id, full_name_np, full_name_en, status}, target_country, target_institution_name, target_program_name, study_level, field_of_study, preferred_intake, budget_amount, budget_currency, scholarship_interest, stage: enum, creation_source: enum, created_by: UserBrief, created_at, updated_at }`.
+**ApplicantJourney — list shape** (`GET /journeys/` rows): `{ id, applicant: {id, full_name, status}, target_country, target_institution_name, target_program_name, study_level, field_of_study, preferred_intake, budget_amount, budget_currency, scholarship_interest, stage: enum, creation_source: enum, created_by: UserBrief, created_at, updated_at }`.
 
 **ApplicantJourney — detail shape** (retrieve, create, update, every lifecycle action): list shape **plus** `{ notes, outcome, closure_reason, closed_at?, closed_at_bs?, closed_by?, deferred_at?, deferred_at_bs?, deferred_to_intake, deferment_reason, deferred_by?, stage_before_terminal }`.
 
