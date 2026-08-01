@@ -9,14 +9,24 @@ module owns. Backend base path is `/api/v1/notifications/`. Contract:
 
 ## Module type
 
-ContainedModule — a single inbox route. No create/edit forms and no modals anywhere;
-every write is a bodyless `POST /<id>/<verb>/` action (§7).
+ModalModule — **no route of its own**. The inbox is a right-hand `Drawer` opened from
+the sidebar bell; there is no `/admin/notifications` page (removed 2026-08-01 — alerts
+are glanced at and cleared without leaving the current screen, and every row already
+links out to the record it concerns). No create/edit forms; every write is a bodyless
+`POST /<id>/<verb>/` action (§7).
 
-## Routes
+## Entry points
 
-| Route                | Entry export               | Component                           |
-| -------------------- | -------------------------- | ----------------------------------- |
-| /admin/notifications | `ModuleNotificationCentre` | pages/centre/NotificationCentre.tsx |
+| Surface          | Export               | Component                                        |
+| ---------------- | -------------------- | ------------------------------------------------ |
+| Sidebar bell     | `NotificationDrawer` | drawer/NotificationDrawer/NotificationDrawer.tsx |
+| Drawer body      | `NotificationFeed`   | \_shared/NotificationFeed/NotificationFeed.tsx   |
+| Per-record embed | `RecordAlertsPanel`  | \_shared/RecordAlertsPanel/RecordAlertsPanel.tsx |
+
+`layouts/admin/Admin.tsx` owns the drawer's open state and passes
+`onNotificationsClick` into `buildAdminConfig` — the bell nav item carries `onClick`,
+not `href`. It is mounted only when `canAccessNotifications`, so `RequireLeadAccess`
+(which renders a full-page denial) is deliberately NOT used inside the drawer.
 
 ## Access (critical)
 
@@ -60,14 +70,15 @@ a modal here.
 
 | Task                                   | Files                                              |
 | -------------------------------------- | -------------------------------------------------- |
-| Inbox page / grouping / mark-all-read  | pages/centre/NotificationCentre.tsx                |
+| Inbox grouping / states                | \_shared/NotificationFeed/NotificationFeed.tsx     |
+| Drawer chrome / mark-all-read lever    | drawer/NotificationDrawer/NotificationDrawer.tsx   |
 | Per-row rendering + read/dismiss lever | \_shared/NotificationRow/NotificationRow.tsx       |
 | Embeddable per-record alerts panel     | \_shared/RecordAlertsPanel/RecordAlertsPanel.tsx   |
 | Source-triple → frontend route mapping | notifications.utils.ts (`resolveNotificationLink`) |
 | Type/priority/due-bucket labels+colors | notifications.labels.ts                            |
 | DTO shapes / API / keys / mutations    | notifications.{types,api,queryKeys,hooks}.ts       |
 
-## Inbox (Notification Centre)
+## Inbox (drawer)
 
 - `useNotificationList({ status: "active", page_size: 100 })` — the working feed.
   Omitting `status` would also return dismissed/resolved history (§3), wrong for
@@ -77,6 +88,8 @@ a modal here.
 - "Mark all as read" (`useMarkAllRead`) clears **every** unread row including
   dismissed/resolved ones; `active` does not change. Never disable the button on
   `marked_read: 0` — that's a normal, valid result.
+- The drawer header is fixed and carries "Mark all as read"; only the feed scrolls
+  (`scrollAreaComponent={ScrollArea.Autosize}`), so the lever stays reachable.
 - No pagination UI — a generous single page (`page_size: 100`, the API max) is
   fetched, with a truncation notice below the max. No consumer has asked for a
   pager yet; add one if the truncation notice starts showing up in practice.
@@ -135,8 +148,10 @@ a modal here.
 
 ## Do not do
 
-- Do not add a create/edit form, a modal, or any write beyond the four action
-  verbs — there is no compose surface in this domain, ever.
+- Do not add a create/edit form or any write beyond the four action verbs — there is
+  no compose surface in this domain, ever. (The drawer is the read surface, not an
+  exception to this.)
+- Do not re-add a `/admin/notifications` route — the bell opens the drawer.
 - Do not add column-header sorting/ordering controls — no `ordering` parameter
   exists on this API.
 - Do not issue separate filtered requests per due bucket — group one response

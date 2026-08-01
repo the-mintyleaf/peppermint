@@ -12,6 +12,7 @@ import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentU
 import { useLogout } from "@/modules/admin/authenticate/_shared/useLogout";
 import { AccountSettingsModal } from "@/modules/admin/authenticate/account-settings";
 import { useNotificationSummary } from "@/modules/admin/notifications/notifications.hooks";
+import { NotificationDrawer } from "@/modules/admin/notifications/drawer";
 import { hasAccessToken } from "@/lib/authTokens";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import styles from "./Admin.module.css";
@@ -27,6 +28,7 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
   const { user, authorityType, isAdmin, isLeadManager } = useCurrentUser();
   const { mutate: logoutMutate } = useLogout();
   const [settingsOpened, settingsHandlers] = useDisclosure(false);
+  const [notificationsOpened, notificationsHandlers] = useDisclosure(false);
 
   // Same reasoning as every other admin/lead_manager-shared module below —
   // `superadmin` gets `NOTIFICATIONS_ACTOR_FORBIDDEN` on every endpoint, so
@@ -67,6 +69,7 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
         canAccessFileReview: authorityType === "admin",
         canAccessNotifications,
         unreadNotificationCount: notificationSummary?.unread,
+        onNotificationsClick: notificationsHandlers.open,
       }),
       linkComponent: Link,
       onNavigate: (href: string) => router.push(href),
@@ -92,6 +95,7 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
       authorityType,
       canAccessNotifications,
       notificationSummary?.unread,
+      notificationsHandlers.open,
       logoutMutate,
       settingsHandlers.open,
       router,
@@ -109,6 +113,14 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
       </Box>
       {settingsOpened && (
         <AccountSettingsModal opened onClose={settingsHandlers.close} />
+      )}
+      {/* Gated by the same flag as the bell — `superadmin` is refused every
+          notifications endpoint, so there is nothing to open. */}
+      {canAccessNotifications && (
+        <NotificationDrawer
+          opened={notificationsOpened}
+          onClose={notificationsHandlers.close}
+        />
       )}
     </AdminShell>
   );

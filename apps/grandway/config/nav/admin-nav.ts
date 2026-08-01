@@ -46,6 +46,8 @@ export interface BuildAdminConfigOptions {
   canAccessNotifications?: boolean;
   /** Unread notification count for the bell's badge — `undefined`/`0` renders no badge. */
   unreadNotificationCount?: number;
+  /** Opens the notifications drawer — the bell has no route to navigate to. */
+  onNotificationsClick?: () => void;
 }
 
 /**
@@ -79,6 +81,7 @@ export function buildAdminConfig(
     canAccessFileReview,
     canAccessNotifications,
     unreadNotificationCount,
+    onNotificationsClick,
   } = options;
 
   // The Placement dashboard is now the `/admin` home itself (it replaced the old
@@ -321,7 +324,9 @@ export function buildAdminConfig(
             id: "notifications",
             icon: BellIcon,
             label: "Notifications",
-            href: "/admin/notifications",
+            // Opens a drawer rather than navigating — the inbox is a glance-and-clear
+            // surface, so it never takes the user off the screen they are working on.
+            onClick: onNotificationsClick,
             // Capped so a very active feed doesn't overflow the sidebar's
             // small icon-corner indicator.
             badge: unreadNotificationCount
