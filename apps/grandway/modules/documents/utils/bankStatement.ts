@@ -12,6 +12,7 @@ export interface ComputedTransactionRow {
   credit: number;
   balance: number;
   type: BankTransactionType;
+  interest_rate?: number;
   tax_rate?: number;
 }
 
@@ -69,8 +70,10 @@ function computeInterest(
  *
  * Operator-inserted `interest` / `tax` rows carry no stored amount — they are derived here
  * from the rows above, so deleting or reordering those rows re-syncs them automatically:
- *   - interest: `running × rate × days(sinceLastCheckpoint → row.date) / 365`
+ *   - interest: `running × row.interest_rate% × days(sinceLastCheckpoint → row.date) / 365`
  *   - tax:      `row.tax_rate% × (interest credited above since the last tax row)`
+ *
+ * Both rates are per-row, falling back to `statement_interest` / `statement_tax`.
  */
 export function computeBankStatement(
   content: BankStatementContent,
@@ -97,9 +100,14 @@ export function computeBankStatement(
     const type: BankTransactionType = t.type ?? "normal";
 
     if (type === "interest") {
+      // Each row may carry its own rate; `statement_interest` is only the default.
+      const rowRate =
+        t.interest_rate === undefined || t.interest_rate === ""
+          ? interestRate
+          : num(t.interest_rate);
       const interest = computeInterest(
         running,
-        interestRate,
+        rowRate,
         daysBetween(lastInterestDate, date),
       );
       running = round2(running + interest);
@@ -113,6 +121,7 @@ export function computeBankStatement(
         credit: interest,
         balance: running,
         type,
+        interest_rate: rowRate,
       });
       continue;
     }

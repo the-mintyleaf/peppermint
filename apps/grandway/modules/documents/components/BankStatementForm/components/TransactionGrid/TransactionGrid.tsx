@@ -31,8 +31,8 @@ const money = (n: number) =>
  * totals row, right-aligned monospace figures, and a read-only running balance column.
  *
  * Row 1 is always the opening balance (its credit seeds the balance). Interest and Tax
- * rows carry no typed amount — `computeBankStatement` derives them from the rows above,
- * so their Debit/Credit/Balance cells render as computed text, not inputs.
+ * rows carry no typed amount — only a rate: `computeBankStatement` derives the figures
+ * from the rows above, so those Debit/Credit/Balance cells are computed text, not inputs.
  */
 export function TransactionGrid({
   form,
@@ -40,7 +40,11 @@ export function TransactionGrid({
   onAddRow,
   isLoading,
 }: TransactionGridProps) {
-  const transactions = form.getValues().transactions ?? [];
+  const values = form.getValues();
+  const transactions = values.transactions ?? [];
+  // A blank rate cell falls back to the statement-level default — show it as the placeholder.
+  const defaultInterestRate = String(values.statement_interest ?? "");
+  const defaultTaxRate = String(values.statement_tax ?? "");
   const { gridRef, cellProps } = useGridNavigation(
     transactions.length,
     onAddRow,
@@ -145,6 +149,22 @@ export function TransactionGrid({
                             Interest
                           </Badge>
                           <Text size="xs">Interest Deposit</Text>
+                          <NumberInput
+                            variant="unstyled"
+                            size="xs"
+                            hideControls
+                            suffix="%"
+                            min={0}
+                            decimalScale={2}
+                            w={68}
+                            className={classes.rateInput}
+                            placeholder={defaultInterestRate}
+                            aria-label={`Interest rate, row ${index + 1}`}
+                            disabled={isLoading}
+                            {...form.getInputProps(
+                              `transactions.${index}.interest_rate`,
+                            )}
+                          />
                         </Group>
                       ) : isTax ? (
                         <Group gap={6} wrap="nowrap">
@@ -159,7 +179,9 @@ export function TransactionGrid({
                             suffix="%"
                             min={0}
                             decimalScale={2}
-                            w={64}
+                            w={68}
+                            className={classes.rateInput}
+                            placeholder={defaultTaxRate}
                             aria-label={`Tax rate, row ${index + 1}`}
                             disabled={isLoading}
                             {...form.getInputProps(

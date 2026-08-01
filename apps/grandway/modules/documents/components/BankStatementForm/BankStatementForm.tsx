@@ -16,7 +16,6 @@ import {
 } from "@peppermint/ui";
 import { PlusCircleIcon } from "@phosphor-icons/react/dist/csr/PlusCircle";
 import { PercentIcon } from "@phosphor-icons/react/dist/csr/Percent";
-import { ReceiptIcon } from "@phosphor-icons/react/dist/csr/Receipt";
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
 import { TableIcon } from "@phosphor-icons/react/dist/csr/Table";
 import { FormSection } from "@/components/FormSection";
@@ -95,21 +94,22 @@ export function BankStatementForm({
     });
   };
 
-  // Interest & tax rows carry no stored amount — computeBankStatement derives them from the
-  // rows above, so they re-sync when those rows change. Disabled until an opening row exists.
-  const addInterest = () => {
+  // Interest is always followed by the tax deducted on it, so the pair is inserted
+  // together. Neither row stores an amount — computeBankStatement derives both from the
+  // rows above (at each row's own rate), so they re-sync when those rows change.
+  // Disabled until an opening row exists.
+  const addInterestAndTax = () => {
+    const date = fallbackDate();
     form.insertListItem("transactions", {
-      date: fallbackDate(),
+      date,
       description: "Interest Deposit",
       debit: 0,
       credit: 0,
       type: "interest",
+      interest_rate: Number(form.getValues().statement_interest) || 0,
     });
-  };
-
-  const addTax = () => {
     form.insertListItem("transactions", {
-      date: fallbackDate(),
+      date,
       description: "Tax Deduction",
       debit: 0,
       credit: 0,
@@ -238,7 +238,7 @@ export function BankStatementForm({
                 <Group grow>
                   <NumberInput
                     label="Interest rate (%)"
-                    description="Applied to inserted Interest rows."
+                    description="Default rate for inserted Interest rows."
                     placeholder="6.5"
                     hideControls
                     decimalScale={2}
@@ -265,8 +265,9 @@ export function BankStatementForm({
             <Stack gap="sm">
               <Group justify="space-between" align="center" gap="sm">
                 <Text size="xs" c="dimmed">
-                  Row 1 is the opening balance. Interest and Tax rows compute
-                  themselves from the rows above and re-sync when those change.
+                  Row 1 is the opening balance. Interest &amp; Tax rows are
+                  inserted as a pair, compute themselves from the rows above at
+                  each row&rsquo;s own rate, and re-sync when those rows change.
                 </Text>
                 <Group gap="xs" wrap="nowrap">
                   <Button
@@ -283,20 +284,10 @@ export function BankStatementForm({
                     variant="light"
                     color="teal"
                     leftSection={<PercentIcon size={14} />}
-                    onClick={addInterest}
+                    onClick={addInterestAndTax}
                     disabled={isLoading || transactions.length === 0}
                   >
-                    Interest
-                  </Button>
-                  <Button
-                    size="xs"
-                    variant="light"
-                    color="orange"
-                    leftSection={<ReceiptIcon size={14} />}
-                    onClick={addTax}
-                    disabled={isLoading || transactions.length === 0}
-                  >
-                    Tax
+                    Interest &amp; Tax
                   </Button>
                 </Group>
               </Group>

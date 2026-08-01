@@ -226,6 +226,7 @@ export interface BankTransaction {
   debit?: number;
   credit?: number;
   type?: BankTransactionType; // default "normal"
+  interest_rate?: number | string; // only for type "interest"; defaults from statement_interest
   tax_rate?: number | string; // only for type "tax"; defaults from statement_tax
 }
 

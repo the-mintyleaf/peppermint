@@ -113,6 +113,29 @@
   padding: 0 var(--mantine-spacing-xs);
 }
 
+/* Per-row Interest / Tax rate. It sits beside label text rather than filling a cell,
+   so it needs its own box to read as editable. */
+.rateInput input {
+  height: 22px;
+  min-height: 22px;
+  padding-inline: 6px;
+  text-align: right;
+  font-family: var(--mantine-font-family-monospace);
+  font-variant-numeric: tabular-nums;
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+  border-radius: var(--mantine-radius-xs);
+  background: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-7)
+  );
+}
+
+.rateInput input:focus {
+  border-color: var(--mantine-primary-color-filled);
+  outline: none;
+}
+
 /* Computed row types get a coloured left edge so they read apart from typed rows. */
 .interestRow .gutter {
   box-shadow: inset 3px 0 0 var(--mantine-color-teal-5);
