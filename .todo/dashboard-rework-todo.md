@@ -17,11 +17,11 @@
 
 ## Phase 2 — Section 1: leads
 
-- [ ] `dashboard.leads.ts` (hooks) — `useCategorizedLeads` over `fetchAllLeads` + `categorizeLead`
-- [ ] `LeadStatsPanel` — composite lead card (total + stage donut + legend) at 4/12
-- [ ] Two 2/12 tiles: needs-attention + converted
-- [ ] `LeadsToAddress` — 6/12 `PanelCard`, 4 category views, real counts, capped disclosure
-- [ ] Lead row view (name · stage badge · last touched · owner)
+- [x] `dashboard.leads.ts` (hooks) — `useCategorizedLeads` over `fetchAllLeads` + `categorizeLead`
+- [x] `LeadStatsPanel` — composite lead card (total + stage donut + legend) at 4/12
+- [x] Two 2/12 tiles: needs-attention + converted
+- [x] `LeadsToAddress` — 6/12 `PanelCard`, 4 category views, real counts, capped disclosure
+- [x] Lead row view (name · stage badge · last touched · owner)
 
 ## Phase 3 — Section 2: applicants
 

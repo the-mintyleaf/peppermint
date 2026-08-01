@@ -28,6 +28,17 @@ export function formatFetchedAt(updatedAt: number): string {
   return dayjs(updatedAt).format("h:mm A");
 }
 
+/**
+ * How long ago something last happened, for a queue row where the AGE is the
+ * reason the row is in the queue — "4d ago" is the fact an operator acts on,
+ * where a formatted date would have to be subtracted from today first.
+ * `null` renders as an explicit "never", not an empty cell.
+ */
+export function formatSince(value: string | null | undefined): string {
+  if (!value) return "never";
+  return dayjs(value).fromNow();
+}
+
 /** `Rate.percent` renders as "—" (never "0%") when the denominator was 0. */
 export function formatRatePercent(percent: number | null): string {
   return percent === null ? "—" : `${percent}%`;
