@@ -13,6 +13,7 @@ import { useLogout } from "@/modules/admin/authenticate/_shared/useLogout";
 import { AccountSettingsModal } from "@/modules/admin/authenticate/account-settings";
 import { useNotificationSummary } from "@/modules/admin/notifications/notifications.hooks";
 import { NotificationDrawer } from "@/modules/admin/notifications/drawer";
+import { searchEverything } from "@/modules/admin/global-search";
 import { hasAccessToken } from "@/lib/authTokens";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import styles from "./Admin.module.css";
@@ -45,6 +46,20 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
     }
   }, [router, pathname]);
 
+  // Exactly the nav-visibility rules below, reused as the search access model —
+  // the spotlight must never query a domain whose nav entry the role can't see.
+  const searchAccess = useMemo(
+    () => ({
+      applicants: authorityType === "admin" || isLeadManager,
+      leads: authorityType === "admin" || isLeadManager,
+      clients: authorityType === "admin" || isLeadManager,
+      catalogue: authorityType === "admin" || isLeadManager,
+      documents: authorityType === "admin",
+      checklists: authorityType === "admin" || isLeadManager,
+    }),
+    [authorityType, isLeadManager],
+  );
+
   const config = useMemo(
     () => ({
       ...buildAdminConfig({
@@ -73,6 +88,11 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
       }),
       linkComponent: Link,
       onNavigate: (href: string) => router.push(href),
+      globalSearch: {
+        search: (query: string, signal?: AbortSignal) =>
+          searchEverything(query, { access: searchAccess, signal }),
+        placeholder: "Search applicants, leads, clients...",
+      },
       userMenu: {
         variant: "icon" as const,
         user: user
@@ -96,6 +116,7 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
       canAccessNotifications,
       notificationSummary?.unread,
       notificationsHandlers.open,
+      searchAccess,
       logoutMutate,
       settingsHandlers.open,
       router,
