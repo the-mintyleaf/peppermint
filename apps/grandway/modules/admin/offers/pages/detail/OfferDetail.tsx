@@ -25,7 +25,7 @@ import {
   STAGE_LABELS,
 } from "@/modules/admin/applicant-journeys/applicantJourneys.labels";
 import { RecordAlertsPanel } from "@/modules/admin/notifications/_shared/RecordAlertsPanel";
-import { ApplicantPhoto } from "@/modules/admin/applicants";
+import { ApplicantPhoto } from "@/modules/admin/applicants/photograph";
 import { FilesPanel } from "@/modules/admin/uploaded-files/_shared/FilesPanel";
 import { useOfferDetail } from "../../offers.hooks";
 import { OFFER_STATUS_COLORS, OFFER_STATUS_LABELS } from "../../offers.labels";

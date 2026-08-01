@@ -8,15 +8,11 @@ export { ModuleApplicantEdit } from "./pages/edit/ApplicantEditPage";
 export { useApplicantList, useApplicantDetail } from "./applicants.hooks";
 export type { Applicant, ApplicantDetail } from "./applicants.types";
 
-// The photograph lives in `uploaded_files`, not on the applicant record, so
-// every surface that shows a face (journeys, offers, the document editor and
-// its CV/certificate templates) reads it through here rather than re-deriving
-// "which file is the photo" for itself.
-export {
-  ApplicantPhoto,
-  ApplicantPhotoField,
-  useApplicantPhotograph,
-  useSaveApplicantPhotograph,
-  type ApplicantPhotoProps,
-  type ApplicantPhotoFieldProps,
-} from "./photograph";
+// The photograph (an `uploaded_files` row, not a field on the applicant) is
+// deliberately NOT re-exported here. Journeys, offers and the document editor
+// all show a face, and every one of them must import it from
+// `applicants/photograph` directly — this barrel pulls in `ApplicantDetail` →
+// `ApplicantJourneysPanel` → the applicant-journeys barrel, so a cross-module
+// consumer reaching for it through here would close exactly the import cycle
+// the Applicants ⇄ Journeys rule in `docs/AI.md` exists to prevent. The
+// sub-barrel depends only on `uploaded-files`, so it is safe from anywhere.

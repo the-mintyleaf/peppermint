@@ -98,6 +98,12 @@ without a `pages/list/` route.
   hand-rolled local state (mirrors `offers`' `RecordDecisionModal`).
 - Object-URL lifecycle (`useFileBlob`): the fetch is `useQuery`; a scoped
   `useEffect` only creates/revokes the blob URL when the query's data changes.
+- **`useFileBlob`'s query key sits OUTSIDE `fileQueryKeys.all`** (`["files.file-bytes",
+id]`) — the one query in this module that does. Every mutation here invalidates the
+  whole `files.files` tree, which would otherwise re-download every mounted preview on any
+  unrelated write, and each download writes an audit event. Bytes are immutable for a file
+  id (a replacement is a new id, so it lands on a new key), so no invalidation can ever be
+  the right answer for this query. Do not "fix" it back under the shared root.
 - Local UI (active modal, panel open state): `useState`.
 
 ## Do not do

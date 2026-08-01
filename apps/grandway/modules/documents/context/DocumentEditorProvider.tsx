@@ -17,7 +17,7 @@ import {
   useQueryClient,
 } from "@peppermint/ui";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
-import { useApplicantPhotograph } from "@/modules/admin/applicants";
+import { useApplicantPhotograph } from "@/modules/admin/applicants/photograph";
 import { documentsApi } from "../documents.api";
 import {
   documentQueryKeys,

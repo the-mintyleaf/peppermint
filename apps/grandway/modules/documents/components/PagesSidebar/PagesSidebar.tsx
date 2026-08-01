@@ -12,7 +12,7 @@ import {
 import { Plus as PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { X as XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { FileText as FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
-import { ApplicantPhoto } from "@/modules/admin/applicants";
+import { ApplicantPhoto } from "@/modules/admin/applicants/photograph";
 import { useDocumentEditor } from "../../context";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
 import { AddPageMenu } from "../AddPageMenu";

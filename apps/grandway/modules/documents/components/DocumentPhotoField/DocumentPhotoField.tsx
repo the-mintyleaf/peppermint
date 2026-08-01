@@ -1,7 +1,7 @@
 "use client";
 
 import { Stack, Text } from "@peppermint/ui";
-import { ApplicantPhotoField } from "@/modules/admin/applicants";
+import { ApplicantPhotoField } from "@/modules/admin/applicants/photograph";
 import type { DocumentPhotoFieldProps } from "./DocumentPhotoField.types";
 
 /**

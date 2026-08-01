@@ -24,7 +24,7 @@ import {
 } from "@/components/profile";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiError } from "@/lib/authErrorMessages";
-import { ApplicantPhoto } from "@/modules/admin/applicants";
+import { ApplicantPhoto } from "@/modules/admin/applicants/photograph";
 import { FilesPanel } from "@/modules/admin/uploaded-files/_shared/FilesPanel";
 import { useJourneyDetail } from "../../applicantJourneys.hooks";
 import { journeyApplicantName } from "../../applicantJourneys.labels";

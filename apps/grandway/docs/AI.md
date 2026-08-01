@@ -107,7 +107,8 @@ apps/grandway/
         │           └── LeadDetailDrawer/     # big heading + inline LeadStageSwitch; always-on grouped-card Overview (Contact/Source/Follow-up/Study interest/Lifecycle incl. converted-applicant link) above Notes / History tabs. components/: DetailCard, DetailField
         ├── applicants/       # MultiPageModule — identity/contact/passport/family CRUD
         │   ├── applicants.{types,api,queryKeys,hooks}.ts
-        │   ├── form/                     # shared create+edit multi-step form (ApplicantForm + 5 field components)
+        │   ├── photograph/               # the applicant's portrait — an `uploaded_files` row (`category=photograph`), NOT a field on the applicant. `applicantPhotograph.{hooks,utils}.ts` resolve "the photo" (newest current non-archived) and save it (replace when one exists, upload when not — decided inside the mutation, never from a render-time read); `ApplicantPhoto/` is the read-only avatar (initials fallback), `ApplicantPhotoField/` the picker (`deferred` = staged for a form's submit, `immediate` = uploads on pick). **Cross-module consumers import this sub-barrel directly, never the applicants `index.ts`** — see the cycle rule below
+        │   ├── form/                     # shared create+edit multi-step form (ApplicantForm + 5 field components); step 1 carries the photo picker in EDIT mode only (a file's owner must exist before `POST /files/` accepts it, so create can't attach one) — `photograph` is a `File | null` in form values, never part of the applicant payload, uploaded by the edit page after the PATCH lands
         │   └── pages/
         │       ├── list/                 # DataTableShell; tabs = "All applicants" + one per usable country (server `?country=<uuid>`, capped at 8, sourced from institutions' useCountries); Destinations column reads the list shape's `destinations` projection; inline ApplicantStatusSwitch in Status column; row actions: OpenDocumentButton (admin-only, open/create doc workspace) + menu (View/Edit). The same ApplicantStatusSwitch is the detail header's status control
         │       ├── new/, edit/           # FormShell-wrapped ApplicantForm
@@ -262,6 +263,19 @@ apps/grandway/
   `index.ts` barrel** — importing the barrels would close a cycle (applicants barrel →
   `ApplicantDetail` → `ApplicantJourneysPanel` → applicant-journeys barrel → `JourneyForm`
   → applicants barrel).
+- **Everything → the applicant photograph.** The photo is not on the applicant record —
+  it is an `uploaded_files` row, and its bytes come only from the audited download
+  endpoint, so there is no URL to pass around. Every surface that shows a face
+  (`applicants` detail sidebar + list rows, `applicant-journeys` detail subtitle, `offers`
+  detail header, the document editor's `PagesSidebar`, and the CV/certificate templates
+  via `studentFullData.photoUrl`) goes through `applicants/photograph`, which is the only
+  place that decides _which_ file is "the photograph". Import that **sub-barrel**
+  (`@/modules/admin/applicants/photograph`), never `@/modules/admin/applicants` — the
+  module barrel reaches `ApplicantDetail` → `ApplicantJourneysPanel` and would close the
+  cycle above. The sub-barrel depends only on `uploaded-files`, so it is safe everywhere.
+  Cost to know before adding another surface: **two requests per applicant** (find the
+  file, then the audited byte download), cached for the session — the applicants list
+  pays that per row, deliberately.
 - **Offers → Applicant Journeys + Institutions.** The offer create form reaches into two
   other modules through their **concrete files, never their barrels** (cycle-safe, same
   rule as Applicants ⇄ Journeys): the journey picker imports `listJourneys` from
