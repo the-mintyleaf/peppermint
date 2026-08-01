@@ -13,6 +13,8 @@ export interface StatTileProps {
   value: number | undefined;
   icon: ComponentType<{ size?: number; weight?: "regular" | "fill" }>;
   tone?: StatTileTone;
+  /** Footer line under the figure — what the number counts over, or where it leads. */
+  caption?: string;
   isPending?: boolean;
   isError?: boolean;
   /** Makes the tile a button. Omit for a tile with no destination. */

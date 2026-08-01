@@ -1,0 +1,41 @@
+.card {
+  overflow: hidden;
+  transition:
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+/* Only the alert tiles are buttons, so only they get a hover affordance —
+   a volume tile that lifts would promise a destination it doesn't have. */
+.card[data-interactive="true"]:hover {
+  box-shadow: var(--mantine-shadow-md);
+  transform: translateY(-2px);
+}
+
+.card[data-interactive="true"]:active {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: box-shadow 150ms ease;
+  }
+
+  .card[data-interactive="true"]:hover,
+  .card[data-interactive="true"]:active {
+    transform: none;
+  }
+}
+
+/* The tinted band that names the figure. Colour comes from the tone variable the
+   component sets, so light/dark both resolve through Mantine's own tokens. */
+.header {
+  background-color: var(--tile-tint);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+  border-radius: var(--mantine-radius-lg);
+}

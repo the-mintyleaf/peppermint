@@ -25,6 +25,8 @@ interface VolumeSpec {
   key: VolumeKey;
   label: string;
   icon: IconType;
+  /** What the figure counts over — a volume has no destination to name instead. */
+  caption: string;
 }
 
 interface AlertSpec {
@@ -40,9 +42,24 @@ interface AlertSpec {
  * never an alert (there is no such thing as "too many leads").
  */
 const VOLUMES: VolumeSpec[] = [
-  { key: "leads_total", label: "Total leads", icon: AddressBookIcon },
-  { key: "applicants_active", label: "Active applicants", icon: UsersIcon },
-  { key: "journeys_total", label: "Total journeys", icon: CompassIcon },
+  {
+    key: "leads_total",
+    label: "Total leads",
+    icon: AddressBookIcon,
+    caption: "All leads on record",
+  },
+  {
+    key: "applicants_active",
+    label: "Active applicants",
+    icon: UsersIcon,
+    caption: "Currently in progress",
+  },
+  {
+    key: "journeys_total",
+    label: "Total journeys",
+    icon: CompassIcon,
+    caption: "All journeys on record",
+  },
 ];
 
 /**
@@ -144,7 +161,9 @@ export function StatTiles({ filters, onOpenTab }: StatTilesProps) {
         </Group>
       ) : null}
 
-      <SimpleGrid cols={{ base: 2, sm: 3, lg: 4, xl: 6 }} spacing="sm">
+      {/* Capped at four across: the tiles are now a header band + display figure
+          + footer, and past four the labels truncate before they are readable. */}
+      <SimpleGrid cols={{ base: 1, xs: 2, md: 3, lg: 4 }} spacing="md">
         {VOLUMES.map((spec) => (
           <StatTile
             key={spec.key}
@@ -152,6 +171,7 @@ export function StatTiles({ filters, onOpenTab }: StatTilesProps) {
             value={data?.volumes[spec.key]}
             icon={spec.icon}
             tone="volume"
+            caption={spec.caption}
             isPending={isPending}
             isError={isError}
           />
@@ -164,6 +184,7 @@ export function StatTiles({ filters, onOpenTab }: StatTilesProps) {
             value={data?.alerts[spec.key]}
             icon={spec.icon}
             tone={spec.tone}
+            caption={`Open ${DASHBOARD_TAB_META[spec.tab].label}`}
             isPending={isPending}
             isError={isError}
             onActivate={() => onOpenTab(spec.tab)}
