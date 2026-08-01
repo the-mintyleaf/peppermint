@@ -31,17 +31,17 @@
 
 ## Phase 4 — Below the fold
 
-- [ ] `AttentionPanel` (6/12) — the 8 `summary.alerts` figures, dynamically toned
-- [ ] `ActivityPanel` (6/12) — re-home `ActivityFeed` into a `PanelCard`
-- [ ] `PipelinePanel` (6/12) — pipeline + conversion + outcomes as selectable views (chromeless)
-- [ ] `WorkloadPanel` (6/12) — workload + blockers as selectable views (chromeless)
+- [x] `AttentionPanel` (6/12) — the 8 `summary.alerts` figures, dynamically toned
+- [x] `ActivityPanel` (6/12) — re-home `ActivityFeed` into a `PanelCard`
+- [x] `PipelinePanel` (6/12) — pipeline + conversion + outcomes as selectable views (chromeless)
+- [x] `WorkloadPanel` (6/12) — workload + blockers as selectable views (chromeless)
 
 ## Phase 5 — Page assembly & teardown
 
-- [ ] Rewrite `DashboardOverview` as the straight-through grid
-- [ ] Delete tabs plumbing: `DashboardTabs`, `dashboard.tabs.ts`, `useDashboardTab`, `OverviewPanel`, `CountryCards`
-- [ ] Reconcile `SectionHeading` / `TodayWorklists` / `StatTiles` — reuse or remove
-- [ ] Update barrels
+- [x] Rewrite `DashboardOverview` as the straight-through grid
+- [x] Delete tabs plumbing: `DashboardTabs`, `dashboard.tabs.ts`, `useDashboardTab`, `OverviewPanel`, `CountryCards`
+- [x] Reconcile `SectionHeading` / `TodayWorklists` / `StatTiles` — reuse or remove
+- [x] Update barrels
 
 ## Phase 6 — Docs & verification
 

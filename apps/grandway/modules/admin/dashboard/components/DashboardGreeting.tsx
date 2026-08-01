@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Group, Skeleton, Stack, Text } from "@peppermint/ui";
+import { Group, Skeleton, Stack, Text, useMounted } from "@peppermint/ui";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import { DISPLAY_TRACKING, TYPE_GREETING } from "../dashboard.typeScale";
 import type { DashboardGreetingProps } from "./DashboardGreeting.types";
@@ -26,14 +25,12 @@ function greetingFor(hour: number): string {
  */
 export function DashboardGreeting({ controls }: DashboardGreetingProps) {
   const { user, isLoading } = useCurrentUser();
-  const [greeting, setGreeting] = useState<string | null>(null);
-
-  // Client-only, and deliberately not re-computed on a timer: a greeting that
-  // flipped from "afternoon" to "evening" mid-session would be movement with
-  // nothing behind it.
-  useEffect(() => {
-    setGreeting(greetingFor(new Date().getHours()));
-  }, []);
+  // Client-only, and deliberately not on a timer: a greeting that flipped from
+  // "afternoon" to "evening" mid-session would be movement with nothing behind
+  // it. `useMounted` is false through SSR and the hydrating render, so the
+  // server's clock never reaches the DOM to disagree with the browser's.
+  const isMounted = useMounted();
+  const greeting = isMounted ? greetingFor(new Date().getHours()) : null;
 
   const isReady = greeting !== null && !isLoading;
   const name = user?.display_name?.trim();

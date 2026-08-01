@@ -1,5 +1,5 @@
 import type { DashboardFilters } from "../dashboard.types";
 
-export interface ConversionProps {
+export interface WorkloadPanelProps {
   filters: DashboardFilters;
 }

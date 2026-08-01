@@ -16,11 +16,6 @@ import {
   fetchWorkload,
 } from "./dashboard.api";
 import { dashboardQueryKeys } from "./dashboard.queryKeys";
-import {
-  DEFAULT_DASHBOARD_TAB,
-  isDashboardTab,
-  type DashboardTab,
-} from "./dashboard.tabs";
 import type { DashboardFilters } from "./dashboard.types";
 
 // Eight INDEPENDENT hooks — never combined into one parent query. Each has its
@@ -158,35 +153,56 @@ export function useDashboardPipeline(filters: DashboardFilterInput) {
   });
 }
 
-export function useDashboardBlockers(filters: DashboardFilterInput) {
+export function useDashboardBlockers(
+  filters: DashboardFilterInput,
+  enabled = true,
+) {
   const apiParams = toApiParams(filters);
   return useQuery({
     queryKey: dashboardQueryKeys.blockers(apiParams),
     queryFn: () => fetchBlockers(apiParams),
+    enabled,
   });
 }
 
-export function useDashboardWorkload(filters: DashboardFilterInput) {
+// `enabled` exists because a multi-view card must not pay for the views nobody
+// is looking at: the panel gates its sections on the open view, and React Query
+// keeps whatever has already landed, so switching back is instant rather than a
+// second request.
+
+export function useDashboardWorkload(
+  filters: DashboardFilterInput,
+  enabled = true,
+) {
   const apiParams = toApiParams(filters);
   return useQuery({
     queryKey: dashboardQueryKeys.workload(apiParams),
     queryFn: () => fetchWorkload(apiParams),
+    enabled,
   });
 }
 
-export function useDashboardConversion(filters: DashboardFilterInput) {
+export function useDashboardConversion(
+  filters: DashboardFilterInput,
+  enabled = true,
+) {
   const apiParams = toApiParams(filters);
   return useQuery({
     queryKey: dashboardQueryKeys.conversion(apiParams),
     queryFn: () => fetchConversion(apiParams),
+    enabled,
   });
 }
 
-export function useDashboardOutcomes(filters: DashboardFilterInput) {
+export function useDashboardOutcomes(
+  filters: DashboardFilterInput,
+  enabled = true,
+) {
   const apiParams = toApiParams(filters);
   return useQuery({
     queryKey: dashboardQueryKeys.outcomes(apiParams),
     queryFn: () => fetchOutcomes(apiParams),
+    enabled,
   });
 }
 
@@ -245,27 +261,5 @@ export function useDashboardFilters(): DashboardFilters & {
     country: searchParams.get("country") ?? "",
     setFiscalYear: (value: string) => patch("fiscal_year", value),
     setCountry: (value: string) => patch("country", value),
-  };
-}
-
-/**
- * The active tab is URL state for the same reason the filters are — "open the
- * dashboard on Blockers for FY82/83" has to be one shareable link, and the
- * alert rows on Overview navigate by switching it. An unknown or absent `tab`
- * falls back to `overview` rather than rendering nothing.
- */
-export function useDashboardTab(): {
-  tab: DashboardTab;
-  setTab: (value: DashboardTab) => void;
-} {
-  const searchParams = useSearchParams();
-  const patch = useSearchParamPatch();
-
-  const raw = searchParams.get("tab");
-
-  return {
-    tab: isDashboardTab(raw) ? raw : DEFAULT_DASHBOARD_TAB,
-    setTab: (value: DashboardTab) =>
-      patch("tab", value === DEFAULT_DASHBOARD_TAB ? "" : value),
   };
 }

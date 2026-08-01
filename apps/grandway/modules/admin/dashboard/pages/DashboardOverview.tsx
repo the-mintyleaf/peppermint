@@ -1,135 +1,164 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { ModuleErrorBoundary } from "@peppermint/admin";
 import {
+  Grid,
   ModalPaper,
   ModuleHeader,
   Stack,
-  Tabs,
   Text,
   useQueryClient,
 } from "@peppermint/ui";
-import {
-  useDashboardFilters,
-  useDashboardSummary,
-  useDashboardTab,
-} from "../dashboard.hooks";
-import { DASHBOARD_TAB_META, type DashboardTab } from "../dashboard.tabs";
-import { ActivityFeed } from "../components/ActivityFeed";
-import { Blockers } from "../components/Blockers";
-import { Conversion } from "../components/Conversion";
+import { useDashboardFilters, useDashboardSummary } from "../dashboard.hooks";
+import { ActivityPanel } from "../components/ActivityPanel";
+import { ApplicantCountryStats } from "../components/ApplicantCountryStats";
+import { ApplicantStatTiles } from "../components/ApplicantStatTiles";
+import { AttentionPanel } from "../components/AttentionPanel";
+import { BlockersPanel } from "../components/BlockersPanel";
+import { DashboardGreeting } from "../components/DashboardGreeting";
 import { DashboardHeaderControls } from "../components/DashboardHeaderControls";
-import { DashboardTabs } from "../components/DashboardTabs";
-import { Outcomes } from "../components/Outcomes";
-import { OverviewPanel } from "../components/OverviewPanel";
-import { PipelineCounts } from "../components/PipelineCounts";
-import { SectionHeading } from "../components/SectionHeading";
-import { TodayWorklists } from "../components/TodayWorklists";
-import { Workload } from "../components/Workload";
+import { LeadStatTiles } from "../components/LeadStatTiles";
+import { LeadStats } from "../components/LeadStats";
+import { LeadsToAddress } from "../components/LeadsToAddress";
+import { PerformancePanel } from "../components/PerformancePanel";
+import { PipelinePanel } from "../components/PipelinePanel";
+import { RecentApplicants } from "../components/RecentApplicants";
+import { SectionBand } from "../components/SectionBand";
+import { TodayPanel } from "../components/TodayPanel";
+import { WorkloadPanel } from "../components/WorkloadPanel";
 
 /**
- * The operational command centre. The eight sections are unchanged and still
- * independent — one request each, one `ModuleErrorBoundary` each (CONCEPT.md
- * "every section loads independently, so a slow panel never blocks the rest of
- * the page") — but they are no longer stacked into one scroll. Overview answers
- * "is everything okay?"; each detail tab adds what Overview does NOT already
- * show, so no figure or list appears twice on this page.
+ * Every card measures against the same twelve columns: a large card is half the
+ * page, a stat card a sixth, and the tile column a sixth of that half — so a
+ * card's width tells you what kind of thing it is before you read it.
+ */
+const LARGE = { base: 12, lg: 6 } as const;
+const MEDIUM = { base: 12, sm: 8, lg: 4 } as const;
+const SMALL = { base: 12, sm: 4, lg: 2 } as const;
+
+/**
+ * The operational command centre, read top to bottom.
  *
- * `keepMounted={false}` means only the open tab's queries run, so the reading
- * order is a choice the operator makes rather than eight sections all fetching
- * on load. React Query caches by key, so a section split across Overview and its
- * own tab still issues ONE request.
+ * The page opens on the operator by name, then goes straight to work in the
+ * order the work decays: leads rot fastest, so they lead; the people those leads
+ * became come second; everything that is a standing measure rather than a thing
+ * to do today sits below both. There are no tabs — the reading order is the
+ * page's, not a choice the operator has to make before they can see anything
+ * (§1.6: an always-visible option is paid for on every visit, by everyone).
  *
- * Layout: the tab bar is flush to the paper's edges and sticks to the top of the
- * scroll container; padding belongs to the panel content, never to the tabs.
+ * Each of the first two bands pairs a LEFT column of figures with a RIGHT card
+ * of rows: the figures say how much, the rows are where you act.
  *
- * No cross-section consistency guarantee (INTEGRATION.md §3) and no refresh
- * contract (§9 "the client decides when to refetch") — "Refresh" invalidates
- * every `dashboard` query; nothing polls, and the header states when the
- * figures were fetched.
+ * The eight sections are still independent — one request each, one
+ * `ModuleErrorBoundary` per band, so a slow or failing section never blocks the
+ * rest of the page (CONCEPT.md). A card with several views fetches only the open
+ * one, which is what the old tab bar bought and is kept here without it.
  */
 export function DashboardOverview() {
   const filters = useDashboardFilters();
-  const { tab, setTab } = useDashboardTab();
   const queryClient = useQueryClient();
-  // `summary` only for its fetch time — `StatTiles` reads the same cached entry.
+  // `summary` only for its fetch time — `AttentionPanel` reads the same cached entry.
   const { dataUpdatedAt } = useDashboardSummary(filters);
-  const resetKeys = [filters.fiscalYear, filters.country, tab];
-
-  /** Every panel gets the same chrome: its question, its caveat, its own boundary. */
-  const panel = (value: DashboardTab, children: ReactNode) => (
-    <Tabs.Panel value={value}>
-      <Stack gap="md" p="md">
-        <SectionHeading
-          title={DASHBOARD_TAB_META[value].title}
-          subtitle={DASHBOARD_TAB_META[value].subtitle}
-        />
-        <ModuleErrorBoundary resetKeys={resetKeys}>
-          {children}
-        </ModuleErrorBoundary>
-        <Text size="xs" c="dimmed" ff="monospace">
-          Access: admin · lead_manager. Fiscal year and destination country (top
-          right) scope every tab except Activity, which is fiscal-year only.
-          Overdue and expiry flags are computed server-side.
-        </Text>
-      </Stack>
-    </Tabs.Panel>
-  );
+  const resetKeys = [filters.fiscalYear, filters.country];
 
   return (
     <>
-      <ModuleHeader
-        breadcrumbItems={[{ label: "Home", href: "/admin" }]}
-        right={
-          <DashboardHeaderControls
-            fiscalYear={filters.fiscalYear}
-            country={filters.country}
-            fetchedAt={dataUpdatedAt}
-            onFiscalYearChange={filters.setFiscalYear}
-            onCountryChange={filters.setCountry}
-            onRefresh={() =>
-              queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+      <ModuleHeader breadcrumbItems={[{ label: "Home", href: "/admin" }]} />
+
+      {/* `ModalPaper` is a fixed-height box with `overflow: hidden` — a report
+          page has no internal scroll of its own, so it would be clipped.
+          Override to scroll vertically inside the paper. */}
+      <ModalPaper withBorder style={{ overflowY: "auto" }}>
+        <Stack gap="xl" p="md">
+          <DashboardGreeting
+            controls={
+              <DashboardHeaderControls
+                fiscalYear={filters.fiscalYear}
+                country={filters.country}
+                fetchedAt={dataUpdatedAt}
+                onFiscalYearChange={filters.setFiscalYear}
+                onCountryChange={filters.setCountry}
+                onRefresh={() =>
+                  queryClient.invalidateQueries({ queryKey: ["dashboard"] })
+                }
+              />
             }
           />
-        }
-      />
 
-      {/* ModalPaper is a fixed-height (`calc(100% - header)`) box with
-          `overflow: hidden` — list modules scroll inside their DataTableShell, but
-          a report panel has no internal scroll, so it would be clipped. Override to
-          scroll vertically inside the paper (horizontal stays clipped). No padding
-          here: the tab bar sits flush against the paper edge and each panel pads
-          its own content. */}
-      <ModalPaper withBorder style={{ overflowY: "auto" }}>
-        <DashboardTabs value={tab} onChange={setTab}>
-          {panel(
-            "overview",
-            <OverviewPanel
-              filters={filters}
-              onOpenTab={setTab}
-              onSelectCountry={filters.setCountry}
-            />,
-          )}
-          {panel("today", <TodayWorklists filters={filters} />)}
-          {panel("pipeline", <PipelineCounts filters={filters} />)}
-          {panel("blockers", <Blockers filters={filters} />)}
-          {panel("workload", <Workload filters={filters} />)}
-          {panel(
-            "performance",
-            <Stack gap="lg">
-              <Conversion filters={filters} />
-              <Outcomes filters={filters} />
-            </Stack>,
-          )}
-          {panel(
-            "activity",
-            <ActivityFeed
-              key={filters.fiscalYear}
-              fiscalYear={filters.fiscalYear}
-            />,
-          )}
-        </DashboardTabs>
+          <ModuleErrorBoundary resetKeys={resetKeys}>
+            <SectionBand
+              title="Leads"
+              subtitle="Who is waiting to hear from us, and how the live pipeline is shaped."
+            >
+              <Grid.Col span={MEDIUM}>
+                <LeadStats filters={filters} />
+              </Grid.Col>
+              <Grid.Col span={SMALL}>
+                <LeadStatTiles filters={filters} />
+              </Grid.Col>
+              <Grid.Col span={LARGE}>
+                <LeadsToAddress filters={filters} />
+              </Grid.Col>
+            </SectionBand>
+          </ModuleErrorBoundary>
+
+          <ModuleErrorBoundary resetKeys={resetKeys}>
+            <SectionBand
+              title="Applicants"
+              subtitle="Where the book of work is going, and who has just joined it."
+            >
+              <Grid.Col span={MEDIUM}>
+                <ApplicantCountryStats filters={filters} />
+              </Grid.Col>
+              <Grid.Col span={SMALL}>
+                <ApplicantStatTiles filters={filters} />
+              </Grid.Col>
+              <Grid.Col span={LARGE}>
+                <RecentApplicants filters={filters} />
+              </Grid.Col>
+            </SectionBand>
+          </ModuleErrorBoundary>
+
+          <ModuleErrorBoundary resetKeys={resetKeys}>
+            <SectionBand
+              title="Operations"
+              subtitle="The queues, the standing measures, and what just changed."
+            >
+              <Grid.Col span={LARGE}>
+                <AttentionPanel filters={filters} />
+              </Grid.Col>
+              <Grid.Col span={LARGE}>
+                <TodayPanel filters={filters} />
+              </Grid.Col>
+              <Grid.Col span={LARGE}>
+                <BlockersPanel filters={filters} />
+              </Grid.Col>
+              <Grid.Col span={LARGE}>
+                <WorkloadPanel filters={filters} />
+              </Grid.Col>
+              <Grid.Col span={LARGE}>
+                <PipelinePanel filters={filters} />
+              </Grid.Col>
+              <Grid.Col span={LARGE}>
+                <PerformancePanel filters={filters} />
+              </Grid.Col>
+              <Grid.Col span={LARGE}>
+                <ActivityPanel
+                  key={filters.fiscalYear}
+                  fiscalYear={filters.fiscalYear}
+                />
+              </Grid.Col>
+            </SectionBand>
+          </ModuleErrorBoundary>
+
+          <Text size="xs" c="dimmed" ff="monospace">
+            Access: admin · lead_manager. Fiscal year and destination country
+            (top right) scope every card except Recent activity, which is
+            fiscal-year only. Overdue and expiry flags are computed server-side.
+            Figures come from different endpoints and different windows — read
+            each card on its own terms, never across them.
+          </Text>
+        </Stack>
       </ModalPaper>
     </>
   );
