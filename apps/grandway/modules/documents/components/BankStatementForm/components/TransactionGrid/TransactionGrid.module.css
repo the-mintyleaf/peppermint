@@ -90,6 +90,12 @@
   outline-offset: -2px;
 }
 
+/* A date earlier than the row above — colour backs up the icon + tooltip, never alone. */
+.warnCell {
+  background: var(--mantine-color-yellow-light);
+  box-shadow: inset 0 0 0 1px var(--mantine-color-yellow-4);
+}
+
 .numeric input {
   text-align: right;
   font-family: var(--mantine-font-family-monospace);
