@@ -6,6 +6,7 @@ import {
   Anchor,
   Button,
   Center,
+  Group,
   Loader,
   ModalPaper,
   ModuleHeader,
@@ -23,6 +24,7 @@ import {
 } from "@/components/profile";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiError } from "@/lib/authErrorMessages";
+import { ApplicantPhoto } from "@/modules/admin/applicants";
 import { FilesPanel } from "@/modules/admin/uploaded-files/_shared/FilesPanel";
 import { useJourneyDetail } from "../../applicantJourneys.hooks";
 import { journeyApplicantName } from "../../applicantJourneys.labels";
@@ -145,14 +147,25 @@ function JourneyDetailContent() {
             <ProfileSidebar
               name={destination}
               avatarLabel={journey.target_country || displayName}
+              // The page's avatar anchors the *journey* (its destination), so
+              // the applicant's face rides with their name in the subtitle
+              // instead of displacing it — one anchor, and the photo stays
+              // attached to the thing it identifies.
               subtitle={
-                <Anchor
-                  size="sm"
-                  component={Link}
-                  href={`/admin/applicants/${journey.applicant.id}`}
-                >
-                  {displayName}
-                </Anchor>
+                <Group gap={6} justify="center" wrap="nowrap">
+                  <ApplicantPhoto
+                    applicantId={journey.applicant.id}
+                    name={displayName}
+                    size={20}
+                  />
+                  <Anchor
+                    size="sm"
+                    component={Link}
+                    href={`/admin/applicants/${journey.applicant.id}`}
+                  >
+                    {displayName}
+                  </Anchor>
+                </Group>
               }
               fields={<JourneyOverviewPanel journey={journey} />}
             />

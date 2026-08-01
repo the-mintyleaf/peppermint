@@ -33,6 +33,7 @@ import { FilesPanel } from "@/modules/admin/uploaded-files/_shared/FilesPanel";
 import { useApplicantDetail } from "../../applicants.hooks";
 import { applicantDisplayName } from "../../applicants.labels";
 import type { ApplicantDetail as ApplicantDetailRecord } from "../../applicants.types";
+import { useApplicantPhotograph } from "../../photograph";
 import { ApplicantHistoryPanel } from "./components/ApplicantHistoryPanel";
 import { ApplicantJourneysPanel } from "./components/ApplicantJourneysPanel";
 import { ApplicantOverviewPanel } from "./components/ApplicantOverviewPanel";
@@ -120,6 +121,10 @@ function ApplicantDetailContent() {
     error,
     refetch,
   } = useApplicantDetail(id);
+  // Two extra requests (find the file, fetch its bytes), both cached for the
+  // session. A failure falls back to initials inside `ProfileSidebar` — a
+  // missing portrait is not worth an error state on a page that loaded.
+  const photograph = useApplicantPhotograph(id);
 
   const notFound =
     isError && getApiError(error).code === "APPLICANTS_APPLICANT_NOT_FOUND";
@@ -206,6 +211,8 @@ function ApplicantDetailContent() {
           sidebar={
             <ProfileSidebar
               name={displayName}
+              avatarSrc={photograph.url}
+              avatarLoading={photograph.isLoading}
               fields={<ApplicantOverviewPanel applicant={applicant} />}
             />
           }

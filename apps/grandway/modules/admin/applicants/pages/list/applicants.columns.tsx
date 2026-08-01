@@ -15,6 +15,7 @@ import {
   applicantDisplayName,
 } from "../../applicants.labels";
 import type { Applicant } from "../../applicants.types";
+import { ApplicantPhoto } from "../../photograph";
 import { ApplicantRowActionsMenu } from "./components/ApplicantRowActionsMenu";
 import { ApplicantStatusSwitch } from "./components/ApplicantStatusSwitch";
 import { OpenDocumentButton } from "./components/OpenDocumentButton";
@@ -32,22 +33,37 @@ export function getApplicantsColumns({
       accessor: "full_name",
       title: "Applicant",
       icon: IdentificationCardIcon,
+      // The photo rides inside the identity cell rather than taking a column of
+      // its own: it is not a fact you sort, filter or scan down — it only helps
+      // confirm you are looking at the right person, which is the name's job.
+      //
+      // Cost, stated because it is not free: each row resolves its own photo in
+      // two requests (find the file, then the audited byte download), so a
+      // 25-row page issues 50. Both are cached for the session, and a repeat
+      // visit or a page revisit re-renders from cache.
       render: (applicant: Applicant) => (
-        <Stack gap={0}>
-          <Text size="xs" fw={500}>
-            {applicantDisplayName(applicant)}
-          </Text>
-          {applicant.creation_source === "lead_conversion" ? (
-            <Text
-              size="xs"
-              c="dimmed"
-              style={{ display: "flex", alignItems: "center", gap: 4 }}
-            >
-              <ArrowsLeftRightIcon size={12} aria-hidden />
-              From lead
+        <Group gap="xs" wrap="nowrap">
+          <ApplicantPhoto
+            applicantId={applicant.id}
+            name={applicantDisplayName(applicant)}
+            size={28}
+          />
+          <Stack gap={0}>
+            <Text size="xs" fw={500}>
+              {applicantDisplayName(applicant)}
             </Text>
-          ) : null}
-        </Stack>
+            {applicant.creation_source === "lead_conversion" ? (
+              <Text
+                size="xs"
+                c="dimmed"
+                style={{ display: "flex", alignItems: "center", gap: 4 }}
+              >
+                <ArrowsLeftRightIcon size={12} aria-hidden />
+                From lead
+              </Text>
+            ) : null}
+          </Stack>
+        </Group>
       ),
     },
     {

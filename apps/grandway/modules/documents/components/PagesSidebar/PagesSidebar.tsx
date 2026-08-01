@@ -12,6 +12,7 @@ import {
 import { Plus as PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { X as XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { FileText as FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
+import { ApplicantPhoto } from "@/modules/admin/applicants";
 import { useDocumentEditor } from "../../context";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
 import { AddPageMenu } from "../AddPageMenu";
@@ -25,11 +26,14 @@ interface PagesSidebarProps {
 export function PagesSidebar({ onClose }: PagesSidebarProps) {
   const {
     applicantId,
+    studentFullData,
     documents,
     activeDocumentId,
     setActiveDocumentId,
     isCreatingDocument,
   } = useDocumentEditor();
+
+  const applicantName = studentFullData?.fullName || "This applicant";
 
   // Standalone documents have no workspace to add pages to. Removing a page is not a delete —
   // documents are archived (with a reason) from the toolbar for the active document.
@@ -69,6 +73,22 @@ export function PagesSidebar({ onClose }: PagesSidebarProps) {
           </ActionIcon>
         </Group>
       </div>
+
+      {/* Who these pages are for. Standalone documents have no applicant, so
+       * the strip is absent rather than empty — the editor is then genuinely
+       * not about a person. */}
+      {applicantId ? (
+        <Group gap={8} px={8} py={6} wrap="nowrap">
+          <ApplicantPhoto
+            applicantId={applicantId}
+            name={applicantName}
+            size={24}
+          />
+          <Text size="xs" fw={500} lineClamp={1} title={applicantName}>
+            {applicantName}
+          </Text>
+        </Group>
+      ) : null}
 
       <ScrollArea className={styles.sidebarBody} p={6} type="auto">
         <Stack gap={12}>

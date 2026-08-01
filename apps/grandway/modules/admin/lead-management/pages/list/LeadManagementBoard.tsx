@@ -15,6 +15,7 @@ import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { TrendUpIcon } from "@phosphor-icons/react/dist/csr/TrendUp";
 import { CalendarCheckIcon } from "@phosphor-icons/react/dist/csr/CalendarCheck";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
+import { ListBulletsIcon } from "@phosphor-icons/react/dist/csr/ListBullets";
 import { TagIcon } from "@phosphor-icons/react/dist/csr/Tag";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
@@ -71,7 +72,7 @@ function LeadManagementBoardContent() {
   const [fiscalYear, setFiscalYear] = useState<string | null>(null);
   const [referenceDataOpen, setReferenceDataOpen] = useState(false);
 
-  const { counts, capped, isLoading, boardQueryKey, queryFn } =
+  const { rows, counts, capped, isLoading, boardQueryKey, queryFn } =
     useLeadBoardData(fiscalYear);
   const { data: sources = [] } = useLeadSources();
   const [detailLeadId, setDetailLeadId] = useState<string | null>(null);
@@ -81,13 +82,21 @@ function LeadManagementBoardContent() {
     onViewDetails: (lead) => setDetailLeadId(lead.id),
   });
 
-  const tabs: DataTableShellTab[] = (
-    Object.keys(CATEGORY_LABELS) as LeadCategory[]
-  ).map((category) => ({
-    label: `${CATEGORY_LABELS[category]} · ${counts[category]}`,
-    icon: CATEGORY_ICONS[category],
-    filter: { category },
-  }));
+  // "All leads" carries no `filter` — the shell resets filters on every tab
+  // switch, so an unfiltered tab is the whole loaded set. Its count is
+  // `rows.length` (what the table actually holds), not `meta.total`, which can
+  // be larger when the board is capped.
+  const tabs: DataTableShellTab[] = [
+    {
+      label: `All leads · ${rows.length}`,
+      icon: ListBulletsIcon,
+    },
+    ...(Object.keys(CATEGORY_LABELS) as LeadCategory[]).map((category) => ({
+      label: `${CATEGORY_LABELS[category]} · ${counts[category]}`,
+      icon: CATEGORY_ICONS[category],
+      filter: { category },
+    })),
+  ];
 
   const applyFiscalYear = () => {
     const trimmed = fiscalYearInput.trim();

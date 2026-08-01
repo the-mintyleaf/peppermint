@@ -25,6 +25,7 @@ import {
   STAGE_LABELS,
 } from "@/modules/admin/applicant-journeys/applicantJourneys.labels";
 import { RecordAlertsPanel } from "@/modules/admin/notifications/_shared/RecordAlertsPanel";
+import { ApplicantPhoto } from "@/modules/admin/applicants";
 import { FilesPanel } from "@/modules/admin/uploaded-files/_shared/FilesPanel";
 import { useOfferDetail } from "../../offers.hooks";
 import { OFFER_STATUS_COLORS, OFFER_STATUS_LABELS } from "../../offers.labels";
@@ -115,6 +116,14 @@ function OfferDetailContent() {
           <Group justify="space-between" align="flex-start" wrap="wrap">
             <Stack gap={4}>
               <Group gap="xs">
+                {/* Beside the name, not in place of the status badges — the
+                 * photo confirms *who* this offer belongs to; the badges say
+                 * what state it is in. */}
+                <ApplicantPhoto
+                  applicantId={offer.applicant_id}
+                  name={offer.applicant_name || "Applicant"}
+                  size={28}
+                />
                 <Title order={4}>{offer.applicant_name || "Offer"}</Title>
                 <Badge
                   size="sm"

@@ -34,11 +34,11 @@ Decisions (confirmed with user):
 
 ## Phase 4 — Display surfaces
 
-- [ ] `ProfileSidebar` gains `avatarSrc`
-- [ ] Applicant detail header
-- [ ] Applicant list rows (thumbnail column)
-- [ ] Journey detail + offer detail
-- [ ] Documents workspace sidebar
+- [x] `ProfileSidebar` gains `avatarSrc`
+- [x] Applicant detail header
+- [x] Applicant list rows (thumbnail column)
+- [x] Journey detail + offer detail
+- [x] Documents workspace sidebar
 
 ## Phase 5 — Documents / templates
 

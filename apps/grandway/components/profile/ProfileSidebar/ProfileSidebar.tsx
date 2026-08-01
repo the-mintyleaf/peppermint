@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, Divider, Stack, Text, Title } from "@peppermint/ui";
+import { Avatar, Divider, Skeleton, Stack, Text, Title } from "@peppermint/ui";
 import type { ProfileSidebarProps } from "./ProfileSidebar.types";
 
 function initials(name: string): string {
@@ -26,15 +26,27 @@ export function ProfileSidebar({
   subtitle,
   status,
   avatarLabel,
+  avatarSrc,
+  avatarLoading = false,
   fields,
   actions,
 }: ProfileSidebarProps) {
   return (
     <Stack gap="md" p="md">
       <Stack align="center" gap="sm">
-        <Avatar size={72} radius="xl" color="blue">
-          {initials(avatarLabel ?? name)}
-        </Avatar>
+        {avatarLoading ? (
+          <Skeleton height={72} width={72} circle />
+        ) : (
+          <Avatar
+            src={avatarSrc}
+            alt={avatarSrc ? `Photograph of ${name}` : undefined}
+            size={72}
+            radius="xl"
+            color="blue"
+          >
+            {initials(avatarLabel ?? name)}
+          </Avatar>
+        )}
         <Stack align="center" gap={6}>
           <Title
             order={2}
