@@ -92,7 +92,11 @@ export function DashboardOverview() {
           <DashboardTabs value={tab} onChange={setTab}>
             {panel(
               "overview",
-              <OverviewPanel filters={filters} onOpenTab={setTab} />,
+              <OverviewPanel
+                filters={filters}
+                onOpenTab={setTab}
+                onSelectCountry={filters.setCountry}
+              />,
             )}
             {panel("today", <TodayWorklists filters={filters} />)}
             {panel("pipeline", <PipelineCounts filters={filters} />)}

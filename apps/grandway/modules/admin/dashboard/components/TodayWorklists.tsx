@@ -2,10 +2,6 @@
 
 import Link from "next/link";
 import { Anchor, Badge, Card, Group, Stack, Text } from "@peppermint/ui";
-import {
-  ITEM_STATUS_COLORS,
-  ITEM_STATUS_LABELS,
-} from "@/modules/admin/checklists/checklists.labels";
 import { STATUS_META as DOCUMENT_STATUS_META } from "@/modules/documents/documents.status";
 import {
   STAGE_COLORS as LEAD_STAGE_COLORS,
@@ -23,43 +19,15 @@ import {
 } from "../dashboard.labels";
 import { formatDate, formatDateTime } from "../dashboard.utils";
 import type {
-  ChecklistItemRow,
   DashboardFilters,
   DocumentRow,
   FileRow,
   LeadRow,
   OfferRow,
 } from "../dashboard.types";
+import { ChecklistItemRowView } from "./ChecklistItemRowView";
 import { PreviewTabs } from "./PreviewTabs";
 import { SectionState } from "./SectionState";
-
-function ChecklistItemRowView({ row }: { row: ChecklistItemRow }) {
-  return (
-    <Anchor
-      component={Link}
-      href={`/admin/checklists/${row.checklist_id}`}
-      underline="never"
-      c="inherit"
-    >
-      <Group justify="space-between" wrap="nowrap" gap="xs">
-        <Stack gap={0}>
-          <Text size="sm">{row.applicant_name}</Text>
-          <Text size="xs" c="dimmed">
-            {row.checklist_title} — {row.label}
-          </Text>
-        </Stack>
-        <Stack gap={2} align="flex-end">
-          <Badge size="sm" color={ITEM_STATUS_COLORS[row.status]}>
-            {ITEM_STATUS_LABELS[row.status]}
-          </Badge>
-          <Text size="xs" c="dimmed">
-            {formatDate(row.due_at, row.due_at_bs)}
-          </Text>
-        </Stack>
-      </Group>
-    </Anchor>
-  );
-}
 
 function OfferAwaitingResponseRowView({ row }: { row: OfferRow }) {
   return (

@@ -13,63 +13,94 @@ import {
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/csr/ArrowRight";
 import { STAGE_LABELS as JOURNEY_STAGE_LABELS } from "@/modules/admin/applicant-journeys/applicantJourneys.labels";
 import {
-  useDashboardBlockers,
   useDashboardConversion,
   useDashboardPipeline,
   useDashboardToday,
 } from "../dashboard.hooks";
 import {
-  BLOCKER_GROUP_LABELS,
-  TODAY_WORKLIST_LABELS,
+  APPLICANT_STATUS_COLORS,
+  APPLICANT_STATUS_LABELS,
 } from "../dashboard.labels";
 import { DASHBOARD_TAB_META, type DashboardTab } from "../dashboard.tabs";
 import type {
-  DashboardBlockers,
-  DashboardToday,
+  ApplicantStatusKey,
   JourneyStageKey,
+  Preview,
+  ChecklistItemRow,
 } from "../dashboard.types";
 import { CategoryBarChart } from "./CategoryBarChart";
+import { ChecklistItemRowView } from "./ChecklistItemRowView";
+import { CountryCards } from "./CountryCards";
+import { DonutStat } from "./DonutStat";
 import { Gauge } from "./Gauge";
-import { MeterBar } from "./MeterBar";
-import { NeedsAttention } from "./NeedsAttention";
 import { SectionState } from "./SectionState";
-import type { OverviewPanelProps } from "./OverviewPanel.types";
+import { StatTiles } from "./StatTiles";
+import type {
+  OverviewPanelProps,
+  OverviewSectionProps,
+} from "./OverviewPanel.types";
 
 /**
- * The landing view: exceptions first, then just enough of the pipeline to know
- * whether the shape is normal. Nothing here is a second copy of a section — each
- * card is the section's headline figure set, and the card's one action opens the
- * tab with the rows, the previews and the caveats.
+ * The landing view, read top to bottom as one sentence: **what are the numbers →
+ * which destination → what shape is the pipeline in → what do I open first.**
  *
- * Deliberately NOT here: preview rows, per-owner tables, outcome breakdowns and
- * the activity feed. They are a tab away, which is the whole point — a dashboard
- * is a signal board, not a wall of charts (DESIGN.md Layer 2).
+ * 1. `StatTiles` — every top-level figure `/summary/` returns; the alerts are
+ *    buttons into their tab.
+ * 2. `CountryCards` — the destination comparison, one request per country
+ *    (there is no group-by endpoint); activating one scopes the whole page.
+ * 3. Charts — journeys by stage (magnitude → bar), applicants by status
+ *    (breakdown → donut), the four conversion rates (rate → semicircle gauge).
+ *    Chart grammar per the module's shared rules; nothing here is decorative.
+ * 4. The two checklist queues that drive daily work, as real preview rows.
+ *
+ * Everything else — the other four worklists, blocker groups, per-owner
+ * workload, outcomes, the activity feed — is one tab away, unduplicated.
  */
-export function OverviewPanel({ filters, onOpenTab }: OverviewPanelProps) {
+export function OverviewPanel({
+  filters,
+  onOpenTab,
+  onSelectCountry,
+}: OverviewPanelProps) {
   return (
-    <Stack gap="md">
+    <Stack gap="lg">
+      <StatTiles filters={filters} onOpenTab={onOpenTab} />
+
+      <Stack gap="sm">
+        <Group justify="space-between" align="baseline">
+          <Text fw={600} size="sm">
+            Destinations
+          </Text>
+          <Text size="xs" c="dimmed" ff="monospace">
+            journeys per country
+          </Text>
+        </Group>
+        <CountryCards
+          fiscalYear={filters.fiscalYear}
+          selectedCountry={filters.country}
+          onSelectCountry={onSelectCountry}
+        />
+      </Stack>
+
       <Grid>
-        <Grid.Col span={{ base: 12, lg: 7 }}>
-          <NeedsAttention filters={filters} onOpenTab={onOpenTab} />
+        <Grid.Col span={{ base: 12, lg: 8 }}>
+          <JourneyStageCard filters={filters} onOpenTab={onOpenTab} />
         </Grid.Col>
-        <Grid.Col span={{ base: 12, lg: 5 }}>
-          <JourneyShapeCard filters={filters} onOpenTab={onOpenTab} />
+        <Grid.Col span={{ base: 12, lg: 4 }}>
+          <ApplicantStatusCard filters={filters} onOpenTab={onOpenTab} />
         </Grid.Col>
       </Grid>
 
-      <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
-        <TodayGlanceCard filters={filters} onOpenTab={onOpenTab} />
-        <BlockersGlanceCard filters={filters} onOpenTab={onOpenTab} />
-        <ConversionGlanceCard filters={filters} onOpenTab={onOpenTab} />
-      </SimpleGrid>
+      <ConversionCard filters={filters} onOpenTab={onOpenTab} />
+
+      <ChecklistQueues filters={filters} onOpenTab={onOpenTab} />
     </Stack>
   );
 }
 
 /**
- * Shared chrome for a headline card: a title, the summary body, and exactly one
- * quiet action pinned to the bottom — "the rest of this lives here". The action
- * is a button because it changes the view rather than navigating.
+ * Shared chrome: a title, the body, and exactly one quiet action — "the rest of
+ * this lives here". The action is a button because it switches tab rather than
+ * navigating.
  */
 function OverviewCard({
   title,
@@ -88,40 +119,33 @@ function OverviewCard({
     <Card withBorder radius="lg" p="lg" h="100%">
       <Stack gap="md" h="100%" justify="space-between">
         <Stack gap="md">
-          <Stack gap={2}>
+          <Group justify="space-between" align="baseline" wrap="nowrap">
             <Text fw={600} size="sm">
               {title}
             </Text>
-            {caption ? (
-              <Text size="xs" c="dimmed">
-                {caption}
-              </Text>
-            ) : null}
-          </Stack>
+            <Button
+              variant="subtle"
+              size="compact-xs"
+              rightSection={<ArrowRightIcon size={13} />}
+              onClick={() => onOpenTab(tab)}
+            >
+              {DASHBOARD_TAB_META[tab].label}
+            </Button>
+          </Group>
+          {caption ? (
+            <Text size="xs" c="dimmed" mt={-8}>
+              {caption}
+            </Text>
+          ) : null}
           {children}
         </Stack>
-
-        <Group justify="flex-start">
-          <Button
-            variant="subtle"
-            size="compact-sm"
-            rightSection={<ArrowRightIcon size={14} />}
-            onClick={() => onOpenTab(tab)}
-          >
-            Open {DASHBOARD_TAB_META[tab].label}
-          </Button>
-        </Group>
       </Stack>
     </Card>
   );
 }
 
-/**
- * Where the book of work actually sits. Journeys by stage is the one pipeline
- * measure that answers "is the shape normal?" on its own — leads, applicants,
- * offers, checklists, documents and files are all one click away on Pipeline.
- */
-function JourneyShapeCard({ filters, onOpenTab }: OverviewPanelProps) {
+/** Journeys by stage — an ordered magnitude, so a single-hue bar chart. */
+function JourneyStageCard({ filters, onOpenTab }: OverviewSectionProps) {
   const { data, isPending, isError, refetch, isRefetching } =
     useDashboardPipeline(filters);
 
@@ -138,7 +162,7 @@ function JourneyShapeCard({ filters, onOpenTab }: OverviewPanelProps) {
         errorMessage="Couldn't load pipeline counts."
         onRetry={() => refetch()}
         isRetrying={isRefetching}
-        skeletonHeight={260}
+        skeletonHeight={280}
       >
         {data ? (
           <CategoryBarChart
@@ -158,101 +182,57 @@ function JourneyShapeCard({ filters, onOpenTab }: OverviewPanelProps) {
   );
 }
 
-/** The six queues as totals only — the ≤10-row previews live on the Today tab. */
-function TodayGlanceCard({ filters, onOpenTab }: OverviewPanelProps) {
+/** Applicants by status — parts of one total, so a donut with a word+value legend. */
+function ApplicantStatusCard({ filters, onOpenTab }: OverviewSectionProps) {
   const { data, isPending, isError, refetch, isRefetching } =
-    useDashboardToday(filters);
+    useDashboardPipeline(filters);
 
-  const rows = data
-    ? (
-        Object.keys(TODAY_WORKLIST_LABELS) as Array<
-          keyof typeof TODAY_WORKLIST_LABELS
-        >
-      ).map((key) => ({
-        label: TODAY_WORKLIST_LABELS[key],
-        value: (data[key as keyof DashboardToday] as { total: number }).total,
-      }))
+  const items = data
+    ? (Object.keys(data.applicants_by_status) as ApplicantStatusKey[]).map(
+        (key) => ({
+          label: APPLICANT_STATUS_LABELS[key],
+          value: data.applicants_by_status[key],
+          color: APPLICANT_STATUS_COLORS[key],
+        }),
+      )
     : [];
 
   return (
     <OverviewCard
-      title="Today's queues"
-      caption={
-        data ? `Due-soon horizon: ${data.due_within_days} days.` : undefined
-      }
-      tab="today"
+      title="Applicants by status"
+      caption="Parts of one total."
+      tab="pipeline"
       onOpenTab={onOpenTab}
     >
       <SectionState
         isPending={isPending}
         isError={isError}
-        errorMessage="Couldn't load today's worklists."
+        errorMessage="Couldn't load pipeline counts."
         onRetry={() => refetch()}
         isRetrying={isRefetching}
-        skeletonHeight={180}
+        skeletonHeight={280}
       >
-        <TotalsMeters rows={rows} />
+        {data ? (
+          <DonutStat
+            items={items}
+            centerValue={items.reduce((sum, item) => sum + item.value, 0)}
+            centerLabel="applicants"
+          />
+        ) : null}
       </SectionState>
     </OverviewCard>
   );
 }
 
-/** The five blocker groups as totals only — an all-zero card is the healthy state. */
-function BlockersGlanceCard({ filters, onOpenTab }: OverviewPanelProps) {
-  const { data, isPending, isError, refetch, isRefetching } =
-    useDashboardBlockers(filters);
-
-  const rows = data
-    ? (
-        Object.keys(BLOCKER_GROUP_LABELS) as Array<
-          keyof typeof BLOCKER_GROUP_LABELS
-        >
-      ).map((key) => ({
-        label: BLOCKER_GROUP_LABELS[key],
-        value: (data[key as keyof DashboardBlockers] as { total: number })
-          .total,
-      }))
-    : [];
-
-  const allClear = rows.length > 0 && rows.every((row) => row.value === 0);
-
-  return (
-    <OverviewCard
-      title="Blockers"
-      caption="Five causes, never merged — an empty group is healthy."
-      tab="blockers"
-      onOpenTab={onOpenTab}
-    >
-      <SectionState
-        isPending={isPending}
-        isError={isError}
-        errorMessage="Couldn't load blockers and risk."
-        onRetry={() => refetch()}
-        isRetrying={isRefetching}
-        skeletonHeight={180}
-      >
-        <Stack gap="sm">
-          {allClear ? (
-            <Text size="sm" c="dimmed">
-              Nothing is stuck — all five groups are clear.
-            </Text>
-          ) : null}
-          <TotalsMeters rows={rows} color="orange" />
-        </Stack>
-      </SectionState>
-    </OverviewCard>
-  );
-}
-
-/** The four rates, gauge-only — `by_source` and the outcome rings are a tab away. */
-function ConversionGlanceCard({ filters, onOpenTab }: OverviewPanelProps) {
+/** The four rates as semicircle gauges — independent, never a funnel (§7). */
+function ConversionCard({ filters, onOpenTab }: OverviewSectionProps) {
   const { data, isPending, isError, refetch, isRefetching } =
     useDashboardConversion(filters);
 
   return (
     <OverviewCard
       title="Conversion"
-      caption="Four independent rates — never a funnel, never multiplied."
+      caption="Four independent rates — never a funnel, never multiplied together. A rate is blank when its denominator is 0."
       tab="performance"
       onOpenTab={onOpenTab}
     >
@@ -262,10 +242,10 @@ function ConversionGlanceCard({ filters, onOpenTab }: OverviewPanelProps) {
         errorMessage="Couldn't load conversion figures."
         onRetry={() => refetch()}
         isRetrying={isRefetching}
-        skeletonHeight={180}
+        skeletonHeight={160}
       >
         {data ? (
-          <SimpleGrid cols={2} spacing="md">
+          <SimpleGrid cols={{ base: 2, md: 4 }} spacing="lg">
             <Gauge
               percent={data.rates.lead_to_applicant.percent}
               label="Lead → Applicant"
@@ -294,32 +274,101 @@ function ConversionGlanceCard({ filters, onOpenTab }: OverviewPanelProps) {
 }
 
 /**
- * A set of `Preview.total` figures as comparable bars, biggest first. These are
- * facts, not controls — the card's single action carries the navigation, so the
- * rows stay inert (DESIGN.md: state and action must not blur).
+ * The two queues that drive the day, side by side, as REAL preview rows. Both
+ * come from the one `today` request, so they are consistent with each other —
+ * and they are the only lists Overview carries; the other four worklists are on
+ * the Today tab rather than duplicated here.
  */
-function TotalsMeters({
-  rows,
-  color = "gray",
-}: {
-  rows: { label: string; value: number }[];
-  color?: string;
-}) {
-  const max = Math.max(1, ...rows.map((row) => row.value));
-  const ordered = [...rows].sort((a, b) => b.value - a.value);
+function ChecklistQueues({ filters, onOpenTab }: OverviewSectionProps) {
+  const { data, isPending, isError, refetch, isRefetching } =
+    useDashboardToday(filters);
 
   return (
-    <Stack gap="sm">
-      {ordered.map((row) => (
-        <MeterBar
-          key={row.label}
-          label={row.label}
-          value={row.value}
-          max={max}
-          color={color}
-          muted={row.value === 0}
-          labelWidth={150}
-        />
+    <Grid>
+      <Grid.Col span={{ base: 12, lg: 6 }}>
+        <OverviewCard
+          title="Overdue checklist items"
+          caption="Past their due date — the server decides overdue, not the browser."
+          tab="today"
+          onOpenTab={onOpenTab}
+        >
+          <SectionState
+            isPending={isPending}
+            isError={isError}
+            errorMessage="Couldn't load today's worklists."
+            onRetry={() => refetch()}
+            isRetrying={isRefetching}
+            skeletonHeight={220}
+          >
+            <QueueRows
+              preview={data?.overdue_checklist_items}
+              emptyMessage="Nothing overdue — healthy."
+            />
+          </SectionState>
+        </OverviewCard>
+      </Grid.Col>
+
+      <Grid.Col span={{ base: 12, lg: 6 }}>
+        <OverviewCard
+          title="Due soon"
+          caption={
+            data
+              ? `Falling due within ${data.due_within_days} days.`
+              : "Falling due inside the server's due-soon horizon."
+          }
+          tab="today"
+          onOpenTab={onOpenTab}
+        >
+          <SectionState
+            isPending={isPending}
+            isError={isError}
+            errorMessage="Couldn't load today's worklists."
+            onRetry={() => refetch()}
+            isRetrying={isRefetching}
+            skeletonHeight={220}
+          >
+            <QueueRows
+              preview={data?.due_soon_checklist_items}
+              emptyMessage="Nothing falling due in this window."
+            />
+          </SectionState>
+        </OverviewCard>
+      </Grid.Col>
+    </Grid>
+  );
+}
+
+/**
+ * A worklist preview. The count badge and the "see all" line read the REAL
+ * `total`/`has_more` from the wrapper, never `items.length` — the API caps the
+ * preview at 10 rows (INTEGRATION.md §3).
+ */
+function QueueRows({
+  preview,
+  emptyMessage,
+}: {
+  preview: Preview<ChecklistItemRow> | undefined;
+  emptyMessage: string;
+}) {
+  if (!preview) return null;
+
+  if (preview.items.length === 0) {
+    return (
+      <Text size="sm" c="dimmed" py="xs">
+        {emptyMessage}
+      </Text>
+    );
+  }
+
+  return (
+    <Stack gap="xs">
+      <Text size="xs" c="dimmed" ff="monospace">
+        {preview.has_more
+          ? `showing ${preview.items.length} of ${preview.total}`
+          : `${preview.total} total`}
+      </Text>
+      {preview.items.map((row) => (
+        <ChecklistItemRowView key={row.id} row={row} />
       ))}
     </Stack>
   );

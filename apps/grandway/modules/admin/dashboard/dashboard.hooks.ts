@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useQuery } from "@peppermint/ui";
+import { useQueries, useQuery } from "@peppermint/ui";
 import {
   fetchActivity,
   fetchBlockers,
@@ -42,6 +42,33 @@ export function useDashboardSummary(filters: DashboardFilterInput) {
   return useQuery({
     queryKey: dashboardQueryKeys.summary(apiParams),
     queryFn: () => fetchSummary(apiParams),
+  });
+}
+
+/**
+ * One `summary` per destination country, fanned out with `useQueries`.
+ *
+ * There is NO per-country aggregation endpoint — `country` is a filter, not a
+ * group-by (INTEGRATION.md §3; the id is an `institutions.Country` resolved
+ * through `applicant_journeys`). A per-country comparison therefore has to be
+ * built by asking the same question once per country, which is honest but costs
+ * one request each: the caller decides how many countries to pass, and must NOT
+ * pass the whole catalogue unbounded.
+ *
+ * The key shape is identical to `useDashboardSummary`, so when the header's
+ * country filter is set to one of these, both share a single cached request.
+ * Each entry keeps its own loading/error state — one country failing must not
+ * blank the strip.
+ */
+export function useCountrySummaries(countryIds: string[], fiscalYear: string) {
+  return useQueries({
+    queries: countryIds.map((countryId) => {
+      const apiParams = toApiParams({ fiscalYear, country: countryId });
+      return {
+        queryKey: dashboardQueryKeys.summary(apiParams),
+        queryFn: () => fetchSummary(apiParams),
+      };
+    }),
   });
 }
 

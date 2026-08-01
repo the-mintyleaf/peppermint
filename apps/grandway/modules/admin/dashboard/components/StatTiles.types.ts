@@ -1,8 +1,8 @@
 import type { DashboardTab } from "../dashboard.tabs";
 import type { DashboardFilters } from "../dashboard.types";
 
-export interface NeedsAttentionProps {
+export interface StatTilesProps {
   filters: DashboardFilters;
-  /** Opens the tab that carries the rows behind an alert. */
+  /** Opens the tab holding the rows behind an alert tile. */
   onOpenTab: (tab: DashboardTab) => void;
 }
