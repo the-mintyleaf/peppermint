@@ -50,6 +50,7 @@ export function AdminShellNavbar({
           header={mainNavHeader}
           mainNav={config.mainNav}
           additional={config.additional}
+          globalSearch={config.globalSearch}
           aiButton={config.aiButton}
           settingsButton={config.settingsButton}
           pathname={pathname}

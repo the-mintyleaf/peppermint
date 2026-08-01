@@ -8,6 +8,8 @@ export type {
   AdminShellMainNavModule,
   AdminShellMainNavAdditional,
   AdminShellAiButton,
+  AdminShellGlobalSearch,
+  AdminShellSearchResult,
   AdminShellSubNav,
   AdminShellNavGroup,
   AdminShellNavItem,

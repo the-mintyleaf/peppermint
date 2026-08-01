@@ -1,11 +1,12 @@
 "use client";
 
 import type { ElementType } from "react";
-import { ActionIcon, Box, Divider, Stack } from "@peppermint/ui";
+import { ActionIcon, Box, Divider, Stack, spotlight } from "@peppermint/ui";
 import { MagnifyingGlass, type Icon } from "@phosphor-icons/react";
 import { MinusIcon } from "@phosphor-icons/react/dist/ssr";
 import type {
   AdminShellAiButton,
+  AdminShellGlobalSearch,
   AdminShellMainNavAdditional,
   AdminShellMainNavItem,
   AdminShellSettingsButton,
@@ -24,6 +25,7 @@ interface MainNavProps {
   header: Icon;
   mainNav: AdminShellMainNavItem[];
   additional?: AdminShellMainNavAdditional[];
+  globalSearch?: AdminShellGlobalSearch;
   aiButton?: AdminShellAiButton;
   settingsButton?: AdminShellSettingsButton;
   pathname?: string;
@@ -39,6 +41,7 @@ export function MainNav({
   header: LeafIcon,
   mainNav,
   additional,
+  globalSearch,
   aiButton,
   settingsButton,
   pathname,
@@ -81,7 +84,13 @@ export function MainNav({
         />
 
         <Box py={4}>
-          <ActionIcon variant="subtle">
+          {/* The only pointer affordance for the spotlight — without it the
+              search is reachable by ⌘K alone. */}
+          <ActionIcon
+            variant="subtle"
+            onClick={() => spotlight.open()}
+            aria-label={globalSearch ? "Open search" : "Search modules"}
+          >
             <MagnifyingGlass
               size={16}
               weight="bold"
@@ -161,6 +170,7 @@ export function MainNav({
       <MainNavSpotlight
         mainNav={mainNav}
         additional={additional}
+        globalSearch={globalSearch}
         onNavigate={onNavigate}
       />
     </Stack>
