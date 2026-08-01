@@ -25,7 +25,6 @@ import type {
   LeadRow,
   OfferRow,
 } from "../dashboard.types";
-import { ChecklistItemRowView } from "./ChecklistItemRowView";
 import { PreviewTabs } from "./PreviewTabs";
 import { SectionState } from "./SectionState";
 
@@ -149,10 +148,12 @@ function StaleLeadRowView({ row }: { row: LeadRow }) {
 }
 
 /**
- * Six Preview worklists — the worklist this module exists for (INTEGRATION.md §7
- * "today"), now presented as tabs. `overdue_checklist_items` and
- * `due_soon_checklist_items` are disjoint, so (and ONLY so) their totals are
- * summed in the caption; nothing else on the page may be.
+ * The `today` section's worklists (INTEGRATION.md §7 "today"), as tabs.
+ *
+ * FOUR of the six render here: `overdue_checklist_items` and
+ * `due_soon_checklist_items` live on Overview as full preview lists, and a tab
+ * must not repeat what Overview already shows. The section still issues the one
+ * `today` request, so both surfaces read the same cached payload.
  */
 export function TodayWorklists({ filters }: { filters: DashboardFilters }) {
   const { data, isPending, isError, refetch, isRefetching } =
@@ -172,37 +173,13 @@ export function TodayWorklists({ filters }: { filters: DashboardFilters }) {
           <Stack gap="md">
             <Group justify="flex-end">
               <Text size="xs" c="dimmed">
-                {data.overdue_checklist_items.total +
-                  data.due_soon_checklist_items.total}{" "}
-                checklist items due or overdue · due-soon horizon{" "}
-                {data.due_within_days} days
+                Overdue and due-soon checklist items are on Overview · due-soon
+                horizon {data.due_within_days} days
               </Text>
             </Group>
             <PreviewTabs
               ariaLabel="Today's worklists"
               tabs={[
-                {
-                  value: "overdue",
-                  label: TODAY_WORKLIST_LABELS.overdue_checklist_items,
-                  total: data.overdue_checklist_items.total,
-                  hasMore: data.overdue_checklist_items.has_more,
-                  seeAllHref: "/admin/checklists",
-                  emptyMessage: "No overdue checklist items.",
-                  rows: data.overdue_checklist_items.items.map((row) => (
-                    <ChecklistItemRowView key={row.id} row={row} />
-                  )),
-                },
-                {
-                  value: "due-soon",
-                  label: TODAY_WORKLIST_LABELS.due_soon_checklist_items,
-                  total: data.due_soon_checklist_items.total,
-                  hasMore: data.due_soon_checklist_items.has_more,
-                  seeAllHref: "/admin/checklists",
-                  emptyMessage: "Nothing due soon.",
-                  rows: data.due_soon_checklist_items.items.map((row) => (
-                    <ChecklistItemRowView key={row.id} row={row} />
-                  )),
-                },
                 {
                   value: "offers",
                   label: TODAY_WORKLIST_LABELS.offers_awaiting_response,

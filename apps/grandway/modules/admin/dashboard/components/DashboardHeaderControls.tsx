@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Group, Select, TextInput } from "@peppermint/ui";
+import { Button, Group, Select, Text, TextInput } from "@peppermint/ui";
 import { ArrowClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowClockwise";
 import { useCountries } from "@/modules/admin/institutions/institutions.hooks";
+import { formatFetchedAt } from "../dashboard.utils";
 import type { DashboardHeaderControlsProps } from "./DashboardHeaderControls.types";
 
 const FISCAL_YEAR_PATTERN = /^\d{4}\/\d{2}$/;
@@ -26,6 +27,7 @@ export function DashboardHeaderControls({
   onFiscalYearChange,
   onCountryChange,
   onRefresh,
+  fetchedAt,
 }: DashboardHeaderControlsProps) {
   const { data: countries, isLoading: isLoadingCountries } = useCountries();
 
@@ -56,6 +58,11 @@ export function DashboardHeaderControls({
 
   return (
     <Group gap="xs" wrap="nowrap" align="center">
+      {/* Freshness sits beside Refresh because that is the control it explains:
+          nothing polls, so this is when the figures on screen were fetched. */}
+      <Text size="xs" c="dimmed" ff="monospace" visibleFrom="md">
+        Fetched {formatFetchedAt(fetchedAt)}
+      </Text>
       <TextInput
         size="xs"
         w={116}

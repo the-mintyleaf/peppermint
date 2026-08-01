@@ -56,7 +56,7 @@ Three design decisions drive the look:
 2. **Meaningful color** — status breakdowns reuse each owning module's status→color
    map (so a slice means the same here as on that module's list); magnitude bars are
    single-hue with the value printed on them; the brand accent (orange, `color="brand"`)
-   is reserved for the page anchor (`DashboardHero`), the stage-magnitude bars, and the
+   is reserved for the stage-magnitude bars, the country-card volume bars, and the
    conversion gauges. Never color alone — every bar/slice carries a word + value.
 3. **Chart grammar on `@peppermint/ui/charts`** (Mantine Charts / recharts) — a **breakdown**
    of a total is a `DonutChart` (`DonutStat`); a **magnitude** comparison is a single-hue
@@ -89,20 +89,23 @@ stacked into one scroll. `DashboardOverview` renders the hero, then one `Tabs`
 - **`keepMounted={false}`** — only the open tab's queries fire, so no tab pays for
   a section it isn't showing. React Query caches by key, so an Overview card and
   its own tab share ONE request, not two. Per-tab cost:
-  - `summary` is the **one exception** — `DashboardHero` sits above the tabs and
-    never unmounts, so `summary` is fetched on every tab. That is deliberate: the
-    hero's three standing volumes are the scale a count in Today, Pipeline or
-    Blockers is read against, and the freshness stamp has to be true wherever you
-    are. `StatTiles` reuses the same cached query.
+  - `summary` is the **one exception** — the page itself subscribes to it for the
+    header's data-freshness stamp, so it is fetched on every tab. `StatTiles`
+    reads the same cached entry, so this costs one request, not two.
   - `overview` additionally mounts `pipeline`, `today` and `conversion` (3 more) —
     the sections its charts and lists actually show — **plus one `summary` per
     visible country card** (`useCountrySummaries`; 8 on load, +8 per "Show more").
   - every other tab mounts exactly its own one section (`performance` mounts two,
     `conversion` + `outcomes`).
+- **Padding lives on the panel, never on the tabs.** `ModalPaper` gets no padding
+  of its own; the sticky `Tabs.List` sits flush against the paper edge and each
+  `Tabs.Panel` wraps its content in a `p="md"` `Stack`.
 - The page owns the per-panel `SectionHeading` (title + caveat, from
   `DASHBOARD_TAB_META`) and the per-panel `ModuleErrorBoundary`
   (`resetKeys = [fiscalYear, country, tab]`); each section still renders only its
   own card(s).
+- **There is no hero band.** It restated the three volumes that are now the first
+  three stat tiles; its data-freshness stamp moved to the header controls.
 - **The in-page anchors (`#today-worklists`, `#blockers`) are gone** — a hidden
   tab panel cannot be scrolled to. Alert tiles switch tab via `onOpenTab`, so
   `StatTile` (and `MeterBar`) take `onActivate` (a button) rather than `href` (a
@@ -119,17 +122,16 @@ stacked into one scroll. `DashboardOverview` renders the hero, then one `Tabs`
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `AdminHome`               | `/admin` entry — `RequireAuth` + role branch: dashboard for admin/lead_manager, `SuperadminLanding` for superadmin                                                                                                                                                                               |
 | `SuperadminLanding`       | Superadmin fallback home — Welcome + Users/Audit quick-links (no dashboard access)                                                                                                                                                                                                               |
-| `DashboardHero`           | Page anchor and the ONE expressive surface (brand-tinted card) — eyebrow + "Placement overview" + role·user, the 3 standing volumes from `summary`, and the data-freshness stamp (`dataUpdatedAt`). Shown on every tab; a failed fetch shows `—`, never `0`                                      |
 | `DashboardTabs`           | The seven-tab bar (sticky inside the scrolling `ModalPaper`, `ScrollArea` on narrow viewports) wrapping the panels passed as `children`; owns `keepMounted={false}`                                                                                                                              |
 | `OverviewPanel`           | The landing view, in four bands: `StatTiles` → `CountryCards` → charts (journeys-by-stage bar + applicants-by-status donut + the 4 conversion gauges) → the overdue/due-soon checklist queues as real rows. Each card carries ONE quiet tab button                                               |
-| `DashboardHeaderControls` | fiscal_year + country + "Refresh" in the module header's right slot — the only live filters (§9: the rest are validated-and-ignored)                                                                                                                                                             |
+| `DashboardHeaderControls` | The data-freshness stamp + fiscal_year + country + "Refresh" in the module header's right slot — the only live filters (§9: the rest are validated-and-ignored). Freshness sits beside Refresh because that is the control it explains                                                           |
 | `StatTiles`               | All 11 `summary` figures as one grid — 3 volumes (inert) then the 8 alerts by severity band, each a button into its tab. ONE request, so the grid is internally consistent. Carries its own inline retry. _(Replaced `NeedsAttention`, which replaced `SummaryStrip`.)_                          |
 | `CountryCards`            | Destination comparison — ONE `summary` per country (no group-by endpoint exists); `INITIAL_COUNT`=8, +`STEP`=8 per "Show more", deliberately no "show all". Ignores the header country filter (it IS the cross-country view) and highlights the filtered one; activating a card sets that filter |
-| `TodayWorklists`          | 6 worklists as `PreviewTabs` (real preview rows; no invented bucket chart)                                                                                                                                                                                                                       |
-| `PipelineCounts`          | 7 zero-filled maps — stage magnitudes as `CategoryBarChart`, status breakdowns as `DonutStat`, docs/files as `Progress`; each links to the OWNING APP'S PLAIN list                                                                                                                               |
+| `TodayWorklists`          | **4** of the section's 6 worklists as `PreviewTabs` — overdue + due-soon render on Overview instead (real preview rows; no invented bucket chart)                                                                                                                                                |
+| `PipelineCounts`          | **5** of the section's 7 zero-filled maps — journeys-by-stage + applicants-by-status render on Overview instead. Leads-by-stage as `CategoryBarChart`, offers/checklists as `DonutStat`, docs/files as `Progress`; each links to the OWNING APP'S PLAIN list                                     |
 | `Blockers`                | 5 groups as `PreviewTabs` (real rows; no invented reason breakdown), never merged                                                                                                                                                                                                                |
 | `Workload`                | Branches on `is_scoped_to_caller` (caption only); 3 tabbed per-owner measures (`CategoryBarChart` + `StackedBarChart`), never joined/summed                                                                                                                                                      |
-| `Conversion`              | 4 independent `Gauge`s + `by_source` `StackedBarChart`; takes `filters` prop                                                                                                                                                                                                                     |
+| `Conversion`              | `by_source` `StackedBarChart` only — the 4 rate `Gauge`s render on Overview instead. Carries the Lead-Manager owner-scoping caption; takes `filters` prop                                                                                                                                        |
 | `Outcomes`                | `journey_outcomes` + `offer_decisions` as `DonutStat`, created-window counts as `MeterBar`s — separate cards; takes `filters` prop                                                                                                                                                               |
 | `ActivityFeed`            | The only paginated section, as a `Table`; real total from `meta.count` (no sparkline); `fiscalYear` only (never `country`)                                                                                                                                                                       |
 | `SectionState`            | Shared loading/error/empty chrome — every section wraps its content in this                                                                                                                                                                                                                      |
@@ -159,6 +161,7 @@ stacked into one scroll. `DashboardOverview` renders the hero, then one `Tabs`
 
 - Do not combine the 8 queries into one — a slow section must never block the rest (CONCEPT.md).
 - Do not put a count badge on a tab, and do not re-add an in-page `#anchor` link — a hidden panel can't be scrolled to; cross-section navigation is a tab switch (`onOpenTab`).
+- **Nothing renders in two places.** Overview owns the 11 summary figures, the country strip, journeys-by-stage, applicants-by-status, the 4 conversion gauges and the overdue/due-soon queues; the tabs own everything else. Before adding anything to a tab, check it is not already on Overview — and vice versa. Both surfaces share one cached request per section, so moving a figure is a render decision, never a fetch decision.
 - Do not widen `OverviewPanel` past its four bands (tiles → countries → charts → the two checklist queues). It carries the overdue/due-soon rows **by explicit request** because they drive the day; the other four worklists, all five blocker groups, per-owner workload, outcomes and the activity feed stay one tab away and must not be copied here.
 - Do not add a "show all countries" control, and do not raise `STEP` — `CountryCards` costs ONE request per visible card and `useCountries` alone returns up to 100 rows, so a single click must never be able to fan out across the catalogue.
 - Do not present a country card's figures as a backend-provided breakdown — they are N independent `summary` calls, so cards can land at different moments and the set is only as complete as the cards actually loaded.

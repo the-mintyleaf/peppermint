@@ -13,7 +13,6 @@ import {
   Text,
 } from "@peppermint/ui";
 import { STAGE_LABELS as LEAD_STAGE_LABELS } from "@/modules/admin/lead-management/leadCategory.utils";
-import { STAGE_LABELS as JOURNEY_STAGE_LABELS } from "@/modules/admin/applicant-journeys/applicantJourneys.labels";
 import {
   OFFER_STATUS_COLORS,
   OFFER_STATUS_LABELS,
@@ -28,10 +27,6 @@ import {
   VERIFICATION_STATUS_LABELS,
 } from "@/modules/admin/uploaded-files/uploadedFiles.labels";
 import { useDashboardPipeline } from "../dashboard.hooks";
-import {
-  APPLICANT_STATUS_COLORS,
-  APPLICANT_STATUS_LABELS,
-} from "../dashboard.labels";
 import type { DashboardFilters } from "../dashboard.types";
 import { CategoryBarChart } from "./CategoryBarChart";
 import { DonutStat } from "./DonutStat";
@@ -180,9 +175,13 @@ function DistributionBar({
 }
 
 /**
- * Seven zero-filled count maps, windowed on CREATION date (INTEGRATION.md §7).
- * A status *breakdown* renders as a `DonutStat`; leads/journeys by stage are an
- * ordered *magnitude* so they render as a single-hue `CategoryBarChart`; documents &
+ * The zero-filled count maps windowed on CREATION date (INTEGRATION.md §7).
+ * `journeys_by_stage` and `applicants_by_status` are NOT here — Overview renders
+ * both as its two headline charts, and a tab must not repeat what Overview
+ * already shows. Both surfaces read the one cached `pipeline` request.
+ *
+ * A status *breakdown* renders as a `DonutStat`; leads by stage is an ordered
+ * *magnitude* so it renders as a single-hue `CategoryBarChart`; documents &
  * files stay as compact `Progress` distribution bars (heterogeneous mini-legends).
  * `documents_by_status_is_country_filtered` is always `false` and only captions
  * the panel honestly when a country filter is set elsewhere — not a real toggle.
@@ -202,40 +201,13 @@ export function PipelineCounts({ filters }: { filters: DashboardFilters }) {
     >
       {data ? (
         <Grid>
-          <Grid.Col span={{ base: 12, md: 6 }}>
+          <Grid.Col span={{ base: 12, md: 6, lg: 3 }}>
             <PipelineCard title="Leads by stage" href="/admin/lead-management">
               <CategoryBarChart
                 orientation="horizontal"
                 color="brand"
                 ariaLabel="Leads by stage"
                 items={toItems(data.leads_by_stage, LEAD_STAGE_LABELS)}
-              />
-            </PipelineCard>
-          </Grid.Col>
-
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <PipelineCard
-              title="Journeys by stage"
-              href="/admin/applicant-journeys"
-            >
-              <CategoryBarChart
-                orientation="vertical"
-                color="brand"
-                ariaLabel="Journeys by stage"
-                items={toItems(data.journeys_by_stage, JOURNEY_STAGE_LABELS)}
-              />
-            </PipelineCard>
-          </Grid.Col>
-
-          <Grid.Col span={{ base: 12, sm: 6, lg: 3 }}>
-            <PipelineCard title="Applicants by status" href="/admin/applicants">
-              <StatusDonut
-                centerLabel="applicants"
-                data={toData(
-                  data.applicants_by_status,
-                  APPLICANT_STATUS_LABELS,
-                  APPLICANT_STATUS_COLORS,
-                )}
               />
             </PipelineCard>
           </Grid.Col>
