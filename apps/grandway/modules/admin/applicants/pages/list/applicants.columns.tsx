@@ -1,15 +1,19 @@
 "use client";
 
-import { Group, Stack, Text } from "@peppermint/ui";
+import { Badge, Group, Stack, Text } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
 import { dateColumn } from "@peppermint/admin";
 import { ArrowsLeftRightIcon } from "@phosphor-icons/react/dist/csr/ArrowsLeftRight";
 import { CalendarIcon } from "@phosphor-icons/react/dist/csr/Calendar";
 import { EnvelopeSimpleIcon } from "@phosphor-icons/react/dist/csr/EnvelopeSimple";
+import { GlobeHemisphereWestIcon } from "@phosphor-icons/react/dist/csr/GlobeHemisphereWest";
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
 import { PulseIcon } from "@phosphor-icons/react/dist/csr/Pulse";
 import { STATUS_LABELS } from "../../applicants.labels";
-import { applicantDisplayName } from "../../applicants.labels";
+import {
+  applicantDestinationNames,
+  applicantDisplayName,
+} from "../../applicants.labels";
 import type { Applicant } from "../../applicants.types";
 import { ApplicantRowActionsMenu } from "./components/ApplicantRowActionsMenu";
 import { ApplicantStatusSwitch } from "./components/ApplicantStatusSwitch";
@@ -78,6 +82,35 @@ export function getApplicantsColumns({
           {applicant.email || "—"}
         </Text>
       ),
+    },
+    {
+      // Reads the `destinations` projection, so the country tabs above the
+      // table have something visible to correspond to — without it a filtered
+      // tab looks identical to the unfiltered one. A read-only fact, hence
+      // plain neutral chips rather than anything that invites a click; the
+      // journeys themselves are one click away on the row's journeys button.
+      accessor: "destinations",
+      title: "Destinations",
+      icon: GlobeHemisphereWestIcon,
+      render: (applicant: Applicant) => {
+        const names = applicantDestinationNames(applicant.destinations ?? []);
+        if (names.length === 0) {
+          return (
+            <Text size="xs" c="dimmed">
+              No journey yet
+            </Text>
+          );
+        }
+        return (
+          <Group gap={4} wrap="wrap">
+            {names.map((name) => (
+              <Badge key={name} size="xs" variant="light" color="gray">
+                {name}
+              </Badge>
+            ))}
+          </Group>
+        );
+      },
     },
     dateColumn<Applicant>("created_at", {
       title: "Created",

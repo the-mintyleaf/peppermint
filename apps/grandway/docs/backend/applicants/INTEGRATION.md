@@ -54,7 +54,10 @@
 - **404 is always genuine.** Unlike `leads`, there is no ownership to hide — `APPLICANTS_APPLICANT_NOT_FOUND` never means "not yours."
 - **Pagination:** page-number based, `page`/`page_size` (default 20, max 100). `meta`: `count`, `page`, `page_size`, `next`, `previous`.
 - **IDs:** UUID strings. **Times:** ISO 8601 UTC. `date_of_birth`, passport `issued_date`/`expiry_date` carry a `<field>_bs` Bikram Sambat sibling; `created_at`/`updated_at` never do.
-- **Filter/search params — `GET /applicants/` only:** `status` (`active`/`dormant`/`archived`), `creation_source` (`lead_conversion`/`direct_admin`), `search` (`icontains` on `full_name` and `email`, trigram-indexed), `fiscal_year` (`YYYY/YY`, filters on `created_at`). Newest first, no client-controlled ordering.
+- **Filter/search params — `GET /applicants/` only:** `status` (`active`/`dormant`/`archived`), `creation_source` (`lead_conversion`/`direct_admin`), `search` (`icontains` on `full_name`, `email`, any contact number, and the passport number — trigram-indexed), `country` (an `institutions.Country` **id**), `country_code` (the same by ASCII code, e.g. `AU`, case-insensitive), `journey_stage`, `fiscal_year` (`YYYY/YY`, filters on `created_at`). Newest first, no client-controlled ordering — **except** with `search`, which orders by relevance (exact name > name prefix > name contains > matched only on email/number/passport) and tie-breaks on recency.
+
+  The three journey-traversing filters (`country`, `country_code`, `journey_stage`) mean "has **a** journey matching this" — an applicant owns no country of its own, and one with two journeys to the same country is still returned once. They compose with `search` and with each other. An unknown country id or code returns an empty page and `200`, never a `400`.
+
 - **Nested sub-resources — contact numbers, addresses, passport, family members, emergency contacts — have no standalone endpoints.** All managed inside the applicant payload. `contact_numbers`/`addresses`/`family_members`/`emergency_contacts` **replace the whole set** on update (never a delta); `passport` **upserts** the single record.
 - `creation_source` and `created_by` are never accepted from a client on any endpoint.
 
@@ -74,7 +77,7 @@
 
 **EmergencyContact** — `{ id, full_name?, relationship (free text), contact_number, email?, address? }`. `contact_number` is required — an emergency contact with no number serves no purpose.
 
-**Applicant — list shape** (`GET /applicants/` rows): `{ id, full_name, date_of_birth?, date_of_birth_bs?: BsDate, gender, nationality, email, status: enum, creation_source: enum, created_by: UserBrief, contact_numbers: ApplicantContactNumber[], destinations: Destination[], created_at, updated_at }`. **`contact_numbers` IS in the list shape** — only the addresses/passport/family/emergency collections are detail-only. `destinations` (added in API 1.1.0) is not yet consumed by this app.
+**Applicant — list shape** (`GET /applicants/` rows): `{ id, full_name, date_of_birth?, date_of_birth_bs?: BsDate, gender, nationality, email, status: enum, creation_source: enum, created_by: UserBrief, contact_numbers: ApplicantContactNumber[], destinations: Destination[], created_at, updated_at }`. **`contact_numbers` IS in the list shape** — only the addresses/passport/family/emergency collections are detail-only. `destinations` (added in API 1.1.0) is `{ journey_id, stage, country_id: string|null, country_code, country_name, target_country }[]` — a read-time projection over the person's journeys, never stored and never written. The list page renders it as the **Destinations** column and pairs it with the `country` tabs; a journey with no catalogue link has `country_id: null`, blank `country_*`, and only its free-text `target_country`.
 
 **Applicant — detail shape** (retrieve, create, update, status-change): list shape **plus** `{ addresses: ApplicantAddress[], passport: PassportDetail|null, family_members: FamilyMember[], emergency_contacts: EmergencyContact[], originating_lead_id: string|null }`.
 

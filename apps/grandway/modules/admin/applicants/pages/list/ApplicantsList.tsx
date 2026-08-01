@@ -2,29 +2,68 @@
 
 import { useRouter } from "next/navigation";
 import { DataTableShell } from "@peppermint/admin";
+import type { DataTableShellTab } from "@peppermint/admin";
 import { ModalPaper } from "@peppermint/ui";
+import { GlobeHemisphereWestIcon } from "@phosphor-icons/react/dist/csr/GlobeHemisphereWest";
+import { ListBulletsIcon } from "@phosphor-icons/react/dist/csr/ListBullets";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
+import { useCountries } from "@/modules/admin/institutions/institutions.hooks";
 import { listApplicants } from "../../applicants.api";
 import { applicantsQueryKeys } from "../../applicants.queryKeys";
 import type { Applicant } from "../../applicants.types";
 import { getApplicantsColumns } from "./applicants.columns";
 
 /**
- * Plain `DataTableShell` (not a categorized board like `lead-management`) —
- * applicants only has 3 status values with a real server-side filter, so
- * tabs would just duplicate the status column filter
- * (`docs/backend/applicants/INTEGRATION.md` §3). Create/edit are routes, not
- * modals — this is a `MultiPageModule`.
+ * How many country tabs the toolbar will render. The catalogue is a curated
+ * shortlist in practice, but `useCountries` fetches a page of up to 100 and the
+ * toolbar lays tabs out as a single `SegmentedControl` row — so the count is
+ * bounded here rather than left to whatever the catalogue happens to hold.
+ * Countries past the cap stay reachable: the destination column shows them, and
+ * they are still counted in "All applicants".
+ */
+const MAX_COUNTRY_TABS = 8;
+
+/**
+ * `DataTableShell` with destination tabs. Status stays a column filter (3 values
+ * with a real server-side filter — tabs there would only duplicate it); the
+ * tabs carry `country`, which is the question an operator actually opens this
+ * list with ("who is going to Australia?").
+ *
+ * Each country tab sends `?country=<uuid>` (`docs/backend/applicants/
+ * INTEGRATION.md` §3 — server-side, so it narrows before pagination). An
+ * applicant has NO country of its own: the filter means "has **a** journey
+ * targeting this country", and someone with journeys to two countries appears
+ * under both tabs. "All applicants" carries no filter and is the whole set.
+ *
+ * Create/edit are routes, not modals — this is a `MultiPageModule`.
  */
 function ApplicantsListContent() {
   const router = useRouter();
   const { isAdmin } = useCurrentUser();
+  const { data: countries } = useCountries();
 
   const columns = getApplicantsColumns({
     onViewDetails: (applicant) =>
       router.push(`/admin/applicants/${applicant.id}`),
   });
+
+  // Only countries the consultancy currently sends people to — a retired
+  // destination is not a tab worth a click. `useCountries` returns the
+  // catalogue's own `display_order`, which is the order the admin chose.
+  const countryTabs: DataTableShellTab[] = (countries ?? [])
+    .filter((country) => country.is_usable)
+    .slice(0, MAX_COUNTRY_TABS)
+    .map((country) => ({
+      label: country.name,
+      icon: GlobeHemisphereWestIcon,
+      filter: { country: country.id },
+    }));
+
+  const tabs: DataTableShellTab[] = [
+    { label: "All applicants", icon: ListBulletsIcon },
+    ...countryTabs,
+  ];
 
   return (
     <DataTableShell<Applicant>
@@ -35,6 +74,7 @@ function ApplicantsListContent() {
       paginationKey="meta"
       idAccessor="id"
       columns={columns}
+      tabs={tabs}
       moduleInfo={{
         name: "applicant",
         label: "Applicants",

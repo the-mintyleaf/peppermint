@@ -1,4 +1,8 @@
-import type { ApplicantStatus, CreationSource } from "./applicants.types";
+import type {
+  ApplicantDestination,
+  ApplicantStatus,
+  CreationSource,
+} from "./applicants.types";
 
 /** All statuses in display order — freely interchangeable, no terminal state. */
 export const APPLICANT_STATUSES: ApplicantStatus[] = [
@@ -34,4 +38,25 @@ export const STATUS_COLORS: Record<ApplicantStatus, string> = {
  */
 export function applicantDisplayName(applicant: { full_name: string }): string {
   return applicant.full_name.trim() || "Unnamed applicant";
+}
+
+/**
+ * The destination names to print for a row, de-duplicated in arrival order —
+ * two journeys to the same country are one destination to a reader, even though
+ * the projection returns both.
+ *
+ * A journey with no catalogue link has an empty `country_name` and only its
+ * free text, so that text is the label there; a journey with neither is dropped
+ * rather than rendered as a blank chip.
+ */
+export function applicantDestinationNames(
+  destinations: ApplicantDestination[],
+): string[] {
+  const names = destinations
+    .map(
+      (destination) => destination.country_name || destination.target_country,
+    )
+    .map((name) => name.trim())
+    .filter(Boolean);
+  return Array.from(new Set(names));
 }

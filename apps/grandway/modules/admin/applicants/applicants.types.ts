@@ -111,6 +111,26 @@ export interface EmergencyContact {
 }
 
 /**
+ * Where a person is trying to go — a read model over `applicant_journeys`,
+ * projected onto the list and detail responses (DATA_CONTRACT §8). An applicant
+ * owns no country of its own: the destination belongs to the journey, and one
+ * person may pursue several over the years, so this is an array and an empty one
+ * simply means "no journey yet".
+ *
+ * A pre-catalogue journey has no `Country` row behind it — `country_id` is then
+ * `null` and the three `country_*` fields are `""`, leaving the free-text
+ * `target_country` as the only destination there is.
+ */
+export interface ApplicantDestination {
+  journey_id: string;
+  stage: string;
+  country_id: string | null;
+  country_code: string;
+  country_name: string;
+  target_country: string;
+}
+
+/**
  * `GET /applicants/` row shape — trimmed relative to detail: it carries
  * `contact_numbers`, but not the addresses/passport/family/emergency
  * collections.
@@ -132,6 +152,8 @@ export interface Applicant {
   creation_source: CreationSource;
   created_by: UserBrief;
   contact_numbers: ApplicantContactNumber[];
+  /** Derived at read time from the person's journeys — never stored, never written. */
+  destinations: ApplicantDestination[];
   created_at: string;
   updated_at: string;
 }
