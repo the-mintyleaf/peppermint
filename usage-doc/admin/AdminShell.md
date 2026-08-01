@@ -46,6 +46,7 @@ export interface AdminShellGlobalSearch {
     query: string,
     signal?: AbortSignal,
   ) => Promise<AdminShellSearchResult[]>;
+  scopeKey?: string; // who is searching (role/user id) — partitions the result cache
   minQueryLength?: number; // default 2
   debounceMs?: number; // default 250
   staleTime?: number; // default 30_000
@@ -66,7 +67,7 @@ export interface AdminShellSearchResult {
 ```
 
 **Division of labour.** The shell owns the input, the debounce, the request
-lifecycle (abort on supersede, `keepPreviousData` between keystrokes) and the
+lifecycle (abort on supersede, cache partitioned by `scopeKey`) and the
 loading / empty / short-query / failed states. The app owns _what_ is searched:
 one function that fans out to whatever the current role may read, maps rows onto
 `AdminShellSearchResult`, and swallows per-domain failures it wants to treat as
@@ -78,6 +79,7 @@ const config = {
   onNavigate: (href) => router.push(href),
   globalSearch: {
     search: (query, signal) => searchEverything(query, { signal, isAdmin }),
+    scopeKey: authorityType,
     placeholder: "Search applicants, leads, clients...",
   },
 };
@@ -89,6 +91,11 @@ const config = {
   rank them in the provider, not by relying on the spotlight.
 - Nav matches are filtered in-memory against the live query and always render
   first; records render below, capped only by the provider.
+- Results are **not** carried over between queries: while a new query resolves
+  the list shows "Searching...", so a row matching the previous query can never
+  be one Enter away from navigating somewhere the user didn't ask for.
+- Pass `scopeKey` whenever results depend on the viewer — without it a role
+  change that doesn't remount the shell can serve the previous role's records.
 - Record results are **not** re-filtered client-side: a row matched on a field
   the label doesn't show (email, passport number) still survives.
 - A rejected `search` promise renders "Search is unavailable right now" with a

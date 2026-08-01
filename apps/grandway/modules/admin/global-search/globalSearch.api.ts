@@ -66,7 +66,14 @@ export const searchApplicants = (
 
 export interface LeadSearchRow {
   id: string;
+  /** Single English name since the backend dropped the `_np`/`_romanized` columns. */
   full_name?: string;
+  /**
+   * Pre-rename fallback, matching `Lead` in `leadManagement.types.ts`: the
+   * frontend's copy of the leads contract still documents the bilingual triple,
+   * so a deployment on the older shape must not render every lead as unnamed.
+   */
+  full_name_en?: string;
   email: string;
   stage: LeadStage;
 }

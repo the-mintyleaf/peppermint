@@ -32,7 +32,7 @@ const CLIENT_STATUS_LABELS = {
 /**
  * Where a result lands when its domain has no detail route. The list page reads
  * `?q=` and prefills its own search box, so the record is one row away instead
- * of one retyped query away (`useListQueryParam`).
+ * of one retyped query away (`lib/useDeepLinkSearch.ts`).
  */
 function listHref(path: string, query: string): string {
   return `${path}?q=${encodeURIComponent(query)}`;
@@ -69,7 +69,8 @@ export const GLOBAL_SEARCH_SOURCES: GlobalSearchSource[] = [
     run: async (query, limit, signal) => {
       const rows = await searchLeads(query, limit, signal);
       return rows.map<AdminShellSearchResult>((row) => {
-        const name = row.full_name?.trim() || "Unnamed lead";
+        const name =
+          row.full_name?.trim() || row.full_name_en?.trim() || "Unnamed lead";
         return {
           id: row.id,
           group: "Leads",

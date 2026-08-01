@@ -37,11 +37,14 @@ action's `group` field, first-seen order preserved. `SpotlightActions` (the
 locally.
 
 **Request lifecycle.** `useQuery` keyed on `["admin-shell", "global-search",
-debouncedQuery]`, `enabled` only at/above `minQueryLength`, `retry: false` (a
-search must fail fast — it is re-issued on the next keystroke),
-`placeholderData: keepPreviousData` so the list does not flash empty between
-keystrokes, and the query's `signal` is handed to the provider so a superseded
-request can be aborted. React Query dedupes/caches per query string, so
+scopeKey, debouncedQuery]` — `scopeKey` partitions the cache by viewer, so a
+role change cannot serve the previous role's records back for the same query.
+`enabled` only at/above `minQueryLength`, `retry: false` (a search must fail
+fast — it is re-issued on the next keystroke), and the query's `signal` is
+handed to the provider so a superseded request can be aborted. Deliberately no
+`keepPreviousData`: rows matching the _previous_ query would stay selectable
+while the next one resolves, one Enter away from the wrong record — the debounce
+already absorbs per-keystroke churn. React Query dedupes/caches per query string, so
 backspacing to a previous query is free within `staleTime`.
 
 **Ids** are namespaced `global-search:<group>:<id>` — an app-supplied record id
@@ -54,14 +57,14 @@ to compete with). Record count is the provider's call.
 
 ### Output contract states
 
-| State             | Handling                                                                                                  |
-| ----------------- | --------------------------------------------------------------------------------------------------------- |
-| Empty             | "No modules or records found..." (nav-only wording without a provider)                                    |
-| Loading / partial | Loader in the input's right section; "Searching..." when the list is empty; previous results stay visible |
-| Request failed    | Inline message + **Try again** (`refetch`); nav matches still usable                                      |
-| Short query       | "Keep typing — N characters minimum to search records."                                                   |
-| Permission denied | N/A at this layer — the provider decides which domains it may query                                       |
-| Read-only         | N/A — the spotlight only navigates                                                                        |
+| State             | Handling                                                                                                                    |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Empty             | "No modules or records found..." (nav-only wording without a provider)                                                      |
+| Loading / partial | Loader in the input's right section; "Searching..." while a query resolves — no results from a previous query are held over |
+| Request failed    | Inline message + **Try again** (`refetch`); nav matches still usable                                                        |
+| Short query       | "Keep typing — N characters minimum to search records."                                                                     |
+| Permission denied | N/A at this layer — the provider decides which domains it may query                                                         |
+| Read-only         | N/A — the spotlight only navigates                                                                                          |
 
 ## Files
 

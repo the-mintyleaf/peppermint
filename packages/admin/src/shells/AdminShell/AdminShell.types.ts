@@ -111,6 +111,13 @@ export interface AdminShellGlobalSearch {
     query: string,
     signal?: AbortSignal,
   ) => Promise<AdminShellSearchResult[]>;
+  /**
+   * Identifies *who* is searching — typically the role or user id. It is part
+   * of the result cache key, so a role change can never serve the previous
+   * role's records back for the same query. Omit only when every viewer of this
+   * shell sees identical results.
+   */
+  scopeKey?: string;
   /** Below this length nothing is requested and only nav matches show. @default 2 */
   minQueryLength?: number;
   /** @default 250 */

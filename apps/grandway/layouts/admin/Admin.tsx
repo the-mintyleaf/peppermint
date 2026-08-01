@@ -91,6 +91,9 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
       globalSearch: {
         search: (query: string, signal?: AbortSignal) =>
           searchEverything(query, { access: searchAccess, signal }),
+        // The access model is a pure function of the tier, so the tier is what
+        // partitions the result cache.
+        scopeKey: authorityType ?? "anonymous",
         placeholder: "Search applicants, leads, clients...",
       },
       userMenu: {

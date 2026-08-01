@@ -1,5 +1,7 @@
 .navItem {
-  transition: color 150ms ease, background-color 150ms ease;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
 }
 
 .navItem:hover:not(.active) {

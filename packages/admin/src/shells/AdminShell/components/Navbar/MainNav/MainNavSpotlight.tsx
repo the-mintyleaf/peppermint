@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   Button,
   Group,
@@ -79,13 +79,24 @@ export function MainNavSpotlight({
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["admin-shell", "global-search", debouncedQuery],
-    queryFn: ({ signal }) => globalSearch!.search(debouncedQuery, signal),
+    // `scopeKey` partitions the cache by who is asking — without it a role
+    // change that doesn't remount the shell would serve the previous role's
+    // cached records back for the same query string.
+    queryKey: [
+      "admin-shell",
+      "global-search",
+      globalSearch?.scopeKey ?? "",
+      debouncedQuery,
+    ],
+    queryFn: ({ signal }) =>
+      globalSearch ? globalSearch.search(debouncedQuery, signal) : [],
     enabled: searchEnabled,
     staleTime: globalSearch?.staleTime ?? DEFAULT_STALE_TIME_MS,
-    // Keeps the previous result set on screen while the next query resolves, so
-    // the list doesn't collapse to "nothing found" between keystrokes.
-    placeholderData: keepPreviousData,
+    // Deliberately NOT `keepPreviousData`: holding the last query's records on
+    // screen while a new one resolves leaves rows that match the *old* query
+    // one Enter away from navigating somewhere the user didn't ask for. The
+    // debounce already absorbs the per-keystroke churn, so the cost is a brief
+    // honest "Searching...", not a flicker per character.
     retry: false,
   });
 
