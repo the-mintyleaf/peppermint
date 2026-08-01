@@ -5,6 +5,7 @@ import { ModalTableShell } from "@peppermint/admin";
 import { ModalPaper, useQueryClient } from "@peppermint/ui";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
+import { useDeepLinkSearch } from "@/lib/useDeepLinkSearch";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import {
   createInstitution,
@@ -50,6 +51,8 @@ function InstitutionsListContent() {
   const { data: countries = [] } = useCountries();
   const [campusInstitution, setCampusInstitution] =
     useState<Institution | null>(null);
+  // Global-search deep link — institutions have no detail route either.
+  const deepLinkSearch = useDeepLinkSearch();
 
   const columns = getProvidersColumns({
     countries,
@@ -67,6 +70,7 @@ function InstitutionsListContent() {
         queryKey={institutionQueryKeys.lists()}
         queryGetFn={fetchInstitutions}
         enableServerQuery
+        initialSearch={deepLinkSearch}
         dataKey="data"
         paginationKey="meta"
         idAccessor="id"

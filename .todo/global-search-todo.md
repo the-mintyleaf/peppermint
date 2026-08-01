@@ -23,16 +23,17 @@ checklist templates `?search=`, document-template signatories `?search=`.
 - [x] Result → href mapping (detail route where one exists, list route + `?q=` otherwise)
 - [x] ~~`useGlobalSearch` hook~~ — not needed, the shell owns the React Query call
 - [x] Wire into `layouts/admin/Admin.tsx` config
-- [ ] Commit + adversarial review
+- [x] Commit + adversarial review
 
 ## Phase 3 — `?q=` deep links on list routes
 
-- [ ] Applicants list reads `?q=` → prefills table search
-- [ ] Lead management list reads `?q=`
-- [ ] Clients directory reads `?q=`
-- [ ] Institutions (programs / providers) reads `?q=`
-- [ ] Documents (all) reads `?q=`
-- [ ] Checklist templates reads `?q=`
+- [x] `initialSearch` prop on DataTableWrapper/DataTableShell + docs
+- [x] `lib/useDeepLinkSearch.ts` — reads `?q=`
+- [x] Lead management board reads `?q=`
+- [x] Clients directory reads `?q=`
+- [x] Catalogue programs + providers read `?q=`
+- [x] ~~Applicants / documents / checklist templates~~ — their results navigate to
+      real detail routes, so no `?q=` plumbing is needed
 - [ ] Commit + adversarial review
 
 ## Phase 4 — verification & docs

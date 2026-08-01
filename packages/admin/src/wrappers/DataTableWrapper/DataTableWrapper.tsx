@@ -34,6 +34,7 @@ export function DataTableWrapper<T = unknown>({
   dataKey,
   paginationKey,
   enableServerQuery = false,
+  initialSearch,
   defaultPageSize = 20,
   staleTime,
   debounceMs = 300,
@@ -48,6 +49,17 @@ export function DataTableWrapper<T = unknown>({
     storeRef.current = createTableStore({ defaultPageSize });
   }
   const store = storeRef.current;
+
+  // Seeds the search box from a deep link. Deliberately an effect rather than a
+  // store initial value: `DataTableShellTabSync` resets the store in its own
+  // mount effect, and child effects run before the parent's — a store-level
+  // default would be wiped before first paint. Mount-only by design (see prop doc).
+  useEffect(() => {
+    if (initialSearch) {
+      store.getState().setSearch(initialSearch);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Prop refs — props read inside callbacks captured here to avoid stale closures
   // without expanding useCallback/useMemo dependency arrays

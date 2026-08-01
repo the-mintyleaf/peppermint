@@ -453,6 +453,7 @@ const invalidate = useInvalidateTable();
 | `dataKey`           | `string`                        | —        | Dot-path into response to rows array, e.g. `'data.items'`         |
 | `paginationKey`     | `string`                        | —        | Dot-path to object with `total` field, e.g. `'meta'`              |
 | `enableServerQuery` | `boolean`                       | `false`  | Send page/search/sort/filters to server on every change           |
+| `initialSearch`     | `string`                        | —        | Seeds the search box once on mount (`?q=` deep links)             |
 | `defaultPageSize`   | `number`                        | `20`     | Initial rows per page                                             |
 | `staleTime`         | `number`                        | `300000` | React Query staleTime in ms (5 min)                               |
 | `debounceMs`        | `number`                        | `300`    | Debounce delay before search/filter changes fire a server request |

@@ -19,6 +19,7 @@ import { ListBulletsIcon } from "@phosphor-icons/react/dist/csr/ListBullets";
 import { TagIcon } from "@phosphor-icons/react/dist/csr/Tag";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
+import { useDeepLinkSearch } from "@/lib/useDeepLinkSearch";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import { LeadForm } from "../../form";
@@ -68,6 +69,9 @@ function toUpdatePayload(
 
 function LeadManagementBoardContent() {
   const { isLeadManager, authorityType } = useCurrentUser();
+  // A leads hit in the global spotlight lands here carrying the matched name —
+  // leads open in a drawer, not on a route of their own.
+  const deepLinkSearch = useDeepLinkSearch();
   const [fiscalYearInput, setFiscalYearInput] = useState("");
   const [fiscalYear, setFiscalYear] = useState<string | null>(null);
   const [referenceDataOpen, setReferenceDataOpen] = useState(false);
@@ -114,6 +118,7 @@ function LeadManagementBoardContent() {
         queryKey={boardQueryKey}
         queryGetFn={queryFn}
         enableServerQuery={false}
+        initialSearch={deepLinkSearch}
         dataKey="data"
         paginationKey="meta"
         idAccessor="id"

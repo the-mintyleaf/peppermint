@@ -130,6 +130,7 @@ type DataTableWrapperOnlyKey =
   | "dataKey"
   | "paginationKey"
   | "enableServerQuery"
+  | "initialSearch"
   | "defaultPageSize"
   | "staleTime"
   | "debounceMs"

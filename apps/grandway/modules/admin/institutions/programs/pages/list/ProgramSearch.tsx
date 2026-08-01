@@ -6,6 +6,7 @@ import { Button, Group, ModalPaper, Switch } from "@peppermint/ui";
 import { SlidersIcon } from "@phosphor-icons/react/dist/csr/Sliders";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
+import { useDeepLinkSearch } from "@/lib/useDeepLinkSearch";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import {
   createProgram,
@@ -34,6 +35,9 @@ function ProgramSearchContent() {
   const [usableOnly, setUsableOnly] = useState(true);
   const [referenceOpen, setReferenceOpen] = useState(false);
   const [detailProgramId, setDetailProgramId] = useState<string | null>(null);
+  // Catalogue hits in the global spotlight land here carrying the program title
+  // — programs open in a drawer, not on a route of their own.
+  const deepLinkSearch = useDeepLinkSearch();
 
   const { data: countries = [] } = useCountries();
   const { data: institutions = [] } = useInstitutions();
@@ -53,6 +57,7 @@ function ProgramSearchContent() {
         queryKey={[...programQueryKeys.lists(), usableOnly ? "usable" : "all"]}
         queryGetFn={fetchPrograms}
         enableServerQuery
+        initialSearch={deepLinkSearch}
         dataKey="data"
         paginationKey="meta"
         idAccessor="id"

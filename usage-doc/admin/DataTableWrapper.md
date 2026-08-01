@@ -426,21 +426,22 @@ const setDensity = useTable((s) => s.setDensity);
 
 ## Props
 
-| Prop                | Type                            | Default  | Notes                                                                                                               |
-| ------------------- | ------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------- |
-| `queryKey`          | `string`                        | —        | Required. Dot-notation, e.g. `'users.list'`. Split into array for React Query.                                      |
-| `queryGetFn`        | `(params?) => Promise<unknown>` | —        | Required. Receives `QueryParams` when `enableServerQuery` is true, `undefined` otherwise.                           |
-| `dataKey`           | `string`                        | —        | Dot-notation path to the rows array in the response, e.g. `'data.items'`. Omit if the response is already an array. |
-| `paginationKey`     | `string`                        | —        | Dot-notation path to an object with a `total` field, e.g. `'meta'`. Only used when `enableServerQuery` is true.     |
-| `enableServerQuery` | `boolean`                       | `false`  | When true, page/search/sort/filters are sent to `queryGetFn` and the server handles them.                           |
-| `defaultPageSize`   | `number`                        | `20`     | Initial page size. Read once at mount.                                                                              |
-| `pageSizes`         | `number[]`                      | —        | Available page sizes. Passed to your table component — the wrapper doesn't render a selector itself.                |
-| `staleTime`         | `number`                        | `300000` | React Query stale time in ms.                                                                                       |
-| `debounceMs`        | `number`                        | `300`    | Delay before search/filter changes trigger a server query. Has no effect in client-side mode.                       |
-| `forceFilters`      | `FilterState`                   | —        | Always merged into server query params. Never reset by the store.                                                   |
-| `persistence`       | `TablePersistenceOptions`       | —        | When set, `columnVisibility`, `columnOrder`, and/or `density` are persisted to `localStorage`.                      |
-| `onError`           | `(error: Error) => void`        | —        | Called once when the query first enters an error state.                                                             |
-| `children`          | `ReactNode`                     | —        | Required.                                                                                                           |
+| Prop                | Type                            | Default  | Notes                                                                                                                                                    |
+| ------------------- | ------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `queryKey`          | `string`                        | —        | Required. Dot-notation, e.g. `'users.list'`. Split into array for React Query.                                                                           |
+| `queryGetFn`        | `(params?) => Promise<unknown>` | —        | Required. Receives `QueryParams` when `enableServerQuery` is true, `undefined` otherwise.                                                                |
+| `dataKey`           | `string`                        | —        | Dot-notation path to the rows array in the response, e.g. `'data.items'`. Omit if the response is already an array.                                      |
+| `paginationKey`     | `string`                        | —        | Dot-notation path to an object with a `total` field, e.g. `'meta'`. Only used when `enableServerQuery` is true.                                          |
+| `enableServerQuery` | `boolean`                       | `false`  | When true, page/search/sort/filters are sent to `queryGetFn` and the server handles them.                                                                |
+| `initialSearch`     | `string`                        | —        | Seeds the search box once, on mount — for `?q=` deep links. Seed, not lock: the user can clear or replace it, and later changes to the prop are ignored. |
+| `defaultPageSize`   | `number`                        | `20`     | Initial page size. Read once at mount.                                                                                                                   |
+| `pageSizes`         | `number[]`                      | —        | Available page sizes. Passed to your table component — the wrapper doesn't render a selector itself.                                                     |
+| `staleTime`         | `number`                        | `300000` | React Query stale time in ms.                                                                                                                            |
+| `debounceMs`        | `number`                        | `300`    | Delay before search/filter changes trigger a server query. Has no effect in client-side mode.                                                            |
+| `forceFilters`      | `FilterState`                   | —        | Always merged into server query params. Never reset by the store.                                                                                        |
+| `persistence`       | `TablePersistenceOptions`       | —        | When set, `columnVisibility`, `columnOrder`, and/or `density` are persisted to `localStorage`.                                                           |
+| `onError`           | `(error: Error) => void`        | —        | Called once when the query first enters an error state.                                                                                                  |
+| `children`          | `ReactNode`                     | —        | Required.                                                                                                                                                |
 
 ### `TablePersistenceOptions`
 

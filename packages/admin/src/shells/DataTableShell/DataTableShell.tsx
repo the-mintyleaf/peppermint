@@ -241,6 +241,7 @@ export function DataTableShell<T extends object = Record<string, unknown>>({
   dataKey,
   paginationKey,
   enableServerQuery,
+  initialSearch,
   defaultPageSize,
   staleTime,
   debounceMs,
@@ -268,6 +269,7 @@ export function DataTableShell<T extends object = Record<string, unknown>>({
       dataKey={dataKey}
       paginationKey={paginationKey}
       enableServerQuery={enableServerQuery}
+      initialSearch={initialSearch}
       defaultPageSize={defaultPageSize}
       staleTime={staleTime}
       debounceMs={debounceMs}

@@ -89,6 +89,13 @@ export interface DataTableWrapperProps<T = unknown> {
   /** Dot-notation path to object containing a `total` field, e.g. 'meta' */
   paginationKey?: string;
   enableServerQuery?: boolean;
+  /**
+   * Seeds the search box once, on mount — for deep links that arrive
+   * pre-filtered (`?q=`) from the global spotlight or another module. Seed, not
+   * lock: the user can clear or replace it like any typed query, and a later
+   * change to this prop is ignored.
+   */
+  initialSearch?: string;
   defaultPageSize?: number;
   pageSizes?: number[];
   staleTime?: number;

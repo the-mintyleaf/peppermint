@@ -8,6 +8,7 @@ import { BuildingsIcon } from "@phosphor-icons/react/dist/csr/Buildings";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
+import { useDeepLinkSearch } from "@/lib/useDeepLinkSearch";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import {
@@ -41,6 +42,8 @@ function ClientDirectoryContent() {
   // withheld rather than shown and failed (§1). Checked on the exact tier —
   // not `isAdmin`, which also covers superadmin.
   const isAdmin = authorityType === "admin";
+  // Global-search deep link — clients open in a drawer, not on their own route.
+  const deepLinkSearch = useDeepLinkSearch();
   const [detailClientId, setDetailClientId] = useState<string | null>(null);
 
   const columns = getClientsColumns({
@@ -53,6 +56,7 @@ function ClientDirectoryContent() {
         queryKey={clientQueryKeys.lists()}
         queryGetFn={fetchClients}
         enableServerQuery
+        initialSearch={deepLinkSearch}
         dataKey="data"
         paginationKey="meta"
         idAccessor="id"
