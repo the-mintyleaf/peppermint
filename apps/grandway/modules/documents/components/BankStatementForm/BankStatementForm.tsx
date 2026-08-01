@@ -24,6 +24,7 @@ import type {
   DocumentFormProps,
 } from "../../documents.types";
 import { computeBankStatement } from "../../utils/bankStatement";
+import { withOpeningRow } from "./BankStatementForm.utils";
 import { TransactionGrid } from "./components/TransactionGrid";
 
 type StatementTab = "details" | "transactions";
@@ -55,9 +56,8 @@ export function BankStatementForm({
       statement_opening_balance: Number(
         existing.statement_opening_balance ?? 0,
       ),
-      transactions: Array.isArray(existing.transactions)
-        ? existing.transactions
-        : [],
+      // Row 1 is the opening balance — always present, never typed by hand.
+      transactions: withOpeningRow(existing),
     },
     validate: {
       statement_account_holder: (v) =>
@@ -71,22 +71,16 @@ export function BankStatementForm({
   const transactions = form.getValues().transactions ?? [];
 
   // Default the date so a forgotten date never renders "Invalid Date" on the statement.
-  // Interest/tax rows land at the period END; the opening row seeds the interest
-  // checkpoint, so it lands at the period START — otherwise a same-day opening and
-  // interest row make days = 0 and interest computes to 0.
+  // Added rows land at the period END; the opening row (seeded by `withOpeningRow`) holds
+  // the period START, since it is the interest checkpoint — otherwise a same-day opening
+  // and interest row make days = 0 and interest computes to 0.
   const fallbackDate = () =>
     form.getValues().statement_end_date ||
     new Date().toISOString().split("T")[0];
 
-  const openingDate = () =>
-    form.getValues().statement_start_date ||
-    form.getValues().statement_end_date ||
-    new Date().toISOString().split("T")[0];
-
   const addTransaction = () => {
-    const isOpening = (form.getValues().transactions ?? []).length === 0;
     form.insertListItem("transactions", {
-      date: isOpening ? openingDate() : fallbackDate(),
+      date: fallbackDate(),
       description: "",
       debit: 0,
       credit: 0,
@@ -97,7 +91,6 @@ export function BankStatementForm({
   // Interest is always followed by the tax deducted on it, so the pair is inserted
   // together. Neither row stores an amount — computeBankStatement derives both from the
   // rows above (at each row's own rate), so they re-sync when those rows change.
-  // Disabled until an opening row exists.
   const addInterestAndTax = () => {
     const date = fallbackDate();
     form.insertListItem("transactions", {
@@ -265,9 +258,10 @@ export function BankStatementForm({
             <Stack gap="sm">
               <Group justify="space-between" align="center" gap="sm">
                 <Text size="xs" c="dimmed">
-                  Row 1 is the opening balance. Interest &amp; Tax rows are
-                  inserted as a pair, compute themselves from the rows above at
-                  each row&rsquo;s own rate, and re-sync when those rows change.
+                  Row 1 is the opening balance — its description is fixed; set
+                  its date and amount. Interest &amp; Tax rows are inserted as a
+                  pair, compute themselves from the rows above at each
+                  row&rsquo;s own rate, and re-sync when those rows change.
                 </Text>
                 <Group gap="xs" wrap="nowrap">
                   <Button
@@ -285,7 +279,7 @@ export function BankStatementForm({
                     color="teal"
                     leftSection={<PercentIcon size={14} />}
                     onClick={addInterestAndTax}
-                    disabled={isLoading || transactions.length === 0}
+                    disabled={isLoading}
                   >
                     Interest &amp; Tax
                   </Button>

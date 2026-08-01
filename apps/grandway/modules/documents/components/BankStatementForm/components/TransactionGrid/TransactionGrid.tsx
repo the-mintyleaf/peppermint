@@ -15,6 +15,7 @@ import { ArrowDownIcon } from "@phosphor-icons/react/dist/csr/ArrowDown";
 import { MinusCircleIcon } from "@phosphor-icons/react/dist/csr/MinusCircle";
 import type { TransactionGridProps } from "./TransactionGrid.types";
 import { useGridNavigation } from "./TransactionGrid.hooks";
+import { OPENING_ROW_DESCRIPTION } from "../../BankStatementForm.utils";
 import classes from "./TransactionGrid.module.css";
 
 const money = (n: number) =>
@@ -85,11 +86,12 @@ export function TransactionGrid({
             </tr>
           </thead>
           <tbody>
+            {/* `withOpeningRow` guarantees row 1, so this is a guard, not a normal state. */}
             {transactions.length === 0 ? (
               <tr>
                 <td className={classes.empty} colSpan={7}>
                   <Text size="xs" c="dimmed">
-                    No rows yet — add a transaction to seed the opening balance.
+                    No rows yet — add a transaction to start the sheet.
                   </Text>
                 </td>
               </tr>
@@ -99,6 +101,8 @@ export function TransactionGrid({
                 const isOpening = index === 0;
                 const isInterest = type === "interest";
                 const isTax = type === "tax";
+                // Only plain rows past the opening one take a typed description.
+                const isTyped = !isOpening && !isInterest && !isTax;
                 // workedStatements excludes the opening row, so row `index` maps to `index - 1`.
                 const derived = isOpening
                   ? undefined
@@ -136,14 +140,17 @@ export function TransactionGrid({
                     </td>
 
                     <td
-                      className={
-                        isInterest || isTax ? classes.label : classes.cell
-                      }
-                      {...(isInterest || isTax
-                        ? {}
-                        : cellProps(index, "description"))}
+                      className={isTyped ? classes.cell : classes.label}
+                      {...(isTyped ? cellProps(index, "description") : {})}
                     >
-                      {isInterest ? (
+                      {isOpening ? (
+                        <Group gap={6} wrap="nowrap">
+                          <Badge size="xs" variant="light" color="blue">
+                            Opening
+                          </Badge>
+                          <Text size="xs">{OPENING_ROW_DESCRIPTION}</Text>
+                        </Group>
+                      ) : isInterest ? (
                         <Group gap={6} wrap="nowrap">
                           <Badge size="xs" variant="light" color="teal">
                             Interest
@@ -193,9 +200,7 @@ export function TransactionGrid({
                         <TextInput
                           variant="unstyled"
                           size="xs"
-                          placeholder={
-                            isOpening ? "Opening Balance" : "Description"
-                          }
+                          placeholder="Description"
                           aria-label={`Description, row ${index + 1}`}
                           disabled={isLoading}
                           {...form.getInputProps(
@@ -265,7 +270,7 @@ export function TransactionGrid({
                           variant="subtle"
                           size="sm"
                           aria-label={`Move row ${index + 1} up`}
-                          disabled={isLoading || index === 0}
+                          disabled={isLoading || index <= 1}
                           onClick={() =>
                             form.reorderListItem("transactions", {
                               from: index,
@@ -280,7 +285,9 @@ export function TransactionGrid({
                           size="sm"
                           aria-label={`Move row ${index + 1} down`}
                           disabled={
-                            isLoading || index === transactions.length - 1
+                            isLoading ||
+                            isOpening ||
+                            index === transactions.length - 1
                           }
                           onClick={() =>
                             form.reorderListItem("transactions", {
@@ -296,7 +303,7 @@ export function TransactionGrid({
                           color="red"
                           size="sm"
                           aria-label={`Remove row ${index + 1}`}
-                          disabled={isLoading}
+                          disabled={isLoading || isOpening}
                           onClick={() =>
                             form.removeListItem("transactions", index)
                           }
