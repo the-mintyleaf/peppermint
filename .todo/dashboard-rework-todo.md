@@ -25,9 +25,9 @@
 
 ## Phase 3 — Section 2: applicants
 
-- [ ] `dashboard.applicants.ts` (hooks) — `useApplicantsByCountry` (bounded fan-out) + `useRecentApplicants`
-- [ ] `ApplicantCountryStats` — total tile (2/12) + ranked bar chart (4/12)
-- [ ] `RecentApplicants` — 6/12 `PanelCard`, creation-source views, applicant rows
+- [x] `dashboard.applicants.ts` (hooks) — `useApplicantsByCountry` (bounded fan-out) + `useRecentApplicants`
+- [x] `ApplicantCountryStats` — total tile (2/12) + ranked bar chart (4/12)
+- [x] `RecentApplicants` — 6/12 `PanelCard`, creation-source views, applicant rows
 
 ## Phase 4 — Below the fold
 

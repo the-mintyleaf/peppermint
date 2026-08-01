@@ -2,6 +2,9 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQueries, useQuery } from "@peppermint/ui";
+import type { QueryParams } from "@peppermint/admin";
+import { listApplicants } from "@/modules/admin/applicants/applicants.api";
+import { applicantsQueryKeys } from "@/modules/admin/applicants/applicants.queryKeys";
 import {
   fetchActivity,
   fetchBlockers,
@@ -69,6 +72,73 @@ export function useCountrySummaries(countryIds: string[], fiscalYear: string) {
         queryFn: () => fetchSummary(apiParams),
       };
     }),
+  });
+}
+
+/**
+ * Applicant headcount per destination country, fanned out with `useQueries`.
+ *
+ * `/applicants/` accepts `country` as a **filter** and returns the matching
+ * total in `meta.count`, so a per-country applicant count is one page-size-1
+ * request each — the whole row is thrown away and only the count is read. That
+ * is far cheaper than a full dashboard `summary` per country and, unlike one,
+ * it counts APPLICANTS rather than a mixed volume set.
+ *
+ * There is still no group-by endpoint, so this is N independent questions: each
+ * lands on its own clock and the set is only as complete as the countries that
+ * actually resolved. The CALLER must bound the list.
+ */
+export function useApplicantsByCountry(
+  countries: { id: string; name: string }[],
+  fiscalYear: string,
+) {
+  return useQueries({
+    queries: countries.map((country) => {
+      const params: QueryParams = {
+        page: 1,
+        pageSize: 1,
+        search: "",
+        sort: [],
+        filters: {
+          country: country.id,
+          ...(fiscalYear ? { fiscal_year: fiscalYear } : {}),
+        },
+      };
+      return {
+        queryKey: applicantsQueryKeys.list(params),
+        queryFn: () => listApplicants(params),
+        select: (response: { meta: { total: number } }) => response.meta.total,
+      };
+    }),
+  });
+}
+
+/**
+ * The newest applicants, optionally narrowed to how they were created.
+ * `/applicants/` is newest-first with **no client-controlled ordering**
+ * (INTEGRATION.md §"Filter/search params"), so "recently added" is simply the
+ * first page — there is no `ordering` param to send, and sending one would look
+ * deliberate while doing nothing.
+ */
+export function useRecentApplicants(
+  filters: DashboardFilterInput,
+  creationSource: string | null,
+  limit: number,
+) {
+  const params: QueryParams = {
+    page: 1,
+    pageSize: limit,
+    search: "",
+    sort: [],
+    filters: {
+      ...(filters.country ? { country: filters.country } : {}),
+      ...(filters.fiscalYear ? { fiscal_year: filters.fiscalYear } : {}),
+      ...(creationSource ? { creation_source: creationSource } : {}),
+    },
+  };
+  return useQuery({
+    queryKey: applicantsQueryKeys.list(params),
+    queryFn: () => listApplicants(params),
   });
 }
 
