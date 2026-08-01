@@ -49,8 +49,8 @@ const ALERTS: AlertSpec[] = [
     label: "Rejected files",
     icon: FileMagnifyingGlassIcon,
     band: "critical",
-    href: "/admin/files",
-    destination: "Files",
+    href: "/admin/files/review",
+    destination: "File review",
   },
   {
     key: "blocked_checklist_items",
@@ -89,8 +89,8 @@ const ALERTS: AlertSpec[] = [
     label: "Files awaiting verification",
     icon: FileMagnifyingGlassIcon,
     band: "info",
-    href: "/admin/files",
-    destination: "Files",
+    href: "/admin/files/review",
+    destination: "File review",
   },
   {
     key: "due_soon_checklist_items",
