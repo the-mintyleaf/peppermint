@@ -17,6 +17,17 @@ export function formatDate(
   return bs?.display ? `${formatted} (${bs.display})` : formatted;
 }
 
+/**
+ * Data-freshness stamp for a section (`useQuery`'s `dataUpdatedAt`). There is no
+ * refresh contract (INTEGRATION.md §9 "the client decides when to refetch") and
+ * nothing polls, so the page must say when what you are reading was fetched
+ * rather than imply it is live. `0` means nothing has landed yet.
+ */
+export function formatFetchedAt(updatedAt: number): string {
+  if (!updatedAt) return "—";
+  return dayjs(updatedAt).format("h:mm A");
+}
+
 /** `Rate.percent` renders as "—" (never "0%") when the denominator was 0. */
 export function formatRatePercent(percent: number | null): string {
   return percent === null ? "—" : `${percent}%`;

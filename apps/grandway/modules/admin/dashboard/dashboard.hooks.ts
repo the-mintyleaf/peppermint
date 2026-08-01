@@ -13,6 +13,11 @@ import {
   fetchWorkload,
 } from "./dashboard.api";
 import { dashboardQueryKeys } from "./dashboard.queryKeys";
+import {
+  DEFAULT_DASHBOARD_TAB,
+  isDashboardTab,
+  type DashboardTab,
+} from "./dashboard.tabs";
 import type { DashboardFilters } from "./dashboard.types";
 
 // Eight INDEPENDENT hooks — never combined into one parent query. Each has its
@@ -105,33 +110,65 @@ export function useDashboardActivity(params: {
 }
 
 /**
+ * One writer for every URL-held dashboard control (`fiscal_year`, `country`,
+ * `tab`) — a single `router.replace` that patches one key and preserves the
+ * rest, so switching tabs never drops the filters and vice versa. `replace`
+ * (not `push`) keeps a keystroke or a tab click out of the history stack.
+ */
+function useSearchParamPatch() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  return (key: string, value: string) => {
+    const next = new URLSearchParams(searchParams.toString());
+    if (value) next.set(key, value);
+    else next.delete(key);
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  };
+}
+
+/**
  * `fiscal_year`/`country` live in the URL — shareable/bookmarkable per
  * `.claude/rules.md` state-ownership rule ("filters ... -> URL search
- * params"). Read via `useSearchParams`, written via `router.replace` (no
- * history entry per keystroke).
+ * params").
  */
 export function useDashboardFilters(): DashboardFilters & {
   setFiscalYear: (value: string) => void;
   setCountry: (value: string) => void;
 } {
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  const fiscalYear = searchParams.get("fiscal_year") ?? "";
-  const country = searchParams.get("country") ?? "";
-
-  const patch = (key: string, value: string) => {
-    const next = new URLSearchParams(searchParams.toString());
-    if (value) next.set(key, value);
-    else next.delete(key);
-    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
-  };
+  const patch = useSearchParamPatch();
 
   return {
-    fiscalYear,
-    country,
+    fiscalYear: searchParams.get("fiscal_year") ?? "",
+    country: searchParams.get("country") ?? "",
     setFiscalYear: (value: string) => patch("fiscal_year", value),
     setCountry: (value: string) => patch("country", value),
+  };
+}
+
+/**
+ * The active tab is URL state for the same reason the filters are — "open the
+ * dashboard on Blockers for FY82/83" has to be one shareable link, and the
+ * alert rows on Overview navigate by switching it. An unknown or absent `tab`
+ * falls back to `overview` rather than rendering nothing.
+ */
+export function useDashboardTab(): {
+  tab: DashboardTab;
+  setTab: (value: DashboardTab) => void;
+} {
+  const searchParams = useSearchParams();
+  const patch = useSearchParamPatch();
+
+  const raw = searchParams.get("tab");
+
+  return {
+    tab: isDashboardTab(raw) ? raw : DEFAULT_DASHBOARD_TAB,
+    setTab: (value: DashboardTab) =>
+      patch("tab", value === DEFAULT_DASHBOARD_TAB ? "" : value),
   };
 }

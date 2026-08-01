@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { Anchor, Box, Group, Progress, Text } from "@peppermint/ui";
+import { Box, Group, Progress, Text, UnstyledButton } from "@peppermint/ui";
 import type { MeterBarProps } from "./MeterBar.types";
 
 /**
@@ -21,7 +20,8 @@ export function MeterBar({
   display,
   labelWidth = 110,
   muted = false,
-  href,
+  onActivate,
+  activateLabel,
 }: MeterBarProps) {
   const pct = max > 0 ? Math.round((value / max) * 100) : 0;
   const fillColor = emphasize ? "brand" : color;
@@ -58,11 +58,15 @@ export function MeterBar({
     </Group>
   );
 
-  if (href) {
+  if (onActivate) {
     return (
-      <Anchor component={Link} href={href} underline="never" c="inherit">
+      <UnstyledButton
+        onClick={onActivate}
+        aria-label={activateLabel}
+        style={{ display: "block", width: "100%" }}
+      >
         {row}
-      </Anchor>
+      </UnstyledButton>
     );
   }
   return row;

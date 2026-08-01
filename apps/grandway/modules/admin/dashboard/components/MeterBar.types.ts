@@ -17,6 +17,12 @@ export interface MeterBarProps {
   labelWidth?: number;
   /** When true, dim the row (used for a zero/negligible value). */
   muted?: boolean;
-  /** Optional link — wraps the whole row (used by the "Needs attention" alerts). */
-  href?: string;
+  /**
+   * Makes the whole row a click target. Used by the "Needs attention" alerts,
+   * whose destination is a tab switch rather than a route — so this is a button,
+   * not a link (nothing navigates, and `href="#…"` would lie about that).
+   */
+  onActivate?: () => void;
+  /** Accessible name for the `onActivate` control (e.g. "Open Blockers"). */
+  activateLabel?: string;
 }

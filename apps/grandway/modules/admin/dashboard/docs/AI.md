@@ -4,7 +4,8 @@
 
 The operational command centre — eight independent, read-only sections
 summarising what needs attention now, what is moving, and where work is
-stuck. Owns no data, writes nothing (`docs/backend/dashboard/INTEGRATION.md`).
+stuck, presented as **an Overview signal board plus six detail tabs**. Owns no
+data, writes nothing (`docs/backend/dashboard/INTEGRATION.md`).
 Folder is **singular** (`dashboard/`) to match the API base path
 (`/api/v1/dashboard/`); the backend app is plural (`dashboards`).
 
@@ -36,10 +37,11 @@ section, so they must not land on it). The old `/admin/dashboard` route and the 
 | `dashboard.types.ts`       | All 8 section response shapes + shared row/wrapper shapes (§4)                                                                                                                                                                                                                                                                                                                           |
 | `dashboard.queryKeys.ts`   | `dashboardQueryKeys.{summary,today,pipeline,blockers,workload,conversion,outcomes,activity}`                                                                                                                                                                                                                                                                                             |
 | `dashboard.api.ts`         | 8 `fetch*` functions — only `fetchConversion`/`fetchOutcomes` take `{fiscal_year, country}`; `fetchActivity` takes only `{fiscal_year, page, page_size}`                                                                                                                                                                                                                                 |
-| `dashboard.hooks.ts`       | 8 independent `useQuery` hooks (`useDashboard{Summary,Today,Pipeline,Blockers,Workload,Conversion,Outcomes,Activity}`) + `useDashboardFilters` (URL-synced `fiscal_year`/`country`)                                                                                                                                                                                                      |
+| `dashboard.hooks.ts`       | 8 independent `useQuery` hooks (`useDashboard{Summary,Today,Pipeline,Blockers,Workload,Conversion,Outcomes,Activity}`) + `useDashboardFilters` (URL-synced `fiscal_year`/`country`) + `useDashboardTab` (URL-synced `tab`); both write through one `useSearchParamPatch` so a tab switch never drops a filter                                                                            |
 | `dashboard.labels.ts`      | Only labels/colors with no existing home (`ApplicantStatusKey`, `DocumentRow.family`, `JOURNEY_OUTCOME_COLORS`/`OFFER_DECISION_COLORS` — the owning modules export the outcome/decision LABELS but no color map) + section/group headings. Every enum whose owning module already exports a color map (offer/checklist/journey/lead/file status) is imported CONCRETELY, never redefined |
-| `dashboard.utils.ts`       | `formatDate`/`formatDateTime`/`formatRatePercent`                                                                                                                                                                                                                                                                                                                                        |
+| `dashboard.utils.ts`       | `formatDate`/`formatDateTime`/`formatRatePercent`/`formatFetchedAt` (the hero's data-freshness stamp, from `useQuery`'s `dataUpdatedAt`)                                                                                                                                                                                                                                                 |
 | `dashboard.chartConfig.ts` | `toChartColor(name, shade)` (status color name → Mantine chart shade, e.g. `blue.6`) + `CHART_TRACK_COLOR`/`CHART_ZERO_COLOR`; the shared chart-grammar notes                                                                                                                                                                                                                            |
+| `dashboard.tabs.ts`        | `DASHBOARD_TAB_VALUES` / `DashboardTab` / `isDashboardTab` / `DEFAULT_DASHBOARD_TAB` + `DASHBOARD_TAB_META` (tab label · the question the tab answers · the contract caveat rendered as its panel subtitle)                                                                                                                                                                              |
 
 ## Visual design (Mobility Ops redesign, on Mantine Charts)
 
@@ -68,51 +70,84 @@ Three design decisions drive the look:
    _(This reverses the earlier "flat signal board, no charts" decision, at the user's
    direction — the visualizations are now real chart components.)_
 
-Layout: page owns the `SectionHeading` bands + per-section `ModuleErrorBoundary`;
-each section renders only its own card(s) with an internal `Grid`. Anchors
-`#today-worklists` / `#blockers` live on those section headings.
+## Layout — Overview + six detail tabs (progressive disclosure)
+
+The eight sections are **unchanged and still independent**; they are no longer
+stacked into one scroll. `DashboardOverview` renders the hero, then one `Tabs`
+(`DashboardTabs`) whose seven panels each carry one section:
+
+| Tab           | Panel content                                | The question it answers                    |
+| ------------- | -------------------------------------------- | ------------------------------------------ |
+| `overview`    | `OverviewPanel` (default)                    | Is everything okay?                        |
+| `today`       | `TodayWorklists`                             | What has to happen today?                  |
+| `pipeline`    | `PipelineCounts`                             | Where is everything?                       |
+| `blockers`    | `Blockers`                                   | What is stuck?                             |
+| `workload`    | `Workload`                                   | Who is carrying what?                      |
+| `performance` | `Conversion` + `Outcomes` (the two together) | How are we converting, and how did it end? |
+| `activity`    | `ActivityFeed`                               | What just changed?                         |
+
+- **`keepMounted={false}`** — only the open tab's queries fire. The landing view
+  pays for the 4 sections `OverviewPanel` actually shows (`summary`, `pipeline`,
+  `today`, `blockers`, `conversion`), not all 8. React Query caches by key, so an
+  Overview card and its own tab share ONE request.
+- The page owns the per-panel `SectionHeading` (title + caveat, from
+  `DASHBOARD_TAB_META`) and the per-panel `ModuleErrorBoundary`
+  (`resetKeys = [fiscalYear, country, tab]`); each section still renders only its
+  own card(s).
+- **The in-page anchors (`#today-worklists`, `#blockers`) are gone** — a hidden
+  tab panel cannot be scrolled to. Alerts now switch tab via `onOpenTab`, so
+  `MeterBar` takes `onActivate` (a button) instead of `href` (a link): nothing
+  navigates, the view changes.
+- The tab bar carries **no count badges** — every figure is defined by its own
+  window and the contract forbids summing across sections (§7), so a bare digit
+  on "Today" would be an unlabelled aggregate of non-addable things.
 
 ## Components (`components/`, flat — no per-component folder; only non-trivial props get a `.types.ts`)
 
 ### Section components (one per endpoint)
 
-| Component                 | Backs                                                                                                                                                              |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `AdminHome`               | `/admin` entry — `RequireAuth` + role branch: dashboard for admin/lead_manager, `SuperadminLanding` for superadmin                                                 |
-| `SuperadminLanding`       | Superadmin fallback home — Welcome + Users/Audit quick-links (no dashboard access)                                                                                 |
-| `DashboardHero`           | Page anchor — eyebrow + "Placement overview" + role·user from `useCurrentUser` (fiscal year now lives in the header controls)                                      |
-| `DashboardHeaderControls` | fiscal_year + country + "Refresh" in the module header's right slot — the only live filters (§9: the rest are validated-and-ignored)                               |
-| `SummaryStrip`            | Hero volume stats + "Needs attention" `MeterBar`s (relative volume = value/max); each alert links to its in-page section anchor                                    |
-| `TodayWorklists`          | 6 worklists as `PreviewTabs` (real preview rows; no invented bucket chart)                                                                                         |
-| `PipelineCounts`          | 7 zero-filled maps — stage magnitudes as `CategoryBarChart`, status breakdowns as `DonutStat`, docs/files as `Progress`; each links to the OWNING APP'S PLAIN list |
-| `Blockers`                | 5 groups as `PreviewTabs` (real rows; no invented reason breakdown), never merged                                                                                  |
-| `Workload`                | Branches on `is_scoped_to_caller` (caption only); 3 tabbed per-owner measures (`CategoryBarChart` + `StackedBarChart`), never joined/summed                        |
-| `Conversion`              | 4 independent `Gauge`s + `by_source` `StackedBarChart`; takes `filters` prop                                                                                       |
-| `Outcomes`                | `journey_outcomes` + `offer_decisions` as `DonutStat`, created-window counts as `MeterBar`s — separate cards; takes `filters` prop                                 |
-| `ActivityFeed`            | The only paginated section, as a `Table`; real total from `meta.count` (no sparkline); `fiscalYear` only (never `country`)                                         |
-| `SectionState`            | Shared loading/error/empty chrome — every section wraps its content in this                                                                                        |
+| Component                 | Backs                                                                                                                                                                                                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AdminHome`               | `/admin` entry — `RequireAuth` + role branch: dashboard for admin/lead_manager, `SuperadminLanding` for superadmin                                                                                                                                                        |
+| `SuperadminLanding`       | Superadmin fallback home — Welcome + Users/Audit quick-links (no dashboard access)                                                                                                                                                                                        |
+| `DashboardHero`           | Page anchor and the ONE expressive surface (brand-tinted card) — eyebrow + "Placement overview" + role·user, the 3 standing volumes from `summary`, and the data-freshness stamp (`dataUpdatedAt`). Shown on every tab; a failed fetch shows `—`, never `0`               |
+| `DashboardTabs`           | The seven-tab bar (sticky inside the scrolling `ModalPaper`, `ScrollArea` on narrow viewports) wrapping the panels passed as `children`; owns `keepMounted={false}`                                                                                                       |
+| `OverviewPanel`           | The landing signal board — `NeedsAttention` + journeys-by-stage, then 3 glance cards (Today totals · Blocker totals · the 4 conversion gauges), each with ONE quiet "Open <tab>" button. Holds no preview rows, tables or outcome breakdowns                              |
+| `DashboardHeaderControls` | fiscal_year + country + "Refresh" in the module header's right slot — the only live filters (§9: the rest are validated-and-ignored)                                                                                                                                      |
+| `NeedsAttention`          | The 8 alerts as `MeterBar`s ordered by severity band then volume (relative volume = value/max); activating a row opens the tab holding those rows. All-zero → an explicit "every queue is clear" line. _(Was `SummaryStrip`; the volume stats moved to `DashboardHero`.)_ |
+| `TodayWorklists`          | 6 worklists as `PreviewTabs` (real preview rows; no invented bucket chart)                                                                                                                                                                                                |
+| `PipelineCounts`          | 7 zero-filled maps — stage magnitudes as `CategoryBarChart`, status breakdowns as `DonutStat`, docs/files as `Progress`; each links to the OWNING APP'S PLAIN list                                                                                                        |
+| `Blockers`                | 5 groups as `PreviewTabs` (real rows; no invented reason breakdown), never merged                                                                                                                                                                                         |
+| `Workload`                | Branches on `is_scoped_to_caller` (caption only); 3 tabbed per-owner measures (`CategoryBarChart` + `StackedBarChart`), never joined/summed                                                                                                                               |
+| `Conversion`              | 4 independent `Gauge`s + `by_source` `StackedBarChart`; takes `filters` prop                                                                                                                                                                                              |
+| `Outcomes`                | `journey_outcomes` + `offer_decisions` as `DonutStat`, created-window counts as `MeterBar`s — separate cards; takes `filters` prop                                                                                                                                        |
+| `ActivityFeed`            | The only paginated section, as a `Table`; real total from `meta.count` (no sparkline); `fiscalYear` only (never `country`)                                                                                                                                                |
+| `SectionState`            | Shared loading/error/empty chrome — every section wraps its content in this                                                                                                                                                                                               |
 
 ### Chart primitives (presentational; states handled by the section's `SectionState`)
 
-| Primitive          | Renders                                                                                                                         |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| `DonutStat`        | `DonutChart` + center-total overlay + word+color+value legend (all status breakdowns); gray track when all-zero                 |
-| `CategoryBarChart` | Single-hue `BarChart` (columns or bars) with value labels for a magnitude set; zero bar → muted gray                            |
-| `StackedBarChart`  | Horizontal stacked `BarChart` + legend + tooltip (leads by source, per-owner checklist load)                                    |
-| `Gauge`            | Semicircle `DonutChart` rate gauge; brand arc; null percent → empty track + "—"                                                 |
-| `MeterBar`         | One labelled horizontal `Progress` bar (label · bar · value); optional `href` for alert links (kept — a nav meter, not a chart) |
-| `PreviewTabs`      | Shared tabbed `Preview<T>` viewer (count badge = real `total`; `has_more` → "see all")                                          |
-| `SectionHeading`   | Title + "how to read this" subtitle band; carries the section anchor `id`                                                       |
+| Primitive          | Renders                                                                                                                                                                                                                   |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DonutStat`        | `DonutChart` + center-total overlay + word+color+value legend (all status breakdowns); gray track when all-zero                                                                                                           |
+| `CategoryBarChart` | Single-hue `BarChart` (columns or bars) with value labels for a magnitude set; zero bar → muted gray                                                                                                                      |
+| `StackedBarChart`  | Horizontal stacked `BarChart` + legend + tooltip (leads by source, per-owner checklist load)                                                                                                                              |
+| `Gauge`            | Semicircle `DonutChart` rate gauge; brand arc; null percent → empty track + "—"                                                                                                                                           |
+| `MeterBar`         | One labelled horizontal `Progress` bar (label · bar · value); optional `onActivate` + `activateLabel` makes the row an `UnstyledButton` (used by the alerts to switch tab). Kept as `Progress` — a nav meter, not a chart |
+| `PreviewTabs`      | Shared tabbed `Preview<T>` viewer (count badge = real `total`; `has_more` → "see all")                                                                                                                                    |
+| `SectionHeading`   | Title + "how to read this" subtitle band, one per tab panel (fed from `DASHBOARD_TAB_META`). The `id` anchor prop is now unused — a hidden panel can't be scrolled to                                                     |
 
 ## State ownership
 
 - All 8 sections: React Query, independent hooks, independent cache keys.
 - `fiscal_year`/`country`: URL search params (`useDashboardFilters`), not `useState` — shareable/bookmarkable.
+- Active `tab`: URL search param (`useDashboardTab`), same reason — "open the dashboard on Blockers for FY82/83" has to be one link. Unknown/absent → `overview`; `overview` is written as an absent param, not `?tab=overview`.
 - Activity page number: local `useState` in `ActivityFeed` (not shared, not shareable by design — no established pagination-in-URL convention for this feed).
 
 ## Do not do
 
 - Do not combine the 8 queries into one — a slow section must never block the rest (CONCEPT.md).
+- Do not put a count badge on a tab, and do not re-add an in-page `#anchor` link — a hidden panel can't be scrolled to; cross-section navigation is a tab switch (`onOpenTab`).
+- Do not duplicate a section's preview rows, tables or breakdowns onto `OverviewPanel` — Overview carries headline figures and one "Open <tab>" button per card. That restraint IS the feature.
 - Do not render a control for `journey_stage`/`offer_status`/`document_status`/`checklist_status` — validated then silently ignored by every section.
 - Do not send `country` to `fetchActivity` — the backend ignores it; sending it would look live but do nothing.
 - Do not sum any figures across sections except `today.overdue_checklist_items.total + today.due_soon_checklist_items.total` (the one contract-documented exception).
