@@ -50,9 +50,17 @@ export function NotificationDrawer({
           </Button>
         </Group>
       }
-      styles={{ title: { flex: 1, marginRight: "var(--mantine-spacing-sm)" } }}
+      styles={{
+        // `padding={0}` would leave the fixed header flush against the drawer edges,
+        // so it carries its own — matched to the body's, plus the same underline the
+        // app's Modal header uses.
+        header: {
+          padding: "var(--mantine-spacing-md)",
+          borderBottom: "1px solid var(--mantine-color-gray-light)",
+        },
+        title: { flex: 1, marginRight: "var(--mantine-spacing-sm)" },
+      }}
     >
-      {/* `padding={0}` keeps the fixed header flush; the body supplies its own. */}
       <Box p="md">
         <NotificationFeed />
       </Box>
