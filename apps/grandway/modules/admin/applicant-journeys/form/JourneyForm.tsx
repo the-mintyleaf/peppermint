@@ -28,6 +28,8 @@ import {
   useApplicantDetail,
   useApplicantList,
 } from "@/modules/admin/applicants/applicants.hooks";
+// Same concrete-file convention — never the `institutions` barrel.
+import { useCountries } from "@/modules/admin/institutions/institutions.hooks";
 import type {
   ApplicantJourney,
   ApplicantJourneyDetail,
@@ -239,17 +241,57 @@ function NotesField({ isLoading }: { isLoading: boolean }) {
   );
 }
 
+/**
+ * The worklist tabs journeys by country, and `GET /journeys/?target_country=` is a
+ * partial-match on whatever string was stored — so the value has to come from the
+ * countries reference list rather than being typed, or a journey lands under no tab.
+ *
+ * Only usable countries are offered, but a value already on the record is always kept
+ * selectable: journeys predating this picker hold free text, and a country can be
+ * retired after the fact. Either way the option has to exist or the Select would render
+ * blank and quietly rewrite the field on the next save.
+ */
+function TargetCountryField({ isLoading }: { isLoading: boolean }) {
+  const { form } = useFormInstance<JourneyFormValues>();
+  const { data: countries = [], isLoading: countriesLoading } = useCountries();
+  const current = form.getValues().target_country;
+
+  const options = countries
+    .filter((country) => country.is_usable)
+    .sort((a, b) => a.display_order - b.display_order)
+    .map((country) => ({ value: country.name, label: country.name }));
+
+  const data =
+    current && !options.some((o) => o.value === current)
+      ? [
+          ...options,
+          { value: current, label: `${current} (not in the country list)` },
+        ]
+      : options;
+
+  return (
+    <Select
+      label="Target country"
+      placeholder={countriesLoading ? "Loading countries…" : "Not decided yet"}
+      data={data}
+      searchable
+      clearable
+      disabled={isLoading}
+      {...form.getInputProps("target_country")}
+      // Mantine's clearable Select emits `null`, but the field is a plain
+      // `string` (`""` means unset) — normalize so a cleared value round-trips
+      // instead of tripping `z.string()`.
+      onChange={(value) => form.setFieldValue("target_country", value ?? "")}
+    />
+  );
+}
+
 function DestinationLevelFields({ isLoading }: { isLoading: boolean }) {
   const { form } = useFormInstance<JourneyFormValues>();
   return (
     <>
       <Group grow align="flex-start">
-        <TextInput
-          label="Target country"
-          placeholder="Australia"
-          disabled={isLoading}
-          {...form.getInputProps("target_country")}
-        />
+        <TargetCountryField isLoading={isLoading} />
         <Select
           label="Study level"
           placeholder="Not decided yet"
