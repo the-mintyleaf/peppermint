@@ -72,11 +72,13 @@
 
 /* Cells hold a borderless input that fills the whole box, so the grid line
    itself reads as the cell edge. Focus draws an inset ring — the Excel
-   "active cell" affordance. */
+   "active cell" affordance. The inline padding matches the header and computed
+   cells, so values never sit flush against a grid line or the focus ring. */
 .cell input,
 .cell button {
   height: 28px;
   min-height: 28px;
+  padding-inline: var(--mantine-spacing-xs);
   border: none;
   border-radius: 0;
   background: transparent;
