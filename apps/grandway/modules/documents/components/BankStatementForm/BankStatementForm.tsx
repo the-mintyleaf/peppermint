@@ -70,17 +70,22 @@ export function BankStatementForm({
   const computed = computeBankStatement(form.getValues());
   const transactions = form.getValues().transactions ?? [];
 
-  // Default the date so a forgotten date never renders "Invalid Date" on the statement.
-  // Added rows land at the period END; the opening row (seeded by `withOpeningRow`) holds
-  // the period START, since it is the interest checkpoint — otherwise a same-day opening
-  // and interest row make days = 0 and interest computes to 0.
-  const fallbackDate = () =>
-    form.getValues().statement_end_date ||
-    new Date().toISOString().split("T")[0];
+  // A new row carries the last row's date — entries are worked through in order, so
+  // continuing from where the sheet left off beats jumping to the period end. Falls back
+  // to the period end, then today, so a row never renders "Invalid Date" on the statement.
+  const nextRowDate = () => {
+    const values = form.getValues();
+    const rows = values.transactions ?? [];
+    return (
+      rows[rows.length - 1]?.date ||
+      values.statement_end_date ||
+      new Date().toISOString().split("T")[0]
+    );
+  };
 
   const addTransaction = () => {
     form.insertListItem("transactions", {
-      date: fallbackDate(),
+      date: nextRowDate(),
       description: "",
       debit: 0,
       credit: 0,
@@ -92,7 +97,7 @@ export function BankStatementForm({
   // together. Neither row stores an amount — computeBankStatement derives both from the
   // rows above (at each row's own rate), so they re-sync when those rows change.
   const addInterestAndTax = () => {
-    const date = fallbackDate();
+    const date = nextRowDate();
     form.insertListItem("transactions", {
       date,
       description: "Interest Deposit",
