@@ -40,6 +40,10 @@ function ApplicantCreatePageContent() {
         <ApplicantForm
           mode="create"
           onBack={() => history.back()}
+          // The second `onSubmit` argument (a staged photograph) is always
+          // `null` here — the photo control is hidden on create, since a file
+          // needs an existing owner. It is added from the edit form, which is
+          // where this push lands the user anyway.
           onSubmit={async (payload) => {
             try {
               const created = await mutation.mutateAsync(payload);

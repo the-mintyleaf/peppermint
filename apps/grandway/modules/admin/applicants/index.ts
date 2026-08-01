@@ -7,3 +7,16 @@ export { ModuleApplicantEdit } from "./pages/edit/ApplicantEditPage";
 // applicant-journeys' `JourneyForm`).
 export { useApplicantList, useApplicantDetail } from "./applicants.hooks";
 export type { Applicant, ApplicantDetail } from "./applicants.types";
+
+// The photograph lives in `uploaded_files`, not on the applicant record, so
+// every surface that shows a face (journeys, offers, the document editor and
+// its CV/certificate templates) reads it through here rather than re-deriving
+// "which file is the photo" for itself.
+export {
+  ApplicantPhoto,
+  ApplicantPhotoField,
+  useApplicantPhotograph,
+  useSaveApplicantPhotograph,
+  type ApplicantPhotoProps,
+  type ApplicantPhotoFieldProps,
+} from "./photograph";

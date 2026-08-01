@@ -15,6 +15,10 @@ import { getApiError } from "@/lib/authErrorMessages";
 import { useApplicantDetail, useUpdateApplicant } from "../../applicants.hooks";
 import { applicantDisplayName } from "../../applicants.labels";
 import { ApplicantForm } from "../../form/ApplicantForm";
+import {
+  useApplicantPhotograph,
+  useSaveApplicantPhotograph,
+} from "../../photograph";
 
 /**
  * Open to both Admin and Lead Manager (`docs/backend/applicants/CONCEPT.md`
@@ -35,6 +39,14 @@ function ApplicantEditPageContent() {
     refetch,
   } = useApplicantDetail(id);
   const mutation = useUpdateApplicant(id);
+  // Shares `ApplicantPhotoField`'s query key, so this resolves the id of the
+  // photo being replaced without a second request. Declared here, above the
+  // loading/error returns, because hooks can't sit below a conditional.
+  const currentPhotograph = useApplicantPhotograph(id);
+  const savePhotograph = useSaveApplicantPhotograph(
+    id,
+    currentPhotograph.file?.id ?? null,
+  );
 
   const notFound =
     isError && getApiError(error).code === "APPLICANTS_APPLICANT_NOT_FOUND";
@@ -112,14 +124,28 @@ function ApplicantEditPageContent() {
           mode="edit"
           initialValues={applicant}
           onBack={() => history.back()}
-          onSubmit={async (payload) => {
+          onSubmit={async (payload, photograph) => {
             try {
               await mutation.mutateAsync(payload);
-              router.push(`/admin/applicants/${id}`);
             } catch {
               // `useUpdateApplicant` (useAppMutation) already showed the
-              // failure notification — nothing further to do here.
+              // failure notification. Stay on the form and skip the photo:
+              // uploading a picture for a record whose own edits just failed
+              // would split the save in half.
+              return;
             }
+            if (photograph) {
+              try {
+                await savePhotograph.mutateAsync(photograph);
+              } catch {
+                // The record itself saved; only the photo didn't. Both
+                // notifications have already fired, and staying on the form
+                // keeps the picked file in place so Save retries just the
+                // photo (the PATCH re-sends unchanged values harmlessly).
+                return;
+              }
+            }
+            router.push(`/admin/applicants/${id}`);
           }}
         />
       </ModalPaper>

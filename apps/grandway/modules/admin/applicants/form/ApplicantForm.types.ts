@@ -39,6 +39,14 @@ export interface EmergencyContactFormRow {
  */
 export interface ApplicantFormValues extends Record<string, unknown> {
   // Step 1 — Identity & Contact
+  /**
+   * A newly-picked photograph, staged for upload after the record itself is
+   * saved. Not part of the applicant payload and never sent as JSON: the
+   * backend has no photo field, and a file's owner must already exist before
+   * `POST /files/` will accept it. `null` means "leave the current one alone" —
+   * on create it is always `null`, since there is no id to own the file yet.
+   */
+  photograph: File | null;
   full_name: string;
   date_of_birth: string | null;
   gender: Gender | "";

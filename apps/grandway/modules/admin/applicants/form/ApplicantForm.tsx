@@ -17,6 +17,7 @@ import type {
   ApplicantDetail,
   FamilyRelationship,
 } from "../applicants.types";
+import { ApplicantPhotoField } from "../photograph";
 import { AddressesSection } from "./components/AddressesSection";
 import { ContactNumbersField } from "./components/ContactNumbersField";
 import { EmergencyContactsField } from "./components/EmergencyContactsField";
@@ -40,6 +41,7 @@ const EMPTY_ADDRESS: AddressSectionValues = {
 };
 
 const INITIAL: ApplicantFormValues = {
+  photograph: null,
   full_name: "",
   date_of_birth: null,
   gender: "",
@@ -60,6 +62,11 @@ const INITIAL: ApplicantFormValues = {
 /** Only step 1 has a required-field schema — steps 2–4 stay fully optional
  * (`docs/backend/applicants/CONCEPT.md`: "Only name is required"). */
 const identitySchema = z.object({
+  // Shape only — the picker itself rejects an oversized/wrong-typed file before
+  // it ever reaches form state, so this is the backstop, not the message the
+  // user normally sees. Always optional: a photograph is never required to save
+  // a record, and on create it can't be attached at all (no id to own it yet).
+  photograph: z.instanceof(File).nullable(),
   full_name: z.string().min(1, "Required").max(255),
   date_of_birth: z.string().nullable(),
   gender: z.enum(["male", "female", "other", "undisclosed", ""]),
@@ -165,6 +172,7 @@ STEP_VALIDATION[3] = familyEmergencySchema;
 
 const STEP_FIELDS: string[][] = [
   [
+    "photograph",
     "full_name",
     "date_of_birth",
     "gender",
@@ -232,6 +240,11 @@ function findAddress(
 function toFormValues(record?: ApplicantDetail): ApplicantFormValues {
   if (!record) return INITIAL;
   return {
+    // Always `null`, never the existing photograph: this field stages a *new*
+    // upload, and the record's current photo is read live by the field itself.
+    // Seeding it would make an untouched form dirty and re-upload the same
+    // bytes on every save.
+    photograph: null,
     full_name: record.full_name ?? "",
     date_of_birth: record.date_of_birth,
     gender: record.gender ?? "",
@@ -373,10 +386,28 @@ export function toApplicantPayload(
   return payload;
 }
 
-function StepIdentity() {
+/**
+ * `applicantId` is `null` on create, and the photo control is hidden entirely
+ * there rather than shown-and-disabled: a file's owner must exist before
+ * `POST /files/` accepts it, so on create there is nothing to attach to and a
+ * disabled control would only advertise a step the user can't take. The photo
+ * is added from the edit form once the record exists.
+ */
+function StepIdentity({ applicantId }: { applicantId: string | null }) {
   const { form } = useFormInstance<ApplicantFormValues>();
   return (
     <Stack gap="md">
+      {applicantId ? (
+        <ApplicantPhotoField
+          applicantId={applicantId}
+          name={form.values.full_name || "this applicant"}
+          mode="deferred"
+          value={form.values.photograph}
+          onChange={(file) => form.setFieldValue("photograph", file)}
+          error={form.errors.photograph as string | undefined}
+        />
+      ) : null}
+
       <TextInput
         label="Full name"
         placeholder="Ram Bahadur Shrestha"
@@ -451,15 +482,17 @@ function ApplicantFormBody({
   description,
   onBack,
   hadExistingPassport,
+  applicantId,
 }: {
   title: string;
   description: string;
   onBack: () => void;
   hadExistingPassport: boolean;
+  applicantId: string | null;
 }) {
   const { current, handleStepNext, handleStepBack } = useFormControls();
   const stepComponents = [
-    <StepIdentity key="identity" />,
+    <StepIdentity key="identity" applicantId={applicantId} />,
     <StepAddresses key="addresses" />,
     <StepPassport key="passport" hadExistingPassport={hadExistingPassport} />,
     <StepFamilyEmergency key="family-emergency" />,
@@ -495,7 +528,16 @@ export interface ApplicantFormProps {
    * notification of its own. Awaited so the Submit button's loading state
    * spans the whole request, not just this function call.
    */
-  onSubmit: (payload: ApplicantCreatePayload) => Promise<void>;
+  onSubmit: (
+    payload: ApplicantCreatePayload,
+    /**
+     * A newly-picked photograph, or `null` when the photo was left alone.
+     * Handed over separately from `payload` because it is not part of the
+     * applicant resource at all — the page uploads it against the saved
+     * record's id after the write lands (edit only; always `null` on create).
+     */
+    photograph: File | null,
+  ) => Promise<void>;
 }
 
 /**
@@ -519,13 +561,17 @@ export function ApplicantForm({
       validation={STEP_VALIDATION}
       stepFields={STEP_FIELDS}
       finalSubmitFn={async (values) => {
-        await onSubmit(toApplicantPayload(values, hadExistingPassport));
+        await onSubmit(
+          toApplicantPayload(values, hadExistingPassport),
+          values.photograph,
+        );
         return { ok: true };
       }}
       hasDirtCheck
     >
       <ApplicantFormBody
         hadExistingPassport={hadExistingPassport}
+        applicantId={initialValues?.id ?? null}
         title={mode === "create" ? "New applicant" : "Edit applicant"}
         description={
           mode === "create"
