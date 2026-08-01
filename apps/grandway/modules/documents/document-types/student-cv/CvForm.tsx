@@ -1,9 +1,11 @@
 "use client";
 
 import { Stack, Button, Text } from "@peppermint/ui";
+import { DocumentPhotoField } from "../../components/DocumentPhotoField";
 import type { DocumentFormProps, CvContent } from "../../documents.types";
 
 export function CvForm({
+  applicantId,
   studentFullData,
   onSubmit,
   isLoading,
@@ -23,6 +25,10 @@ export function CvForm({
         A CV will be generated from {studentFullData?.fullName ?? "the student"}
         &apos;s profile data. You can edit the content after creation.
       </Text>
+      <DocumentPhotoField
+        applicantId={applicantId}
+        name={studentFullData?.fullName}
+      />
       <Button onClick={handleCreate} loading={isLoading} fullWidth>
         Create CV
       </Button>

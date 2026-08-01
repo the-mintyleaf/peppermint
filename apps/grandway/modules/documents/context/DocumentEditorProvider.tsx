@@ -17,6 +17,7 @@ import {
   useQueryClient,
 } from "@peppermint/ui";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
+import { useApplicantPhotograph } from "@/modules/admin/applicants";
 import { documentsApi } from "../documents.api";
 import {
   documentQueryKeys,
@@ -112,7 +113,18 @@ export function DocumentEditorProvider({
     queryFn: () => documentsApi.fetchApplicantSummary(applicantId as string),
     enabled: !!applicantId,
   });
-  const studentFullData = summaryQuery.data ?? null;
+  // The photograph is a file, not a field on the applicant, so it is resolved
+  // alongside the summary rather than inside it and merged here. Every template
+  // that prints a portrait reads it from `studentFullData`, so this is the one
+  // place the editor fetches it.
+  const photograph = useApplicantPhotograph(applicantId);
+  const studentFullData = useMemo(
+    () =>
+      summaryQuery.data
+        ? { ...summaryQuery.data, photoUrl: photograph.url ?? undefined }
+        : null,
+    [summaryQuery.data, photograph.url],
+  );
 
   const { data: signatures = [] } = useSignatures();
 

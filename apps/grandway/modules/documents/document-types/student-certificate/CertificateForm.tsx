@@ -2,12 +2,14 @@
 
 import { Stack, TextInput, DateInput, Select, Button } from "@peppermint/ui";
 import { useForm } from "@peppermint/ui";
+import { DocumentPhotoField } from "../../components/DocumentPhotoField";
 import type {
   DocumentFormProps,
   CertificateContent,
 } from "../../documents.types";
 
 export function CertificateForm({
+  applicantId,
   studentFullData,
   initialContent,
   signatures = [],
@@ -42,6 +44,11 @@ export function CertificateForm({
   return (
     <form onSubmit={form.onSubmit((values) => onSubmit(values))}>
       <Stack gap="md" p="md">
+        <DocumentPhotoField
+          applicantId={applicantId}
+          name={studentFullData?.fullName}
+        />
+
         <TextInput
           label="Student Name"
           placeholder="Full name as shown on certificate"

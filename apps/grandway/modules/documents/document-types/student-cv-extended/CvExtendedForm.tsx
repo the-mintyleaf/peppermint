@@ -2,9 +2,11 @@
 
 import { Stack, Button, Text, TextInput, Textarea } from "@peppermint/ui";
 import { useForm } from "@peppermint/ui";
+import { DocumentPhotoField } from "../../components/DocumentPhotoField";
 import type { DocumentFormProps, CvContent } from "../../documents.types";
 
 export function CvExtendedForm({
+  applicantId,
   studentFullData,
   onSubmit,
   isLoading,
@@ -45,6 +47,11 @@ export function CvExtendedForm({
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="md" p="md">
+        <DocumentPhotoField
+          applicantId={applicantId}
+          name={studentFullData?.fullName}
+        />
+
         <Text size="sm" c="dimmed">
           A CV will be generated from{" "}
           {studentFullData?.fullName ?? "the student"}&apos;s profile data. Fill

@@ -437,6 +437,19 @@ export interface StudentFullData {
   program: string;
   nationality: string;
   enrolledAt: string;
+  /**
+   * The applicant's photograph as an object URL, for the templates that print a
+   * portrait (the CVs and the student certificate). Not part of the applicant
+   * payload — it is minted from the `uploaded_files` bytes by the editor
+   * provider, which is why it is absent from `fetchApplicantSummary`'s mapping
+   * and filled in afterwards. `undefined` until it resolves, and for standalone
+   * documents that have no applicant at all.
+   *
+   * **Never persist this.** An object URL is valid only for the page that
+   * created it; storing one in document content would render a broken image
+   * after any reload.
+   */
+  photoUrl?: string;
   summary?: string;
   skills?: string;
   experience?: string;

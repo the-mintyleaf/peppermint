@@ -13,7 +13,12 @@ import type {
 export function CertificateTemplate(props: DocumentTemplateProps) {
   const content = (props.historicalSnapshot?.content ??
     props.document.content) as CertificateContent;
-  const certData = content as StudentCertificateData;
+  // Same precedence as the CV adapter: a URL stored on the document overrides,
+  // otherwise the applicant's photograph fills the portrait box.
+  const certData = {
+    ...content,
+    image: content.image || props.studentFullData?.photoUrl || "",
+  } as StudentCertificateData;
   const signatures = (props.signatures ?? []).map((sig) => ({
     id: sig.id,
     name: sig.name,

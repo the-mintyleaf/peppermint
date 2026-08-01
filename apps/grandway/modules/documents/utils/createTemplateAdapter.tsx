@@ -192,6 +192,13 @@ export function createCvTemplateAdapter(
 
     const data = {
       ...(content as Record<string, unknown>),
+      // The applicant's photograph wins; a URL typed into the document is the
+      // override for the cases it can't serve — a standalone document with no
+      // applicant, or one page that deliberately prints a different picture.
+      // Order matters: a stored `image` is a persisted string, `photoUrl` an
+      // object URL minted this page load, so neither can stand in for the other.
+      image:
+        (content as Record<string, unknown>).image || student?.photoUrl || "",
       full_name:
         student?.fullName ?? (content as Record<string, unknown>).full_name,
       email: student?.email ?? (content as Record<string, unknown>).email,

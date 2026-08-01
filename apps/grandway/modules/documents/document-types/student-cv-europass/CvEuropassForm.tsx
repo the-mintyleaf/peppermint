@@ -15,6 +15,7 @@ import {
 import { Plus as PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { Trash as TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { DEFAULT_EUROPASS_APPEARANCE } from "@/components/templates/student-cv-europass/appearance";
+import { DocumentPhotoField } from "../../components/DocumentPhotoField";
 import type { DocumentFormProps, CvContent } from "../../documents.types";
 
 const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"].map((l) => ({
@@ -47,6 +48,8 @@ const EMPTY_LANGUAGE = {
 };
 
 export function CvEuropassForm({
+  applicantId,
+  studentFullData,
   initialContent,
   onSubmit,
   isLoading,
@@ -118,19 +121,30 @@ export function CvEuropassForm({
           {...form.getInputProps("current_address")}
           disabled={isLoading}
         />
-        <Group grow align="flex-start">
-          <TextInput
-            label="Passport number"
-            {...form.getInputProps("passport_number")}
-            disabled={isLoading}
-          />
-          <TextInput
-            label="Photo URL"
-            placeholder="https://…"
-            {...form.getInputProps("image")}
-            disabled={isLoading}
-          />
-        </Group>
+        <TextInput
+          label="Passport number"
+          {...form.getInputProps("passport_number")}
+          disabled={isLoading}
+        />
+
+        <DocumentPhotoField
+          applicantId={applicantId}
+          name={studentFullData?.fullName}
+        />
+
+        {/* The override, and labelled as one. It was the only way to get a
+         * picture onto this CV before the applicant carried a photograph;
+         * it stays for the cases the photograph can't serve — a standalone
+         * CV, or one that must print a different picture. Filled in, it
+         * wins over the applicant's photo, so the caption says so rather
+         * than leaving a silently-ignored upload above it. */}
+        <TextInput
+          label="Photo URL (overrides the photograph above)"
+          description="Leave empty to use the applicant's photograph."
+          placeholder="https://…"
+          {...form.getInputProps("image")}
+          disabled={isLoading}
+        />
 
         <Divider />
         <Text fw={600} size="sm">
