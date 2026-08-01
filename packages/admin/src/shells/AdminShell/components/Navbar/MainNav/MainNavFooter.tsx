@@ -1,7 +1,6 @@
 "use client";
 
-import { ActionIcon, BookmarksMenu, Indicator, Stack } from "@peppermint/ui";
-import { BellIcon } from "@phosphor-icons/react/dist/csr/Bell";
+import { BookmarksMenu, Stack } from "@peppermint/ui";
 import type {
   AdminShellAiButton,
   AdminShellSettingsButton,
@@ -47,25 +46,6 @@ export function MainNavFooter({
       />
 
       <BookmarksMenu variant="sidenav" onNavigate={onNavigate} />
-
-      <Indicator inline size={4} offset={4} position="top-end" color="red">
-        <ActionIcon
-          variant="subtle"
-          size="md"
-          aria-label="Notifications"
-          color="gray.0"
-          styles={{
-            root: {
-              "&:hover": {
-                backgroundColor: "var(--mantine-color-dark-6)",
-                color: "var(--mantine-color-gray-0)",
-              },
-            },
-          }}
-        >
-          <BellIcon weight="fill" size={18} />
-        </ActionIcon>
-      </Indicator>
 
       <UserInfoPopover variant="icon" {...userMenu} />
     </Stack>
