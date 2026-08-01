@@ -12,8 +12,8 @@ import { ArrowClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowClockwis
 import { useDashboardSummary } from "../dashboard.hooks";
 import { DASHBOARD_TAB_META, type DashboardTab } from "../dashboard.tabs";
 import type { DashboardSummary } from "../dashboard.types";
+import { toneForAlert, type AlertBand } from "../dashboard.tone";
 import { StatTile } from "./StatTile";
-import type { StatTileTone } from "./StatTile.types";
 import type { StatTilesProps } from "./StatTiles.types";
 
 type AlertKey = keyof DashboardSummary["alerts"];
@@ -33,7 +33,7 @@ interface AlertSpec {
   key: AlertKey;
   label: string;
   icon: IconType;
-  tone: StatTileTone;
+  band: AlertBand;
   tab: DashboardTab;
 }
 
@@ -73,56 +73,56 @@ const ALERTS: AlertSpec[] = [
     key: "overdue_checklist_items",
     label: "Overdue checklist items",
     icon: ListChecksIcon,
-    tone: "critical",
+    band: "critical",
     tab: "today",
   },
   {
     key: "rejected_files",
     label: "Rejected files",
     icon: FileMagnifyingGlassIcon,
-    tone: "critical",
+    band: "critical",
     tab: "blockers",
   },
   {
     key: "blocked_checklist_items",
     label: "Blocked checklist items",
     icon: ListChecksIcon,
-    tone: "warning",
+    band: "warning",
     tab: "blockers",
   },
   {
     key: "stale_leads",
     label: "Stale leads",
     icon: AddressBookIcon,
-    tone: "warning",
+    band: "warning",
     tab: "today",
   },
   {
     key: "journeys_without_a_checklist",
     label: "Journeys without a checklist",
     icon: CompassIcon,
-    tone: "warning",
+    band: "warning",
     tab: "blockers",
   },
   {
     key: "offers_awaiting_response",
     label: "Offers awaiting response",
     icon: HandshakeIcon,
-    tone: "routine",
+    band: "info",
     tab: "today",
   },
   {
     key: "files_awaiting_verification",
     label: "Files awaiting verification",
     icon: FileMagnifyingGlassIcon,
-    tone: "routine",
+    band: "info",
     tab: "today",
   },
   {
     key: "due_soon_checklist_items",
     label: "Due soon",
     icon: ListChecksIcon,
-    tone: "routine",
+    band: "info",
     tab: "today",
   },
 ];
@@ -170,7 +170,7 @@ export function StatTiles({ filters, onOpenTab }: StatTilesProps) {
             label={spec.label}
             value={data?.volumes[spec.key]}
             icon={spec.icon}
-            tone="volume"
+            tone="neutral"
             caption={spec.caption}
             isPending={isPending}
             isError={isError}
@@ -183,7 +183,7 @@ export function StatTiles({ filters, onOpenTab }: StatTilesProps) {
             label={spec.label}
             value={data?.alerts[spec.key]}
             icon={spec.icon}
-            tone={spec.tone}
+            tone={toneForAlert(data?.alerts[spec.key], spec.band)}
             caption={`Open ${DASHBOARD_TAB_META[spec.tab].label}`}
             isPending={isPending}
             isError={isError}
