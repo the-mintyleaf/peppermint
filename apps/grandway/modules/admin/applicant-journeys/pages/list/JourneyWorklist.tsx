@@ -21,6 +21,7 @@ import { journeyQueryKeys } from "../../applicantJourneys.queryKeys";
 import type { ApplicantJourney } from "../../applicantJourneys.types";
 import type { JourneyFormValues } from "../../form";
 import { getJourneysColumns } from "./journeys.columns";
+import { useCountryTabs } from "./JourneyWorklist.hooks";
 
 /**
  * `applicant` deep-links (`?applicant=<id>`) so `ApplicantJourneysPanel`'s
@@ -58,6 +59,7 @@ function useDeepLinkFilters() {
 function JourneyWorklistContent() {
   const router = useRouter();
   const forceFilters = useDeepLinkFilters();
+  const tabs = useCountryTabs();
 
   const columns = getJourneysColumns({
     onViewDetails: (journey) =>
@@ -79,6 +81,7 @@ function JourneyWorklistContent() {
         description:
           "Every study objective across all applicants, newest first",
       }}
+      tabs={tabs}
       forceFilters={forceFilters}
       createModalTitle="New journey"
       editModalTitle="Edit journey"

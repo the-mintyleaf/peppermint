@@ -23,12 +23,14 @@ interface JourneysColumnsOptions {
 }
 
 /**
- * Column-level `filter` on `stage`/`target_country` — the shell's own
- * filter-picker + active-filter chip bar (already wired to server-side
- * refetch) — is the mechanism for the "plain stage filter Select" / partial
- * target-country match confirmed via `/design-decisions`; `applicant` isn't
- * a column filter here since it arrives only as a deep-link (`?applicant=`,
- * see `JourneyWorklist.tsx`'s `forceFilters`), never picked from this table.
+ * Column-level `filter` on `stage` — the shell's own filter-picker +
+ * active-filter chip bar (already wired to server-side refetch) — is the
+ * mechanism for the "plain stage filter Select" confirmed via
+ * `/design-decisions`. `target_country` carries no column filter: the country
+ * tabs (`JourneyWorklist.hooks.ts`) own that same server param, and two
+ * controls writing one filter would silently overwrite each other. `applicant`
+ * isn't a column filter either since it arrives only as a deep-link
+ * (`?applicant=`, see `JourneyWorklist.tsx`'s `forceFilters`).
  */
 export function getJourneysColumns({
   onViewDetails,
@@ -53,7 +55,6 @@ export function getJourneysColumns({
       accessor: "target_country",
       title: "Target country",
       icon: GlobeIcon,
-      filter: { type: "text", placeholder: "e.g. Australia" },
       render: (journey: ApplicantJourney) => (
         <Text size="xs" c={journey.target_country ? undefined : "dimmed"}>
           {journey.target_country || "—"}
