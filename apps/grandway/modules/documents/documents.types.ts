@@ -488,4 +488,6 @@ export interface DocumentTypeConfig {
   Form: ComponentType<DocumentFormProps>;
   Template: ComponentType<DocumentTemplateProps>;
   ConfigBar?: ComponentType<DocumentConfigBarProps>;
+  /** Overrides the Edit-fields modal width for form-heavy types. Defaults to `"xl"`. */
+  formModalSize?: string | number;
 }

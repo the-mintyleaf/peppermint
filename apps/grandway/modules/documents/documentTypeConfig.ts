@@ -390,6 +390,8 @@ const bankRegistry = Object.fromEntries(
           Form: stmtComponents.Form,
           Template: stmtComponents.Template,
           ConfigBar: BankConfigBar,
+          // The transactions sheet needs spreadsheet width, not the default `xl` modal.
+          formModalSize: "72rem",
         },
       ],
     ];

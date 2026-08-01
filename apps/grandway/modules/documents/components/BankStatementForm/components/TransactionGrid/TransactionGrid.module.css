@@ -1,0 +1,150 @@
+.wrapper {
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-radius: var(--mantine-radius-sm);
+  overflow: hidden;
+}
+
+.scroll {
+  max-height: 420px;
+  overflow: auto;
+}
+
+.table {
+  width: 100%;
+  /* Below this the Description column stops being usable — scroll the sheet instead. */
+  min-width: 720px;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--mantine-font-size-xs);
+}
+
+.table th,
+.table td {
+  height: 30px;
+  padding: 0;
+  border-right: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-bottom: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+.table th:last-child,
+.table td:last-child {
+  border-right: none;
+}
+
+/* Column headers — the grey Excel header strip, pinned while the body scrolls. */
+.head th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 28px;
+  padding: 0 var(--mantine-spacing-xs);
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 10px;
+  font-weight: 600;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  background: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-6)
+  );
+}
+
+/* Row-number gutter — matches the header strip, like a spreadsheet's row headers. */
+.gutter {
+  width: 38px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  background: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-6)
+  );
+}
+
+.numericHead {
+  text-align: right;
+}
+
+/* Cells hold a borderless input that fills the whole box, so the grid line
+   itself reads as the cell edge. Focus draws an inset ring — the Excel
+   "active cell" affordance. */
+.cell input,
+.cell button {
+  height: 28px;
+  min-height: 28px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  font-size: var(--mantine-font-size-xs);
+}
+
+.cell:focus-within {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: -2px;
+}
+
+.numeric input {
+  text-align: right;
+  font-family: var(--mantine-font-family-monospace);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Derived cells (interest/tax amounts, running balance) are never editable. */
+.computed {
+  padding: 0 var(--mantine-spacing-xs);
+  text-align: right;
+  font-family: var(--mantine-font-family-monospace);
+  font-variant-numeric: tabular-nums;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+  background: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-7)
+  );
+}
+
+.label {
+  padding: 0 var(--mantine-spacing-xs);
+}
+
+/* Computed row types get a coloured left edge so they read apart from typed rows. */
+.interestRow .gutter {
+  box-shadow: inset 3px 0 0 var(--mantine-color-teal-5);
+}
+
+.taxRow .gutter {
+  box-shadow: inset 3px 0 0 var(--mantine-color-orange-5);
+}
+
+.openingRow .gutter {
+  box-shadow: inset 3px 0 0 var(--mantine-color-blue-5);
+}
+
+.actions {
+  width: 92px;
+  padding: 0 4px;
+}
+
+.empty {
+  padding: var(--mantine-spacing-lg);
+  text-align: center;
+}
+
+/* Totals strip — pinned to the bottom of the scroll box. */
+.footer td {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  border-bottom: none;
+  border-top: 2px solid
+    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+  font-weight: 600;
+  background: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-6)
+  );
+}

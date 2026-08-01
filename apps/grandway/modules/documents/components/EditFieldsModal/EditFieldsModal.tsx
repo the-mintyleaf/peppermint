@@ -36,7 +36,7 @@ export function EditFieldsModal() {
       opened={editFieldsModalOpen}
       onClose={() => setEditFieldsModalOpen(false)}
       title={`Edit ${config.label} Fields`}
-      size="xl"
+      size={config.formModalSize ?? "xl"}
     >
       {/* The theme zeroes the modal body padding; each `Form` supplies its own `p="md"`. */}
       {Form && (
