@@ -15,10 +15,7 @@ import { getApiError } from "@/lib/authErrorMessages";
 import { useApplicantDetail, useUpdateApplicant } from "../../applicants.hooks";
 import { applicantDisplayName } from "../../applicants.labels";
 import { ApplicantForm } from "../../form/ApplicantForm";
-import {
-  useApplicantPhotograph,
-  useSaveApplicantPhotograph,
-} from "../../photograph";
+import { useSaveApplicantPhotograph } from "../../photograph";
 
 /**
  * Open to both Admin and Lead Manager (`docs/backend/applicants/CONCEPT.md`
@@ -39,14 +36,10 @@ function ApplicantEditPageContent() {
     refetch,
   } = useApplicantDetail(id);
   const mutation = useUpdateApplicant(id);
-  // Shares `ApplicantPhotoField`'s query key, so this resolves the id of the
-  // photo being replaced without a second request. Declared here, above the
-  // loading/error returns, because hooks can't sit below a conditional.
-  const currentPhotograph = useApplicantPhotograph(id);
-  const savePhotograph = useSaveApplicantPhotograph(
-    id,
-    currentPhotograph.file?.id ?? null,
-  );
+  // Whether this replaces an existing photograph or uploads the first one is
+  // decided inside the mutation, against the cache as it stands when Save is
+  // pressed — not against a render-time read that a fast Save could outrun.
+  const savePhotograph = useSaveApplicantPhotograph(id);
 
   const notFound =
     isError && getApiError(error).code === "APPLICANTS_APPLICANT_NOT_FOUND";

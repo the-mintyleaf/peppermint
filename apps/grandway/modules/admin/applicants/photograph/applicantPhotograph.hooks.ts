@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useQuery } from "@peppermint/ui";
+import { useQuery, useQueryClient } from "@peppermint/ui";
 import { useAppMutation } from "@peppermint/admin";
 import {
   listFiles,
@@ -23,6 +23,23 @@ import { pickCurrentPhotograph } from "./applicantPhotograph.utils";
  */
 export function applicantPhotographKey(applicantId: string) {
   return [...fileQueryKeys.all, "applicant-photograph", applicantId] as const;
+}
+
+/** `GET /files/?applicant=<id>&category=photograph` — the lookup behind both the
+ * hook below and the save mutation's replace-or-upload decision. */
+function fetchApplicantPhotographs(applicantId: string) {
+  return listFiles({
+    page: 1,
+    pageSize: 100,
+    search: "",
+    sort: [],
+    filters: {
+      applicant: applicantId,
+      category: "photograph",
+      is_archived: false,
+      is_current: true,
+    },
+  });
 }
 
 interface ApplicantPhotographResult {
@@ -59,19 +76,7 @@ export function useApplicantPhotograph(
 
   const lookup = useQuery({
     queryKey: applicantPhotographKey(applicantId ?? "none"),
-    queryFn: () =>
-      listFiles({
-        page: 1,
-        pageSize: 100,
-        search: "",
-        sort: [],
-        filters: {
-          applicant: applicantId as string,
-          category: "photograph",
-          is_archived: false,
-          is_current: true,
-        },
-      }),
+    queryFn: () => fetchApplicantPhotographs(applicantId as string),
     enabled: isEnabled,
     staleTime: Infinity,
   });
@@ -107,16 +112,34 @@ export function useApplicantPhotograph(
  * The successor inherits owner and category from its predecessor, which is why
  * the replace branch sends neither (§7 — sending them there has no effect).
  */
-export function useSaveApplicantPhotograph(
-  applicantId: string,
-  currentPhotographId: string | null,
-) {
+export function useSaveApplicantPhotograph(applicantId: string) {
+  const queryClient = useQueryClient();
+
   return useAppMutation<UploadedFile, File>({
-    mutationFn: (file) => {
+    mutationFn: async (file) => {
+      // Resolved here rather than taken from the caller's render: whether this
+      // is a replace or a first upload must be decided against what exists at
+      // the moment of saving. Reading it from a render-time value meant a save
+      // fired while the lookup was still in flight (or after it errored) saw
+      // "no photograph", uploaded a second row, and left two equally-current
+      // photographs with nothing but newest-wins to separate them — the exact
+      // ambiguity `replace` exists to prevent.
+      //
+      // `fetchQuery` serves the cached result when there is one, so the common
+      // path costs no extra request; only a save that races the lookup does.
+      const existing = pickCurrentPhotograph(
+        (
+          await queryClient.fetchQuery({
+            queryKey: applicantPhotographKey(applicantId),
+            queryFn: () => fetchApplicantPhotographs(applicantId),
+          })
+        ).data,
+      );
+
       const formData = new FormData();
       formData.append("file", file);
-      if (currentPhotographId) {
-        return replaceFile(currentPhotographId, formData);
+      if (existing) {
+        return replaceFile(existing.id, formData);
       }
       formData.append("applicant", applicantId);
       formData.append("category", "photograph");

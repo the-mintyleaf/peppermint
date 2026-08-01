@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@peppermint/ui";
 import { downloadFileBlob } from "../uploadedFiles.api";
-import { fileQueryKeys } from "../uploadedFiles.queryKeys";
 
 /**
  * Inline preview for image categories only (photograph, signature_image) —
@@ -26,9 +25,15 @@ import { fileQueryKeys } from "../uploadedFiles.queryKeys";
  */
 export function useFileBlob(fileId: string | null, enabled = true) {
   const query = useQuery({
-    queryKey: fileId
-      ? [...fileQueryKeys.detail(fileId), "blob"]
-      : ["files.files", "detail", "none", "blob"],
+    // Deliberately OUTSIDE `fileQueryKeys.all`, unlike every other query in this
+    // module. Each mutation here invalidates that whole tree (see
+    // `uploadedFiles.hooks.ts`), which would match the blob queries too and
+    // re-download every mounted preview whenever any unrelated file was
+    // uploaded, edited or archived — and each of those downloads writes an
+    // audit event, the only audited read in the API. Bytes are immutable for a
+    // given file id (a replacement is a new id, so it lands on a new key), so
+    // there is no invalidation this query should ever answer.
+    queryKey: ["files.file-bytes", fileId ?? "none"],
     queryFn: () => downloadFileBlob(fileId as string),
     enabled: enabled && fileId !== null,
     staleTime: Infinity,

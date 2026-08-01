@@ -74,11 +74,14 @@ export function ApplicantPhotoField({
   hideLabel = false,
 }: ApplicantPhotoFieldProps) {
   const photograph = useApplicantPhotograph(applicantId);
-  const save = useSaveApplicantPhotograph(
-    applicantId,
-    photograph.file?.id ?? null,
-  );
+  const save = useSaveApplicantPhotograph(applicantId);
   const [localError, setLocalError] = useState<string | null>(null);
+  // Bumped on every pick so `FileButton`'s input remounts. Keying on the file
+  // id or the staged filename is not enough: after a failed immediate upload
+  // neither changes, the native input still holds the same value, and
+  // re-picking the very same file fires no change event — the retry silently
+  // does nothing. A counter changes unconditionally.
+  const [pickCount, setPickCount] = useState(0);
 
   const stagedPreview = useLocalPreview(value);
   const previewUrl = stagedPreview ?? photograph.url;
@@ -86,6 +89,7 @@ export function ApplicantPhotoField({
 
   const handlePick = (file: File | null) => {
     setLocalError(null);
+    setPickCount((count) => count + 1);
     if (!file) {
       onChange?.(null);
       return;
@@ -135,10 +139,7 @@ export function ApplicantPhotoField({
             <FileButton
               onChange={handlePick}
               accept={PHOTO_FILE_INPUT_ACCEPT}
-              // Remounting on each committed file lets the same file be picked
-              // twice in a row (e.g. after a failed upload) — the input keeps
-              // its previous value otherwise and fires no change event.
-              key={photograph.file?.id ?? value?.name ?? "empty"}
+              key={pickCount}
             >
               {(props) => (
                 <Button
