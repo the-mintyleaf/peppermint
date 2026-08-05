@@ -26,8 +26,15 @@ Reference data (Countries + Fields) is a modal opened from the Programs header â
 
 ## Access (critical)
 
-Reads are shared (`admin` + `lead_manager`); **writes are Admin-only**; `superadmin`
-is denied everything. Each route entry is wrapped in `RequireLeadAccess`. Every write
+**The routes are Admin-only in this app**, gated
+`RequireCapability capability="catalogue"`; `superadmin` is denied everything.
+
+> **Do not gate the catalogue's DATA hooks on that capability.** The backend still
+> grants a Lead Manager catalogue reads, and `useCountries` feeds the applicants
+> list's country tabs, the journeys worklist tabs, `JourneyForm` and two dashboard
+> cards. Only the routes and nav were removed.
+
+Writes were already Admin-only within the module. Every write
 control (create/edit form components, reference-data trigger, campus add/edit,
 withdraw) is gated on exact `authorityType === "admin"` â€” never `isAdmin` (that
 includes superadmin).

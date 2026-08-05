@@ -25,21 +25,29 @@ MultiPageModule with TWO distinct route trees under one module: Templates
 
 ## Access (critical)
 
-- **Templates (read)** — `GET /templates/` and `GET /templates/<id>/` are
-  **Admin or Lead Manager** (§1) — both list and detail screens are gated
-  `RequireLeadAccess`, not exact-admin. A Lead Manager can browse templates
-  read-only.
+- **App-level rule is narrower than the contract.** The backend grants a Lead
+  Manager template reads (§1), but this app does not: the worklist,
+  awaiting-setup and template routes are **Admin-only**, gated
+  `RequireCapability capability="checklists"`. Checklist authoring and
+  cross-applicant triage are not staff work here.
+- **`/admin/checklists/[id]` is the deliberate exception** — still
+  `RequireLeadAccess`, so a Lead Manager reaches a single checklist. The journey
+  Worklist tab and the notification drawer both deep-link to it, and it is the only
+  place item-level history lives. Its breadcrumb and not-found button therefore
+  follow the reader (back to the **journey**, not to the Admin-only list) — if you
+  add another way out of that page, do the same.
 - **Templates (authoring)** — only the four write routes (create/update
   template, create/update template item) are **Admin-only**. These are gated
   **inline**, not at the page level: `createFormComponent`/`onCreateApi`/
   `onEditApi` on `ChecklistTemplatesList` and the publish/retire/add-item/
   edit-item controls on `TemplateDetail`/`TemplateItemsList`/
   `TemplateRowActionsMenu` are all `undefined`/hidden when
-  `authorityType !== "admin"`. Do not reach for `RequireDocumentAccess` here —
-  it blocks Lead Manager reads this module's contract explicitly grants.
-- **Instances (tracking)** — Admin AND Lead Manager share identical read/write
-  rights (`RequireLeadAccess`). `superadmin` is refused on **every** route in
-  this module.
+  `authorityType !== "admin"`. These stay even though the screen is now Admin-only:
+  they encode the narrower backend rule directly, and would still hold if template
+  reads were reopened to staff.
+- **Instances (tracking)** — the backend gives Admin and Lead Manager identical
+  read/write rights, and the detail route honours that; only the cross-applicant
+  worklist is closed. `superadmin` is refused on **every** route in this module.
 
 ## No delete, anywhere in this module
 

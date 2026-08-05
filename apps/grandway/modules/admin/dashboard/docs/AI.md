@@ -17,14 +17,15 @@ is plural (`dashboards`).
 ## Route
 
 `/admin` — **the dashboard is the admin home.** `app/admin/page.tsx` re-exports
-`ModuleAdminHome`, which renders the dashboard for `admin`/`lead_manager` and a minimal
-identity/audit landing (`SuperadminLanding`) for `superadmin` (403'd on every dashboard
-section, so they must not land on it). There is no separate "Dashboard" rail entry — the
+`ModuleAdminHome`, which renders the dashboard when `caps.dashboard` holds
+(`admin`/`lead_manager`) and a minimal identity/audit landing (`SuperadminLanding`)
+for `superadmin` (403'd on every dashboard section, so they must not land on it). There is no separate "Dashboard" rail entry — the
 always-shown "Home" entry is the dashboard.
 
 ## Entry files
 
-- `pages/AdminHome.tsx` → `ModuleAdminHome` — the `/admin` entry: `RequireAuth` + role branch
+- `pages/AdminHome.tsx` → `ModuleAdminHome` — the `/admin` entry: `RequireAuth` + a
+  `caps.dashboard` branch
 - `pages/DashboardOverview.tsx` → `DashboardOverview` — the whole page (no auth gate of its
   own; `AdminHome` decides who reaches it)
 - `components/SuperadminLanding.tsx` — the superadmin fallback home
@@ -43,6 +44,19 @@ always-shown "Home" entry is the dashboard.
 | `dashboard.labels.ts`      | Only labels/colors with no existing home (`ApplicantStatusKey`, `DocumentRow.family`, `JOURNEY_OUTCOME_COLORS`/`OFFER_DECISION_COLORS`) + section/group headings. Every enum whose owning module already exports a color map is imported CONCRETELY, never redefined                                                                                                                    |
 | `dashboard.utils.ts`       | `formatDate`/`formatDateTime`/`formatSince`/`formatRatePercent`/`formatFetchedAt`                                                                                                                                                                                                                                                                                                       |
 | `dashboard.chartConfig.ts` | `toChartColor(name, shade)` + `CHART_TRACK_COLOR`/`CHART_ZERO_COLOR`; the shared chart-grammar notes                                                                                                                                                                                                                                                                                    |
+
+## Access — two bands or three
+
+A `lead_manager` sees the **Leads and Applicants bands only**; the Operations band is
+gated on `caps.dashboardOperations` (Admin). Leads and Applicants are the work — who
+is waiting to hear back, and who those enquiries became. Operations is standing
+measurement, which is an Admin's view of the office rather than a caseworker's view of
+their day.
+
+Because each band is its own `ModuleErrorBoundary` over independent per-section
+queries, hiding Operations also stops its seven requests — nothing is fetched and
+discarded. The monospace footer caption states which set the reader is looking at;
+keep it truthful if the split changes.
 
 ## Layout — one page, three bands (no tabs)
 

@@ -22,9 +22,11 @@ ContainedModule (single route, modal CRUD + detail drawer)
 
 ## Access model (contract §1 — enforce, don't guess)
 
-- Reads shared: `admin` + `lead_manager`. Writes: **Admin only**. Superadmin is
-  refused everything.
-- Module is wrapped in `RequireLeadAccess` (admin/lead_manager gate).
+- **Admin-only in this app**, gated `RequireCapability capability="clients"`. The
+  backend shares reads with `lead_manager` (§1) and refuses superadmin everything,
+  but the partner directory is not part of the funnel a staff account works.
+- The inline write gates below therefore never fire for a non-admin today; they are
+  kept because they encode the backend's own narrower rule.
 - Write controls (create/edit form, retire, restore) are gated on the **exact**
   `authorityType === "admin"` — NOT `isAdmin` (that also covers superadmin).
 

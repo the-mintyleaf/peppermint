@@ -71,10 +71,10 @@
 
 ## Phase 7 — Docs + verification
 
-- [ ] `apps/grandway/docs/AI.md` — Role gates section, Modules table, `config/access` adoption rule
-- [ ] Module AI maps now contradicting the code: `checklists/docs/AI.md` (routes listed as lead_manager-reachable), `clients/docs/AI.md`, `institutions/docs/AI.md` (all still say "reads shared admin + lead_manager" / `RequireLeadAccess`)
-- [ ] `applicants/docs/AI.md` + `dashboard/docs/AI.md` — read-only record for staff, Operations band admin-only
-- [ ] Add the eslint / anti-pattern-gate fence for direct `authorityType` reads
-- [ ] `pnpm format && pnpm check-types && pnpm lint` + `/verify`
-- [ ] Write up the two backend asks (lead_manager document reads scoped off bank families; snapshot POST)
-- [ ] Commit P7
+- [x] `apps/grandway/docs/AI.md` — Role gates section, Modules table, `config/access` adoption rule
+- [x] Module AI maps now contradicting the code: `checklists/docs/AI.md` (routes listed as lead_manager-reachable), `clients/docs/AI.md`, `institutions/docs/AI.md` (all still say "reads shared admin + lead_manager" / `RequireLeadAccess`)
+- [x] `applicants/docs/AI.md` + `dashboard/docs/AI.md` — read-only record for staff, Operations band admin-only
+- [x] ~~eslint / anti-pattern-gate fence for direct `authorityType` reads~~ — **deliberately not added.** It would block the legitimate module-local write gates the adoption rule permits, and GOVERNANCE.md authorizes a new mechanism only from a logged failure of the matching cause. Docs + code review cover it.
+- [x] `pnpm format && pnpm check-types && pnpm lint` + `/verify`
+- [x] Write up the two backend asks (lead_manager document reads scoped off bank families; snapshot POST)
+- [x] Commit P7
