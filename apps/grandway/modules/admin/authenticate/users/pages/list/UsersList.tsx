@@ -6,7 +6,7 @@ import { ModalPaper } from "@peppermint/ui";
 import { RequireStaff } from "@/components/RequireStaff";
 import { useManagedTier } from "@/config/access";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
-import { AUTHORITY_LABELS } from "@/modules/admin/authenticate/_shared/authenticate.labels";
+import { AUTHORITY_NOUNS } from "@/modules/admin/authenticate/_shared/authenticate.labels";
 import { OneTimeSecretModal } from "@/modules/admin/authenticate/_shared/OneTimeSecretModal";
 import { UserForm, UserProfileEditForm } from "../../form";
 import { createUser, fetchUsers, updateUser } from "../../users.api";
@@ -24,7 +24,15 @@ function UsersListContent() {
   // and is the `authority_type` the payload must carry. All three read it from here
   // so the copy can never promise a tier the request doesn't send.
   const managedTier = useManagedTier();
-  const managedLabel = managedTier ? AUTHORITY_LABELS[managedTier] : "account";
+  // Lowercase noun — this goes mid-sentence ("Manage lead manager accounts"), where
+  // the Title Case badge label would read as a typo. `null` is unreachable behind
+  // `RequireStaff`; the fallbacks just keep the sentences grammatical.
+  const listDescription = managedTier
+    ? `Manage ${AUTHORITY_NOUNS[managedTier]} accounts`
+    : "Manage accounts";
+  const createTitle = managedTier
+    ? `Create ${AUTHORITY_NOUNS[managedTier]} account`
+    : "Create account";
   const [detailUser, setDetailUser] = useState<User | null>(null);
   const [issuedPassword, setIssuedPassword] = useState<string | null>(null);
 
@@ -43,16 +51,19 @@ function UsersListContent() {
         moduleInfo={{
           name: "user",
           label: "Users",
-          description: `Manage ${managedLabel} accounts`,
+          description: listDescription,
         }}
-        createModalTitle={`Create ${managedLabel} account`}
+        createModalTitle={createTitle}
         editModalTitle="Edit profile"
         createFormComponent={UserForm}
         editFormComponent={UserProfileEditForm}
         onCreateApi={(values) => {
-          // Unreachable behind `RequireStaff` (admin/superadmin both manage a tier),
-          // but the payload field is required — fail loudly rather than send a
-          // guess the backend would 403 as `AUTH_INVALID_AUTHORITY`.
+          // Unreachable twice over — `RequireStaff` gates the page to tiers that
+          // manage one, and `SubmitButton` disables itself without one. Kept because
+          // `authority_type` is required on the wire: refusing beats sending a guess
+          // the backend would 403 as `AUTH_INVALID_AUTHORITY`. The user would see
+          // the generic error copy (`getApiErrorMessage` only reads Axios errors),
+          // which is acceptable for a branch that cannot be reached.
           if (!managedTier) {
             return Promise.reject(
               new Error("Your role can't create accounts."),

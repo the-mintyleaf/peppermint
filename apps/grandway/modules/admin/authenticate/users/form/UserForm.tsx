@@ -16,10 +16,17 @@ import {
 import { LockKeyIcon } from "@phosphor-icons/react/dist/csr/LockKey";
 import { z } from "zod";
 import { useManagedTier } from "@/config/access";
-import { AUTHORITY_LABELS } from "@/modules/admin/authenticate/_shared/authenticate.labels";
-import type { AuthorityType } from "@/modules/admin/authenticate/_shared/authenticate.types";
+import {
+  AUTHORITY_NOUNS,
+  AUTHORITY_NOUNS_WITH_ARTICLE,
+} from "@/modules/admin/authenticate/_shared/authenticate.labels";
 import type { CreateUserValues } from "../users.types";
-import type { UserFormProps } from "./UserForm.types";
+import type {
+  RoleNoticeProps,
+  UserFieldsProps,
+  UserFormProps,
+  UserSubmitButtonProps,
+} from "./UserForm.types";
 
 const schema = z.object({
   username: z
@@ -90,7 +97,7 @@ export function UserForm({ onSubmit, isLoading }: UserFormProps) {
  * and icon-marked, so it never reads as something to fill in (`DESIGN.md`: state and
  * action must look and sit differently).
  */
-function RoleNotice({ managedTier }: { managedTier: AuthorityType | null }) {
+function RoleNotice({ managedTier }: RoleNoticeProps) {
   if (!managedTier) {
     return (
       <Alert
@@ -109,16 +116,16 @@ function RoleNotice({ managedTier }: { managedTier: AuthorityType | null }) {
       color="blue"
       variant="light"
       icon={<LockKeyIcon size={16} weight="fill" aria-hidden />}
-      title={`This creates a ${AUTHORITY_LABELS[managedTier]} account`}
+      title={`This creates ${AUTHORITY_NOUNS_WITH_ARTICLE[managedTier]} account`}
     >
-      The role is fixed by your own — you can only create{" "}
-      {AUTHORITY_LABELS[managedTier]} accounts, and it can&apos;t be changed
+      Your own role fixes this — you can only create{" "}
+      {AUTHORITY_NOUNS[managedTier]} accounts, and it can&apos;t be changed
       afterwards.
     </Alert>
   );
 }
 
-function Fields({ isLoading }: { isLoading: boolean }) {
+function Fields({ isLoading }: UserFieldsProps) {
   const { form } = useFormInstance<CreateUserValues>();
   return (
     <>
@@ -174,13 +181,7 @@ function Fields({ isLoading }: { isLoading: boolean }) {
   );
 }
 
-function SubmitButton({
-  isLoading,
-  managedTier,
-}: {
-  isLoading: boolean;
-  managedTier: AuthorityType | null;
-}) {
+function SubmitButton({ isLoading, managedTier }: UserSubmitButtonProps) {
   const { handleSubmit, isLoading: submitting } = useFormControls();
   return (
     <Button
@@ -190,7 +191,7 @@ function SubmitButton({
       fullWidth
     >
       {managedTier
-        ? `Create ${AUTHORITY_LABELS[managedTier]} account`
+        ? `Create ${AUTHORITY_NOUNS[managedTier]} account`
         : "Create account"}
     </Button>
   );

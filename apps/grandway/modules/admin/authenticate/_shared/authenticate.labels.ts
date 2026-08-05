@@ -21,3 +21,27 @@ export const AUTHORITY_COLORS: Record<AuthorityType, string> = {
   admin: "blue",
   lead_manager: "gray",
 };
+
+/**
+ * The tier as a lowercase noun, for use mid-sentence: "Manage lead manager accounts".
+ * `AUTHORITY_LABELS` is Title Case because it labels a badge — splicing that into
+ * prose gives "Manage Lead Manager accounts", which reads as a typo beside every
+ * other module's sentence-case copy.
+ */
+export const AUTHORITY_NOUNS: Record<AuthorityType, string> = {
+  superadmin: "superadmin",
+  admin: "admin",
+  lead_manager: "lead manager",
+};
+
+/**
+ * The same noun with its indefinite article, for sentences that need one:
+ * "This creates an admin account". Kept as data rather than derived from the first
+ * letter, since that heuristic breaks on the next tier that starts with a vowel
+ * sound but not a vowel (or vice versa).
+ */
+export const AUTHORITY_NOUNS_WITH_ARTICLE: Record<AuthorityType, string> = {
+  superadmin: "a superadmin",
+  admin: "an admin",
+  lead_manager: "a lead manager",
+};
