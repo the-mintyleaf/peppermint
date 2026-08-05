@@ -53,6 +53,7 @@ export function DocToolbar({
     archiveActiveDocument,
     isRunningStatusAction,
     beginPrintAll,
+    canEdit,
   } = useDocumentEditor();
 
   const resolvedActiveDocument =
@@ -83,8 +84,11 @@ export function DocToolbar({
 
   const status = resolvedActiveDocument?.status ?? null;
   const statusMeta = status ? STATUS_META[status] : null;
-  const nextAction = status ? getNextStatusAction(status) : null;
-  const showArchive = status ? canArchiveStatus(status) : false;
+  // Print is deliberately NOT gated: it captures a document_history snapshot and
+  // then prints, and a reader is meant to be able to print with that same audit
+  // record — so the capability governs authoring, not taking a copy away.
+  const nextAction = canEdit && status ? getNextStatusAction(status) : null;
+  const showArchive = canEdit && status ? canArchiveStatus(status) : false;
 
   const confirmArchive = () => {
     // Archive requires a mandatory reason (`documents/INTEGRATION.md` §7).

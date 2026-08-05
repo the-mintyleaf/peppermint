@@ -4,7 +4,6 @@ import { Button } from "@peppermint/ui";
 import { PencilSimple as EditIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { useDocumentEditor } from "../../context";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
-import { isEditableStatus } from "../../documents.status";
 import styles from "../../pages/editor/DocumentEditor.module.css";
 
 interface EditCurrentDocumentButtonProps {
@@ -14,15 +13,12 @@ interface EditCurrentDocumentButtonProps {
 export function EditCurrentDocumentButton({
   rightOffset,
 }: EditCurrentDocumentButtonProps) {
-  const { activeDocument, activeHistoricalLog, setEditFieldsModalOpen } =
+  const { activeDocument, isActiveDocumentEditable, setEditFieldsModalOpen } =
     useDocumentEditor();
 
-  if (!activeDocument || activeHistoricalLog) {
-    return null;
-  }
-
-  // Read-only once archived — the content can no longer be edited (backend 409s).
-  if (!isEditableStatus(activeDocument.status)) {
+  // One predicate for all of it — role, missing document, archived status, and
+  // historical preview. It used to re-derive three of those here.
+  if (!isActiveDocumentEditable || !activeDocument) {
     return null;
   }
 

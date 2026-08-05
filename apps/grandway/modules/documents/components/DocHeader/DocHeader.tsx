@@ -19,12 +19,21 @@ function formatHeaderDate(date: Date) {
 
 export function DocHeader() {
   const router = useRouter();
-  const { activeDocument, studentFullData, applicantId, confirmLeave } =
-    useDocumentEditor();
+  const {
+    activeDocument,
+    studentFullData,
+    applicantId,
+    confirmLeave,
+    canEdit,
+  } = useDocumentEditor();
   const currentDate = formatHeaderDate(new Date());
 
+  // The workspaces roll-up is Admin-only; a reader who closes the editor must land
+  // on the documents screen they can actually open.
+  const closeHref = canEdit ? "/admin/documents" : "/admin/documents/all";
+
   const handleClose = () => {
-    confirmLeave(() => router.push("/admin/documents"));
+    confirmLeave(() => router.push(closeHref));
   };
 
   const handleManageSignatures = () => {
@@ -72,17 +81,22 @@ export function DocHeader() {
         <Text size="xs" className={styles.barDate} suppressHydrationWarning>
           {currentDate}
         </Text>
-        <Tooltip label="Manage signatures" withArrow>
-          <ActionIcon
-            className={styles.barCloseBtn}
-            variant="subtle"
-            size="sm"
-            onClick={handleManageSignatures}
-            aria-label="Manage signatures"
-          >
-            <SignatureIcon size={14} color="#fff" aria-hidden />
-          </ActionIcon>
-        </Tooltip>
+        {/* `/admin/signatures` does not exist in `app/` — this has always been a
+            dead link. Hiding it for readers at least stops it being the first
+            thing a newly-admitted role clicks; the route is still owed. */}
+        {canEdit && (
+          <Tooltip label="Manage signatures" withArrow>
+            <ActionIcon
+              className={styles.barCloseBtn}
+              variant="subtle"
+              size="sm"
+              onClick={handleManageSignatures}
+              aria-label="Manage signatures"
+            >
+              <SignatureIcon size={14} color="#fff" aria-hidden />
+            </ActionIcon>
+          </Tooltip>
+        )}
         <ActionIcon
           className={styles.barCloseBtn}
           variant="subtle"

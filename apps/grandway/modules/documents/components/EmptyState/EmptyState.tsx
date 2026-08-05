@@ -7,8 +7,13 @@ import { AddPageMenu } from "../AddPageMenu";
 import { getAvailableDocumentTypes } from "../../utils/documentTypeMenu";
 
 export function EmptyState() {
-  const { applicantId, documents, isLoadingDocuments, isCreatingDocument } =
-    useDocumentEditor();
+  const {
+    applicantId,
+    documents,
+    isLoadingDocuments,
+    isCreatingDocument,
+    canEdit,
+  } = useDocumentEditor();
 
   if (isLoadingDocuments) {
     return (
@@ -24,11 +29,13 @@ export function EmptyState() {
     <Center py="xl">
       <Stack align="center" gap="sm" maw={360}>
         <Text size="xs" c="dimmed" ta="center">
-          {applicantId
-            ? "No pages yet. Create your first document."
-            : "Select or create a document to begin."}
+          {!canEdit
+            ? "No documents to show."
+            : applicantId
+              ? "No pages yet. Create your first document."
+              : "Select or create a document to begin."}
         </Text>
-        {availableTypes.length > 0 && (
+        {canEdit && availableTypes.length > 0 && (
           <AddPageMenu width={240}>
             <Button
               variant="light"

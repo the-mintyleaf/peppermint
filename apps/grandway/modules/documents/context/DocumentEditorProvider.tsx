@@ -16,19 +16,26 @@ import {
   useQuery,
   useQueryClient,
 } from "@peppermint/ui";
+import { useCapabilities } from "@/config/access";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { useApplicantPhotograph } from "@/modules/admin/applicants/photograph";
 import { documentsApi } from "../documents.api";
+import { canSeeFamily } from "../documents.families";
 import {
   documentQueryKeys,
   documentWorkspacesKey,
+  documentsByApplicantPrefix,
 } from "../documents.queryKeys";
 import { DocumentUnavailable } from "../components/DocumentUnavailable";
 import { useSignatures } from "../hooks/useSignatures";
 import { getDefaultDocumentContent } from "../utils/defaultDocumentContent";
 import { getDefaultLabel } from "../documentTypeConfig";
 import { confirmLeaveWithUnsavedChanges } from "../hooks/useUnsavedChangesGuard";
-import type { DocumentEditorContextValue } from "./DocumentEditorProvider.types";
+import { isEditableStatus } from "../documents.status";
+import type {
+  DocumentEditorContextValue,
+  DocumentReadOnlyReason,
+} from "./DocumentEditorProvider.types";
 import type {
   Document,
   DocumentContent,
@@ -85,19 +92,37 @@ export function DocumentEditorProvider({
   const [isPrintingAll, setIsPrintingAll] = useState(false);
   const [hasPendingEdits, setHasPendingEdits] = useState(false);
 
+  const capabilities = useCapabilities();
+  const canEdit = capabilities.documentWrite;
+
+  // The family scope is part of the key: a viewer who may not see the bank
+  // families gets a different document set, and without this an admin and a staff
+  // session in the same tab after a re-login would share one cache entry.
+  const scope = { bankFamilies: capabilities.documentBankFamilies };
   const scopeKey = applicantId
-    ? documentQueryKeys.list({ applicant: applicantId })
-    : documentQueryKeys.list({ standalone: standaloneDocumentId ?? "" });
+    ? documentQueryKeys.list({ applicant: applicantId, ...scope })
+    : documentQueryKeys.list({
+        standalone: standaloneDocumentId ?? "",
+        ...scope,
+      });
 
   const documentsQuery = useQuery({
     queryKey: scopeKey,
     queryFn: async (): Promise<Document[]> => {
       if (applicantId) {
         const items = await documentsApi.listByApplicant(applicantId);
-        return Promise.all(items.map((item) => documentsApi.get(item.id)));
+        // Filter BEFORE the detail fetches: this both hides the pages and avoids
+        // issuing N requests that a scoped viewer would be refused anyway.
+        const visible = items.filter((item) =>
+          canSeeFamily(capabilities, item.family),
+        );
+        return Promise.all(visible.map((item) => documentsApi.get(item.id)));
       }
       if (standaloneDocumentId) {
-        return [await documentsApi.get(standaloneDocumentId)];
+        const doc = await documentsApi.get(standaloneDocumentId);
+        // A disallowed family reads as "not found", never as "exists but hidden" —
+        // the distinction is itself the disclosure.
+        return canSeeFamily(capabilities, doc.family) ? [doc] : [];
       }
       return [];
     },
@@ -138,6 +163,20 @@ export function DocumentEditorProvider({
     documentsRef.current = documents;
   }, [documents]);
 
+  // Every document write invalidates the same two DERIVED views: the workspaces
+  // roll-up, and the per-applicant list rows that the applicant-detail Documents
+  // panel and the applicants list's OpenDocumentButton share. Missing the second
+  // one leaves that button telling an operator an applicant has no documents
+  // seconds after they created the first.
+  const invalidateDerivedViews = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: documentWorkspacesKey() });
+    if (applicantId) {
+      queryClient.invalidateQueries({
+        queryKey: documentsByApplicantPrefix(applicantId),
+      });
+    }
+  }, [queryClient, applicantId]);
+
   const writeDocumentToCache = useCallback(
     (updated: Document) => {
       queryClient.setQueryData(scopeKey, (old: Document[] | undefined) =>
@@ -166,7 +205,7 @@ export function DocumentEditorProvider({
       documentsApi.update(id, { content }),
     onSuccess: (doc) => {
       writeDocumentToCache(doc);
-      queryClient.invalidateQueries({ queryKey: documentWorkspacesKey() });
+      invalidateDerivedViews();
       setHasPendingEdits(false);
     },
     onError: (error) => {
@@ -180,13 +219,14 @@ export function DocumentEditorProvider({
 
   const updateDocumentContent = useCallback(
     (documentId: string, content: DocumentContent) => {
+      if (!canEdit) return;
       const doc = documentsRef.current.find((d) => d.id === documentId);
       if (!doc) return;
       setHasPendingEdits(true);
       // `content` replaces WHOLESALE — the complete object is sent every save.
       updateMutation.mutate({ id: documentId, content });
     },
-    [updateMutation],
+    [updateMutation, canEdit],
   );
 
   // Render-only content update (bank Customizations panel): reflect in the local cache so the
@@ -206,7 +246,7 @@ export function DocumentEditorProvider({
     mutationFn: documentsApi.create,
     onSuccess: (doc) => {
       appendDocumentToCache(doc);
-      queryClient.invalidateQueries({ queryKey: documentWorkspacesKey() });
+      invalidateDerivedViews();
       notifications.show({
         title: "Page added",
         message: doc.label,
@@ -235,7 +275,7 @@ export function DocumentEditorProvider({
 
   const quickCreateDocument = useCallback(
     (type: DocumentType) => {
-      if (!applicantId) return;
+      if (!canEdit || !applicantId) return;
       createMutation.mutate({
         applicantId,
         family: familyForType(type),
@@ -244,12 +284,12 @@ export function DocumentEditorProvider({
         content: getDefaultDocumentContent(type),
       });
     },
-    [createMutation, applicantId, familyForType],
+    [createMutation, applicantId, familyForType, canEdit],
   );
 
   const createDocumentWithContent = useCallback(
     (type: DocumentType, content: DocumentContent, label?: string) => {
-      if (!applicantId) return;
+      if (!canEdit || !applicantId) return;
       createMutation.mutate({
         applicantId,
         family: familyForType(type),
@@ -258,7 +298,7 @@ export function DocumentEditorProvider({
         content,
       });
     },
-    [createMutation, applicantId, familyForType],
+    [createMutation, applicantId, familyForType, canEdit],
   );
 
   const addDocumentToList = useCallback(
@@ -303,7 +343,7 @@ export function DocumentEditorProvider({
       appendDocumentToCache(certificate);
       appendDocumentToCache(statement);
       setActiveDocumentId(certificate.id);
-      queryClient.invalidateQueries({ queryKey: documentWorkspacesKey() });
+      invalidateDerivedViews();
       notifications.show({
         title: "Bank pages added",
         message: `${certificate.label} & ${statement.label}`,
@@ -321,8 +361,11 @@ export function DocumentEditorProvider({
   });
 
   const createBankPair = useCallback(
-    (slugKey: string) => createBankPairMutation.mutate(slugKey),
-    [createBankPairMutation],
+    (slugKey: string) => {
+      if (!canEdit) return;
+      createBankPairMutation.mutate(slugKey);
+    },
+    [createBankPairMutation, canEdit],
   );
 
   // ── Status / archive / restore ──────────────────────────────────────────
@@ -332,7 +375,7 @@ export function DocumentEditorProvider({
       documentsApi.changeStatus(id, value),
     onSuccess: (updated) => {
       writeDocumentToCache(updated);
-      queryClient.invalidateQueries({ queryKey: documentWorkspacesKey() });
+      invalidateDerivedViews();
     },
     onError: (error) => {
       notifications.show({
@@ -345,10 +388,10 @@ export function DocumentEditorProvider({
 
   const setDocumentStatus = useCallback(
     (value: DocumentStatusValue) => {
-      if (!activeDocumentId) return;
+      if (!canEdit || !activeDocumentId) return;
       statusMutation.mutate({ id: activeDocumentId, value });
     },
-    [statusMutation, activeDocumentId],
+    [statusMutation, activeDocumentId, canEdit],
   );
 
   const archiveMutation = useMutation({
@@ -356,7 +399,7 @@ export function DocumentEditorProvider({
       documentsApi.archive(id, reason),
     onSuccess: (updated) => {
       writeDocumentToCache(updated);
-      queryClient.invalidateQueries({ queryKey: documentWorkspacesKey() });
+      invalidateDerivedViews();
       notifications.show({
         title: "Document archived",
         message: updated.label,
@@ -374,17 +417,17 @@ export function DocumentEditorProvider({
 
   const archiveActiveDocument = useCallback(
     (reason: string) => {
-      if (!activeDocumentId) return;
+      if (!canEdit || !activeDocumentId) return;
       archiveMutation.mutate({ id: activeDocumentId, reason });
     },
-    [archiveMutation, activeDocumentId],
+    [archiveMutation, activeDocumentId, canEdit],
   );
 
   const restoreMutation = useMutation({
     mutationFn: (id: string) => documentsApi.restore(id),
     onSuccess: (updated) => {
       writeDocumentToCache(updated);
-      queryClient.invalidateQueries({ queryKey: documentWorkspacesKey() });
+      invalidateDerivedViews();
       notifications.show({
         title: "Document restored",
         message: updated.label,
@@ -394,9 +437,9 @@ export function DocumentEditorProvider({
   });
 
   const restoreActiveDocument = useCallback(() => {
-    if (!activeDocumentId) return;
+    if (!canEdit || !activeDocumentId) return;
     restoreMutation.mutate(activeDocumentId);
-  }, [restoreMutation, activeDocumentId]);
+  }, [restoreMutation, activeDocumentId, canEdit]);
 
   // ── Selection / modals / unsaved-changes ─────────────────────────────────
 
@@ -413,15 +456,29 @@ export function DocumentEditorProvider({
     setActiveHistoricalLog(null);
   }, [activeDocumentId]);
 
-  const openCreateModal = useCallback((type: DocumentType) => {
-    setCreateModalType(type);
-    setCreateModalOpen(true);
-  }, []);
+  const openCreateModal = useCallback(
+    (type: DocumentType) => {
+      if (!canEdit) return;
+      setCreateModalType(type);
+      setCreateModalOpen(true);
+    },
+    [canEdit],
+  );
 
   const closeCreateModal = useCallback(() => {
     setCreateModalOpen(false);
     setCreateModalType(null);
   }, []);
+
+  // Opening is a write affordance; closing must always work, or a reader could be
+  // trapped in a modal that opened before their capability resolved.
+  const setEditFieldsModalOpenGuarded = useCallback(
+    (open: boolean) => {
+      if (open && !canEdit) return;
+      setEditFieldsModalOpen(open);
+    },
+    [canEdit],
+  );
 
   const markUnsavedChanges = useCallback(() => setHasPendingEdits(true), []);
 
@@ -441,8 +498,34 @@ export function DocumentEditorProvider({
   const beginPrintAll = useCallback(() => setIsPrintingAll(true), []);
   const endPrintAll = useCallback(() => setIsPrintingAll(false), []);
 
+  // ── The one read-only decision ───────────────────────────────────────────
+  //
+  // Role, status and history stay separate INPUTS; this is the only place they
+  // are combined. `activeDocument.isEditable` is the server's own opinion — folding
+  // it in here finally gives that mapped-but-unused field a job, and means a backend
+  // that starts refusing edits needs no frontend change.
+  const isActiveDocumentEditable =
+    canEdit &&
+    !!activeDocument &&
+    !activeHistoricalLog &&
+    isEditableStatus(activeDocument.status) &&
+    activeDocument.isEditable !== false;
+
+  // Precedence is deliberate: "you have view-only access" outranks "this document is
+  // archived", because it is the fact that would still hold on a live document.
+  const readOnlyReason: DocumentReadOnlyReason = !canEdit
+    ? "role"
+    : activeHistoricalLog
+      ? "historical"
+      : activeDocument && !isEditableStatus(activeDocument.status)
+        ? "archived"
+        : null;
+
   const value: DocumentEditorContextValue = {
     applicantId,
+    canEdit,
+    isActiveDocumentEditable,
+    readOnlyReason,
     isStandalone,
     studentFullData,
     documents,
@@ -458,7 +541,7 @@ export function DocumentEditorProvider({
     openCreateModal,
     closeCreateModal,
     editFieldsModalOpen,
-    setEditFieldsModalOpen,
+    setEditFieldsModalOpen: setEditFieldsModalOpenGuarded,
     updateDocumentContent,
     updateDocumentContentLocal,
     addDocumentToList,

@@ -60,14 +60,14 @@
 
 ## Phase 6 — Editor read-only seam (ships dark)
 
-- [ ] `DocumentEditorProvider.types.ts` — `canEdit`, `isActiveDocumentEditable`, `readOnlyReason`
-- [ ] `DocumentEditorProvider.tsx` — compose the predicate, early-return every mutating callback
-- [ ] `EditCurrentDocumentButton`, `DocToolbar`, `PagesSidebar`, `AddPageMenu`, `EmptyState`
-- [ ] `CreateDocumentModal`, `EditFieldsModal`, `HistorySidebar`
-- [ ] `DocumentEditor.tsx` — read-only banner for `readOnlyReason === "role"`
-- [ ] `DocHeader` — retarget close, hide the dead `/admin/signatures` link
-- [ ] Standalone route — neutral `DocumentUnavailable` for a disallowed family
-- [ ] Commit P6 + adversarial review
+- [x] `DocumentEditorProvider.types.ts` — `canEdit`, `isActiveDocumentEditable`, `readOnlyReason`
+- [x] `DocumentEditorProvider.tsx` — compose the predicate, early-return every mutating callback
+- [x] `EditCurrentDocumentButton`, `DocToolbar`, `PagesSidebar`, `AddPageMenu`, `EmptyState`
+- [x] `CreateDocumentModal`, `EditFieldsModal`, `HistorySidebar`
+- [x] `DocumentEditor.tsx` — read-only banner for `readOnlyReason === "role"`
+- [x] `DocHeader` — retarget close, hide the dead `/admin/signatures` link
+- [x] Standalone route — neutral `DocumentUnavailable` for a disallowed family
+- [x] Commit P6 + adversarial review
 
 ## Phase 7 — Docs + verification
 

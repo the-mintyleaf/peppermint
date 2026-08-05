@@ -25,9 +25,36 @@ export interface ActiveHistoricalEntry {
   captureNote?: string;
 }
 
+/**
+ * Why the editor is read-only, in precedence order, or `null` when it is not.
+ *
+ * Precedence matters for copy: a reader looking at an archived document should be
+ * told they have view-only access, not that the document is archived — the first
+ * fact is the one that would still be true if they opened a live document.
+ */
+export type DocumentReadOnlyReason = "role" | "archived" | "historical" | null;
+
 export interface DocumentEditorContextValue {
   /** Applicant workspace id, or `null` for a standalone single-document editor. */
   applicantId: string | null;
+  /**
+   * Whether this viewer may write at all — the role capability alone, constant for
+   * the session. Gate an affordance that creates something (Add page, the create
+   * modals) on this.
+   */
+  canEdit: boolean;
+  /**
+   * Whether the *active document* can be edited right now: `canEdit`, and the
+   * document exists, and its status allows it, and the server agrees
+   * (`Document.isEditable`), and we are not previewing a historical snapshot.
+   *
+   * **The one composed predicate.** Role, status and history stay separate inputs,
+   * but nothing outside this provider recombines them — that is what stopped there
+   * being three competing notions of "read-only" in this module.
+   */
+  isActiveDocumentEditable: boolean;
+  /** Which of those inputs is responsible, so copy can name it. */
+  readOnlyReason: DocumentReadOnlyReason;
   /** True when the editor is scoped to one standalone document (no applicant). */
   isStandalone: boolean;
   studentFullData: StudentFullData | null | undefined;

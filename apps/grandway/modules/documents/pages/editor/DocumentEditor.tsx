@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
+import { Alert } from "@peppermint/ui";
+import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
 import { RequireDocumentAccess } from "@/components/RequireDocumentAccess";
 import { DocumentEditorProvider } from "../../context";
 import { DocHeader } from "../../components/DocHeader";
@@ -22,7 +24,7 @@ const SIDEBAR_INITIAL_WIDTH = 200;
 const EDIT_BUTTON_OFFSET = 16;
 
 function DocumentEditorInner() {
-  const { hasUnsavedChanges } = useDocumentEditor();
+  const { hasUnsavedChanges, readOnlyReason } = useDocumentEditor();
   const [pagesOpen, setPagesOpen] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(true);
   const pagesResize = useResizableWidth({
@@ -39,6 +41,23 @@ function DocumentEditorInner() {
       <header className={`${styles.mainHeader} no-print`}>
         <DocHeader />
       </header>
+
+      {/* Say it once, plainly. Without this the state is only inferable from
+          buttons that aren't there, which reads as a broken page rather than an
+          intended one. Only the role case is announced — "archived" and
+          "historical" are already visible in the toolbar's own badges. */}
+      {readOnlyReason === "role" && (
+        <Alert
+          className="no-print"
+          color="blue"
+          variant="light"
+          radius={0}
+          icon={<EyeIcon size={16} aria-hidden />}
+        >
+          View only — you can read and print these documents, but not change
+          them.
+        </Alert>
+      )}
 
       <div className={styles.workspace}>
         {pagesOpen && (
@@ -91,8 +110,12 @@ function DocumentEditorInner() {
 /**
  * The full-screen document editor. Serves both the applicant-workspace route
  * (`/documents/workspace/[applicantId]`) and the standalone-document route
- * (`/documents/standalone/[documentId]`). Admin-only — `RequireDocumentAccess`
- * refuses lead managers and superadmins on reads too (`documents/docs/SECURITY.md`).
+ * (`/documents/standalone/[documentId]`).
+ *
+ * `RequireDocumentAccess` admits anyone who may READ a document — `superadmin` never,
+ * `lead_manager` only once `LEAD_MANAGER_DOCUMENT_READ_ENABLED` is on. Whether they
+ * may also write is `canEdit` on the editor context, which every authoring affordance
+ * inside gates on; a reader gets the same editor with the banner above and no levers.
  */
 export function DocumentEditor() {
   const params = useParams();

@@ -17,10 +17,10 @@ import { X as XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { FloppyDisk as SaveIcon } from "@phosphor-icons/react/dist/csr/FloppyDisk";
 import { ClockCounterClockwise as RestoreIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
 import { useDocumentEditor } from "../../context";
+import type { DocumentReadOnlyReason } from "../../context/DocumentEditorProvider.types";
 import { useDocumentHistory } from "../../hooks/useDocumentHistory";
 import { useDocumentActions } from "../../hooks/useDocumentActions";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
-import { isEditableStatus } from "../../documents.status";
 import type {
   Document,
   DocumentConfigBarProps,
@@ -39,7 +39,8 @@ interface DocumentCustomizationsProps {
   onUpdate: (content: DocumentContent) => void;
   onPersist: (content: DocumentContent) => void;
   editable: boolean;
-  isHistoryPreview: boolean;
+  /** Why editing is off, so the panel names the right reason. */
+  readOnlyReason: DocumentReadOnlyReason;
 }
 
 const DocumentCustomizations = memo(function DocumentCustomizations({
@@ -48,7 +49,7 @@ const DocumentCustomizations = memo(function DocumentCustomizations({
   onUpdate,
   onPersist,
   editable,
-  isHistoryPreview,
+  readOnlyReason,
 }: DocumentCustomizationsProps) {
   if (!ConfigBar || !document) {
     return (
@@ -60,9 +61,11 @@ const DocumentCustomizations = memo(function DocumentCustomizations({
   if (!editable) {
     return (
       <Text size="xs" c="dimmed" ta="center" py="sm" px={8}>
-        {isHistoryPreview
-          ? "Viewing a past version — return to the current version to edit."
-          : `This document is ${document.status} and can no longer be edited.`}
+        {readOnlyReason === "role"
+          ? "You have view-only access to documents."
+          : readOnlyReason === "historical"
+            ? "Viewing a past version — return to the current version to edit."
+            : `This document is ${document.status} and can no longer be edited.`}
       </Text>
     );
   }
@@ -76,6 +79,9 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
     documents,
     activeDocument,
     activeHistoricalLog,
+    isActiveDocumentEditable,
+    readOnlyReason,
+    canEdit,
     setActiveHistoricalLog,
     printableContentRef,
     updateDocumentContentLocal,
@@ -252,44 +258,52 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
                               {snap.captureNote}
                             </Text>
                           )}
-                          <Menu
-                            shadow="md"
-                            position="bottom-start"
-                            withinPortal
-                          >
-                            <Menu.Target>
-                              <Button
-                                variant="subtle"
-                                size="compact-xs"
-                                w="fit-content"
-                                leftSection={
-                                  <RestoreIcon size={12} aria-hidden />
-                                }
-                                loading={isRecovering}
+                          {/* Recover writes the snapshot back into the live
+                              document, so it is authoring — unlike "Save
+                              snapshot" above, which only records what is
+                              already there and stays open to a reader. */}
+                          {canEdit && (
+                            <Menu
+                              shadow="md"
+                              position="bottom-start"
+                              withinPortal
+                            >
+                              <Menu.Target>
+                                <Button
+                                  variant="subtle"
+                                  size="compact-xs"
+                                  w="fit-content"
+                                  leftSection={
+                                    <RestoreIcon size={12} aria-hidden />
+                                  }
+                                  loading={isRecovering}
+                                  onClick={(e) => e.stopPropagation()}
+                                  aria-label={`Recover version ${snap.versionNumber}`}
+                                >
+                                  Recover
+                                </Button>
+                              </Menu.Target>
+                              <Menu.Dropdown
                                 onClick={(e) => e.stopPropagation()}
-                                aria-label={`Recover version ${snap.versionNumber}`}
                               >
-                                Recover
-                              </Button>
-                            </Menu.Target>
-                            <Menu.Dropdown onClick={(e) => e.stopPropagation()}>
-                              <Menu.Label>
-                                Recover this version into the document?
-                              </Menu.Label>
-                              <Menu.Item
-                                color="brand"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  recover(snap.id);
-                                }}
-                              >
-                                Yes, recover
-                              </Menu.Item>
-                              <Menu.Item onClick={(e) => e.stopPropagation()}>
-                                No
-                              </Menu.Item>
-                            </Menu.Dropdown>
-                          </Menu>
+                                <Menu.Label>
+                                  Recover this version into the document?
+                                </Menu.Label>
+                                <Menu.Item
+                                  color="brand"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    recover(snap.id);
+                                  }}
+                                >
+                                  Yes, recover
+                                </Menu.Item>
+                                <Menu.Item onClick={(e) => e.stopPropagation()}>
+                                  No
+                                </Menu.Item>
+                              </Menu.Dropdown>
+                            </Menu>
+                          )}
                         </Stack>
                       </Group>
                     </Box>
@@ -325,12 +339,8 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
               document={activeDocument ?? null}
               onUpdate={handleUpdate}
               onPersist={handlePersist}
-              editable={
-                !activeHistoricalLog &&
-                !!activeDocument &&
-                isEditableStatus(activeDocument.status)
-              }
-              isHistoryPreview={!!activeHistoricalLog}
+              editable={isActiveDocumentEditable}
+              readOnlyReason={readOnlyReason}
             />
           </ScrollArea>
         </div>

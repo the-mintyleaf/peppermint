@@ -30,13 +30,18 @@ export function AddPageMenu({ children, width = 220 }: AddPageMenuProps) {
     quickCreateDocument,
     createBankPair,
     isCreatingDocument,
+    canEdit,
+    // Bank families are gated independently of write access, so the two stay
+    // composable — a writer without them still gets the other four submenus.
   } = useDocumentEditor();
 
   const studentTypes = getStudentMenuTypes(applicantId, documents);
   const wodaTypes = getWodaMenuTypes(applicantId, documents);
   const lorTypes = getLorMenuTypes(applicantId, documents);
   const moiTypes = getMoiMenuTypes(applicantId, documents);
-  const bankInstitutions = getBankMenuInstitutions(applicantId, documents);
+  const bankInstitutions = canEdit
+    ? getBankMenuInstitutions(applicantId, documents)
+    : [];
 
   const handleSelect = (type: DocumentType) => {
     if (usesCreateModal(type)) {
@@ -53,7 +58,9 @@ export function AddPageMenu({ children, width = 220 }: AddPageMenuProps) {
     moiTypes.length > 0 ||
     bankInstitutions.length > 0;
 
-  if (!hasOptions) {
+  // Same shape the component already uses for "nothing to offer" — the trigger
+  // renders, the menu simply never opens.
+  if (!canEdit || !hasOptions) {
     return <>{children}</>;
   }
 

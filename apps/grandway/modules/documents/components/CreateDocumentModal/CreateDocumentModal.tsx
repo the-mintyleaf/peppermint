@@ -16,11 +16,12 @@ export function CreateDocumentModal() {
     isCreatingDocument,
     studentFullData,
     signatures,
+    canEdit,
   } = useDocumentEditor();
 
-  const config = createModalType
-    ? getDocumentTypeConfig(createModalType)
-    : null;
+  // Belt and braces — the provider already refuses to open it for a reader.
+  const config =
+    canEdit && createModalType ? getDocumentTypeConfig(createModalType) : null;
   const Form = config?.Form;
 
   useEffect(() => {

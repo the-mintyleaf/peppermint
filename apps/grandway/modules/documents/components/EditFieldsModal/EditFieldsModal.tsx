@@ -19,9 +19,11 @@ export function EditFieldsModal() {
     updateDocumentContent,
     studentFullData,
     signatures,
+    canEdit,
   } = useDocumentEditor();
 
-  if (!activeDocument) return null;
+  // Belt and braces — the provider already refuses to open it for a reader.
+  if (!canEdit || !activeDocument) return null;
 
   const config = getDocumentTypeConfig(activeDocument.type);
   const Form = config.Form;

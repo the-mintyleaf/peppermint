@@ -31,15 +31,17 @@ export function PagesSidebar({ onClose }: PagesSidebarProps) {
     activeDocumentId,
     setActiveDocumentId,
     isCreatingDocument,
+    canEdit,
   } = useDocumentEditor();
 
   const applicantName = studentFullData?.fullName || "This applicant";
 
   // Standalone documents have no workspace to add pages to. Removing a page is not a delete —
   // documents are archived (with a reason) from the toolbar for the active document.
-  const availableTypes = applicantId
-    ? getAvailableDocumentTypes(applicantId, documents)
-    : [];
+  const availableTypes =
+    applicantId && canEdit
+      ? getAvailableDocumentTypes(applicantId, documents)
+      : [];
 
   return (
     <aside className={styles.sidebar}>
@@ -48,7 +50,7 @@ export function PagesSidebar({ onClose }: PagesSidebarProps) {
           Pages
         </Text>
         <Group gap={2}>
-          {applicantId ? (
+          {applicantId && canEdit ? (
             <AddPageMenu>
               <ActionIcon
                 className={styles.iconBtn}
@@ -158,7 +160,7 @@ export function PagesSidebar({ onClose }: PagesSidebarProps) {
               <Text size="xs" c="dimmed" ta="center">
                 No pages
               </Text>
-              {applicantId && availableTypes.length > 0 && (
+              {applicantId && canEdit && availableTypes.length > 0 && (
                 <AddPageMenu>
                   <ActionIcon
                     variant="light"
