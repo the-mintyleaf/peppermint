@@ -23,12 +23,12 @@ import type { CreateTemplateValues, UpdateTemplateValues } from "../../../form";
 import { getTemplatesColumns } from "./templates.columns";
 
 /**
- * Read (list + detail) is Admin **or** Lead Manager; only the four
- * authoring routes (create/update template, create/update template item)
- * are Admin-only (§1) — the `checklists` capability gates the screen itself, and
- * create/edit are additionally gated to `isAdmin` here so a Lead Manager
- * can browse templates read-only without the create/edit controls ever
- * being offered (mirrors `ClientDirectory`'s `isAdmin ? Form : undefined`).
+ * Admin-only at the screen level. The backend grants `lead_manager` reads and
+ * reserves the four authoring routes for Admin (§1) — the `checklists` capability
+ * now gates the whole screen, so no Lead Manager reaches it either way. The inline
+ * create/edit gates below are kept because they encode that narrower backend rule
+ * directly (mirrors `ClientDirectory`'s `isAdmin ? Form : undefined`), and would
+ * still hold if template reads were ever reopened to staff.
  */
 function ChecklistTemplatesListContent() {
   const router = useRouter();

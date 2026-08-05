@@ -110,7 +110,11 @@ function ClientDirectoryContent() {
   );
 }
 
-/** Reads are shared (admin + lead_manager); superadmin is refused everything (§1). */
+/**
+ * Admin-only. The backend shares reads with `lead_manager` (§1), but this directory
+ * is not part of the funnel a staff account works, so the whole screen is gated
+ * rather than just its write controls.
+ */
 export function ClientDirectory() {
   return (
     <RequireCapability capability="clients">

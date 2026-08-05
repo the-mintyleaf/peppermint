@@ -91,7 +91,11 @@ function ChecklistWorklistContent() {
   );
 }
 
-/** Reads/writes are shared (admin + lead_manager); superadmin is refused everything (§1). */
+/**
+ * Admin-only. The backend shares this with `lead_manager` (§1), but staff reach a
+ * checklist through its journey's Worklist tab, not through a cross-applicant
+ * worklist — `/admin/checklists/[id]` stays open to them, this list does not.
+ */
 export function ModuleChecklistWorklist() {
   return (
     <RequireCapability capability="checklists">

@@ -23,6 +23,7 @@ import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
 import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
+import { useCapabilities } from "@/config/access";
 import { getApiError } from "@/lib/authErrorMessages";
 import { RecordAlertsPanel } from "@/modules/admin/notifications/_shared/RecordAlertsPanel";
 import {
@@ -62,6 +63,15 @@ function ChecklistDetailContent() {
   const notFound =
     isError && getApiError(error).code === "CHECKLISTS_CHECKLIST_NOT_FOUND";
 
+  // This route stays open to every funnel role, but the checklist *lists* are
+  // Admin-only — so every way out of this page has to know which it is talking to.
+  const { checklists: canUseChecklistLists } = useCapabilities();
+  // On the not-found branch there is no checklist, so no journey to return to
+  // either; the journeys worklist is the nearest place a reader can reach.
+  const notFoundBackHref = canUseChecklistLists
+    ? "/admin/checklists"
+    : "/admin/applicant-journeys";
+
   if (isLoading) {
     return (
       <ModalPaper withBorder>
@@ -82,9 +92,9 @@ function ChecklistDetailContent() {
           <Button
             size="xs"
             variant="default"
-            onClick={() => router.push("/admin/checklists")}
+            onClick={() => router.push(notFoundBackHref)}
           >
-            Back to checklists
+            {canUseChecklistLists ? "Back to checklists" : "Back to journeys"}
           </Button>
         </Stack>
       </ModalPaper>
@@ -194,7 +204,17 @@ function ChecklistDetailContent() {
     <>
       <ModuleHeader
         breadcrumbItems={[
-          { label: "Checklists", href: "/admin/checklists" },
+          // A role without the checklist worklist reached this page from its
+          // journey (the Worklist tab, or a notification alert), so that journey
+          // is its parent — pointing at the worklist would strand them on a
+          // forbidden panel, which is exactly what leaving this route open was
+          // meant to avoid.
+          canUseChecklistLists
+            ? { label: "Checklists", href: "/admin/checklists" }
+            : {
+                label: "Journey",
+                href: `/admin/applicant-journeys/${checklist.journey}`,
+              },
           { label: checklist.title, href: `/admin/checklists/${checklist.id}` },
         ]}
       />

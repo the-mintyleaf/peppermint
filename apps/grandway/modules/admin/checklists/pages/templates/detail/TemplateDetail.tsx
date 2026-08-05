@@ -192,9 +192,9 @@ function TemplateDetailContent() {
 }
 
 /**
- * Read is Admin or Lead Manager; publish/retire/add-item/edit-item are
- * Admin-only (§1) — gated inline above and in `TemplateItemsList`, not by
- * blocking the whole screen (a Lead Manager can view templates read-only).
+ * Admin-only at the screen level. The backend grants `lead_manager` reads (§1) and
+ * the inline write gates below still exist for that reason, but template authoring
+ * is not staff work, so the `checklists` capability gates the route outright.
  */
 export function ModuleTemplateDetail() {
   return (
