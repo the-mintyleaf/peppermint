@@ -2,7 +2,7 @@
 
 import { DataTableShell } from "@peppermint/admin";
 import { ModalPaper } from "@peppermint/ui";
-import { RequireLeadAccess } from "@/components/RequireLeadAccess";
+import { RequireCapability } from "@/components/RequireCapability";
 import { fetchJourneysAwaitingChecklist } from "../../checklists.api";
 import { awaitingChecklistKey } from "../../checklists.queryKeys";
 import type { JourneyAwaitingChecklist } from "../../checklists.types";
@@ -43,8 +43,8 @@ function AwaitingSetupListContent() {
 
 export function ModuleAwaitingSetupList() {
   return (
-    <RequireLeadAccess>
+    <RequireCapability capability="checklists">
       <AwaitingSetupListContent />
-    </RequireLeadAccess>
+    </RequireCapability>
   );
 }

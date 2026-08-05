@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ModalTableShell } from "@peppermint/admin";
 import { ModalPaper, useQueryClient } from "@peppermint/ui";
-import { RequireLeadAccess } from "@/components/RequireLeadAccess";
+import { RequireCapability } from "@/components/RequireCapability";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { useDeepLinkSearch } from "@/lib/useDeepLinkSearch";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
@@ -117,8 +117,8 @@ function InstitutionsListContent() {
 
 export function InstitutionsList() {
   return (
-    <RequireLeadAccess>
+    <RequireCapability capability="catalogue">
       <InstitutionsListContent />
-    </RequireLeadAccess>
+    </RequireCapability>
   );
 }

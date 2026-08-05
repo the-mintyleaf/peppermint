@@ -9,7 +9,7 @@ import { PulseIcon } from "@phosphor-icons/react/dist/csr/Pulse";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
 import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
-import { RequireLeadAccess } from "@/components/RequireLeadAccess";
+import { RequireCapability } from "@/components/RequireCapability";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import {
   createChecklist,
@@ -94,8 +94,8 @@ function ChecklistWorklistContent() {
 /** Reads/writes are shared (admin + lead_manager); superadmin is refused everything (§1). */
 export function ModuleChecklistWorklist() {
   return (
-    <RequireLeadAccess>
+    <RequireCapability capability="checklists">
       <ChecklistWorklistContent />
-    </RequireLeadAccess>
+    </RequireCapability>
   );
 }

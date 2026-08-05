@@ -171,7 +171,7 @@ export const GLOBAL_SEARCH_SOURCES: GlobalSearchSource[] = [
   },
   {
     group: "Signatories",
-    enabled: (access) => access.documents,
+    enabled: (access) => access.signatories,
     run: async (query, limit, signal) => {
       const rows = await searchSignatories(query, limit, signal);
       return rows.map<AdminShellSearchResult>((row) => ({

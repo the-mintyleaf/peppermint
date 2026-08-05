@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { ModalTableShell } from "@peppermint/admin";
 import { ModalPaper } from "@peppermint/ui";
-import { RequireLeadAccess } from "@/components/RequireLeadAccess";
+import { RequireCapability } from "@/components/RequireCapability";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import {
@@ -25,7 +25,7 @@ import { getTemplatesColumns } from "./templates.columns";
 /**
  * Read (list + detail) is Admin **or** Lead Manager; only the four
  * authoring routes (create/update template, create/update template item)
- * are Admin-only (§1) — `RequireLeadAccess` gates the screen itself, and
+ * are Admin-only (§1) — the `checklists` capability gates the screen itself, and
  * create/edit are additionally gated to `isAdmin` here so a Lead Manager
  * can browse templates read-only without the create/edit controls ever
  * being offered (mirrors `ClientDirectory`'s `isAdmin ? Form : undefined`).
@@ -86,8 +86,8 @@ function ChecklistTemplatesListContent() {
 
 export function ModuleChecklistTemplatesList() {
   return (
-    <RequireLeadAccess>
+    <RequireCapability capability="checklists">
       <ChecklistTemplatesListContent />
-    </RequireLeadAccess>
+    </RequireCapability>
   );
 }

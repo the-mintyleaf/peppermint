@@ -17,7 +17,7 @@ import {
 import { PaperPlaneTiltIcon } from "@phosphor-icons/react/dist/csr/PaperPlaneTilt";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
-import { RequireLeadAccess } from "@/components/RequireLeadAccess";
+import { RequireCapability } from "@/components/RequireCapability";
 import { getApiError } from "@/lib/authErrorMessages";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import {
@@ -198,8 +198,8 @@ function TemplateDetailContent() {
  */
 export function ModuleTemplateDetail() {
   return (
-    <RequireLeadAccess>
+    <RequireCapability capability="checklists">
       <TemplateDetailContent />
-    </RequireLeadAccess>
+    </RequireCapability>
   );
 }

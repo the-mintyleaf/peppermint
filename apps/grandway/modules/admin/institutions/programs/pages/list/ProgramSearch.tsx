@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ModalTableShell } from "@peppermint/admin";
 import { Button, Group, ModalPaper, Switch } from "@peppermint/ui";
 import { SlidersIcon } from "@phosphor-icons/react/dist/csr/Sliders";
-import { RequireLeadAccess } from "@/components/RequireLeadAccess";
+import { RequireCapability } from "@/components/RequireCapability";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { useDeepLinkSearch } from "@/lib/useDeepLinkSearch";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
@@ -124,8 +124,8 @@ function ProgramSearchContent() {
 
 export function ProgramSearch() {
   return (
-    <RequireLeadAccess>
+    <RequireCapability capability="catalogue">
       <ProgramSearchContent />
-    </RequireLeadAccess>
+    </RequireCapability>
   );
 }

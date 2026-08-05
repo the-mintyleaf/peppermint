@@ -23,12 +23,12 @@
 
 ## Phase 2 — Nav, shell, spotlight
 
-- [ ] `config/nav/admin-nav.ts` — add `canAccessDocumentWorkspaces`, admin-only catalogue/clients/checklists, rewrite header JSDoc
-- [ ] `layouts/admin/Admin.tsx` — consume `useCapabilities()`, rebuild `searchAccess`
-- [ ] `global-search` — split `documents` / `signatories` access, add `family` to `DocumentSearchRow`
-- [ ] Swap gates on institutions (2 files), clients (1), checklists list/templates (4) — leave `ChecklistDetail.tsx` alone
-- [ ] Verify Catalogue rail disappears entirely for staff (no iconless stub)
-- [ ] Commit P2 + adversarial review
+- [x] `config/nav/admin-nav.ts` — add `canAccessDocumentWorkspaces`, admin-only catalogue/clients/checklists, rewrite header JSDoc
+- [x] `layouts/admin/Admin.tsx` — consume `useCapabilities()`, rebuild `searchAccess`
+- [x] `global-search` — split `documents` / `signatories` access, add `family` to `DocumentSearchRow`
+- [x] Swap gates on institutions (2 files), clients (1), checklists list/templates (4) — leave `ChecklistDetail.tsx` alone
+- [x] Verify Catalogue rail disappears entirely for staff (no iconless stub)
+- [x] Commit P2 + adversarial review
 
 ## Phase 3 — Dashboard bands
 

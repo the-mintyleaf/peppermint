@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
+import { useCapabilities } from "@/config/access";
 import { buildAdminConfig } from "@/config/nav/admin-nav";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import { useLogout } from "@/modules/admin/authenticate/_shared/useLogout";
@@ -26,18 +27,17 @@ configureAppMutations({ getErrorMessage: getApiErrorMessage });
 export function LayoutAdmin({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, authorityType, isAdmin, isLeadManager } = useCurrentUser();
+  const { user, authorityType } = useCurrentUser();
+  const caps = useCapabilities();
   const { mutate: logoutMutate } = useLogout();
   const [settingsOpened, settingsHandlers] = useDisclosure(false);
   const [notificationsOpened, notificationsHandlers] = useDisclosure(false);
 
-  // Same reasoning as every other admin/lead_manager-shared module below —
-  // `superadmin` gets `NOTIFICATIONS_ACTOR_FORBIDDEN` on every endpoint, so
+  // A `superadmin` gets `NOTIFICATIONS_ACTOR_FORBIDDEN` on every endpoint, so
   // polling for one would just be a 403 every 30 seconds.
-  const canAccessNotifications = authorityType === "admin" || isLeadManager;
   const { data: notificationSummary } = useNotificationSummary(
     undefined,
-    canAccessNotifications,
+    caps.notifications,
   );
 
   useEffect(() => {
@@ -46,43 +46,39 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
     }
   }, [router, pathname]);
 
-  // Exactly the nav-visibility rules below, reused as the search access model —
+  // The same capabilities the nav is built from, reused as the search access model —
   // the spotlight must never query a domain whose nav entry the role can't see.
   const searchAccess = useMemo(
     () => ({
-      applicants: authorityType === "admin" || isLeadManager,
-      leads: authorityType === "admin" || isLeadManager,
-      clients: authorityType === "admin" || isLeadManager,
-      catalogue: authorityType === "admin" || isLeadManager,
-      documents: authorityType === "admin",
-      checklists: authorityType === "admin" || isLeadManager,
+      applicants: caps.applicants,
+      leads: caps.leads,
+      clients: caps.clients,
+      catalogue: caps.catalogue,
+      documents: caps.documents,
+      // A hit lands on `/admin/documents`, so only a role that can reach that
+      // screen should be offered one.
+      signatories: caps.documentWrite,
+      checklists: caps.checklists,
     }),
-    [authorityType, isLeadManager],
+    [caps],
   );
 
   const config = useMemo(
     () => ({
+      // Every flag is a capability — the rules themselves live in `config/access`,
+      // which is the only module that reads `authority_type`.
       ...buildAdminConfig({
-        isAdmin,
-        // Deliberately not `isAdmin` — that flag is true for `superadmin` too,
-        // and the leads backend forbids `superadmin` on every endpoint.
-        canAccessLeads: authorityType === "admin" || isLeadManager,
-        // Same reasoning — applicants/applicant_journeys forbid `superadmin` too.
-        canAccessApplicants: authorityType === "admin" || isLeadManager,
-        // institutions & clients: shared reads (admin + lead_manager), never
-        // superadmin — identical nav-visibility rule; the modules self-gate writes.
-        canAccessCatalogue: authorityType === "admin" || isLeadManager,
-        canAccessClients: authorityType === "admin" || isLeadManager,
-        // offers: admin + lead_manager have identical full rights; superadmin denied.
-        canAccessOffers: authorityType === "admin" || isLeadManager,
-        // documents: Admin ONLY (reads included) — superadmin AND lead_manager both denied.
-        canAccessDocuments: authorityType === "admin",
-        // checklists: reads shared admin/lead_manager; template authoring is
-        // Admin-only and self-gated inline within the module. Superadmin denied.
-        canAccessChecklists: authorityType === "admin" || isLeadManager,
-        // file review queue: Admin ONLY (verify/archive/restore).
-        canAccessFileReview: authorityType === "admin",
-        canAccessNotifications,
+        isAdmin: caps.users,
+        canAccessLeads: caps.leads,
+        canAccessApplicants: caps.applicants,
+        canAccessCatalogue: caps.catalogue,
+        canAccessClients: caps.clients,
+        canAccessOffers: caps.offers,
+        canAccessDocuments: caps.documents,
+        canAccessDocumentWorkspaces: caps.documentWorkspaces,
+        canAccessChecklists: caps.checklists,
+        canAccessFileReview: caps.fileReview,
+        canAccessNotifications: caps.notifications,
         unreadNotificationCount: notificationSummary?.unread,
         onNotificationsClick: notificationsHandlers.open,
       }),
@@ -112,11 +108,9 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
       },
     }),
     [
-      isAdmin,
-      isLeadManager,
+      caps,
       user,
       authorityType,
-      canAccessNotifications,
       notificationSummary?.unread,
       notificationsHandlers.open,
       searchAccess,
@@ -140,7 +134,7 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
       )}
       {/* Gated by the same flag as the bell — `superadmin` is refused every
           notifications endpoint, so there is nothing to open. */}
-      {canAccessNotifications && (
+      {caps.notifications && (
         <NotificationDrawer
           opened={notificationsOpened}
           onClose={notificationsHandlers.close}

@@ -30,15 +30,24 @@ export interface BuildAdminConfigOptions {
   canAccessLeads?: boolean;
   /** Same rule as `canAccessLeads` — `applicants`/`applicant_journeys` share the identical admin/lead_manager, never-superadmin access model. */
   canAccessApplicants?: boolean;
-  /** `institutions` catalogue — reads are shared with `lead_manager`, writes are Admin-only, `superadmin` denied (`institutions/docs/backend/INTEGRATION.md` §1). Same nav-visibility rule as leads/applicants; the module self-gates writes. */
+  /**
+   * The `institutions` catalogue **routes** (Programs, Institutions). Admin only.
+   *
+   * This is nav visibility, not data access: the backend still grants a
+   * `lead_manager` catalogue reads, and `useCountries` feeds the applicants country
+   * tabs, the journeys worklist tabs, `JourneyForm` and two dashboard cards. Never
+   * gate those reads on this flag.
+   */
   canAccessCatalogue?: boolean;
-  /** `clients` directory — same shared-read / admin-write / never-superadmin model as the catalogue (`clients/docs/backend/INTEGRATION.md` §1). */
+  /** `clients` directory routes. Admin only. */
   canAccessClients?: boolean;
   /** `offers` — full rights for admin AND lead_manager alike (no read/write split), `superadmin` denied (`offers/docs/backend/INTEGRATION.md` §1). */
   canAccessOffers?: boolean;
-  /** `documents` — the strictest model: Admin only, reads included; `lead_manager` AND `superadmin` are both 403'd on every route (`documents/docs/SECURITY.md`). Hidden entirely for non-admins, never read-only. */
+  /** `documents` — the right to READ a document. `superadmin` is always denied; whether a `lead_manager` is included is `LEAD_MANAGER_DOCUMENT_READ_ENABLED` in `config/access`. Grants the "All documents" entry only. */
   canAccessDocuments?: boolean;
-  /** `checklists` — reads (worklist, awaiting-setup, templates) are admin/lead_manager; template authoring is Admin-only and self-gated inline within the module. `superadmin` denied on every route (`checklists/docs/backend/INTEGRATION.md` §1). */
+  /** The per-applicant workspaces roll-up (`/admin/documents`) — Admin only even when others may read, because its `document_count` spans all families and cannot be family-scoped client-side. */
+  canAccessDocumentWorkspaces?: boolean;
+  /** `checklists` — the worklist / awaiting-setup / templates **routes**. Admin only. A `lead_manager` still reaches a single checklist's detail page, which has no nav entry and is deep-linked from the journey worklist and the notification drawer. */
   canAccessChecklists?: boolean;
   /** The Admin-only file review queue (`/admin/files/review`) — verify/archive/restore are Admin-only; a `lead_manager` never reaches this screen (`uploaded-files/docs/backend/INTEGRATION.md` §1). Files themselves have no standalone nav entry — every other files screen is embedded in another module's detail page. */
   canAccessFileReview?: boolean;
@@ -59,12 +68,19 @@ export interface BuildAdminConfigOptions {
  *
  * Access gating lives on the individual sub-nav items, not the rail entry: a
  * `module` group is only shown when the current role can reach at least one item
- * inside it (see `filterGroups` / the `push`-if-non-empty pattern below). So a
- * `lead_manager` — who cannot see Documents or Administration at all — never
- * gets an empty rail icon. Identity & Access and Audit are `isAdmin`-gated
- * (admin/superadmin), while Leads/Applicants/Offers are the mirror image:
- * admin/lead_manager, never superadmin
- * (`authenticate`/`audit`/`applicants` INTEGRATION.md §1).
+ * inside it (the `push`-if-non-empty pattern below). So a role never gets an empty
+ * rail icon.
+ *
+ * The three tiers land very differently. A `superadmin` sees only Home and
+ * Administration — every business backend 403s it. An `admin` sees everything. A
+ * `lead_manager` — "staff" — works the funnel and little else: Home, Applicant
+ * Management (Leads, Applicants, Journeys, Offers), the notifications bell, and, once
+ * `LEAD_MANAGER_DOCUMENT_READ_ENABLED` is on, a read-only "All documents". The
+ * Catalogue rail, Clients and Administration are Admin-only and disappear entirely.
+ *
+ * **Every flag below is derived from a capability in `config/access`** — that module
+ * is the only place `authority_type` is read. Do not reintroduce a tier comparison
+ * here; add a capability and pass it in.
  */
 export function buildAdminConfig(
   options: BuildAdminConfigOptions = {},
@@ -77,6 +93,7 @@ export function buildAdminConfig(
     canAccessClients,
     canAccessOffers,
     canAccessDocuments,
+    canAccessDocumentWorkspaces,
     canAccessChecklists,
     canAccessFileReview,
     canAccessNotifications,
@@ -209,7 +226,9 @@ export function buildAdminConfig(
       icon: GraduationCapIcon,
       label: "Catalogue",
       subNav: {
-        homeHref: "/admin/institutions",
+        homeHref: canAccessCatalogue
+          ? "/admin/institutions"
+          : "/admin/checklists",
         groups: catalogueGroups,
       },
     });
@@ -224,11 +243,19 @@ export function buildAdminConfig(
       canAccessDocuments && {
         label: "Documents",
         items: [
-          {
-            label: "Workspaces",
-            href: "/admin/documents",
-            icon: FilesIcon,
-          },
+          // Workspaces is the narrower entry: its per-applicant `document_count` is
+          // computed server-side across every family, so a viewer who may not see
+          // the bank families would be shown a count that doesn't match what opens.
+          // Readers without it get "All documents", which filters per family.
+          ...(canAccessDocumentWorkspaces
+            ? [
+                {
+                  label: "Workspaces",
+                  href: "/admin/documents",
+                  icon: FilesIcon,
+                },
+              ]
+            : []),
           {
             label: "All documents",
             href: "/admin/documents/all",
@@ -256,7 +283,13 @@ export function buildAdminConfig(
       icon: FilesIcon,
       label: "Documents",
       subNav: {
-        homeHref: "/admin/documents",
+        // Never the workspaces route unless the role can actually reach it —
+        // otherwise clicking the rail icon lands a reader on a forbidden panel.
+        homeHref: canAccessDocumentWorkspaces
+          ? "/admin/documents"
+          : canAccessDocuments
+            ? "/admin/documents/all"
+            : "/admin/files/review",
         groups: documentsGroups,
       },
     });

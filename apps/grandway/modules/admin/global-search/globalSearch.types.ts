@@ -1,22 +1,30 @@
 import type { AdminShellSearchResult } from "@peppermint/admin";
 
 /**
- * Which backends the signed-in role may query. Mirrors the nav-visibility flags
- * in `config/nav/admin-nav.ts` exactly — searching a domain a role cannot see
- * would leak its existence through a 403 (or worse, through results).
+ * Which backends the signed-in role may query. Every field is derived from the
+ * capability of the same name in `config/access` — searching a domain a role cannot
+ * see would leak its existence through a 403 (or worse, through results), so this
+ * must never be looser than the nav.
  */
 export interface GlobalSearchAccess {
   /** `applicants` — admin/lead_manager, never superadmin. */
   applicants: boolean;
   /** `leads` — admin/lead_manager, never superadmin. */
   leads: boolean;
-  /** `clients` — shared reads, admin writes, never superadmin. */
+  /** `clients` — Admin only. */
   clients: boolean;
-  /** `catalogue` (programs + institutions) — shared reads, never superadmin. */
+  /** `catalogue` (programs + institutions) — Admin only. */
   catalogue: boolean;
-  /** `documents` **and** `document-templates` signatories — Admin only. */
+  /** `documents` — the right to read a document at all. */
   documents: boolean;
-  /** `checklists` templates — admin/lead_manager reads. */
+  /**
+   * `document-templates` signatories. Split out from `documents` because a reader
+   * who cannot write has no use for them and cannot reach the screen a hit links to
+   * (`/admin/documents`, the Admin-only workspaces roll-up) — riding on `documents`
+   * would hand a Lead Manager results that dead-end in a forbidden panel.
+   */
+  signatories: boolean;
+  /** `checklists` templates — Admin only. */
   checklists: boolean;
 }
 

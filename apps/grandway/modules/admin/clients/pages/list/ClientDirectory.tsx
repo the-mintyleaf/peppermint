@@ -7,7 +7,7 @@ import { ModalPaper } from "@peppermint/ui";
 import { BuildingsIcon } from "@phosphor-icons/react/dist/csr/Buildings";
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
-import { RequireLeadAccess } from "@/components/RequireLeadAccess";
+import { RequireCapability } from "@/components/RequireCapability";
 import { useDeepLinkSearch } from "@/lib/useDeepLinkSearch";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
@@ -113,8 +113,8 @@ function ClientDirectoryContent() {
 /** Reads are shared (admin + lead_manager); superadmin is refused everything (§1). */
 export function ClientDirectory() {
   return (
-    <RequireLeadAccess>
+    <RequireCapability capability="clients">
       <ClientDirectoryContent />
-    </RequireLeadAccess>
+    </RequireCapability>
   );
 }
