@@ -255,7 +255,12 @@ apps/grandway/
   Journeys tab) embeds the applicant-journeys module: a card list filtered by
   `applicant`, a "New journey" modal (`JourneyForm` with `applicantId` preset, hiding the
   picker), and a "View in worklist" link to `/admin/applicant-journeys?applicant=<id>`
-  (read via `useSearchParams`/`forceFilters`, same convention as Audit's `actor_id`). The
+  (read via `useSearchParams`/`forceFilters`, same convention as Audit's `actor_id`). That
+  param does double duty in `JourneyWorklist.useDeepLinkApplicant`: it filters the table
+  **and** binds the shell's `createFormComponent` to `JourneyForm` with that `applicantId`,
+  so "New journey" on a deep-linked worklist opens with the applicant already filled in
+  rather than an empty search (memoized on the id — a fresh component type each render
+  would remount the open modal). The
   **Applicants list** embeds the same module a second way: a row-action
   `OpenJourneysButton` (`pages/list/components/`, the journeys analog of
   `OpenDocumentButton`) that fetch-checks the applicant's journeys via
