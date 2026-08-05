@@ -9,13 +9,19 @@ import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
 import { NoteIcon } from "@phosphor-icons/react/dist/csr/Note";
 import { RequireDocumentAccess } from "@/components/RequireDocumentAccess";
-import { documentQueryKeys, type DocumentListItem } from "@/modules/documents";
+import { useCapabilities } from "@/config/access";
+import {
+  allowedDocumentFamilies,
+  documentQueryKeys,
+  type DocumentListItem,
+} from "@/modules/documents";
 import { fetchDocuments } from "../../documents.queries";
+import { FAMILY_LABELS } from "../../documents.labels";
 import { getDocumentsColumns } from "./documents.columns";
 
 // Omitting `status` returns archived documents too (`INTEGRATION.md` §7), so the default
 // "All" tab shows everything; the status tabs narrow, and "Standalone" filters by owner.
-const tabs: DataTableShellTab[] = [
+const FULL_TABS: DataTableShellTab[] = [
   { label: "All", icon: FilesIcon },
   { label: "Drafts", icon: PencilSimpleIcon, filter: { status: "draft" } },
   { label: "Ready", icon: CheckCircleIcon, filter: { status: "ready" } },
@@ -27,8 +33,28 @@ const tabs: DataTableShellTab[] = [
  * The all-documents worklist — every document across applicants and standalone, with
  * status/family/standalone filters. `?search=` matches the label only (`INTEGRATION.md` §9).
  * Each row opens the editor (applicant workspace, or standalone by document id).
+ *
+ * The tab strip depends on the reader. This list is **server-paginated**, so a role
+ * that may not see the bank families cannot be served by filtering rows out of a page
+ * — that would corrupt both `meta.total` and the page size, showing "20 of 340" above
+ * fourteen rows. The server's `family` filter takes one value and has no exclude
+ * operator, so the only honest narrowing is one tab per allowed family, and there is
+ * deliberately **no "All" tab** for those readers: "all four" is not expressible in a
+ * single request. Status moves to a column filter for them, which composes with the
+ * open tab instead of competing with it.
  */
 function DocumentsWorklistContent() {
+  const capabilities = useCapabilities();
+  const families = allowedDocumentFamilies(capabilities);
+  const seesEveryFamily = capabilities.documentBankFamilies;
+
+  const tabs: DataTableShellTab[] = seesEveryFamily
+    ? FULL_TABS
+    : families.map((family) => ({
+        label: FAMILY_LABELS[family],
+        filter: { family },
+      }));
+
   return (
     <DataTableShell<DocumentListItem>
       queryKey={documentQueryKeys.lists()}
@@ -37,11 +63,15 @@ function DocumentsWorklistContent() {
       dataKey="data"
       paginationKey="meta"
       idAccessor="id"
-      columns={getDocumentsColumns()}
+      columns={getDocumentsColumns({ filterableStatus: !seesEveryFamily })}
       moduleInfo={{
         name: "document",
         label: "All documents",
-        description: "Every document — applicant-owned and standalone",
+        // Never "every document" for a reader who isn't shown every family —
+        // the description is the one place the narrowing can be admitted.
+        description: seesEveryFamily
+          ? "Every document — applicant-owned and standalone"
+          : "Applicant-owned and standalone documents, by type",
       }}
       disableActions
       disableCreateButton

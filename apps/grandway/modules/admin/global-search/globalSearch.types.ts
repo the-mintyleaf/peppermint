@@ -18,6 +18,12 @@ export interface GlobalSearchAccess {
   /** `documents` — the right to read a document at all. */
   documents: boolean;
   /**
+   * Whether the viewer may see the two bank families. When false the Documents
+   * source drops those rows client-side — the server's `family` filter takes one
+   * value and has no exclude operator.
+   */
+  documentBankFamilies: boolean;
+  /**
    * `document-templates` signatories. Split out from `documents` because a reader
    * who cannot write has no use for them and cannot reach the screen a hit links to
    * (`/admin/documents`, the Admin-only workspaces roll-up) — riding on `documents`
@@ -40,9 +46,15 @@ export interface GlobalSearchSource {
   /** Result group heading — also the display order key. */
   group: string;
   enabled: (access: GlobalSearchAccess) => boolean;
+  /**
+   * `access` is passed as well as consulted by `enabled`, because a source can be
+   * permitted yet still owe the viewer a narrower result set — the Documents source
+   * drops bank families this way.
+   */
   run: (
     query: string,
     limit: number,
-    signal?: AbortSignal,
+    signal: AbortSignal | undefined,
+    access: GlobalSearchAccess,
   ) => Promise<AdminShellSearchResult[]>;
 }

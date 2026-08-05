@@ -12,6 +12,36 @@ export const documentWorkspacesKey = () =>
   [...documentQueryKeys.all, "workspaces"] as const;
 
 /**
+ * An applicant's document **list rows** (`documentsApi.listByApplicant`) — the light
+ * shape, without `content`.
+ *
+ * Deliberately its own namespace rather than `documentQueryKeys.list({ applicant })`,
+ * which the editor provider uses for a different payload: that one follows each row
+ * with a detail fetch and caches whole documents. Two shapes under sibling keys is
+ * how the applicant panel and the list-row button previously disagreed about what
+ * `documentQueryKeys.list(id)` held.
+ *
+ * `bankFamilies` is part of the key because callers filter the result by the
+ * families the viewer may see. Without it, an admin and a staff session in the same
+ * tab after a re-login would share one entry, and whichever fetched first would
+ * decide what the other saw.
+ */
+export const documentsByApplicantKey = (
+  applicantId: string,
+  scope: { bankFamilies: boolean },
+) => ["documents", "by-applicant", applicantId, scope] as const;
+
+/**
+ * Prefix of the above, for invalidation. Matches every family scope for one
+ * applicant, so a mutation refreshes the list whichever viewer warmed it — writers
+ * must invalidate this whenever they create, edit, archive or restore a document,
+ * or the panel and the list-row button keep serving a stale answer for the query
+ * client's `staleTime`.
+ */
+export const documentsByApplicantPrefix = (applicantId: string) =>
+  ["documents", "by-applicant", applicantId] as const;
+
+/**
  * A document's audit history (`GET /documents/<id>/history/`). Nested under the detail key
  * so invalidating the detail also refreshes an open History panel.
  */

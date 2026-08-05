@@ -55,9 +55,12 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
       clients: caps.clients,
       catalogue: caps.catalogue,
       documents: caps.documents,
-      // A hit lands on `/admin/documents`, so only a role that can reach that
-      // screen should be offered one.
-      signatories: caps.documentWrite,
+      documentBankFamilies: caps.documentBankFamilies,
+      // A hit lands on `/admin/documents` — the workspaces roll-up — so the
+      // capability that governs reaching THAT screen is the one to key on. It
+      // equals `documentWrite` for every tier today, but they are separate rules
+      // and only this one is about the destination.
+      signatories: caps.documentWorkspaces,
       checklists: caps.checklists,
     }),
     [caps],

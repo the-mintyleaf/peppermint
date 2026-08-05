@@ -21,11 +21,21 @@ export type {
   DocumentsListResult,
   DocumentCatalogTemplate,
 } from "./documents.api";
+export {
+  BANK_FAMILIES,
+  DOCUMENT_FAMILIES,
+  allowedDocumentFamilies,
+  canSeeFamily,
+  isBankFamily,
+  isBankTemplateKey,
+} from "./documents.families";
 export { documentHistoryApi } from "./documentHistory.api";
 export {
   documentQueryKeys,
   documentWorkspacesKey,
   documentHistoryKey,
+  documentsByApplicantKey,
+  documentsByApplicantPrefix,
 } from "./documents.queryKeys";
 export { documentTypeList, getDocumentTypeConfig } from "./documentTypeConfig";
 export {

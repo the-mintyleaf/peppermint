@@ -32,7 +32,7 @@ export async function searchEverything(
 
   const limit = perDomainLimit ?? DEFAULT_PER_DOMAIN_LIMIT;
   const settled = await Promise.allSettled(
-    sources.map((source) => source.run(trimmed, limit, signal)),
+    sources.map((source) => source.run(trimmed, limit, signal, access)),
   );
 
   if (signal?.aborted) throw new DOMException("Aborted", "AbortError");

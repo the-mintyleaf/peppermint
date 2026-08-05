@@ -11,6 +11,7 @@ import { STATUS_LABELS as APPLICANT_STATUS_LABELS } from "../applicants/applican
 import { STAGE_LABELS } from "../lead-management/leadCategory.utils";
 import { TEMPLATE_STATUS_LABELS } from "../checklists/checklists.labels";
 import { STATUS_META as DOCUMENT_STATUS_META } from "@/modules/documents/documents.status";
+import { isBankFamily } from "@/modules/documents/documents.families";
 import {
   searchApplicants,
   searchChecklistTemplates,
@@ -103,9 +104,19 @@ export const GLOBAL_SEARCH_SOURCES: GlobalSearchSource[] = [
   {
     group: "Documents",
     enabled: (access) => access.documents,
-    run: async (query, limit, signal) => {
-      const rows = await searchDocuments(query, limit, signal);
-      return rows.map<AdminShellSearchResult>((row) => ({
+    run: async (query, limit, signal, access) => {
+      // The server takes ONE `family` value and has no exclude operator, so a
+      // bank-free view can only be had by dropping rows here. Over-fetch to absorb
+      // what gets dropped — honest cost: a query whose matches are mostly bank
+      // labels can still return fewer than `limit` rows. The alternative, one
+      // request per allowed family on every keystroke, costs four times as much
+      // for a five-row group.
+      const wanted = access.documentBankFamilies ? limit : limit * 2;
+      const rows = await searchDocuments(query, wanted, signal);
+      const visible = access.documentBankFamilies
+        ? rows
+        : rows.filter((row) => !isBankFamily(row.family));
+      return visible.slice(0, limit).map<AdminShellSearchResult>((row) => ({
         id: row.id,
         group: "Documents",
         label: row.label,

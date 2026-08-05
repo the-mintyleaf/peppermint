@@ -19,7 +19,19 @@ import {
   STATUS_LABELS,
 } from "../../documents.labels";
 
-export function getDocumentsColumns(): DataTableShellColumn<DocumentListItem>[] {
+interface DocumentsColumnsOptions {
+  /**
+   * Whether the toolbar's tab strip is spent on `family` rather than `status`. Only
+   * then does Status become a column filter — for a viewer whose tabs already carry
+   * `status`, both controls would write the same key, and the tab would silently keep
+   * its label while showing the filter's rows.
+   */
+  filterableStatus?: boolean;
+}
+
+export function getDocumentsColumns({
+  filterableStatus = false,
+}: DocumentsColumnsOptions = {}): DataTableShellColumn<DocumentListItem>[] {
   return [
     {
       accessor: "label",
@@ -58,6 +70,17 @@ export function getDocumentsColumns(): DataTableShellColumn<DocumentListItem>[] 
       accessor: "status",
       title: "Status",
       icon: PulseIcon,
+      // Only when the tabs aren't already carrying `status` — see the option's
+      // docstring. Two controls writing one filter key is worse than one control.
+      filter: filterableStatus
+        ? {
+            type: "select" as const,
+            options: Object.entries(STATUS_LABELS).map(([value, label]) => ({
+              value,
+              label,
+            })),
+          }
+        : undefined,
       render: (row) => (
         <StatusBadge<DocumentStatus>
           value={row.status}

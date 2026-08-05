@@ -3,7 +3,10 @@ import type { ApplicantStatus } from "../applicants/applicants.types";
 import type { LeadStage } from "../lead-management/leadManagement.types";
 import type { ClientStatus } from "../clients/clients.types";
 import type { TemplateStatus } from "../checklists/checklists.types";
-import type { DocumentStatus } from "@/modules/documents/documents.types";
+import type {
+  DocumentFamily,
+  DocumentStatus,
+} from "@/modules/documents/documents.types";
 
 /**
  * Raw list envelope shared by every searchable endpoint (`{ data, meta.count }`).
@@ -163,6 +166,8 @@ export interface DocumentSearchRow {
   applicant_name: string | null;
   is_standalone: boolean;
   status: DocumentStatus;
+  /** Present on every list row — needed to drop bank families for a scoped viewer. */
+  family: DocumentFamily;
 }
 
 export const searchDocuments = (

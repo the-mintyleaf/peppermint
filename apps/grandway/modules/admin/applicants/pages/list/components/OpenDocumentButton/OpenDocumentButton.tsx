@@ -13,27 +13,37 @@ import {
 } from "@peppermint/ui";
 import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
-import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
-import { documentsApi, documentQueryKeys } from "@/modules/documents";
+import { useCapabilities } from "@/config/access";
+import {
+  canSeeFamily,
+  documentsApi,
+  documentsByApplicantKey,
+} from "@/modules/documents";
 import { workspaceEditorHref } from "@/modules/admin/documents/documents.queries";
 import { applicantDisplayName } from "../../../../applicants.labels";
 import type { OpenDocumentButtonProps } from "./OpenDocumentButton.types";
 
 /**
  * List-row quick entry into an applicant's document workspace. Checks whether the
- * applicant has any documents first (through React Query, so the editor reuses the same
- * cached list on arrival under `documentQueryKeys.list`). When none exist, it confirms
- * before sending the operator to the editor's create flow — so they never land on an
- * empty workspace unexpectedly.
+ * applicant has any documents first, sharing `documentsByApplicantKey` with the
+ * applicant detail's Documents panel — same request, same shape, so either warms the
+ * other. (It previously read `documentQueryKeys.list(applicant.id)`, a key nothing
+ * else wrote and whose sibling holds a different payload entirely, so the check never
+ * hit a warm cache.) When none exist, it confirms before sending the operator to the
+ * editor's create flow, so they never land on an empty workspace unexpectedly.
  *
- * Admin-only including the affordance itself: documents answer non-admins with 404, not
- * 403, so staff can't infer a document exists — rendering the button would both leak the
- * affordance and fire a request that can only fail (`documents/docs/SECURITY.md`).
+ * Gated on the right to READ a document, affordance included: documents answer a
+ * refused role with 404, not 403, so rendering the button would both leak the
+ * affordance and fire a request that can only fail (`documents/INTEGRATION.md` §1).
+ * The existence check counts only families the viewer may see — otherwise an
+ * applicant holding nothing but bank documents would send them to a workspace that
+ * then reports itself empty.
  */
 export function OpenDocumentButton({ applicant }: OpenDocumentButtonProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { authorityType } = useCurrentUser();
+  const capabilities = useCapabilities();
+  const { documents: canReadDocuments, documentBankFamilies } = capabilities;
   const [isChecking, setChecking] = useState(false);
 
   const displayName = applicantDisplayName(applicant);
@@ -44,11 +54,17 @@ export function OpenDocumentButton({ applicant }: OpenDocumentButtonProps) {
     setChecking(true);
     try {
       const documents = await queryClient.fetchQuery({
-        queryKey: documentQueryKeys.list(applicant.id),
+        queryKey: documentsByApplicantKey(applicant.id, {
+          bankFamilies: documentBankFamilies,
+        }),
         queryFn: () => documentsApi.listByApplicant(applicant.id),
       });
 
-      if (documents.length > 0) {
+      const visible = documents.filter((doc) =>
+        canSeeFamily(capabilities, doc.family),
+      );
+
+      if (visible.length > 0) {
         goToEditor();
         return;
       }
@@ -82,7 +98,7 @@ export function OpenDocumentButton({ applicant }: OpenDocumentButtonProps) {
     }
   };
 
-  if (authorityType !== "admin") return null;
+  if (!canReadDocuments) return null;
 
   return (
     <Tooltip label="Open document" withArrow>

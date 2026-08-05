@@ -38,25 +38,25 @@
 
 ## Phase 4 — Applicants read-only for staff
 
-- [ ] `ApplicantsList.tsx` — `caps.applicantCreate`, pass `canChangeStatus`
-- [ ] `applicants.columns.tsx` — Status switch or read-only badge
-- [ ] `ApplicantRowActionsMenu` — drop Edit when `!caps.applicantEdit`
-- [ ] `ApplicantDetail.tsx` — hide Edit, badge instead of switch, Documents tab on `caps.documents`
-- [ ] `ApplicantCreatePage.tsx` / `ApplicantEditPage.tsx` — nested capability gates
-- [ ] Comment why the Journeys/Files/Alerts/History tabs are deliberately untouched
-- [ ] Commit P4 + adversarial review
+- [x] `ApplicantsList.tsx` — `caps.applicantCreate`, pass `canChangeStatus`
+- [x] `applicants.columns.tsx` — Status switch or read-only badge
+- [x] `ApplicantRowActionsMenu` — drop Edit when `!caps.applicantEdit`
+- [x] `ApplicantDetail.tsx` — hide Edit, badge instead of switch, Documents tab on `caps.documents`
+- [x] `ApplicantCreatePage.tsx` / `ApplicantEditPage.tsx` — nested capability gates
+- [x] Comment why the Journeys/Files/Alerts/History tabs are deliberately untouched
+- [x] Commit P4 + adversarial review
 
 ## Phase 5 — Documents read access for staff (ships dark)
 
-- [ ] Create `modules/documents/documents.families.ts` + barrel export
-- [ ] `DocumentsWorklist.tsx` — role-dependent family tabs for staff
-- [ ] `documents.columns.tsx` — add status column filter
-- [ ] `DocumentWorkspaces.tsx` — gate to `caps.documentWorkspaces`
-- [ ] `ApplicantDocumentsPanel` — client-filter families, filtered count, gate on `caps.documents`
-- [ ] `OpenDocumentButton` — same family filter + fix the query-key mismatch
-- [ ] `globalSearch.sources.ts` — drop bank rows, over-fetch, comment the cost
-- [ ] `documents.queryKeys.ts` + panel key — encode family scope
-- [ ] Commit P5 + adversarial review
+- [x] Create `modules/documents/documents.families.ts` + barrel export
+- [x] `DocumentsWorklist.tsx` — role-dependent family tabs for staff
+- [x] `documents.columns.tsx` — add status column filter
+- [x] `DocumentWorkspaces.tsx` — gate to `caps.documentWorkspaces`
+- [x] `ApplicantDocumentsPanel` — client-filter families, filtered count, gate on `caps.documents`
+- [x] `OpenDocumentButton` — same family filter + fix the query-key mismatch
+- [x] `globalSearch.sources.ts` — drop bank rows, over-fetch, comment the cost
+- [x] `documents.queryKeys.ts` + panel key — encode family scope (editor provider's own key + filtering moves to P6, same edit)
+- [x] Commit P5 + adversarial review
 
 ## Phase 6 — Editor read-only seam (ships dark)
 
@@ -72,6 +72,8 @@
 ## Phase 7 — Docs + verification
 
 - [ ] `apps/grandway/docs/AI.md` — Role gates section, Modules table, `config/access` adoption rule
+- [ ] Module AI maps now contradicting the code: `checklists/docs/AI.md` (routes listed as lead_manager-reachable), `clients/docs/AI.md`, `institutions/docs/AI.md` (all still say "reads shared admin + lead_manager" / `RequireLeadAccess`)
+- [ ] `applicants/docs/AI.md` + `dashboard/docs/AI.md` — read-only record for staff, Operations band admin-only
 - [ ] Add the eslint / anti-pattern-gate fence for direct `authorityType` reads
 - [ ] `pnpm format && pnpm check-types && pnpm lint` + `/verify`
 - [ ] Write up the two backend asks (lead_manager document reads scoped off bank families; snapshot POST)

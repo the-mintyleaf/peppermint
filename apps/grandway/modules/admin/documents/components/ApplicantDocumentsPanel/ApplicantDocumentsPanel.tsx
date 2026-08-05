@@ -21,8 +21,12 @@ import {
   ProfileListRow,
   ProfilePanelHeader,
 } from "@/components/profile";
-import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
-import { documentsApi } from "@/modules/documents";
+import { useCapabilities } from "@/config/access";
+import {
+  canSeeFamily,
+  documentsApi,
+  documentsByApplicantKey,
+} from "@/modules/documents";
 import { workspaceEditorHref } from "../../documents.queries";
 import {
   FAMILY_COLORS,
@@ -34,11 +38,16 @@ import type { ApplicantDocumentsPanelProps } from "./ApplicantDocumentsPanel.typ
 
 /**
  * Applicant-detail panel listing that applicant's documents and opening the
- * editor on them. Documents are Admin-only, reads included
- * (`documents/docs/SECURITY.md`) — for a lead manager or superadmin the panel
- * renders **nothing** (never an empty shell, which would itself leak that
- * documents may exist). Uses a panel-local query key so it never collides with
- * the editor provider's full-document cache under `documentQueryKeys.list`.
+ * editor on them. For a role that may not read documents the panel renders
+ * **nothing** — never an empty shell, which would itself leak that documents may
+ * exist (`documents/INTEGRATION.md` §1). A role that may read but may not see the
+ * bank families gets them filtered out, and the header count reflects the filtered
+ * list so it always matches what is on screen.
+ *
+ * Shares `documentsByApplicantKey` with the applicants list's `OpenDocumentButton`
+ * — same request, same shape — so opening this tab warms that button's check and
+ * vice versa. That key is deliberately separate from the editor provider's
+ * `documentQueryKeys.list`, which caches whole documents.
  *
  * Every applicant-owned document opens the same workspace route, so the row
  * link and the header button lead to the same place — the row is the shortcut
@@ -49,17 +58,28 @@ export function ApplicantDocumentsPanel({
   applicantId,
   applicantName,
 }: ApplicantDocumentsPanelProps) {
-  const { authorityType } = useCurrentUser();
-  const isAdmin = authorityType === "admin";
+  const capabilities = useCapabilities();
+  const { documents: canReadDocuments, documentBankFamilies } = capabilities;
   const [search, setSearch] = useState("");
 
   const query = useQuery({
-    queryKey: ["documents", "applicant-panel", applicantId],
+    queryKey: documentsByApplicantKey(applicantId, {
+      bankFamilies: documentBankFamilies,
+    }),
     queryFn: () => documentsApi.listByApplicant(applicantId),
-    enabled: isAdmin,
+    enabled: canReadDocuments,
   });
 
-  const documents = useMemo(() => query.data ?? [], [query.data]);
+  // Safe to filter client-side: `listByApplicant` is a single unpaginated fetch,
+  // so nothing here can corrupt a page count or a total the way it would on the
+  // server-paginated worklist.
+  const documents = useMemo(
+    () =>
+      (query.data ?? []).filter((doc) =>
+        canSeeFamily(capabilities, doc.family),
+      ),
+    [query.data, capabilities],
+  );
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return documents;
@@ -72,7 +92,7 @@ export function ApplicantDocumentsPanel({
 
   const editorHref = workspaceEditorHref(applicantId);
 
-  if (!isAdmin) return null;
+  if (!canReadDocuments) return null;
 
   return (
     <Stack gap="md">

@@ -2,7 +2,7 @@
 
 import { DataTableShell } from "@peppermint/admin";
 import { ModalPaper } from "@peppermint/ui";
-import { RequireDocumentAccess } from "@/components/RequireDocumentAccess";
+import { RequireCapability } from "@/components/RequireCapability";
 import {
   documentWorkspacesKey,
   type DocumentWorkspaceSummary,
@@ -43,10 +43,18 @@ function DocumentWorkspacesContent() {
   );
 }
 
+/**
+ * Gated on `documentWorkspaces`, which is narrower than the right to read a
+ * document. Each row's `document_count` is computed server-side across every family
+ * (there is no `family` param on `/workspaces/`), so a reader who is not shown the
+ * bank families would see a count that cannot match what opens — and the count
+ * itself would disclose that bank documents exist. Those readers get
+ * `/admin/documents/all`, which narrows per family correctly.
+ */
 export function DocumentWorkspaces() {
   return (
-    <RequireDocumentAccess>
+    <RequireCapability capability="documentWorkspaces">
       <DocumentWorkspacesContent />
-    </RequireDocumentAccess>
+    </RequireCapability>
   );
 }
