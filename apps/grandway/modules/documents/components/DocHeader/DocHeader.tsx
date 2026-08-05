@@ -25,12 +25,16 @@ export function DocHeader() {
     applicantId,
     confirmLeave,
     canEdit,
+    canOpenWorkspaces,
   } = useDocumentEditor();
   const currentDate = formatHeaderDate(new Date());
 
-  // The workspaces roll-up is Admin-only; a reader who closes the editor must land
-  // on the documents screen they can actually open.
-  const closeHref = canEdit ? "/admin/documents" : "/admin/documents/all";
+  // Keyed on the capability that governs the DESTINATION, not on write access —
+  // they coincide for every tier today, but conflating them is exactly how a close
+  // button ends up pointing at a route the viewer will be refused.
+  const closeHref = canOpenWorkspaces
+    ? "/admin/documents"
+    : "/admin/documents/all";
 
   const handleClose = () => {
     confirmLeave(() => router.push(closeHref));

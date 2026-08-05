@@ -94,6 +94,9 @@ export function DocumentEditorProvider({
 
   const capabilities = useCapabilities();
   const canEdit = capabilities.documentWrite;
+  // Separate from `canEdit` on purpose — the workspaces roll-up has its own
+  // capability, and `DocHeader`'s close button targets that screen.
+  const canOpenWorkspaces = capabilities.documentWorkspaces;
 
   // The family scope is part of the key: a viewer who may not see the bank
   // families gets a different document set, and without this an admin and a staff
@@ -120,9 +123,16 @@ export function DocumentEditorProvider({
       }
       if (standaloneDocumentId) {
         const doc = await documentsApi.get(standaloneDocumentId);
-        // A disallowed family reads as "not found", never as "exists but hidden" —
-        // the distinction is itself the disclosure.
-        return canSeeFamily(capabilities, doc.family) ? [doc] : [];
+        if (!canSeeFamily(capabilities, doc.family)) {
+          // THROW, don't return [] — an empty list renders the ordinary empty
+          // editor ("No documents to show"), which looks broken rather than
+          // deliberate. Throwing routes it to the same terminal DocumentUnavailable
+          // screen a real 404 gets, which is the point: a disallowed family must be
+          // indistinguishable from a document that isn't there, since the
+          // distinction is itself the disclosure.
+          throw new Error("Document not found.");
+        }
+        return [doc];
       }
       return [];
     },
@@ -513,17 +523,27 @@ export function DocumentEditorProvider({
 
   // Precedence is deliberate: "you have view-only access" outranks "this document is
   // archived", because it is the fact that would still hold on a live document.
+  //
+  // `locked` is the fourth case and exists to keep the promise the predicate above
+  // makes: it folds in `isEditable` so a backend that starts refusing edits needs no
+  // frontend change. Without a matching reason here, that backend change would strip
+  // every edit affordance and explain nothing. Today `is_editable` is documented as
+  // the exact negation of `status === "archived"`, so this branch is unreachable —
+  // which is precisely why it must be written now rather than when it fires.
   const readOnlyReason: DocumentReadOnlyReason = !canEdit
     ? "role"
     : activeHistoricalLog
       ? "historical"
       : activeDocument && !isEditableStatus(activeDocument.status)
         ? "archived"
-        : null;
+        : activeDocument && activeDocument.isEditable === false
+          ? "locked"
+          : null;
 
   const value: DocumentEditorContextValue = {
     applicantId,
     canEdit,
+    canOpenWorkspaces,
     isActiveDocumentEditable,
     readOnlyReason,
     isStandalone,

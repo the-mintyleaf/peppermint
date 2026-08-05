@@ -32,7 +32,13 @@ export interface ActiveHistoricalEntry {
  * told they have view-only access, not that the document is archived — the first
  * fact is the one that would still be true if they opened a live document.
  */
-export type DocumentReadOnlyReason = "role" | "archived" | "historical" | null;
+export type DocumentReadOnlyReason =
+  | "role"
+  | "archived"
+  | "historical"
+  /** The server says this document is not editable, for a reason status doesn't explain. */
+  | "locked"
+  | null;
 
 export interface DocumentEditorContextValue {
   /** Applicant workspace id, or `null` for a standalone single-document editor. */
@@ -43,6 +49,12 @@ export interface DocumentEditorContextValue {
    * modals) on this.
    */
   canEdit: boolean;
+  /**
+   * Whether the viewer may reach the workspaces roll-up (`/admin/documents`).
+   * Separate from `canEdit` — that screen has its own capability, and conflating them
+   * is how a "close" button ends up pointing at a forbidden route.
+   */
+  canOpenWorkspaces: boolean;
   /**
    * Whether the *active document* can be edited right now: `canEdit`, and the
    * document exists, and its status allows it, and the server agrees

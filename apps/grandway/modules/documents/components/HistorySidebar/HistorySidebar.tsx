@@ -65,7 +65,9 @@ const DocumentCustomizations = memo(function DocumentCustomizations({
           ? "You have view-only access to documents."
           : readOnlyReason === "historical"
             ? "Viewing a past version — return to the current version to edit."
-            : `This document is ${document.status} and can no longer be edited.`}
+            : readOnlyReason === "archived"
+              ? `This document is ${document.status} and can no longer be edited.`
+              : "This document can no longer be edited."}
       </Text>
     );
   }
