@@ -10,6 +10,7 @@ import {
   Stack,
   Text,
 } from "@peppermint/ui";
+import { RequireCapability } from "@/components/RequireCapability";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiError } from "@/lib/authErrorMessages";
 import { useApplicantDetail, useUpdateApplicant } from "../../applicants.hooks";
@@ -149,7 +150,9 @@ function ApplicantEditPageContent() {
 export function ModuleApplicantEdit() {
   return (
     <RequireLeadAccess>
-      <ApplicantEditPageContent />
+      <RequireCapability capability="applicantEdit">
+        <ApplicantEditPageContent />
+      </RequireCapability>
     </RequireLeadAccess>
   );
 }

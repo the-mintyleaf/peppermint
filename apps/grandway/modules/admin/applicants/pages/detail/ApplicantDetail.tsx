@@ -26,7 +26,7 @@ import {
 } from "@/components/profile";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiError } from "@/lib/authErrorMessages";
-import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
+import { useCapabilities } from "@/config/access";
 import { ApplicantDocumentsPanel } from "@/modules/admin/documents";
 import { RecordAlertsPanel } from "@/modules/admin/notifications/_shared/RecordAlertsPanel";
 import { FilesPanel } from "@/modules/admin/uploaded-files/_shared/FilesPanel";
@@ -41,9 +41,16 @@ import { ApplicantPassportFamilyPanel } from "./components/ApplicantPassportFami
 import { ApplicantStatusSwitch } from "../list/components/ApplicantStatusSwitch";
 
 /**
- * Content-column tabs (Overview is the sidebar, not a tab). Documents is
- * admin-only — a lead manager must not even see the tab, since an empty tab
- * would itself disclose that documents may exist (`documents/docs/SECURITY.md`).
+ * Content-column tabs (Overview is the sidebar, not a tab).
+ *
+ * Documents is the only conditional one: a role that cannot read documents must not
+ * even see the tab, since an empty tab would itself disclose that documents may
+ * exist (`documents/INTEGRATION.md` §1).
+ *
+ * **The rest stay for everyone who reaches this page, deliberately.** The applicant
+ * *record* is read-only for staff — identity, passport, family, status — but
+ * Journeys, Files, Alerts and History belong to modules staff still work in fully.
+ * Do not extend the read-only rule to them.
  */
 function getApplicantTabs(
   applicant: ApplicantDetailRecord,
@@ -112,8 +119,7 @@ function getApplicantTabs(
 function ApplicantDetailContent() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { authorityType } = useCurrentUser();
-  const isAdmin = authorityType === "admin";
+  const { documents: canReadDocuments, applicantEdit } = useCapabilities();
   const {
     data: applicant,
     isLoading,
@@ -174,7 +180,7 @@ function ApplicantDetailContent() {
   }
 
   const displayName = applicantDisplayName(applicant);
-  const tabs = getApplicantTabs(applicant, displayName, isAdmin);
+  const tabs = getApplicantTabs(applicant, displayName, canReadDocuments);
 
   return (
     <>
@@ -186,18 +192,21 @@ function ApplicantDetailContent() {
         right={
           <Group gap="xs" wrap="nowrap">
             {/* Status is the interactive control (current value + dropdown),
-                Edit is the action — different look, different position. */}
+                Edit is the action — different look, different position. The
+                switch self-gates to a plain badge for a reader. */}
             <ApplicantStatusSwitch applicant={applicant} fullWidth={false} />
-            <Button
-              size="xs"
-              variant="default"
-              leftSection={<PencilSimpleIcon size={14} aria-hidden />}
-              onClick={() =>
-                router.push(`/admin/applicants/${applicant.id}/edit`)
-              }
-            >
-              Edit applicant
-            </Button>
+            {applicantEdit && (
+              <Button
+                size="xs"
+                variant="default"
+                leftSection={<PencilSimpleIcon size={14} aria-hidden />}
+                onClick={() =>
+                  router.push(`/admin/applicants/${applicant.id}/edit`)
+                }
+              >
+                Edit applicant
+              </Button>
+            )}
           </Group>
         }
       />

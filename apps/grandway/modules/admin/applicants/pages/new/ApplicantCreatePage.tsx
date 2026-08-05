@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { ModalPaper, ModuleHeader } from "@peppermint/ui";
+import { RequireCapability } from "@/components/RequireCapability";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { useCreateApplicant } from "../../applicants.hooks";
 import { ApplicantForm } from "../../form/ApplicantForm";
@@ -62,7 +63,9 @@ function ApplicantCreatePageContent() {
 export function ModuleApplicantCreate() {
   return (
     <RequireLeadAccess>
-      <ApplicantCreatePageContent />
+      <RequireCapability capability="applicantCreate">
+        <ApplicantCreatePageContent />
+      </RequireCapability>
     </RequireLeadAccess>
   );
 }

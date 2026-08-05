@@ -7,7 +7,7 @@ import { ModalPaper } from "@peppermint/ui";
 import { GlobeHemisphereWestIcon } from "@phosphor-icons/react/dist/csr/GlobeHemisphereWest";
 import { ListBulletsIcon } from "@phosphor-icons/react/dist/csr/ListBullets";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
-import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
+import { useCapabilities } from "@/config/access";
 import { useCountries } from "@/modules/admin/institutions/institutions.hooks";
 import { listApplicants } from "../../applicants.api";
 import { applicantsQueryKeys } from "../../applicants.queryKeys";
@@ -40,7 +40,7 @@ const MAX_COUNTRY_TABS = 8;
  */
 function ApplicantsListContent() {
   const router = useRouter();
-  const { isAdmin } = useCurrentUser();
+  const { applicantCreate } = useCapabilities();
   const { data: countries } = useCountries();
 
   const columns = getApplicantsColumns({
@@ -82,8 +82,8 @@ function ApplicantsListContent() {
       }}
       // Admin-only create — hidden entirely for a Lead Manager rather than
       // disabled (`docs/backend/applicants/FLOWS.md` "Create an applicant
-      // directly").
-      disableCreateButton={!isAdmin}
+      // directly"). The route it points at is gated to match.
+      disableCreateButton={!applicantCreate}
       disableDeleteButton
       pageSizes={[10, 20, 30, 50]}
       defaultPageSize={20}

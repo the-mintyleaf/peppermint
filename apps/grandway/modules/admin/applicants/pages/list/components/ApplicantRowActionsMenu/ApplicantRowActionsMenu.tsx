@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { RowActionsMenu } from "@peppermint/admin";
 import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
+import { useCapabilities } from "@/config/access";
 import { applicantDisplayName } from "../../../../applicants.labels";
 import type { Applicant } from "../../../../applicants.types";
 import type { ApplicantRowActionsMenuProps } from "./ApplicantRowActionsMenu.types";
@@ -20,6 +21,7 @@ export function ApplicantRowActionsMenu({
   onViewDetails,
 }: ApplicantRowActionsMenuProps) {
   const router = useRouter();
+  const { applicantEdit } = useCapabilities();
 
   return (
     <RowActionsMenu<Applicant>
@@ -31,11 +33,18 @@ export function ApplicantRowActionsMenu({
           icon: <EyeIcon size={16} aria-hidden />,
           onClick: onViewDetails,
         },
-        {
-          label: "Edit",
-          icon: <PencilSimpleIcon size={16} aria-hidden />,
-          onClick: () => router.push(`/admin/applicants/${applicant.id}/edit`),
-        },
+        // Dropped rather than disabled for a reader — the edit route itself is
+        // gated, so offering it would only lead to a forbidden panel.
+        ...(applicantEdit
+          ? [
+              {
+                label: "Edit",
+                icon: <PencilSimpleIcon size={16} aria-hidden />,
+                onClick: () =>
+                  router.push(`/admin/applicants/${applicant.id}/edit`),
+              },
+            ]
+          : []),
       ]}
     />
   );
