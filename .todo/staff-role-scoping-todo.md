@@ -32,9 +32,9 @@
 
 ## Phase 3 — Dashboard bands
 
-- [ ] `DashboardOverview.tsx` — gate Operations band, update footer caption
-- [ ] `AdminHome.tsx` — swap inline role branch for `caps.dashboard`
-- [ ] Commit P3 + adversarial review
+- [x] `DashboardOverview.tsx` — gate Operations band, update footer caption
+- [x] `AdminHome.tsx` — swap inline role branch for `caps.dashboard`
+- [x] Commit P3 + adversarial review
 
 ## Phase 4 — Applicants read-only for staff
 

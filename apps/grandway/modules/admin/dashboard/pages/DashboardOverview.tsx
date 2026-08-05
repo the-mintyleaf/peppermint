@@ -9,6 +9,7 @@ import {
   Text,
   useQueryClient,
 } from "@peppermint/ui";
+import { useCapabilities } from "@/config/access";
 import { useDashboardFilters, useDashboardSummary } from "../dashboard.hooks";
 import { ActivityPanel } from "../components/ActivityPanel";
 import { ApplicantCountryStats } from "../components/ApplicantCountryStats";
@@ -56,6 +57,11 @@ const SMALL = { base: 12, sm: 4, lg: 2 } as const;
  */
 export function DashboardOverview() {
   const filters = useDashboardFilters();
+  // Staff get the two bands that ARE the work — the leads waiting on them and the
+  // applicants those became. Operations is standing measurement (queues, conversion
+  // rates, cross-team workload), which is an Admin's view of the office, not a
+  // caseworker's view of their day.
+  const { dashboardOperations } = useCapabilities();
   const queryClient = useQueryClient();
   // `summary` only for its fetch time — `AttentionPanel` reads the same cached entry.
   const { dataUpdatedAt } = useDashboardSummary(filters);
@@ -119,44 +125,49 @@ export function DashboardOverview() {
             </SectionBand>
           </ModuleErrorBoundary>
 
-          <ModuleErrorBoundary resetKeys={resetKeys}>
-            <SectionBand
-              title="Operations"
-              subtitle="The queues, the standing measures, and what just changed."
-            >
-              <Grid.Col span={LARGE}>
-                <AttentionPanel filters={filters} />
-              </Grid.Col>
-              <Grid.Col span={LARGE}>
-                <TodayPanel filters={filters} />
-              </Grid.Col>
-              <Grid.Col span={LARGE}>
-                <BlockersPanel filters={filters} />
-              </Grid.Col>
-              <Grid.Col span={LARGE}>
-                <WorkloadPanel filters={filters} />
-              </Grid.Col>
-              <Grid.Col span={LARGE}>
-                <PipelinePanel filters={filters} />
-              </Grid.Col>
-              <Grid.Col span={LARGE}>
-                <PerformancePanel filters={filters} />
-              </Grid.Col>
-              <Grid.Col span={LARGE}>
-                <ActivityPanel
-                  key={filters.fiscalYear}
-                  fiscalYear={filters.fiscalYear}
-                />
-              </Grid.Col>
-            </SectionBand>
-          </ModuleErrorBoundary>
+          {dashboardOperations && (
+            <ModuleErrorBoundary resetKeys={resetKeys}>
+              <SectionBand
+                title="Operations"
+                subtitle="The queues, the standing measures, and what just changed."
+              >
+                <Grid.Col span={LARGE}>
+                  <AttentionPanel filters={filters} />
+                </Grid.Col>
+                <Grid.Col span={LARGE}>
+                  <TodayPanel filters={filters} />
+                </Grid.Col>
+                <Grid.Col span={LARGE}>
+                  <BlockersPanel filters={filters} />
+                </Grid.Col>
+                <Grid.Col span={LARGE}>
+                  <WorkloadPanel filters={filters} />
+                </Grid.Col>
+                <Grid.Col span={LARGE}>
+                  <PipelinePanel filters={filters} />
+                </Grid.Col>
+                <Grid.Col span={LARGE}>
+                  <PerformancePanel filters={filters} />
+                </Grid.Col>
+                <Grid.Col span={LARGE}>
+                  <ActivityPanel
+                    key={filters.fiscalYear}
+                    fiscalYear={filters.fiscalYear}
+                  />
+                </Grid.Col>
+              </SectionBand>
+            </ModuleErrorBoundary>
+          )}
 
           <Text size="xs" c="dimmed" ff="monospace">
-            Access: admin · lead_manager. Fiscal year and destination country
-            (top right) scope every card except Recent activity, which is
-            fiscal-year only. Overdue and expiry flags are computed server-side.
-            Figures come from different endpoints and different windows — read
-            each card on its own terms, never across them.
+            {dashboardOperations
+              ? "Access: admin · lead_manager."
+              : "Access: lead_manager — the Operations band is admin-only."}{" "}
+            Fiscal year and destination country (top right) scope every card
+            except Recent activity, which is fiscal-year only. Overdue and
+            expiry flags are computed server-side. Figures come from different
+            endpoints and different windows — read each card on its own terms,
+            never across them.
           </Text>
         </Stack>
       </ModalPaper>

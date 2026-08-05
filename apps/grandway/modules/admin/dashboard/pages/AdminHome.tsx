@@ -1,7 +1,7 @@
 "use client";
 
 import { RequireAuth } from "@/components/RequireAuth";
-import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
+import { useCapabilities } from "@/config/access";
 import { SuperadminLanding } from "../components/SuperadminLanding";
 import { DashboardOverview } from "./DashboardOverview";
 
@@ -13,11 +13,8 @@ import { DashboardOverview } from "./DashboardOverview";
  * upstream, so once here a `user` (and its `authority_type`) is always present.
  */
 function AdminHomeContent() {
-  const { authorityType } = useCurrentUser();
-  const canSeeDashboard =
-    authorityType === "admin" || authorityType === "lead_manager";
-
-  return canSeeDashboard ? <DashboardOverview /> : <SuperadminLanding />;
+  const { dashboard } = useCapabilities();
+  return dashboard ? <DashboardOverview /> : <SuperadminLanding />;
 }
 
 export function ModuleAdminHome() {
