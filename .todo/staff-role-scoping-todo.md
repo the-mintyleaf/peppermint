@@ -16,10 +16,10 @@
 
 ## Phase 1 — Forced role in account creation
 
-- [ ] Run `/form-builder` for the control choice
-- [ ] `UserForm.tsx` — read-only "Account role" field above Username, submit label, move password sentence
-- [ ] `UsersList.tsx` — modal title states the tier
-- [ ] Commit P1 + adversarial review
+- [x] Run `/form-builder` for the control choice
+- [x] `UserForm.tsx` — read-only "Account role" field above Username, submit label, move password sentence
+- [x] `UsersList.tsx` — modal title states the tier
+- [x] Commit P1 + adversarial review
 
 ## Phase 2 — Nav, shell, spotlight
 

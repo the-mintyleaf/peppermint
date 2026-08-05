@@ -3,23 +3,16 @@
 import { Group, Stack, Text, dayjs } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
 import { StatusBadge } from "@peppermint/admin";
+import {
+  AUTHORITY_COLORS,
+  AUTHORITY_LABELS,
+} from "@/modules/admin/authenticate/_shared/authenticate.labels";
 import type { AuthorityType, User } from "../../users.types";
 import { UserRowActionsMenu } from "./components/UserRowActionsMenu";
 
 interface UsersColumnsOptions {
   onViewDetails: (user: User) => void;
 }
-
-const AUTHORITY_COLORS: Partial<Record<AuthorityType, string>> = {
-  superadmin: "grape",
-  admin: "blue",
-  lead_manager: "gray",
-};
-const AUTHORITY_LABELS: Partial<Record<AuthorityType, string>> = {
-  superadmin: "Superadmin",
-  admin: "Admin",
-  lead_manager: "Lead Manager",
-};
 
 export function getUsersColumns({
   onViewDetails,
