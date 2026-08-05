@@ -320,13 +320,16 @@ apps/grandway/
   so the panel and the stage side effect share a cache key. Creation goes through
   `useCreateJourneyWorklist` (`applicantJourneys.hooks.ts`) — a thin `useAppMutation` wrapper
   over checklists' raw `createChecklist` that swaps in journey copy ("Worklist created for
-  this journey.") instead of checklists' own "Checklist created." Side effect:
-  `useChangeJourneyStage`, on a transition to `profile_building`, ensures the journey has an
-  **active** worklist — fetches by journey with `status: "active"` (archived rows must count
-  as none) and, if there are none, creates one via `useCreateJourneyWorklist`
-  (`{ journey, title: "Profile Building" }`) so a real failure surfaces its own toast and
-  never gets swallowed. In practice this only fires for journeys with no country (a country
-  already auto-creates it, so no duplicate). All cross-imports use checklists' concrete files,
+  this journey.") instead of checklists' own "Checklist created." Stage follow-up:
+  `JourneyStageSwitch`, after a committed move to `profile_building`, _asks_ rather than
+  auto-builds — `useWorklistPrompt` (`JourneyStageSwitch.hooks.ts`) fetches by journey with
+  `status: "active"` (archived rows count as none) and, only when there are none, opens
+  checklists' `ChecklistCreateForm` in a modal with the journey locked, so staff choose the
+  country template or a blank list. It used to silently create `{ journey, title: "Profile
+Building" }`, which took that choice away. The move itself is never gated on the prompt; a
+  failed lookup prompts nothing (the Worklist tab still creates explicitly). In practice this
+  only fires for journeys with no country (a country already auto-creates the worklist
+  server-side, so no duplicate). All cross-imports use checklists' concrete files,
   never its barrel (no cycle: those files don't import journeys).
 - **Checklists → Uploaded Files (evidence).** `ChecklistDetail`'s `EvidencePickerModal`
   calls uploaded-files' `useFilesList({ applicant: checklist.applicant.id })` (concrete

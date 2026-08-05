@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@peppermint/ui";
+import { useQuery } from "@peppermint/ui";
 import { useAppMutation } from "@peppermint/admin";
 import type { QueryParams } from "@peppermint/admin";
 // Concrete-file imports of the `checklists` module (never its barrel). In the
@@ -11,7 +11,6 @@ import type { QueryParams } from "@peppermint/admin";
 import {
   activateChecklist,
   createChecklist,
-  listChecklists,
 } from "@/modules/admin/checklists/checklists.api";
 import { checklistQueryKeys } from "@/modules/admin/checklists/checklists.queryKeys";
 import type {
@@ -29,7 +28,6 @@ import {
   reopenJourney,
   updateJourney,
 } from "./applicantJourneys.api";
-import { journeyChecklistListParams } from "./applicantJourneys.checklist";
 import {
   journeyHistoryKey,
   journeyQueryKeys,
@@ -120,45 +118,20 @@ export function useCreateJourneyWorklist() {
   });
 }
 
+/**
+ * Plain stage change — no worklist side effect. Moving to Profile Building used
+ * to silently create a blank worklist titled "Profile Building", which took the
+ * template choice away from the person making the move. The stage switch now
+ * asks instead: it checks for an existing worklist and, when there is none,
+ * opens the create form (`JourneyStageSwitch.hooks.ts` →
+ * `useWorklistPrompt`), so the template-vs-blank decision stays with staff.
+ */
 export function useChangeJourneyStage(journeyId: string) {
-  const queryClient = useQueryClient();
-  const createWorklist = useCreateJourneyWorklist();
-
-  // Moving to Profile Building ensures the journey has an *active* worklist.
-  // The backend already auto-creates one when a destination country is set, so
-  // in practice this only fires for journeys with no country/template (which are
-  // therefore not racing that auto-create). Creation goes through
-  // `useCreateJourneyWorklist`, so a real failure (permission, validation,
-  // network) surfaces its own error toast and its success refreshes the Worklist
-  // tab — errors are never swallowed.
-  const ensureWorklist = async () => {
-    const params = journeyChecklistListParams(journeyId);
-    let existing;
-    try {
-      existing = await queryClient.fetchQuery({
-        queryKey: checklistQueryKeys.list(params),
-        queryFn: () => listChecklists(params),
-      });
-    } catch {
-      // Couldn't confirm whether a checklist exists — skip rather than risk a
-      // duplicate. The Checklist tab still lets staff create one explicitly.
-      return;
-    }
-    if (existing.data.length > 0) return;
-    createWorklist.mutate({
-      journey: journeyId,
-      title: "Profile Building",
-    });
-  };
-
   return useAppMutation<unknown, JourneyStageChangePayload>({
     mutationFn: (body) => changeJourneyStage(journeyId, body),
     successMessage: "Stage updated.",
     errorTitle: "Couldn't update stage",
     invalidateKeys: invalidateKeysFor(journeyId),
-    onSuccess: (_data, variables) => {
-      if (variables.stage === "profile_building") void ensureWorklist();
-    },
   });
 }
 

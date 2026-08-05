@@ -29,7 +29,8 @@ import type { JourneyChecklistPanelProps } from "./JourneyChecklistPanel.types";
  * journey, then its items, and reuses the `checklists` module's own
  * `ChecklistItemsList` (ticking via its `ItemStatusModal`) so there is one
  * ticking flow, not two. When a journey has no checklist yet, it offers to
- * create one (the same thing entering Profile Building does automatically).
+ * create one — the same form the stage switch opens on a move into Profile
+ * Building, so both paths let staff pick the template.
  *
  * The panel header is rendered in every state, including loading and error —
  * a tab that shows only a spinner never tells you what it was going to show.

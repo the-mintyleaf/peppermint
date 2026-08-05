@@ -1,14 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { Modal } from "@peppermint/ui";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
 import { PauseCircleIcon } from "@phosphor-icons/react/dist/csr/PauseCircle";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
+import { InlineStageSwitch } from "@/components/InlineStageSwitch";
+import type { InlineStageSwitchAction } from "@/components/InlineStageSwitch";
+// Concrete-file imports of the `checklists` module (never its barrel) — the
+// worklist create form (template picker / start blank) already lives there.
+import { ChecklistCreateForm } from "@/modules/admin/checklists/form/ChecklistCreateForm";
+import { toCreateChecklistPayload } from "@/modules/admin/checklists/form/ChecklistCreateForm.utils";
 import {
-  InlineStageSwitch,
-  type InlineStageSwitchAction,
-} from "@/components/InlineStageSwitch";
-import { useChangeJourneyStage } from "../../../../applicantJourneys.hooks";
+  useChangeJourneyStage,
+  useCreateJourneyWorklist,
+} from "../../../../applicantJourneys.hooks";
 import {
   STAGE_COLORS,
   STAGE_LABELS,
@@ -21,6 +27,7 @@ import {
 import { CloseJourneyModal } from "../CloseJourneyModal";
 import { DeferJourneyModal } from "../DeferJourneyModal";
 import { ReopenJourneyModal } from "../ReopenJourneyModal";
+import { useWorklistPrompt } from "./JourneyStageSwitch.hooks";
 import type { JourneyStageSwitchProps } from "./JourneyStageSwitch.types";
 
 type ActiveModal = "defer" | "close" | "reopen" | null;
@@ -41,6 +48,8 @@ export function JourneyStageSwitch({
   fullWidth = true,
 }: JourneyStageSwitchProps) {
   const mutation = useChangeJourneyStage(journey.id);
+  const createWorklist = useCreateJourneyWorklist();
+  const worklistPrompt = useWorklistPrompt(journey.id);
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
 
   const isTerminal = TERMINAL_STAGES.has(journey.stage);
@@ -86,9 +95,16 @@ export function JourneyStageSwitch({
         entityLabel={journeyApplicantName(journey)}
         terminal={isTerminal}
         actions={actions}
-        onConfirm={(value) =>
-          mutation.mutateAsync({ stage: value as SelectableJourneyStage })
-        }
+        onConfirm={async (value) => {
+          await mutation.mutateAsync({
+            stage: value as SelectableJourneyStage,
+          });
+          // The stage move is already committed at this point — the worklist
+          // prompt is a follow-up offer, never a gate on it.
+          if (value === "profile_building") {
+            await worklistPrompt.promptIfMissing();
+          }
+        }}
       />
       <DeferJourneyModal
         journey={journey}
@@ -105,6 +121,22 @@ export function JourneyStageSwitch({
         opened={activeModal === "reopen"}
         onClose={closeModal}
       />
+      <Modal
+        opened={worklistPrompt.isOpen}
+        onClose={worklistPrompt.close}
+        title="Create worklist for Profile Building"
+      >
+        <ChecklistCreateForm
+          journeyId={journey.id}
+          submitLabel="Create worklist"
+          isLoading={createWorklist.isPending}
+          onSubmit={(values) => {
+            createWorklist.mutate(toCreateChecklistPayload(values), {
+              onSuccess: worklistPrompt.close,
+            });
+          }}
+        />
+      </Modal>
     </>
   );
 }
