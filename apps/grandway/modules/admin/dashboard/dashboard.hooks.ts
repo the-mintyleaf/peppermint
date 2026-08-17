@@ -5,6 +5,14 @@ import { useQueries, useQuery } from "@peppermint/ui";
 import type { QueryParams } from "@peppermint/admin";
 import { listApplicants } from "@/modules/admin/applicants/applicants.api";
 import { applicantsQueryKeys } from "@/modules/admin/applicants/applicants.queryKeys";
+import { listReminders } from "@/modules/admin/reminders/reminders.api";
+import { dueRemindersKey } from "@/modules/admin/reminders/reminders.queryKeys";
+import {
+  dueBucket,
+  nepalToday,
+  sortRemindersForPanel,
+} from "@/modules/admin/reminders/reminders.utils";
+import type { Reminder } from "@/modules/admin/reminders/reminders.types";
 import {
   fetchActivity,
   fetchBlockers,
@@ -135,6 +143,78 @@ export function useRecentApplicants(
     queryKey: applicantsQueryKeys.list(params),
     queryFn: () => listApplicants(params),
   });
+}
+
+/** The three buckets the Follow-ups card reads, plus the honest server total. */
+export interface DueRemindersResult {
+  overdue: Reminder[];
+  today: Reminder[];
+  upcoming: Reminder[];
+  /** `meta.count` — the true number of open reminders, even when the page caps. */
+  total: number;
+  /** How many rows this page actually carried, for the truncation disclosure. */
+  fetched: number;
+  /** Nepal's today, so the card's rows bucket against the same clock the hook did. */
+  todayDate: string;
+}
+
+/**
+ * The dashboard's only **cross-module** data source that is not part of the
+ * `/api/v1/dashboard/` contract — that contract has no reminder section at all
+ * (its §2 does not list `reminders`, and none of its eight endpoints touches
+ * one). Documented precedent for reading another module's endpoint from here:
+ * `useApplicantsByCountry` and `useRecentApplicants` above.
+ *
+ * **One request, bucketed client-side against one clock.** The contract's due
+ * windows (`due_before`/`due_after`) would let this be three filtered requests,
+ * and it deliberately is not: three requests are three clocks, and a reminder
+ * can fall between them or appear in two. This is the same rule the
+ * notifications feed applies to its due buckets.
+ *
+ * **Not filtered by `fiscal_year`/`country`.** Reminders carry neither concept —
+ * `fiscal_year` on this API is a Bikram Sambat label over `due_date`, which is a
+ * different question from the dashboard's filter, and there is no country at
+ * all. The card says so in its caption rather than silently ignoring the
+ * controls.
+ */
+export function useDueReminders() {
+  // One clock for the whole computation, captured per query result rather than
+  // per render, so every bucket and every row below agrees.
+  const query = useQuery({
+    queryKey: dueRemindersKey(),
+    queryFn: () => listReminders(toReminderQueryParams()),
+  });
+
+  const todayDate = nepalToday();
+  const rows = query.data?.data ?? [];
+  const sorted = sortRemindersForPanel(rows, todayDate);
+
+  const result: DueRemindersResult = {
+    overdue: sorted.filter((r) => dueBucket(r, todayDate) === "overdue"),
+    today: sorted.filter((r) => dueBucket(r, todayDate) === "today"),
+    upcoming: sorted.filter((r) => dueBucket(r, todayDate) === "upcoming"),
+    total: query.data?.meta.total ?? 0,
+    fetched: rows.length,
+    todayDate,
+  };
+
+  return { ...query, buckets: result };
+}
+
+/**
+ * `status=active` narrows to open follow-ups — the card answers "what still
+ * needs chasing", and closed rows belong to a record's own panel. 100 is the
+ * API's page maximum; the card discloses truncation from `meta.count` rather
+ * than paging, because a second page of due work is a worklist, not a summary.
+ */
+function toReminderQueryParams(): QueryParams {
+  return {
+    page: 1,
+    pageSize: 100,
+    search: "",
+    sort: [],
+    filters: { status: "active" },
+  };
 }
 
 export function useDashboardToday(filters: DashboardFilterInput) {

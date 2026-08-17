@@ -24,6 +24,7 @@ import { LeadsToAddress } from "../components/LeadsToAddress";
 import { PerformancePanel } from "../components/PerformancePanel";
 import { PipelinePanel } from "../components/PipelinePanel";
 import { RecentApplicants } from "../components/RecentApplicants";
+import { RemindersPanel } from "../components/RemindersPanel";
 import { SectionBand } from "../components/SectionBand";
 import { TodayPanel } from "../components/TodayPanel";
 import { WorkloadPanel } from "../components/WorkloadPanel";
@@ -50,10 +51,16 @@ const SMALL = { base: 12, sm: 4, lg: 2 } as const;
  * Each of the first two bands pairs a LEFT column of figures with a RIGHT card
  * of rows: the figures say how much, the rows are where you act.
  *
- * The eight sections are still independent — one request each, one
+ * The eight contract sections are still independent — one request each, one
  * `ModuleErrorBoundary` per band, so a slow or failing section never blocks the
  * rest of the page (CONCEPT.md). A card with several views fetches only the open
  * one, which is what the old tab bar bought and is kept here without it.
+ *
+ * **Follow-ups is a ninth section that is not part of the dashboard contract at
+ * all** — `/api/v1/dashboard/` has no reminder data, so that card reads
+ * `/api/v1/reminders/` directly. It carries the same no-cross-section-
+ * consistency caveat as the other eight, and it sits outside the Operations
+ * gate on purpose (see the comment at its band).
  */
 export function DashboardOverview() {
   const filters = useDashboardFilters();
@@ -61,7 +68,7 @@ export function DashboardOverview() {
   // applicants those became. Operations is standing measurement (queues, conversion
   // rates, cross-team workload), which is an Admin's view of the office, not a
   // caseworker's view of their day.
-  const { dashboardOperations } = useCapabilities();
+  const { dashboardOperations, reminders: canUseReminders } = useCapabilities();
   const queryClient = useQueryClient();
   // `summary` only for its fetch time — `AttentionPanel` reads the same cached entry.
   const { dataUpdatedAt } = useDashboardSummary(filters);
@@ -125,6 +132,29 @@ export function DashboardOverview() {
             </SectionBand>
           </ModuleErrorBoundary>
 
+          {/* **Outside the Operations gate, deliberately.** A `custom_reminder`
+              alert is routed to Admins only, so a Lead Manager's own follow-ups
+              surface nowhere automatically — the reminders contract's §9 names
+              this query as the client-side answer. Folding this card into the
+              Admin-only band would hide it from exactly the people with no
+              other way to see their due work.
+
+              No `resetKeys` on this boundary: unlike every other band, nothing
+              here reads the fiscal-year or country filters, so there is nothing
+              for a filter change to reset. */}
+          {canUseReminders && (
+            <ModuleErrorBoundary>
+              <SectionBand
+                title="Follow-ups"
+                subtitle="Dated notes staff set on a record — and which of them have come due."
+              >
+                <Grid.Col span={LARGE}>
+                  <RemindersPanel />
+                </Grid.Col>
+              </SectionBand>
+            </ModuleErrorBoundary>
+          )}
+
           {dashboardOperations && (
             <ModuleErrorBoundary resetKeys={resetKeys}>
               <SectionBand
@@ -164,8 +194,10 @@ export function DashboardOverview() {
               ? "Access: admin · lead_manager."
               : "Access: lead_manager — the Operations band is admin-only."}{" "}
             Fiscal year and destination country (top right) scope every card
-            except Recent activity, which is fiscal-year only. Overdue and
-            expiry flags are computed server-side. Figures come from different
+            except Recent activity, which is fiscal-year only, and Follow-ups,
+            which reads neither. Overdue and expiry flags are computed
+            server-side, except on Follow-ups, where the due day is a Nepal
+            calendar day resolved in the browser. Figures come from different
             endpoints and different windows — read each card on its own terms,
             never across them.
           </Text>
