@@ -18,6 +18,8 @@ export {
   updateReminder,
 } from "./reminders.api";
 
+export { REMINDER_LAYER } from "./reminders.constants";
+
 export {
   dueRemindersKey,
   reminderHistoryKey,

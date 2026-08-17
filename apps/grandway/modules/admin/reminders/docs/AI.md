@@ -51,6 +51,7 @@ card is **not** Admin-only. See `dashboard/docs/AI.md`.
 | reminders.queryKeys.ts | `reminderQueryKeys` (`createQueryKeys`) + `reminderHistoryKey(id)` (nested under detail) + `dueRemindersKey()` (**its own top-level slot**)     |
 | reminders.api.ts       | `createResourceApi<Reminder, ReminderCreatePayload, ReminderUpdatePayload>` + `complete`/`dismiss` actions + hand-rolled `fetchReminderHistory` |
 | reminders.hooks.ts     | `useReminderList`, `useReminder`, `useReminderHistory`, and four mutations                                                                      |
+| reminders.constants.ts | `REMINDER_LAYER` — the form/picker/confirm overlay order (see below)                                                                            |
 | reminders.utils.ts     | **`nepalToday()`**, `dueBucket`, `sortRemindersForPanel`, **`changedUpdateFields`**, `formatBs`, `formatDueDate`, `formatDueDistance`           |
 
 ### The three things that are load-bearing
@@ -95,11 +96,17 @@ call and wants to leave a dated note without losing their filters or their
 scroll position. That is the same reasoning behind this module having no route
 of its own.
 
-**Modal stacking is explicit, not incidental.** The panel can be hosted inside a
-modal, and it opens its own (the form) and a confirm on top of that — so
-`ReminderFormModal` sets `zIndex={400}` and both confirms set `zIndex: 500`.
-Sharing Mantine's default layer (200) would leave the order to DOM insertion,
-which is not a guarantee worth resting a blocked form on.
+**Overlay stacking is explicit, not incidental** — `reminders.constants.ts`
+(`REMINDER_LAYER`) states it once, and the order must stay strictly increasing:
+
+    host modal (Mantine default 200) < form (400) < picker (450) < confirm (500)
+
+Two compounding reasons. The panel can be hosted inside a modal (the applicants
+list opens it that way), so the form it launches must clear 200 — two modals on
+one layer leave the order to DOM insertion. And **once the form is above 200,
+its own date picker is not**: a popover on Mantine's default 300 renders
+_behind_ a form at 400, so the calendar opens invisibly and the field looks
+broken. That is why `DateInput` carries `popoverProps={{ zIndex }}`.
 
 ## Panel behaviour
 
@@ -129,9 +136,14 @@ which is not a guarantee worth resting a blocked form on.
 
 ## Form behaviour
 
-- Two fields. `DateInput` bounded to ~220px (a short value gets a short field)
-  with `minDate={nepalToday()}`, plus Tomorrow / In a week / In a month quick
-  picks. `Textarea` with a counter that only appears near the 5,000 ceiling.
+- Two fields, one component for both modes (create and reschedule) — there is no
+  second reminder form. Full-width `DateInput` with `minDate={nepalToday()}` and
+  Tomorrow / In a week / In a month quick picks; a ten-row `Textarea` (growing to
+  twenty) with a counter that only appears near the 5,000 ceiling. The note is
+  what a reader sees months later with no other context, so the field invites a
+  few sentences rather than a fragment.
+- The modal scrolls internally (`ScrollArea.Autosize`) — with a twenty-row note
+  the submit footer would otherwise fall below the fold on a short viewport.
 - **Edit sends only the changed subset.** "Nothing changed" closes without a
   request.
 - Unsaved-changes guard on every close affordance.
@@ -170,9 +182,10 @@ fetches the reminder to find its owner. See `notifications/docs/AI.md`.
   belong to; the dashboard card is the worklist.
 - **Do not open `ReminderFormModal` for a closed reminder** — a `PATCH` on one is
   a 409, and there is no reopen.
-- **Do not drop the `zIndex` values** off the form and confirm modals (see
-  above), and do not build a second reminders surface — reuse
-  `RecordRemindersPanel`.
+- **Do not drop the `REMINDER_LAYER` z-indexes**, and in particular do not
+  remove `popoverProps` from the date field — that is the one that makes the
+  calendar visible at all inside a modal. Do not build a second reminders
+  surface either; reuse `RecordRemindersPanel`.
 - **Do not swap `ReminderHistory` for the shared `HistoryTable`.** That table
   sets `minWidth={560}` and would force horizontal scrolling inside every
   reminder card in a narrow profile column.

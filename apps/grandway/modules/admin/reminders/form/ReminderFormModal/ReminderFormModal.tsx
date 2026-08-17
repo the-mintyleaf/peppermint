@@ -6,6 +6,7 @@ import {
   DateInput,
   Group,
   Modal,
+  ScrollArea,
   Stack,
   Text,
   Textarea,
@@ -17,6 +18,7 @@ import {
   useFormInstance,
 } from "@peppermint/admin";
 import { z } from "zod";
+import { REMINDER_LAYER } from "../../reminders.constants";
 import { useCreateReminder, useUpdateReminder } from "../../reminders.hooks";
 import { changedUpdateFields, nepalToday } from "../../reminders.utils";
 import type {
@@ -93,9 +95,10 @@ function ReminderFields({ today }: { today: string }) {
           // submit — the constraint is expressed by the control itself.
           minDate={today}
           required
-          // A short value gets a short field. A full-width date input reads as
-          // an invitation to type prose into it.
-          maw={220}
+          // The calendar drops out of a field that lives inside a modal, so it
+          // needs a layer above that modal — on Mantine's default popover layer
+          // (300) it renders BEHIND the form and is unreachable.
+          popoverProps={{ zIndex: REMINDER_LAYER.picker }}
           {...form.getInputProps("due_date")}
         />
         <Group gap="xs">
@@ -118,9 +121,12 @@ function ReminderFields({ today }: { today: string }) {
           label="Note"
           description="Why this follow-up exists — the alert shows this text verbatim."
           placeholder="Chase IELTS certificate before the SOP review call."
+          // A follow-up note is the thing the reader will see months later with
+          // no other context, so the field should invite a sentence or three
+          // rather than a fragment. Ten rows up front; it still grows.
           autosize
-          minRows={3}
-          maxRows={8}
+          minRows={10}
+          maxRows={20}
           required
           maxLength={NOTE_MAX}
           {...form.getInputProps("note")}
@@ -233,8 +239,7 @@ export function ReminderFormModal({
       // `useConfirmModal`/`modals.openConfirmModal` restore their padding
       // through `inner` — the app theme zeroes modal body padding globally.
       styles: { inner: { padding: "var(--mantine-spacing-md)" } },
-      // Above this form, which is itself above a possible host modal.
-      zIndex: 500,
+      zIndex: REMINDER_LAYER.confirm,
       onConfirm: onClose,
     });
   };
@@ -285,12 +290,12 @@ export function ReminderFormModal({
       onClose={requestClose}
       title={isEdit ? "Reschedule reminder" : "Add reminder"}
       size="md"
-      // Above Mantine's default modal layer (200). This form opens from inside
-      // the applicants list's own reminders modal, and two modals sharing a
-      // z-index leave the stacking order to DOM insertion — which is not a
-      // guarantee worth resting a blocked form on. Harmless when it is the only
-      // modal on screen.
-      zIndex={400}
+      // The note field is ten rows and grows to twenty, so on a short viewport
+      // the submit footer would otherwise sit below the fold with no way to
+      // reach it. Scrolls inside the modal rather than moving the page.
+      scrollAreaComponent={ScrollArea.Autosize}
+      // See `REMINDER_LAYER`. Harmless when this is the only modal on screen.
+      zIndex={REMINDER_LAYER.form}
     >
       {/* The app theme zeroes Modal body padding, so the content wrapper
           restores it via `p` — never through the modal's own `styles`. */}

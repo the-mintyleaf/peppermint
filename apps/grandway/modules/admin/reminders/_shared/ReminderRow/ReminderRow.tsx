@@ -19,6 +19,7 @@ import {
   REMINDER_STATUS_COLORS,
   REMINDER_STATUS_LABELS,
 } from "../../reminders.labels";
+import { REMINDER_LAYER } from "../../reminders.constants";
 import { useCompleteReminder, useDismissReminder } from "../../reminders.hooks";
 import {
   dueBucket,
@@ -93,7 +94,7 @@ export function ReminderRow({
       styles: { inner: { padding: "var(--mantine-spacing-md)" } },
       // The panel this row sits in can itself be inside a modal (the
       // applicants list opens it that way), so the confirm has to outrank it.
-      zIndex: 500,
+      zIndex: REMINDER_LAYER.confirm,
       onConfirm: () => dismiss.mutate(),
     });
   };
