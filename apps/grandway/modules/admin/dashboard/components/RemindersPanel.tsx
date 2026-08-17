@@ -50,9 +50,10 @@ const BAND: Record<ViewKey, "critical" | "warning" | "info"> = {
  * **This card is why the feature works for half the staff.** A `custom_reminder`
  * alert is routed to Admins only, so a Lead Manager's own follow-ups surface
  * nowhere automatically; the reminders contract's §9 names this exact query as
- * the client-side answer. It therefore renders **outside** the
- * `dashboardOperations` gate — putting it inside would hide it from precisely
- * the people who have no other way to see their due work.
+ * the client-side answer. It therefore lives in the **Applicants** band — one
+ * of the two a Lead Manager gets — and never in Operations, which is Admin-only
+ * and would hide it from precisely the people with no other way to see their
+ * due work.
  *
  * Every count here is a real server total (`meta.count` per window), never a
  * page length, so the card stays honest at any volume.
@@ -112,7 +113,13 @@ export function RemindersPanel() {
           // inventing a screen. The plain list, never a seeded filter.
           seeAllHref="/admin/applicants"
           emptyMessage={EMPTY_MESSAGE[view]}
-          caption="Not narrowed by the fiscal-year or country filters."
+          // Two caveats, both load-bearing given where this card sits. It
+          // reads neither page filter, and — despite living in the Applicants
+          // band — it covers client follow-ups too, because the reminders list
+          // has no "any applicant" filter and dropping those rows client-side
+          // would leave the counts describing a set the rows do not match.
+          // Each row names its own owner type, so nothing is disguised.
+          caption="Covers client follow-ups as well as applicant ones. Not narrowed by the fiscal-year or country filters."
         />
       </SectionState>
     </PanelCard>

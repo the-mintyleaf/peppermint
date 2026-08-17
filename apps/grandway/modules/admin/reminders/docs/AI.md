@@ -16,13 +16,13 @@ form modal. There is no `/admin/reminders` page and there should not be.
 
 ## Entry points
 
-| Surface                   | Export                 | Component                                        |
-| ------------------------- | ---------------------- | ------------------------------------------------ |
-| Applicant detail (tab)    | `RecordRemindersPanel` | \_shared/RecordRemindersPanel/…                  |
-| Client drawer (tab)       | `RecordRemindersPanel` | \_shared/RecordRemindersPanel/…                  |
-| Applicants **list row**   | `RecordRemindersPanel` | via `applicants`' `OpenRemindersButton` (modal)  |
-| Notification row link     | `ReminderAlertLink`    | \_shared/ReminderAlertLink/…                     |
-| Dashboard Follow-ups card | `useDueReminders`      | owned by `dashboard`, reads this module's `.api` |
+| Surface                   | Export                 | Component                                                                    |
+| ------------------------- | ---------------------- | ---------------------------------------------------------------------------- |
+| Applicant detail (tab)    | `RecordRemindersPanel` | \_shared/RecordRemindersPanel/…                                              |
+| Client drawer (tab)       | `RecordRemindersPanel` | \_shared/RecordRemindersPanel/…                                              |
+| Applicants **list row**   | `RecordRemindersPanel` | via `applicants`' `OpenRemindersButton` (modal)                              |
+| Notification row link     | `ReminderAlertLink`    | \_shared/ReminderAlertLink/…                                                 |
+| Dashboard Follow-ups card | `useDueReminders`      | owned by `dashboard`, in its **Applicants band**, reads this module's `.api` |
 
 Cross-module consumers import the **concrete file**, never this module's
 `index.ts`, per the app doc's cycle rule.
@@ -40,7 +40,8 @@ panel is embedded inside already-guarded screens.
 **The one asymmetry is about delivery, not access.** Only Admins _receive_ the
 due alert (that is `notifications` routing). A Lead Manager may set and close
 reminders freely but never gets alerted, which is why the dashboard's Follow-ups
-card is **not** Admin-only. See `dashboard/docs/AI.md`.
+card sits in the **Applicants band** — one of the two a Lead Manager gets — and
+never in the Admin-only Operations band. See `dashboard/docs/AI.md`.
 
 ## Data layer (module root)
 

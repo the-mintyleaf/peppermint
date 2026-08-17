@@ -59,8 +59,8 @@ const SMALL = { base: 12, sm: 4, lg: 2 } as const;
  *
  * The page opens on the operator by name, then goes straight to work in the
  * order the work decays: leads rot fastest, so they lead; the people those leads
- * became come second; everything that is a standing measure rather than a thing
- * to do today sits below both. There are no tabs — the reading order is the
+ * became — and the follow-ups owed against them — come second; everything that
+ * is a standing measure rather than a thing to do today sits below both. There are no tabs — the reading order is the
  * page's, not a choice the operator has to make before they can see anything
  * (§1.6: an always-visible option is paid for on every visit, by everyone).
  *
@@ -75,8 +75,8 @@ const SMALL = { base: 12, sm: 4, lg: 2 } as const;
  * **Follow-ups is a ninth section that is not part of the dashboard contract at
  * all** — `/api/v1/dashboard/` has no reminder data, so that card reads
  * `/api/v1/reminders/` directly. It carries the same no-cross-section-
- * consistency caveat as the other eight, and it sits outside the Operations
- * gate on purpose (see the comment at its band).
+ * consistency caveat as the other eight, and it sits in the **Applicants**
+ * band on purpose (see the comment at the card).
  */
 export function DashboardOverview() {
   const filters = useDashboardFilters();
@@ -141,7 +141,7 @@ export function DashboardOverview() {
           <ModuleErrorBoundary resetKeys={resetKeys}>
             <SectionBand
               title="Applicants"
-              subtitle="Where the book of work is going, and who has just joined it."
+              subtitle="Where the book of work is going, who has just joined it, and what we owe them."
             >
               <Grid.Col span={MEDIUM}>
                 <ApplicantCountryStats filters={filters} />
@@ -152,31 +152,25 @@ export function DashboardOverview() {
               <Grid.Col span={LARGE}>
                 <RecentApplicants filters={filters} />
               </Grid.Col>
-            </SectionBand>
-          </ModuleErrorBoundary>
+              {/* Follow-ups lives HERE rather than in its own band or in
+                  Operations, and the placement is load-bearing twice over.
 
-          {/* **Outside the Operations gate, deliberately.** A `custom_reminder`
-              alert is routed to Admins only, so a Lead Manager's own follow-ups
-              surface nowhere automatically — the reminders contract's §9 names
-              this query as the client-side answer. Folding this card into the
-              Admin-only band would hide it from exactly the people with no
-              other way to see their due work.
+                  It has to be somewhere a `lead_manager` can see: a
+                  `custom_reminder` alert is routed to Admins only, so that
+                  tier's own due work surfaces nowhere automatically, and the
+                  reminders contract's §9 names this query as the client-side
+                  answer. The Applicants band is one of the two bands they get.
 
-              No `resetKeys` on this boundary: unlike every other band, nothing
-              here reads the fiscal-year or country filters, so there is nothing
-              for a filter change to reset. */}
-          {canUseReminders && (
-            <ModuleErrorBoundary>
-              <SectionBand
-                title="Follow-ups"
-                subtitle="Dated notes staff set on a record — and which of them have come due."
-              >
+                  And it belongs beside the people it concerns. A follow-up is
+                  a debt against a record in this band — reading "who just
+                  joined" next to "what we owe them" is one thought, not two. */}
+              {canUseReminders && (
                 <Grid.Col span={LARGE}>
                   <RemindersPanel />
                 </Grid.Col>
-              </SectionBand>
-            </ModuleErrorBoundary>
-          )}
+              )}
+            </SectionBand>
+          </ModuleErrorBoundary>
 
           {dashboardOperations && (
             <ModuleErrorBoundary resetKeys={resetKeys}>
@@ -218,11 +212,11 @@ export function DashboardOverview() {
               : "Access: lead_manager — the Operations band is admin-only."}{" "}
             Fiscal year and destination country (top right) scope every card
             except Recent activity, which is fiscal-year only, and Follow-ups,
-            which reads neither. Overdue and expiry flags are computed
-            server-side, except on Follow-ups, where the due day is a Nepal
-            calendar day resolved in the browser. Figures come from different
-            endpoints and different windows — read each card on its own terms,
-            never across them.
+            which reads neither and covers client reminders as well as applicant
+            ones. Overdue and expiry flags are computed server-side, except on
+            Follow-ups, where the due day is a Nepal calendar day resolved in
+            the browser. Figures come from different endpoints and different
+            windows — read each card on its own terms, never across them.
           </Text>
         </Stack>
       </ModalPaper>

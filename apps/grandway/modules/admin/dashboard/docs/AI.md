@@ -4,13 +4,14 @@
 
 The operational command centre — eight independent, read-only sections
 summarising what needs attention now, what is moving, and where work is stuck,
-presented as **one straight-through page** of four bands. Owns no data, writes
+presented as **one straight-through page** of three bands. Owns no data, writes
 nothing (`docs/backend/dashboard/INTEGRATION.md`).
 
 **Plus a ninth section that is not in that contract at all**: the Follow-ups
-band reads `/api/v1/reminders/` directly, because `/api/v1/dashboard/` has no
-reminder data (its §2 Requires table does not list `reminders`, and none of the
-eight endpoints touches one). See the Follow-ups notes below. Folder is **singular**
+card in the **Applicants band** reads `/api/v1/reminders/` directly, because
+`/api/v1/dashboard/` has no reminder data (its §2 Requires table does not list
+`reminders`, and none of the eight endpoints touches one). See the Follow-ups
+notes below. Folder is **singular**
 (`dashboard/`) to match the API base path (`/api/v1/dashboard/`); the backend app
 is plural (`dashboards`).
 
@@ -50,17 +51,19 @@ always-shown "Home" entry is the dashboard.
 | `dashboard.utils.ts`       | `formatDate`/`formatDateTime`/`formatSince`/`formatRatePercent`/`formatFetchedAt`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `dashboard.chartConfig.ts` | `toChartColor(name, shade)` + `CHART_TRACK_COLOR`/`CHART_ZERO_COLOR`; the shared chart-grammar notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
-## Access — two bands, three, or four
+## Access — two bands or three
 
-A `lead_manager` sees the **Leads, Applicants and Follow-ups bands**; the Operations
-band is gated on `caps.dashboardOperations` (Admin).
+A `lead_manager` sees the **Leads and Applicants bands**; the Operations band is
+gated on `caps.dashboardOperations` (Admin).
 
-**Follow-ups is gated on `caps.reminders`, NOT on `caps.dashboardOperations` — do not
-"tidy" it into the Operations band.** A `custom_reminder` alert is routed to Admins
-only (`docs/backend/reminders/INTEGRATION.md` §9), so a Lead Manager's own follow-ups
-surface nowhere automatically, and that section names this exact query as the
-client-side answer. Moving the card inside the Admin-only band would hide it from
-precisely the people who have no other way to see their due work. Leads and Applicants are the work — who
+**The Follow-ups card sits INSIDE the Applicants band, gated on `caps.reminders` —
+do not "tidy" it into Operations or back out into a band of its own.** Two reasons,
+both load-bearing. A `custom_reminder` alert is routed to Admins only
+(`docs/backend/reminders/INTEGRATION.md` §9), so a Lead Manager's own follow-ups
+surface nowhere automatically and that section names this exact query as the
+client-side answer — the card must live in a band that tier actually gets. And a
+follow-up is a debt against a record in this band, so "who just joined" and "what we
+owe them" read as one thought. Leads and Applicants are the work — who
 is waiting to hear back, and who those enquiries became. Operations is standing
 measurement, which is an Admin's view of the office rather than a caseworker's view of
 their day.
@@ -76,12 +79,11 @@ keep it truthful if the split changes.
 `DashboardGreeting` → three `SectionBand`s. Every card measures against the SAME
 12 columns: **large 6/12 · medium 4/12 · small 2/12**, and nothing exceeds 6/12.
 
-| Band           | Left (figures)                                                                                                                                        | Right (rows)            |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| **Leads**      | `LeadStats` 4/12 + `LeadStatTiles` 2/12                                                                                                               | `LeadsToAddress` 6/12   |
-| **Applicants** | `ApplicantCountryStats` 4/12 + `ApplicantStatTiles` 2/12                                                                                              | `RecentApplicants` 6/12 |
-| **Follow-ups** | one 6/12 `PanelCard`: `RemindersPanel`                                                                                                                | —                       |
-| **Operations** | seven 6/12 `PanelCard`s: `AttentionPanel` · `TodayPanel` · `BlockersPanel` · `WorkloadPanel` · `PipelinePanel` · `PerformancePanel` · `ActivityPanel` | —                       |
+| Band           | Left (figures)                                                                                                                                        | Right (rows)                                                            |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **Leads**      | `LeadStats` 4/12 + `LeadStatTiles` 2/12                                                                                                               | `LeadsToAddress` 6/12                                                   |
+| **Applicants** | `ApplicantCountryStats` 4/12 + `ApplicantStatTiles` 2/12                                                                                              | `RecentApplicants` 6/12 + `RemindersPanel` 6/12 (wraps to a second row) |
+| **Operations** | seven 6/12 `PanelCard`s: `AttentionPanel` · `TodayPanel` · `BlockersPanel` · `WorkloadPanel` · `PipelinePanel` · `PerformancePanel` · `ActivityPanel` | —                                                                       |
 
 - **The tab bar, `dashboard.tabs.ts` and `useDashboardTab` are gone.** The reading
   order is the page's; `tab` is no longer URL state (`fiscal_year`/`country` still are).
@@ -170,7 +172,12 @@ keep it truthful if the split changes.
 ## Do not do
 
 - Do not combine the 8 queries into one — a slow section must never block the rest (CONCEPT.md).
-- Do not move `RemindersPanel` inside the `dashboardOperations` gate (see Access above).
+- Do not move `RemindersPanel` out of the Applicants band — not into Operations, and
+  not back into a band of its own (see Access above).
+- Do not filter the Follow-ups card to applicant-owned reminders because of where it
+  sits. The list endpoint has no "any applicant" filter, so dropping client rows
+  client-side would leave the counts describing a set the rows do not match. Each row
+  names its own owner type, and the caption says so.
 - Do not pass `filters` to `RemindersPanel`, or add `fiscal_year`/`country` to
   `useDueReminders`. Reminders have no country, and `fiscal_year` on that API is a
   **Bikram Sambat label over `due_date`** — a different question from this page's
