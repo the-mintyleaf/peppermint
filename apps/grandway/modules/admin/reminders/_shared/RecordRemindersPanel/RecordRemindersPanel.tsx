@@ -51,7 +51,14 @@ export function RecordRemindersPanel({ owner }: RecordRemindersPanelProps) {
 
   // One clock for the whole render pass — every row buckets against this same
   // value, so a list can never straddle midnight NPT inconsistently.
-  const today = useMemo(() => nepalToday(), []);
+  //
+  // Deliberately NOT memoized on mount. This panel can sit open indefinitely (a
+  // detail tab, a drawer), and a `useMemo(..., [])` here would keep reporting
+  // "due today" for a reminder that went overdue at midnight NPT while the tab
+  // was open. Recomputing per render is one `Intl` format, and because the
+  // result is a stable string the memos below still skip their work on every
+  // render of an unchanged day.
+  const today = nepalToday();
 
   const { data, isLoading, isError, isRefetching, refetch } = useReminderList({
     ...owner,
@@ -139,12 +146,18 @@ export function RecordRemindersPanel({ owner }: RecordRemindersPanelProps) {
         </Stack>
       ) : null}
 
-      {/* Truncation is disclosed rather than hidden: `meta.total` is the true
-          count, and a record with more than a page of reminders should say so
-          instead of quietly showing the first hundred. */}
+      {/* Truncation is disclosed rather than hidden. Worded against the record,
+          not against the rows on screen: the Open/All filter changes what is
+          visible but not what was fetched, so "showing N of M" would contradict
+          a filtered view. The warning is explicit that rows can be MISSING
+          rather than merely reordered — this API has no `ordering`, so the page
+          holds the newest-created reminders, and an old but still-open one can
+          fall outside it. */}
       {!isLoading && !isError && (data?.meta.total ?? 0) > reminders.length ? (
         <Text size="xs" c="dimmed">
-          Showing the {reminders.length} most recent of {data?.meta.total}.
+          This record has {data?.meta.total} reminders; only the{" "}
+          {reminders.length} most recently created are loaded, so an older open
+          follow-up may not appear here.
         </Text>
       ) : null}
 

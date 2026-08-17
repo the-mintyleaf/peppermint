@@ -28,6 +28,7 @@ export {
   useCompleteReminder,
   useCreateReminder,
   useDismissReminder,
+  useReminder,
   useReminderHistory,
   useReminderList,
   useUpdateReminder,

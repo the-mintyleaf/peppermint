@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@peppermint/ui";
+import { useQuery, useQueryClient } from "@peppermint/ui";
 import type { QueryKey } from "@peppermint/ui";
 import { useAppMutation } from "@peppermint/admin";
 import type { QueryParams } from "@peppermint/admin";
@@ -96,7 +96,8 @@ export function useReminderHistory(id: string, enabled = true) {
 }
 
 /**
- * Every mutation invalidates all three surfaces a reminder appears on.
+ * Every mutation refreshes all three surfaces a reminder appears on — **on
+ * failure as well as success**.
  *
  * `lists()` is a strict prefix of every `.list(params)` key, so one entry
  * refreshes every mounted list regardless of its filters — the applicant panel,
@@ -105,7 +106,7 @@ export function useReminderHistory(id: string, enabled = true) {
  * from a record screen has to move the dashboard's count too, and forgetting
  * this line is exactly how the card goes stale.
  */
-function invalidateReminderKeys(id?: string): QueryKey[] {
+function reminderKeys(id?: string): QueryKey[] {
   // Annotated rather than inferred: the two key factories return different
   // readonly tuples, so an inferred array would be a union type the `push`
   // below cannot widen.
@@ -115,13 +116,40 @@ function invalidateReminderKeys(id?: string): QueryKey[] {
   return keys;
 }
 
+/**
+ * Refetch after a **failed** write.
+ *
+ * `useAppMutation` only walks `invalidateKeys` in its `onSuccess`, which is the
+ * right default — a network blip should not stampede every list. It is the
+ * wrong default here, because this module's most likely failure is a 409: a
+ * colleague completed or dismissed the reminder first, so the local row is now
+ * provably stale and the toast tells the reader it is "refreshing". Without
+ * this the row would keep showing live Complete/Dismiss buttons on a reminder
+ * that is already closed, and the message would be a lie.
+ *
+ * Scoped to conflict-shaped failures. A dropped connection leaves the cache as
+ * accurate as it was, and refetching on every transient error would turn one
+ * failed click into a burst of requests.
+ */
+function useRefetchOnConflict(id?: string) {
+  const queryClient = useQueryClient();
+  return (error: unknown) => {
+    const status = (error as { response?: { status?: number } })?.response
+      ?.status;
+    if (status !== 409 && status !== 404) return;
+    reminderKeys(id).forEach((queryKey) => {
+      void queryClient.invalidateQueries({ queryKey });
+    });
+  };
+}
+
 /** `POST /api/v1/reminders/` → 201. Exactly one owner, `due_date` ≥ Nepal today (§7). */
 export function useCreateReminder() {
   return useAppMutation<Reminder, ReminderCreatePayload>({
     mutationFn: createReminder,
     successMessage: "Reminder set.",
     errorTitle: "Couldn't set reminder",
-    invalidateKeys: invalidateReminderKeys(),
+    invalidateKeys: reminderKeys(),
   });
 }
 
@@ -133,11 +161,13 @@ export function useCreateReminder() {
  * so the caller can skip the request entirely (an empty `PATCH` is a 400).
  */
 export function useUpdateReminder(id: string) {
+  const refetchOnConflict = useRefetchOnConflict(id);
   return useAppMutation<Reminder, ReminderUpdatePayload>({
     mutationFn: (payload) => updateReminder(id, payload),
     successMessage: "Reminder updated.",
     errorTitle: "Couldn't update reminder",
-    invalidateKeys: invalidateReminderKeys(id),
+    invalidateKeys: reminderKeys(id),
+    onError: refetchOnConflict,
   });
 }
 
@@ -150,11 +180,13 @@ export function useUpdateReminder(id: string) {
  * against a feed the acting user may not even be a recipient of.
  */
 export function useCompleteReminder(id: string) {
+  const refetchOnConflict = useRefetchOnConflict(id);
   return useAppMutation<Reminder, ReminderActionPayload | void>({
     mutationFn: (payload) => completeReminder(id, payload ?? {}),
     successMessage: "Reminder completed.",
     errorTitle: "Couldn't complete reminder",
-    invalidateKeys: invalidateReminderKeys(id),
+    invalidateKeys: reminderKeys(id),
+    onError: refetchOnConflict,
   });
 }
 
@@ -163,10 +195,12 @@ export function useCompleteReminder(id: string) {
  * and no reopen anywhere in this module (§3), so callers confirm first.
  */
 export function useDismissReminder(id: string) {
+  const refetchOnConflict = useRefetchOnConflict(id);
   return useAppMutation<Reminder, ReminderActionPayload | void>({
     mutationFn: (payload) => dismissReminder(id, payload ?? {}),
     successMessage: "Reminder dismissed.",
     errorTitle: "Couldn't dismiss reminder",
-    invalidateKeys: invalidateReminderKeys(id),
+    invalidateKeys: reminderKeys(id),
+    onError: refetchOnConflict,
   });
 }

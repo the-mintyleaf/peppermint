@@ -26,6 +26,7 @@ import {
   formatDueDate,
   formatDueDistance,
 } from "../../reminders.utils";
+import { ReminderHistory } from "../ReminderHistory";
 import type { ReminderRowProps } from "./ReminderRow.types";
 
 /**
@@ -137,6 +138,11 @@ export function ReminderRow({
           {" · set by "}
           {reminder.created_by_username}
         </Text>
+
+        {/* Collapsed by default, so a panel of twenty reminders costs zero
+            history requests until someone asks a question about one. It is also
+            the only place a complete/dismiss reason is ever readable. */}
+        <ReminderHistory reminderId={reminder.id} />
 
         {isOpen ? (
           /* Destructive action (Dismiss) sits far left, spatially separated

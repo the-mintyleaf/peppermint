@@ -266,10 +266,14 @@ export function ReminderFormModal({
       onClose();
       return { ok: true };
     } catch {
-      // `useAppMutation` already raised the resolved error toast. Returning
-      // `ok: false` with no message keeps the modal open with its values intact
-      // rather than stacking a second notification on top of the first.
-      return { ok: false };
+      // Reports `ok: true` on purpose, matching `EditFileModal`/`UploadFileModal`.
+      // The mutation's own `onError` already showed the resolved, specific toast
+      // ("This reminder was already closed...") — and `FormWrapper.handleSubmit`
+      // shows its OWN generic "Something went wrong" toast for any `ok: false`,
+      // so reporting the failure honestly here would stack a second, vaguer
+      // notification on top of the accurate one. The modal is left open with its
+      // values intact by simply not calling `onClose()`.
+      return { ok: true };
     }
   };
 
