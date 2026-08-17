@@ -132,8 +132,14 @@ Three columns, left to right:
   the response carries open **and** closed rows; the Open/All tabs are panels
   over that one result, with the live counts on the strip. Loading and error sit
   **above** the tabs — they are properties of the request that feeds both views,
-  and rendering them inside a panel would redraw the strip on every refetch. Two filtered requests would be two cache entries and
-  a flash of empty on every toggle.
+  and rendering them inside a panel would redraw the strip on every refetch. Two
+  filtered requests would be two cache entries and a flash of empty on every
+  toggle.
+- **The panel `Stack` is `gap={0}`**, so the tab strip sits flush under
+  `ProfilePanelHeader`'s own divider. A gap there reads as a seam between two
+  unrelated blocks when the tabs are the header's own control. Anything else
+  that needs air (the loader, the error, the truncation note) asks for it
+  explicitly — do not reintroduce a stack gap to fix one of those.
 - **Rows are sorted for reading**, not in server order. This API has **no
   `ordering` parameter** and always returns newest-created first, so reading
   order (soonest due first, closed sunk) is the client's to own.

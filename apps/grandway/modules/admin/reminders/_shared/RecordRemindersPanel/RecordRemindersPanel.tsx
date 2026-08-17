@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Badge, Button, Loader, Stack, Tabs, Text } from "@peppermint/ui";
+import { Badge, Box, Button, Loader, Stack, Tabs, Text } from "@peppermint/ui";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { ProfilePanelHeader } from "@/components/profile";
 import { QueryErrorState } from "@/components/QueryErrorState";
@@ -123,7 +123,11 @@ export function RecordRemindersPanel({ owner }: RecordRemindersPanelProps) {
   };
 
   return (
-    <Stack gap="md">
+    // `gap={0}` so the tab strip sits flush under the header's own divider —
+    // a gap there reads as a seam between two unrelated blocks, when the tabs
+    // are the header's own control. Everything else that needs air asks for it
+    // explicitly below.
+    <Stack gap={0}>
       <ProfilePanelHeader
         title="Reminders"
         description="Dated follow-ups on this record. Admins are alerted when one comes due."
@@ -142,14 +146,16 @@ export function RecordRemindersPanel({ owner }: RecordRemindersPanelProps) {
       {/* Loading and error belong ABOVE the tabs: they are properties of the
           one request that feeds both views, not of either view. Putting them
           inside a panel would redraw the tab strip on every refetch. */}
-      {isLoading ? <Loader size="sm" /> : null}
+      {isLoading ? <Loader size="sm" mt="md" /> : null}
 
       {isError ? (
-        <QueryErrorState
-          message="Couldn't load reminders for this record."
-          onRetry={() => refetch()}
-          isRetrying={isRefetching}
-        />
+        <Box mt="md">
+          <QueryErrorState
+            message="Couldn't load reminders for this record."
+            onRetry={() => refetch()}
+            isRetrying={isRefetching}
+          />
+        </Box>
       ) : null}
 
       {/* Real tabs, and a filter over data already in hand — not a second
@@ -213,7 +219,7 @@ export function RecordRemindersPanel({ owner }: RecordRemindersPanelProps) {
           holds the newest-created reminders, and an old but still-open one can
           fall outside it. */}
       {!isLoading && !isError && (data?.meta.total ?? 0) > reminders.length ? (
-        <Text size="xs" c="dimmed">
+        <Text size="xs" c="dimmed" mt="xs">
           This record has {data?.meta.total} reminders; only the{" "}
           {reminders.length} most recently created are loaded, so an older open
           follow-up may not appear here.
