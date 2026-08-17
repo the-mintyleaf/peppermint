@@ -12,6 +12,7 @@ import {
   Text,
 } from "@peppermint/ui";
 import { AirplaneTakeoffIcon } from "@phosphor-icons/react/dist/csr/AirplaneTakeoff";
+import { AlarmIcon } from "@phosphor-icons/react/dist/csr/Alarm";
 import { BellIcon } from "@phosphor-icons/react/dist/csr/Bell";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
 import { FolderIcon } from "@phosphor-icons/react/dist/csr/Folder";
@@ -29,6 +30,7 @@ import { getApiError } from "@/lib/authErrorMessages";
 import { useCapabilities } from "@/config/access";
 import { ApplicantDocumentsPanel } from "@/modules/admin/documents";
 import { RecordAlertsPanel } from "@/modules/admin/notifications/_shared/RecordAlertsPanel";
+import { RecordRemindersPanel } from "@/modules/admin/reminders/_shared/RecordRemindersPanel";
 import { FilesPanel } from "@/modules/admin/uploaded-files/_shared/FilesPanel";
 import { useApplicantDetail } from "../../applicants.hooks";
 import { applicantDisplayName } from "../../applicants.labels";
@@ -43,19 +45,23 @@ import { ApplicantStatusSwitch } from "../list/components/ApplicantStatusSwitch"
 /**
  * Content-column tabs (Overview is the sidebar, not a tab).
  *
- * Documents is the only conditional one: a role that cannot read documents must not
- * even see the tab, since an empty tab would itself disclose that documents may
- * exist (`documents/INTEGRATION.md` §1).
+ * Two are conditional, for different reasons. **Documents**: a role that cannot read
+ * documents must not even see the tab, since an empty tab would itself disclose that
+ * documents may exist (`documents/INTEGRATION.md` §1). **Reminders**: every reminders
+ * endpoint 403s a `superadmin`, so the tab is gated rather than left to fail — but
+ * `caps.reminders` holds for both `admin` and `lead_manager`, and that module has no
+ * read/write split, so the panel inside is fully writable for either.
  *
  * **The rest stay for everyone who reaches this page, deliberately.** The applicant
  * *record* is read-only for staff — identity, passport, family, status — but
- * Journeys, Files, Alerts and History belong to modules staff still work in fully.
- * Do not extend the read-only rule to them.
+ * Journeys, Files, Reminders, Alerts and History belong to modules staff still work
+ * in fully. Do not extend the read-only rule to them.
  */
 function getApplicantTabs(
   applicant: ApplicantDetailRecord,
   displayName: string,
   includeDocuments: boolean,
+  includeReminders: boolean,
 ): ProfileTab[] {
   return [
     {
@@ -94,6 +100,19 @@ function getApplicantTabs(
       icon: <PaperclipIcon size={14} aria-hidden />,
       panel: <FilesPanel scope={{ applicant: applicant.id }} />,
     },
+    // Reminders sits immediately before Alerts: the two are siblings — a
+    // reminder is the follow-up a person *chose* to be prompted about, an
+    // alert is one the system raised — and the authored one reads first.
+    ...(includeReminders
+      ? [
+          {
+            value: "reminders",
+            label: "Reminders",
+            icon: <AlarmIcon size={14} aria-hidden />,
+            panel: <RecordRemindersPanel owner={{ applicant: applicant.id }} />,
+          } satisfies ProfileTab,
+        ]
+      : []),
     {
       value: "alerts",
       label: "Alerts",
@@ -119,7 +138,11 @@ function getApplicantTabs(
 function ApplicantDetailContent() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { documents: canReadDocuments, applicantEdit } = useCapabilities();
+  const {
+    documents: canReadDocuments,
+    applicantEdit,
+    reminders: canUseReminders,
+  } = useCapabilities();
   const {
     data: applicant,
     isLoading,
@@ -180,7 +203,12 @@ function ApplicantDetailContent() {
   }
 
   const displayName = applicantDisplayName(applicant);
-  const tabs = getApplicantTabs(applicant, displayName, canReadDocuments);
+  const tabs = getApplicantTabs(
+    applicant,
+    displayName,
+    canReadDocuments,
+    canUseReminders,
+  );
 
   return (
     <>

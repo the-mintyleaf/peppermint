@@ -10,6 +10,8 @@ import {
   Text,
 } from "@peppermint/ui";
 import { getApiError } from "@/lib/authErrorMessages";
+import { useCapabilities } from "@/config/access";
+import { RecordRemindersPanel } from "@/modules/admin/reminders/_shared/RecordRemindersPanel";
 import { useClientDetail } from "../../../../clients.hooks";
 import { ClientHistoryPanel } from "./ClientHistoryPanel";
 import { ClientOverviewPanel } from "./ClientOverviewPanel";
@@ -21,6 +23,12 @@ import type { ClientDetailDrawerProps } from "./ClientDetailDrawer.types";
  * (`CLIENTS_CLIENT_NOT_FOUND`, always genuine — §3) renders as not-found; any
  * other failure gets a distinct message and a retry rather than asserting the
  * record is gone.
+ *
+ * The **Reminders** tab is gated on `caps.reminders` (every reminders endpoint
+ * 403s a `superadmin`) and is deliberately writable for both tiers that have
+ * it: unlike the client record itself — shared reference data, Admin-write only
+ * — a reminder is one person's note about follow-up work, so the directory's
+ * narrower write rule does not carry across to it.
  */
 export function ClientDetailDrawer({
   clientId,
@@ -34,6 +42,7 @@ export function ClientDetailDrawer({
     error,
     refetch,
   } = useClientDetail(clientId);
+  const { reminders: canUseReminders } = useCapabilities();
   const notFound =
     isError && getApiError(error).code === "CLIENTS_CLIENT_NOT_FOUND";
 
@@ -66,12 +75,21 @@ export function ClientDetailDrawer({
         <Tabs defaultValue="overview">
           <Tabs.List>
             <Tabs.Tab value="overview">Overview</Tabs.Tab>
+            {canUseReminders ? (
+              <Tabs.Tab value="reminders">Reminders</Tabs.Tab>
+            ) : null}
             <Tabs.Tab value="history">History</Tabs.Tab>
           </Tabs.List>
 
           <Tabs.Panel value="overview" pt="md">
             <ClientOverviewPanel client={client} />
           </Tabs.Panel>
+
+          {canUseReminders ? (
+            <Tabs.Panel value="reminders" pt="md">
+              <RecordRemindersPanel owner={{ client: client.id }} />
+            </Tabs.Panel>
+          ) : null}
 
           <Tabs.Panel value="history" pt="md">
             <ClientHistoryPanel clientId={client.id} />
