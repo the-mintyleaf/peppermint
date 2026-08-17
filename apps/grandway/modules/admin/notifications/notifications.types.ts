@@ -3,10 +3,15 @@
 // payload anywhere (§7: all seven endpoints accept no request body).
 
 /**
- * 14 declared values; only 11 are ever produced (§5). `missing_information`,
+ * 15 declared values; only 12 are ever produced (§5). `missing_information`,
  * `test_score_expiring`, and `appointment_reminder` have no generator today —
  * typed anyway because the contract says render them if they ever arrive,
  * never design a screen around them.
+ *
+ * `custom_reminder` (added in backend v1.1.0) is the odd one out: it is the
+ * only type a **user** ultimately causes, by setting a dated follow-up in the
+ * `reminders` module. It is routed to Admins only — a Lead Manager who sets a
+ * reminder never receives its alert here.
  */
 export type NotificationType =
   | "checklist_item_due"
@@ -18,6 +23,7 @@ export type NotificationType =
   | "passport_expiring"
   | "test_score_expiring"
   | "appointment_reminder"
+  | "custom_reminder"
   | "assignment_received"
   | "file_rejected"
   | "journey_stage_changed"

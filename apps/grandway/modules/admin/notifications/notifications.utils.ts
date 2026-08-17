@@ -69,6 +69,14 @@ export function orderedDueBucketGroups(
  * - `assignment_received` when `source_entity_type` is `checklist_item` (same
  *   reason — the table allows either shape for this one type).
  * - The three never-produced declared types (no source record to link to).
+ * - **`custom_reminder`** — deliberately, and this one is worth reading twice.
+ *   Its `source_entity_id` is the **reminder's** id, and no route
+ *   `/admin/reminders/<id>` exists (reminders live on the record they belong
+ *   to, not on a route of their own). The payload carries nothing identifying
+ *   the applicant or client the follow-up concerns, so there is no route to
+ *   derive here without guessing — which this function never does. Resolving
+ *   it requires fetching the reminder, so `NotificationRow` renders
+ *   `<ReminderAlertLink>` for this type instead of the generic link.
  *
  * NOTE for the orchestrator: the `/admin/checklists/<id>` path assumes the
  * checklists module (built concurrently) exposes a detail route at that
@@ -100,6 +108,8 @@ export function resolveNotificationLink(
       return notification.source_entity_type === "checklist"
         ? `/admin/checklists/${id}`
         : null;
+    // `custom_reminder` falls through to `null` on purpose — see the note
+    // above. `ReminderAlertLink` resolves it by asking, not by guessing.
     default:
       return null;
   }

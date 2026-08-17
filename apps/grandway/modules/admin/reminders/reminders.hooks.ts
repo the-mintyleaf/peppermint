@@ -9,6 +9,7 @@ import {
   createReminder,
   dismissReminder,
   fetchReminderHistory,
+  getReminder,
   listReminders,
   updateReminder,
 } from "./reminders.api";
@@ -58,6 +59,26 @@ export function useReminderList(filters: ReminderListFilters) {
   return useQuery({
     queryKey: reminderQueryKeys.list(filters),
     queryFn: () => listReminders(toListQueryParams(filters)),
+  });
+}
+
+/**
+ * One reminder by id — the `source_api_path` target of a `custom_reminder`
+ * notification.
+ *
+ * The alert payload carries the **reminder** id and nothing about the record it
+ * belongs to, so an alert that wants to link through to the owning applicant or
+ * client has to ask. That is a real lookup, not a guessed URL, which is what
+ * the notifications module's own rule requires.
+ */
+export function useReminder(id: string, enabled = true) {
+  return useQuery({
+    queryKey: reminderQueryKeys.detail(id),
+    queryFn: () => getReminder(id),
+    enabled: enabled && Boolean(id),
+    // A reminder's owner never changes — it is immutable after create — so the
+    // answer this lookup exists for cannot go stale within a session.
+    staleTime: 5 * 60_000,
   });
 }
 

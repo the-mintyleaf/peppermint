@@ -45,14 +45,14 @@ a modal here.
 
 ## Data layer (module root)
 
-| File                       | Holds                                                                                   |
-| -------------------------- | --------------------------------------------------------------------------------------- |
-| notifications.types.ts     | `Notification` (identical list/detail), `FeedSummary`, `BulkReadResult`, filters        |
-| notifications.labels.ts    | Type/priority/due-bucket label, color, and icon maps                                    |
-| notifications.queryKeys.ts | `notificationQueryKeys` (`createQueryKeys`) + `summaryKey` (own cache slot)             |
-| notifications.api.ts       | `createResourceApi<Notification, never, never>` + hand-rolled summary/read-all          |
-| notifications.hooks.ts     | `useNotificationSummary` (polled), `useNotificationList`, action mutations              |
-| notifications.utils.ts     | Date formatting, `groupByDueBucket`/`orderedDueBucketGroups`, `resolveNotificationLink` |
+| File                       | Holds                                                                                                                                                                                                       |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| notifications.types.ts     | `Notification` (identical list/detail), `FeedSummary`, `BulkReadResult`, filters. **15 declared types since backend v1.1.0** — `custom_reminder` is the newest, and the only one a _user_ ultimately causes |
+| notifications.labels.ts    | Type/priority/due-bucket label, color, and icon maps                                                                                                                                                        |
+| notifications.queryKeys.ts | `notificationQueryKeys` (`createQueryKeys`) + `summaryKey` (own cache slot)                                                                                                                                 |
+| notifications.api.ts       | `createResourceApi<Notification, never, never>` + hand-rolled summary/read-all                                                                                                                              |
+| notifications.hooks.ts     | `useNotificationSummary` (polled), `useNotificationList`, action mutations                                                                                                                                  |
+| notifications.utils.ts     | Date formatting, `groupByDueBucket`/`orderedDueBucketGroups`, `resolveNotificationLink`                                                                                                                     |
 
 - `TCreate`/`TUpdate` are `never` on the resource — there is nothing to create or
   update, so those methods can never be called by accident.
@@ -101,7 +101,16 @@ a modal here.
   (no id/callback prop-drilling needed).
 - "View record" only renders when `resolveNotificationLink` can build a real
   frontend route from `notification_type` + `source_entity_type` +
-  `source_entity_id` — **never parse `source_api_path`**. Degrades to no link
+  `source_entity_id` — **never parse `source_api_path`**.
+- **`custom_reminder` is the one type whose link is a component, not a route.**
+  Its `source_entity_id` is a _reminder_ id, there is no `/admin/reminders/<id>`
+  route, and the payload names nothing about the applicant or client the
+  follow-up concerns — so `resolveNotificationLink` returns `null` for it by
+  design and the row renders `<ReminderAlertLink>` from
+  `@/modules/admin/reminders/_shared/ReminderAlertLink` instead. That component
+  _fetches_ the reminder to find its owner rather than guessing a URL from an
+  id. It takes `onNavigate`, which the row wires to the same mark-as-read
+  handler the generic link uses. Degrades to no link
   (title/body only) for `checklist_item_due`/`checklist_item_overdue` and the
   `checklist_item`-shaped `assignment_received` case, because `source_entity_id`
   there is the checklist ITEM id, not the parent checklist id the frontend route
@@ -159,6 +168,12 @@ a modal here.
 - Do not parse `source_api_path` for routing — route on `notification_type` +
   `source_entity_type` (`resolveNotificationLink`).
 - Do not render `body` as HTML.
+- Do not add a `case "custom_reminder"` to `resolveNotificationLink` returning
+  `/admin/reminders/<id>` — that route does not exist, and the id is the
+  reminder's, not the record's.
+- Do not dismiss a `custom_reminder` on the reader's behalf after its reminder
+  is completed. Closing the reminder is what clears the alert; the next nightly
+  sweep resolves it as `source_cleared`.
 - Do not add a `?recipient=`/"notifications for user X" filter — the backend has
   none, by design (own-feed-only, absolute).
 - Do not fetch in `useEffect`; do not import Mantine directly.

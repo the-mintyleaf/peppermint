@@ -9,6 +9,7 @@ import { HourglassIcon } from "@phosphor-icons/react/dist/csr/Hourglass";
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
 import { CertificateIcon } from "@phosphor-icons/react/dist/csr/Certificate";
 import { CalendarBlankIcon } from "@phosphor-icons/react/dist/csr/CalendarBlank";
+import { AlarmIcon } from "@phosphor-icons/react/dist/csr/Alarm";
 import { ClipboardTextIcon } from "@phosphor-icons/react/dist/csr/ClipboardText";
 import { FileXIcon } from "@phosphor-icons/react/dist/csr/FileX";
 import { MapTrifoldIcon } from "@phosphor-icons/react/dist/csr/MapTrifold";
@@ -21,7 +22,7 @@ import type {
   NotificationType,
 } from "./notifications.types";
 
-/** Human labels for all 14 declared types (§5) — the 3 never-produced ones are labelled too, per contract guidance to render them if they ever arrive. */
+/** Human labels for all 15 declared types (§5) — the 3 never-produced ones are labelled too, per contract guidance to render them if they ever arrive. */
 export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
   checklist_item_due: "Checklist item due",
   checklist_item_overdue: "Checklist item overdue",
@@ -32,6 +33,9 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
   passport_expiring: "Passport expiring",
   test_score_expiring: "Test score expiring",
   appointment_reminder: "Appointment reminder",
+  // Named for what staff called it when they set it, not for the wire value —
+  // "Custom reminder" would describe the plumbing rather than the thing.
+  custom_reminder: "Follow-up reminder",
   assignment_received: "Assignment received",
   file_rejected: "File rejected",
   journey_stage_changed: "Journey stage changed",
@@ -50,6 +54,9 @@ export const NOTIFICATION_TYPE_ICONS: Record<NotificationType, Icon> = {
   passport_expiring: IdentificationCardIcon,
   test_score_expiring: CertificateIcon,
   appointment_reminder: CalendarBlankIcon,
+  // The same icon the applicant/client Reminders tab uses, so the alert and the
+  // record panel it came from read as one feature.
+  custom_reminder: AlarmIcon,
   assignment_received: ClipboardTextIcon,
   file_rejected: FileXIcon,
   journey_stage_changed: MapTrifoldIcon,

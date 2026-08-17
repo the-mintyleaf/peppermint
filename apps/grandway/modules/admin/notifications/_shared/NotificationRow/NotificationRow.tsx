@@ -15,6 +15,7 @@ import { StatusBadge } from "@peppermint/admin";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react/dist/csr/ArrowSquareOut";
 import { CheckIcon } from "@phosphor-icons/react/dist/csr/Check";
 import { XCircleIcon } from "@phosphor-icons/react/dist/csr/XCircle";
+import { ReminderAlertLink } from "@/modules/admin/reminders/_shared/ReminderAlertLink";
 import {
   DUE_BUCKET_COLORS,
   DUE_BUCKET_LABELS,
@@ -47,6 +48,15 @@ export function NotificationRow({
   const Icon = NOTIFICATION_TYPE_ICONS[notification.notification_type];
   const link = resolveNotificationLink(notification);
   const canDismiss = notification.status === "active";
+  // The one type whose destination can't be derived from the payload: its
+  // `source_entity_id` is a reminder id, and the record it concerns is only
+  // reachable by fetching that reminder. See `resolveNotificationLink`.
+  // Narrowed to a string rather than cast — `source_entity_id` is optional and
+  // nullable on the DTO, and a reminder alert without one has nothing to open.
+  const reminderId =
+    notification.notification_type === "custom_reminder"
+      ? (notification.source_entity_id ?? null)
+      : null;
 
   const handleOpen = () => {
     if (!notification.is_read) markRead.mutate();
@@ -153,7 +163,12 @@ export function NotificationRow({
                 Mark as read
               </Button>
             ) : null}
-            {link ? (
+            {reminderId ? (
+              <ReminderAlertLink
+                reminderId={reminderId}
+                onNavigate={handleOpen}
+              />
+            ) : link ? (
               <Button
                 size="compact-xs"
                 variant="light"
