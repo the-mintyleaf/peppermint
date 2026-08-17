@@ -39,7 +39,8 @@ export interface Capabilities {
    *
    * The contract's instruction is to **hide the box entirely** for that authority
    * rather than render one that always fails. Results are additionally narrowed
-   * per-bucket by the other capabilities — see `globalSearch.access.ts`.
+   * per-bucket by the other capabilities — see the `searchAccess` map in
+   * `layouts/admin/Admin.tsx` and `globalSearch.routes.ts`.
    */
   search: boolean;
 

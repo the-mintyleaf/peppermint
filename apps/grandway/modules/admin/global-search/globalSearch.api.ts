@@ -1,190 +1,74 @@
 import api from "@/lib/api";
-import type { ApplicantStatus } from "../applicants/applicants.types";
-import type { LeadStage } from "../lead-management/leadManagement.types";
-import type { ClientStatus } from "../clients/clients.types";
 import type { TemplateStatus } from "../checklists/checklists.types";
 import type {
-  DocumentFamily,
-  DocumentStatus,
-} from "@/modules/documents/documents.types";
+  GlobalSearchParams,
+  SearchResult,
+  SearchableType,
+} from "./globalSearch.types";
+
+const SEARCH = "/api/v1/search";
 
 /**
- * Raw list envelope shared by every searchable endpoint (`{ data, meta.count }`).
- * The fan-out reads a handful of fields per row and maps them straight to
- * spotlight results, so it types each row locally rather than importing (and
- * dragging in) each module's full read shape.
+ * `GET /api/v1/search/` — **one** request answering across every permitted type.
+ *
+ * This replaced a client-side fan-out over eight list endpoints. Three things
+ * moved back to the server with it: the scoping rules (a Lead Manager's leads
+ * and files are narrowed by the owning modules, not by the frontend), relevance
+ * ranking within the applicant and lead buckets, and the request cost.
+ *
+ * `signal` comes from the shell's React Query instance — a superseded keystroke
+ * aborts the in-flight request rather than letting a stale answer land.
+ *
+ * Rate limited to **60/minute on its own throttle scope**, separate from the
+ * project budget, which is what makes the shell's debounce non-optional.
  */
-interface ListEnvelope<T> {
-  data: T[];
-  meta: { count: number } & Record<string, unknown>;
-}
-
-/**
- * One paginated search request. `signal` comes from the shell's React Query
- * instance — a superseded keystroke aborts the in-flight request rather than
- * letting eight domains' worth of responses pile up behind the user's typing.
- */
-async function searchList<T>(
-  path: string,
-  params: Record<string, unknown>,
-  limit: number,
-  signal?: AbortSignal,
-): Promise<T[]> {
-  const { data } = await api.get<ListEnvelope<T>>(path, {
-    params: { page: 1, page_size: limit, ...params },
+export async function runGlobalSearch({
+  q,
+  types,
+  limit_per_type,
+  signal,
+}: GlobalSearchParams): Promise<SearchResult> {
+  const { data } = await api.get<SearchResult>(`${SEARCH}/`, {
+    params: {
+      q,
+      // Sent as the comma-separated string the contract specifies. Omitted
+      // entirely when undefined — an empty `types=` is not "all nine".
+      ...(types && types.length > 0 ? { types: types.join(",") } : {}),
+      ...(limit_per_type ? { limit_per_type } : {}),
+    },
     signal,
   });
-  return data.data;
+  return data;
 }
 
-// ── Applicants ───────────────────────────────────────────────────────────────
+/**
+ * `GET /api/v1/search/types/` — the searchable-type catalogue.
+ *
+ * **Static per deployment; fetch once and cache for the session.** The contract
+ * is explicit that chips must be built from this rather than hardcoded, so a new
+ * searchable type reaches the client without a release.
+ *
+ * The response is deliberately **not** narrowed by authority — every caller sees
+ * all nine, because narrowing it would leak by omission which record classes an
+ * authority is denied.
+ */
+export async function fetchSearchableTypes(): Promise<SearchableType[]> {
+  const { data } = await api.get<SearchableType[]>(`${SEARCH}/types/`);
+  return data;
+}
+
+// ── The one surviving client-side source ────────────────────────────────────
 //
-// `?search=` matches `full_name`, email, any contact number, and the passport
-// number, ordered by relevance (exact name > prefix > contains > matched on a
-// non-name field). English-only single `full_name` since the backend dropped the
-// `_np`/`_romanized` columns.
-
-export interface ApplicantSearchRow {
-  id: string;
-  full_name: string;
-  email: string;
-  status: ApplicantStatus;
-}
-
-export const searchApplicants = (
-  query: string,
-  limit: number,
-  signal?: AbortSignal,
-) =>
-  searchList<ApplicantSearchRow>(
-    "/api/v1/applicants/",
-    { search: query },
-    limit,
-    signal,
-  );
-
-// ── Leads ────────────────────────────────────────────────────────────────────
+// **Checklist templates are not a backend searchable type and are not planned
+// to become one** (`docs/backend/search/INTEGRATION.md` §9: "Journeys, offers,
+// and checklists are not searchable"). They *were* searchable in this app
+// before the migration, so dropping them silently would take a working
+// capability away from Admins.
 //
-// `?search=` matches `full_name`, email, and any contact number, relevance-ranked.
-
-export interface LeadSearchRow {
-  id: string;
-  /** Single English name since the backend dropped the `_np`/`_romanized` columns. */
-  full_name?: string;
-  /**
-   * Pre-rename fallback, matching `Lead` in `leadManagement.types.ts`: the
-   * frontend's copy of the leads contract still documents the bilingual triple,
-   * so a deployment on the older shape must not render every lead as unnamed.
-   */
-  full_name_en?: string;
-  email: string;
-  stage: LeadStage;
-}
-
-export const searchLeads = (
-  query: string,
-  limit: number,
-  signal?: AbortSignal,
-) =>
-  searchList<LeadSearchRow>("/api/v1/leads/", { search: query }, limit, signal);
-
-// ── Clients ──────────────────────────────────────────────────────────────────
-//
-// `?search=` covers the organization name and the spokesperson name.
-
-export interface ClientSearchRow {
-  id: string;
-  name: string;
-  spokesperson_name: string;
-  status: ClientStatus;
-}
-
-export const searchClients = (
-  query: string,
-  limit: number,
-  signal?: AbortSignal,
-) =>
-  searchList<ClientSearchRow>(
-    "/api/v1/clients/",
-    { search: query },
-    limit,
-    signal,
-  );
-
-// ── Catalogue ────────────────────────────────────────────────────────────────
-//
-// The catalogue searches on `q`, NOT the DRF-default `search` — and rejects
-// unknown query params outright rather than ignoring them.
-
-export interface ProgramSearchRow {
-  id: string;
-  title: string;
-  institution: { id: string; name: string };
-  country: { id: string; name: string };
-}
-
-export const searchPrograms = (
-  query: string,
-  limit: number,
-  signal?: AbortSignal,
-) =>
-  searchList<ProgramSearchRow>(
-    "/api/v1/catalogue/programs/",
-    { q: query },
-    limit,
-    signal,
-  );
-
-export interface InstitutionSearchRow {
-  id: string;
-  name: string;
-  common_name: string;
-  country: { id: string; name: string };
-}
-
-export const searchInstitutions = (
-  query: string,
-  limit: number,
-  signal?: AbortSignal,
-) =>
-  searchList<InstitutionSearchRow>(
-    "/api/v1/catalogue/institutions/",
-    { q: query },
-    limit,
-    signal,
-  );
-
-// ── Documents ────────────────────────────────────────────────────────────────
-//
-// `?search=` matches the document **label only** — not the body, not the
-// applicant's name, not `template_key`.
-
-export interface DocumentSearchRow {
-  id: string;
-  label: string;
-  applicant: string | null;
-  applicant_name: string | null;
-  is_standalone: boolean;
-  status: DocumentStatus;
-  /** Present on every list row — needed to drop bank families for a scoped viewer. */
-  family: DocumentFamily;
-}
-
-export const searchDocuments = (
-  query: string,
-  limit: number,
-  signal?: AbortSignal,
-) =>
-  searchList<DocumentSearchRow>(
-    "/api/v1/documents/",
-    { search: query },
-    limit,
-    signal,
-  );
-
-// ── Checklist templates ──────────────────────────────────────────────────────
-//
-// `?search=` matches `label` or `key`.
+// One extra request, only for a role that can reach the templates screen —
+// against the eight this module used to fire, that is still a 4× reduction.
+// If the backend ever adds a `checklist_template` type, delete this and the
+// `checklists` flag on `GlobalSearchAccess` with it.
 
 export interface ChecklistTemplateSearchRow {
   id: string;
@@ -194,37 +78,20 @@ export interface ChecklistTemplateSearchRow {
   status: TemplateStatus;
 }
 
-export const searchChecklistTemplates = (
-  query: string,
-  limit: number,
-  signal?: AbortSignal,
-) =>
-  searchList<ChecklistTemplateSearchRow>(
-    "/api/v1/checklists/templates/",
-    { search: query },
-    limit,
-    signal,
-  );
-
-// ── Signatories (document templates) ─────────────────────────────────────────
-//
-// `?search=` runs on the single `name`. Restricted to active signatories: a
-// retired one is not a thing anyone can act on from search.
-
-export interface SignatorySearchRow {
-  id: string;
-  name: string;
-  title?: string;
+interface ListEnvelope<T> {
+  data: T[];
+  meta: { count: number } & Record<string, unknown>;
 }
 
-export const searchSignatories = (
+/** `GET /api/v1/checklists/templates/?search=` — matches `label` or `key`. */
+export async function searchChecklistTemplates(
   query: string,
   limit: number,
   signal?: AbortSignal,
-) =>
-  searchList<SignatorySearchRow>(
-    "/api/v1/document-templates/signatories/",
-    { search: query, status: "active" },
-    limit,
-    signal,
+): Promise<ChecklistTemplateSearchRow[]> {
+  const { data } = await api.get<ListEnvelope<ChecklistTemplateSearchRow>>(
+    "/api/v1/checklists/templates/",
+    { params: { page: 1, page_size: limit, search: query }, signal },
   );
+  return data.data;
+}

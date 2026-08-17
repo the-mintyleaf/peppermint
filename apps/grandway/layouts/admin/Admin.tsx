@@ -46,8 +46,16 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
     }
   }, [router, pathname]);
 
-  // The same capabilities the nav is built from, reused as the search access model —
-  // the spotlight must never query a domain whose nav entry the role can't see.
+  // The same capabilities the nav is built from, reused as the search access
+  // model — the spotlight must never surface a domain whose nav entry the role
+  // cannot see, and every bucket must land somewhere that role can actually
+  // open.
+  //
+  // The backend narrows what it *can* (a Lead Manager's leads and files), but
+  // its own §9 records "should a Lead Manager see all applicants, documents and
+  // catalogue records" as unresolved, and today those modules do not narrow
+  // their own lists. This map is sent as the `types=` allowlist, so a bucket
+  // this role could only dead-end in is never requested at all.
   const searchAccess = useMemo(
     () => ({
       applicants: caps.applicants,
@@ -55,12 +63,15 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
       clients: caps.clients,
       catalogue: caps.catalogue,
       documents: caps.documents,
-      documentBankFamilies: caps.documentBankFamilies,
-      // A hit lands on `/admin/documents` — the workspaces roll-up — so the
-      // capability that governs reaching THAT screen is the one to key on. It
-      // equals `documentWrite` for every tier today, but they are separate rules
-      // and only this one is about the destination.
-      signatories: caps.documentWorkspaces,
+      // Files have their own detail route; the backend already applies that
+      // module's per-record visibility, so this gates the screen, not the rows.
+      files: caps.fileReview,
+      // Document templates and signatories both land on `/admin/documents` —
+      // the workspaces roll-up — so the capability that governs reaching THAT
+      // screen is the one to key on. It equals `documentWrite` for every tier
+      // today, but they are separate rules and only this one is about the
+      // destination.
+      documentLibrary: caps.documentWorkspaces,
       checklists: caps.checklists,
     }),
     [caps],
@@ -87,14 +98,26 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
       }),
       linkComponent: Link,
       onNavigate: (href: string) => router.push(href),
-      globalSearch: {
-        search: (query: string, signal?: AbortSignal) =>
-          searchEverything(query, { access: searchAccess, signal }),
-        // The access model is a pure function of the tier, so the tier is what
-        // partitions the result cache.
-        scopeKey: authorityType ?? "anonymous",
-        placeholder: "Search applicants, leads, clients...",
-      },
+      // Omitted entirely for a `superadmin`, who is 403'd on both search
+      // endpoints. The contract's instruction is to hide the box rather than
+      // render one that always fails — a search that never works is worse than
+      // no search at all.
+      globalSearch: caps.search
+        ? {
+            search: (query: string, signal?: AbortSignal) =>
+              searchEverything(query, { access: searchAccess, signal }),
+            // The access model is a pure function of the tier, so the tier is
+            // what partitions the result cache.
+            scopeKey: authorityType ?? "anonymous",
+            placeholder: "Search applicants, leads, files...",
+            // Below two characters the endpoint 400s, so nothing is sent.
+            minQueryLength: 2,
+            // The search endpoint has its OWN 60/minute throttle, separate from
+            // the project budget. A little slower than the shell's default,
+            // deliberately: one request per settled query rather than per burst.
+            debounceMs: 350,
+          }
+        : undefined,
       userMenu: {
         variant: "icon" as const,
         user: user

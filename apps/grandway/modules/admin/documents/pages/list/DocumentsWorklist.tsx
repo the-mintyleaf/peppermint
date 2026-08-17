@@ -10,6 +10,7 @@ import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
 import { NoteIcon } from "@phosphor-icons/react/dist/csr/Note";
 import { RequireDocumentAccess } from "@/components/RequireDocumentAccess";
 import { useCapabilities } from "@/config/access";
+import { useDeepLinkSearch } from "@/lib/useDeepLinkSearch";
 import {
   allowedDocumentFamilies,
   documentQueryKeys,
@@ -45,6 +46,12 @@ const FULL_TABS: DataTableShellTab[] = [
  */
 function DocumentsWorklistContent() {
   const capabilities = useCapabilities();
+  // A global-search document hit lands here rather than in the editor: the
+  // search contract exposes only the document's id and label, not whether it is
+  // standalone or whose workspace it belongs to, so the editor route cannot be
+  // derived. Seeding the search box puts the row one click away. Seed, not
+  // lock — the reader can clear it immediately.
+  const deepLinkSearch = useDeepLinkSearch();
   const families = allowedDocumentFamilies(capabilities);
   const seesEveryFamily = capabilities.documentBankFamilies;
 
@@ -60,6 +67,7 @@ function DocumentsWorklistContent() {
       queryKey={documentQueryKeys.lists()}
       queryGetFn={fetchDocuments}
       enableServerQuery
+      initialSearch={deepLinkSearch}
       dataKey="data"
       paginationKey="meta"
       idAccessor="id"

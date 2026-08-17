@@ -1,7 +1,13 @@
 export { searchEverything } from "./globalSearch.provider";
-export { GLOBAL_SEARCH_SOURCES } from "./globalSearch.sources";
+export { fetchSearchableTypes, runGlobalSearch } from "./globalSearch.api";
+export { permittedTypes } from "./globalSearch.routes";
 export type {
   GlobalSearchAccess,
   GlobalSearchOptions,
-  GlobalSearchSource,
+  SearchBucket,
+  SearchEntityType,
+  SearchGroup,
+  SearchHit,
+  SearchResult,
+  SearchableType,
 } from "./globalSearch.types";

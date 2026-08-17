@@ -1,61 +1,224 @@
 import type { AdminShellSearchResult } from "@peppermint/admin";
-import { GLOBAL_SEARCH_SOURCES } from "./globalSearch.sources";
-import type { GlobalSearchOptions } from "./globalSearch.types";
+import { ListChecksIcon } from "@phosphor-icons/react/dist/csr/ListChecks";
+import { TEMPLATE_STATUS_LABELS } from "../checklists/checklists.labels";
+import { runGlobalSearch, searchChecklistTemplates } from "./globalSearch.api";
+import {
+  bucketHref,
+  ENTITY_ROUTES,
+  hitHref,
+  permittedTypes,
+} from "./globalSearch.routes";
+import type {
+  GlobalSearchOptions,
+  SearchBucket,
+  SearchResult,
+} from "./globalSearch.types";
 
-const DEFAULT_PER_DOMAIN_LIMIT = 5;
+const DEFAULT_PER_TYPE_LIMIT = 5;
 
 /**
- * The AdminShell spotlight's search provider: one query fanned out across every
- * backend the current role may read, flattened into the shell's result shape.
+ * The last successful result, kept only to survive a 429.
  *
- * **Partial failure is not total failure.** Eight endpoints answer one query;
- * one of them 500ing must not blank out the other seven, so sources are settled
- * independently and a failed one contributes nothing. It is logged rather than
- * notified — a toast per keystroke would be worse than the missing rows, and
- * the user can see which groups are present. Only an all-sources failure
- * rejects, which is what puts the spotlight into its retryable error state.
+ * The contract is explicit: on `RATE_LIMIT_EXCEEDED` a client should "back off
+ * for `Retry-After` and **show the previous results rather than an error**".
+ * The shell owns the query lifecycle and would render its retryable error state
+ * for a thrown rejection, so the graceful degradation has to happen here.
  *
- * Aborts are re-thrown untouched: a superseded keystroke is not an error, and
- * React Query must see the abort rather than an empty result set.
+ * One entry, not a cache — this exists to hold a keystroke steady while the
+ * limiter cools, never to serve a stale answer to a *different* question.
+ */
+let lastResults: { query: string; results: AdminShellSearchResult[] } | null =
+  null;
+
+function isRateLimited(error: unknown): boolean {
+  return (
+    (error as { response?: { status?: number } })?.response?.status === 429
+  );
+}
+
+/** `matched_on` → the right-aligned hint, so a phone-number match doesn't read as a mystery. */
+function matchHint(
+  bucket: SearchBucket,
+  matchedOn: string[],
+): string | undefined {
+  if (matchedOn.length === 0) return undefined;
+  const FIELD_LABELS: Record<string, string> = {
+    full_name: "name",
+    email: "email",
+    contact_number: "phone",
+    passport_number: "passport",
+    name: "name",
+    spokesperson_name: "spokesperson",
+    common_name: "also known as",
+    label: "label",
+    key: "key",
+    title: "title",
+    original_filename: "filename",
+  };
+  const labels = matchedOn.map((field) => FIELD_LABELS[field] ?? field);
+  return `matched ${labels.join(", ")}`;
+}
+
+/**
+ * One server bucket → the shell's flat result rows, plus a trailing "see all"
+ * row when the bucket has more than it returned.
+ *
+ * The bucket's own `label` is the group heading, so a new searchable type names
+ * itself without a frontend release.
+ */
+function toShellResults(
+  bucket: SearchBucket,
+  query: string,
+): AdminShellSearchResult[] {
+  const { icon } = ENTITY_ROUTES[bucket.entity_type];
+  const rows = bucket.hits.map<AdminShellSearchResult>((hit) => ({
+    // Namespaced by type: two modules can legitimately hold the same UUID, and
+    // the shell requires ids unique within one result set.
+    id: `${hit.entity_type}:${hit.id}`,
+    group: bucket.label,
+    label: hit.title || "Untitled",
+    // Opaque display text, rendered as-is and never parsed.
+    description: hit.subtitle || undefined,
+    hint: matchHint(bucket, hit.matched_on),
+    icon,
+    href: hitHref(hit.entity_type, hit.id, hit.title),
+  }));
+
+  if (!bucket.has_more) return rows;
+
+  return [
+    ...rows,
+    {
+      id: `${bucket.entity_type}:see-all`,
+      group: bucket.label,
+      label: `See all ${bucket.total} in ${bucket.label.toLowerCase()}`,
+      hint: "all results",
+      icon,
+      // The FRONTEND list, not the bucket's `list_url` (an API URL).
+      href: bucketHref(bucket.entity_type, query),
+    },
+  ];
+}
+
+/**
+ * Checklist templates, the one client-side source left standing.
+ *
+ * **They are not a backend searchable type** and are not planned to become one
+ * (`docs/backend/search/INTEGRATION.md` §9: "Journeys, offers, and checklists
+ * are not searchable"). They *were* searchable in this app before the
+ * migration, so dropping them silently would remove a working capability from
+ * Admins. One extra request, only for a role that can reach the templates
+ * screen — against the eight this module used to fire on every keystroke.
+ */
+async function checklistTemplateResults(
+  query: string,
+  limit: number,
+  signal?: AbortSignal,
+): Promise<AdminShellSearchResult[]> {
+  const rows = await searchChecklistTemplates(query, limit, signal);
+  return rows.map<AdminShellSearchResult>((row) => ({
+    id: `checklist_template:${row.id}`,
+    group: "Checklist templates",
+    label: row.label,
+    description: row.country ? row.country.name : "Global template",
+    hint: TEMPLATE_STATUS_LABELS[row.status],
+    icon: ListChecksIcon,
+    href: `/admin/checklists/templates/${row.id}`,
+  }));
+}
+
+/**
+ * The AdminShell spotlight's search provider.
+ *
+ * **One server request answers eight of the nine buckets** — this replaced a
+ * client-side fan-out that fired one request per domain on every keystroke.
+ * Scoping, relevance ranking within the people buckets, and the cost of the
+ * query all moved back to the backend with it.
+ *
+ * Three rules the contract insists on and this function keeps:
+ *
+ * - **Server bucket order is preserved.** `results` is rendered in the order it
+ *   arrives (people → work → reference); re-sorting would diverge from every
+ *   other client.
+ * - **Empty buckets are dropped.** The server returns every requested type,
+ *   including ones with `total: 0`; rendering those would be nine empty
+ *   sections instead of one honest "nothing found".
+ * - **`types` is a capability allowlist sent on the request**, so a bucket this
+ *   role could not open is never fetched — which is also the only control a
+ *   client has over the cost of a search.
  */
 export async function searchEverything(
   query: string,
-  { access, signal, perDomainLimit }: GlobalSearchOptions,
+  { access, signal, perTypeLimit }: GlobalSearchOptions,
 ): Promise<AdminShellSearchResult[]> {
   const trimmed = query.trim();
-  if (!trimmed) return [];
+  // The contract's floor. The shell already enforces `minQueryLength`, but a
+  // sub-2-character query is a 400, so this never relies on that alone.
+  if (trimmed.length < 2) return [];
 
-  const sources = GLOBAL_SEARCH_SOURCES.filter((source) =>
-    source.enabled(access),
-  );
-  if (sources.length === 0) return [];
+  const types = permittedTypes(access);
+  const limit = perTypeLimit ?? DEFAULT_PER_TYPE_LIMIT;
 
-  const limit = perDomainLimit ?? DEFAULT_PER_DOMAIN_LIMIT;
-  const settled = await Promise.allSettled(
-    sources.map((source) => source.run(trimmed, limit, signal, access)),
-  );
+  const serverSearch: Promise<SearchResult | null> =
+    types.length > 0
+      ? runGlobalSearch({ q: trimmed, types, limit_per_type: limit, signal })
+      : Promise.resolve(null);
+
+  const supplement: Promise<AdminShellSearchResult[]> = access.checklists
+    ? checklistTemplateResults(trimmed, limit, signal)
+    : Promise.resolve([]);
+
+  // Settled independently: the checklist supplement failing must not blank out
+  // the server's eight buckets, and vice versa.
+  const [searchOutcome, supplementOutcome] = await Promise.allSettled([
+    serverSearch,
+    supplement,
+  ]);
 
   if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
 
-  const results: AdminShellSearchResult[] = [];
-  let failed = 0;
-
-  settled.forEach((outcome, index) => {
-    if (outcome.status === "fulfilled") {
-      results.push(...outcome.value);
-      return;
-    }
-
-    failed += 1;
-    console.error(
-      `[global-search] "${sources[index].group}" failed`,
-      outcome.reason,
-    );
-  });
-
-  if (failed === sources.length) {
-    throw new Error("Global search failed for every domain");
+  if (
+    searchOutcome.status === "rejected" &&
+    isRateLimited(searchOutcome.reason)
+  ) {
+    // Typing outran the 60/minute limiter. Holding the previous answer on
+    // screen is the contract's prescribed behaviour and is far better than
+    // flashing an error at someone mid-keystroke.
+    return lastResults?.results ?? [];
   }
 
+  if (searchOutcome.status === "rejected") {
+    // A genuine failure of the only substantive endpoint. Rethrow so the shell
+    // shows its retryable error state — unless the supplement alone answered.
+    if (
+      supplementOutcome.status === "fulfilled" &&
+      supplementOutcome.value.length > 0
+    ) {
+      return supplementOutcome.value;
+    }
+    throw searchOutcome.reason;
+  }
+
+  const results: AdminShellSearchResult[] = [];
+
+  if (searchOutcome.value) {
+    for (const bucket of searchOutcome.value.results) {
+      // `total`, not `hits.length` — a bucket the caller may not see returns
+      // zero of both, and either way there is nothing to render.
+      if (bucket.total === 0) continue;
+      results.push(...toShellResults(bucket, trimmed));
+    }
+  }
+
+  if (supplementOutcome.status === "fulfilled") {
+    results.push(...supplementOutcome.value);
+  } else {
+    console.error(
+      "[global-search] checklist templates failed",
+      supplementOutcome.reason,
+    );
+  }
+
+  lastResults = { query: trimmed, results };
   return results;
 }
