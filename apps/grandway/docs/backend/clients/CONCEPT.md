@@ -27,6 +27,13 @@ remain person records. If a lead or applicant came through a client, that
 relationship is meant to be represented as a _reference_, not by copying the
 client's details into the person record.
 
+> **Updated 2026-08-17 — the directory is no longer a pure island.** The
+> `reminders` module (shipped 2026-08-17) holds a `PROTECT` foreign key to
+> `Client`, the first inbound business-app edge the directory has ever had. A
+> client with reminders against it cannot be deleted. Everything below about
+> _outbound_ dependencies still holds — clients still depends on nothing, and
+> **attribution still does not exist**.
+
 **The important caveat: that reference does not exist yet.** The concept describes
 clients as "especially useful for tracking where referred leads originate", but
 nothing in the project consumes the directory — there is no `client` field on a

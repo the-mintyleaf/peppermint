@@ -1,14 +1,14 @@
 # Integration — Notifications
 
 **Owner app:** `notifications`
-**Version:** 1.0.1
+**Version:** 1.1.0
 **Status:** Active
-**Synced:** 2026-07-26 (from `.backend/backend/notifications/docs/{API,DATA_CONTRACT}.md` —
+**Synced:** 2026-08-17 (from `.backend/backend/notifications/docs/{API,DATA_CONTRACT}.md` —
 **note: this domain has no `SECURITY.md`**, unlike checklists/dashboard/uploaded-files/audit;
 access-model detail below is drawn from `API.md` §1 and `INTEGRATION.md` instead)
 
 > Re-sync with `/sync-api grandway notifications` when the backend's
-> Change History moves past version 1.0.1.
+> Change History moves past version 1.1.0.
 
 ---
 
@@ -18,6 +18,7 @@ access-model detail below is drawn from `API.md` §1 and `INTEGRATION.md` instea
 | ------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1.0.0   | 2026-07-24 | Initial integration contract — seven endpoints                                                                                                                                                                                                                                                                                                                               |
 | 1.0.1   | 2026-07-24 | Corrections from consumer-contract review: filter `type` renamed `notification_type`; a malformed `?fiscal_year=` returned 500, now 400. Added the lifecycle table, the source-triple table, worked 400/404 bodies, dedup guarantee, date-parameter formats/timezone, 405/trailing-slash/page-past-end behaviour, produced-type meanings, and the dismissed-but-unread state |
+| 1.1.0   | 2026-08-17 | **Additive; no endpoint changed.** New `custom_reminder` value in `notification_type` (14 → 15 declared, 11 → 12 produced) and a `reminders` row in §2 — the nightly sweep now raises staff-set follow-up reminders to every active Admin                                                                                                                                    |
 
 ---
 
@@ -40,16 +41,17 @@ access-model detail below is drawn from `API.md` §1 and `INTEGRATION.md` instea
 
 ## 2. Requires
 
-| Depends on           | Kind                          | Why                                                                                                                        | What breaks without it                                                                                                     |
-| -------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `authenticate`       | framework + FK + service call | Issues the bearer token; supplies the recipient; `get_active_admins()` is the fan-out for alerts about records nobody owns | Every endpoint 401s. With no active Admin account, offer/passport/journey alerts are raised for nobody and silently vanish |
-| `checklists`         | service call + signal         | Overdue/due-soon/missing-document alerts read that module's selectors; assignment alerts listen on its saves               | Those four alert types stop being produced; the feed still works otherwise                                                 |
-| `offers`             | service call + signal         | Response-deadline/expiry alerts read `get_offers_awaiting_response`; decision alerts listen on offer saves                 | `offer_response_due`, `offer_expired`, `offer_decided` stop being produced                                                 |
-| `applicants`         | service call                  | Passport-expiry alerts read `get_expiring_passports`                                                                       | `passport_expiring` stops being produced                                                                                   |
-| `uploaded_files`     | signal                        | Rejection alerts listen on file saves                                                                                      | `file_rejected` stops being produced                                                                                       |
-| `applicant_journeys` | signal                        | Stage-change/closure alerts listen on journey saves                                                                        | `journey_stage_changed`/`journey_closed` stop being produced                                                               |
-| `audit`              | service call                  | Records dismissals and generator failures                                                                                  | Dismissal still works, but nothing records who closed what                                                                 |
-| `core`               | framework                     | Envelope, pagination, date-window resolution, BS rendering                                                                 | Responses lose the standard envelope                                                                                       |
+| Depends on           | Kind                          | Why                                                                                                                         | What breaks without it                                                                                                                                            |
+| -------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `authenticate`       | framework + FK + service call | Issues the bearer token; supplies the recipient; `get_active_admins()` is the fan-out for alerts about records nobody owns  | Every endpoint 401s. With no active Admin account, offer/passport/journey alerts are raised for nobody and silently vanish                                        |
+| `checklists`         | service call + signal         | Overdue/due-soon/missing-document alerts read that module's selectors; assignment alerts listen on its saves                | Those four alert types stop being produced; the feed still works otherwise                                                                                        |
+| `offers`             | service call + signal         | Response-deadline/expiry alerts read `get_offers_awaiting_response`; decision alerts listen on offer saves                  | `offer_response_due`, `offer_expired`, `offer_decided` stop being produced                                                                                        |
+| `applicants`         | service call                  | Passport-expiry alerts read `get_expiring_passports`                                                                        | `passport_expiring` stops being produced                                                                                                                          |
+| `uploaded_files`     | signal                        | Rejection alerts listen on file saves                                                                                       | `file_rejected` stops being produced                                                                                                                              |
+| `applicant_journeys` | signal                        | Stage-change/closure alerts listen on journey saves                                                                         | `journey_stage_changed`/`journey_closed` stop being produced                                                                                                      |
+| `reminders`          | service call                  | `custom_reminder` alerts read `get_due_reminders` — staff-set follow-ups due today or earlier, raised to every active Admin | `custom_reminder` stops being produced; a failing generator withholds its type from the resolve pass, so existing reminder alerts freeze rather than mass-resolve |
+| `audit`              | service call                  | Records dismissals and generator failures                                                                                   | Dismissal still works, but nothing records who closed what                                                                                                        |
+| `core`               | framework                     | Envelope, pagination, date-window resolution, BS rendering                                                                  | Responses lose the standard envelope                                                                                                                              |
 
 **Two notes for consumers:** every dependency above runs **one way** — no
 module knows this one exists; a client that completes a checklist item sees
@@ -143,6 +145,7 @@ generated_by: enum, created_at }`.
 | `passport_expiring`                                    | `applicants`         | `passport_detail`               | `/api/v1/applicants/<applicant id>/` — **not** the passport |
 | `file_rejected`                                        | `uploaded_files`     | `uploaded_file`                 | `/api/v1/files/<id>/`                                       |
 | `journey_stage_changed`, `journey_closed`              | `applicant_journeys` | `applicant_journey`             | `/api/v1/journeys/<id>/`                                    |
+| `custom_reminder`                                      | `reminders`          | `reminder`                      | `/api/v1/reminders/<id>/` — the **reminder**, not its owner |
 
 Neither `source_app` nor `source_entity_type` is a closed database enum —
 treat both as open strings and don't fail on an unrecognized one. As
@@ -185,15 +188,27 @@ not the affected rows.
 
 ## 5. Enums
 
-- **`notification_type`** (14 declared, 11 produced): `checklist_item_due` \|
+- **`notification_type`** (15 declared, 12 produced): `checklist_item_due` \|
   `checklist_item_overdue` \| `missing_documents` \| `missing_information`\*
   \| `offer_response_due` \| `offer_expired` \| `passport_expiring` \|
-  `test_score_expiring`\* \| `appointment_reminder`\* \| `assignment_received`
-  \| `file_rejected` \| `journey_stage_changed` \| `journey_closed` \|
-  `offer_decided`. **\* = declared but never produced** — no source
-  definition (`missing_information`) or the owning app doesn't exist yet
-  (`appointment_reminder`, `test_score_expiring`). Render them if they ever
-  arrive; do not design a screen around them.
+  `test_score_expiring`\* \| `appointment_reminder`\* \| `custom_reminder`
+  \| `assignment_received` \| `file_rejected` \| `journey_stage_changed` \|
+  `journey_closed` \| `offer_decided`. **\* = declared but never produced** —
+  no source definition (`missing_information`) or the owning app doesn't
+  exist yet (`appointment_reminder`, `test_score_expiring`). Render them if
+  they ever arrive; do not design a screen around them.
+  - **`custom_reminder` (added 1.1.0, priority `normal`, `generated_by: sweep`)**
+    is the only type a **user** ultimately causes: a staff member set a dated
+    follow-up in the `reminders` module and the nightly sweep raised it.
+    `title` is `"Reminder: <owner name>"`, `body` is the reminder's note
+    verbatim, `due_at` is Kathmandu midnight of the due date, and the source
+    triple is `source_app: "reminders"`, `source_entity_type: "reminder"`,
+    `source_entity_id: <reminder id>`. **It is routed to Admins only** — a
+    Lead Manager who sets a reminder never receives its alert. See
+    `../reminders/INTEGRATION.md`.
+  - **Do not dismiss a `custom_reminder` after completing its reminder.**
+    Closing the reminder is what clears the alert: the next sweep resolves it
+    as `source_cleared`. Dismissing it by hand is a second, redundant write.
 - **`priority`** (4): `low` \| `normal` \| `high` \| `urgent` — **fixed per
   type at creation**, stored not derived: `offer_expired` → `urgent`;
   `checklist_item_overdue`/`offer_response_due`/`passport_expiring`/
@@ -224,13 +239,16 @@ genuinely targeted, non-fan-out alert; there is no lead/applicant/offer
 assignment concept to alert on). `file_rejected` — reason is in `body`.
 `journey_stage_changed`/`_closed` — new stage / terminal stage.
 `offer_decided` — a terminal offer status (accepted/rejected/withdrawn/deferred/expired).
+`custom_reminder` — a staff-set follow-up in `reminders` reached its due date;
+**one alert per Admin per reminder per due date**, never a nightly re-nag, and
+only a reschedule can mint a new one.
 
 ## 6. Dependency order
 
 - A `Notification` needs a **recipient** (`authenticate` — external).
 - A `Notification` needs a **source record** in `checklists`, `offers`,
-  `applicants`, `uploaded_files`, or `applicant_journeys` (external) — raised
-  _from_ that record, cannot exist before it.
+  `applicants`, `uploaded_files`, `applicant_journeys`, or `reminders`
+  (external) — raised _from_ that record, cannot exist before it.
 - **Nothing in this module needs anything else in this module** — no
   parent/child resource, no ordering constraint between calls.
 
@@ -303,7 +321,11 @@ Ordered by how much they cost a real integration.
   doesn't close the alert immediately — the nightly `sweep_notifications` job
   does, and its run time is not exposed. A client cannot tell a user when an
   alert will clear.
-- **No snooze, no un-dismiss, no per-user mute.** Dismissal is one-way.
+- **No snooze, no un-dismiss, no per-user mute.** Dismissal is one-way. Narrowed
+  in 1.1.0, but only slightly: "remind me tomorrow" now exists as a _new record
+  elsewhere_ — staff can set a date-based follow-up in `reminders`
+  (`/api/v1/reminders/`), which raises a `custom_reminder` here when the date
+  arrives. **No notification in this feed can itself be snoozed.**
 - **No delivery beyond in-app** — `delivery_channel`/`delivery_state` exist in
   the payload but only ever hold `in_app`/`delivered`.
 - **`source_api_path` is not guaranteed-resolvable for `source_entity_id`** —
