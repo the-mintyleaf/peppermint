@@ -140,6 +140,22 @@ export const ERROR_MESSAGES: Record<string, string> = {
   CLIENTS_CLIENT_ALREADY_RETIRED: "This client is already retired.",
   CLIENTS_CLIENT_NOT_RETIRED: "This client is already active.",
 
+  // Reminders (staff-set follow-ups)
+  REMINDERS_ACTOR_FORBIDDEN:
+    "Your authority level may not perform this action.",
+  REMINDERS_REMINDER_NOT_FOUND: "That reminder couldn't be found.",
+  // 409. The user did nothing wrong — a colleague closed it first — so the
+  // message points at the fix (the panel refetches) rather than blaming them.
+  REMINDERS_REMINDER_ALREADY_CLOSED:
+    "This reminder was already closed. Refreshing it now.",
+  REMINDERS_OWNER_REQUIRED: "A reminder needs exactly one applicant or client.",
+  REMINDERS_OWNER_NOT_FOUND:
+    "That record no longer exists. Reload the page and try again.",
+  // A client bug rather than a user error: the submit handler sent an
+  // immutable field. Say what is actually recoverable for the person reading.
+  REMINDERS_FIELD_IMMUTABLE:
+    "Only the due date and note can be changed on a reminder.",
+
   // Framework-level
   VALIDATION_ERROR: "Please check the highlighted fields and try again.",
   AUTHENTICATION_REQUIRED: "Please sign in to continue.",

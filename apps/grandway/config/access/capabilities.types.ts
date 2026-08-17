@@ -21,6 +21,27 @@ export interface Capabilities {
   offers: boolean;
   /** Notifications bell + drawer — `superadmin` is 403'd on every endpoint. */
   notifications: boolean;
+  /**
+   * Reminders — the dated follow-up notes staff set on an applicant or client.
+   * `admin`/`lead_manager`, never `superadmin` (`reminders/INTEGRATION.md` §1).
+   *
+   * **Full rights for both tiers, reads and writes alike — there is no read/write
+   * split**, so a reminders panel needs no authority-based control hiding. Kept
+   * separate from `notifications` deliberately: that rule is own-feed-only, this
+   * one is not, and a Lead Manager who may write reminders never *receives* their
+   * due alerts. That asymmetry is `notifications` routing, not an access rule
+   * here, and it is why the dashboard's Follow-ups card is not Admin-only.
+   */
+  reminders: boolean;
+  /**
+   * The global search box (`/api/v1/search/`) — `admin`/`lead_manager`, never
+   * `superadmin`, who is 403'd on both endpoints (`search/INTEGRATION.md` §1).
+   *
+   * The contract's instruction is to **hide the box entirely** for that authority
+   * rather than render one that always fails. Results are additionally narrowed
+   * per-bucket by the other capabilities — see `globalSearch.access.ts`.
+   */
+  search: boolean;
 
   // ─── Applicant record ─── deliberately separate from `applicants` (read reach).
 
