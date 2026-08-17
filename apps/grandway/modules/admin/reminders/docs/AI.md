@@ -1,0 +1,162 @@
+# Reminders Module — AI Navigation Map
+
+## Purpose
+
+Dated follow-up notes staff set against an applicant or a client, surfaced to
+Admins as a notification when the date arrives. **Operational follow-up, not task
+management** — not a task board, not a recurring scheduler, not a CRM workflow
+engine. Backend base path is `/api/v1/reminders/`. Contract:
+`apps/grandway/docs/backend/reminders/`.
+
+## Module type
+
+ModalModule — **no route of its own**, like `notifications`. A reminder is a note
+about a record, so it lives on that record's screen; the only chrome it owns is a
+form modal. There is no `/admin/reminders` page and there should not be.
+
+## Entry points
+
+| Surface                   | Export                 | Component                                        |
+| ------------------------- | ---------------------- | ------------------------------------------------ |
+| Applicant detail (tab)    | `RecordRemindersPanel` | \_shared/RecordRemindersPanel/…                  |
+| Client drawer (tab)       | `RecordRemindersPanel` | \_shared/RecordRemindersPanel/…                  |
+| Notification row link     | `ReminderAlertLink`    | \_shared/ReminderAlertLink/…                     |
+| Dashboard Follow-ups card | `useDueReminders`      | owned by `dashboard`, reads this module's `.api` |
+
+Cross-module consumers import the **concrete file**, never this module's
+`index.ts`, per the app doc's cycle rule.
+
+## Access
+
+`admin` and `lead_manager` have **identical, full rights on all seven
+endpoints — there is no read/write split**; `superadmin` is refused 403
+everywhere, reads included. There is also **no owner scoping**: every Admin and
+Lead Manager sees every reminder, including ones somebody else set.
+
+Gated by `caps.reminders` at each host surface, not by a `Require*` wrapper — the
+panel is embedded inside already-guarded screens.
+
+**The one asymmetry is about delivery, not access.** Only Admins _receive_ the
+due alert (that is `notifications` routing). A Lead Manager may set and close
+reminders freely but never gets alerted, which is why the dashboard's Follow-ups
+card is **not** Admin-only. See `dashboard/docs/AI.md`.
+
+## Data layer (module root)
+
+| File                   | Holds                                                                                                                                           |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| reminders.types.ts     | `Reminder` (identical list/detail), `ReminderOwner` union, create/update/action payloads, filters, `ReminderHistoryEntry`                       |
+| reminders.labels.ts    | Status label/colour/icon maps, history-action labels/icons, due-bucket labels                                                                   |
+| reminders.queryKeys.ts | `reminderQueryKeys` (`createQueryKeys`) + `reminderHistoryKey(id)` (nested under detail) + `dueRemindersKey()` (**its own top-level slot**)     |
+| reminders.api.ts       | `createResourceApi<Reminder, ReminderCreatePayload, ReminderUpdatePayload>` + `complete`/`dismiss` actions + hand-rolled `fetchReminderHistory` |
+| reminders.hooks.ts     | `useReminderList`, `useReminder`, `useReminderHistory`, and four mutations                                                                      |
+| reminders.utils.ts     | **`nepalToday()`**, `dueBucket`, `sortRemindersForPanel`, **`changedUpdateFields`**, `formatBs`, `formatDueDate`, `formatDueDistance`           |
+
+### The three things that are load-bearing
+
+1. **`nepalToday()`** — the module's single clock. The backend's date floor is
+   Nepal's today (`Asia/Kathmandu`, +05:45), so a form validating against the
+   browser clock disagrees with the server for ~5h45m every day. It feeds the
+   Zod schema, the picker's `minDate`, the quick picks, and every due bucket.
+   `dueBucket()` takes the clock as an **argument** so one pass over a list uses
+   one value; a panel that let each row call `nepalToday()` could straddle
+   midnight and split its own page.
+2. **`changedUpdateFields()`** — the only safe way to build a `PATCH` body.
+   `applicant`, `client`, `status`, `closed_at`, `closed_by` are **rejected**
+   (400 `REMINDERS_FIELD_IMMUTABLE`), not ignored, and an empty `PATCH` is also a 400. Returns `null` for "nothing changed", which callers treat as a
+   successful no-op rather than a request.
+3. **`dueRemindersKey()` is a separate top-level cache slot**, so it is NOT
+   covered by the `reminderQueryKeys.lists()` prefix every other invalidation
+   relies on. Every mutation names it explicitly. Forgetting that line is exactly
+   how the dashboard card goes stale after a reminder is closed from a record.
+
+## Components
+
+| Component              | Renders                                                                                                                                                              |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RecordRemindersPanel` | The record's follow-ups. Props `{ owner: {applicant} \| {client} }` — a union, so "exactly one owner" is a compile-time guarantee, not a 400                         |
+| `ReminderRow`          | One reminder + its lifecycle controls. Each row owns its own mutation hooks (the `NotificationRow` pattern)                                                          |
+| `ReminderHistory`      | Collapsed lifecycle trail per row. `enabled`-gated, so twenty reminders cost zero history requests until asked. **The only place a complete/dismiss `reason` shows** |
+| `ReminderFormModal`    | Create + reschedule. `FormWrapper` only — no `FormShell`, no `ModalTableShell`                                                                                       |
+| `ReminderAlertLink`    | The "View record" control on a `custom_reminder` notification                                                                                                        |
+
+## Panel behaviour
+
+- **One request, filtered client-side.** `status` is omitted from the query, so
+  the response carries open **and** closed rows; the Open/All toggle filters
+  what is already in hand. Two filtered requests would be two cache entries and
+  a flash of empty on every toggle.
+- **Rows are sorted for reading**, not in server order. This API has **no
+  `ordering` parameter** and always returns newest-created first, so reading
+  order (soonest due first, closed sunk) is the client's to own.
+- Nepal's today is recomputed **per render**, not memoized on mount — the panel
+  can sit open across midnight NPT in a tab.
+- Truncation is disclosed against the record, not the visible rows: the page
+  holds the 100 newest-**created**, so an older still-open follow-up can be
+  missing entirely, and the notice says so.
+
+## Row behaviour
+
+- Urgency colours the **due badge**, never the status pill. An open reminder due
+  next month is the healthy state of this feature; colouring every open row would
+  make a well-kept panel look like a problem. The due badge is hidden on closed
+  rows — "overdue" on completed work is a lie.
+- Dismiss confirms first and names the real recovery path (set a new reminder).
+- On a 409 the mutation refetches (`useRefetchOnConflict`), because
+  `useAppMutation` only invalidates on success and the error copy promises a
+  refresh. Scoped to 409/404 so a network blip does not stampede every list.
+
+## Form behaviour
+
+- Two fields. `DateInput` bounded to ~220px (a short value gets a short field)
+  with `minDate={nepalToday()}`, plus Tomorrow / In a week / In a month quick
+  picks. `Textarea` with a counter that only appears near the 5,000 ceiling.
+- **Edit sends only the changed subset.** "Nothing changed" closes without a
+  request.
+- Unsaved-changes guard on every close affordance.
+- The catch returns `{ ok: true }` on purpose — `FormWrapper.handleSubmit` raises
+  its own generic toast for any `{ ok: false }`, which would stack on top of the
+  mutation's specific one. Same pattern as `EditFileModal`/`UploadFileModal`.
+- Modal body padding is restored on a `Stack p="md"`, never via the modal's own
+  `styles`; the confirm modal uses `styles.inner`.
+
+## Cross-module edges
+
+| Direction   | Edge                                                                                                                                         |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Consumed by | `applicants` detail (tab between Files and Alerts) · `clients` drawer (tab) · `notifications` row (`ReminderAlertLink`) · `dashboard` (card) |
+| Consumes    | Nothing. This module imports no other business module                                                                                        |
+
+`custom_reminder` notifications name the **reminder** id, not the record, so
+`resolveNotificationLink` returns `null` for that type and `ReminderAlertLink`
+fetches the reminder to find its owner. See `notifications/docs/AI.md`.
+
+## Do not do
+
+- **Do not add a delete button.** There is no `DELETE` on any endpoint in this
+  module, at all.
+- **Do not add reopen, undo, or snooze.** `completed` and `dismissed` are
+  terminal. "Remind me again" is a new `POST /`.
+- **Do not PATCH the whole record.** Send the changed subset of
+  `{due_date, note}` via `changedUpdateFields()`.
+- **Do not dismiss the `custom_reminder` notification** after completing a
+  reminder. Closing the reminder is what clears the alert; the next sweep
+  resolves it as `source_cleared`.
+- **Do not add sorting or search controls** — this API has neither `ordering`
+  nor `search`.
+- **Do not compute a due date from the browser clock.** Use `nepalToday()`.
+- **Do not add a `/admin/reminders` route.** Reminders live on the record they
+  belong to; the dashboard card is the worklist.
+- **Do not open `ReminderFormModal` for a closed reminder** — a `PATCH` on one is
+  a 409, and there is no reopen.
+- Do not fetch in `useEffect`; do not import Mantine directly.
+
+## Known gaps (from the contract)
+
+- **No bulk actions.** Completing five reminders is five requests.
+- **No user UUIDs** — only `created_by_username`/`closed_by_username`, so no
+  avatars or profile links without an out-of-band lookup.
+- **The nightly sweep's run time is not exposed.** "The alert appears on the due
+  date" means "after that night's sweep"; never print an expected time.
+- **Near midnight NPT** a browser-computed bucket can briefly disagree with the
+  server. Accepted, and disclosed on the dashboard card.

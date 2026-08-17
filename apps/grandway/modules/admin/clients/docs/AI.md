@@ -38,7 +38,7 @@ ContainedModule (single route, modal CRUD + detail drawer)
 | Columns                                          | pages/list/clients.columns.tsx              |
 | Row actions (edit/retire/restore)                | pages/list/components/ClientRowActionsMenu/ |
 | Retire confirm                                   | pages/list/components/RetireClientModal/    |
-| Detail drawer / history                          | pages/list/components/ClientDetailDrawer/   |
+| Detail drawer / history / reminders              | pages/list/components/ClientDetailDrawer/   |
 | Form fields                                      | form/ClientForm.tsx                         |
 | Contact-numbers repeater                         | form/ClientContactNumbersField.tsx          |
 | Payload mapping / field diff                     | form/clientForm.utils.ts                    |
@@ -79,3 +79,22 @@ ContainedModule (single route, modal CRUD + detail drawer)
 - Do not render `logo_url` with `next/image`.
 - Do not gate writes on `isAdmin` (use `authorityType === "admin"`).
 - Do not fetch data in useEffect; do not import Mantine directly.
+
+## Reminders (cross-module)
+
+The detail drawer carries a third tab, **Reminders**, embedding
+`<RecordRemindersPanel owner={{ client: id }} />` from
+`@/modules/admin/reminders/_shared/RecordRemindersPanel` (the concrete path, not that
+module's barrel — the app's cycle rule).
+
+**It is gated on `caps.reminders`, not on the Admin-only write rule this module uses
+elsewhere.** The directory's narrower write right exists because clients are _shared
+reference data_ — one careless edit to a spokesperson's number silently changes who
+every Lead Manager calls. A reminder is not shared reference data; it is one person's
+dated note about follow-up work, and the reminders API grants `admin` and
+`lead_manager` identical full rights. Do not carry the directory's Admin-only write
+rule across to that tab.
+
+This is also what ended the directory's island status: `reminders` holds a `PROTECT`
+foreign key to `Client`, the first inbound business-app edge it has ever had. A client
+with reminders against it cannot be deleted. Attribution still does not exist.
