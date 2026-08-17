@@ -10,6 +10,8 @@ import {
   useQueryClient,
 } from "@peppermint/ui";
 import { useCapabilities } from "@/config/access";
+import { applicantsQueryKeys } from "@/modules/admin/applicants/applicants.queryKeys";
+import { dueRemindersKey } from "@/modules/admin/reminders/reminders.queryKeys";
 import { useDashboardFilters, useDashboardSummary } from "../dashboard.hooks";
 import { ActivityPanel } from "../components/ActivityPanel";
 import { ApplicantCountryStats } from "../components/ApplicantCountryStats";
@@ -34,6 +36,20 @@ import { WorkloadPanel } from "../components/WorkloadPanel";
  * page, a stat card a sixth, and the tile column a sixth of that half — so a
  * card's width tells you what kind of thing it is before you read it.
  */
+/**
+ * Every cache root the "Refresh all" control has to reach.
+ *
+ * `["dashboard"]` covers the eight contract sections. The other two are
+ * cross-module reads that sit under their own roots — the Follow-ups band
+ * (`reminders.due`) and the per-country applicant counts / recent applicants
+ * (`applicants`) — and a prefix match will never find them from here.
+ */
+const REFRESH_KEYS = [
+  ["dashboard"],
+  dueRemindersKey(),
+  applicantsQueryKeys.all,
+] as const;
+
 const LARGE = { base: 12, lg: 6 } as const;
 const MEDIUM = { base: 12, sm: 8, lg: 4 } as const;
 const SMALL = { base: 12, sm: 4, lg: 2 } as const;
@@ -91,9 +107,16 @@ export function DashboardOverview() {
                 fetchedAt={dataUpdatedAt}
                 onFiscalYearChange={filters.setFiscalYear}
                 onCountryChange={filters.setCountry}
-                onRefresh={() =>
-                  queryClient.invalidateQueries({ queryKey: ["dashboard"] })
-                }
+                onRefresh={() => {
+                  // The control is labelled "Refresh all", so it must reach
+                  // every card — including the ones that read another module's
+                  // endpoint and therefore live outside the `["dashboard"]`
+                  // prefix. Missing one of these is silent: the band simply
+                  // keeps its cached answer while everything around it moves.
+                  REFRESH_KEYS.forEach((queryKey) => {
+                    void queryClient.invalidateQueries({ queryKey });
+                  });
+                }}
               />
             }
           />

@@ -116,14 +116,21 @@
 The concept names no worklist screen, but `INTEGRATION.md` §9 explicitly prescribes this
 shape as the way a Lead Manager ever sees their own due follow-ups.
 
-1. `GET /api/v1/reminders/?status=active&page_size=100` — one request, bucketed
-   client-side into overdue / due today / upcoming against **one** Nepal-time clock.
-   - Do **not** issue three window-filtered requests. Three requests are three clocks, and
-     a row can fall between them. This is the same rule the notifications feed follows for
-     its due buckets.
-   - `meta.count` is the honest total even when the page is capped.
-   - `due_before`/`due_after` are **both inclusive**; `fiscal_year` (`YYYY/YY`) is a
-     **Bikram Sambat** label resolved server-side, not a Gregorian year.
+1. Three window requests — `?status=active&due_before=<yesterday>`,
+   `?status=active&due_after=<today>&due_before=<today>`, and
+   `?status=active&due_after=<tomorrow>` — whose boundary dates are computed **once**
+   on the client from Nepal's today and sent explicitly.
+   - **One clock, three windows.** Sending the dates explicitly is what makes this
+     safe: three requests that each let the _server_ decide "today" would be three
+     clocks, and a row could fall between them or land in two.
+   - **Do not** collapse this to one `?status=active` page bucketed client-side. The
+     page caps at 100 rows in **newest-created** order — there is no due-date ordering
+     — so beyond 100 open reminders it silently drops older ones, overdue ones
+     included, and every count becomes an under-report. Each window's own `meta.count`
+     is true at any volume.
+   - `due_before`/`due_after` are **both inclusive**, which is what lets the three
+     windows partition the calendar exactly; `fiscal_year` (`YYYY/YY`) is a **Bikram
+     Sambat** label resolved server-side, not a Gregorian year.
 
 ---
 

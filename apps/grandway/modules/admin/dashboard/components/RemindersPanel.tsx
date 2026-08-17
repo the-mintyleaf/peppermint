@@ -1,69 +1,47 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { Anchor, Badge, Group, Stack, Text } from "@peppermint/ui";
 import { AlarmIcon } from "@phosphor-icons/react/dist/csr/Alarm";
-import {
-  formatDueDate,
-  formatDueDistance,
-} from "@/modules/admin/reminders/reminders.utils";
-import type { Reminder } from "@/modules/admin/reminders/reminders.types";
-import { useDueReminders } from "../dashboard.hooks";
+import { REMINDER_PREVIEW_ROWS, useDueReminders } from "../dashboard.hooks";
 import { TONE_COLOR, toneForAlert } from "../dashboard.tone";
+import type { DueRemindersBucket } from "../dashboard.hooks";
 import { PanelCard } from "./PanelCard";
 import { PreviewList } from "./PreviewList";
+import { ReminderRowView } from "./ReminderRowView";
 import { SectionState } from "./SectionState";
 
-/** At most this many rows per view — a summary card, not the worklist itself. */
-const PREVIEW_LIMIT = 10;
+const VIEWS = [
+  {
+    value: "overdue",
+    label: "Overdue",
+    description: "Past their date and still open",
+  },
+  {
+    value: "today",
+    label: "Due today",
+    description: "Due at the start of today, Nepal time",
+  },
+  {
+    value: "upcoming",
+    label: "Upcoming",
+    description: "Open follow-ups still ahead of their date",
+  },
+] as const;
 
-/**
- * One due follow-up.
- *
- * An applicant has a detail route, so the whole row is the link. A client does
- * not — the directory opens records in a drawer from its list — so a
- * client-owned reminder links to that list, the same compromise `LeadRowView`
- * makes for leads.
- */
-function ReminderRowView({
-  reminder,
-  today,
-  tone,
-}: {
-  reminder: Reminder;
-  today: string;
-  tone: string;
-}) {
-  const href = reminder.applicant
-    ? `/admin/applicants/${reminder.applicant}`
-    : "/admin/clients";
+type ViewKey = (typeof VIEWS)[number]["value"];
 
-  return (
-    <Anchor component={Link} href={href} underline="never" c="inherit">
-      <Group justify="space-between" wrap="nowrap" gap="xs">
-        <Stack gap={0} style={{ minWidth: 0 }}>
-          <Text size="sm" truncate>
-            {reminder.note}
-          </Text>
-          <Text size="xs" c="dimmed" truncate>
-            {reminder.owner_type === "applicant" ? "Applicant" : "Client"} · set
-            by {reminder.created_by_username}
-          </Text>
-        </Stack>
-        <Stack gap={2} align="flex-end" style={{ flex: "none" }}>
-          {/* Colour plus the word — the badge says how late it is, not just red. */}
-          <Badge size="xs" radius="sm" color={tone}>
-            {formatDueDistance(reminder.due_date, today)}
-          </Badge>
-          <Text size="xs" c="dimmed">
-            {formatDueDate(reminder.due_date)}
-          </Text>
-        </Stack>
-      </Group>
-    </Anchor>
-  );
-}
+const EMPTY_MESSAGE: Record<ViewKey, string> = {
+  overdue: "Nothing overdue — every follow-up is on time.",
+  today: "Nothing due today.",
+  upcoming: "No follow-ups scheduled ahead.",
+};
+
+/** Severity each window carries **when it is non-zero**; at zero all read `good`. */
+const BAND: Record<ViewKey, "critical" | "warning" | "info"> = {
+  overdue: "critical",
+  today: "warning",
+  upcoming: "info",
+};
 
 /**
  * Staff-set follow-ups that are due — the ninth section on a page whose
@@ -76,60 +54,27 @@ function ReminderRowView({
  * `dashboardOperations` gate — putting it inside would hide it from precisely
  * the people who have no other way to see their due work.
  *
- * One request feeds all three views, bucketed against one Nepal-time clock, so
- * the menu counts and the open view can never disagree.
+ * Every count here is a real server total (`meta.count` per window), never a
+ * page length, so the card stays honest at any volume.
  */
 export function RemindersPanel() {
-  const [view, setView] = useState("overdue");
+  const [view, setView] = useState<ViewKey>("overdue");
   const { buckets, isPending, isError, refetch, isRefetching } =
     useDueReminders();
 
-  const rowsFor = (key: string) => {
-    if (key === "today") return buckets.today;
-    if (key === "upcoming") return buckets.upcoming;
-    return buckets.overdue;
-  };
-
-  // Tone is derived from the figure, never chosen here: an empty overdue queue
-  // is a good outcome and reads calm, a non-empty one reads breached.
-  const toneFor = (key: string) => {
-    const count = rowsFor(key).length;
-    if (key === "overdue") return toneForAlert(count, "critical");
-    if (key === "today") return toneForAlert(count, "warning");
-    return toneForAlert(count, "info");
-  };
-
-  const VIEWS = [
-    {
-      value: "overdue",
-      label: "Overdue",
-      description: "Past their date and still open",
-    },
-    {
-      value: "today",
-      label: "Due today",
-      description: "Due at the start of today, Nepal time",
-    },
-    {
-      value: "upcoming",
-      label: "Upcoming",
-      description: "Open follow-ups still ahead of their date",
-    },
-  ];
+  const bucketFor = (key: ViewKey): DueRemindersBucket => buckets[key];
 
   const views = VIEWS.map((entry) => ({
     ...entry,
-    count: isPending ? undefined : rowsFor(entry.value).length,
+    // Real total for the view, per `PanelCard`'s contract — `undefined` while
+    // loading, because "we could not ask yet" must never render as zero.
+    count: isPending ? undefined : bucketFor(entry.value).total,
   }));
 
-  const current = rowsFor(view);
-  const tone = TONE_COLOR[toneFor(view)];
-  const emptyMessage =
-    view === "overdue"
-      ? "Nothing overdue — every follow-up is on time."
-      : view === "today"
-        ? "Nothing due today."
-        : "No follow-ups scheduled ahead.";
+  const current = bucketFor(view);
+  // Tone is derived from the figure, never chosen here: an empty overdue queue
+  // is a good outcome and reads calm, a non-empty one reads breached.
+  const tone = TONE_COLOR[toneForAlert(current.total, BAND[view])];
 
   return (
     <PanelCard
@@ -138,7 +83,7 @@ export function RemindersPanel() {
       icon={AlarmIcon}
       views={views}
       activeView={view}
-      onViewChange={setView}
+      onViewChange={(value) => setView(value as ViewKey)}
       minBodyHeight={300}
     >
       <SectionState
@@ -150,7 +95,7 @@ export function RemindersPanel() {
         skeletonHeight={300}
       >
         <PreviewList
-          rows={current.slice(0, PREVIEW_LIMIT).map((reminder) => (
+          rows={current.rows.map((reminder) => (
             <ReminderRowView
               key={reminder.id}
               reminder={reminder}
@@ -158,18 +103,16 @@ export function RemindersPanel() {
               tone={tone}
             />
           ))}
-          total={current.length}
-          hasMore={current.length > PREVIEW_LIMIT}
+          total={current.total}
+          // Driven by the server total against the preview depth, not by a
+          // length check on the rows in hand.
+          hasMore={current.total > REMINDER_PREVIEW_ROWS}
           // Reminders have no list route — they live on the record they belong
           // to — so "see all" points at the applicants list rather than
           // inventing a screen. The plain list, never a seeded filter.
           seeAllHref="/admin/applicants"
-          emptyMessage={emptyMessage}
-          caption={
-            buckets.total > buckets.fetched
-              ? `Showing the ${buckets.fetched} most recent of ${buckets.total} open reminders. Not narrowed by the fiscal-year or country filters.`
-              : "Not narrowed by the fiscal-year or country filters."
-          }
+          emptyMessage={EMPTY_MESSAGE[view]}
+          caption="Not narrowed by the fiscal-year or country filters."
         />
       </SectionState>
     </PanelCard>

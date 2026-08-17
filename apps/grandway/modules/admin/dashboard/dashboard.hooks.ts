@@ -7,11 +7,7 @@ import { listApplicants } from "@/modules/admin/applicants/applicants.api";
 import { applicantsQueryKeys } from "@/modules/admin/applicants/applicants.queryKeys";
 import { listReminders } from "@/modules/admin/reminders/reminders.api";
 import { dueRemindersKey } from "@/modules/admin/reminders/reminders.queryKeys";
-import {
-  dueBucket,
-  nepalToday,
-  sortRemindersForPanel,
-} from "@/modules/admin/reminders/reminders.utils";
+import { nepalToday } from "@/modules/admin/reminders/reminders.utils";
 import type { Reminder } from "@/modules/admin/reminders/reminders.types";
 import {
   fetchActivity,
@@ -145,76 +141,133 @@ export function useRecentApplicants(
   });
 }
 
-/** The three buckets the Follow-ups card reads, plus the honest server total. */
-export interface DueRemindersResult {
-  overdue: Reminder[];
-  today: Reminder[];
-  upcoming: Reminder[];
-  /** `meta.count` — the true number of open reminders, even when the page caps. */
+/** One due window: the rows to preview, and the true size of the window. */
+export interface DueRemindersBucket {
+  rows: Reminder[];
+  /** `meta.count` for that window — the real total, never `rows.length`. */
   total: number;
-  /** How many rows this page actually carried, for the truncation disclosure. */
-  fetched: number;
-  /** Nepal's today, so the card's rows bucket against the same clock the hook did. */
+}
+
+/** The three buckets the Follow-ups card reads. */
+export interface DueRemindersResult {
+  overdue: DueRemindersBucket;
+  today: DueRemindersBucket;
+  upcoming: DueRemindersBucket;
+  /** Nepal's today, so the card's rows read against the same clock the hook used. */
   todayDate: string;
 }
 
 /**
+ * Staff-set follow-ups that are due, as three bucketed worklists.
+ *
  * The dashboard's only **cross-module** data source that is not part of the
  * `/api/v1/dashboard/` contract — that contract has no reminder section at all
  * (its §2 does not list `reminders`, and none of its eight endpoints touches
  * one). Documented precedent for reading another module's endpoint from here:
  * `useApplicantsByCountry` and `useRecentApplicants` above.
  *
- * **One request, bucketed client-side against one clock.** The contract's due
- * windows (`due_before`/`due_after`) would let this be three filtered requests,
- * and it deliberately is not: three requests are three clocks, and a reminder
- * can fall between them or appear in two. This is the same rule the
- * notifications feed applies to its due buckets.
+ * **Three window-filtered requests, one clock.** The boundary dates are
+ * computed **once** on the client from `nepalToday()` and sent explicitly as
+ * `due_before`/`due_after`, so the three windows provably partition the space —
+ * this is not the "three requests, three clocks" trap, which is what happens
+ * when each request lets the *server* decide its own boundary.
+ *
+ * It is three requests rather than one because a single `?status=active` page
+ * caps at 100 rows in **newest-created** order (this API has no due-date
+ * ordering). An office with more than 100 open follow-ups would silently drop
+ * older ones — including overdue ones — and every count on the card would be a
+ * quiet under-report. Each window here returns its own `meta.count`, which is
+ * the **true** total for that bucket at any volume, and the ten rows it shows
+ * are the ten that belong to it.
  *
  * **Not filtered by `fiscal_year`/`country`.** Reminders carry neither concept —
- * `fiscal_year` on this API is a Bikram Sambat label over `due_date`, which is a
+ * `fiscal_year` on this API is a Bikram Sambat label over `due_date`, a
  * different question from the dashboard's filter, and there is no country at
- * all. The card says so in its caption rather than silently ignoring the
- * controls.
+ * all. The card says so in its caption rather than letting the controls
+ * silently do nothing.
  */
 export function useDueReminders() {
-  // One clock for the whole computation, captured per query result rather than
-  // per render, so every bucket and every row below agrees.
-  const query = useQuery({
-    queryKey: dueRemindersKey(),
-    queryFn: () => listReminders(toReminderQueryParams()),
+  // ONE clock. Every window below is derived from this single value, so the
+  // three requests describe one consistent partition of the calendar.
+  const todayDate = nepalToday();
+  const yesterday = shiftDate(todayDate, -1);
+  const tomorrow = shiftDate(todayDate, 1);
+
+  const windows: { key: string; filters: Record<string, string> }[] = [
+    // `due_before` is INCLUSIVE, so "overdue" ends the day before today.
+    { key: "overdue", filters: { due_before: yesterday } },
+    // Both bounds inclusive on the same day → exactly today.
+    { key: "today", filters: { due_after: todayDate, due_before: todayDate } },
+    // `due_after` is INCLUSIVE, so "upcoming" starts tomorrow.
+    { key: "upcoming", filters: { due_after: tomorrow } },
+  ];
+
+  const results = useQueries({
+    queries: windows.map(({ key, filters }) => ({
+      queryKey: [...dueRemindersKey(), key, filters],
+      queryFn: () => listReminders(toReminderQueryParams(filters)),
+    })),
   });
 
-  const todayDate = nepalToday();
-  const rows = query.data?.data ?? [];
-  const sorted = sortRemindersForPanel(rows, todayDate);
+  const [overdue, today, upcoming] = results;
+  const bucket = (index: number): DueRemindersBucket => ({
+    rows: results[index].data?.data ?? [],
+    // The honest count for the whole window, not the length of the page.
+    total: results[index].data?.meta.total ?? 0,
+  });
 
-  const result: DueRemindersResult = {
-    overdue: sorted.filter((r) => dueBucket(r, todayDate) === "overdue"),
-    today: sorted.filter((r) => dueBucket(r, todayDate) === "today"),
-    upcoming: sorted.filter((r) => dueBucket(r, todayDate) === "upcoming"),
-    total: query.data?.meta.total ?? 0,
-    fetched: rows.length,
+  const buckets: DueRemindersResult = {
+    overdue: bucket(0),
+    today: bucket(1),
+    upcoming: bucket(2),
     todayDate,
   };
 
-  return { ...query, buckets: result };
+  return {
+    buckets,
+    isPending: results.some((r) => r.isPending),
+    isError: results.some((r) => r.isError),
+    isRefetching: results.some((r) => r.isRefetching),
+    refetch: () => {
+      void overdue.refetch();
+      void today.refetch();
+      void upcoming.refetch();
+    },
+  };
 }
 
 /**
  * `status=active` narrows to open follow-ups — the card answers "what still
- * needs chasing", and closed rows belong to a record's own panel. 100 is the
- * API's page maximum; the card discloses truncation from `meta.count` rather
- * than paging, because a second page of due work is a worklist, not a summary.
+ * needs chasing", and closed rows belong to a record's own panel.
+ *
+ * `pageSize` is the card's preview depth, not a cap on the answer: `meta.count`
+ * still reports the true size of the window, so a bucket of 300 says 300 and
+ * shows ten.
  */
-function toReminderQueryParams(): QueryParams {
+function toReminderQueryParams(filters: Record<string, string>): QueryParams {
   return {
     page: 1,
-    pageSize: 100,
+    pageSize: REMINDER_PREVIEW_ROWS,
     search: "",
     sort: [],
-    filters: { status: "active" },
+    filters: { status: "active", ...filters },
   };
+}
+
+/** Rows previewed per bucket. The count beside each view is the real total. */
+export const REMINDER_PREVIEW_ROWS = 10;
+
+/**
+ * `YYYY-MM-DD` shifted by whole days.
+ *
+ * Both sides are anchored at UTC midnight — the same fixed offset each — so the
+ * arithmetic measures calendar days and never picks up a local-offset shift.
+ * The values are Nepal calendar dates; UTC is only the arithmetic frame.
+ */
+function shiftDate(date: string, days: number): string {
+  return new Date(Date.parse(`${date}T00:00:00Z`) + days * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
 }
 
 export function useDashboardToday(filters: DashboardFilterInput) {
