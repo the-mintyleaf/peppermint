@@ -17,11 +17,13 @@ export default function ContactPage() {
             Tell us a little about yourself and where you are hoping to study.
             We will be in touch to arrange your counselling session.
           </p>
-          <div className="contact-details">
-            <span>Kathmandu, Nepal</span>
-            <a href="mailto:hello@grandway.edu.np">hello@grandway.edu.np</a>
-            <a href="tel:+977000000000">+977 00 000 0000</a>
-          </div>
+          <address className="contact-details">
+            <span>Bagbazar, Kathmandu, Nepal</span>
+            <a href="tel:+97715927205">01-5927205</a>
+            <a href="mailto:info@grandwayeducation.com">
+              info@grandwayeducation.com
+            </a>
+          </address>
         </div>
         <form className="contact-form">
           <label>
