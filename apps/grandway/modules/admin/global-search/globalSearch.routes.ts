@@ -34,9 +34,20 @@ type RouteStrategy =
   | { kind: "list"; path: string; seed: boolean };
 
 export interface EntityRoute {
-  /** Group heading in the spotlight. Falls back to the bucket's server `label`. */
+  /** Leading icon on every row of this bucket. The group heading is the bucket's own server `label`. */
   icon: Icon;
+  /** Where a single hit opens. */
   route: RouteStrategy;
+  /**
+   * Where the bucket's "see all N" goes — the screen that lists this type.
+   *
+   * Stated per type rather than derived from `route`. A `detail` route's list
+   * is NOT reliably one path segment up: `/admin/files/[id]` exists but
+   * `/admin/files` does not, and that type's real list is the review queue.
+   */
+  listPath: string;
+  /** Whether `listPath` reads `?q=` (`lib/useDeepLinkSearch.ts`). */
+  listSeeds: boolean;
   /** Which capability must hold for this bucket to be requested at all. */
   permitted: (access: GlobalSearchAccess) => boolean;
 }
@@ -45,18 +56,26 @@ export const ENTITY_ROUTES: Record<SearchEntityType, EntityRoute> = {
   applicant: {
     icon: UsersThreeIcon,
     route: { kind: "detail", path: (id) => `/admin/applicants/${id}` },
+    listPath: "/admin/applicants",
+    // The applicants list has its own status column filter, and `forceFilters`
+    // would lock it — so it takes no seed. See the app doc's deep-link note.
+    listSeeds: false,
     permitted: (access) => access.applicants,
   },
   lead: {
     icon: AddressBookIcon,
     // Leads open in an in-page drawer on the board, not on a route of their own.
     route: { kind: "list", path: "/admin/lead-management", seed: true },
+    listPath: "/admin/lead-management",
+    listSeeds: true,
     permitted: (access) => access.leads,
   },
   client: {
     icon: HandshakeIcon,
     // The directory opens a client in a drawer from its list.
     route: { kind: "list", path: "/admin/clients", seed: true },
+    listPath: "/admin/clients",
+    listSeeds: true,
     permitted: (access) => access.clients,
   },
   document: {
@@ -76,22 +95,33 @@ export const ENTITY_ROUTES: Record<SearchEntityType, EntityRoute> = {
      * becomes a `detail` strategy again.
      */
     route: { kind: "list", path: "/admin/documents/all", seed: true },
+    listPath: "/admin/documents/all",
+    listSeeds: true,
     permitted: (access) => access.documents,
   },
   uploaded_file: {
     icon: PaperclipIcon,
     // New reach — the old client-side fan-out never searched files at all.
     route: { kind: "detail", path: (id) => `/admin/files/${id}` },
+    // **There is no `/admin/files` route.** Uploaded files have a detail route
+    // but no directory of their own; the review queue is the only list screen,
+    // and it is gated by the same `fileReview` capability this bucket is.
+    listPath: "/admin/files/review",
+    listSeeds: false,
     permitted: (access) => access.files,
   },
   institution: {
     icon: BuildingsIcon,
     route: { kind: "list", path: "/admin/institutions/providers", seed: true },
+    listPath: "/admin/institutions/providers",
+    listSeeds: true,
     permitted: (access) => access.catalogue,
   },
   program: {
     icon: GraduationCapIcon,
     route: { kind: "list", path: "/admin/institutions", seed: true },
+    listPath: "/admin/institutions",
+    listSeeds: true,
     permitted: (access) => access.catalogue,
   },
   document_template: {
@@ -100,23 +130,44 @@ export const ENTITY_ROUTES: Record<SearchEntityType, EntityRoute> = {
     // so a hit lands on the surface that consumes them. No seed: that roll-up
     // does not read `?q=`.
     route: { kind: "list", path: "/admin/documents", seed: false },
+    listPath: "/admin/documents",
+    listSeeds: false,
     permitted: (access) => access.documentLibrary,
   },
   signatory: {
     icon: SignatureIcon,
     // Same reasoning as `document_template` — the app has no signatory screen.
     route: { kind: "list", path: "/admin/documents", seed: false },
+    listPath: "/admin/documents",
+    listSeeds: false,
     permitted: (access) => access.documentLibrary,
   },
 };
+
+/**
+ * The route entry for a **server-supplied** type key.
+ *
+ * `ENTITY_ROUTES` is a closed map over the nine types that exist today, but the
+ * backend's `/types/` catalogue is explicitly allowed to grow without a frontend
+ * release. An unknown key must therefore degrade to "this bucket is not
+ * renderable yet" — never to a `TypeError` that rejects the whole search and
+ * blanks out the other eight buckets.
+ */
+export function entityRoute(
+  entityType: SearchEntityType,
+): EntityRoute | undefined {
+  return ENTITY_ROUTES[entityType];
+}
 
 /** The frontend URL a hit opens. */
 export function hitHref(
   entityType: SearchEntityType,
   id: string,
   title: string,
-): string {
-  const { route } = ENTITY_ROUTES[entityType];
+): string | undefined {
+  const entry = ENTITY_ROUTES[entityType];
+  if (!entry) return undefined;
+  const { route } = entry;
   if (route.kind === "detail") return route.path(id);
   return route.seed && title
     ? `${route.path}?q=${encodeURIComponent(title)}`
@@ -127,7 +178,8 @@ export function hitHref(
  * Where a bucket's "see all N" goes.
  *
  * Not the bucket's `list_url`, which is the owning module's **API** URL. The
- * frontend list is seeded with the query itself rather than the row title.
+ * frontend list is seeded with the query itself rather than a row title — and
+ * only when that list actually reads `?q=`.
  */
 export function bucketHref(
   entityType: SearchEntityType,

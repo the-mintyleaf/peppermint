@@ -83,6 +83,10 @@ export interface SearchResult {
  *
  * Note `detail_path` here is a **template** containing a literal `{id}`, unlike
  * the filled-in value on a `SearchHit`.
+ *
+ * **Nothing consumes this yet** — the spotlight has no type-chip UI to build
+ * from it. Kept so the contract's shape is on record for whoever adds one; see
+ * the note in `globalSearch.api.ts`.
  */
 export interface SearchableType {
   key: SearchEntityType;

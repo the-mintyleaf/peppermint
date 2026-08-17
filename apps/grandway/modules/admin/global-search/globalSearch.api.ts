@@ -1,10 +1,6 @@
 import api from "@/lib/api";
 import type { TemplateStatus } from "../checklists/checklists.types";
-import type {
-  GlobalSearchParams,
-  SearchResult,
-  SearchableType,
-} from "./globalSearch.types";
+import type { GlobalSearchParams, SearchResult } from "./globalSearch.types";
 
 const SEARCH = "/api/v1/search";
 
@@ -41,21 +37,22 @@ export async function runGlobalSearch({
   return data;
 }
 
-/**
- * `GET /api/v1/search/types/` — the searchable-type catalogue.
- *
- * **Static per deployment; fetch once and cache for the session.** The contract
- * is explicit that chips must be built from this rather than hardcoded, so a new
- * searchable type reaches the client without a release.
- *
- * The response is deliberately **not** narrowed by authority — every caller sees
- * all nine, because narrowing it would leak by omission which record classes an
- * authority is denied.
- */
-export async function fetchSearchableTypes(): Promise<SearchableType[]> {
-  const { data } = await api.get<SearchableType[]>(`${SEARCH}/types/`);
-  return data;
-}
+// `GET /api/v1/search/types/` is deliberately NOT consumed.
+//
+// The contract says to build **type filter chips** from that endpoint rather
+// than hardcoding the nine keys — and it is right, but this app has no chip UI
+// to build. `AdminShell` owns the spotlight's input and renders one flat,
+// grouped result list; there is nowhere to put a chip without changing the
+// package. The group headings that DO render come from each bucket's own
+// server `label`, so a renamed type already reaches the UI without a release.
+//
+// What a new *type* needs is a route, an icon and a capability — all decisions
+// only this app can make (`globalSearch.routes.ts`). `toShellResults` skips a
+// bucket whose type it has no route for rather than throwing, so a tenth type
+// degrades to "not shown yet" instead of breaking the other nine.
+//
+// If a chip row is ever added, fetch `/types/` once per session and build it
+// from the response. Do not hardcode the keys.
 
 // ── The one surviving client-side source ────────────────────────────────────
 //

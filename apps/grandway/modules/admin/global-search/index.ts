@@ -1,5 +1,5 @@
 export { searchEverything } from "./globalSearch.provider";
-export { fetchSearchableTypes, runGlobalSearch } from "./globalSearch.api";
+export { runGlobalSearch } from "./globalSearch.api";
 export { permittedTypes } from "./globalSearch.routes";
 export type {
   GlobalSearchAccess,
@@ -9,5 +9,4 @@ export type {
   SearchGroup,
   SearchHit,
   SearchResult,
-  SearchableType,
 } from "./globalSearch.types";

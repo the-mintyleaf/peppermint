@@ -98,10 +98,16 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
       }),
       linkComponent: Link,
       onNavigate: (href: string) => router.push(href),
-      // Omitted entirely for a `superadmin`, who is 403'd on both search
-      // endpoints. The contract's instruction is to hide the box rather than
-      // render one that always fails — a search that never works is worse than
-      // no search at all.
+      // Omitted for a `superadmin`, who is 403'd on both search endpoints.
+      //
+      // **This degrades the spotlight to a nav jumper; it does not remove it.**
+      // That is the shell's documented behaviour for an absent `globalSearch`
+      // ("the spotlight keeps searching navigation targets only"), and there is
+      // no hide-search flag on `AdminShellConfig`. It satisfies what the search
+      // contract actually asks for — it says to hide the bar because "showing a
+      // box that always 403s is worse than showing nothing", and this box never
+      // reaches the network at all, so it cannot 403. A superadmin gets a
+      // working jumper over the two rails they do have.
       globalSearch: caps.search
         ? {
             search: (query: string, signal?: AbortSignal) =>

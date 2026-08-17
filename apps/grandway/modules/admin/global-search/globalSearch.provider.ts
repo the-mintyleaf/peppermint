@@ -4,7 +4,7 @@ import { TEMPLATE_STATUS_LABELS } from "../checklists/checklists.labels";
 import { runGlobalSearch, searchChecklistTemplates } from "./globalSearch.api";
 import {
   bucketHref,
-  ENTITY_ROUTES,
+  entityRoute,
   hitHref,
   permittedTypes,
 } from "./globalSearch.routes";
@@ -37,10 +37,7 @@ function isRateLimited(error: unknown): boolean {
 }
 
 /** `matched_on` → the right-aligned hint, so a phone-number match doesn't read as a mystery. */
-function matchHint(
-  bucket: SearchBucket,
-  matchedOn: string[],
-): string | undefined {
+function matchHint(matchedOn: string[]): string | undefined {
   if (matchedOn.length === 0) return undefined;
   const FIELD_LABELS: Record<string, string> = {
     full_name: "name",
@@ -70,7 +67,18 @@ function toShellResults(
   bucket: SearchBucket,
   query: string,
 ): AdminShellSearchResult[] {
-  const { icon } = ENTITY_ROUTES[bucket.entity_type];
+  const entry = entityRoute(bucket.entity_type);
+  // A type this build has no route for — the backend's catalogue is allowed to
+  // grow without a frontend release. Skip the bucket rather than throw: a
+  // `TypeError` here would reject the whole search and blank out the eight
+  // buckets that DO render.
+  if (!entry) {
+    console.warn(
+      `[global-search] no route for entity type "${bucket.entity_type}" — bucket skipped`,
+    );
+    return [];
+  }
+  const { icon } = entry;
   const rows = bucket.hits.map<AdminShellSearchResult>((hit) => ({
     // Namespaced by type: two modules can legitimately hold the same UUID, and
     // the shell requires ids unique within one result set.
@@ -79,12 +87,13 @@ function toShellResults(
     label: hit.title || "Untitled",
     // Opaque display text, rendered as-is and never parsed.
     description: hit.subtitle || undefined,
-    hint: matchHint(bucket, hit.matched_on),
+    hint: matchHint(hit.matched_on),
     icon,
     href: hitHref(hit.entity_type, hit.id, hit.title),
   }));
 
-  if (!bucket.has_more) return rows;
+  const seeAllHref = bucketHref(bucket.entity_type, query);
+  if (!bucket.has_more || !seeAllHref) return rows;
 
   return [
     ...rows,
@@ -95,7 +104,7 @@ function toShellResults(
       hint: "all results",
       icon,
       // The FRONTEND list, not the bucket's `list_url` (an API URL).
-      href: bucketHref(bucket.entity_type, query),
+      href: seeAllHref,
     },
   ];
 }
@@ -183,19 +192,20 @@ export async function searchEverything(
   ) {
     // Typing outran the 60/minute limiter. Holding the previous answer on
     // screen is the contract's prescribed behaviour and is far better than
-    // flashing an error at someone mid-keystroke.
-    return lastResults?.results ?? [];
+    // flashing an error at someone mid-keystroke — but ONLY for the same
+    // question. Serving "acme" rows under a "zephyr" query would be worse than
+    // showing nothing, so a different query falls through to empty.
+    return lastResults?.query === trimmed ? lastResults.results : [];
   }
 
   if (searchOutcome.status === "rejected") {
-    // A genuine failure of the only substantive endpoint. Rethrow so the shell
-    // shows its retryable error state — unless the supplement alone answered.
-    if (
-      supplementOutcome.status === "fulfilled" &&
-      supplementOutcome.value.length > 0
-    ) {
-      return supplementOutcome.value;
-    }
+    // A genuine failure of the only substantive endpoint. Always rethrow, so
+    // the shell shows its retryable error state.
+    //
+    // Deliberately NOT softened when the checklist supplement happens to have
+    // matched: returning one checklist row while eight buckets failed would
+    // read as "nothing else matched" and hide a backend outage behind a
+    // plausible-looking result. A wrong answer is worse than an error.
     throw searchOutcome.reason;
   }
 
