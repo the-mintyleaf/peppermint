@@ -13,9 +13,6 @@ import {
   Stack,
   Text,
 } from "@peppermint/ui";
-import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
-import { ListChecksIcon } from "@phosphor-icons/react/dist/csr/ListChecks";
-import { PaperclipIcon } from "@phosphor-icons/react/dist/csr/Paperclip";
 import {
   ProfileLayout,
   ProfileSidebar,
@@ -39,19 +36,16 @@ function getJourneyTabs(journey: ApplicantJourneyDetail): ProfileTab[] {
     {
       value: "worklist",
       label: "Worklist",
-      icon: <ListChecksIcon size={14} aria-hidden />,
       panel: <JourneyChecklistPanel journey={journey} />,
     },
     {
       value: "files",
       label: "Files",
-      icon: <PaperclipIcon size={14} aria-hidden />,
       panel: <FilesPanel scope={{ journey: journey.id }} />,
     },
     {
       value: "history",
       label: "History",
-      icon: <ClockCounterClockwiseIcon size={14} aria-hidden />,
       panel: <JourneyHistoryPanel journeyId={journey.id} />,
     },
   ];

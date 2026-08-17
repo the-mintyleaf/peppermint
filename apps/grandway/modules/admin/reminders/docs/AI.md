@@ -20,6 +20,7 @@ form modal. There is no `/admin/reminders` page and there should not be.
 | ------------------------- | ---------------------- | ------------------------------------------------ |
 | Applicant detail (tab)    | `RecordRemindersPanel` | \_shared/RecordRemindersPanel/…                  |
 | Client drawer (tab)       | `RecordRemindersPanel` | \_shared/RecordRemindersPanel/…                  |
+| Applicants **list row**   | `RecordRemindersPanel` | via `applicants`' `OpenRemindersButton` (modal)  |
 | Notification row link     | `ReminderAlertLink`    | \_shared/ReminderAlertLink/…                     |
 | Dashboard Follow-ups card | `useDueReminders`      | owned by `dashboard`, reads this module's `.api` |
 
@@ -72,13 +73,33 @@ card is **not** Admin-only. See `dashboard/docs/AI.md`.
 
 ## Components
 
-| Component              | Renders                                                                                                                                                              |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `RecordRemindersPanel` | The record's follow-ups. Props `{ owner: {applicant} \| {client} }` — a union, so "exactly one owner" is a compile-time guarantee, not a 400                         |
-| `ReminderRow`          | One reminder + its lifecycle controls. Each row owns its own mutation hooks (the `NotificationRow` pattern)                                                          |
-| `ReminderHistory`      | Collapsed lifecycle trail per row. `enabled`-gated, so twenty reminders cost zero history requests until asked. **The only place a complete/dismiss `reason` shows** |
-| `ReminderFormModal`    | Create + reschedule. `FormWrapper` only — no `FormShell`, no `ModalTableShell`                                                                                       |
-| `ReminderAlertLink`    | The "View record" control on a `custom_reminder` notification                                                                                                        |
+| Component              | Renders                                                                                                                                                                                       |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RecordRemindersPanel` | The record's follow-ups. Props `{ owner: {applicant} \| {client} }` — a union, so "exactly one owner" is a compile-time guarantee, not a 400                                                  |
+| `ReminderRow`          | One reminder + its lifecycle controls. Each row owns its own mutation hooks (the `NotificationRow` pattern)                                                                                   |
+| `ReminderHistory`      | Collapsed lifecycle trail per row, as a Mantine `Timeline`. `enabled`-gated, so twenty reminders cost zero history requests until asked. **The only place a complete/dismiss `reason` shows** |
+| `ReminderFormModal`    | Create + reschedule. `FormWrapper` only — no `FormShell`, no `ModalTableShell`                                                                                                                |
+| `ReminderAlertLink`    | The "View record" control on a `custom_reminder` notification                                                                                                                                 |
+
+## Where the panel is opened from
+
+The same `RecordRemindersPanel` serves three surfaces — the applicant detail
+tab, the client drawer tab, and a **modal off the applicants list row**
+(`applicants/pages/list/components/OpenRemindersButton`). One component, so
+reading and writing behave identically everywhere and there is one thing to keep
+correct.
+
+The list-row modal exists because setting a follow-up is almost always an
+interruption: an operator working down the list remembers they owe someone a
+call and wants to leave a dated note without losing their filters or their
+scroll position. That is the same reasoning behind this module having no route
+of its own.
+
+**Modal stacking is explicit, not incidental.** The panel can be hosted inside a
+modal, and it opens its own (the form) and a confirm on top of that — so
+`ReminderFormModal` sets `zIndex={400}` and both confirms set `zIndex: 500`.
+Sharing Mantine's default layer (200) would leave the order to DOM insertion,
+which is not a guarantee worth resting a blocked form on.
 
 ## Panel behaviour
 
@@ -149,6 +170,12 @@ fetches the reminder to find its owner. See `notifications/docs/AI.md`.
   belong to; the dashboard card is the worklist.
 - **Do not open `ReminderFormModal` for a closed reminder** — a `PATCH` on one is
   a 409, and there is no reopen.
+- **Do not drop the `zIndex` values** off the form and confirm modals (see
+  above), and do not build a second reminders surface — reuse
+  `RecordRemindersPanel`.
+- **Do not swap `ReminderHistory` for the shared `HistoryTable`.** That table
+  sets `minWidth={560}` and would force horizontal scrolling inside every
+  reminder card in a narrow profile column.
 - Do not fetch in `useEffect`; do not import Mantine directly.
 
 ## Known gaps (from the contract)

@@ -233,6 +233,8 @@ export function ReminderFormModal({
       // `useConfirmModal`/`modals.openConfirmModal` restore their padding
       // through `inner` — the app theme zeroes modal body padding globally.
       styles: { inner: { padding: "var(--mantine-spacing-md)" } },
+      // Above this form, which is itself above a possible host modal.
+      zIndex: 500,
       onConfirm: onClose,
     });
   };
@@ -283,6 +285,12 @@ export function ReminderFormModal({
       onClose={requestClose}
       title={isEdit ? "Reschedule reminder" : "Add reminder"}
       size="md"
+      // Above Mantine's default modal layer (200). This form opens from inside
+      // the applicants list's own reminders modal, and two modals sharing a
+      // z-index leave the stacking order to DOM insertion — which is not a
+      // guarantee worth resting a blocked form on. Harmless when it is the only
+      // modal on screen.
+      zIndex={400}
     >
       {/* The app theme zeroes Modal body padding, so the content wrapper
           restores it via `p` — never through the modal's own `styles`. */}

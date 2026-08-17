@@ -20,6 +20,7 @@ import { ApplicantRowActionsMenu } from "./components/ApplicantRowActionsMenu";
 import { ApplicantStatusSwitch } from "./components/ApplicantStatusSwitch";
 import { OpenDocumentButton } from "./components/OpenDocumentButton";
 import { OpenJourneysButton } from "./components/OpenJourneysButton";
+import { OpenRemindersButton } from "./components/OpenRemindersButton";
 
 interface ApplicantsColumnsOptions {
   onViewDetails: (applicant: Applicant) => void;
@@ -146,6 +147,10 @@ export function getApplicantsColumns({
           */}
           <OpenJourneysButton applicant={applicant} />
           <OpenDocumentButton applicant={applicant} />
+          {/* Self-gates on `caps.reminders` — every reminders endpoint 403s a
+              superadmin. Opens the same panel the detail tab hosts, in a modal,
+              so a follow-up can be set without leaving the list. */}
+          <OpenRemindersButton applicant={applicant} />
           <ApplicantRowActionsMenu
             applicant={applicant}
             onViewDetails={onViewDetails}

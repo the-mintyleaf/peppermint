@@ -11,13 +11,6 @@ import {
   Stack,
   Text,
 } from "@peppermint/ui";
-import { AirplaneTakeoffIcon } from "@phosphor-icons/react/dist/csr/AirplaneTakeoff";
-import { AlarmIcon } from "@phosphor-icons/react/dist/csr/Alarm";
-import { BellIcon } from "@phosphor-icons/react/dist/csr/Bell";
-import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
-import { FolderIcon } from "@phosphor-icons/react/dist/csr/Folder";
-import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
-import { PaperclipIcon } from "@phosphor-icons/react/dist/csr/Paperclip";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import {
   ProfileLayout,
@@ -67,7 +60,6 @@ function getApplicantTabs(
     {
       value: "passport-family",
       label: "Passport & Family",
-      icon: <IdentificationCardIcon size={14} aria-hidden />,
       count:
         applicant.family_members.length + applicant.emergency_contacts.length ||
         undefined,
@@ -76,7 +68,6 @@ function getApplicantTabs(
     {
       value: "journeys",
       label: "Journeys",
-      icon: <AirplaneTakeoffIcon size={14} aria-hidden />,
       panel: <ApplicantJourneysPanel applicantId={applicant.id} />,
     },
     ...(includeDocuments
@@ -84,7 +75,6 @@ function getApplicantTabs(
           {
             value: "documents",
             label: "Documents",
-            icon: <FolderIcon size={14} aria-hidden />,
             panel: (
               <ApplicantDocumentsPanel
                 applicantId={applicant.id}
@@ -97,7 +87,6 @@ function getApplicantTabs(
     {
       value: "files",
       label: "Files",
-      icon: <PaperclipIcon size={14} aria-hidden />,
       panel: <FilesPanel scope={{ applicant: applicant.id }} />,
     },
     // Reminders sits immediately before Alerts: the two are siblings — a
@@ -108,7 +97,6 @@ function getApplicantTabs(
           {
             value: "reminders",
             label: "Reminders",
-            icon: <AlarmIcon size={14} aria-hidden />,
             panel: <RecordRemindersPanel owner={{ applicant: applicant.id }} />,
           } satisfies ProfileTab,
         ]
@@ -116,7 +104,6 @@ function getApplicantTabs(
     {
       value: "alerts",
       label: "Alerts",
-      icon: <BellIcon size={14} aria-hidden />,
       // Only `passport_expiring` is applicant-adjacent, and it keys to the
       // passport's own id, not the applicant's — pass that when a passport is on
       // file; an empty array is the honest "nothing to query" case.
@@ -129,7 +116,6 @@ function getApplicantTabs(
     {
       value: "history",
       label: "History",
-      icon: <ClockCounterClockwiseIcon size={14} aria-hidden />,
       panel: <ApplicantHistoryPanel applicantId={applicant.id} />,
     },
   ];

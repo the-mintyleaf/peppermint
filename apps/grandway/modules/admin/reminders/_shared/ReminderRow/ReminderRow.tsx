@@ -91,6 +91,9 @@ export function ReminderRow({
       labels: { confirm: "Dismiss", cancel: "Keep it" },
       confirmProps: { color: "red" },
       styles: { inner: { padding: "var(--mantine-spacing-md)" } },
+      // The panel this row sits in can itself be inside a modal (the
+      // applicants list opens it that way), so the confirm has to outrank it.
+      zIndex: 500,
       onConfirm: () => dismiss.mutate(),
     });
   };

@@ -6,8 +6,6 @@ export interface ProfileTab {
   label: string;
   /** Optional count shown as a badge on the tab (e.g. journeys 3). */
   count?: number;
-  /** Optional leading Phosphor icon. */
-  icon?: ReactNode;
   panel: ReactNode;
 }
 

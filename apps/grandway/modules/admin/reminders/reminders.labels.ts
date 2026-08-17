@@ -64,6 +64,37 @@ export const REMINDER_HISTORY_ACTION_ICONS: Record<
   reminder_dismissed: ProhibitIcon,
 };
 
+/**
+ * Per-action tint for the history timeline — recognition over recall, so the
+ * shape of a reminder's life is readable before any of the words are.
+ *
+ * Creation is blue (it happened), a reschedule is grape (it moved), a note fix
+ * is gray (nothing material changed), completion is green and dismissal gray.
+ * Dismissal is deliberately **not** red: dropping a follow-up is a legitimate
+ * outcome, not a failure, and a red rail would read as one.
+ */
+export const REMINDER_HISTORY_ACTION_COLORS: Record<
+  ReminderHistoryAction,
+  string
+> = {
+  reminder_created: "blue",
+  reminder_rescheduled: "grape",
+  reminder_updated: "gray",
+  reminder_completed: "green",
+  reminder_dismissed: "gray",
+};
+
+/**
+ * Field names as they read in a change line. The audit payload uses column
+ * names; a reader should not have to translate `due_date` in their head.
+ */
+export const REMINDER_CHANGE_FIELD_LABELS: Record<string, string> = {
+  due_date: "Due date",
+  note: "Note",
+  status: "Status",
+  closed_at: "Closed",
+};
+
 /** Human labels for the due buckets `dueBucket()` derives (not a server enum). */
 export const DUE_BUCKET_LABELS = {
   overdue: "Overdue",
