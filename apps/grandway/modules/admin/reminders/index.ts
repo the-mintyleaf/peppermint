@@ -8,6 +8,12 @@
 // `remove`/`deleteReminder` is deliberately absent and must stay that way:
 // there is no DELETE endpoint anywhere in this module.
 
+// `fetchReminderHistory` / `useReminderHistory` / `reminderHistoryKey` and the
+// `ReminderHistoryEntry` shape are kept as the module's typed coverage of
+// `GET /<id>/history/`, but **nothing renders them today** — the reminder card
+// deliberately carries no history (it is a scanning surface, not an archive).
+// If a history view returns, the data layer is already correct; it needs a
+// component and its own action label/icon vocabulary back.
 export {
   completeReminder,
   createReminder,
@@ -49,8 +55,6 @@ export type { ReminderDueBucket } from "./reminders.utils";
 
 export {
   DUE_BUCKET_LABELS,
-  REMINDER_HISTORY_ACTION_ICONS,
-  REMINDER_HISTORY_ACTION_LABELS,
   REMINDER_STATUS_COLORS,
   REMINDER_STATUS_ICONS,
   REMINDER_STATUS_LABELS,

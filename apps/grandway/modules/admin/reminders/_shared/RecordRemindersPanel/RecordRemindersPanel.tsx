@@ -1,14 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  Button,
-  Group,
-  Loader,
-  SegmentedControl,
-  Stack,
-  Text,
-} from "@peppermint/ui";
+import { Badge, Button, Loader, Stack, Tabs, Text } from "@peppermint/ui";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { ProfilePanelHeader } from "@/components/profile";
 import { QueryErrorState } from "@/components/QueryErrorState";
@@ -20,6 +13,48 @@ import { ReminderRow } from "../ReminderRow";
 import type { RecordRemindersPanelProps } from "./RecordRemindersPanel.types";
 
 type PanelFilter = "open" | "all";
+
+/** Tab order, and the single place the two panels are enumerated. */
+const TAB_VALUES = ["open", "all"] as const satisfies readonly PanelFilter[];
+
+/**
+ * The rows of one tab, or its empty state.
+ *
+ * Extracted so both panels render through one path — a second inline copy is
+ * how two views drift into looking like two features.
+ */
+function ReminderList({
+  reminders,
+  today,
+  emptyMessage,
+  onReschedule,
+}: {
+  reminders: Reminder[];
+  today: string;
+  emptyMessage: string;
+  onReschedule: (reminder: Reminder) => void;
+}) {
+  if (reminders.length === 0) {
+    return (
+      <Text size="xs" c="dimmed">
+        {emptyMessage}
+      </Text>
+    );
+  }
+
+  return (
+    <Stack gap="xs">
+      {reminders.map((reminder) => (
+        <ReminderRow
+          key={reminder.id}
+          reminder={reminder}
+          today={today}
+          onReschedule={onReschedule}
+        />
+      ))}
+    </Stack>
+  );
+}
 
 /**
  * The record's dated follow-ups — the concept's "Reminders panel", embeddable
@@ -69,9 +104,13 @@ export function RecordRemindersPanel({ owner }: RecordRemindersPanelProps) {
     () => sortRemindersForPanel(data?.data ?? [], today),
     [data?.data, today],
   );
-  const openCount = reminders.filter((r) => r.status === "active").length;
-  const visible =
-    filter === "open" ? reminders.filter((r) => r.is_active) : reminders;
+  // `is_active` is the server's own derived flag — read it rather than
+  // recomputing, so a row can never disagree with itself.
+  const openReminders = useMemo(
+    () => reminders.filter((reminder) => reminder.is_active),
+    [reminders],
+  );
+  const openCount = openReminders.length;
 
   const handleAdd = () => {
     setEditing(undefined);
@@ -88,7 +127,6 @@ export function RecordRemindersPanel({ owner }: RecordRemindersPanelProps) {
       <ProfilePanelHeader
         title="Reminders"
         description="Dated follow-ups on this record. Admins are alerted when one comes due."
-        count={openCount}
         action={
           <Button
             size="compact-sm"
@@ -101,20 +139,9 @@ export function RecordRemindersPanel({ owner }: RecordRemindersPanelProps) {
         }
       />
 
-      {/* A filter over data already in hand — not a second request. */}
-      <Group justify="flex-start">
-        <SegmentedControl
-          size="xs"
-          value={filter}
-          onChange={(value) => setFilter(value as PanelFilter)}
-          data={[
-            { label: "Open", value: "open" },
-            { label: "All", value: "all" },
-          ]}
-          aria-label="Filter reminders by status"
-        />
-      </Group>
-
+      {/* Loading and error belong ABOVE the tabs: they are properties of the
+          one request that feeds both views, not of either view. Putting them
+          inside a panel would redraw the tab strip on every refetch. */}
       {isLoading ? <Loader size="sm" /> : null}
 
       {isError ? (
@@ -125,25 +152,57 @@ export function RecordRemindersPanel({ owner }: RecordRemindersPanelProps) {
         />
       ) : null}
 
-      {!isLoading && !isError && visible.length === 0 ? (
-        <Text size="xs" c="dimmed">
-          {filter === "open"
-            ? "No open reminders. Add one to be prompted about this record later."
-            : "No reminders have been set on this record."}
-        </Text>
-      ) : null}
+      {/* Real tabs, and a filter over data already in hand — not a second
+          request. Both panels read the same query result; the counts on the
+          strip are what make "Open" a decision rather than a guess. */}
+      {!isLoading && !isError ? (
+        <Tabs
+          value={filter}
+          onChange={(value) => setFilter((value as PanelFilter) ?? "open")}
+          keepMounted={false}
+        >
+          <Tabs.List>
+            <Tabs.Tab
+              value="open"
+              rightSection={
+                <Badge size="xs" variant="light" circle>
+                  {openCount}
+                </Badge>
+              }
+            >
+              <Text size="xs" fw={700} span>
+                Open
+              </Text>
+            </Tabs.Tab>
+            <Tabs.Tab
+              value="all"
+              rightSection={
+                <Badge size="xs" variant="light" circle>
+                  {reminders.length}
+                </Badge>
+              }
+            >
+              <Text size="xs" fw={700} span>
+                All
+              </Text>
+            </Tabs.Tab>
+          </Tabs.List>
 
-      {!isLoading && !isError && visible.length > 0 ? (
-        <Stack gap="xs">
-          {visible.map((reminder) => (
-            <ReminderRow
-              key={reminder.id}
-              reminder={reminder}
-              today={today}
-              onReschedule={handleReschedule}
-            />
+          {TAB_VALUES.map((value) => (
+            <Tabs.Panel key={value} value={value} pt="md">
+              <ReminderList
+                reminders={value === "open" ? openReminders : reminders}
+                today={today}
+                emptyMessage={
+                  value === "open"
+                    ? "No open reminders. Add one to be prompted about this record later."
+                    : "No reminders have been set on this record."
+                }
+                onReschedule={handleReschedule}
+              />
+            </Tabs.Panel>
           ))}
-        </Stack>
+        </Tabs>
       ) : null}
 
       {/* Truncation is disclosed rather than hidden. Worded against the record,

@@ -74,13 +74,12 @@ card is **not** Admin-only. See `dashboard/docs/AI.md`.
 
 ## Components
 
-| Component              | Renders                                                                                                                                                                                       |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `RecordRemindersPanel` | The record's follow-ups. Props `{ owner: {applicant} \| {client} }` — a union, so "exactly one owner" is a compile-time guarantee, not a 400                                                  |
-| `ReminderRow`          | One reminder + its lifecycle controls. Each row owns its own mutation hooks (the `NotificationRow` pattern)                                                                                   |
-| `ReminderHistory`      | Collapsed lifecycle trail per row, as a Mantine `Timeline`. `enabled`-gated, so twenty reminders cost zero history requests until asked. **The only place a complete/dismiss `reason` shows** |
-| `ReminderFormModal`    | Create + reschedule. `FormWrapper` only — no `FormShell`, no `ModalTableShell`                                                                                                                |
-| `ReminderAlertLink`    | The "View record" control on a `custom_reminder` notification                                                                                                                                 |
+| Component              | Renders                                                                                                                                      |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RecordRemindersPanel` | The record's follow-ups. Props `{ owner: {applicant} \| {client} }` — a union, so "exactly one owner" is a compile-time guarantee, not a 400 |
+| `ReminderRow`          | One reminder as **icon · content · actions**. Each row owns its own mutation hooks (the `NotificationRow` pattern)                           |
+| `ReminderFormModal`    | Create + reschedule. `FormWrapper` only — no `FormShell`, no `ModalTableShell`                                                               |
+| `ReminderAlertLink`    | The "View record" control on a `custom_reminder` notification                                                                                |
 
 ## Where the panel is opened from
 
@@ -108,11 +107,32 @@ its own date picker is not**: a popover on Mantine's default 300 renders
 _behind_ a form at 400, so the calendar opens invisibly and the field looks
 broken. That is why `DateInput` carries `popoverProps={{ zIndex }}`.
 
+## Card anatomy
+
+Three columns, left to right:
+
+| Column      | Carries                                                                                                                             |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Icon**    | The status glyph, tinted by **urgency** while open (red overdue / amber today / gray healthy), neutral once closed                  |
+| **Content** | Title (the note — the note _is_ the reminder), then who set it and what it hangs off, then status + dates + how long until it fires |
+| **Actions** | Complete ✓ and Reschedule 📅 as icon buttons; Dismiss ✕ held apart by a vertical rule                                               |
+
+- **The icon takes the due tone, not the status tone**, so a column of cards is
+  scannable before a word is read. It goes neutral when closed: a completed
+  follow-up that happened to be late should not still shout.
+- **Dismiss is separated by a `Divider`, not sitting flush against Complete.**
+  An icon group is a small target and dismissal cannot be undone; the confirm is
+  the real safety net, but adjacency is still the wrong shape.
+- **No history on the card.** It is a scanning surface, not an archive — see the
+  note in `index.ts` about the history data layer that remains.
+
 ## Panel behaviour
 
-- **One request, filtered client-side.** `status` is omitted from the query, so
-  the response carries open **and** closed rows; the Open/All toggle filters
-  what is already in hand. Two filtered requests would be two cache entries and
+- **Real Mantine `Tabs`, one request.** `status` is omitted from the query, so
+  the response carries open **and** closed rows; the Open/All tabs are panels
+  over that one result, with the live counts on the strip. Loading and error sit
+  **above** the tabs — they are properties of the request that feeds both views,
+  and rendering them inside a panel would redraw the strip on every refetch. Two filtered requests would be two cache entries and
   a flash of empty on every toggle.
 - **Rows are sorted for reading**, not in server order. This API has **no
   `ordering` parameter** and always returns newest-created first, so reading
@@ -186,9 +206,12 @@ fetches the reminder to find its owner. See `notifications/docs/AI.md`.
   remove `popoverProps` from the date field — that is the one that makes the
   calendar visible at all inside a modal. Do not build a second reminders
   surface either; reuse `RecordRemindersPanel`.
-- **Do not swap `ReminderHistory` for the shared `HistoryTable`.** That table
-  sets `minWidth={560}` and would force horizontal scrolling inside every
-  reminder card in a narrow profile column.
+- **Do not put history back on the card.** It is a scanning surface. If a
+  history view is wanted it needs its own home; note that the shared
+  `HistoryTable` is a poor fit inside a profile column (`minWidth={560}` forces
+  horizontal scrolling).
+- **Do not replace the Open/All tabs with a `SegmentedControl`** or re-derive
+  the counts anywhere else — the tab strip is the one place they render.
 - Do not fetch in `useEffect`; do not import Mantine directly.
 
 ## Known gaps (from the contract)

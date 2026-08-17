@@ -1,13 +1,15 @@
 "use client";
 
 import {
+  ActionIcon,
   Badge,
-  Box,
-  Button,
+  Divider,
   Group,
   Paper,
   Stack,
   Text,
+  ThemeIcon,
+  Tooltip,
   modals,
 } from "@peppermint/ui";
 import { StatusBadge } from "@peppermint/admin";
@@ -17,6 +19,7 @@ import { XCircleIcon } from "@phosphor-icons/react/dist/csr/XCircle";
 import {
   DUE_BUCKET_LABELS,
   REMINDER_STATUS_COLORS,
+  REMINDER_STATUS_ICONS,
   REMINDER_STATUS_LABELS,
 } from "../../reminders.labels";
 import { REMINDER_LAYER } from "../../reminders.constants";
@@ -27,7 +30,6 @@ import {
   formatDueDate,
   formatDueDistance,
 } from "../../reminders.utils";
-import { ReminderHistory } from "../ReminderHistory";
 import type { ReminderRowProps } from "./ReminderRow.types";
 
 /**
@@ -44,7 +46,13 @@ const DUE_BUCKET_COLORS = {
 } as const;
 
 /**
- * One reminder, reused by the record panel and any other list of reminders.
+ * One reminder: **icon · content · actions**, left to right.
+ *
+ * The leading icon carries the status glyph tinted by *urgency*, so a column of
+ * cards is scannable before a single word is read — red means overdue, amber
+ * due today, gray healthy or closed. The content column then reads top-down as
+ * one sentence of context: what the follow-up is, who set it and on what, then
+ * where it sits in time. Actions sit right, out of the reading path.
  *
  * Each rendered row is its own component instance and calls its own mutation
  * hooks directly — the established pattern in this app (see `NotificationRow`)
@@ -55,16 +63,16 @@ const DUE_BUCKET_COLORS = {
  * stays readable forever, which is the point — it is operational memory.
  *
  * Output-contract states: **empty** N/A (a row always has data) · **loading**
- * per-action pending buttons, with the sibling action disabled so two writes
- * can't race · **request-failed** the mutation's resolved toast; the row stays
- * put and the action is retryable · **permission-denied** N/A, the host panel
- * gates on `caps.reminders` and this module has no read/write split ·
- * **read-only** a closed row renders its facts with no action group at all ·
- * **archived record** that same closed rendering — the row never disappears ·
+ * per-action pending buttons, with the siblings disabled so two writes can't
+ * race · **request-failed** the mutation's resolved toast; the row stays put
+ * and the action is retryable · **permission-denied** N/A, the host panel gates
+ * on `caps.reminders` and this module has no read/write split · **read-only** a
+ * closed row renders its facts with no action group at all · **archived
+ * record** that same closed rendering — the row never disappears ·
  * **conflicting edits** a colleague closing it first is a 409 whose message
- * says so, and the panel's invalidation refetches the true state · **recovery
- * path** completion and dismissal are both recorded in the reminder's history,
- * and "set a new reminder" is the forward path the confirm names.
+ * says so, and the panel refetches · **recovery path** completion and dismissal
+ * are both recorded in the audit log, and "set a new reminder" is the forward
+ * path the confirm names.
  */
 export function ReminderRow({
   reminder,
@@ -78,6 +86,13 @@ export function ReminderRow({
   const isOpen = reminder.status === "active";
   const isPending = complete.isPending || dismiss.isPending;
   const bsDisplay = formatBs(reminder.due_date_bs);
+  const StatusIcon = REMINDER_STATUS_ICONS[reminder.status];
+  // The icon takes the DUE tone while open and goes neutral once closed —
+  // urgency is a property of an open follow-up, and a completed one that
+  // happened to be late should not still shout.
+  const iconColor = isOpen
+    ? DUE_BUCKET_COLORS[bucket]
+    : REMINDER_STATUS_COLORS[reminder.status];
 
   /**
    * Dismissing is irreversible — there is no un-dismiss and no reopen anywhere
@@ -100,98 +115,107 @@ export function ReminderRow({
   };
 
   return (
-    <Paper withBorder p="sm" radius="sm">
-      <Stack gap={6}>
-        <Group justify="space-between" align="flex-start" wrap="nowrap">
-          <Group gap="xs" wrap="wrap">
-            {/* Status is a fact: words + colour + a fixed position, never colour alone. */}
+    <Paper withBorder p="sm" radius="md">
+      <Group align="flex-start" wrap="nowrap" gap="sm">
+        {/* ── Icon ─────────────────────────────────────────────────────── */}
+        <ThemeIcon variant="light" color={iconColor} size={34} radius="md">
+          <StatusIcon size={18} aria-hidden />
+        </ThemeIcon>
+
+        {/* ── Content ──────────────────────────────────────────────────── */}
+        <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
+          {/* Title — the note IS the reminder; everything else is metadata. */}
+          <Text size="sm" fw={500} lineClamp={2}>
+            {reminder.note}
+          </Text>
+
+          {/* Quick details: who set it, and what it hangs off. */}
+          <Text size="xs" c="dimmed">
+            Set by {reminder.created_by_username} ·{" "}
+            {reminder.owner_type === "applicant" ? "Applicant" : "Client"}
+          </Text>
+
+          {/* Status, dates, and how long until (or since) it fires. */}
+          <Group gap={6} wrap="wrap">
             <StatusBadge
               value={reminder.status}
               colorMap={REMINDER_STATUS_COLORS}
               labelMap={REMINDER_STATUS_LABELS}
             />
-            {/* The due badge only appears while the reminder is open — an
-                "overdue" flag on a completed follow-up is a lie about work
-                that was actually done. */}
             {isOpen ? (
               <Badge
                 size="xs"
                 variant="light"
                 color={DUE_BUCKET_COLORS[bucket]}
               >
-                {DUE_BUCKET_LABELS[bucket]}
+                {DUE_BUCKET_LABELS[bucket]} ·{" "}
+                {formatDueDistance(reminder.due_date, today)}
               </Badge>
             ) : null}
+            <Text size="xs" c="dimmed">
+              {formatDueDate(reminder.due_date)}
+              {/* Bikram Sambat comes from the server's `display` string — a
+                  client never assembles a BS date from its parts. */}
+              {bsDisplay ? ` · ${bsDisplay} BS` : ""}
+              {!isOpen
+                ? ` · ${REMINDER_STATUS_LABELS[reminder.status].toLowerCase()} by ${reminder.closed_by_username ?? "someone"}`
+                : ""}
+            </Text>
           </Group>
-          {/* The date is the row's scanning anchor, so it holds one fixed
-              position top-right and is not repeated in the meta line below. */}
-          <Text size="xs" fw={500} style={{ whiteSpace: "nowrap" }}>
-            {formatDueDate(reminder.due_date)}
-          </Text>
-        </Group>
+        </Stack>
 
-        <Text size="sm">{reminder.note}</Text>
-
-        <Text size="xs" c="dimmed">
-          {/* Bikram Sambat is rendered from the server's `display` string — a
-              client never assembles a BS date from its parts. */}
-          {bsDisplay ? `${bsDisplay} BS · ` : ""}
-          {isOpen
-            ? formatDueDistance(reminder.due_date, today)
-            : `${REMINDER_STATUS_LABELS[reminder.status].toLowerCase()} by ${reminder.closed_by_username ?? "someone"}`}
-          {" · set by "}
-          {reminder.created_by_username}
-        </Text>
-
-        {/* Collapsed by default, so a panel of twenty reminders costs zero
-            history requests until someone asks a question about one. It is also
-            the only place a complete/dismiss reason is ever readable. */}
-        <ReminderHistory reminderId={reminder.id} />
-
+        {/* ── Actions ──────────────────────────────────────────────────── */}
         {isOpen ? (
-          /* Destructive action (Dismiss) sits far left, spatially separated
-             from the safe ones on the right — never adjacent to Complete. */
-          <Group justify="space-between" gap="xs">
-            <Box>
-              <Button
-                size="compact-xs"
-                variant="subtle"
-                color="red"
-                leftSection={<XCircleIcon size={12} aria-hidden />}
-                onClick={handleDismiss}
-                loading={dismiss.isPending}
-                disabled={isPending}
-              >
-                Dismiss
-              </Button>
-            </Box>
-            <Group gap="xs">
-              {onReschedule ? (
-                <Button
-                  size="compact-xs"
-                  variant="subtle"
-                  color="gray"
-                  leftSection={<CalendarPlusIcon size={12} aria-hidden />}
-                  onClick={() => onReschedule(reminder)}
-                  disabled={isPending}
-                >
-                  Reschedule
-                </Button>
-              ) : null}
-              <Button
-                size="compact-xs"
+          <Group gap={4} wrap="nowrap" style={{ flex: "none" }}>
+            <Tooltip label="Mark complete" withArrow>
+              <ActionIcon
                 variant="light"
-                leftSection={<CheckIcon size={12} aria-hidden />}
+                color="green"
+                size="md"
+                aria-label="Mark this reminder complete"
                 onClick={() => complete.mutate()}
                 loading={complete.isPending}
                 disabled={isPending}
               >
-                Complete
-              </Button>
-            </Group>
+                <CheckIcon size={16} aria-hidden />
+              </ActionIcon>
+            </Tooltip>
+
+            {onReschedule ? (
+              <Tooltip label="Reschedule" withArrow>
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  size="md"
+                  aria-label="Reschedule this reminder"
+                  onClick={() => onReschedule(reminder)}
+                  disabled={isPending}
+                >
+                  <CalendarPlusIcon size={16} aria-hidden />
+                </ActionIcon>
+              </Tooltip>
+            ) : null}
+
+            {/* The irreversible one, held apart by a rule rather than sitting
+                flush against Complete — an icon group is a small target and a
+                mis-click here cannot be undone. */}
+            <Divider orientation="vertical" mx={2} />
+            <Tooltip label="Dismiss" withArrow>
+              <ActionIcon
+                variant="subtle"
+                color="red"
+                size="md"
+                aria-label="Dismiss this reminder"
+                onClick={handleDismiss}
+                loading={dismiss.isPending}
+                disabled={isPending}
+              >
+                <XCircleIcon size={16} aria-hidden />
+              </ActionIcon>
+            </Tooltip>
           </Group>
         ) : null}
-      </Stack>
+      </Group>
     </Paper>
   );
 }
