@@ -59,11 +59,35 @@ const BAND: Record<ViewKey, "critical" | "warning" | "info"> = {
  * page length, so the card stays honest at any volume.
  */
 export function RemindersPanel() {
-  const [view, setView] = useState<ViewKey>("overdue");
+  // `null` until the reader picks a view themselves. Their choice must survive
+  // a refetch, so it is stored separately from the fallback below rather than
+  // being seeded into state and then overwritten.
+  const [chosenView, setChosenView] = useState<ViewKey | null>(null);
   const { buckets, isPending, isError, refetch, isRefetching } =
     useDueReminders();
 
   const bucketFor = (key: ViewKey): DueRemindersBucket => buckets[key];
+
+  /**
+   * Open on the most urgent view that actually has something in it.
+   *
+   * Defaulting to Overdue reads well and is wrong in the common case: a
+   * reminder cannot be created in the past — `due_date` must be Nepal's today
+   * or later — so a freshly set follow-up is *never* overdue and usually not
+   * even due today. A card that always opened on Overdue therefore greeted
+   * most offices with "Nothing overdue", which looks identical to a card with
+   * no data, or no card at all.
+   *
+   * Falls back to Overdue when every window is empty, so the calm state is
+   * still the reassuring one rather than an arbitrary tab.
+   */
+  const firstPopulated =
+    VIEWS.find((entry) => bucketFor(entry.value).total > 0)?.value ?? "overdue";
+  const view = chosenView ?? firstPopulated;
+  const openTotal = VIEWS.reduce(
+    (sum, entry) => sum + bucketFor(entry.value).total,
+    0,
+  );
 
   const views = VIEWS.map((entry) => ({
     ...entry,
@@ -80,11 +104,19 @@ export function RemindersPanel() {
   return (
     <PanelCard
       title="Follow-ups"
-      subtitle={VIEWS.find((entry) => entry.value === view)?.description}
+      // The open total rides in the subtitle so the card states its own size
+      // even when the selected window happens to be empty — "0 open" and
+      // "12 open, none overdue" are very different situations and used to look
+      // the same from outside.
+      subtitle={
+        isPending
+          ? undefined
+          : `${openTotal} open · ${VIEWS.find((entry) => entry.value === view)?.description}`
+      }
       icon={AlarmIcon}
       views={views}
       activeView={view}
-      onViewChange={(value) => setView(value as ViewKey)}
+      onViewChange={(value) => setChosenView(value as ViewKey)}
       minBodyHeight={300}
     >
       <SectionState

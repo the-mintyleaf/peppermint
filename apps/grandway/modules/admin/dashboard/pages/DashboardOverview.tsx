@@ -149,26 +149,25 @@ export function DashboardOverview() {
               <Grid.Col span={SMALL}>
                 <ApplicantStatTiles filters={filters} />
               </Grid.Col>
-              <Grid.Col span={LARGE}>
-                <RecentApplicants filters={filters} />
-              </Grid.Col>
-              {/* Follow-ups lives HERE rather than in its own band or in
-                  Operations, and the placement is load-bearing twice over.
+              {/* The right-hand 6/12 of a band is that band's ACTION slot —
+                  the Leads band puts its day's queue here, not its figures.
+                  Follow-ups is the applicant equivalent: a dated debt against
+                  one of these records, and the thing most likely to decay if
+                  unread. "Who just joined" is context and drops below it.
 
-                  It has to be somewhere a `lead_manager` can see: a
-                  `custom_reminder` alert is routed to Admins only, so that
-                  tier's own due work surfaces nowhere automatically, and the
-                  reminders contract's §9 names this query as the client-side
-                  answer. The Applicants band is one of the two bands they get.
-
-                  And it belongs beside the people it concerns. A follow-up is
-                  a debt against a record in this band — reading "who just
-                  joined" next to "what we owe them" is one thought, not two. */}
+                  Placement is also load-bearing for access. A `custom_reminder`
+                  alert is routed to Admins only, so a `lead_manager`'s own due
+                  work surfaces nowhere automatically — the reminders contract's
+                  §9 names this query as the client-side answer — and the
+                  Applicants band is one of the two bands that tier is given. */}
               {canUseReminders && (
                 <Grid.Col span={LARGE}>
                   <RemindersPanel />
                 </Grid.Col>
               )}
+              <Grid.Col span={LARGE}>
+                <RecentApplicants filters={filters} />
+              </Grid.Col>
             </SectionBand>
           </ModuleErrorBoundary>
 

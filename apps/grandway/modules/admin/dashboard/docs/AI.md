@@ -79,11 +79,11 @@ keep it truthful if the split changes.
 `DashboardGreeting` → three `SectionBand`s. Every card measures against the SAME
 12 columns: **large 6/12 · medium 4/12 · small 2/12**, and nothing exceeds 6/12.
 
-| Band           | Left (figures)                                                                                                                                        | Right (rows)                                                            |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| **Leads**      | `LeadStats` 4/12 + `LeadStatTiles` 2/12                                                                                                               | `LeadsToAddress` 6/12                                                   |
-| **Applicants** | `ApplicantCountryStats` 4/12 + `ApplicantStatTiles` 2/12                                                                                              | `RecentApplicants` 6/12 + `RemindersPanel` 6/12 (wraps to a second row) |
-| **Operations** | seven 6/12 `PanelCard`s: `AttentionPanel` · `TodayPanel` · `BlockersPanel` · `WorkloadPanel` · `PipelinePanel` · `PerformancePanel` · `ActivityPanel` | —                                                                       |
+| Band           | Left (figures)                                                                                                                                        | Right (rows)                                                |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| **Leads**      | `LeadStats` 4/12 + `LeadStatTiles` 2/12                                                                                                               | `LeadsToAddress` 6/12                                       |
+| **Applicants** | `ApplicantCountryStats` 4/12 + `ApplicantStatTiles` 2/12                                                                                              | `RemindersPanel` 6/12, then `RecentApplicants` 6/12 (wraps) |
+| **Operations** | seven 6/12 `PanelCard`s: `AttentionPanel` · `TodayPanel` · `BlockersPanel` · `WorkloadPanel` · `PipelinePanel` · `PerformancePanel` · `ActivityPanel` | —                                                           |
 
 - **The tab bar, `dashboard.tabs.ts` and `useDashboardTab` are gone.** The reading
   order is the page's; `tab` is no longer URL state (`fiscal_year`/`country` still are).
@@ -174,6 +174,14 @@ keep it truthful if the split changes.
 - Do not combine the 8 queries into one — a slow section must never block the rest (CONCEPT.md).
 - Do not move `RemindersPanel` out of the Applicants band — not into Operations, and
   not back into a band of its own (see Access above).
+- Do not demote it below `RecentApplicants`. The right-hand 6/12 of a band is that
+  band's ACTION slot (the Leads band puts its day's queue there, not its figures), and
+  a card that wraps to a lonely second row reads as absent — that is exactly how this
+  one was missed twice.
+- Do not default the card to a fixed view. It opens on the first **populated** window
+  (overdue → today → upcoming). A reminder cannot be created in the past — `due_date`
+  must be Nepal's today or later — so a fixed "Overdue" default greets most offices
+  with an empty card that looks identical to no card at all.
 - Do not filter the Follow-ups card to applicant-owned reminders because of where it
   sits. The list endpoint has no "any applicant" filter, so dropping client rows
   client-side would leave the counts describing a set the rows do not match. Each row
