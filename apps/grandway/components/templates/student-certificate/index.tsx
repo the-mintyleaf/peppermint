@@ -22,7 +22,7 @@ import {
 } from "@/context/DocumentContext";
 import { StudentCertMissingBanner } from "./MissingBanner";
 const leafImage = { src: "/documents/assets/leaf.svg" };
-const manabiyaLogo = { src: "/documents/assets/logo.svg" };
+const grandwayLogo = { src: "/img/grandway_icon.png" };
 
 const EMPTY_CERT: StudentCertificateData = {
   firstname: "",
@@ -241,18 +241,16 @@ export function TemplateStudentCertificate({
             <Image
               w={100}
               h={100}
-              src={manabiyaLogo.src}
-              alt="Manabiya logo"
+              src={grandwayLogo.src}
+              alt="Grandway Education logo"
               fit="contain"
             />
             <Stack gap={2}>
               <Text fw={600} size="sm" style={{ lineHeight: 1.2 }}>
-                MANABIYA NEPAL
-                <br />
-                INSTITUTIONS CONSULTANCY PVT. LTD.
+                GRANDWAY EDUCATION
               </Text>
               <Text fz={10} c="dimmed">
-                Head Office : New Plaza, Putalisadak, Kathmandu, Nepal
+                Head Office : Bagbazar, Kathmandu, Nepal
               </Text>
               {d.customBranch && (
                 <Text fz={10} c="dimmed">
@@ -263,15 +261,12 @@ export function TemplateStudentCertificate({
           </Group>
 
           <Stack gap={2} align="flex-end">
-            <Text fz={10} c="dimmed" ta="right">
-              PAN : 610292682 | Reg. No : 291521/78/079
-            </Text>
             <Text fz={10} ta="right">
-              manabiyanepal.com.np
+              grandwayeducation.com
               <br />
-              info@manabiyanepal.com.np
+              info@grandwayeducation.com
               <br />
-              +977 9851338205 , +977 15917178
+              01-5927205 (+977 1 5927205)
               {d.customBranchNo && (
                 <>
                   <br />
@@ -686,12 +681,6 @@ export function TemplateStudentCertificate({
             </Text>
             <Text fz={10} fw={600} ta="center">
               School Stamp
-            </Text>
-          </Grid.Col>
-
-          <Grid.Col span={12}>
-            <Text mt={4} fz={10} ta="center" c="dimmed">
-              Branch Office: Chitwan / Butwal / Simara / Surkhet / Jhapa
             </Text>
           </Grid.Col>
 
