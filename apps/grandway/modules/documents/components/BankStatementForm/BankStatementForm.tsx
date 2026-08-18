@@ -21,11 +21,16 @@ import { TableIcon } from "@phosphor-icons/react/dist/csr/Table";
 import { FormSection } from "@/components/FormSection";
 import type {
   BankStatementContent,
+  BankTransaction,
   DocumentFormProps,
 } from "../../documents.types";
 import { computeBankStatement } from "../../utils/bankStatement";
 import { withOpeningRow } from "./BankStatementForm.utils";
 import { TransactionGrid } from "./components/TransactionGrid";
+import {
+  TransactionImport,
+  type TransactionImportMode,
+} from "./components/TransactionImport";
 
 type StatementTab = "details" | "transactions";
 
@@ -114,6 +119,26 @@ export function BankStatementForm({
       type: "tax",
       tax_rate: Number(form.getValues().statement_tax) || 0,
     });
+  };
+
+  /**
+   * Applies an imported sheet.
+   *
+   * `replace` rebuilds the sheet from the file and runs it back through `withOpeningRow`,
+   * so row 1 is normalised to the opening entry however the file was written. `append`
+   * leaves the existing sheet — opening row included — untouched and adds the file below
+   * it, where every row is an ordinary entry.
+   */
+  const applyImport = (
+    rows: BankTransaction[],
+    mode: TransactionImportMode,
+  ) => {
+    const values = form.getValues();
+    const next =
+      mode === "replace"
+        ? withOpeningRow({ ...values, transactions: rows })
+        : [...(values.transactions ?? []), ...rows];
+    form.setFieldValue("transactions", next);
   };
 
   // The required fields all live on Details, so a failed submit from the sheet must
@@ -267,6 +292,8 @@ export function BankStatementForm({
                   its date and amount. Interest &amp; Tax rows are inserted as a
                   pair, compute themselves from the rows above at each
                   row&rsquo;s own rate, and re-sync when those rows change.
+                  Working in Excel instead? Download the sample, fill it in, and
+                  import it back.
                 </Text>
                 <Group gap="xs" wrap="nowrap">
                   <Button
@@ -288,6 +315,11 @@ export function BankStatementForm({
                   >
                     Interest &amp; Tax
                   </Button>
+                  <TransactionImport
+                    onImport={applyImport}
+                    existingRowCount={transactions.length}
+                    isLoading={isLoading}
+                  />
                 </Group>
               </Group>
 
