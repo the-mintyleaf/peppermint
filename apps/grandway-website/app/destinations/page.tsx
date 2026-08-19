@@ -31,7 +31,7 @@ export default function DestinationsPage() {
               style={{ backgroundImage: `url(${destination.image})` }}
             />
             <div className="index-card-content">
-              <span>0{index + 1}</span>
+              <span>{String(index + 1).padStart(2, "0")}</span>
               <h2>{destination.name}</h2>
               <p>{destination.summary}</p>
               <b>

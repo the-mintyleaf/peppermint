@@ -2,21 +2,21 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { destinations } from "@/data/destinations";
+import { featuredDestinations } from "@/data/destinations";
 
 export function DestinationHero() {
   const [active, setActive] = useState(0);
   useEffect(() => {
     const timer = window.setInterval(
-      () => setActive((current) => (current + 1) % destinations.length),
+      () => setActive((current) => (current + 1) % featuredDestinations.length),
       5500,
     );
     return () => window.clearInterval(timer);
   }, []);
-  const place = destinations[active];
+  const place = featuredDestinations[active];
   return (
     <section className="destination-hero">
-      {destinations.map((destination, index) => (
+      {featuredDestinations.map((destination, index) => (
         <div
           key={destination.slug}
           className={`hero-photo ${index === active ? "hero-photo--active" : ""}`}
@@ -38,7 +38,7 @@ export function DestinationHero() {
         </Link>
       </div>
       <div className="hero-controls" aria-label="Choose a destination">
-        {destinations.map((destination, index) => (
+        {featuredDestinations.map((destination, index) => (
           <button
             key={destination.slug}
             className={index === active ? "is-active" : ""}

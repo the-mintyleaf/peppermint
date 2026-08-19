@@ -2,7 +2,7 @@ import Link from "next/link";
 import { DestinationHero } from "@/components/DestinationHero";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
-import { destinations } from "@/data/destinations";
+import { featuredDestinations } from "@/data/destinations";
 
 /* eslint-disable @next/next/no-img-element -- official domain favicons are temporary logo sources. */
 
@@ -147,7 +147,7 @@ export default function Home() {
           </Link>
         </div>
         <div className="destination-cards">
-          {destinations.map((destination) => (
+          {featuredDestinations.map((destination) => (
             <Link
               className="destination-card"
               href={`/destinations/${destination.slug}`}
