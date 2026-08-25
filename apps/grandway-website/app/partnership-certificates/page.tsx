@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+
+export const metadata: Metadata = {
+  title: "Partnership Certificates",
+  description:
+    "The universities and institutions Grandway Education is an accredited representative for.",
+};
 
 const certificates = [
   {
@@ -44,7 +51,7 @@ export default function PartnershipCertificatesPage() {
     <main>
       <SiteHeader />
       <section className="page-hero certificate-hero">
-        <p className="eyebrow">Grand Way Education</p>
+        <p className="eyebrow">Grandway Education</p>
         <h1>
           Our university
           <br />
@@ -87,7 +94,7 @@ export default function PartnershipCertificatesPage() {
               <i>
                 This is to recognise the education pathway collaboration between
               </i>
-              <h2>Grand Way Education</h2>
+              <h2>Grandway Education</h2>
               <b>and</b>
               <h3>{certificate.university}</h3>
               <small>

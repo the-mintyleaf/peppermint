@@ -69,7 +69,7 @@ export const destinations: Destination[] = [
     summary:
       "A respected education system, diverse communities and meaningful post-study possibilities.",
     introduction:
-      "Canada combines quality institutions with a multicultural way of life. Grand Way helps you select a Designated Learning Institution and prepare a complete study permit application.",
+      "Canada combines quality institutions with a multicultural way of life. Grandway helps you select a Designated Learning Institution and prepare a complete study permit application.",
     reasons: [
       "Globally recognised colleges and universities",
       "Inclusive, multicultural student life",

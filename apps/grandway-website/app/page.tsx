@@ -78,7 +78,7 @@ export default function Home() {
         <DestinationHero />
       </div>
       <section className="intro section-shell">
-        <p className="eyebrow">Grand Way Education</p>
+        <p className="eyebrow">Grandway Education</p>
         <div className="intro-grid">
           <h2>Your next chapter begins with a good conversation.</h2>
           <div>
@@ -88,7 +88,7 @@ export default function Home() {
               throughout the journey.
             </p>
             <Link className="text-link" href="/about">
-              Get to know Grand Way <span>→</span>
+              Get to know Grandway <span>→</span>
             </Link>
           </div>
         </div>

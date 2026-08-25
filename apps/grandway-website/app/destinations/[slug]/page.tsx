@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -6,6 +7,20 @@ import { destinations, getDestination } from "@/data/destinations";
 
 export function generateStaticParams() {
   return destinations.map(({ slug }) => ({ slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const destination = getDestination(slug);
+  if (!destination) return { title: "Destination not found" };
+  return {
+    title: `Study in ${destination.name}`,
+    description: destination.summary,
+  };
 }
 
 export default async function DestinationPage({

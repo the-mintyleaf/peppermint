@@ -47,7 +47,7 @@ export function SiteFooter() {
       </div>
 
       <div className="footer-bottom">
-        <span>© {new Date().getFullYear()} Grand Way Education</span>
+        <span>© {new Date().getFullYear()} Grandway Education</span>
         <span>Bagbazar, Kathmandu, Nepal</span>
       </div>
     </footer>

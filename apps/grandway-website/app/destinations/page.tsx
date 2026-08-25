@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { destinations } from "@/data/destinations";
+
+export const metadata: Metadata = {
+  title: "Destinations",
+  description:
+    "Study destinations Grandway Education supports — entry requirements, costs and visa routes for each country.",
+};
 
 export default function DestinationsPage() {
   return (

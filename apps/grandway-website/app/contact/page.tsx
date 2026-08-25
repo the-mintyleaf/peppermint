@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+
+export const metadata: Metadata = {
+  title: "Contact",
+  description:
+    "Talk to a Grandway Education counsellor about your study abroad plans — no obligation, no cost to start.",
+};
 
 export default function ContactPage() {
   return (

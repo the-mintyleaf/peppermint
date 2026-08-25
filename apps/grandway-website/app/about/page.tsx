@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+
+export const metadata: Metadata = {
+  title: "About",
+  description:
+    "Who Grandway Education is, how we work with students in Nepal, and why studying abroad should feel achievable.",
+};
 
 export default function AboutPage() {
   return (
@@ -14,7 +21,7 @@ export default function AboutPage() {
           <em>with people who care.</em>
         </h1>
         <p>
-          Grand Way Education is here to make studying abroad feel achievable,
+          Grandway Education is here to make studying abroad feel achievable,
           informed and genuinely exciting.
         </p>
       </section>
