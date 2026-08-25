@@ -1,1 +1,1 @@
-export { LayoutApp } from "./App";
+export { LayoutApp, metadata } from "./App";
