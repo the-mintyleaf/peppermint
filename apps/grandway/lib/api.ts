@@ -1,6 +1,14 @@
 import { configureApiClient } from "@peppermint/api-client";
 
 /**
+ * Grandway's production API. `NEXT_PUBLIC_API_URL` still wins when it is set (a local
+ * backend during development), but the default is the real deployment — env files are
+ * git-ignored, so a server that never got one still talks to production instead of
+ * building with an empty `baseURL` and failing every request against its own origin.
+ */
+const PRODUCTION_API_URL = "https://api.grandwayeducation.com";
+
+/**
  * The app's shared Axios instance. Auth-header injection, `{ success, data, meta }`
  * envelope unwrapping, and single-flight 401 refresh all live in
  * `@peppermint/api-client`.
@@ -9,10 +17,10 @@ import { configureApiClient } from "@peppermint/api-client";
  * development mode — in production the refresh credential is meant to be a
  * `Secure; HttpOnly; SameSite` cookie instead (`authenticate/docs/INTEGRATION.md` §3).
  *
- * **`refreshMode: "cookie"` is NOT enabled here, even though this env's target backend
- * has no `data.refresh` in the body** (confirmed: no `refresh_token` in localStorage
- * after login) — cookie mode flips `withCredentials` on for every request through this
- * instance, and this backend's CORS policy currently returns
+ * **`refreshMode: "cookie"` is NOT enabled here, even though the backend this was
+ * measured against has no `data.refresh` in the body** (confirmed: no `refresh_token`
+ * in localStorage after login) — cookie mode flips `withCredentials` on for every
+ * request through this instance, and this backend's CORS policy currently returns
  * `Access-Control-Allow-Origin: *` (wildcard), which browsers categorically reject on
  * any credentialed request. Turning it on breaks *login itself* (blocked before the
  * request leaves the browser — confirmed in devtools), which is worse than the original
@@ -26,7 +34,7 @@ import { configureApiClient } from "@peppermint/api-client";
  * Always import the instance from here, never from `@peppermint/api-client` directly.
  */
 const api = configureApiClient({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL || PRODUCTION_API_URL,
 });
 
 export default api;
