@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Box, Paper, Stack, Table, Text, Title } from "@peppermint/ui";
+import { Box, Image, Paper, Stack, Table, Text, Title } from "@peppermint/ui";
 import type { CvContent } from "@/modules/documents/documents.types";
 
 type Data = CvContent & Record<string, unknown>;
@@ -79,59 +79,80 @@ export function TemplateStudentCVExtended({
         fontFamily: FONT,
       }}
     >
-      {/* Header */}
-      <Stack gap="2px" align="center" mb=".12in">
-        <Title
-          order={1}
-          size="20px"
-          fw={700}
-          ta="center"
-          style={{
-            fontFamily: FONT,
-            color: "black",
-            textDecoration: "underline",
-            letterSpacing: 0.5,
-          }}
+      {/* Header — the applicant's photograph sits at the top right, passport
+          style, without pulling the centred name block off centre. */}
+      <Box pos="relative">
+        {d.image ? (
+          <Image
+            src={d.image}
+            alt="Applicant photograph"
+            w="28mm"
+            h="36mm"
+            fit="cover"
+            pos="absolute"
+            top={0}
+            right={0}
+            style={{ border: "1px solid #000" }}
+          />
+        ) : null}
+        <Stack
+          gap="2px"
+          align="center"
+          mb=".12in"
+          px={d.image ? "30mm" : undefined}
         >
-          {String(d.full_name || "").toUpperCase()}
-        </Title>
-        {d.current_address && (
-          <Text {...tp} ta="center">
-            Address: {d.current_address}
-          </Text>
-        )}
-        {d.contact && (
-          <Text {...tp} ta="center">
-            Mobile no: {d.contact}
-          </Text>
-        )}
-        {d.email && (
-          <Text
+          <Title
+            order={1}
+            size="20px"
+            fw={700}
             ta="center"
-            size="14px"
             style={{
               fontFamily: FONT,
-              color: "#1558d6",
+              color: "black",
               textDecoration: "underline",
+              letterSpacing: 0.5,
             }}
           >
-            E-mail: {d.email}
-          </Text>
-        )}
-        {d.alternate_email && (
-          <Text
-            ta="center"
-            size="14px"
-            style={{
-              fontFamily: FONT,
-              color: "#1558d6",
-              textDecoration: "underline",
-            }}
-          >
-            Alternate Email: {d.alternate_email}
-          </Text>
-        )}
-      </Stack>
+            {String(d.full_name || "").toUpperCase()}
+          </Title>
+          {d.current_address && (
+            <Text {...tp} ta="center">
+              Address: {d.current_address}
+            </Text>
+          )}
+          {d.contact && (
+            <Text {...tp} ta="center">
+              Mobile no: {d.contact}
+            </Text>
+          )}
+          {d.email && (
+            <Text
+              ta="center"
+              size="14px"
+              style={{
+                fontFamily: FONT,
+                color: "#1558d6",
+                textDecoration: "underline",
+              }}
+            >
+              E-mail: {d.email}
+            </Text>
+          )}
+          {d.alternate_email && (
+            <Text
+              ta="center"
+              size="14px"
+              style={{
+                fontFamily: FONT,
+                color: "#1558d6",
+                textDecoration: "underline",
+              }}
+            >
+              Alternate Email: {d.alternate_email}
+            </Text>
+          )}
+        </Stack>
+      </Box>
 
       {/* Personal Information */}
       <Section>Personal Information:</Section>
