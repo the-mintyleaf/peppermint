@@ -1,1 +1,0 @@
-export { ReferencesSection } from "./ReferencesSection";

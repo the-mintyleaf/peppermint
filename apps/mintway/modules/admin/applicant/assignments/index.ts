@@ -1,1 +1,0 @@
-export { AssignmentsPage } from "./AssignmentsPage";

@@ -1,1 +1,0 @@
-export { BankCertificateForm } from "./BankCertificateForm";

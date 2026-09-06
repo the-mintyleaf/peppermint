@@ -1,1 +1,0 @@
-export { StudentSearchView } from "./StudentSearchView";
