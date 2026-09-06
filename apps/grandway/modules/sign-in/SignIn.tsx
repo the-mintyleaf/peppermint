@@ -56,10 +56,11 @@ export function ModuleSignIn() {
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
+                backgroundSize: "cover",
               }}
               px="4rem"
               py="5rem"
-              bg="linear-gradient(120deg, var(--mantine-color-brand-9),var(--mantine-color-brand-7))"
+              bg="url(https://images.pexels.com/photos/37930273/pexels-photo-37930273.jpeg)"
               h="calc(100vh - 2*var(--mantine-spacing-xl))"
               my="xl"
               radius="lg"
@@ -77,10 +78,10 @@ export function ModuleSignIn() {
 
               <Stack style={{ fontFamily: "var(--font-special)" }}>
                 <Text size="md" c="gray.0">
-                  Accountability over speed.
+                  Grandway Education
                 </Text>
                 <Text size="4rem" c="gray.0">
-                  Every action traced. Every record explained.
+                  Management Portal.
                 </Text>
               </Stack>
             </Paper>
