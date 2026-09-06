@@ -12,10 +12,6 @@ import {
   TextInput,
 } from "@peppermint/ui";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
-import { TrendUpIcon } from "@phosphor-icons/react/dist/csr/TrendUp";
-import { CalendarCheckIcon } from "@phosphor-icons/react/dist/csr/CalendarCheck";
-import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
-import { ListBulletsIcon } from "@phosphor-icons/react/dist/csr/ListBullets";
 import { TagIcon } from "@phosphor-icons/react/dist/csr/Tag";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
@@ -35,16 +31,6 @@ import type {
 } from "../../leadManagement.types";
 import { LeadDetailDrawer } from "./components/LeadDetailDrawer";
 import { getLeadManagementColumns } from "./leadManagement.columns";
-
-const CATEGORY_ICONS: Record<
-  LeadCategory,
-  React.ComponentType<{ size?: number }>
-> = {
-  active: TrendUpIcon,
-  needs_attention: WarningIcon,
-  upcoming: CalendarCheckIcon,
-  dead: ProhibitIcon,
-};
 
 /**
  * The backend rejects *any* PATCH whose body includes an inactive `source`,
@@ -76,7 +62,7 @@ function LeadManagementBoardContent() {
   const [fiscalYear, setFiscalYear] = useState<string | null>(null);
   const [referenceDataOpen, setReferenceDataOpen] = useState(false);
 
-  const { rows, counts, capped, isLoading, boardQueryKey, queryFn } =
+  const { capped, isLoading, boardQueryKey, queryFn } =
     useLeadBoardData(fiscalYear);
   const { data: sources = [] } = useLeadSources();
   const [detailLeadId, setDetailLeadId] = useState<string | null>(null);
@@ -87,17 +73,11 @@ function LeadManagementBoardContent() {
   });
 
   // "All leads" carries no `filter` — the shell resets filters on every tab
-  // switch, so an unfiltered tab is the whole loaded set. Its count is
-  // `rows.length` (what the table actually holds), not `meta.total`, which can
-  // be larger when the board is capped.
+  // switch, so an unfiltered tab is the whole loaded set.
   const tabs: DataTableShellTab[] = [
-    {
-      label: `All leads · ${rows.length}`,
-      icon: ListBulletsIcon,
-    },
+    { label: "All leads" },
     ...(Object.keys(CATEGORY_LABELS) as LeadCategory[]).map((category) => ({
-      label: `${CATEGORY_LABELS[category]} · ${counts[category]}`,
-      icon: CATEGORY_ICONS[category],
+      label: CATEGORY_LABELS[category],
       filter: { category },
     })),
   ];

@@ -4,8 +4,6 @@ import { useRouter } from "next/navigation";
 import { DataTableShell } from "@peppermint/admin";
 import type { DataTableShellTab } from "@peppermint/admin";
 import { ModalPaper } from "@peppermint/ui";
-import { GlobeHemisphereWestIcon } from "@phosphor-icons/react/dist/csr/GlobeHemisphereWest";
-import { ListBulletsIcon } from "@phosphor-icons/react/dist/csr/ListBullets";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { useCapabilities } from "@/config/access";
 import { useCountries } from "@/modules/admin/institutions/institutions.hooks";
@@ -56,12 +54,11 @@ function ApplicantsListContent() {
     .slice(0, MAX_COUNTRY_TABS)
     .map((country) => ({
       label: country.name,
-      icon: GlobeHemisphereWestIcon,
       filter: { country: country.id },
     }));
 
   const tabs: DataTableShellTab[] = [
-    { label: "All applicants", icon: ListBulletsIcon },
+    { label: "All applicants" },
     ...countryTabs,
   ];
 
