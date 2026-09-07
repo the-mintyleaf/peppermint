@@ -380,7 +380,7 @@ None of these are fixable from this repo — they are Django-side changes.
 ```bash
 # 1. Clone the release branch (first deploy)
 sudo mkdir -p /srv && sudo chown "$USER" /srv && cd /srv
-git clone --branch release git@github.com:decoffeee/peppermint.git ppm
+git clone --branch release git@github.com:the-mintyleaf/peppermint.git ppm
 cd /srv/ppm
 git branch --show-current        # must print: release
 

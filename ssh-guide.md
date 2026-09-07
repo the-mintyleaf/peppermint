@@ -4,7 +4,7 @@ Audience: the **deployer** setting up the Grandway frontend on a server, and the
 **repository owner** issuing them access.
 
 Purpose: get `git clone` / `git pull` working against the private repository
-`decoffeee/peppermint` over SSH, on the **`release`** branch, using a dedicated
+`the-mintyleaf/peppermint` over SSH, on the **`release`** branch, using a dedicated
 read-only deploy key.
 
 > Once `git clone` succeeds, continue with **`deploy-guide.md`** — that is the actual
@@ -16,8 +16,8 @@ read-only deploy key.
 
 |                  |                                                                             |
 | ---------------- | --------------------------------------------------------------------------- |
-| Repository       | `decoffeee/peppermint` — **private**                                        |
-| SSH remote       | `git@github.com:decoffeee/peppermint.git`                                   |
+| Repository       | `the-mintyleaf/peppermint` — **private**                                    |
+| SSH remote       | `git@github.com:the-mintyleaf/peppermint.git`                               |
 | Branch to deploy | **`release`** — never `main`                                                |
 | Credential       | A **GitHub deploy key** — an SSH keypair authorised for this one repository |
 | Access level     | **Read-only** — the deployer can pull, never push                           |
@@ -69,7 +69,7 @@ cat ~/.ssh/grandway_deploy.pub
 
 Copy the entire single line (`ssh-ed25519 AAAA... grandway-deploy`), then:
 
-1. Open **https://github.com/decoffeee/peppermint/settings/keys**
+1. Open **https://github.com/the-mintyleaf/peppermint/settings/keys**
 2. Click **Add deploy key**
 3. **Title:** `Grandway production server`
 4. **Key:** paste the line from above
@@ -92,7 +92,7 @@ marker lines and the trailing newline.
 Email them, together:
 
 - the private key block above,
-- the repository SSH URL: `git@github.com:decoffeee/peppermint.git`,
+- the repository SSH URL: `git@github.com:the-mintyleaf/peppermint.git`,
 - the branch: **`release`**,
 - a link to this file and to `deploy-guide.md`.
 
@@ -117,7 +117,7 @@ which you then register in step 2. Nothing else in this guide changes.
 
 ### 4. Revoking access
 
-1. Open **https://github.com/decoffeee/peppermint/settings/keys**
+1. Open **https://github.com/the-mintyleaf/peppermint/settings/keys**
 2. Find `Grandway production server`
 3. Click **Delete**
 
@@ -149,7 +149,7 @@ publishing rather than forcing.
 ### 1. What you should have received
 
 - A private key block (`-----BEGIN OPENSSH PRIVATE KEY-----` … `-----END OPENSSH PRIVATE KEY-----`)
-- Repository URL: `git@github.com:decoffeee/peppermint.git`
+- Repository URL: `git@github.com:the-mintyleaf/peppermint.git`
 - Branch: **`release`**
 
 If any of these is missing, stop and ask — do not improvise a different access method.
@@ -220,7 +220,7 @@ ssh -T git@github.com
 Accept the host fingerprint the first time (`yes`). Expected reply:
 
 ```
-Hi decoffeee/peppermint! You've successfully authenticated, but GitHub does not provide shell access.
+Hi the-mintyleaf/peppermint! You've successfully authenticated, but GitHub does not provide shell access.
 ```
 
 That message — including "does not provide shell access" — is **success**. Naming the
@@ -235,7 +235,7 @@ If you see `Permission denied (publickey)`, go to §5.
 ```bash
 sudo mkdir -p /srv && sudo chown "$USER" /srv
 cd /srv
-git clone --branch release git@github.com:decoffeee/peppermint.git ppm
+git clone --branch release git@github.com:the-mintyleaf/peppermint.git ppm
 cd /srv/ppm
 
 git branch --show-current     # must print: release
@@ -292,7 +292,7 @@ goes through the repository owner, who moves it onto `release` for you to pull.
 | `Load key ...: invalid format`             | paste truncated or line-wrapped by the mail client  | request the key again; do not hand-edit it                                                            |
 | `Load key ...: error in libcrypto`         | missing trailing newline, or CRLF line endings      | `printf '\n' >> ~/.ssh/grandway_deploy`, or `dos2unix ~/.ssh/grandway_deploy`                         |
 | Prompts for a passphrase                   | the key was generated with one                      | it must be passphrase-less for unattended deploys — ask the owner to reissue                          |
-| Prompts for a username/password            | the remote is HTTPS, not SSH                        | `git remote set-url origin git@github.com:decoffeee/peppermint.git`                                   |
+| Prompts for a username/password            | the remote is HTTPS, not SSH                        | `git remote set-url origin git@github.com:the-mintyleaf/peppermint.git`                               |
 | `Repository not found`                     | key not registered, revoked, or wrong repo          | ask the owner to confirm the deploy key is listed and active                                          |
 | `Host key verification failed`             | fingerprint never accepted (common in scripts/cron) | `ssh-keyscan github.com >> ~/.ssh/known_hosts`                                                        |
 | `ERROR: ... not allowed to push`           | read-only key working as designed                   | do not push from the server (§4.4)                                                                    |
@@ -313,14 +313,14 @@ spelled exactly as in §3.
 
 ```bash
 cd /srv/ppm && git remote -v
-# → origin  git@github.com:decoffeee/peppermint.git (fetch)
+# → origin  git@github.com:the-mintyleaf/peppermint.git (fetch)
 ```
 
 If it shows `https://github.com/...`, git will ask for a password the deploy key cannot
 supply:
 
 ```bash
-git remote set-url origin git@github.com:decoffeee/peppermint.git
+git remote set-url origin git@github.com:the-mintyleaf/peppermint.git
 ```
 
 ### 6. Quick reference
@@ -335,7 +335,7 @@ chmod 600 ~/.ssh/config
 ssh -T git@github.com                 # expect the "successfully authenticated" line
 
 # Clone (once)
-cd /srv && git clone --branch release git@github.com:decoffeee/peppermint.git ppm
+cd /srv && git clone --branch release git@github.com:the-mintyleaf/peppermint.git ppm
 
 # Pull (every deploy)
 cd /srv/ppm && git pull --ff-only origin release
