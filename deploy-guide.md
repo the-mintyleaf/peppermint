@@ -3,6 +3,14 @@
 Audience: DevOps / whoever puts this on a server.
 Scope: building the two Next.js apps in this repo and running them under **PM2**.
 
+> **Start with `ssh-guide.md`.** This repository is private. Before anything here works
+> you need the deploy SSH key installed and the repo cloned from the `release` branch —
+> that is what `ssh-guide.md` covers, step by step. Come back here once
+> `git clone` succeeds.
+>
+> **Deployments always track the `release` branch, never `main`.** `main` is the
+> day-to-day development branch; `release` is what is signed off for production.
+
 ---
 
 ## 1. What is in this repo
@@ -56,83 +64,303 @@ reachable base URL for that API (see §3).
 
 ## 2. Server prerequisites
 
-| Requirement | Version                                                                 | Notes                                                                                                                                                                                                                             |
-| ----------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Node.js     | **≥ 20**, 22 LTS or 24 recommended                                      | repo `engines` says `>=18`; it is developed on Node 24                                                                                                                                                                            |
-| pnpm        | **9.0.0** (pinned by `packageManager` in the root `package.json`)       | **this is what installs and builds the repo** — do not use npm or yarn for it, the lockfile is pnpm's                                                                                                                             |
-| npm         | **whatever ships with your Node** — 10.x on Node 20/22, 11.x on Node 24 | used for exactly two things: `npm install -g pm2`, and `corepack` if you install it that way. Never run `npm install` inside this repo — it ignores `pnpm-lock.yaml`, flattens the workspace and breaks the `@peppermint/*` links |
-| PM2         | latest                                                                  | process manager                                                                                                                                                                                                                   |
-| git         | any                                                                     | to pull the repo                                                                                                                                                                                                                  |
-| RAM         | 2 GB minimum, 4 GB recommended                                          | the Next.js build is the memory-hungry part                                                                                                                                                                                       |
+### 2.1 Version matrix — what must be installed
+
+| Requirement | Version to install                                          | Where it comes from            | What it is used for                                   |
+| ----------- | ----------------------------------------------------------- | ------------------------------ | ----------------------------------------------------- |
+| **Node.js** | **22.x LTS** (recommended) — 24.x also fine, **20.x** floor | nvm or NodeSource (see below)  | runs the Next.js build and the two production servers |
+| **npm**     | **whatever ships with that Node** — do not install manually | bundled with Node              | one job only: `npm install -g pm2`                    |
+| **pnpm**    | **9.0.0** — exact, pinned                                   | `corepack` (bundled with Node) | **installs and builds this repo**                     |
+| **PM2**     | latest 5.x                                                  | `npm install -g pm2`           | process manager / boot persistence                    |
+| **git**     | any 2.x                                                     | system package manager         | pulling the repo (over SSH — see `ssh-guide.md`)      |
+| **RAM**     | 2 GB minimum, 4 GB recommended                              | —                              | the Next.js build is the memory-hungry step           |
+| **Disk**    | ~3 GB free                                                  | —                              | `node_modules` (~1.5 GB) + two `.next` build outputs  |
+
+**Which npm you end up with is decided by your Node version — you never choose it:**
+
+| Node version installed | npm version you get | Notes                                         |
+| ---------------------- | ------------------- | --------------------------------------------- |
+| Node 20.x              | npm 10.8.x          | oldest version this repo is known to build on |
+| **Node 22.x (LTS)**    | **npm 10.9.x**      | **recommended for the server**                |
+| Node 24.x              | npm 11.x            | what the app is developed on                  |
+
+> **Never run `npm install` inside this repo.** npm ignores `pnpm-lock.yaml`, flattens
+> the workspace, and breaks every `@peppermint/*` link — the build then fails with
+> module-resolution errors that look like missing packages. npm is used for exactly one
+> command on this server: `npm install -g pm2`.
+
+### 2.2 Installing Node
+
+Pick **one** of the two options below. On a server, option A (system-wide) is the
+better default — PM2's boot script then finds Node at a stable path without any nvm
+shell setup.
+
+#### Option A — system-wide via NodeSource (Ubuntu / Debian) — recommended for servers
 
 ```bash
-# Node via nvm (example)
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-nvm install 22 && nvm use 22
+# Node 22 LTS
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt-get install -y nodejs
 
-# pnpm — use corepack, it honours the version pinned in package.json
+# Node lands at /usr/bin/node, npm at /usr/bin/npm
+which node && node -v      # → /usr/bin/node   v22.x.x
+npm -v                     # → 10.9.x
+```
+
+For **Node 24** instead, use `setup_24.x` in the first line.
+
+RHEL / Rocky / Alma:
+
+```bash
+curl -fsSL https://rpm.nodesource.com/setup_22.x | sudo bash -
+sudo dnf install -y nodejs
+```
+
+#### Option B — per-user via nvm
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+# reopen the shell, or:  source ~/.nvm/nvm.sh
+
+nvm install 22          # installs the latest 22.x LTS + its bundled npm
+nvm use 22
+nvm alias default 22    # so new shells and cron get the same version
+```
+
+> **nvm + PM2 caveat.** nvm puts Node under `~/.nvm/versions/node/<version>/bin`, a path
+> that does not exist for the boot-time init system. If you use nvm you **must** run
+> `pm2 startup` from inside the nvm shell so the generated systemd unit hard-codes that
+> path, and you must re-run `pm2 unstartup && pm2 startup && pm2 save` every time you
+> change Node version. Option A avoids this entirely.
+
+### 2.3 Installing pnpm — via corepack, at the pinned version
+
+The root `package.json` pins `"packageManager": "pnpm@9.0.0"`. Corepack (which ships
+with Node) reads that field and uses the right version automatically — this is why
+corepack is preferred over `npm install -g pnpm`.
+
+```bash
 corepack enable
 corepack prepare pnpm@9.0.0 --activate
 
-# PM2
-npm install -g pm2
-
-node -v && npm -v && pnpm -v && pm2 -v
-# expected, roughly: v22.x or v24.x / 10.x or 11.x / 9.0.0 / 5.x
+pnpm -v        # → 9.0.0
 ```
 
-> If you use nvm, PM2 must be started with the same Node version you built with.
-> Prefer a system-wide Node (`/usr/bin/node`) on servers, or run
-> `pm2 startup` from inside the correct nvm shell so the boot script keeps that path.
+If `corepack: command not found` (some distro packages strip it):
+
+```bash
+sudo npm install -g corepack@latest
+corepack enable
+corepack prepare pnpm@9.0.0 --activate
+```
+
+If corepack is unavailable entirely, pin the version explicitly — do **not** install
+"latest" pnpm:
+
+```bash
+sudo npm install -g pnpm@9.0.0
+```
+
+### 2.4 Installing PM2
+
+```bash
+sudo npm install -g pm2
+pm2 -v         # → 5.x
+```
+
+### 2.5 Verify the whole toolchain before going further
+
+```bash
+node -v && npm -v && pnpm -v && pm2 -v && git --version
+```
+
+Expected, roughly:
+
+```
+v22.22.0        ← Node   (20.x / 22.x / 24.x all acceptable; 22 recommended)
+10.9.4          ← npm    (comes with Node — whatever it printed is correct)
+9.0.0           ← pnpm   (must be exactly this)
+5.4.3           ← PM2
+git version 2.43.0
+```
+
+If `pnpm -v` prints anything other than `9.0.0`, stop and fix it before installing
+dependencies — a different pnpm may rewrite `pnpm-lock.yaml` and produce a different
+dependency tree than the one this app was tested against.
 
 ---
 
-## 3. Environment variables
+## 3. Environment variables — `.env.production`
 
-Only the admin app needs configuration.
+Only the **admin app** (`apps/grandway`) is configurable. `grandway-website` reads no
+environment variables at all — it needs no env file, ever.
 
-| App                | Variable              | Required                                  | Production value                    | Notes                                                                                                                                                               |
-| ------------------ | --------------------- | ----------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `grandway`         | `NEXT_PUBLIC_API_URL` | Optional — defaults to the production URL | `https://api.grandwayeducation.com` | Base URL of the Django API. No trailing slash. The app appends `/api/v1/...` itself. Set it only to point a build at a different backend (a local Django, staging). |
-| `grandway-website` | —                     | —                                         | —                                   | No environment variables.                                                                                                                                           |
+### 3.1 The complete variable list
 
-### ⚠️ Read this before you build
+There is exactly **one** variable in the entire repo:
 
-`NEXT_PUBLIC_*` variables are **inlined into the JavaScript bundle at build time**, not
-read at runtime. That means:
+| Variable              | App        | Required                            | Production value                    | Type         |
+| --------------------- | ---------- | ----------------------------------- | ----------------------------------- | ------------ |
+| `NEXT_PUBLIC_API_URL` | `grandway` | Optional — has a production default | `https://api.grandwayeducation.com` | Public (URL) |
 
-- The value must be set **before** `pnpm build`, not before `pm2 start`.
-- Changing the API URL requires a **full rebuild and restart** — editing the file and
-  restarting PM2 does nothing.
-- Never put a secret in a `NEXT_PUBLIC_*` variable — it ships to the browser.
+Base URL of the Django REST API. **No trailing slash** — the app appends `/api/v1/...`
+itself. There are no secrets, no database URLs, no API keys: this is a browser frontend,
+and the backend is a separate deployment (§1.3).
 
-### Where to put it
+### 3.2 Exactly which file to create, and what to write in it
 
-Env files are **git-ignored** and are not in the repo. Create it on the server:
+Create **one file**, at this exact path:
+
+```
+/srv/ppm/apps/grandway/.env.production
+```
+
+Note it lives in the **app folder**, not the repo root. A file at `/srv/ppm/.env.production`
+is ignored by Next.js and will do nothing.
+
+Its complete contents — this is the whole file, two lines including the comment:
+
+```dotenv
+# Base URL of the Grandway Django API. No trailing slash.
+NEXT_PUBLIC_API_URL=https://api.grandwayeducation.com
+```
+
+Create it like this:
 
 ```bash
 cd /srv/ppm/apps/grandway
+
 cat > .env.production <<'EOF'
+# Base URL of the Grandway Django API. No trailing slash.
 NEXT_PUBLIC_API_URL=https://api.grandwayeducation.com
 EOF
+
+cat .env.production          # confirm it wrote
 ```
 
-`https://api.grandwayeducation.com` is also compiled in as the **default** (see
-`apps/grandway/lib/api.ts`), so a production build with no env file at all still talks to
-the right backend. Create the file anyway — it makes the deployed target explicit, and it
-is the only way to point a build somewhere else.
+**Format rules for this file:**
 
-Development machines override it with a `.env.local` (e.g. `http://10.22.22.2:8000`, a
-LAN address). `.env.local` wins over `.env.production`, so **make sure no stale
-`.env.local` exists on the server** — one pointing at a LAN backend silently breaks the
-production build.
+- `KEY=value` — no spaces around `=`, no `export`, one per line.
+- **No quotes** around the URL. `NEXT_PUBLIC_API_URL="https://..."` bakes the quote
+  characters into the value and every request 404s.
+- **No trailing slash.** `https://api.grandwayeducation.com/` produces double-slash
+  paths like `https://api.grandwayeducation.com//api/v1/auth/`.
+- Include the scheme. `api.grandwayeducation.com` without `https://` is treated as a
+  relative path against the admin's own origin.
+- Lines starting with `#` are comments.
 
-### Backend-side requirements
+**Correct vs incorrect:**
+
+| Value                                   | Verdict                                                    |
+| --------------------------------------- | ---------------------------------------------------------- |
+| `https://api.grandwayeducation.com`     | ✅ correct                                                 |
+| `https://api.grandwayeducation.com/`    | ❌ trailing slash → `//api/v1/` paths                      |
+| `https://api.grandwayeducation.com/api` | ❌ the app adds `/api/v1` itself → `/api/api/v1/`          |
+| `"https://api.grandwayeducation.com"`   | ❌ quotes become part of the value                         |
+| `api.grandwayeducation.com`             | ❌ no scheme → resolved against the admin origin           |
+| `http://api.grandwayeducation.com`      | ❌ plain HTTP → blocked as mixed content on an HTTPS admin |
+
+### 3.3 ⚠️ It is baked in at BUILD time, not read at runtime
+
+`NEXT_PUBLIC_*` variables are **inlined into the JavaScript bundle by `pnpm build`**.
+They are not read when the server starts. This is the single most common deployment
+mistake on this repo:
+
+- The file must exist **before** you run `pnpm build` — not before `pm2 start`.
+- Changing the URL means **rebuild, then reload**. Editing `.env.production` and running
+  `pm2 restart` changes nothing at all — the old URL is still compiled into the bundle.
+- Never put a secret in a `NEXT_PUBLIC_*` variable. It is shipped to every browser and
+  is readable in devtools.
+
+The correct order, always:
+
+```
+create/edit .env.production  →  pnpm build  →  pm2 reload
+```
+
+### 3.4 File precedence — and the stale `.env.local` trap
+
+Next.js reads env files in this priority order for a production build (**highest wins**):
+
+1. Real shell environment variables (`NEXT_PUBLIC_API_URL=... pnpm build`)
+2. `.env.production.local`
+3. **`.env.local`** ← wins over `.env.production`
+4. **`.env.production`** ← the file you create on the server
+5. `.env`
+6. The compiled-in default in `apps/grandway/lib/api.ts`
+
+**The trap:** `.env.local` beats `.env.production`. A developer's `.env.local` pointing
+at a LAN backend (e.g. `http://10.22.22.2:8000`) that somehow reaches the server will
+silently override production and break every request — with no error at build time.
+
+Check for one before your first build:
+
+```bash
+ls -la /srv/ppm/apps/grandway/.env* 2>/dev/null
+```
+
+The only file that should be listed is `.env.production`. Delete anything else:
+
+```bash
+rm -f /srv/ppm/apps/grandway/.env.local /srv/ppm/apps/grandway/.env.production.local
+```
+
+All `.env*` files are git-ignored, so `git pull` never delivers one — but a manual
+`scp` or a copied directory can.
+
+### 3.5 Is the env file strictly required?
+
+**No — but create it anyway.** `https://api.grandwayeducation.com` is also compiled in
+as the fallback default (see `apps/grandway/lib/api.ts`), so a build with no env file
+still talks to the right backend.
+
+Create it regardless, because it:
+
+- makes the deployed target explicit and auditable on the server,
+- is the only supported way to point a build at a different backend (staging, a local
+  Django), and
+- means a future change to the compiled-in default cannot silently move production.
+
+### 3.6 Verifying the value actually landed in the build
+
+After `pnpm build`, confirm the URL is really in the bundle:
+
+```bash
+cd /srv/ppm
+grep -ro "https://api\.grandwayeducation\.com" apps/grandway/.next/static | head -3
+```
+
+Any hits means the correct URL is compiled in. To be sure no wrong host slipped in:
+
+```bash
+grep -rEo "https?://[a-zA-Z0-9._-]+:?[0-9]*" apps/grandway/.next/static | \
+  grep -v grandwayeducation | sort -u | head
+```
+
+That should show no LAN address (`10.x`, `192.168.x`, `localhost`, `:8000`).
+
+### 3.7 Pointing a build at a different backend
+
+For staging or a test backend, change the file and **rebuild**:
+
+```bash
+cd /srv/ppm/apps/grandway
+printf 'NEXT_PUBLIC_API_URL=https://staging-api.grandwayeducation.com\n' > .env.production
+
+cd /srv/ppm
+pnpm build --force            # --force: skip the turbo cache, the env changed
+pm2 reload ecosystem.config.js
+```
+
+`--force` matters — turbo may otherwise consider the app unchanged and reuse the cached
+build with the old URL baked in.
+
+### 3.8 Backend-side requirements
 
 The API must, for the admin portal to work:
 
-- serve HTTPS on the URL above,
-- allow CORS from the admin origin (`https://admin.yourdomain.com`) — echoing the
+- serve **HTTPS** on the URL above (an HTTP backend is blocked as mixed content),
+- allow **CORS** from the admin origin (`https://admin.yourdomain.com`) — echoing the
   **specific** origin, not `*`, and sending `Access-Control-Allow-Credentials: true`
   if refresh cookies are enabled,
 - issue the refresh credential (either `data.refresh` in the login body or a
@@ -140,21 +368,30 @@ The API must, for the admin portal to work:
   sign-in page when the access token expires. See `apps/grandway/lib/api.ts` for the
   full explanation of this constraint.
 
+None of these are fixable from this repo — they are Django-side changes.
+
 ---
 
 ## 4. Getting the code and building
 
+> The clone step below needs the deploy SSH key already installed — see `ssh-guide.md`
+> if `git clone` asks for a password or fails with `Permission denied (publickey)`.
+
 ```bash
-# 1. Clone (first deploy)
-sudo mkdir -p /srv && cd /srv
-git clone <repo-url> ppm
+# 1. Clone the release branch (first deploy)
+sudo mkdir -p /srv && sudo chown "$USER" /srv && cd /srv
+git clone --branch release git@github.com:decoffeee/peppermint.git ppm
 cd /srv/ppm
+git branch --show-current        # must print: release
 
 # 2. Install workspace dependencies (exact lockfile — never resolve fresh on a server)
 pnpm install --frozen-lockfile
 
-# 3. Create the env file (see §3)
-printf 'NEXT_PUBLIC_API_URL=https://api.grandwayeducation.com\n' > apps/grandway/.env.production
+# 3. Create the env file (see §3 for the full explanation)
+cat > apps/grandway/.env.production <<'EOF'
+# Base URL of the Grandway Django API. No trailing slash.
+NEXT_PUBLIC_API_URL=https://api.grandwayeducation.com
+EOF
 
 # 4. Build both apps
 pnpm build
@@ -298,12 +535,16 @@ one at a time and no request is dropped.
 ```bash
 cd /srv/ppm
 
-git pull                              # 1. fetch the new code
+git pull --ff-only origin release     # 1. fetch the new release code
 pnpm install --frozen-lockfile        # 2. sync dependencies (no-op if unchanged)
 pnpm build                            # 3. rebuild (turbo skips unchanged apps)
 pm2 reload ecosystem.config.js        # 4. zero-downtime swap
 pm2 save
 ```
+
+`--ff-only` is deliberate: if it refuses, the server checkout has diverged from
+`release` (someone edited a tracked file in place) and that must be resolved before
+deploying, not merged over. See `ssh-guide.md` for how to reset it.
 
 As a script — `/srv/ppm/deploy.sh`:
 
@@ -312,7 +553,7 @@ As a script — `/srv/ppm/deploy.sh`:
 set -euo pipefail
 
 cd /srv/ppm
-echo "→ pulling"       && git pull --ff-only
+echo "→ pulling"       && git pull --ff-only origin release
 echo "→ installing"    && pnpm install --frozen-lockfile
 echo "→ building"      && pnpm build
 echo "→ reloading pm2" && pm2 reload ecosystem.config.js
@@ -403,6 +644,10 @@ by IP allow-list or VPN at the nginx level.
 | Apps do not come back after reboot                            | `pm2 startup` never run/registered                          | `pm2 save && pm2 startup`, then run the printed command                                   |
 | Stale/odd build output                                        | corrupt turbo or Next cache                                 | `rm -rf apps/*/.next .turbo && pnpm build`                                                |
 | `ERR_PNPM_OUTDATED_LOCKFILE` on install                       | `package.json` changed without the lockfile                 | commit an updated `pnpm-lock.yaml` from a dev machine                                     |
+| `Permission denied (publickey)` on `git pull`                 | deploy SSH key missing, wrong permissions, or not loaded    | see `ssh-guide.md` §5 — troubleshooting                                                   |
+| `git pull --ff-only` refuses: "Not possible to fast-forward"  | the server checkout diverged from `release`                 | `git fetch origin && git reset --hard origin/release` — see `ssh-guide.md` §4.3           |
+| `pnpm -v` prints something other than `9.0.0`                 | pnpm installed via npm "latest" instead of corepack         | `corepack prepare pnpm@9.0.0 --activate` — see §2.3                                       |
+| Build succeeds but admin hits a LAN/localhost API             | a stale `.env.local` overrode `.env.production`             | `rm apps/grandway/.env.local`, then `pnpm build --force` — see §3.4                       |
 
 ### Health checks
 
@@ -428,10 +673,14 @@ pm2 set pm2-logrotate:compress true
 
 ## 9. Deployment checklist
 
-- [ ] Node ≥ 20 and pnpm 9 installed (via corepack), PM2 installed globally
-- [ ] Repo cloned to `/srv/ppm`
+- [ ] Deploy SSH key installed and `ssh -T git@github.com` authenticates (`ssh-guide.md`)
+- [ ] Node 22 LTS (or 20/24) installed — `node -v`; npm is whatever came with it
+- [ ] pnpm **exactly 9.0.0** via corepack — `pnpm -v`
+- [ ] PM2 installed globally — `pm2 -v`
+- [ ] Repo cloned to `/srv/ppm` **on the `release` branch** — `git branch --show-current`
 - [ ] `pnpm install --frozen-lockfile` completed with no errors
 - [ ] `apps/grandway/.env.production` created with the **production** `NEXT_PUBLIC_API_URL`
+- [ ] No stray `.env.local` in `apps/grandway/` — `ls -la apps/grandway/.env*`
 - [ ] `pnpm build` → `2 successful, 2 total`
 - [ ] `ecosystem.config.js` created, paths and ports match the server
 - [ ] `pm2 start ecosystem.config.js` → both processes `online`
