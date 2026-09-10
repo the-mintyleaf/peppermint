@@ -15,8 +15,6 @@ import {
   Textarea,
   useForm,
 } from "@peppermint/ui";
-import { PlusCircleIcon } from "@phosphor-icons/react/dist/csr/PlusCircle";
-import { PercentIcon } from "@phosphor-icons/react/dist/csr/Percent";
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
 import { TableIcon } from "@phosphor-icons/react/dist/csr/Table";
 import { FormSection } from "@/components/FormSection";
@@ -27,6 +25,7 @@ import type {
 } from "../../documents.types";
 import { computeBankStatement } from "../../utils/bankStatement";
 import { withOpeningRow } from "./BankStatementForm.utils";
+import { RowInsertButtons } from "./components/RowInsertButtons";
 import { TransactionGrid } from "./components/TransactionGrid";
 import {
   TransactionImport,
@@ -295,35 +294,15 @@ export function BankStatementForm({
 
           <Tabs.Panel value="transactions" px="md" pt="md">
             <Stack gap="sm">
+              {/* Rows are added on the left, files handled on the right — the two are
+                  different jobs, and an import can discard the whole sheet. */}
               <Group justify="space-between" align="center" gap="sm">
-                <Text size="xs" c="dimmed">
-                  Row 1 is the opening balance — its description is fixed; set
-                  its date and amount. Interest &amp; Tax rows are inserted as a
-                  pair, compute themselves from the rows above at each
-                  row&rsquo;s own rate, and re-sync when those rows change.
-                  Working in Excel instead? Download the sample, fill it in, and
-                  import it back.
-                </Text>
+                <RowInsertButtons
+                  onAddRow={addTransaction}
+                  onAddInterestAndTax={addInterestAndTax}
+                  disabled={isLoading}
+                />
                 <Group gap="xs" wrap="nowrap">
-                  <Button
-                    size="xs"
-                    variant="light"
-                    leftSection={<PlusCircleIcon size={14} />}
-                    onClick={addTransaction}
-                    disabled={isLoading}
-                  >
-                    Add row
-                  </Button>
-                  <Button
-                    size="xs"
-                    variant="light"
-                    color="teal"
-                    leftSection={<PercentIcon size={14} />}
-                    onClick={addInterestAndTax}
-                    disabled={isLoading}
-                  >
-                    Interest &amp; Tax
-                  </Button>
                   <TransactionImport
                     onImport={applyImport}
                     existingRowCount={transactions.length}
@@ -332,6 +311,14 @@ export function BankStatementForm({
                 </Group>
               </Group>
 
+              <Text size="xs" c="dimmed">
+                Row 1 is the opening balance — its description is fixed; set its
+                date and amount. Interest &amp; Tax rows are inserted as a pair,
+                compute themselves from the rows above at each row&rsquo;s own
+                rate, and re-sync when those rows change. Working in Excel
+                instead? Download the sample, fill it in, and import it back.
+              </Text>
+
               <TransactionGrid
                 form={form}
                 computed={computed}
@@ -339,10 +326,19 @@ export function BankStatementForm({
                 isLoading={isLoading}
               />
 
-              <Text size="xs" c="dimmed">
-                Enter moves down a column · Shift+Enter moves up · Enter on the
-                last row adds another.
-              </Text>
+              {/* Repeated below the sheet — after typing the last row the operator is
+                  already here, and the top toolbar has scrolled away. */}
+              <Group justify="space-between" align="center" gap="sm">
+                <RowInsertButtons
+                  onAddRow={addTransaction}
+                  onAddInterestAndTax={addInterestAndTax}
+                  disabled={isLoading}
+                />
+                <Text size="xs" c="dimmed">
+                  Enter moves down a column · Shift+Enter moves up · Enter on
+                  the last row adds another.
+                </Text>
+              </Group>
             </Stack>
           </Tabs.Panel>
         </Tabs>
