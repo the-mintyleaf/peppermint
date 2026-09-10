@@ -92,8 +92,14 @@ surfaces, never render them read-only.
 4. **There is no delete, anywhere.** `remove` is never re-exported from
    `signatures.api.ts`; that file is the boundary keeping it unreachable.
    Retirement is `POST .../status/ { status: "inactive" }`, and removing a
-   _signature_ is archiving its file through the `uploaded_files` module. The
-   backend pins four plausible delete-service names in a no-delete test.
+   _signature_ is archiving its file — **cross-app**,
+   `POST /api/v1/files/<file_id>/archive/` with a required non-blank `reason`.
+   The backend pins four plausible delete-service names in a no-delete test.
+
+   `useRemoveSignatorySignature` wraps that call and **invalidates both trees**.
+   It cannot reuse `uploaded-files`' own `useArchiveFile`, which invalidates only
+   the files tree — the row that visibly changes is the _signatory_, and without
+   that the panel would keep rendering a signature just withdrawn.
 
 5. **Upload needs an id, so create is a two-step flow.** `POST /signatories/`
    is JSON and always lands `draft`; the image is a second call against the new
@@ -101,6 +107,19 @@ surfaces, never render them read-only.
    Uploading again **replaces** (the predecessor is versioned, not duplicated),
    and any status may receive a signature — a retired signer's certificates must
    stay reprintable.
+
+## The upload control
+
+`SignatureDropzone` is a drag-or-click `Dropzone` (from `@peppermint/ui/dropzone`,
+a **subpath export** — not in the main barrel) that **previews the picked file
+before it is sent**. That preview is not decoration: the backend does no
+thumbnailing, no dimension check and no crop, so whatever is uploaded is exactly
+what prints on every certificate. It is the only chance to catch a scan that is
+rotated, cropped wrong, or on a black background.
+
+The preview's object URL is minted in an effect and revoked in its cleanup, for
+the same reason `useFileBlob` does it that way — only an effect's cleanup is
+guaranteed to run before the next one.
 
 ## Two things the UI cannot pre-empt
 

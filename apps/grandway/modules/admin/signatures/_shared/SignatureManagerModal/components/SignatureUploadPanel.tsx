@@ -2,26 +2,21 @@
 
 import {
   FormWrapper,
+  openReasonConfirmModal,
   useFormControls,
   useFormInstance,
 } from "@peppermint/admin";
-import {
-  Box,
-  Button,
-  Divider,
-  FileInput,
-  Group,
-  Stack,
-  Text,
-} from "@peppermint/ui";
-import { UploadSimpleIcon } from "@phosphor-icons/react/dist/csr/UploadSimple";
+import { Box, Button, Divider, Group, Stack, Text } from "@peppermint/ui";
+import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { z } from "zod";
 import { SignatureImage } from "../../SignatureImage";
-import { useUploadSignatorySignature } from "../../../signatures.hooks";
+import {
+  useRemoveSignatorySignature,
+  useUploadSignatorySignature,
+} from "../../../signatures.hooks";
 import {
   MAX_SIGNATURE_SIZE_BYTES,
   SIGNATURE_EXTENSIONS,
-  SIGNATURE_FILE_INPUT_ACCEPT,
   SIGNATURE_SOURCE_LABELS,
 } from "../../../signatures.labels";
 import type {
@@ -29,19 +24,20 @@ import type {
   SignatureUploadFormValues,
 } from "../../../signatures.types";
 import { DirtyReporter, type ReportDirty } from "./DirtyReporter";
+import { SignatureDropzone } from "./SignatureDropzone";
 
 /**
  * The extension list is **narrower than the file ledger's seven types** and
  * deliberately so (§7) — none of PDF/DOCX/XLSX is a signature. Checking it here
- * turns one of the three server-side rejections into an inline message.
+ * turns two of the three server-side rejections into inline messages.
  *
- * The third rejection — leading bytes disagreeing with the extension, i.e. a PDF
- * renamed `.png` — **cannot be pre-empted client-side**, so it arrives as a
+ * The third — leading bytes disagreeing with the extension, i.e. a PDF renamed
+ * `.png` — **cannot be pre-empted client-side**, so it arrives as a
  * notification from the mutation rather than as field validation.
  */
 const schema = z.object({
   file: z
-    .instanceof(File, { message: "Choose an image" })
+    .instanceof(File, { message: "Choose a signature image" })
     .refine((f) => f.size > 0, "This file is empty")
     .refine(
       (f) => f.size <= MAX_SIGNATURE_SIZE_BYTES,
@@ -90,15 +86,20 @@ export function SignatureUploadPanel({
         labelPosition="left"
       />
 
-      <Box
-        p="xs"
-        style={{
-          border: "1px solid var(--mantine-color-gray-light)",
-          borderRadius: "var(--mantine-radius-sm)",
-        }}
-      >
-        <SignatureImage signatory={signatory} height={72} />
-      </Box>
+      <Group justify="space-between" align="flex-start" wrap="nowrap" gap="sm">
+        <Box
+          p="xs"
+          style={{
+            flex: 1,
+            minWidth: 0,
+            border: "1px solid var(--mantine-color-gray-light)",
+            borderRadius: "var(--mantine-radius-sm)",
+          }}
+        >
+          <SignatureImage signatory={signatory} height={72} />
+        </Box>
+        <RemoveSignatureAction signatory={signatory} />
+      </Group>
 
       {signatory.signature_source === "uploaded" && version ? (
         <Text size="xs" c="dimmed">
@@ -107,8 +108,8 @@ export function SignatureUploadPanel({
         </Text>
       ) : signatory.signature_source === "url" ? (
         <Text size="xs" c="dimmed">
-          Rendering the external link. Uploading an image will take precedence
-          over it.
+          Rendering the external link from the details above. Uploading an image
+          will take precedence over it.
         </Text>
       ) : (
         <Text size="xs" c="dimmed">
@@ -126,7 +127,7 @@ export function SignatureUploadPanel({
         // be dropped with no prompt.
         hasDirtCheck
         // Clears the picked file once the upload lands. Without it the field
-        // still shows the filename after a successful save, which reads as "it
+        // still shows the image after a successful save, which reads as "it
         // didn't work" and invites a second click that stores a pointless
         // extra version.
         formClearOnSuccess
@@ -152,7 +153,7 @@ export function SignatureUploadPanel({
             onDirtyChange={onDirtyChange}
           />
           <UploadField />
-          <UploadSubmit />
+          <UploadSubmit replacing={signatory.signature_source === "uploaded"} />
         </Stack>
       </FormWrapper>
     </Stack>
@@ -161,34 +162,90 @@ export function SignatureUploadPanel({
 
 function UploadField() {
   const { form } = useFormInstance<SignatureUploadFormValues>();
+  const props = form.getInputProps("file");
   return (
-    <FileInput
-      size="xs"
-      label={undefined}
-      placeholder="PNG, JPG, JPEG or WEBP — max 10 MB"
-      accept={SIGNATURE_FILE_INPUT_ACCEPT}
-      clearable
-      leftSection={<UploadSimpleIcon size={14} aria-hidden />}
-      aria-label="Signature image file"
-      {...form.getInputProps("file")}
+    <SignatureDropzone
+      file={form.values.file}
+      onPick={(file) => form.setFieldValue("file", file)}
+      error={typeof props.error === "string" ? props.error : undefined}
     />
   );
 }
 
-function UploadSubmit() {
+function UploadSubmit({ replacing }: { replacing: boolean }) {
   const { handleSubmit, isLoading } = useFormControls();
   const { form } = useFormInstance<SignatureUploadFormValues>();
+  const file = form.values.file;
   return (
-    <Group justify="flex-end">
+    <Group justify="flex-end" gap="xs">
+      {file ? (
+        <Button
+          size="xs"
+          variant="subtle"
+          disabled={isLoading}
+          onClick={() => form.setFieldValue("file", null)}
+        >
+          Clear
+        </Button>
+      ) : null}
       <Button
         size="xs"
         variant="light"
         loading={isLoading}
-        disabled={!form.values.file}
+        disabled={!file}
         onClick={handleSubmit}
       >
-        Upload signature
+        {replacing ? "Replace signature" : "Upload signature"}
       </Button>
     </Group>
+  );
+}
+
+/**
+ * Removal is **archiving the file** on the `uploaded_files` module — this API
+ * has no removal endpoint (§3). Only offered when an uploaded file is actually
+ * in force; an external link is cleared by emptying the URL field above, and
+ * there is nothing to remove when the source is `none`.
+ *
+ * The confirm names what will render afterwards, because the fallback is not
+ * obvious: clearing an uploaded image does not always mean a blank signature —
+ * a signatory that also has a URL falls back to it.
+ */
+function RemoveSignatureAction({ signatory }: { signatory: Signatory }) {
+  const fileId = signatory.signature_file?.id ?? "";
+  const mutation = useRemoveSignatorySignature(fileId);
+
+  if (signatory.signature_source !== "uploaded" || !fileId) return null;
+
+  const fallsBackTo = signatory.signature_image_url
+    ? "the external link in the details above"
+    : "a blank signature";
+
+  const confirm = () =>
+    openReasonConfirmModal({
+      title: "Remove signature image",
+      alertTitle: `${signatory.name}'s signature will stop rendering`,
+      description: `Certificates naming this signer will fall back to ${fallsBackTo} — including ones already issued, since a reprint resolves the signature live. The file itself is archived, not deleted, and can be restored from the file record.`,
+      tone: "danger",
+      reasonLabel: "Reason",
+      reasonPlaceholder: "Why is this signature being withdrawn?",
+      confirmLabel: "Remove signature",
+      confirmColor: "red",
+      onConfirm: async (reason) => {
+        await mutation.mutateAsync({ reason });
+      },
+    });
+
+  return (
+    <Button
+      size="xs"
+      variant="subtle"
+      color="red"
+      loading={mutation.isPending}
+      leftSection={<TrashIcon size={14} aria-hidden />}
+      onClick={confirm}
+    >
+      Remove
+    </Button>
   );
 }

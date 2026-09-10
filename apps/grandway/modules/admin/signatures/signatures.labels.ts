@@ -43,9 +43,12 @@ export function signatureSourceSuffix(source: SignatorySource): string {
 /** Accepted upload extensions — **narrower than the file ledger's seven types** (§7). Do not widen. */
 export const SIGNATURE_EXTENSIONS = ["png", "jpg", "jpeg", "webp"] as const;
 
-/** Mantine `FileInput`'s `accept` prop — a comma-separated MIME list. */
-export const SIGNATURE_FILE_INPUT_ACCEPT =
-  "image/png,image/jpeg,image/webp" as const;
+/** `Dropzone`'s `accept` prop. JPG and JPEG share `image/jpeg`, hence three MIME types for four extensions. */
+export const SIGNATURE_MIME_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+] as const;
 
 /** 10 MB, the file ledger's cap (§7). */
 export const MAX_SIGNATURE_SIZE_BYTES = 10 * 1024 * 1024;

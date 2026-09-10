@@ -8,7 +8,7 @@ export { ModuleFileReviewQueue } from "./pages/review/FileReviewQueue";
 // — `checklists.item.status` cites a file id as `evidence_file`, per this
 // module's INTEGRATION.md §"Referenced by other apps"). Internal siblings
 // import concrete files to avoid cycles; this barrel is for OTHER modules.
-export { getFile, listFiles } from "./uploadedFiles.api";
+export { archiveFile, getFile, listFiles } from "./uploadedFiles.api";
 export { useFileDetail, useFilesList } from "./uploadedFiles.hooks";
 // Inline image preview for another module's owned file — the signatory library
 // renders signature images this way, since the download route 401s an `<img
@@ -23,6 +23,7 @@ export {
   VERIFICATION_STATUS_LABELS,
 } from "./uploadedFiles.labels";
 export type {
+  ArchiveFilePayload,
   FileCategory,
   FileOwnerScope,
   UploadedFile,

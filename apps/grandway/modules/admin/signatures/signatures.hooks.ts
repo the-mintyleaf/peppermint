@@ -2,6 +2,8 @@
 
 import { useQuery } from "@peppermint/ui";
 import { useAppMutation } from "@peppermint/admin";
+import { archiveFile, fileQueryKeys } from "@/modules/admin/uploaded-files";
+import type { UploadedFile } from "@/modules/admin/uploaded-files";
 import {
   changeSignatoryStatus,
   createSignatory,
@@ -120,6 +122,30 @@ export function useUploadSignatorySignature(id: string) {
     successMessage: "Signature image uploaded.",
     errorTitle: "Couldn't upload signature image",
     invalidateKeys: invalidateAllSignatories(),
+  });
+}
+
+/**
+ * Removing a signature is **archiving its file**, cross-app on the `uploaded_files`
+ * module — this API has no removal endpoint and no delete service, and the
+ * backend pins four plausible names in a no-delete test so nobody adds one.
+ * After it lands, `signature_file` returns to `null` and `signature_source`
+ * falls back to `"url"` or `"none"`.
+ *
+ * It cannot reuse `uploaded-files`' own `useArchiveFile`, which invalidates only
+ * the files tree: the row that visibly changes is the **signatory**, and without
+ * this invalidation the panel would keep rendering a signature the operator had
+ * just withdrawn. Both trees are invalidated, since the file's own record
+ * changed too.
+ *
+ * A `reason` is required non-blank by that endpoint.
+ */
+export function useRemoveSignatorySignature(fileId: string) {
+  return useAppMutation<UploadedFile, { reason: string }>({
+    mutationFn: (body) => archiveFile(fileId, body),
+    successMessage: "Signature image removed.",
+    errorTitle: "Couldn't remove signature image",
+    invalidateKeys: [...invalidateAllSignatories(), fileQueryKeys.all],
   });
 }
 
