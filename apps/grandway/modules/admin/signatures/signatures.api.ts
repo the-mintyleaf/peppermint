@@ -113,9 +113,14 @@ export async function uploadSignatorySignature(
 /**
  * The signatory library as one page, for the management modal and the picker
  * alike. `page_size: 100` is the server maximum and **clamps silently** above
- * it (§3) — the library is a small reference table, but if it ever passes 100
- * rows this becomes a truncated list with nothing reporting it, so the caller
- * checks `meta.total` against what it received.
+ * it (§3), so a library that outgrew one page would truncate with nothing
+ * reporting it.
+ *
+ * `meta.total` is returned alongside the rows precisely so that is detectable:
+ * `SignatoryListView` compares the two and says so. **The picker does not** —
+ * it would be warning an operator about rows they cannot act on from there, and
+ * the management screen is where the library is actually curated. If this ever
+ * needs real paging, both callers change together.
  */
 export function fetchSignatories(
   filters: SignatoryListFilters = {},

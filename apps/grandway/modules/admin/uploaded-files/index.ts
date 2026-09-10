@@ -10,6 +10,12 @@ export { ModuleFileReviewQueue } from "./pages/review/FileReviewQueue";
 // import concrete files to avoid cycles; this barrel is for OTHER modules.
 export { getFile, listFiles } from "./uploadedFiles.api";
 export { useFileDetail, useFilesList } from "./uploadedFiles.hooks";
+// Inline image preview for another module's owned file — the signatory library
+// renders signature images this way, since the download route 401s an `<img
+// src>` and the bytes must be fetched and handed over as an object URL. Kept
+// here rather than re-implemented per consumer: this hook owns the object-URL
+// lifecycle, and getting that wrong leaks a browser resource per render.
+export { useFileBlob } from "./_shared/useFileBlob";
 export { fileQueryKeys, filesListKey } from "./uploadedFiles.queryKeys";
 export {
   FILE_CATEGORY_LABELS,

@@ -26,14 +26,14 @@ Branch: `dev/signature-module`
 
 ## Phase 3 — SignatureManagerModal + editor button
 
-- [ ] `SignatureManagerModal` shell with list ↔ form sub-screen switching
-- [ ] List view: rows with name/title/role, status badge, thumbnail or "No image"
-- [ ] Form view: `FormWrapper` + zod (name/title/role/signature_image_url)
-- [ ] Image section (edit view only) — `FileInput` upload, png/jpg/jpeg/webp, 10 MB
-- [ ] Status actions: activate / deactivate via status sub-route
-- [ ] Modal body padding restored on an inner container (not via `styles`)
-- [ ] Wire `DocHeader` — drop the dead `router.push`, gate on `capabilities.signatories`
-- [ ] Mount the modal in `DocumentEditor`
+- [x] `SignatureManagerModal` shell with list ↔ form sub-screen switching
+- [x] List view: rows with name/title/role, status badge, thumbnail or "No image"
+- [x] Form view: `FormWrapper` + zod (name/title/role/signature_image_url)
+- [x] Image section (edit view only) — `FileInput` upload, png/jpg/jpeg/webp, 10 MB
+- [x] Status actions: activate / deactivate via status sub-route
+- [x] Modal body padding restored on an inner container (not via `styles`)
+- [x] Wire `DocHeader` — drop the dead `router.push`, gate on `capabilities.signatories`
+- [x] Mount the modal in `DocumentEditor`
 - [ ] Commit + adversarial review
 
 ## Phase 4 — Certificate wiring

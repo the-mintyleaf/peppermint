@@ -5,6 +5,12 @@
 // direction is what makes a cycle impossible, and it is the reverse of what an
 // older comment in `documents/utils/` assumed — do not flip it back.
 
+export { SignatureManagerModal } from "./_shared/SignatureManagerModal";
+export type { SignatureManagerModalProps } from "./_shared/SignatureManagerModal";
+export { SignatureImage } from "./_shared/SignatureImage";
+export type { SignatureImageProps } from "./_shared/SignatureImage";
+export { useResolvedSignature } from "./_shared/useResolvedSignature";
+
 export {
   useActiveSignatories,
   useChangeSignatoryStatus,

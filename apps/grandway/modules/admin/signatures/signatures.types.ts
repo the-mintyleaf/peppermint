@@ -104,8 +104,16 @@ export interface SignatoryListFilters {
   search?: string;
 }
 
-/** `FormWrapper` values for the create/edit form. Mirrors `SignatoryCreatePayload` with no optionals — an untouched field submits `""`. */
-export interface SignatoryFormValues {
+/**
+ * `FormWrapper` values for the create/edit form. Mirrors `SignatoryCreatePayload`
+ * with no optionals — an untouched field submits `""`.
+ *
+ * The `Record<string, unknown>` base is `FormWrapper<T extends FormValues>`'s
+ * bound, which a plain interface does not structurally satisfy. The `*Values`
+ * suffix is what exempts it from the repo's no-index-signature rule; **domain
+ * types above must never get one.**
+ */
+export interface SignatoryFormValues extends Record<string, unknown> {
   name: string;
   title: string;
   role: string;
@@ -116,7 +124,7 @@ export interface SignatoryFormValues {
  * `FormWrapper` values for the signature upload. `file` is `null` until the
  * picker is used; the schema refuses that, so the payload always has one.
  */
-export interface SignatureUploadFormValues {
+export interface SignatureUploadFormValues extends Record<string, unknown> {
   file: File | null;
   notes: string;
 }

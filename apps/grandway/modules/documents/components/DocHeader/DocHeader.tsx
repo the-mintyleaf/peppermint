@@ -1,10 +1,18 @@
 "use client";
 
-import { Group, Text, ActionIcon, Tooltip } from "@peppermint/ui";
+import {
+  Group,
+  Text,
+  ActionIcon,
+  Tooltip,
+  useDisclosure,
+} from "@peppermint/ui";
 import { useRouter } from "next/navigation";
 import { X as XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { FileText as DocumentIcon } from "@phosphor-icons/react/dist/csr/FileText";
 import { Signature as SignatureIcon } from "@phosphor-icons/react/dist/csr/Signature";
+import { SignatureManagerModal } from "@/modules/admin/signatures";
+import { useCapabilities } from "@/config/access";
 import { useDocumentEditor } from "../../context";
 import styles from "../../pages/editor/DocumentEditor.module.css";
 
@@ -24,9 +32,10 @@ export function DocHeader() {
     studentFullData,
     applicantId,
     confirmLeave,
-    canEdit,
     canOpenWorkspaces,
   } = useDocumentEditor();
+  const capabilities = useCapabilities();
+  const [signaturesOpened, signatureManager] = useDisclosure(false);
   const currentDate = formatHeaderDate(new Date());
 
   // Keyed on the capability that governs the DESTINATION, not on write access —
@@ -38,10 +47,6 @@ export function DocHeader() {
 
   const handleClose = () => {
     confirmLeave(() => router.push(closeHref));
-  };
-
-  const handleManageSignatures = () => {
-    confirmLeave(() => router.push("/admin/signatures"));
   };
 
   const fileName =
@@ -85,16 +90,20 @@ export function DocHeader() {
         <Text size="xs" className={styles.barDate} suppressHydrationWarning>
           {currentDate}
         </Text>
-        {/* `/admin/signatures` does not exist in `app/` — this has always been a
-            dead link. Hiding it for readers at least stops it being the first
-            thing a newly-admitted role clicks; the route is still owed. */}
-        {canEdit && (
+        {/* Opens in place rather than navigating: the operator is mid-document
+            when they notice a signer is missing, and leaving the editor costs
+            them that context. Keyed on `signatories`, NOT on `canEdit` — the
+            signatory library is a different backend module with a stricter
+            rule (it refuses superadmin as well as lead_manager, reads
+            included), and conflating the two is how a control ends up pointing
+            at an endpoint the viewer will be refused. */}
+        {capabilities.signatories && (
           <Tooltip label="Manage signatures" withArrow>
             <ActionIcon
               className={styles.barCloseBtn}
               variant="subtle"
               size="sm"
-              onClick={handleManageSignatures}
+              onClick={signatureManager.open}
               aria-label="Manage signatures"
             >
               <SignatureIcon size={14} color="#fff" aria-hidden />
@@ -111,6 +120,11 @@ export function DocHeader() {
           <XIcon size={14} color="#fff" aria-hidden />
         </ActionIcon>
       </Group>
+
+      <SignatureManagerModal
+        opened={signaturesOpened}
+        onClose={signatureManager.close}
+      />
     </div>
   );
 }
