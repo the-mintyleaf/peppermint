@@ -124,6 +124,21 @@
   font-size: var(--mantine-font-size-xs);
 }
 
+/* A locked cell — the opening row's debit, or every cell while a save is in flight.
+   Mantine's `:disabled` rule outranks the transparent fill above and would paint a
+   grey block flush to the gridlines, so the cell is tinted like the computed columns
+   instead and the value keeps its own padding. */
+.cell:has(input:disabled) {
+  background: var(--grid-readonly);
+}
+
+.cell input:disabled,
+.cell input[data-disabled] {
+  background: transparent;
+  opacity: 1;
+  color: var(--grid-readonly-text);
+}
+
 .cell:focus-within {
   outline: 2px solid var(--mantine-primary-color-filled);
   outline-offset: -2px;
@@ -189,8 +204,8 @@
 }
 
 .actions {
-  width: 92px;
-  padding: 0 4px;
+  width: 104px;
+  padding: 0 var(--mantine-spacing-xs);
   background: var(--grid-cell);
 }
 
