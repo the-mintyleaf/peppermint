@@ -41,7 +41,7 @@
 .table {
   width: 100%;
   /* Below this the Description column stops being usable — scroll the sheet instead. */
-  min-width: 720px;
+  min-width: 760px;
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
@@ -105,7 +105,8 @@
   border-right: 1px solid var(--grid-line-strong);
 }
 
-.numericHead {
+.table .numericHead {
+  padding-inline: var(--mantine-spacing-md);
   text-align: right;
 }
 
@@ -151,6 +152,7 @@
 }
 
 .numeric input {
+  padding-inline: var(--mantine-spacing-md);
   text-align: right;
   font-family: var(--mantine-font-family-monospace);
   font-variant-numeric: tabular-nums;
@@ -158,8 +160,8 @@
 
 /* Derived cells (interest/tax amounts, running balance) are never editable — the
    tint is what separates "the sheet calculated this" from "you typed this". */
-.computed {
-  padding: 0 var(--mantine-spacing-sm);
+.table .computed {
+  padding: 0 var(--mantine-spacing-md);
   text-align: right;
   font-family: var(--mantine-font-family-monospace);
   font-variant-numeric: tabular-nums;
@@ -167,7 +169,7 @@
   background: var(--grid-readonly);
 }
 
-.label {
+.table .label {
   padding: 0 var(--mantine-spacing-sm);
 }
 
@@ -203,13 +205,13 @@
   box-shadow: inset 3px 0 0 var(--mantine-color-blue-5);
 }
 
-.actions {
+.table .actions {
   width: 104px;
   padding: 0 var(--mantine-spacing-xs);
   background: var(--grid-cell);
 }
 
-.empty {
+.table .empty {
   padding: var(--mantine-spacing-lg);
   text-align: center;
 }
@@ -219,7 +221,6 @@
   position: sticky;
   bottom: 0;
   z-index: 2;
-  padding: 0 var(--mantine-spacing-sm);
   border-bottom: none;
   border-top: 1px solid var(--grid-line-strong);
   font-weight: 700;

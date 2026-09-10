@@ -87,9 +87,9 @@ export function TransactionGrid({
               <col style={{ width: 38 }} />
               <col style={{ width: 124 }} />
               <col />
-              <col style={{ width: 108 }} />
-              <col style={{ width: 108 }} />
-              <col style={{ width: 116 }} />
+              <col style={{ width: 120 }} />
+              <col style={{ width: 120 }} />
+              <col style={{ width: 128 }} />
               <col style={{ width: 104 }} />
             </colgroup>
             <thead className={classes.head}>
