@@ -5,7 +5,6 @@ import { Alert, Badge, Group, Loader, Stack, Text } from "@peppermint/ui";
 import { InfoIcon } from "@phosphor-icons/react/dist/csr/Info";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import {
-  useCreateSignatory,
   useSignatoryDetail,
   useUpdateSignatory,
 } from "../../../signatures.hooks";
@@ -16,15 +15,9 @@ import {
 } from "../../../signatures.labels";
 import type { Signatory, SignatoryFormValues } from "../../../signatures.types";
 import type { ReportDirty } from "./DirtyReporter";
+import { SignatoryCreateForm } from "./SignatoryCreateForm";
 import { SignatoryFormFields } from "./SignatoryFormFields";
 import { SignatureUploadPanel } from "./SignatureUploadPanel";
-
-const EMPTY: SignatoryFormValues = {
-  name: "",
-  title: "",
-  role: "",
-  signature_image_url: "",
-};
 
 function toFormValues(signatory: Signatory): SignatoryFormValues {
   return {
@@ -51,20 +44,19 @@ interface CreateViewProps {
 }
 
 /**
- * Create is details-only. The upload endpoint needs an id that does not exist
- * yet, so the image is genuinely a second step — the alert says so rather than
- * leaving the user hunting for a file field that cannot be here.
+ * Adding a signer. The image lives in this form too — the API needs two calls
+ * (the upload endpoint wants an id the create has not returned yet), but that
+ * is a backend constraint, not something an operator should have to work
+ * around, so `SignatoryCreateForm` chains them behind one submit.
  *
- * On success it hands the new id straight to the edit view, so "create, then
- * upload" is one continuous motion rather than a return to the list.
+ * On success it moves straight to the edit view, where the signature panel and
+ * the activate control are — so "add a signer" reads as one continuous motion.
  */
 export function SignatoryCreateView({
   onDone,
   onCancel,
   onDirtyChange,
 }: CreateViewProps) {
-  const mutation = useCreateSignatory();
-
   return (
     <Stack gap="md" p="md">
       <Alert
@@ -73,20 +65,14 @@ export function SignatoryCreateView({
         icon={<InfoIcon size={16} aria-hidden />}
       >
         <Text size="xs">
-          Saving creates a <b>draft</b>. You&apos;ll be able to upload the
-          signature image on the next screen, then activate the signer so
-          certificates can name them.
+          New signers are created as a <b>draft</b> — they appear in the
+          certificate picker only once you activate them, on the next screen.
         </Text>
       </Alert>
-      <SignatoryFormFields
-        initial={EMPTY}
-        submitLabel="Save and continue"
+      <SignatoryCreateForm
+        onCreated={onDone}
         onCancel={onCancel}
         onDirtyChange={onDirtyChange}
-        onSubmit={async (values) => {
-          const created = await mutation.mutateAsync(trimmed(values));
-          onDone(created.id);
-        }}
       />
     </Stack>
   );

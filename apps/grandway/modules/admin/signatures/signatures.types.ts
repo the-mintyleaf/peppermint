@@ -121,6 +121,18 @@ export interface SignatoryFormValues extends Record<string, unknown> {
 }
 
 /**
+ * `FormWrapper` values for the create form — the detail fields **plus the
+ * signature image**, so adding a signer is one action.
+ *
+ * The two-request sequencing behind it (create, then upload against the new id,
+ * because the upload endpoint needs an id that does not exist yet) is a backend
+ * constraint and is deliberately not exposed here.
+ */
+export interface SignatoryCreateFormValues extends SignatoryFormValues {
+  file: File | null;
+}
+
+/**
  * `FormWrapper` values for the signature upload. `file` is `null` until the
  * picker is used; the schema refuses that, so the payload always has one.
  */

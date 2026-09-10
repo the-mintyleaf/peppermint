@@ -101,16 +101,28 @@ surfaces, never render them read-only.
    the files tree — the row that visibly changes is the _signatory_, and without
    that the panel would keep rendering a signature just withdrawn.
 
-5. **Upload needs an id, so create is a two-step flow.** `POST /signatories/`
-   is JSON and always lands `draft`; the image is a second call against the new
-   id. The create view says so and hands its new id straight to the edit view.
+5. **Upload needs an id, so create is two requests — but one action.**
+   `POST /signatories/` is JSON and always lands `draft`; the image is a second
+   call against the id that create returns. **That sequencing is a backend
+   constraint and is deliberately hidden**: `SignatoryCreateForm` carries the
+   dropzone alongside the detail fields and chains the two calls behind one
+   submit. Do not "simplify" it back into a URL-only create form.
+
+   **The two halves fail independently and that is handled, not hidden.** If the
+   create succeeds and the upload does not, the signatory really exists as a
+   draft; the form hands the id up regardless and lands on the edit screen where
+   the image panel is waiting. Rolling back is not an option — there is no
+   DELETE anywhere in this API.
+
    Uploading again **replaces** (the predecessor is versioned, not duplicated),
    and any status may receive a signature — a retired signer's certificates must
    stay reprintable.
 
 ## The upload control
 
-`SignatureDropzone` is a drag-or-click `Dropzone` (from `@peppermint/ui/dropzone`,
+`SignatureDropzone` is used in **both** the create form and the edit screen's
+image panel, and validates through the same `signatureFileSchema`. It is a
+drag-or-click `Dropzone` (from `@peppermint/ui/dropzone`,
 a **subpath export** — not in the main barrel) that **previews the picked file
 before it is sent**. That preview is not decoration: the backend does no
 thumbnailing, no dimension check and no crop, so whatever is uploaded is exactly

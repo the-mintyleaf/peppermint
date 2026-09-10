@@ -126,6 +126,20 @@ export function useUploadSignatorySignature(id: string) {
 }
 
 /**
+ * The same upload, but with the signatory id supplied **per call** rather than
+ * bound at mount — the create flow only learns the id when the create resolves,
+ * so it cannot bind one in advance.
+ */
+export function useUploadSignatureToSignatory() {
+  return useAppMutation<Signatory, { id: string; formData: FormData }>({
+    mutationFn: ({ id, formData }) => uploadSignatorySignature(id, formData),
+    successMessage: "Signature image uploaded.",
+    errorTitle: "Couldn't upload signature image",
+    invalidateKeys: invalidateAllSignatories(),
+  });
+}
+
+/**
  * Removing a signature is **archiving its file**, cross-app on the `uploaded_files`
  * module — this API has no removal endpoint and no delete service, and the
  * backend pins four plausible names in a no-delete test so nobody adds one.
