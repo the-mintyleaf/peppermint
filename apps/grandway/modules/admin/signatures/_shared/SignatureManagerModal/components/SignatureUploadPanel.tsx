@@ -36,6 +36,10 @@ import { SignatureDropzone } from "./SignatureDropzone";
  * notification from the mutation rather than as field validation.
  */
 const schema = z.object({
+  // The `instanceof` branch is a type guard for the `as File` cast below, not
+  // user-facing copy: submit is disabled while no file is held, so validation
+  // never runs against `null`. The refinements under it ARE reachable — a
+  // 0-byte file passes the Dropzone's own mime/size filters and fails here.
   file: z
     .instanceof(File, { message: "Choose a signature image" })
     .refine((f) => f.size > 0, "This file is empty")
@@ -162,12 +166,20 @@ export function SignatureUploadPanel({
 
 function UploadField() {
   const { form } = useFormInstance<SignatureUploadFormValues>();
+  // `useFormInstance` alone does not re-render on submit state, so the pending
+  // flag has to come from the controls context. Without it the drop target
+  // stays live during an upload: a second image could be dropped mid-flight,
+  // swapping the preview to a file that is not the one being sent, and
+  // `formClearOnSuccess` would then wipe that second pick when the FIRST
+  // upload resolved — a silent, unexplained loss.
+  const { isLoading } = useFormControls();
   const props = form.getInputProps("file");
   return (
     <SignatureDropzone
       file={form.values.file}
       onPick={(file) => form.setFieldValue("file", file)}
       error={typeof props.error === "string" ? props.error : undefined}
+      disabled={isLoading}
     />
   );
 }

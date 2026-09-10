@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Box, Group, Image, Stack, Text } from "@peppermint/ui";
-import { Dropzone } from "@peppermint/ui/dropzone";
+import { Dropzone, type FileRejection } from "@peppermint/ui/dropzone";
 import { UploadSimpleIcon } from "@phosphor-icons/react/dist/csr/UploadSimple";
 import { XCircleIcon } from "@phosphor-icons/react/dist/csr/XCircle";
 import { ImageIcon } from "@phosphor-icons/react/dist/csr/Image";
@@ -46,6 +46,22 @@ function useLocalPreview(file: File | null): string | null {
   return url;
 }
 
+/**
+ * Dropzone refuses a bad drop before our form ever sees it, and `FormWrapper`
+ * runs validation on blur and submit only (`validateInputOnChange: false`) — a
+ * drop target has no meaningful blur, and submit is disabled while no file is
+ * held. So without this mapping, dropping a 20 MB scan would do **nothing
+ * visible at all**: silently rejected, no file, no message, no explanation.
+ */
+function rejectionMessage(rejections: FileRejection[]): string {
+  const codes = new Set(rejections.flatMap((r) => r.errors.map((e) => e.code)));
+  if (codes.has("file-too-large")) return "That image is over 10 MB.";
+  if (codes.has("file-invalid-type"))
+    return "That file is not a PNG, JPG, JPEG or WEBP.";
+  if (codes.has("too-many-files")) return "Drop one image at a time.";
+  return "That file can't be used as a signature image.";
+}
+
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
@@ -59,15 +75,23 @@ export function SignatureDropzone({
   disabled,
 }: SignatureDropzoneProps) {
   const preview = useLocalPreview(file);
+  const [rejection, setRejection] = useState<string | null>(null);
+
+  // The schema's message wins when there is one; a rejection never coexists
+  // with a held file, so the two cannot both be live.
+  const message = error ?? rejection;
 
   return (
     <Stack gap={6}>
       <Dropzone
-        onDrop={(files) => onPick(files[0] ?? null)}
-        // Rejections are surfaced by clearing the selection rather than by a
-        // second error channel — the form schema below already owns the
-        // messaging, and two sources would disagree.
-        onReject={() => onPick(null)}
+        onDrop={(files) => {
+          setRejection(null);
+          onPick(files[0] ?? null);
+        }}
+        onReject={(rejections) => {
+          setRejection(rejectionMessage(rejections));
+          onPick(null);
+        }}
         maxSize={MAX_SIGNATURE_SIZE_BYTES}
         accept={[...SIGNATURE_MIME_TYPES]}
         maxFiles={1}
@@ -76,7 +100,7 @@ export function SignatureDropzone({
         aria-label="Signature image drop area"
         styles={{
           root: {
-            borderColor: error
+            borderColor: message
               ? "var(--mantine-color-red-6)"
               : "var(--mantine-color-gray-4)",
             padding: "var(--mantine-spacing-sm)",
@@ -143,9 +167,9 @@ export function SignatureDropzone({
           </Group>
         )}
       </Dropzone>
-      {error ? (
+      {message ? (
         <Text size="xs" c="red.7" role="alert">
-          {error}
+          {message}
         </Text>
       ) : null}
     </Stack>
