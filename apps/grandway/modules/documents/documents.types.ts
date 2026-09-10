@@ -462,6 +462,12 @@ export interface DocumentFormProps {
   signatures?: Signature[];
   onSubmit: (values: DocumentContent) => void;
   isLoading?: boolean;
+  /**
+   * Lets a form widen or narrow the modal it sits in — a tabbed form needs a different
+   * width per tab, which the static `formModalSize` can't express. Optional: forms that
+   * fit one width simply ignore it.
+   */
+  onModalSizeChange?: (size: string | number) => void;
 }
 
 /**

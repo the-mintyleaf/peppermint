@@ -390,8 +390,9 @@ const bankRegistry = Object.fromEntries(
           Form: stmtComponents.Form,
           Template: stmtComponents.Template,
           ConfigBar: BankConfigBar,
-          // The transactions sheet needs spreadsheet width, not the default `xl` modal.
-          formModalSize: "72rem",
+          // Opening width — the Account details tab. The form widens the modal itself
+          // when the transactions sheet is showing (see `onModalSizeChange`).
+          formModalSize: "lg",
         },
       ],
     ];

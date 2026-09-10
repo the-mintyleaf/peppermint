@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Badge,
+  Box,
   Button,
   DateInput,
   Group,
@@ -38,10 +39,17 @@ export function BankStatementForm({
   initialContent,
   onSubmit,
   isLoading,
+  onModalSizeChange,
 }: DocumentFormProps) {
   const existing = (initialContent ?? {}) as BankStatementContent;
 
   const [tab, setTab] = useState<StatementTab>("details");
+
+  // Account details is a two-column form; the transactions sheet is a spreadsheet. The
+  // host modal follows the tab rather than sitting at one compromise width.
+  useEffect(() => {
+    onModalSizeChange?.(tab === "transactions" ? "xl" : "lg");
+  }, [tab, onModalSizeChange]);
 
   const form = useForm<BankStatementContent>({
     mode: "controlled",
@@ -150,13 +158,13 @@ export function BankStatementForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <Stack gap="md" p="md">
+      <Stack gap={0}>
         <Tabs
           value={tab}
           onChange={(value) => setTab((value as StatementTab) ?? "details")}
           keepMounted={false}
         >
-          <Tabs.List>
+          <Tabs.List px="md">
             <Tabs.Tab
               value="details"
               leftSection={<IdentificationCardIcon size={16} />}
@@ -178,7 +186,7 @@ export function BankStatementForm({
             </Tabs.Tab>
           </Tabs.List>
 
-          <Tabs.Panel value="details" pt="md">
+          <Tabs.Panel value="details" px="md" pt="md">
             <Stack gap="md">
               <FormSection title="Account">
                 <TextInput
@@ -284,7 +292,7 @@ export function BankStatementForm({
             </Stack>
           </Tabs.Panel>
 
-          <Tabs.Panel value="transactions" pt="md">
+          <Tabs.Panel value="transactions" px="md" pt="md">
             <Stack gap="sm">
               <Group justify="space-between" align="center" gap="sm">
                 <Text size="xs" c="dimmed">
@@ -338,9 +346,11 @@ export function BankStatementForm({
           </Tabs.Panel>
         </Tabs>
 
-        <Button type="submit" loading={isLoading} fullWidth>
-          Save Statement
-        </Button>
+        <Box p="md">
+          <Button type="submit" loading={isLoading} fullWidth>
+            Save Statement
+          </Button>
+        </Box>
       </Stack>
     </form>
   );
