@@ -52,7 +52,7 @@
    sheet's outer edges are the wrapper's own border, so cells draw right + bottom only. */
 .table th,
 .table td {
-  height: 30px;
+  height: 34px;
   padding: 0;
   border-right: 1px solid var(--grid-line);
   border-bottom: 1px solid var(--grid-line);
@@ -78,8 +78,8 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  height: 30px;
-  padding: 0 var(--mantine-spacing-xs);
+  height: 34px;
+  padding: 0 var(--mantine-spacing-sm);
   text-align: left;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -87,9 +87,7 @@
   font-weight: 700;
   color: var(--grid-head-text);
   background: var(--grid-head);
-  /* A sticky cell paints over the scrolled rows, so the strip redraws its own
-     bottom rule inside the box where scrolling can't clip it. */
-  box-shadow: inset 0 -2px 0 var(--grid-line-strong);
+  border-bottom: 1px solid var(--grid-line-strong);
 }
 
 /* Row-number gutter — matches the header strip, like a spreadsheet's row headers. */
@@ -104,7 +102,7 @@
 
 /* The row-header column closes with the same heavier rule as the sheet's outer edge. */
 .table .gutter {
-  border-right: 2px solid var(--grid-line-strong);
+  border-right: 1px solid var(--grid-line-strong);
 }
 
 .numericHead {
@@ -117,9 +115,9 @@
    never sit flush against a grid line or the focus ring. */
 .cell input,
 .cell button {
-  height: 30px;
-  min-height: 30px;
-  padding-inline: var(--mantine-spacing-xs);
+  height: 34px;
+  min-height: 34px;
+  padding-inline: var(--mantine-spacing-sm);
   border: none;
   border-radius: 0;
   background: transparent;
@@ -146,7 +144,7 @@
 /* Derived cells (interest/tax amounts, running balance) are never editable — the
    tint is what separates "the sheet calculated this" from "you typed this". */
 .computed {
-  padding: 0 var(--mantine-spacing-xs);
+  padding: 0 var(--mantine-spacing-sm);
   text-align: right;
   font-family: var(--mantine-font-family-monospace);
   font-variant-numeric: tabular-nums;
@@ -155,7 +153,7 @@
 }
 
 .label {
-  padding: 0 var(--mantine-spacing-xs);
+  padding: 0 var(--mantine-spacing-sm);
 }
 
 /* Per-row Interest / Tax rate. It sits beside label text rather than filling a cell,
@@ -206,12 +204,10 @@
   position: sticky;
   bottom: 0;
   z-index: 2;
-  padding: 0 var(--mantine-spacing-xs);
+  padding: 0 var(--mantine-spacing-sm);
   border-bottom: none;
-  border-top: 2px solid var(--grid-line-strong);
+  border-top: 1px solid var(--grid-line-strong);
   font-weight: 700;
   color: var(--grid-head-text);
   background: var(--grid-head);
-  /* Same reason as the header: the sticky strip redraws its own top rule. */
-  box-shadow: inset 0 2px 0 var(--grid-line-strong);
 }
