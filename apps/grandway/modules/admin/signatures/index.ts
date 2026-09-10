@@ -9,7 +9,14 @@ export { SignatureManagerModal } from "./_shared/SignatureManagerModal";
 export type { SignatureManagerModalProps } from "./_shared/SignatureManagerModal";
 export { SignatureImage } from "./_shared/SignatureImage";
 export type { SignatureImageProps } from "./_shared/SignatureImage";
-export { useResolvedSignature } from "./_shared/useResolvedSignature";
+export {
+  useResolvedSignature,
+  useResolvedSignatureImage,
+} from "./_shared/useResolvedSignature";
+export type {
+  ResolvedSignature,
+  SignatureSourceRef,
+} from "./_shared/useResolvedSignature";
 
 export {
   useActiveSignatories,

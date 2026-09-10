@@ -7,6 +7,7 @@ import {
   MOI_INSTITUTIONS,
 } from "./documentTypeDefinitions";
 import {
+  CertificateConfigBar,
   CertificateForm,
   CertificateTemplate,
 } from "./document-types/student-certificate";
@@ -411,6 +412,7 @@ export const documentTypeRegistry: Record<DocumentType, DocumentTypeConfig> = {
     requiresStudent: true,
     Form: CertificateForm,
     Template: CertificateTemplate,
+    ConfigBar: CertificateConfigBar,
   },
   "student-cv": {
     type: "student-cv",

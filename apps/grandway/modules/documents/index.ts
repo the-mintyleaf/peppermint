@@ -44,12 +44,11 @@ export {
   isEditableStatus,
   canArchiveStatus,
 } from "./documents.status";
-export {
-  formatValidityRange,
-  getSignatureValidity,
-  signatureValiditySuffix,
-} from "./utils/signatureValidity";
-export type { SignatureValidity } from "./utils/signatureValidity";
+// The signature validity helpers are gone. They were built on `validFrom`/
+// `validTo`, fields no endpoint in `document_templates` has ever supplied, so
+// every signatory read as "unbounded" and the picker suffix was always "".
+// A picker annotation that says something true lives in
+// `@/modules/admin/signatures`' `signatureSourceSuffix`.
 
 export type {
   Document,

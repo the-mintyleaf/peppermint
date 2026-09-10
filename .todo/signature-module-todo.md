@@ -38,12 +38,12 @@ Branch: `dev/signature-module`
 
 ## Phase 4 — Certificate wiring
 
-- [ ] 4a Thread `signatures` + `disabled` through `DocumentCustomizations` in `HistorySidebar`
-- [ ] 4b Register `ConfigBar: CertificateConfigBar` in `documentTypeConfig.ts`
-- [ ] 4c Re-lay `CertificateConfigBar` vertically + `onUpdate` & debounced `onPersist` + unmount flush
-- [ ] 4d Annotate picker options with role and "(no image)"
-- [ ] 4e Export `useFileBlob`; add `useResolvedSignature`; resolve in `CertificateTemplate` + `createCertificateTemplateAdapter`
-- [ ] 4f Delete `signatureValidity.ts`, drop `validFrom`/`validTo` from `Signature`
+- [x] 4a Thread `signatures` + `disabled` through `DocumentCustomizations` in `HistorySidebar`
+- [x] 4b Register `ConfigBar: CertificateConfigBar` in `documentTypeConfig.ts`
+- [x] 4c Re-lay `CertificateConfigBar` vertically + `onUpdate` & debounced `onPersist` + unmount flush
+- [x] 4d Annotate picker options with role and "(no image)"
+- [x] 4e Export `useFileBlob`; add `useResolvedSignature`; resolve in `CertificateTemplate` + `createCertificateTemplateAdapter`
+- [x] 4f Delete `signatureValidity.ts`, drop `validFrom`/`validTo` from `Signature`
 - [ ] Commit + adversarial review
 
 ## Phase 5 — Docs and verification
