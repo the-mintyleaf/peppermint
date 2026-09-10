@@ -11,7 +11,9 @@ import { Text, modals } from "@peppermint/ui";
  *
  * The app theme zeroes `Modal` body padding globally, so a confirm modal has to
  * restore it through `styles` — there is no content wrapper of ours to hang a
- * `p` prop on, since Mantine renders the action buttons itself.
+ * `p` prop on, since Mantine renders the action buttons itself. Padding goes on
+ * `inner`, which wraps the actions too; padding `body` alone leaves the
+ * Discard/Keep-editing row flush against the bottom edge.
  */
 export function confirmDiscardChanges(onConfirm: () => void): void {
   modals.openConfirmModal({
@@ -24,6 +26,6 @@ export function confirmDiscardChanges(onConfirm: () => void): void {
     cancelProps: { size: "xs" },
     labels: { confirm: "Discard", cancel: "Keep editing" },
     onConfirm,
-    styles: { body: { padding: "var(--mantine-spacing-md)" } },
+    styles: { inner: { padding: "var(--mantine-spacing-md)" } },
   });
 }

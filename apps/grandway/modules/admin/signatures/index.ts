@@ -22,6 +22,7 @@ export {
   useActiveSignatories,
   useChangeSignatoryStatus,
   useCreateSignatory,
+  useSignatoryDetail,
   useSignatoryList,
   useUpdateSignatory,
   useUploadSignatorySignature,

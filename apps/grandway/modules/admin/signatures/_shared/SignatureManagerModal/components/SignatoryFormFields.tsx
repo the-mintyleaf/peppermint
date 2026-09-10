@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import {
   FormWrapper,
   useFormControls,
@@ -7,7 +8,6 @@ import {
 } from "@peppermint/admin";
 import { Button, Group, Stack, TextInput } from "@peppermint/ui";
 import { z } from "zod";
-import { confirmDiscardChanges } from "../../confirmDiscardChanges";
 import type { SignatoryFormValues } from "../../../signatures.types";
 
 /**
@@ -35,8 +35,15 @@ const schema = z.object({
 interface SignatoryFormFieldsProps {
   initial: SignatoryFormValues;
   submitLabel: string;
+  /** Guarded by the modal shell, which owns every exit path. Never confirm here as well. */
   onCancel: () => void;
   onSubmit: (values: SignatoryFormValues) => Promise<void>;
+  /**
+   * Reports dirtiness up to the shell. **Must be referentially stable** — it is
+   * an effect dependency. The shell keeps it in a `useCallback` that only
+   * writes a ref.
+   */
+  onDirtyChange: (dirty: boolean) => void;
 }
 
 export function SignatoryFormFields({
@@ -44,6 +51,7 @@ export function SignatoryFormFields({
   submitLabel,
   onCancel,
   onSubmit,
+  onDirtyChange,
 }: SignatoryFormFieldsProps) {
   return (
     <FormWrapper<SignatoryFormValues>
@@ -56,11 +64,33 @@ export function SignatoryFormFields({
       }}
     >
       <Stack gap="sm">
+        <DirtyReporter onDirtyChange={onDirtyChange} />
         <Fields />
         <SubmitRow submitLabel={submitLabel} onCancel={onCancel} />
       </Stack>
     </FormWrapper>
   );
+}
+
+/**
+ * Publishes `isDirty` to the modal shell. It lives inside `FormWrapper` because
+ * that is the only place the state exists, and renders nothing — the shell needs
+ * the value to guard the back arrow, Escape, the backdrop and the close button,
+ * none of which this form can see.
+ */
+function DirtyReporter({
+  onDirtyChange,
+}: {
+  onDirtyChange: (dirty: boolean) => void;
+}) {
+  const { isDirty } = useFormControls();
+  useEffect(() => {
+    onDirtyChange(isDirty);
+    // Unmounting means the form is gone, so there is nothing left to discard —
+    // without this, leaving a dirty form would arm the guard permanently.
+    return () => onDirtyChange(false);
+  }, [isDirty, onDirtyChange]);
+  return null;
 }
 
 function Fields() {
@@ -102,17 +132,15 @@ function SubmitRow({
   submitLabel: string;
   onCancel: () => void;
 }) {
-  const { handleSubmit, isLoading, isDirty } = useFormControls();
-  const handleCancel = () => {
-    if (isDirty) confirmDiscardChanges(onCancel);
-    else onCancel();
-  };
+  const { handleSubmit, isLoading } = useFormControls();
   return (
     <Group justify="flex-end" gap="xs">
+      {/* No discard prompt here: `onCancel` is the shell's guarded leave, which
+          already confirms. Prompting in both places would ask twice. */}
       <Button
         variant="default"
         size="xs"
-        onClick={handleCancel}
+        onClick={onCancel}
         disabled={isLoading}
       >
         Cancel

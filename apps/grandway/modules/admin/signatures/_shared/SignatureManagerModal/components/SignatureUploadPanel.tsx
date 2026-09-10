@@ -110,6 +110,11 @@ export function SignatureUploadPanel({ signatory }: SignatureUploadPanelProps) {
       <FormWrapper<SignatureUploadFormValues>
         initial={initial}
         validation={[schema]}
+        // Clears the picked file once the upload lands. Without it the field
+        // still shows the filename after a successful save, which reads as "it
+        // didn't work" and invites a second click that stores a pointless
+        // extra version.
+        formClearOnSuccess
         finalSubmitFn={async (values) => {
           const formData = new FormData();
           formData.append("file", values.file as File);

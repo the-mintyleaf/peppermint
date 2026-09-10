@@ -6,6 +6,7 @@ import {
   changeSignatoryStatus,
   createSignatory,
   fetchSignatories,
+  getSignatory,
   updateSignatory,
   uploadSignatorySignature,
 } from "./signatures.api";
@@ -47,6 +48,25 @@ export function useActiveSignatories() {
     queryKey: activeSignatoriesKey(),
     queryFn: () => fetchSignatories({ status: "active" }),
     staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * One signatory by id, for the edit screen.
+ *
+ * A detail read rather than a lookup in whichever list happens to be mounted:
+ * the library list is filterable, so a row being edited may not be in it — and
+ * once its status changes it *stops* being in it, which would turn a successful
+ * save into "signatory not found". A retired signatory stays retrievable by id
+ * forever (§7), so this is the one read that always answers.
+ */
+export function useSignatoryDetail(id: string | null) {
+  return useQuery({
+    queryKey: id
+      ? signatoryQueryKeys.detail(id)
+      : ["signatures.signatories", "detail", "none"],
+    queryFn: () => getSignatory(id as string),
+    enabled: id !== null,
   });
 }
 

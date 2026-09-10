@@ -5,7 +5,7 @@ import { InfoIcon } from "@phosphor-icons/react/dist/csr/Info";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import {
   useCreateSignatory,
-  useSignatoryList,
+  useSignatoryDetail,
   useUpdateSignatory,
 } from "../../../signatures.hooks";
 import {
@@ -27,6 +27,7 @@ const EMPTY: SignatoryFormValues = {
 interface CreateViewProps {
   onDone: (id: string) => void;
   onCancel: () => void;
+  onDirtyChange: (dirty: boolean) => void;
 }
 
 /**
@@ -37,7 +38,11 @@ interface CreateViewProps {
  * On success it hands the new id straight to the edit view, so "create, then
  * upload" is one continuous motion rather than a return to the list.
  */
-export function SignatoryCreateView({ onDone, onCancel }: CreateViewProps) {
+export function SignatoryCreateView({
+  onDone,
+  onCancel,
+  onDirtyChange,
+}: CreateViewProps) {
   const mutation = useCreateSignatory();
 
   return (
@@ -57,6 +62,7 @@ export function SignatoryCreateView({ onDone, onCancel }: CreateViewProps) {
         initial={EMPTY}
         submitLabel="Save and continue"
         onCancel={onCancel}
+        onDirtyChange={onDirtyChange}
         onSubmit={async (values) => {
           const created = await mutation.mutateAsync({
             name: values.name.trim(),
@@ -74,16 +80,26 @@ export function SignatoryCreateView({ onDone, onCancel }: CreateViewProps) {
 interface EditViewProps {
   id: string;
   onCancel: () => void;
+  onDirtyChange: (dirty: boolean) => void;
 }
 
 /**
- * The row is read back out of the list query rather than passed in, so an
- * upload or a status change that lands while this is open is reflected here
- * instead of being shadowed by a stale copy.
+ * The row comes from a detail read rather than a lookup in the list, for two
+ * reasons: the library list is filterable, so the row being edited may not be
+ * in it, and changing a signatory's status would drop it out of a filtered
+ * list mid-edit and turn a successful save into "signatory not found".
+ *
+ * Reading it fresh (rather than taking it as a prop) also means an upload or a
+ * status change that lands while this is open is reflected here instead of
+ * being shadowed by a stale copy.
  */
-export function SignatoryEditView({ id, onCancel }: EditViewProps) {
-  const query = useSignatoryList({});
-  const signatory = query.data?.data.find((s) => s.id === id);
+export function SignatoryEditView({
+  id,
+  onCancel,
+  onDirtyChange,
+}: EditViewProps) {
+  const query = useSignatoryDetail(id);
+  const signatory = query.data;
   const mutation = useUpdateSignatory(id);
 
   if (query.isLoading) {
@@ -128,6 +144,11 @@ export function SignatoryEditView({ id, onCancel }: EditViewProps) {
       </Group>
 
       <SignatoryFormFields
+        // Re-baselines the form after a save. `FormWrapper` fixes its initial
+        // values at mount and has no "accept these as the new baseline" API, so
+        // without a remount `isDirty` would stay true after a successful save
+        // and every exit would pop a false "Discard changes?".
+        key={signatory.updated_at}
         initial={{
           name: signatory.name,
           title: signatory.title,
@@ -136,6 +157,7 @@ export function SignatoryEditView({ id, onCancel }: EditViewProps) {
         }}
         submitLabel="Save details"
         onCancel={onCancel}
+        onDirtyChange={onDirtyChange}
         onSubmit={async (values) => {
           await mutation.mutateAsync({
             name: values.name.trim(),
