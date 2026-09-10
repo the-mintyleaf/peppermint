@@ -1,10 +1,10 @@
 # FLOWS — Document Templates
 
 **Owner app:** `document_templates`
-**Synced:** 2026-07-25, adapted from `.backend/concepts/document_templates_flows.md`
+**Synced:** 2026-09-10 (backend v1.2.0), adapted from `.backend/concepts/document_templates_flows.md`
 **Purpose:** Connects `CONCEPT.md`'s product intent to the callable endpoints in `INTEGRATION.md`.
 
-> **Five things govern every flow below.**
+> **Six things govern every flow below.**
 >
 > 1. **Admin only — a Lead Manager cannot open any of these screens.** Not
 >    read-only, not empty: **hidden**. Not because the data is sensitive (there is
@@ -21,6 +21,9 @@
 > 5. **Both of this module's libraries are advisory.** `documents` does not check
 >    the template catalogue and does not validate signatory ids. **Your picker is
 >    the only guard.**
+> 6. **A signature image is a real upload now.** Ship a file-picker control. Which
+>    of the two possible sources renders is decided server-side and reported in
+>    `signature_source` — branch on that field and nothing else.
 
 ---
 
@@ -29,18 +32,33 @@
 **Actor:** Admin · **Entry point:** Signatory Library
 
 1. **Signatory Library** loads what exists → `GET /api/v1/document-templates/signatories/` (`document_templates.signatory.list`). Omit `status` — a management screen shows draft and retired signers, not just active ones. A Lead Manager receives 403 `DOCUMENT_TEMPLATES_ACTOR_FORBIDDEN`; hide the entire screen.
-2. **Signatory Library → Add** → `POST /api/v1/document-templates/signatories/` (`document_templates.signatory.create`) with `{ name (required), title?, role?, signature_image_url? }` → `Signatory`, `status: "draft"`. **Host the signature image yourself first — there is no upload; do not ship a file-picker control.**
+2. **Signatory Library → Add** → `POST /api/v1/document-templates/signatories/` (`document_templates.signatory.create`) with `{ name (required), title?, role?, signature_image_url? }` → `Signatory`, `status: "draft"`. JSON, not multipart — **the image is a separate step, because the upload needs an id that does not exist yet.** Say so in the UI rather than letting the Admin hunt for a file field that is not there.
    - `VALIDATION_ERROR` on `name` → the name is mandatory; make it a required field.
    - `VALIDATION_ERROR` on `signature_image_url` → it must be a well-formed URL. The API never fetches it, so a well-formed link to nothing passes.
-3. **Activate** once the signature is in place → `POST /api/v1/document-templates/signatories/<id>/status/` with `{ "status": "active" }` (`document_templates.signatory.change_status`). **This step is not optional** — a `draft` signer never appears in the picker; a UI that omits it looks broken. Any transition, any order; the note is optional.
+3. **Upload the signature image** → `POST /api/v1/document-templates/signatories/<id>/signature/` (`document_templates.signatory.upload_signature`), **`multipart/form-data`** with one `file` part and an optional `notes` text field → **201** with the updated `Signatory` (not the file), so re-render the whole row from the response.
+   - **Nothing else is accepted in the body** — no `category`, no `upload_source`, no owner; the service fixes all three.
+   - **Sending JSON returns 415** with no error code in the body, before any handler runs.
+   - `DOCUMENT_TEMPLATES_SIGNATURE_NOT_AN_IMAGE` → the extension is outside `png/jpg/jpeg/webp`. Narrower than the file ledger's seven types — do not copy that accept list.
+   - `DOCUMENT_TEMPLATES_SIGNATURE_FILE_TOO_LARGE` → over 10 MB.
+   - `DOCUMENT_TEMPLATES_SIGNATURE_FILE_CONTENT_MISMATCH` → the leading bytes disagree with the extension (a PDF renamed `.png`). Validate the extension client-side; you cannot pre-empt this one.
+   - **Uploading again replaces**, versioning the predecessor rather than duplicating. Any status may receive a signature, `draft` and `inactive` included — a retired signer's certificates must stay reprintable.
+   - **Send exactly one file part.** A second raises during multipart parsing and surfaces as a **500**, not a 400.
+4. **Activate** once the signature is in place → `POST /api/v1/document-templates/signatories/<id>/status/` with `{ "status": "active" }` (`document_templates.signatory.change_status`). **This step is not optional** — a `draft` signer never appears in the picker; a UI that omits it looks broken. Any transition, any order; the note is optional.
 
 ## Flow: Fill the instructor and director selects
 
 **Actor:** Admin · **Entry point:** Document Workspace → certificate form (cross-app: `documents`)
 
-1. **Load the options** → `GET /api/v1/document-templates/signatories/?status=active` (`document_templates.signatory.list`). **This is the one call the frontend makes into this module.** Render `name` plus `title`; send the row's **`id`**. **Do not filter the dropdown by `role`** — a director may legitimately sign as the instructor.
-2. **Save the document** with the chosen ids → `PATCH /api/v1/documents/<document_id>/` (`documents.document.update`, **cross-app: `documents`**). Put the ids in `content.instructorId` / `content.directorId` and send the **complete `content`** (that app replaces the body wholesale). **Nothing validates these ids** — a typo, a stale id, or a `draft` signatory's id all return 200. **Your dropdown is the only guard.**
-3. **Freeze the resolved signer into the snapshot** → `POST /api/v1/document-history/documents/<document_id>/snapshots/` (`document_history.snapshot.capture`, **cross-app: `document_history`**). Freeze the signatory's `name` and `role` alongside the `id` in `render_context.signatories` — an id alone leaves the snapshot dependent on a later lookup that may return a since-renamed record.
+1. **Load the options** → `GET /api/v1/document-templates/signatories/?status=active` (`document_templates.signatory.list`). Render `name` plus `title`; send the row's **`id`**. **Do not filter the dropdown by `role`** — a director may legitimately sign as the instructor. Surface `signature_source: "none"` in the option label: that signer renders a blank signature, and the operator should learn that before printing, not after.
+2. **Render the chosen signature** by branching on `signature_source`:
+   - `"uploaded"` → `fetch` `signature_file.download_path` **with the bearer token**, then `URL.createObjectURL` the blob. **It is not an `<img src>`** — that route answers `Content-Disposition: attachment` and 401s an unauthenticated image request.
+   - `"url"` → render `signature_image_url` directly.
+   - `"none"` → render the blank slot; do not fall back to the other field.
+
+   **Fetch each signature once per session and hold the object URL.** The route forbids caching and writes an audit event on every call — the project's only audited read.
+
+3. **Save the document** with the chosen ids → `PATCH /api/v1/documents/<document_id>/` (`documents.document.update`, **cross-app: `documents`**). Put the ids in `content.instructorId` / `content.directorId` and send the **complete `content`** (that app replaces the body wholesale). **Nothing validates these ids** — a typo, a stale id, or a `draft` signatory's id all return 200. **Your dropdown is the only guard.**
+4. **Freeze the resolved signer into the snapshot** → `POST /api/v1/document-history/documents/<document_id>/snapshots/` (`document_history.snapshot.capture`, **cross-app: `document_history`**). Freeze the signatory's `name` and `role` alongside the `id` in `render_context.signatories` — an id alone leaves the snapshot dependent on a later lookup that may return a since-renamed record. **The image is never frozen** — a reprint resolves it live, so replacing a signature changes what every past certificate renders, beside a frozen historical name. If a document class needs the image pinned, the client must do it; this API will not.
 
 ## Flow: Retire a signer who has left
 
@@ -76,25 +94,26 @@
 
 **Actor:** Admin · **Entry point:** Signatory Library / Template Catalog → edit
 
-- **Signatory** → `PATCH /api/v1/document-templates/signatories/<id>/` with any subset of `name`, `title`, `role`, `signature_image_url`. **`status`/`status_note` are rejected** (400 `DOCUMENT_TEMPLATES_STATUS_IMMUTABLE`) — use the status action. **Renaming retroactively changes what every past document appears to say** (id-resolved at render time); a snapshot is the exception, showing the frozen old name.
+- **Signatory** → `PATCH /api/v1/document-templates/signatories/<id>/` with any subset of `name`, `title`, `role`, `signature_image_url`. **`status`/`status_note` are rejected** (400 `DOCUMENT_TEMPLATES_STATUS_IMMUTABLE`) — use the status action. **`signature_file` is rejected too** (400 `DOCUMENT_TEMPLATES_SIGNATURE_FILE_IMMUTABLE`), not dropped: the only way to set it is to upload bytes, so a bare file id can never point a signatory at somebody else's file. **Renaming retroactively changes what every past document appears to say** (id-resolved at render time); a snapshot is the exception, showing the frozen old name.
 - **Template** → `PATCH /api/v1/document-templates/templates/<id>/` with any subset of `family`, `label`, `description`, `display_order`. **`key` is rejected** (400 `DOCUMENT_TEMPLATES_KEY_IMMUTABLE`), not dropped; `status`/`status_note` likewise. Changing `family` re-runs the agreement check against the existing `key`, so most family edits fail — intended.
 
 ---
 
 ## Endpoint coverage
 
-| Policy key                                   | Method / path                                              | Used by flow(s)                                   | Notes                                                            |
-| -------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------- | ---------------------------------------------------------------- |
-| `document_templates.signatory.list`          | `GET /api/v1/document-templates/signatories/`              | Add a signer; Fill the selects; Retire a signer   | **The frontend's only call into this module** (`?status=active`) |
-| `document_templates.signatory.create`        | `POST /api/v1/document-templates/signatories/`             | Add a signer                                      | Always creates as `draft`                                        |
-| `document_templates.signatory.read`          | `GET /api/v1/document-templates/signatories/<id>/`         | —                                                 | Resolving a single id (e.g. a retired signer)                    |
-| `document_templates.signatory.update`        | `PATCH /api/v1/document-templates/signatories/<id>/`       | Correct a signatory                               | `status`/`status_note` rejected; use the status action           |
-| `document_templates.signatory.change_status` | `POST /api/v1/document-templates/signatories/<id>/status/` | Add a signer; Retire a signer                     | **The activate / retire button**                                 |
-| `document_templates.template.list`           | `GET /api/v1/document-templates/templates/`                | Retire a partner; New Document picker (cross-app) | `?family=`, `?status=`, `?search=`                               |
-| `document_templates.template.create`         | `POST /api/v1/document-templates/templates/`               | Register a slug                                   | `key` + `family` cross-validated                                 |
-| `document_templates.template.read`           | `GET /api/v1/document-templates/templates/<id>/`           | —                                                 | Single-row inspection                                            |
-| `document_templates.template.update`         | `PATCH /api/v1/document-templates/templates/<id>/`         | Correct a template                                | `key` **immutable**, rejected not dropped                        |
-| `document_templates.template.change_status`  | `POST /api/v1/document-templates/templates/<id>/status/`   | Retire a partner; Register a slug                 | **The publish / retire button.** No 409 possible                 |
+| Policy key                                      | Method / path                                                 | Used by flow(s)                                   | Notes                                                     |
+| ----------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------- | --------------------------------------------------------- |
+| `document_templates.signatory.list`             | `GET /api/v1/document-templates/signatories/`                 | Add a signer; Fill the selects; Retire a signer   | Picker feed (`?status=active`); management omits `status` |
+| `document_templates.signatory.create`           | `POST /api/v1/document-templates/signatories/`                | Add a signer                                      | Always creates as `draft`                                 |
+| `document_templates.signatory.read`             | `GET /api/v1/document-templates/signatories/<id>/`            | —                                                 | Resolving a single id (e.g. a retired signer)             |
+| `document_templates.signatory.update`           | `PATCH /api/v1/document-templates/signatories/<id>/`          | Correct a signatory                               | `status`/`status_note` **and `signature_file`** rejected  |
+| `document_templates.signatory.upload_signature` | `POST /api/v1/document-templates/signatories/<id>/signature/` | Add a signer                                      | **`multipart/form-data`**, 201, returns the `Signatory`   |
+| `document_templates.signatory.change_status`    | `POST /api/v1/document-templates/signatories/<id>/status/`    | Add a signer; Retire a signer                     | **The activate / retire button**                          |
+| `document_templates.template.list`              | `GET /api/v1/document-templates/templates/`                   | Retire a partner; New Document picker (cross-app) | `?family=`, `?status=`, `?search=`                        |
+| `document_templates.template.create`            | `POST /api/v1/document-templates/templates/`                  | Register a slug                                   | `key` + `family` cross-validated                          |
+| `document_templates.template.read`              | `GET /api/v1/document-templates/templates/<id>/`              | —                                                 | Single-row inspection                                     |
+| `document_templates.template.update`            | `PATCH /api/v1/document-templates/templates/<id>/`            | Correct a template                                | `key` **immutable**, rejected not dropped                 |
+| `document_templates.template.change_status`     | `POST /api/v1/document-templates/templates/<id>/status/`      | Retire a partner; Register a slug                 | **The publish / retire button.** No 409 possible          |
 
 **Screens from `concepts/document_templates.txt`, and whether they are backed:**
 
@@ -104,7 +123,9 @@
 - **Template Editor** — **not backed** beyond label, description, family, and display order. No section order, field hints, or signature slots.
 - **Template Preview** — **not backed.** No endpoint returns anything renderable.
 
-**Not backed, and deliberately so:** template versions/sections/field hints/signature slots (the templates are frontend code); historical reproduction _through_ this module (`document_history` freezes context into each snapshot instead); signature image upload (`signature_image_url` is a link); and lookup-by-key (every route takes the UUID `id`).
+**Not backed, and deliberately so:** template versions/sections/field hints/signature slots (the templates are frontend code); historical reproduction _through_ this module (`document_history` freezes context into each snapshot instead); **removal** of a signature (archive its file through `POST /api/v1/files/<file_id>/archive/` instead — there is no removal endpoint and no delete service); and lookup-by-key (every route takes the UUID `id`).
+
+> **Signature image upload moved off this list on 2026-09-10** and is now step 3 of "Add a certificate signer".
 
 ## Cross-app dependencies
 

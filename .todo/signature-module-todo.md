@@ -1,0 +1,55 @@
+# Signature module + certificate signature selection
+
+Plan: `~/.claude/plans/we-have-signature-on-composed-pancake.md`
+Branch: `dev/signature-module`
+
+## Phase 1 — Sync the backend contract
+
+- [x] Re-sync `apps/grandway/docs/backend/document-templates/` (CONCEPT / FLOWS / INTEGRATION) to v1.2.0
+- [x] Land the upload endpoint, `file`/`notes` multipart fields, png|jpg|jpeg|webp, 10 MB cap
+- [x] Land `signature_file` + `signature_source` and the branch-on-`signature_source` rule
+- [x] Land the PATCH immutability rejections and the no-DELETE rule
+- [x] Land Admin-only-on-every-route (superadmin + lead_manager both 403)
+- [x] Carry SECURITY.md's Admin-only-ledger + past-render-rewrite notes
+- [x] Commit
+
+## Phase 2 — Signatures module, data layer
+
+- [ ] `signatures.types.ts` — Signatory, SignatorySource, SignatoryStatus, \*FormValues
+- [ ] `signatures.queryKeys.ts` via `createQueryKeys`
+- [ ] `signatures.api.ts` — list/get/create/update/uploadSignature/changeStatus (+ MULTIPART_HEADERS)
+- [ ] `signatures.labels.ts` — status labels/colors, source labels
+- [ ] `signatures.hooks.ts` — useSignatoryList, useActiveSignatories, mutations via `useAppMutation`
+- [ ] Add `signatories` capability (ADMIN only) to `config/access/capabilities.ts` + types
+- [ ] `index.ts` barrel
+- [ ] Commit + adversarial review
+
+## Phase 3 — SignatureManagerModal + editor button
+
+- [ ] `SignatureManagerModal` shell with list ↔ form sub-screen switching
+- [ ] List view: rows with name/title/role, status badge, thumbnail or "No image"
+- [ ] Form view: `FormWrapper` + zod (name/title/role/signature_image_url)
+- [ ] Image section (edit view only) — `FileInput` upload, png/jpg/jpeg/webp, 10 MB
+- [ ] Status actions: activate / deactivate via status sub-route
+- [ ] Modal body padding restored on an inner container (not via `styles`)
+- [ ] Wire `DocHeader` — drop the dead `router.push`, gate on `capabilities.signatories`
+- [ ] Mount the modal in `DocumentEditor`
+- [ ] Commit + adversarial review
+
+## Phase 4 — Certificate wiring
+
+- [ ] 4a Thread `signatures` + `disabled` through `DocumentCustomizations` in `HistorySidebar`
+- [ ] 4b Register `ConfigBar: CertificateConfigBar` in `documentTypeConfig.ts`
+- [ ] 4c Re-lay `CertificateConfigBar` vertically + `onUpdate` & debounced `onPersist` + unmount flush
+- [ ] 4d Annotate picker options with role and "(no image)"
+- [ ] 4e Export `useFileBlob`; add `useResolvedSignature`; resolve in `CertificateTemplate` + `createCertificateTemplateAdapter`
+- [ ] 4f Delete `signatureValidity.ts`, drop `validFrom`/`validTo` from `Signature`
+- [ ] Commit + adversarial review
+
+## Phase 5 — Docs and verification
+
+- [ ] `modules/admin/signatures/docs/AI.md`
+- [ ] `modules/documents/docs/AI.md`
+- [ ] Update `apps/grandway/docs/AI.md` — module table, capability matrix, cross-module section
+- [ ] `pnpm format && pnpm check-types && pnpm lint`
+- [ ] Commit
