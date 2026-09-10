@@ -45,10 +45,11 @@ export function BankStatementForm({
 
   const [tab, setTab] = useState<StatementTab>("details");
 
-  // Account details is a two-column form; the transactions sheet is a spreadsheet. The
-  // host modal follows the tab rather than sitting at one compromise width.
+  // Account details is a two-column form; the transactions sheet is a spreadsheet and
+  // keeps its full 72rem. The host modal follows the tab rather than sitting at one
+  // compromise width.
   useEffect(() => {
-    onModalSizeChange?.(tab === "transactions" ? "xl" : "lg");
+    onModalSizeChange?.(tab === "transactions" ? "72rem" : "lg");
   }, [tab, onModalSizeChange]);
 
   const form = useForm<BankStatementContent>({
