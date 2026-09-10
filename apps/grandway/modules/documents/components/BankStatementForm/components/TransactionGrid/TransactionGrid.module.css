@@ -1,8 +1,23 @@
 .wrapper {
-  border: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  /* One line colour for the whole sheet — every rule below reads it, so the grid
+     never drifts into two slightly different greys. */
+  --grid-line: light-dark(
+    var(--mantine-color-gray-4),
+    var(--mantine-color-dark-4)
+  );
+  --grid-line-strong: light-dark(
+    var(--mantine-color-gray-5),
+    var(--mantine-color-dark-3)
+  );
+  --grid-cell: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-7)
+  );
+
+  border: 1px solid var(--grid-line-strong);
   border-radius: var(--mantine-radius-sm);
   overflow: hidden;
+  background: var(--grid-cell);
 }
 
 .scroll {
@@ -20,14 +35,18 @@
   font-size: var(--mantine-font-size-xs);
 }
 
+/* Every cell is boxed on all four sides — a spreadsheet grid, not a ruled list. The
+   shared outer edges are the wrapper's own border, so only right + bottom are drawn. */
 .table th,
 .table td {
   height: 30px;
   padding: 0;
-  border-right: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-  border-bottom: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-right: 1px solid var(--grid-line);
+  border-bottom: 1px solid var(--grid-line);
+}
+
+.table tbody tr {
+  background: var(--grid-cell);
 }
 
 .table th:last-child,
@@ -49,19 +68,38 @@
   font-weight: 600;
   color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
   background: light-dark(
-    var(--mantine-color-gray-1),
+    var(--mantine-color-gray-2),
     var(--mantine-color-dark-6)
   );
+  /* Sticky cells paint over the scrolled rows, so the header's own bottom rule is
+     redrawn inside the box where scrolling can't clip it. */
+  box-shadow: inset 0 -1px 0 var(--grid-line-strong);
 }
 
 /* Row-number gutter — matches the header strip, like a spreadsheet's row headers. */
 .gutter {
   width: 38px;
   text-align: center;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
-  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-2));
   background: light-dark(
-    var(--mantine-color-gray-1),
+    var(--mantine-color-gray-2),
+    var(--mantine-color-dark-6)
+  );
+}
+
+/* The row-header column closes with the same heavier rule as the sheet's outer edge. */
+.table .gutter {
+  border-right: 1px solid var(--grid-line-strong);
+}
+
+/* Hovering a row lights the whole line — a wide sheet is hard to track across
+   otherwise. Only the plain cells tint: the gutter and computed columns keep their
+   own fill, so the grid stays the dominant structure. */
+.table tbody tr:hover {
+  background: light-dark(
+    var(--mantine-color-gray-0),
     var(--mantine-color-dark-6)
   );
 }
@@ -76,8 +114,8 @@
    cells, so values never sit flush against a grid line or the focus ring. */
 .cell input,
 .cell button {
-  height: 28px;
-  min-height: 28px;
+  height: 30px;
+  min-height: 30px;
   padding-inline: var(--mantine-spacing-xs);
   border: none;
   border-radius: 0;
@@ -171,11 +209,12 @@
   bottom: 0;
   z-index: 2;
   border-bottom: none;
-  border-top: 2px solid
-    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+  border-top: 2px solid var(--grid-line-strong);
   font-weight: 600;
   background: light-dark(
-    var(--mantine-color-gray-1),
+    var(--mantine-color-gray-2),
     var(--mantine-color-dark-6)
   );
+  /* Same reason as the header: the sticky strip redraws its own top rule. */
+  box-shadow: inset 0 1px 0 var(--grid-line-strong);
 }
