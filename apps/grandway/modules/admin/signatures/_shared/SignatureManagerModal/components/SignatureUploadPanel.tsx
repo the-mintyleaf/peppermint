@@ -120,6 +120,11 @@ export function SignatureUploadPanel({
       <FormWrapper<SignatureUploadFormValues>
         initial={initial}
         validation={[schema]}
+        // Required for `isDirty` to mean anything — `FormWrapper` hard-codes it
+        // to `false` without this, which would leave `DirtyReporter` below
+        // permanently reporting "clean" and let a picked-but-not-uploaded file
+        // be dropped with no prompt.
+        hasDirtCheck
         // Clears the picked file once the upload lands. Without it the field
         // still shows the filename after a successful save, which reads as "it
         // didn't work" and invites a second click that stores a pointless
