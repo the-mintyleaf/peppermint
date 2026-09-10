@@ -48,8 +48,8 @@ Branch: `dev/signature-module`
 
 ## Phase 5 — Docs and verification
 
-- [ ] `modules/admin/signatures/docs/AI.md`
-- [ ] `modules/documents/docs/AI.md`
-- [ ] Update `apps/grandway/docs/AI.md` — module table, capability matrix, cross-module section
+- [x] `modules/admin/signatures/docs/AI.md`
+- [x] `modules/documents/docs/AI.md`
+- [x] Update `apps/grandway/docs/AI.md` — module table, capability matrix, cross-module section
 - [ ] `pnpm format && pnpm check-types && pnpm lint`
 - [ ] Commit
