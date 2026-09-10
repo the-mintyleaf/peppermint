@@ -2,12 +2,12 @@
   /* One line colour for the whole sheet — every rule below reads it, so the grid
      never drifts into two slightly different greys. */
   --grid-line: light-dark(
-    var(--mantine-color-gray-4),
-    var(--mantine-color-dark-4)
-  );
-  --grid-line-strong: light-dark(
     var(--mantine-color-gray-5),
     var(--mantine-color-dark-3)
+  );
+  --grid-line-strong: light-dark(
+    var(--mantine-color-gray-6),
+    var(--mantine-color-dark-2)
   );
   --grid-cell: light-dark(
     var(--mantine-color-white),
