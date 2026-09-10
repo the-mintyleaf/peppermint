@@ -28,6 +28,7 @@ import type {
   Signatory,
   SignatureUploadFormValues,
 } from "../../../signatures.types";
+import { DirtyReporter, type ReportDirty } from "./DirtyReporter";
 
 /**
  * The extension list is **narrower than the file ledger's seven types** and
@@ -60,6 +61,12 @@ const initial: SignatureUploadFormValues = { file: null, notes: "" };
 
 interface SignatureUploadPanelProps {
   signatory: Signatory;
+  /**
+   * A picked-but-not-yet-uploaded file is unsaved input like any other, and the
+   * shell guards every exit path — so this panel reports its own dirtiness
+   * rather than letting the file be dropped silently.
+   */
+  onDirtyChange: ReportDirty;
 }
 
 /**
@@ -69,7 +76,10 @@ interface SignatureUploadPanelProps {
  *
  * Uploading again **replaces**: the predecessor is versioned, not duplicated.
  */
-export function SignatureUploadPanel({ signatory }: SignatureUploadPanelProps) {
+export function SignatureUploadPanel({
+  signatory,
+  onDirtyChange,
+}: SignatureUploadPanelProps) {
   const mutation = useUploadSignatorySignature(signatory.id);
   const version = signatory.signature_file?.version_number;
 
@@ -132,6 +142,10 @@ export function SignatureUploadPanel({ signatory }: SignatureUploadPanelProps) {
         }}
       >
         <Stack gap="xs">
+          <DirtyReporter
+            source="signature-image"
+            onDirtyChange={onDirtyChange}
+          />
           <UploadField />
           <UploadSubmit />
         </Stack>

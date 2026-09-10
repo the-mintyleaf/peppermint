@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import {
   FormWrapper,
   useFormControls,
@@ -9,6 +8,7 @@ import {
 import { Button, Group, Stack, TextInput } from "@peppermint/ui";
 import { z } from "zod";
 import type { SignatoryFormValues } from "../../../signatures.types";
+import { DirtyReporter, type ReportDirty } from "./DirtyReporter";
 
 /**
  * `role` is **free text, max 100** — the contract is explicit that it is not an
@@ -43,7 +43,7 @@ interface SignatoryFormFieldsProps {
    * an effect dependency. The shell keeps it in a `useCallback` that only
    * writes a ref.
    */
-  onDirtyChange: (dirty: boolean) => void;
+  onDirtyChange: ReportDirty;
 }
 
 export function SignatoryFormFields({
@@ -64,33 +64,12 @@ export function SignatoryFormFields({
       }}
     >
       <Stack gap="sm">
-        <DirtyReporter onDirtyChange={onDirtyChange} />
+        <DirtyReporter source="details" onDirtyChange={onDirtyChange} />
         <Fields />
         <SubmitRow submitLabel={submitLabel} onCancel={onCancel} />
       </Stack>
     </FormWrapper>
   );
-}
-
-/**
- * Publishes `isDirty` to the modal shell. It lives inside `FormWrapper` because
- * that is the only place the state exists, and renders nothing — the shell needs
- * the value to guard the back arrow, Escape, the backdrop and the close button,
- * none of which this form can see.
- */
-function DirtyReporter({
-  onDirtyChange,
-}: {
-  onDirtyChange: (dirty: boolean) => void;
-}) {
-  const { isDirty } = useFormControls();
-  useEffect(() => {
-    onDirtyChange(isDirty);
-    // Unmounting means the form is gone, so there is nothing left to discard —
-    // without this, leaving a dirty form would arm the guard permanently.
-    return () => onDirtyChange(false);
-  }, [isDirty, onDirtyChange]);
-  return null;
 }
 
 function Fields() {

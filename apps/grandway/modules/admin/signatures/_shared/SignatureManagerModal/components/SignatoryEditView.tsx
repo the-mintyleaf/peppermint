@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Alert, Badge, Group, Loader, Stack, Text } from "@peppermint/ui";
 import { InfoIcon } from "@phosphor-icons/react/dist/csr/Info";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
@@ -13,7 +14,8 @@ import {
   SIGNATORY_STATUS_HINTS,
   SIGNATORY_STATUS_LABELS,
 } from "../../../signatures.labels";
-import type { SignatoryFormValues } from "../../../signatures.types";
+import type { Signatory, SignatoryFormValues } from "../../../signatures.types";
+import type { ReportDirty } from "./DirtyReporter";
 import { SignatoryFormFields } from "./SignatoryFormFields";
 import { SignatureUploadPanel } from "./SignatureUploadPanel";
 
@@ -24,10 +26,28 @@ const EMPTY: SignatoryFormValues = {
   signature_image_url: "",
 };
 
+function toFormValues(signatory: Signatory): SignatoryFormValues {
+  return {
+    name: signatory.name,
+    title: signatory.title,
+    role: signatory.role,
+    signature_image_url: signatory.signature_image_url,
+  };
+}
+
+function trimmed(values: SignatoryFormValues) {
+  return {
+    name: values.name.trim(),
+    title: values.title.trim(),
+    role: values.role.trim(),
+    signature_image_url: values.signature_image_url.trim(),
+  };
+}
+
 interface CreateViewProps {
   onDone: (id: string) => void;
   onCancel: () => void;
-  onDirtyChange: (dirty: boolean) => void;
+  onDirtyChange: ReportDirty;
 }
 
 /**
@@ -64,12 +84,7 @@ export function SignatoryCreateView({
         onCancel={onCancel}
         onDirtyChange={onDirtyChange}
         onSubmit={async (values) => {
-          const created = await mutation.mutateAsync({
-            name: values.name.trim(),
-            title: values.title.trim(),
-            role: values.role.trim(),
-            signature_image_url: values.signature_image_url.trim(),
-          });
+          const created = await mutation.mutateAsync(trimmed(values));
           onDone(created.id);
         }}
       />
@@ -80,7 +95,7 @@ export function SignatoryCreateView({
 interface EditViewProps {
   id: string;
   onCancel: () => void;
-  onDirtyChange: (dirty: boolean) => void;
+  onDirtyChange: ReportDirty;
 }
 
 /**
@@ -101,6 +116,22 @@ export function SignatoryEditView({
   const query = useSignatoryDetail(id);
   const signatory = query.data;
   const mutation = useUpdateSignatory(id);
+
+  // What the details form is baselined against, and how many times it has been
+  // re-baselined. `FormWrapper` fixes its initial values at mount and has no
+  // "accept these as the new baseline" API, so a save has to remount it —
+  // otherwise `isDirty` stays true afterwards and every exit pops a false
+  // "Discard changes?".
+  //
+  // **The trigger is our own save, never the server row.** Keying this on
+  // `updated_at` would remount the form whenever the detail query refetched —
+  // and uploading an image on the panel below does exactly that, since that
+  // mutation invalidates this row. A half-typed name would vanish with no
+  // prompt, through a path the shell's guard never sees. Baselining from the
+  // mutation's own response also closes the window where the PATCH has landed
+  // but the fire-and-forget refetch has not.
+  const [baseline, setBaseline] = useState<SignatoryFormValues | null>(null);
+  const [formEpoch, setFormEpoch] = useState(0);
 
   if (query.isLoading) {
     return (
@@ -144,31 +175,22 @@ export function SignatoryEditView({
       </Group>
 
       <SignatoryFormFields
-        // Re-baselines the form after a save. `FormWrapper` fixes its initial
-        // values at mount and has no "accept these as the new baseline" API, so
-        // without a remount `isDirty` would stay true after a successful save
-        // and every exit would pop a false "Discard changes?".
-        key={signatory.updated_at}
-        initial={{
-          name: signatory.name,
-          title: signatory.title,
-          role: signatory.role,
-          signature_image_url: signatory.signature_image_url,
-        }}
+        key={formEpoch}
+        initial={baseline ?? toFormValues(signatory)}
         submitLabel="Save details"
         onCancel={onCancel}
         onDirtyChange={onDirtyChange}
         onSubmit={async (values) => {
-          await mutation.mutateAsync({
-            name: values.name.trim(),
-            title: values.title.trim(),
-            role: values.role.trim(),
-            signature_image_url: values.signature_image_url.trim(),
-          });
+          const saved = await mutation.mutateAsync(trimmed(values));
+          setBaseline(toFormValues(saved));
+          setFormEpoch((epoch) => epoch + 1);
         }}
       />
 
-      <SignatureUploadPanel signatory={signatory} />
+      <SignatureUploadPanel
+        signatory={signatory}
+        onDirtyChange={onDirtyChange}
+      />
     </Stack>
   );
 }

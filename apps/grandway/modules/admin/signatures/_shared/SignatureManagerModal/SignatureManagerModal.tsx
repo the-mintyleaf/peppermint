@@ -5,6 +5,7 @@ import { ActionIcon, Group, Modal, Text, Tooltip } from "@peppermint/ui";
 import { ArrowLeft as BackIcon } from "@phosphor-icons/react/dist/csr/ArrowLeft";
 import { useCapabilities } from "@/config/access";
 import { confirmDiscardChanges } from "../confirmDiscardChanges";
+import type { DirtySource } from "./components/DirtyReporter";
 import { SignatoryListView } from "./components/SignatoryListView";
 import {
   SignatoryCreateView,
@@ -41,25 +42,34 @@ export function SignatureManagerModal({
   const capabilities = useCapabilities();
   const [view, setView] = useState<SignatureManagerView>({ mode: "list" });
 
-  // The dirty flag lives inside the form's `FormWrapper`, but the shell owns
-  // every way out of it — the back arrow, Escape, the backdrop and the close
-  // button — so the form publishes it up here. A ref rather than state: nothing
-  // renders differently for it, and a re-render per keystroke would be waste.
-  const isFormDirty = useRef(false);
-  const reportDirty = useCallback((dirty: boolean) => {
-    isFormDirty.current = dirty;
+  // Dirtiness lives inside each `FormWrapper`, but the shell owns every way out
+  // — the back arrow, Escape, the backdrop and the close button — so the forms
+  // publish it up here.
+  //
+  // **Tracked per source, not as one boolean.** The edit screen hosts two
+  // independent forms (the details fields and the signature-image picker) and
+  // either can hold unsaved input alone; a single flag would let whichever
+  // reported last clear the other's state, and a picked-but-not-uploaded file
+  // would be dropped without a prompt.
+  //
+  // A ref rather than state: nothing renders differently for it, and a
+  // re-render per keystroke would be waste.
+  const dirtySources = useRef(new Set<DirtySource>());
+  const reportDirty = useCallback((source: DirtySource, dirty: boolean) => {
+    if (dirty) dirtySources.current.add(source);
+    else dirtySources.current.delete(source);
   }, []);
 
   if (!capabilities.signatories) return null;
 
   /** Every exit from a sub-screen goes through here, so the guard cannot be bypassed. */
   const leave = (go: () => void) => {
-    if (!isFormDirty.current) {
+    if (dirtySources.current.size === 0) {
       go();
       return;
     }
     confirmDiscardChanges(() => {
-      isFormDirty.current = false;
+      dirtySources.current.clear();
       go();
     });
   };
@@ -115,7 +125,7 @@ export function SignatureManagerModal({
           // the way to the edit screen — the form unmounts and clears it anyway,
           // but clearing here makes that independent of unmount ordering.
           onDone={(id) => {
-            isFormDirty.current = false;
+            dirtySources.current.clear();
             setView({ mode: "edit", id });
           }}
         />
