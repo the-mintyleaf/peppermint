@@ -15,13 +15,13 @@ Branch: `dev/signature-module`
 
 ## Phase 2 — Signatures module, data layer
 
-- [ ] `signatures.types.ts` — Signatory, SignatorySource, SignatoryStatus, \*FormValues
-- [ ] `signatures.queryKeys.ts` via `createQueryKeys`
-- [ ] `signatures.api.ts` — list/get/create/update/uploadSignature/changeStatus (+ MULTIPART_HEADERS)
-- [ ] `signatures.labels.ts` — status labels/colors, source labels
-- [ ] `signatures.hooks.ts` — useSignatoryList, useActiveSignatories, mutations via `useAppMutation`
-- [ ] Add `signatories` capability (ADMIN only) to `config/access/capabilities.ts` + types
-- [ ] `index.ts` barrel
+- [x] `signatures.types.ts` — Signatory, SignatorySource, SignatoryStatus, \*FormValues
+- [x] `signatures.queryKeys.ts` via `createQueryKeys`
+- [x] `signatures.api.ts` — list/get/create/update/uploadSignature/changeStatus (+ MULTIPART_HEADERS)
+- [x] `signatures.labels.ts` — status labels/colors, source labels
+- [x] `signatures.hooks.ts` — useSignatoryList, useActiveSignatories, mutations via `useAppMutation`
+- [x] Add `signatories` capability (ADMIN only) to `config/access/capabilities.ts` + types
+- [x] `index.ts` barrel
 - [ ] Commit + adversarial review
 
 ## Phase 3 — SignatureManagerModal + editor button
