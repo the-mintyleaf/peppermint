@@ -30,10 +30,16 @@ import type {
  * signers are visible — a library that showed only active rows would hide the
  * `draft` a user just created and look broken (§7).
  */
-export function useSignatoryList(filters: SignatoryListFilters = {}) {
+export function useSignatoryList(
+  filters: SignatoryListFilters = {},
+  options: { enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: signatoriesListKey(filters),
     queryFn: () => fetchSignatories(filters),
+    // Every route here is Admin-only, reads included, so a caller outside that
+    // tier must be able to not-ask rather than collect a 403.
+    enabled: options.enabled ?? true,
   });
 }
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { Stack, Select, DateInput, Text } from "@peppermint/ui";
+import { Alert, Stack, Select, DateInput, Text } from "@peppermint/ui";
+import { useDraftSignatoryCount } from "./useDraftSignatoryCount";
 import { useDocumentEditor } from "../../context";
 import { certificateSignatureOptions } from "./certificateSignatureOptions";
 import type {
@@ -130,12 +131,7 @@ export function CertificateConfigBar({
         disabled={disabled}
         styles={inputStyles}
       />
-      {signatures.length === 0 ? (
-        <Text size="xs" c="dimmed">
-          No active signatories yet. Add one from the signature button in the
-          top bar, then activate it.
-        </Text>
-      ) : null}
+      {signatures.length === 0 ? <EmptyPickerHint /> : null}
       <Select
         size="xs"
         label="Study Status"
@@ -149,5 +145,40 @@ export function CertificateConfigBar({
         styles={inputStyles}
       />
     </Stack>
+  );
+}
+
+/**
+ * The picker lists **active** signatories only, so an empty one has two very
+ * different causes and the operator cannot tell them apart from here. Naming
+ * the real one matters: "you have signers, none of them are switched on" is a
+ * one-click fix, and without it a freshly created signatory silently fails to
+ * appear with no explanation.
+ *
+ * The inactive count is only fetched when the picker is actually empty, so the
+ * normal case costs nothing.
+ */
+function EmptyPickerHint() {
+  const inactiveCount = useDraftSignatoryCount();
+
+  if (inactiveCount > 0) {
+    return (
+      <Alert variant="light" color="yellow" p="xs">
+        <Text size="xs">
+          {inactiveCount === 1
+            ? "1 signatory exists but is not active yet."
+            : `${inactiveCount} signatories exist but none are active yet.`}{" "}
+          Open the signature button in the top bar and activate the one you need
+          — only active signers appear here.
+        </Text>
+      </Alert>
+    );
+  }
+
+  return (
+    <Text size="xs" c="dimmed">
+      No signatories yet. Add one from the signature button in the top bar,
+      upload their signature, then activate them.
+    </Text>
   );
 }

@@ -1,22 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Alert, Badge, Group, Loader, Stack, Text } from "@peppermint/ui";
+import { Alert, Group, Loader, Stack, Text } from "@peppermint/ui";
 import { InfoIcon } from "@phosphor-icons/react/dist/csr/Info";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import {
   useSignatoryDetail,
   useUpdateSignatory,
 } from "../../../signatures.hooks";
-import {
-  SIGNATORY_STATUS_COLORS,
-  SIGNATORY_STATUS_HINTS,
-  SIGNATORY_STATUS_LABELS,
-} from "../../../signatures.labels";
 import type { Signatory, SignatoryFormValues } from "../../../signatures.types";
 import type { ReportDirty } from "./DirtyReporter";
 import { SignatoryCreateForm } from "./SignatoryCreateForm";
 import { SignatoryFormFields } from "./SignatoryFormFields";
+import { SignatoryStatusBar } from "./SignatoryStatusBar";
 import { SignatureUploadPanel } from "./SignatureUploadPanel";
 
 function toFormValues(signatory: Signatory): SignatoryFormValues {
@@ -147,18 +143,7 @@ export function SignatoryEditView({
 
   return (
     <Stack gap="md" p="md">
-      <Group gap="xs">
-        <Badge
-          size="sm"
-          variant="light"
-          color={SIGNATORY_STATUS_COLORS[signatory.status]}
-        >
-          {SIGNATORY_STATUS_LABELS[signatory.status]}
-        </Badge>
-        <Text size="xs" c="dimmed">
-          {SIGNATORY_STATUS_HINTS[signatory.status]}
-        </Text>
-      </Group>
+      <SignatoryStatusBar signatory={signatory} />
 
       <SignatoryFormFields
         key={formEpoch}
