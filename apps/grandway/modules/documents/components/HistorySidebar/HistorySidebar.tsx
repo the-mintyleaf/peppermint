@@ -26,6 +26,7 @@ import type {
   DocumentConfigBarProps,
   DocumentContent,
   DocumentType,
+  Signature,
 } from "../../documents.types";
 import styles from "../../pages/editor/DocumentEditor.module.css";
 
@@ -41,6 +42,12 @@ interface DocumentCustomizationsProps {
   editable: boolean;
   /** Why editing is off, so the panel names the right reason. */
   readOnlyReason: DocumentReadOnlyReason;
+  /**
+   * The active signatory list. `DocumentConfigBarProps` has always declared it,
+   * but nothing passed it — so the certificate's signatory pickers would have
+   * offered nothing but "Blank".
+   */
+  signatures: Signature[];
 }
 
 const DocumentCustomizations = memo(function DocumentCustomizations({
@@ -50,6 +57,7 @@ const DocumentCustomizations = memo(function DocumentCustomizations({
   onPersist,
   editable,
   readOnlyReason,
+  signatures,
 }: DocumentCustomizationsProps) {
   if (!ConfigBar || !document) {
     return (
@@ -72,7 +80,12 @@ const DocumentCustomizations = memo(function DocumentCustomizations({
     );
   }
   return (
-    <ConfigBar document={document} onUpdate={onUpdate} onPersist={onPersist} />
+    <ConfigBar
+      document={document}
+      onUpdate={onUpdate}
+      onPersist={onPersist}
+      signatures={signatures}
+    />
   );
 });
 
@@ -86,6 +99,7 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
     canEdit,
     setActiveHistoricalLog,
     printableContentRef,
+    signatures,
     updateDocumentContentLocal,
     updateDocumentContent,
   } = useDocumentEditor();
@@ -343,6 +357,7 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
               onPersist={handlePersist}
               editable={isActiveDocumentEditable}
               readOnlyReason={readOnlyReason}
+              signatures={signatures}
             />
           </ScrollArea>
         </div>

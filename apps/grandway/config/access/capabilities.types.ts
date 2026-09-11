@@ -121,6 +121,21 @@ export interface Capabilities {
   documentBankFamilies: boolean;
   /** May create / edit / change status / archive a document, and recover a snapshot. Admin only. */
   documentWrite: boolean;
+  /**
+   * The signatory library — the certificate signers a document may name, and
+   * their signature images (`document-templates/INTEGRATION.md` §1).
+   *
+   * **Admin only, and deliberately not folded into `documentWrite`.** The two
+   * coincide for every tier today, but they encode different backend rules:
+   * `documentWrite` is `documents`' write gate, while this is a separate
+   * module that refuses `lead_manager` **and `superadmin`** on every route,
+   * `GET` included. Conflating them is exactly how a control ends up pointing
+   * at an endpoint the viewer will be refused.
+   *
+   * The contract's instruction is to **hide** these screens for a Lead Manager
+   * rather than render them read-only.
+   */
+  signatories: boolean;
 }
 
 /** The capability names a route gate can be keyed on. */

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Badge,
+  Box,
   Button,
   DateInput,
   Group,
@@ -14,8 +15,6 @@ import {
   Textarea,
   useForm,
 } from "@peppermint/ui";
-import { PlusCircleIcon } from "@phosphor-icons/react/dist/csr/PlusCircle";
-import { PercentIcon } from "@phosphor-icons/react/dist/csr/Percent";
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
 import { TableIcon } from "@phosphor-icons/react/dist/csr/Table";
 import { FormSection } from "@/components/FormSection";
@@ -26,6 +25,7 @@ import type {
 } from "../../documents.types";
 import { computeBankStatement } from "../../utils/bankStatement";
 import { withOpeningRow } from "./BankStatementForm.utils";
+import { RowInsertButtons } from "./components/RowInsertButtons";
 import { TransactionGrid } from "./components/TransactionGrid";
 import {
   TransactionImport,
@@ -38,10 +38,18 @@ export function BankStatementForm({
   initialContent,
   onSubmit,
   isLoading,
+  onModalSizeChange,
 }: DocumentFormProps) {
   const existing = (initialContent ?? {}) as BankStatementContent;
 
   const [tab, setTab] = useState<StatementTab>("details");
+
+  // Account details is a two-column form; the transactions sheet is a spreadsheet and
+  // keeps its full 72rem. The host modal follows the tab rather than sitting at one
+  // compromise width.
+  useEffect(() => {
+    onModalSizeChange?.(tab === "transactions" ? "72rem" : "lg");
+  }, [tab, onModalSizeChange]);
 
   const form = useForm<BankStatementContent>({
     mode: "controlled",
@@ -150,13 +158,13 @@ export function BankStatementForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <Stack gap="md" p="md">
+      <Stack gap={0}>
         <Tabs
           value={tab}
           onChange={(value) => setTab((value as StatementTab) ?? "details")}
           keepMounted={false}
         >
-          <Tabs.List>
+          <Tabs.List px="md">
             <Tabs.Tab
               value="details"
               leftSection={<IdentificationCardIcon size={16} />}
@@ -178,7 +186,7 @@ export function BankStatementForm({
             </Tabs.Tab>
           </Tabs.List>
 
-          <Tabs.Panel value="details" pt="md">
+          <Tabs.Panel value="details" px="md" pt="md">
             <Stack gap="md">
               <FormSection title="Account">
                 <TextInput
@@ -284,37 +292,17 @@ export function BankStatementForm({
             </Stack>
           </Tabs.Panel>
 
-          <Tabs.Panel value="transactions" pt="md">
+          <Tabs.Panel value="transactions" px="md" pt="md">
             <Stack gap="sm">
+              {/* Rows are added on the left, files handled on the right — the two are
+                  different jobs, and an import can discard the whole sheet. */}
               <Group justify="space-between" align="center" gap="sm">
-                <Text size="xs" c="dimmed">
-                  Row 1 is the opening balance — its description is fixed; set
-                  its date and amount. Interest &amp; Tax rows are inserted as a
-                  pair, compute themselves from the rows above at each
-                  row&rsquo;s own rate, and re-sync when those rows change.
-                  Working in Excel instead? Download the sample, fill it in, and
-                  import it back.
-                </Text>
+                <RowInsertButtons
+                  onAddRow={addTransaction}
+                  onAddInterestAndTax={addInterestAndTax}
+                  disabled={isLoading}
+                />
                 <Group gap="xs" wrap="nowrap">
-                  <Button
-                    size="xs"
-                    variant="light"
-                    leftSection={<PlusCircleIcon size={14} />}
-                    onClick={addTransaction}
-                    disabled={isLoading}
-                  >
-                    Add row
-                  </Button>
-                  <Button
-                    size="xs"
-                    variant="light"
-                    color="teal"
-                    leftSection={<PercentIcon size={14} />}
-                    onClick={addInterestAndTax}
-                    disabled={isLoading}
-                  >
-                    Interest &amp; Tax
-                  </Button>
                   <TransactionImport
                     onImport={applyImport}
                     existingRowCount={transactions.length}
@@ -323,6 +311,14 @@ export function BankStatementForm({
                 </Group>
               </Group>
 
+              <Text size="xs" c="dimmed">
+                Row 1 is the opening balance — its description is fixed; set its
+                date and amount. Interest &amp; Tax rows are inserted as a pair,
+                compute themselves from the rows above at each row&rsquo;s own
+                rate, and re-sync when those rows change. Working in Excel
+                instead? Download the sample, fill it in, and import it back.
+              </Text>
+
               <TransactionGrid
                 form={form}
                 computed={computed}
@@ -330,17 +326,28 @@ export function BankStatementForm({
                 isLoading={isLoading}
               />
 
-              <Text size="xs" c="dimmed">
-                Enter moves down a column · Shift+Enter moves up · Enter on the
-                last row adds another.
-              </Text>
+              {/* Repeated below the sheet — after typing the last row the operator is
+                  already here, and the top toolbar has scrolled away. */}
+              <Group justify="space-between" align="center" gap="sm">
+                <RowInsertButtons
+                  onAddRow={addTransaction}
+                  onAddInterestAndTax={addInterestAndTax}
+                  disabled={isLoading}
+                />
+                <Text size="xs" c="dimmed">
+                  Enter moves down a column · Shift+Enter moves up · Enter on
+                  the last row adds another.
+                </Text>
+              </Group>
             </Stack>
           </Tabs.Panel>
         </Tabs>
 
-        <Button type="submit" loading={isLoading} fullWidth>
-          Save Statement
-        </Button>
+        <Box p="md">
+          <Button type="submit" loading={isLoading} fullWidth>
+            Save Statement
+          </Button>
+        </Box>
       </Stack>
     </form>
   );

@@ -10,7 +10,6 @@ import type {
   DocumentStatusValue,
   DocumentType,
   DocumentWorkspaceSummary,
-  Signature,
   StudentFullData,
   UpdateDocumentInput,
 } from "./documents.types";
@@ -74,16 +73,6 @@ interface RawHistoryEvent {
   metadata: Record<string, unknown>;
   created_at: string;
   created_at_bs: BsDate | null;
-}
-
-interface RawSignatory {
-  id: string;
-  name: string;
-  title: string;
-  role: string;
-  signature_image_url: string;
-  status: string;
-  is_active: boolean;
 }
 
 interface RawTemplate {
@@ -184,18 +173,6 @@ function mapHistoryEvent(raw: RawHistoryEvent): DocumentHistoryEvent {
     metadata: raw.metadata ?? {},
     createdAt: raw.created_at,
     createdAtBs: raw.created_at_bs,
-  };
-}
-
-function mapSignatory(raw: RawSignatory): Signature {
-  return {
-    id: raw.id,
-    name: raw.name,
-    signature_image: raw.signature_image_url ?? "",
-    is_active: raw.is_active,
-    title: raw.title,
-    role: raw.role,
-    has_image: Boolean(raw.signature_image_url),
   };
 }
 
@@ -360,18 +337,6 @@ export const documentsApi = {
       { params: { page: 1, page_size: pageSize } },
     );
     return { data: data.data.map(mapHistoryEvent), total: data.meta.count };
-  },
-
-  /**
-   * `GET /api/v1/document-templates/signatories/?status=active` — the advisory signatory
-   * library; the only guard on a document's `instructorId`/`directorId` (`INTEGRATION.md` §9).
-   */
-  async listActiveSignatories(): Promise<Signature[]> {
-    const { data } = await api.get<ListEnvelope<RawSignatory>>(
-      "/api/v1/document-templates/signatories/",
-      { params: { status: "active", page_size: 100 } },
-    );
-    return data.data.map(mapSignatory);
   },
 
   /**

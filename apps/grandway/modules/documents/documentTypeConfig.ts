@@ -7,6 +7,7 @@ import {
   MOI_INSTITUTIONS,
 } from "./documentTypeDefinitions";
 import {
+  CertificateConfigBar,
   CertificateForm,
   CertificateTemplate,
 } from "./document-types/student-certificate";
@@ -390,8 +391,9 @@ const bankRegistry = Object.fromEntries(
           Form: stmtComponents.Form,
           Template: stmtComponents.Template,
           ConfigBar: BankConfigBar,
-          // The transactions sheet needs spreadsheet width, not the default `xl` modal.
-          formModalSize: "72rem",
+          // Opening width — the Account details tab. The form widens the modal itself
+          // when the transactions sheet is showing (see `onModalSizeChange`).
+          formModalSize: "lg",
         },
       ],
     ];
@@ -410,6 +412,7 @@ export const documentTypeRegistry: Record<DocumentType, DocumentTypeConfig> = {
     requiresStudent: true,
     Form: CertificateForm,
     Template: CertificateTemplate,
+    ConfigBar: CertificateConfigBar,
   },
   "student-cv": {
     type: "student-cv",

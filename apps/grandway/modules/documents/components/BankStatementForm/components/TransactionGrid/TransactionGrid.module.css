@@ -1,8 +1,36 @@
+/* Colour tokens for the sheet.
+   NOTE: do not use `light-dark()` in this app — Tailwind v4's Lightning CSS pass
+   rewrites it to `var(--lightningcss-light, …) var(--lightningcss-dark, …)` and never
+   emits the shim definitions, so every declaration using it resolves to two
+   concatenated colours and is dropped. Mantine's colour-scheme attribute is the
+   idiom that survives the build. */
 .wrapper {
-  border: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  --grid-line: var(--mantine-color-gray-4);
+  --grid-line-strong: var(--mantine-color-gray-6);
+  --grid-cell: var(--mantine-color-white);
+  --grid-cell-hover: var(--mantine-color-gray-0);
+  --grid-head: var(--mantine-color-gray-2);
+  --grid-head-text: var(--mantine-color-gray-7);
+  --grid-readonly: var(--mantine-color-gray-1);
+  --grid-readonly-text: var(--mantine-color-gray-7);
+  --grid-input-border: var(--mantine-color-gray-4);
+
+  border: 1px solid var(--grid-line-strong);
   border-radius: var(--mantine-radius-sm);
   overflow: hidden;
+  background: var(--grid-cell);
+}
+
+[data-mantine-color-scheme="dark"] .wrapper {
+  --grid-line: var(--mantine-color-dark-4);
+  --grid-line-strong: var(--mantine-color-dark-2);
+  --grid-cell: var(--mantine-color-dark-7);
+  --grid-cell-hover: var(--mantine-color-dark-6);
+  --grid-head: var(--mantine-color-dark-5);
+  --grid-head-text: var(--mantine-color-dark-0);
+  --grid-readonly: var(--mantine-color-dark-6);
+  --grid-readonly-text: var(--mantine-color-dark-0);
+  --grid-input-border: var(--mantine-color-dark-3);
 }
 
 .scroll {
@@ -13,21 +41,31 @@
 .table {
   width: 100%;
   /* Below this the Description column stops being usable — scroll the sheet instead. */
-  min-width: 720px;
+  min-width: 760px;
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
   font-size: var(--mantine-font-size-xs);
 }
 
+/* Every cell is boxed on all four sides — a spreadsheet grid, not a ruled list. The
+   sheet's outer edges are the wrapper's own border, so cells draw right + bottom only. */
 .table th,
 .table td {
-  height: 30px;
+  height: 34px;
   padding: 0;
-  border-right: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-  border-bottom: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-right: 1px solid var(--grid-line);
+  border-bottom: 1px solid var(--grid-line);
+}
+
+.table tbody tr {
+  background: var(--grid-cell);
+}
+
+/* Hovering lights the whole line — a wide sheet is hard to track across otherwise.
+   Only the plain cells tint; the gutter and computed columns keep their own fill. */
+.table tbody tr:hover {
+  background: var(--grid-cell-hover);
 }
 
 .table th:last-child,
@@ -40,49 +78,66 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  height: 28px;
-  padding: 0 var(--mantine-spacing-xs);
+  height: 34px;
+  padding: 0 var(--mantine-spacing-sm);
   text-align: left;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-size: 10px;
-  font-weight: 600;
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
-  background: light-dark(
-    var(--mantine-color-gray-1),
-    var(--mantine-color-dark-6)
-  );
+  font-weight: 700;
+  color: var(--grid-head-text);
+  background: var(--grid-head);
+  border-bottom: 1px solid var(--grid-line-strong);
 }
 
 /* Row-number gutter — matches the header strip, like a spreadsheet's row headers. */
 .gutter {
   width: 38px;
   text-align: center;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
-  background: light-dark(
-    var(--mantine-color-gray-1),
-    var(--mantine-color-dark-6)
-  );
+  color: var(--grid-head-text);
+  background: var(--grid-head);
 }
 
-.numericHead {
+/* The row-header column closes with the same heavier rule as the sheet's outer edge. */
+.table .gutter {
+  border-right: 1px solid var(--grid-line-strong);
+}
+
+.table .numericHead {
+  padding-inline: var(--mantine-spacing-md);
   text-align: right;
 }
 
-/* Cells hold a borderless input that fills the whole box, so the grid line
-   itself reads as the cell edge. Focus draws an inset ring — the Excel
-   "active cell" affordance. The inline padding matches the header and computed
-   cells, so values never sit flush against a grid line or the focus ring. */
+/* Cells hold a borderless input that fills the whole box, so the grid line itself
+   reads as the cell edge. Focus draws an inset ring — the Excel "active cell"
+   affordance. The inline padding matches the header and computed cells, so values
+   never sit flush against a grid line or the focus ring. */
 .cell input,
 .cell button {
-  height: 28px;
-  min-height: 28px;
-  padding-inline: var(--mantine-spacing-xs);
+  height: 34px;
+  min-height: 34px;
+  padding-inline: var(--mantine-spacing-sm);
   border: none;
   border-radius: 0;
   background: transparent;
   font-size: var(--mantine-font-size-xs);
+}
+
+/* A locked cell — the opening row's debit, or every cell while a save is in flight.
+   Mantine's `:disabled` rule outranks the transparent fill above and would paint a
+   grey block flush to the gridlines, so the cell is tinted like the computed columns
+   instead and the value keeps its own padding. */
+.cell:has(input:disabled) {
+  background: var(--grid-readonly);
+}
+
+.cell input:disabled,
+.cell input[data-disabled] {
+  background: transparent;
+  opacity: 1;
+  color: var(--grid-readonly-text);
 }
 
 .cell:focus-within {
@@ -97,26 +152,25 @@
 }
 
 .numeric input {
+  padding-inline: var(--mantine-spacing-md);
   text-align: right;
   font-family: var(--mantine-font-family-monospace);
   font-variant-numeric: tabular-nums;
 }
 
-/* Derived cells (interest/tax amounts, running balance) are never editable. */
-.computed {
-  padding: 0 var(--mantine-spacing-xs);
+/* Derived cells (interest/tax amounts, running balance) are never editable — the
+   tint is what separates "the sheet calculated this" from "you typed this". */
+.table .computed {
+  padding: 0 var(--mantine-spacing-md);
   text-align: right;
   font-family: var(--mantine-font-family-monospace);
   font-variant-numeric: tabular-nums;
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
-  background: light-dark(
-    var(--mantine-color-gray-0),
-    var(--mantine-color-dark-7)
-  );
+  color: var(--grid-readonly-text);
+  background: var(--grid-readonly);
 }
 
-.label {
-  padding: 0 var(--mantine-spacing-xs);
+.table .label {
+  padding: 0 var(--mantine-spacing-sm);
 }
 
 /* Per-row Interest / Tax rate. It sits beside label text rather than filling a cell,
@@ -128,13 +182,9 @@
   text-align: right;
   font-family: var(--mantine-font-family-monospace);
   font-variant-numeric: tabular-nums;
-  border: 1px solid
-    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+  border: 1px solid var(--grid-input-border);
   border-radius: var(--mantine-radius-xs);
-  background: light-dark(
-    var(--mantine-color-white),
-    var(--mantine-color-dark-7)
-  );
+  background: var(--grid-cell);
 }
 
 .rateInput input:focus {
@@ -155,12 +205,13 @@
   box-shadow: inset 3px 0 0 var(--mantine-color-blue-5);
 }
 
-.actions {
-  width: 92px;
-  padding: 0 4px;
+.table .actions {
+  width: 104px;
+  padding: 0 var(--mantine-spacing-xs);
+  background: var(--grid-cell);
 }
 
-.empty {
+.table .empty {
   padding: var(--mantine-spacing-lg);
   text-align: center;
 }
@@ -171,11 +222,8 @@
   bottom: 0;
   z-index: 2;
   border-bottom: none;
-  border-top: 2px solid
-    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
-  font-weight: 600;
-  background: light-dark(
-    var(--mantine-color-gray-1),
-    var(--mantine-color-dark-6)
-  );
+  border-top: 1px solid var(--grid-line-strong);
+  font-weight: 700;
+  color: var(--grid-head-text);
+  background: var(--grid-head);
 }

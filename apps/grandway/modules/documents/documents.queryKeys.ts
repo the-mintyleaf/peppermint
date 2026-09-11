@@ -48,9 +48,9 @@ export const documentsByApplicantPrefix = (applicantId: string) =>
 export const documentHistoryKey = (id: string) =>
   [...documentQueryKeys.detail(id), "history"] as const;
 
-/** Active signatories for the certificate signatory picker (from `document_templates`). */
-export const documentSignaturesKey = () =>
-  ["documents", "signatories", "active"] as const;
+// The active-signatory key lives in `@/modules/admin/signatures`, which owns
+// that query — a second key here would have been a second cache entry for the
+// same rows, and the signature manager's invalidations would never reach it.
 
 /** Active template catalogue for the create-document template picker. */
 export const documentTemplateCatalogKey = () =>

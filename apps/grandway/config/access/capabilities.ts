@@ -52,6 +52,7 @@ const NONE: Capabilities = {
   documentWorkspaces: false,
   documentBankFamilies: false,
   documentWrite: false,
+  signatories: false,
 };
 
 /**
@@ -89,6 +90,7 @@ const ADMIN: Capabilities = {
   documentWorkspaces: true,
   documentBankFamilies: true,
   documentWrite: true,
+  signatories: true,
 };
 
 /**

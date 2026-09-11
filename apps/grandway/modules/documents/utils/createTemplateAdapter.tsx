@@ -11,6 +11,7 @@ import {
   type TemplateContentShape,
 } from "../components/TemplateRenderProvider";
 import { A4Page } from "../components/A4Page";
+import { useCertificateSignatures } from "../hooks/useCertificateSignatures";
 import { computeBankStatement } from "./bankStatement";
 import { currencyInWords } from "./numberToWords";
 
@@ -160,22 +161,26 @@ export function createCertificateTemplateAdapter(
       directorId?: string | null;
     };
 
-    const signatures = (props.signatures ?? []).map((s) => ({
-      id: s.id,
-      name: s.name,
-      signature_image: s.signature_image,
-      role: undefined,
-      jp_role: undefined,
-    }));
+    const selectedInstructor = content.instructorId
+      ? String(content.instructorId)
+      : null;
+    const selectedDirector = content.directorId
+      ? String(content.directorId)
+      : null;
+
+    // Same resolution as the student-certificate adapter, and for the same
+    // reason: an uploaded signature is bytes behind an authenticated route, not
+    // a URL, so it cannot be handed to a template unresolved.
+    const signatures = useCertificateSignatures(
+      props.signatures,
+      selectedInstructor,
+      selectedDirector,
+    );
 
     return (
       <Component
-        selectedInstructor={
-          content.instructorId ? String(content.instructorId) : null
-        }
-        selectedDirector={
-          content.directorId ? String(content.directorId) : null
-        }
+        selectedInstructor={selectedInstructor}
+        selectedDirector={selectedDirector}
         signatures={signatures}
         overrideData={content}
       />

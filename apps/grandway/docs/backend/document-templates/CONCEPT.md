@@ -4,11 +4,16 @@ Grounding file, adapted from `.backend/concepts/document_templates.txt` (with th
 concept's own "Correction notes" applied — see below). Freeform prose; the formal
 contract lives in `INTEGRATION.md`.
 
+**Synced: 2026-09-10 (backend v1.2.0).** The 2026-07-25 sync described a signatory
+whose signature was an external link and stated there was no upload. **That is no
+longer true** — signature images are now uploaded to the file ledger. Every
+statement to the contrary has been corrected below.
+
 > **What the concept asked for and what was built diverge deliberately.** The
 > original concept describes a versioned template-definition store with sections,
 > field hints, signature slots, and previews. **None of that was built**, because
-> the frontend makes exactly one call into this domain
-> (`GET /signatories/?status=active`) and carries no template-definition model at
+> the frontend called exactly one endpoint in this domain
+> (`GET /signatories/?status=active`) and carried no template-definition model at
 > all — its ~53 slugs are a hardcoded TypeScript union and its content shapes are
 > compiled-in types. What exists is the **Signatory record** in full plus a **thin
 > template catalogue** (key, family, label, display order, status). This file
@@ -47,10 +52,24 @@ exists so certificate-style documents can point at an approved `name`, `title`,
 `role`, and signature image. Fields: `name`, `title`, `role` (free text),
 `signature_image_url`, activation `status`.
 
-**Signature asset** — the image reference for a signatory. In V1 this is a plain
-external **URL** (`signature_image_url`) — a link to a host this project knows
-nothing about. **There is no upload endpoint**, no size or type check, no
-reachability check.
+**Signature asset** — the image for a signatory, which can arrive **two ways**:
+
+- **An uploaded file** (`signature_file`) — real bytes, posted to
+  `POST /signatories/<id>/signature/` and stored in the `uploaded_files` ledger
+  owned by the signatory. PNG/JPG/JPEG/WEBP only, 10 MB max, checked on both the
+  extension and the leading bytes.
+- **An external URL** (`signature_image_url`) — a plain link this API stores
+  verbatim, never fetches, and never validates beyond well-formedness. Retained
+  for backward compatibility and still honoured.
+
+**An uploaded file always wins when both are present**, and the server says which
+one did in `signature_source` (`"uploaded"` / `"url"` / `"none"`). Read that field;
+do not re-derive the rule from `signature_file` being non-null — part of the
+judgement is invisible to a client, because an archived or superseded file stops
+counting and looks identical from the payload.
+
+Removing a signature is **archiving its file** (`POST /api/v1/files/<file_id>/archive/`
+on the file module). There is no removal endpoint here.
 
 **Template key** — the concrete slug the frontend and `documents` use, e.g.
 `student-cv-extended`, `woda-address`, `lor-kcmit`, `moi-vinayak`,
@@ -84,9 +103,9 @@ guaranteeing drift from the templates that actually render.
 
 ## Key user flows
 
-1. **Add a certificate signer** — an Admin creates a signatory (`draft`), then
-   activates it so certificates can name them. Host the signature image
-   elsewhere first; there is no file picker.
+1. **Add a certificate signer** — an Admin creates a signatory (`draft`), uploads
+   their signature image, then activates it so certificates can name them. The
+   upload targets an existing signatory, so the record must be created first.
 2. **Fill the instructor/director selects** — the document workspace loads
    `?status=active` signatories and stores the chosen **ids** in the document
    body. This is the one call the frontend makes into this module.
@@ -115,9 +134,26 @@ resolving.
 ## Constraints / Out of scope
 
 No editable document body or per-document data; no immutable print-snapshot
-storage (that is `document_history`); no file storage or upload workflow; no
-document workflow state; no signatory as a system actor; no backend rendering
-engine; no deletion of history; and no Lead Manager access.
+storage (that is `document_history`); no **byte storage of its own** — signature
+uploads are delegated wholly to `uploaded_files`, and this module reimplements
+none of that validation; no document workflow state; no signatory as a system
+actor; no backend rendering engine; no deletion of history; and no Lead Manager
+access.
+
+## Two consequences worth designing around
+
+**Signature bytes are Admin-only and audited.** `signatory` is one of
+`uploaded_files`' admin-only owner types, so a Lead Manager gets 404 on a signature
+file rather than 403. The download route is the project's only audited read and
+forbids caching — **fetch each signature once per session and hold the object URL**,
+or every render writes audit events.
+
+**Replacing a signature rewrites the past.** `document_history` freezes a
+signatory's `id`, `name`, and `role` into a snapshot, and **never the image**, so a
+reprint resolves the signature live. Replacing a director's signature changes what
+every historical certificate renders, beside a frozen historical name. The backend
+calls this a known non-repudiation weakness; freezing the image at print time is a
+client decision this API will not make.
 
 ## Open questions
 

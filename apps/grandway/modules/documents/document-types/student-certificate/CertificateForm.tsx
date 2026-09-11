@@ -3,6 +3,7 @@
 import { Stack, TextInput, DateInput, Select, Button } from "@peppermint/ui";
 import { useForm } from "@peppermint/ui";
 import { DocumentPhotoField } from "../../components/DocumentPhotoField";
+import { certificateSignatureOptions } from "./certificateSignatureOptions";
 import type {
   DocumentFormProps,
   CertificateContent,
@@ -19,10 +20,7 @@ export function CertificateForm({
   const existing = initialContent as CertificateContent | undefined;
   const today = new Date().toISOString().split("T")[0];
 
-  const signatureOptions = [
-    { value: "", label: "Blank" },
-    ...signatures.map((sig) => ({ value: sig.id, label: sig.name })),
-  ];
+  const signatureOptions = certificateSignatureOptions(signatures);
 
   const form = useForm<CertificateContent>({
     initialValues: {
