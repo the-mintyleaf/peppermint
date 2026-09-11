@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Modal } from "@peppermint/ui";
 import { useDocumentEditor } from "../../context";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
@@ -22,6 +23,17 @@ export function EditFieldsModal() {
     canEdit,
   } = useDocumentEditor();
 
+  // A tabbed form (the bank statement sheet) sizes the modal per tab; every other form
+  // leaves this null and the type's static `formModalSize` wins.
+  const [formSize, setFormSize] = useState<string | number | null>(null);
+  const [sizedType, setSizedType] = useState(activeDocument?.type);
+
+  // Opening a different document type drops the previous form's width.
+  if (sizedType !== activeDocument?.type) {
+    setSizedType(activeDocument?.type);
+    setFormSize(null);
+  }
+
   // Belt and braces — the provider already refuses to open it for a reader.
   if (!canEdit || !activeDocument) return null;
 
@@ -38,9 +50,9 @@ export function EditFieldsModal() {
       opened={editFieldsModalOpen}
       onClose={() => setEditFieldsModalOpen(false)}
       title={`Edit ${config.label} Fields`}
-      size={config.formModalSize ?? "xl"}
+      size={formSize ?? config.formModalSize ?? "xl"}
     >
-      {/* The theme zeroes the modal body padding; each `Form` supplies its own `p="md"`. */}
+      {/* The theme zeroes the modal body padding; each `Form` supplies its own. */}
       {Form && (
         <Form
           applicantId={activeDocument.applicantId}
@@ -48,6 +60,7 @@ export function EditFieldsModal() {
           initialContent={activeDocument.content}
           signatures={signatures}
           onSubmit={handleSubmit}
+          onModalSizeChange={setFormSize}
           isLoading={false}
         />
       )}

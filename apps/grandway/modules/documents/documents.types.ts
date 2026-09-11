@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import type { SignatorySource } from "@/modules/admin/signatures";
 import type { DocumentType } from "./documentTypeDefinitions";
 
 export type { DocumentType } from "./documentTypeDefinitions";
@@ -33,29 +34,46 @@ export interface BsDate {
 }
 
 /**
- * A reusable signatory, sourced from `document_templates`
- * (`GET /api/v1/document-templates/signatories/?status=active`). Unlike mintway (auth-gated
- * private image blobs), grandway's `signature_image` is the plain external
- * `signature_image_url` — no object-URL minting. `signature_image`/`is_active` keep
- * backend-ish casing because the certificate templates read them directly.
+ * A signatory as the editor and its templates see it — the **picker/render**
+ * shape, not the API DTO. The DTO (`Signatory`) lives in
+ * `@/modules/admin/signatures`, which owns this domain; `useSignatures` maps one
+ * to the other.
+ *
+ * The three `signature_*` fields are exactly `SignatureSourceRef`, so this type
+ * can be handed straight to `useResolvedSignatureImage` without either module
+ * knowing the other's full shape. **There is no resolved image on this type** —
+ * uploaded bytes need an authenticated fetch, so only the adapter that knows
+ * which two signatories a certificate actually names resolves them.
+ *
+ * `is_active` keeps backend-ish casing because it is read straight off the DTO.
  */
 export interface Signature {
   id: string;
   name: string;
-  /** The signatory's external image URL (`signature_image_url`); `""` when none. */
-  signature_image: string;
   is_active: boolean;
   title?: string;
   role?: string;
-  /** True when `signature_image` is a non-empty URL. */
-  has_image?: boolean;
-  /**
-   * Validity window. `document_templates` signatories carry no validity dates yet, so these
-   * are usually absent (treated as unbounded) — kept optional for the validity helpers and a
-   * future backend addition.
-   */
-  validFrom?: string | null;
-  validTo?: string | null;
+  /** Japanese role line on the certificate. Not a backend field — no endpoint supplies it. */
+  jp_role?: string;
+  /** Which of the two possible sources is in force. **The only field to branch rendering on.** */
+  signature_source: SignatorySource;
+  /** The uploaded file's id; `null` unless `signature_source` is `"uploaded"`. */
+  signature_file_id: string | null;
+  /** The external-link fallback; `""` when unset. Outranked by an uploaded file. */
+  signature_image_url: string;
+}
+
+/**
+ * What a certificate template actually renders: a signatory whose image has
+ * already been resolved to a usable URL by the adapter.
+ */
+export interface RenderSignature {
+  id: string;
+  name: string;
+  role?: string;
+  jp_role?: string;
+  /** A URL an `<img>` can use, or `""` for a blank signature slot. */
+  signature_image: string;
 }
 
 export interface CertificateMarkEntry {
@@ -462,6 +480,12 @@ export interface DocumentFormProps {
   signatures?: Signature[];
   onSubmit: (values: DocumentContent) => void;
   isLoading?: boolean;
+  /**
+   * Lets a form widen or narrow the modal it sits in — a tabbed form needs a different
+   * width per tab, which the static `formModalSize` can't express. Optional: forms that
+   * fit one width simply ignore it.
+   */
+  onModalSizeChange?: (size: string | number) => void;
 }
 
 /**
