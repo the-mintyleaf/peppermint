@@ -131,7 +131,7 @@ nvm alias default 22    # so new shells and cron get the same version
 > that does not exist for the boot-time init system. If you use nvm you **must** run
 > `pm2 startup` from inside the nvm shell so the generated systemd unit hard-codes that
 > path, and you must re-run `pm2 unstartup && pm2 startup && pm2 save` every time you
-> change Node version. Option A avoids this entirely.
+> change Node version (§5.3). Option A avoids this entirely.
 
 ### 2.3 Installing pnpm — via corepack, at the pinned version
 
@@ -442,7 +442,7 @@ Create `/srv/ppm/ecosystem.config.js` (repo root):
 
 ```js
 // PM2 process definitions for the Grandway frontend apps.
-// Start:  pm2 start ecosystem.config.js
+// Start:  pm2 start ecosystem.config.js   (then §5.3: pm2 startup + pm2 save)
 module.exports = {
   apps: [
     {
@@ -497,10 +497,12 @@ sudo mkdir -p /var/log/pm2 && sudo chown "$USER" /var/log/pm2
 ```bash
 cd /srv/ppm
 pm2 start ecosystem.config.js
-pm2 save                 # persist the process list
-pm2 startup              # prints a command — run it (with sudo) to start PM2 on boot
 pm2 status
 ```
+
+Both `grandway-website` and `grandway-admin` must read `online` — not `errored`, not
+`stopped`, not a climbing restart counter. If either is not online, fix that first
+(`pm2 logs <name>`); do **not** persist a broken process list.
 
 Verify locally before touching DNS:
 
@@ -511,7 +513,55 @@ curl -I http://127.0.0.1:3001        # admin
 
 Both should return `200` (the admin root may redirect to the sign-in page).
 
-### 5.3 Everyday PM2 commands
+### 5.3 Make it survive a reboot — `pm2 startup`, then `pm2 save`
+
+**Do this only once both apps are live and verified above.** PM2 does not come back
+after a reboot on its own, and `pm2 save` snapshots _whatever is running at that
+moment_ — so a save taken before both apps are online will resurrect a half-broken
+setup on every boot.
+
+Order matters: **`startup` first, `save` second.**
+
+```bash
+# 1. register PM2 with systemd — this only PRINTS a command, it does not run it
+pm2 startup
+
+# 2. copy the printed line and run it verbatim, e.g.
+sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd \
+  -u "$USER" --hp "$HOME"
+
+# 3. now freeze the current (healthy, both-apps-online) process list
+pm2 save
+
+# 4. confirm the unit is enabled
+systemctl is-enabled pm2-"$USER"      # → enabled
+```
+
+`pm2 startup` writes and enables the `pm2-<user>` systemd unit. `pm2 save` writes the
+current process list to `~/.pm2/dump.pm2`, which that unit replays on boot via
+`pm2 resurrect`.
+
+**Re-run `pm2 save` every time the process list itself changes** — a new app, a renamed
+app, a deleted app, or an `ecosystem.config.js` change that adds or removes a process.
+A plain `pm2 reload` of an existing app does not need it, but re-saving is harmless and
+`deploy.sh` (§6) does it on every deploy anyway.
+
+Now actually test it — an untested boot config is not a boot config:
+
+```bash
+sudo reboot
+# wait, reconnect, then:
+pm2 status                           # both apps online again, without you starting them
+curl -I http://127.0.0.1:3000
+curl -I http://127.0.0.1:3001
+```
+
+> **If you installed Node with nvm**, run `pm2 startup` from inside the nvm shell so the
+> generated unit hard-codes the nvm Node path, and re-run
+> `pm2 unstartup && pm2 startup && pm2 save` after every Node version change — see the
+> caveat in §2.2.
+
+### 5.4 Everyday PM2 commands
 
 ```bash
 pm2 status                       # process table
@@ -641,7 +691,7 @@ by IP allow-list or VPN at the nginx level.
 | Staff get bounced to the sign-in page after a while           | no refresh credential issued by the backend                 | backend fix — see §3 and `apps/grandway/lib/api.ts`                                       |
 | `EADDRINUSE`                                                  | port already taken                                          | `ss -ltnp \| grep 300` , change the port in the ecosystem file                            |
 | Build killed / out of memory                                  | not enough RAM                                              | add swap, or build one app at a time with `--filter`                                      |
-| Apps do not come back after reboot                            | `pm2 startup` never run/registered                          | `pm2 save && pm2 startup`, then run the printed command                                   |
+| Apps do not come back after reboot                            | `pm2 startup` never run/registered, or `pm2 save` never ran | `pm2 startup` → run the printed sudo command → `pm2 save` (that order) — §5.3             |
 | Stale/odd build output                                        | corrupt turbo or Next cache                                 | `rm -rf apps/*/.next .turbo && pnpm build`                                                |
 | `ERR_PNPM_OUTDATED_LOCKFILE` on install                       | `package.json` changed without the lockfile                 | commit an updated `pnpm-lock.yaml` from a dev machine                                     |
 | `Permission denied (publickey)` on `git pull`                 | deploy SSH key missing, wrong permissions, or not loaded    | see `ssh-guide.md` §5 — troubleshooting                                                   |
@@ -687,6 +737,8 @@ pm2 set pm2-logrotate:compress true
 - [ ] `curl` on `127.0.0.1:3000` and `:3001` returns 200
 - [ ] nginx vhosts configured, `nginx -t` passes, TLS certificates issued
 - [ ] Backend API reachable over HTTPS and CORS allows the admin origin
-- [ ] `pm2 save` + `pm2 startup` done — survives a reboot (test it)
+- [ ] `pm2 startup` run **and** its printed sudo command executed — `systemctl is-enabled pm2-$USER` → `enabled`
+- [ ] `pm2 save` run **after** both apps were online — `~/.pm2/dump.pm2` exists
+- [ ] Reboot actually tested — both apps came back on their own
 - [ ] `pm2-logrotate` installed
 - [ ] `deploy.sh` in place and tested once end-to-end

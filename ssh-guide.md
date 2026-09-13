@@ -7,7 +7,7 @@ Purpose: get `git clone` / `git pull` working against the private repository
 `the-mintyleaf/peppermint` over SSH, on the **`release`** branch, using a dedicated
 read-only deploy key.
 
-> Once `git clone` succeeds, continue with **`deploy-guide.md`** — that is the actual
+> Once `git clone` succeeds, continue with **`deploy.md`** — that is the actual
 > build-and-run guide. This document only covers repository access.
 
 ---
@@ -94,7 +94,7 @@ Email them, together:
 - the private key block above,
 - the repository SSH URL: `git@github.com:the-mintyleaf/peppermint.git`,
 - the branch: **`release`**,
-- a link to this file and to `deploy-guide.md`.
+- a link to this file and to `deploy.md`.
 
 #### 3.1 Handling caveats — read before sending
 
@@ -242,7 +242,7 @@ git branch --show-current     # must print: release
 git log --oneline -5          # sanity check
 ```
 
-If it printed `release`, access is working. **Continue with `deploy-guide.md` §2.**
+If it printed `release`, access is working. **Continue with `deploy.md` §2.**
 
 #### 4.2 Pulling updates later
 
@@ -252,7 +252,7 @@ git pull --ff-only origin release
 ```
 
 `--ff-only` is deliberate — it fails loudly rather than creating a merge commit on a
-server checkout. `deploy-guide.md` §6 wraps this in the full deploy sequence
+server checkout. `deploy.md` §6 wraps this in the full deploy sequence
 (pull → install → build → `pm2 reload`).
 
 #### 4.3 If the pull refuses to fast-forward
@@ -269,7 +269,7 @@ git clean -fd                           # removes untracked files — see the wa
 ```
 
 > ⚠️ `git clean -fd` deletes untracked files. `apps/grandway/.env.production` **is
-> untracked**, so this removes it. Recreate it afterwards — `deploy-guide.md` §3.2 —
+> untracked**, so this removes it. Recreate it afterwards — `deploy.md` §3.2 —
 > and rebuild before reloading, since the API URL is compiled into the bundle.
 
 #### 4.4 What you cannot do
@@ -352,4 +352,4 @@ cd /srv/ppm && git pull --ff-only origin release
 - [ ] Repo cloned to `/srv/ppm`, `git branch --show-current` prints `release`
 - [ ] `git remote -v` shows the `git@github.com:` SSH URL
 - [ ] `git pull --ff-only origin release` runs without prompting for anything
-- [ ] Continued to `deploy-guide.md` for build and PM2 setup
+- [ ] Continued to `deploy.md` for build and PM2 setup
