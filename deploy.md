@@ -3,11 +3,6 @@
 Audience: DevOps / whoever puts this on a server.
 Scope: building the two Next.js apps in this repo and running them under **PM2**.
 
-> **Start with `ssh-guide.md`.** This repository is private. Before anything here works
-> you need the deploy SSH key installed and the repo cloned from the `release` branch —
-> that is what `ssh-guide.md` covers, step by step. Come back here once
-> `git clone` succeeds.
->
 > **Deployments always track the `release` branch, never `main`.** `main` is the
 > day-to-day development branch; `release` is what is signed off for production.
 
@@ -72,7 +67,7 @@ reachable base URL for that API (see §3).
 | **npm**     | **whatever ships with that Node** — do not install manually | bundled with Node              | one job only: `npm install -g pm2`                    |
 | **pnpm**    | **9.0.0** — exact, pinned                                   | `corepack` (bundled with Node) | **installs and builds this repo**                     |
 | **PM2**     | latest 5.x                                                  | `npm install -g pm2`           | process manager / boot persistence                    |
-| **git**     | any 2.x                                                     | system package manager         | pulling the repo (over SSH — see `ssh-guide.md`)      |
+| **git**     | any 2.x                                                     | system package manager         | pulling the repo (public HTTPS clone, no key needed)  |
 | **RAM**     | 2 GB minimum, 4 GB recommended                              | —                              | the Next.js build is the memory-hungry step           |
 | **Disk**    | ~3 GB free                                                  | —                              | `node_modules` (~1.5 GB) + two `.next` build outputs  |
 
@@ -374,13 +369,10 @@ None of these are fixable from this repo — they are Django-side changes.
 
 ## 4. Getting the code and building
 
-> The clone step below needs the deploy SSH key already installed — see `ssh-guide.md`
-> if `git clone` asks for a password or fails with `Permission denied (publickey)`.
-
 ```bash
 # 1. Clone the release branch (first deploy)
 sudo mkdir -p /srv && sudo chown "$USER" /srv && cd /srv
-git clone --branch release git@github.com:the-mintyleaf/peppermint.git ppm
+git clone --branch release https://github.com/the-mintyleaf/peppermint.git ppm
 cd /srv/ppm
 git branch --show-current        # must print: release
 
@@ -594,7 +586,9 @@ pm2 save
 
 `--ff-only` is deliberate: if it refuses, the server checkout has diverged from
 `release` (someone edited a tracked file in place) and that must be resolved before
-deploying, not merged over. See `ssh-guide.md` for how to reset it.
+deploying, not merged over. Reset the checkout instead:
+`git fetch origin && git reset --hard origin/release` — this discards local edits, so
+copy out anything you meant to keep first (`.env.production` is untracked and survives).
 
 As a script — `/srv/ppm/deploy.sh`:
 
@@ -694,8 +688,7 @@ by IP allow-list or VPN at the nginx level.
 | Apps do not come back after reboot                            | `pm2 startup` never run/registered, or `pm2 save` never ran | `pm2 startup` → run the printed sudo command → `pm2 save` (that order) — §5.3             |
 | Stale/odd build output                                        | corrupt turbo or Next cache                                 | `rm -rf apps/*/.next .turbo && pnpm build`                                                |
 | `ERR_PNPM_OUTDATED_LOCKFILE` on install                       | `package.json` changed without the lockfile                 | commit an updated `pnpm-lock.yaml` from a dev machine                                     |
-| `Permission denied (publickey)` on `git pull`                 | deploy SSH key missing, wrong permissions, or not loaded    | see `ssh-guide.md` §5 — troubleshooting                                                   |
-| `git pull --ff-only` refuses: "Not possible to fast-forward"  | the server checkout diverged from `release`                 | `git fetch origin && git reset --hard origin/release` — see `ssh-guide.md` §4.3           |
+| `git pull --ff-only` refuses: "Not possible to fast-forward"  | the server checkout diverged from `release`                 | `git fetch origin && git reset --hard origin/release` (discards local edits) — see §6     |
 | `pnpm -v` prints something other than `9.0.0`                 | pnpm installed via npm "latest" instead of corepack         | `corepack prepare pnpm@9.0.0 --activate` — see §2.3                                       |
 | Build succeeds but admin hits a LAN/localhost API             | a stale `.env.local` overrode `.env.production`             | `rm apps/grandway/.env.local`, then `pnpm build --force` — see §3.4                       |
 
@@ -723,7 +716,6 @@ pm2 set pm2-logrotate:compress true
 
 ## 9. Deployment checklist
 
-- [ ] Deploy SSH key installed and `ssh -T git@github.com` authenticates (`ssh-guide.md`)
 - [ ] Node 22 LTS (or 20/24) installed — `node -v`; npm is whatever came with it
 - [ ] pnpm **exactly 9.0.0** via corepack — `pnpm -v`
 - [ ] PM2 installed globally — `pm2 -v`
