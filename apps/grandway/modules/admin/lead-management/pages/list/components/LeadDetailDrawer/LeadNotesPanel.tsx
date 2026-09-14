@@ -110,8 +110,9 @@ function NoteComposer({ leadId }: { leadId: string }) {
 /**
  * One appended note, rendered as its own card — a note is a discrete object
  * someone wrote, not a row in a log, and the card's edge is what says so. The
- * note's text leads; who wrote it and when sit underneath as a quiet footer,
- * because the attribution only matters once you've read the note.
+ * note's text leads; author and time follow it as one quiet line, because the
+ * attribution only matters once you've read the note — and it reads as a
+ * single fact ("X wrote this, then"), not two columns to compare.
  */
 function NoteCard({ note }: { note: LeadNote }) {
   const author = note.author.display_name || note.author.username;
@@ -121,14 +122,12 @@ function NoteCard({ note }: { note: LeadNote }) {
         <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
           {note.body}
         </Text>
-        <Group justify="space-between" wrap="nowrap" gap="xs">
-          <Text size="xs" fw={600}>
+        <Text size="xs" c="dimmed">
+          <Text span size="xs" fw={600} c="var(--mantine-color-text)">
             {author}
-          </Text>
-          <Text size="xs" c="dimmed">
-            {dayjs(note.created_at).format("MMM D, YYYY h:mm A")}
-          </Text>
-        </Group>
+          </Text>{" "}
+          · {dayjs(note.created_at).format("MMM D, YYYY h:mm A")}
+        </Text>
       </Stack>
     </Paper>
   );
