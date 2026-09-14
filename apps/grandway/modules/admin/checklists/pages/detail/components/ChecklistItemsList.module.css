@@ -1,0 +1,9 @@
+/* The status switch is the row's left edge: its control fills the card's full
+   height and takes the card's own left corners, so the pill reads as a band
+   you click rather than a button someone dropped in a padded box. The child
+   selector covers both states — the switch renders a button, or a plain badge
+   once the checklist is frozen. */
+.gutter > * {
+  height: 100%;
+  border-radius: var(--mantine-radius-sm) 0 0 var(--mantine-radius-sm);
+}

@@ -9,8 +9,6 @@ import {
   Center,
   Group,
   Loader,
-  Paper,
-  Progress,
   Stack,
   Text,
   Title,
@@ -23,67 +21,9 @@ import {
   CHECKLIST_STATUS_COLORS,
   CHECKLIST_STATUS_LABELS,
 } from "../../checklists.labels";
-import type { ChecklistDetail } from "../../checklists.types";
 import { AddChecklistItemModal } from "../../pages/detail/components/AddChecklistItemModal";
 import { ChecklistItemsList } from "../../pages/detail/components/ChecklistItemsList";
-
-/** One measured line: what it counts, the count, the bar. Two of these are the whole summary. */
-function ProgressLine({
-  label,
-  resolved,
-  total,
-  color,
-}: {
-  label: string;
-  resolved: number;
-  total: number;
-  color: string;
-}) {
-  const pct = total > 0 ? Math.round((resolved / total) * 100) : 100;
-
-  return (
-    <Stack gap={4}>
-      <Group justify="space-between" gap="xs">
-        <Text size="xs" c="dimmed">
-          {label}
-        </Text>
-        <Text size="xs" fw={600}>
-          {resolved}/{total}
-        </Text>
-      </Group>
-      <Progress value={pct} size="xs" color={pct === 100 ? "green" : color} />
-    </Stack>
-  );
-}
-
-/** Progress, then the blocked count if there is one — the only number that is a warning. */
-function WorklistSummary({ worklist }: { worklist: ChecklistDetail }) {
-  const { progress } = worklist;
-
-  return (
-    <Paper withBorder radius="md" p="sm">
-      <Stack gap="sm">
-        <ProgressLine
-          label="Overall"
-          resolved={progress.resolved}
-          total={progress.total}
-          color="blue"
-        />
-        <ProgressLine
-          label="Required"
-          resolved={progress.required_resolved}
-          total={progress.required_total}
-          color="orange"
-        />
-        {progress.blocked > 0 ? (
-          <Text size="xs" c="red">
-            {progress.blocked} blocked — still outstanding
-          </Text>
-        ) : null}
-      </Stack>
-    </Paper>
-  );
-}
+import { WorklistProgressCard } from "../WorklistProgressCard";
 
 /**
  * Level two: the worklist itself, worked in place. The items come from the
@@ -140,7 +80,7 @@ export function WorklistProfilePanel({ worklistId }: { worklistId: string }) {
         ) : null}
       </Stack>
 
-      <WorklistSummary worklist={worklist} />
+      <WorklistProgressCard progress={worklist.progress} />
 
       <Group justify="space-between" wrap="nowrap">
         <Text size="sm" fw={600}>

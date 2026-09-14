@@ -9,12 +9,14 @@ import {
   Paper,
   Stack,
   Text,
+  VisuallyHidden,
 } from "@peppermint/ui";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import {
   ITEM_STATUS_COLORS,
   ITEM_STATUS_LABELS,
-  ITEM_TYPE_LABELS,
+  ITEM_TYPE_COLORS,
+  ITEM_TYPE_SHORT_LABELS,
 } from "../../../checklists.labels";
 import type {
   ChecklistDetail,
@@ -22,6 +24,7 @@ import type {
   ItemStatus,
 } from "../../../checklists.types";
 import { ChecklistItemStatusSwitch } from "./ChecklistItemStatusSwitch";
+import classes from "./ChecklistItemsList.module.css";
 import { EditChecklistItemModal } from "./EditChecklistItemModal";
 import { ItemStatusModal } from "./ItemStatusModal";
 
@@ -43,8 +46,8 @@ const STATUS_ORDER: ItemStatus[] = [
 /** The status switch's column: one width for every row, so the labels line up. */
 const SWITCH_WIDTH = 160;
 
-/** `gap="sm"` in pixels — what the secondary lines indent past to clear the gutter. */
-const GUTTER_GAP = 12;
+/** Horizontal padding inside the row's content column, in pixels (`sm`). */
+const CONTENT_PAD = 12;
 
 interface StatusGroup {
   status: ItemStatus;
@@ -62,13 +65,12 @@ function groupByStatus(items: ChecklistItem[]): StatusGroup[] {
 }
 
 /**
- * One item: its status switch in a fixed left gutter, the work itself beside
- * it, and the item's tags pushed to the right edge where they stack into a
- * column of their own down the list. Switch, label, tags and the edit control
- * share one centreline — a pill is taller than its label, and left-aligning
- * their tops makes every row look a few pixels out. Secondary lines (the
- * description, a status note, evidence) hang under the label, indented past
- * the gutter so the column edge holds.
+ * One item: the status switch as the row's own left edge — the card carries no
+ * padding of its own, so the control runs flush to the border, full height,
+ * and the whole left band is the thing you click. The work sits in a padded
+ * column beside it: label (with `**` where the item is required), then the
+ * type tag and the edit control at the right edge, then any secondary lines —
+ * description, status note, evidence — under the label.
  *
  * The switch *is* the item's status — there is no separate status badge, and
  * no "Update status" button, because the thing showing the state is the thing
@@ -98,7 +100,7 @@ function ItemRow({
   return (
     <Paper
       withBorder
-      p="sm"
+      p={0}
       radius="sm"
       style={
         isOutstanding
@@ -106,57 +108,79 @@ function ItemRow({
           : undefined
       }
     >
-      <Stack gap={4}>
-        <Group align="center" wrap="nowrap" gap="sm">
-          <Box w={SWITCH_WIDTH} style={{ flexShrink: 0 }}>
-            <ChecklistItemStatusSwitch
-              checklistId={checklist.id}
-              item={item}
-              frozen={frozen}
-              onOpenStatusModal={onOpenStatusModal}
-            />
-          </Box>
+      <Group align="stretch" wrap="nowrap" gap={0}>
+        <Box
+          w={SWITCH_WIDTH}
+          className={classes.gutter}
+          style={{ flexShrink: 0 }}
+        >
+          <ChecklistItemStatusSwitch
+            checklistId={checklist.id}
+            item={item}
+            frozen={frozen}
+            onOpenStatusModal={onOpenStatusModal}
+          />
+        </Box>
 
-          <Text size="xs" fw={500} style={{ flex: 1, minWidth: 0 }}>
-            {item.label}
-          </Text>
+        <Stack
+          gap={4}
+          px={CONTENT_PAD}
+          py="xs"
+          style={{ flex: 1, minWidth: 0 }}
+        >
+          <Group align="center" wrap="nowrap" gap="sm">
+            <Text size="xs" fw={500} style={{ flex: 1, minWidth: 0 }}>
+              {item.label}
+              {item.is_required ? (
+                <>
+                  {/* Required is a mark, not a tag — it sits on the label the
+                      way a footnote marker does, and says so to a screen
+                      reader instead of reading out two asterisks. */}
+                  <Text span c="orange" fw={700} aria-hidden>
+                    {" "}
+                    **
+                  </Text>
+                  <VisuallyHidden> (required)</VisuallyHidden>
+                </>
+              ) : null}
+            </Text>
 
-          <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
-            {isOutstanding ? (
-              <Badge size="xs" variant="filled" color="red">
-                Outstanding
+            <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
+              {isOutstanding ? (
+                <Badge size="xs" variant="filled" color="red">
+                  Outstanding
+                </Badge>
+              ) : null}
+              <Badge
+                size="xs"
+                variant="light"
+                color={ITEM_TYPE_COLORS[item.item_type]}
+              >
+                {ITEM_TYPE_SHORT_LABELS[item.item_type]}
               </Badge>
-            ) : null}
-            {item.is_required ? (
-              <Badge size="xs" variant="outline" color="orange">
-                Required
-              </Badge>
-            ) : null}
-            <Badge size="xs" variant="light">
-              {ITEM_TYPE_LABELS[item.item_type]}
-            </Badge>
+            </Group>
+
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              aria-label={`Edit ${item.label}`}
+              onClick={() => onEdit(item)}
+            >
+              <PencilSimpleIcon size={16} aria-hidden />
+            </ActionIcon>
           </Group>
 
-          <ActionIcon
-            variant="subtle"
-            color="gray"
-            aria-label={`Edit ${item.label}`}
-            onClick={() => onEdit(item)}
-          >
-            <PencilSimpleIcon size={16} aria-hidden />
-          </ActionIcon>
-        </Group>
-
-        {details.length > 0 ? (
-          <Stack gap={2} ml={SWITCH_WIDTH + GUTTER_GAP}>
-            {details.map((line) => (
-              <Text key={line} size="xs" c="dimmed">
-                {line}
-              </Text>
-            ))}
-          </Stack>
-        ) : null}
-      </Stack>
+          {details.length > 0 ? (
+            <Stack gap={2}>
+              {details.map((line) => (
+                <Text key={line} size="xs" c="dimmed">
+                  {line}
+                </Text>
+              ))}
+            </Stack>
+          ) : null}
+        </Stack>
+      </Group>
     </Paper>
   );
 }

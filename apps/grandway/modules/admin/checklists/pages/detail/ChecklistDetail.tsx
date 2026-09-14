@@ -12,9 +12,6 @@ import {
   Loader,
   ModalPaper,
   ModuleHeader,
-  Paper,
-  Progress,
-  SimpleGrid,
   Stack,
   Text,
   Title,
@@ -40,6 +37,7 @@ import {
   CHECKLIST_STATUS_LABELS,
 } from "../../checklists.labels";
 import type { RequiredItemsPendingItem } from "../../checklists.types";
+import { WorklistProgressCard } from "../../_shared/WorklistProgressCard";
 import { AddChecklistItemModal } from "./components/AddChecklistItemModal";
 import { ChecklistItemsList } from "./components/ChecklistItemsList";
 
@@ -119,14 +117,6 @@ function ChecklistDetailContent() {
   }
 
   const { progress } = checklist;
-  const resolvedPct =
-    progress.total > 0
-      ? Math.round((progress.resolved / progress.total) * 100)
-      : 0;
-  const requiredPct =
-    progress.required_total > 0
-      ? Math.round((progress.required_resolved / progress.required_total) * 100)
-      : 100;
   const canComplete =
     checklist.status === "active" &&
     progress.required_resolved === progress.required_total;
@@ -309,51 +299,7 @@ function ChecklistDetailContent() {
             </Group>
           </Group>
 
-          {/* The two questions this page answers at a glance — how much of the
-              list is done, and whether the part that actually gates completion
-              is done — as two peer cards, each led by its own figure. */}
-          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-            <Paper withBorder radius="md" p="md">
-              <Stack gap="xs">
-                <Title order={5}>Overall progress</Title>
-                <Group align="baseline" gap="xs" wrap="nowrap">
-                  <Title order={2}>{resolvedPct}%</Title>
-                  <Text size="xs" c="dimmed">
-                    {progress.resolved} of {progress.total} resolved
-                  </Text>
-                </Group>
-                <Progress
-                  value={resolvedPct}
-                  size="sm"
-                  color={resolvedPct === 100 ? "green" : "blue"}
-                />
-              </Stack>
-            </Paper>
-
-            <Paper withBorder radius="md" p="md">
-              <Stack gap="xs">
-                <Title order={5}>Required items</Title>
-                <Group align="baseline" gap="xs" wrap="nowrap">
-                  <Title order={2}>
-                    {progress.required_resolved}/{progress.required_total}
-                  </Title>
-                  <Text size="xs" c="dimmed">
-                    resolved
-                  </Text>
-                </Group>
-                <Progress
-                  value={requiredPct}
-                  size="sm"
-                  color={requiredPct === 100 ? "green" : "orange"}
-                />
-                {progress.blocked > 0 ? (
-                  <Text size="xs" c="red">
-                    {progress.blocked} item(s) blocked — still outstanding
-                  </Text>
-                ) : null}
-              </Stack>
-            </Paper>
-          </SimpleGrid>
+          <WorklistProgressCard progress={progress} />
 
           {pendingItemIds ? (
             <Text size="xs" fw={500} c="red">

@@ -60,6 +60,23 @@ export const ITEM_TYPE_LABELS: Record<ItemType, string> = {
   task: "Task",
 };
 
+/**
+ * Tag-sized type labels for a list row, where the type is a glance not a
+ * sentence — the full words live in the forms and the `Select`s.
+ */
+export const ITEM_TYPE_SHORT_LABELS: Record<ItemType, string> = {
+  document: "DOC",
+  stage: "STAGE",
+  task: "TASK",
+};
+
+/** A document is the type that needs a file from someone, so it is the one that gets a colour. */
+export const ITEM_TYPE_COLORS: Record<ItemType, string> = {
+  document: "blue",
+  stage: "gray",
+  task: "gray",
+};
+
 // ── Select option helpers ────────────────────────────────────────────────────
 
 export const TEMPLATE_STATUS_OPTIONS = (
