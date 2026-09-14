@@ -9,14 +9,24 @@ import { journeyQueryKeys } from "@/modules/admin/applicant-journeys/applicantJo
 import type { ApplicantJourney } from "@/modules/admin/applicant-journeys/applicantJourneys.types";
 import type { ChecklistCreateValues } from "../ChecklistCreateForm.types";
 
-function journeyLabel(journey: ApplicantJourney): string {
-  const name = journey.applicant.full_name;
-  const target =
+function journeyDestination(journey: ApplicantJourney): string {
+  return (
     journey.target_institution_name ||
     journey.target_program_name ||
     journey.target_country ||
-    "No destination set";
-  return `${name} — ${target}`;
+    "No destination set"
+  );
+}
+
+/**
+ * Scoped to one applicant, their name is on every option and carries nothing —
+ * the destination is what tells two of their journeys apart.
+ */
+function journeyLabel(journey: ApplicantJourney, scoped: boolean): string {
+  const destination = journeyDestination(journey);
+  return scoped
+    ? destination
+    : `${journey.applicant.full_name} — ${destination}`;
 }
 
 /**
@@ -24,32 +34,39 @@ function journeyLabel(journey: ApplicantJourney): string {
  * changeable. The journeys endpoint has no free-text search, so this fetches a
  * generous newest-first page and lets the Select filter it client-side by
  * label (same pattern as `offers/form/components/JourneyPickerField.tsx`).
+ *
+ * `applicantId` narrows the page to that person's journeys — the worklist
+ * drawer already knows whose worklist is being created, so the field becomes
+ * "which of their objectives" instead of a search of everyone's. The params
+ * are the same shape either way, so the scoped read is its own cache entry
+ * rather than a filtered view of the unscoped one.
  */
-export function JourneyPickerField({ isLoading }: { isLoading: boolean }) {
+export function JourneyPickerField({
+  isLoading,
+  applicantId,
+}: {
+  isLoading: boolean;
+  applicantId?: string;
+}) {
   const { form } = useFormInstance<ChecklistCreateValues>();
 
+  const params = {
+    page: 1,
+    pageSize: 100,
+    search: "",
+    sort: [],
+    filters: applicantId ? { applicant: applicantId } : {},
+  };
+
   const { data, isFetching, isError } = useQuery({
-    queryKey: journeyQueryKeys.list({
-      page: 1,
-      pageSize: 100,
-      search: "",
-      sort: [],
-      filters: {},
-    }),
-    queryFn: () =>
-      listJourneys({
-        page: 1,
-        pageSize: 100,
-        search: "",
-        sort: [],
-        filters: {},
-      }),
+    queryKey: journeyQueryKeys.list(params),
+    queryFn: () => listJourneys(params),
   });
 
   const journeys = data?.data ?? [];
   const options = journeys.map((journey) => ({
     value: journey.id,
-    label: journeyLabel(journey),
+    label: journeyLabel(journey, applicantId !== undefined),
   }));
   const truncated = (data?.meta.total ?? 0) > journeys.length;
 
@@ -57,8 +74,16 @@ export function JourneyPickerField({ isLoading }: { isLoading: boolean }) {
     <Stack gap={4}>
       <Select
         label="Journey"
-        description="Which applicant is this checklist for? Not changeable later."
-        placeholder="Search by applicant or destination"
+        description={
+          applicantId
+            ? "Which of this applicant's objectives is it for? Not changeable later."
+            : "Which applicant is this checklist for? Not changeable later."
+        }
+        placeholder={
+          applicantId
+            ? "Search by destination"
+            : "Search by applicant or destination"
+        }
         required
         searchable
         data={options}

@@ -57,6 +57,12 @@ export interface ChecklistCreateFormProps extends ModalFormComponentProps<
    * Used by the Journey profile's Worklist tab.
    */
   journeyId?: string;
+  /**
+   * Scopes the journey picker to one applicant — for opening the form from a
+   * context that knows the person but not which of their journeys. Ignored
+   * when `journeyId` is set, which hides the picker entirely.
+   */
+  applicantId?: string;
   /** Submit-button copy. The journey UI calls this entity a "worklist". */
   submitLabel?: string;
 }
@@ -72,6 +78,7 @@ export function ChecklistCreateForm({
   onSubmit,
   isLoading,
   journeyId,
+  applicantId,
   submitLabel = "Create checklist",
 }: ChecklistCreateFormProps) {
   return (
@@ -91,7 +98,10 @@ export function ChecklistCreateForm({
               checklist automatically. Use this to build one by hand, or to
               apply a non-default template.
             </Text>
-            <JourneyPickerField isLoading={isLoading} />
+            <JourneyPickerField
+              isLoading={isLoading}
+              applicantId={applicantId}
+            />
           </>
         )}
         <ModeFields isLoading={isLoading} />
