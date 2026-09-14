@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import {
-  Avatar,
   Button,
   Center,
   Group,
@@ -20,17 +19,6 @@ import {
   useLeadNotes,
 } from "../../../../leadManagement.hooks";
 import type { LeadNote } from "../../../../leadManagement.types";
-
-function initials(name: string): string {
-  return (
-    name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase() ?? "")
-      .join("") || "?"
-  );
-}
 
 /**
  * Collapsed to a single "Add note" button until clicked — the composer only
@@ -122,30 +110,25 @@ function NoteComposer({ leadId }: { leadId: string }) {
 /**
  * One appended note, rendered as its own card — a note is a discrete object
  * someone wrote, not a row in a log, and the card's edge is what says so. The
- * author and time sit in a quiet meta line above the body, so the note's text
- * is the thing being read.
+ * note's text leads; who wrote it and when sit underneath as a quiet footer,
+ * because the attribution only matters once you've read the note.
  */
 function NoteCard({ note }: { note: LeadNote }) {
   const author = note.author.display_name || note.author.username;
   return (
     <Paper withBorder radius="md" p="sm">
-      <Stack gap="xs">
+      <Stack gap={6}>
+        <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
+          {note.body}
+        </Text>
         <Group justify="space-between" wrap="nowrap" gap="xs">
-          <Group gap="xs" wrap="nowrap">
-            <Avatar size="sm" radius="xl" color="blue">
-              {initials(author)}
-            </Avatar>
-            <Text size="xs" fw={600}>
-              {author}
-            </Text>
-          </Group>
+          <Text size="xs" fw={600}>
+            {author}
+          </Text>
           <Text size="xs" c="dimmed">
             {dayjs(note.created_at).format("MMM D, YYYY h:mm A")}
           </Text>
         </Group>
-        <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
-          {note.body}
-        </Text>
       </Stack>
     </Paper>
   );
