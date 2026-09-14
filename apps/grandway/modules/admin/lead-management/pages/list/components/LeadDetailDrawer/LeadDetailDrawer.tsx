@@ -10,6 +10,7 @@ import {
   Tabs,
   Text,
   Title,
+  dayjs,
 } from "@peppermint/ui";
 import { getApiError } from "@/lib/authErrorMessages";
 import { useLeadDetail } from "../../../../leadManagement.hooks";
@@ -19,9 +20,25 @@ import { LeadNotesPanel } from "./LeadNotesPanel";
 import { LeadOverviewPanel } from "./LeadOverviewPanel";
 import type { LeadDetailDrawerProps } from "./LeadDetailDrawer.types";
 
-/** Big heading — the profile's anchor. Stage lives in the property list below (as its switch). */
+/**
+ * The profile's anchor: who this is, and where the record came from. The name
+ * sits at `h3`, sized for the drawer's narrow column rather than a page. Its
+ * provenance line carries the only two facts the property list below doesn't
+ * repeat — when the lead was added and by whom. Stage is a lever, not a fact,
+ * so it leads the overview below instead of crowding the heading.
+ */
 function LeadProfileHeader({ lead }: { lead: LeadDetail }) {
-  return <Title order={2}>{lead.full_name}</Title>;
+  const addedBy = lead.created_by.display_name || lead.created_by.username;
+
+  return (
+    <Stack gap={2}>
+      <Title order={3}>{lead.full_name}</Title>
+      <Text size="xs" c="dimmed">
+        Added {dayjs(lead.created_at).format("MMM D, YYYY")}
+        {addedBy ? ` by ${addedBy}` : ""}
+      </Text>
+    </Stack>
+  );
 }
 
 /**
@@ -47,15 +64,19 @@ export function LeadDetailDrawer({
   const notFound =
     isError && getApiError(error).code === "LEADS_LEAD_NOT_FOUND";
 
+  // `md` (~440px) — a reading column, half the width this drawer used to take.
+  // The profile is a property list plus two tabs, none of which needs a second
+  // column, and the narrower panel leaves the board it opened from in view.
+  //
   // The header names the surface ("Lead Profile"), not the record — the lead's
-  // own name is the big in-body heading below, so the drawer identifies who it's
+  // own name is the in-body heading below, so the drawer identifies who it's
   // about without duplicating the name in the chrome.
   return (
     <Drawer
       opened={opened}
       onClose={onClose}
       position="right"
-      size="xl"
+      size="md"
       title={<Title order={4}>Lead Profile</Title>}
     >
       {isLoading ? (
@@ -76,7 +97,7 @@ export function LeadDetailDrawer({
           </Button>
         </Stack>
       ) : (
-        <Stack gap="lg">
+        <Stack gap="md">
           <LeadProfileHeader lead={lead} />
 
           <LeadOverviewPanel lead={lead} />

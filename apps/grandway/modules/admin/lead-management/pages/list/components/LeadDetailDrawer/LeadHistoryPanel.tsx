@@ -1,16 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import {
-  Center,
-  Group,
-  Loader,
-  Paper,
-  Stack,
-  Text,
-  ThemeIcon,
-  dayjs,
-} from "@peppermint/ui";
+import { Box, Center, Group, Loader, Stack, Text, dayjs } from "@peppermint/ui";
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
 import { NoteBlankIcon } from "@phosphor-icons/react/dist/csr/NoteBlank";
@@ -66,34 +57,41 @@ function renderValue(value: unknown): string {
   return JSON.stringify(value);
 }
 
-/** One audit entry — a contained card led by its action glyph. */
-function HistoryCard({ entry }: { entry: HistoryEntry }) {
+/**
+ * One audit record: a tinted glyph in a fixed left gutter, the summary as the
+ * line you read, and time · actor (plus any before/after detail) dimmed beneath
+ * it. No card — history is a log, and giving every entry a frame makes the log
+ * read as a pile of objects instead of a sequence.
+ */
+function HistoryRow({ entry }: { entry: HistoryEntry }) {
   const { icon, color } = ACTION_ICON[entry.action] ?? FALLBACK_ICON;
   const changeEntries = Object.entries(entry.changes);
 
   return (
-    <Paper withBorder radius="md" p="md">
-      <Group align="flex-start" wrap="nowrap" gap="sm">
-        <ThemeIcon variant="light" color={color} size="md" radius="xl">
-          {icon}
-        </ThemeIcon>
-        <Stack gap={4} style={{ flex: 1 }}>
-          <Text size="sm" fw={600}>
-            {entry.summary || entry.action.replace(/_/g, " ")}
-          </Text>
+    <Group align="flex-start" wrap="nowrap" gap="xs">
+      <Box c={color} pt={2} style={{ flexShrink: 0, lineHeight: 0 }}>
+        {icon}
+      </Box>
+      <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
+        <Text size="xs" fw={500}>
+          {entry.summary || entry.action.replace(/_/g, " ")}
+        </Text>
+        <Text size="xs" c="dimmed">
+          {dayjs(entry.created_at).format("MMM D, YYYY h:mm A")} ·{" "}
+          {entry.actor_label || `(${entry.actor_type})`}
+        </Text>
+        {entry.reason ? (
           <Text size="xs" c="dimmed">
-            {dayjs(entry.created_at).format("MMM D, YYYY h:mm A")} ·{" "}
-            {entry.actor_label || `(${entry.actor_type})`}
+            Reason: {entry.reason}
           </Text>
-          {entry.reason ? <Text size="sm">Reason: {entry.reason}</Text> : null}
-          {changeEntries.map(([field, change]) => (
-            <Text key={field} size="xs" c="dimmed">
-              {field}: {renderValue(change.from)} → {renderValue(change.to)}
-            </Text>
-          ))}
-        </Stack>
-      </Group>
-    </Paper>
+        ) : null}
+        {changeEntries.map(([field, change]) => (
+          <Text key={field} size="xs" c="dimmed">
+            {field}: {renderValue(change.from)} → {renderValue(change.to)}
+          </Text>
+        ))}
+      </Stack>
+    </Group>
   );
 }
 
@@ -127,9 +125,9 @@ export function LeadHistoryPanel({ leadId }: { leadId: string }) {
   }
 
   return (
-    <Stack gap="sm">
+    <Stack gap="md">
       {entries.map((entry) => (
-        <HistoryCard key={entry.id} entry={entry} />
+        <HistoryRow key={entry.id} entry={entry} />
       ))}
       {truncated ? (
         <Text size="xs" c="dimmed" ta="center">
