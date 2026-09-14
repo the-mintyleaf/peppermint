@@ -181,9 +181,13 @@ export function OverviewFigure({
   const denominator = share?.of;
   // A share needs both halves and a non-zero denominator to mean anything.
   const percent =
-    !unreadable && denominator
-      ? Math.min(100, (value / denominator) * 100)
-      : null;
+    !unreadable && denominator ? (value / denominator) * 100 : null;
+  // The BAR is clamped because a track cannot draw past its end; the TEXT is
+  // not. An alert that exceeds the volume it is measured against (the two are
+  // windowed by the same filters, but the contract makes no cross-figure
+  // guarantee) is a real inconsistency, and rendering a full bar captioned
+  // "100%" would quietly hide exactly the reading worth noticing.
+  const barPercent = percent === null ? 0 : Math.min(100, percent);
 
   return (
     <Stack gap="xs">
@@ -193,7 +197,7 @@ export function OverviewFigure({
       {percent !== null && share ? (
         <Stack gap={4}>
           <Progress
-            value={percent}
+            value={barPercent}
             color="gray"
             size="sm"
             radius="sm"

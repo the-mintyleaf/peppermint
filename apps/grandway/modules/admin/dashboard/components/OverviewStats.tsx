@@ -283,6 +283,28 @@ function CardBody({
   );
 }
 
+/**
+ * What the card announces to a screen reader.
+ *
+ * The button IS the card, so its name has to carry what the card shows — for a
+ * multi-figure card that is the individual counts, not their sum. "Checklist
+ * items: 24" tells a sighted user nothing the meters don't, but it is the WHOLE
+ * message for someone who never sees them, and 12/7/5 and 0/0/24 are very
+ * different mornings that both add up to 24.
+ */
+function cardActivateLabel(
+  spec: CardSpec,
+  figures: ReadFigure[],
+  unreadable: boolean,
+): string {
+  const open = `Open ${spec.destination}.`;
+  if (unreadable) return `${spec.label}: unavailable. ${open}`;
+  const parts = figures
+    .map((figure) => `${figure.value ?? 0} ${figure.label.toLowerCase()}`)
+    .join(", ");
+  return `${spec.label}: ${parts}. ${open}`;
+}
+
 /** What the footer says a multi-figure card adds up to. */
 function alertCaption(spec: CardSpec, figures: ReadFigure[]): string {
   if (spec.figures.length === 1) return `Open ${spec.destination}`;
@@ -367,10 +389,6 @@ export function OverviewStats({ filters }: OverviewStatsProps) {
             const tone: FigureTone = worstTone(
               figures.map((figure) => figure.tone),
             );
-            const total = figures.reduce(
-              (sum, figure) => sum + (figure.value ?? 0),
-              0,
-            );
             return (
               <OverviewCard
                 key={spec.id}
@@ -381,9 +399,11 @@ export function OverviewStats({ filters }: OverviewStatsProps) {
                 isPending={isPending}
                 isError={isError}
                 onActivate={() => router.push(spec.href)}
-                activateLabel={`${spec.label}: ${
-                  isError || isPending ? "unavailable" : total
-                }. Open ${spec.destination}.`}
+                activateLabel={cardActivateLabel(
+                  spec,
+                  figures,
+                  isError || isPending,
+                )}
               >
                 <CardBody
                   spec={spec}
