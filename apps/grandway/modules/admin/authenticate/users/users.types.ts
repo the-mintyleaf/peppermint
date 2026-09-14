@@ -9,8 +9,7 @@ export type { User, AuthorityType };
 export interface CreateUserValues extends Record<string, unknown> {
   username: string;
   display_name: string;
-  full_name_np: string;
-  full_name_en: string;
+  full_name: string;
   email: string;
   phone: string;
   /** Empty = let the server auto-generate a temporary password. */
@@ -27,8 +26,7 @@ export interface CreateUserApiPayload extends CreateUserValues {
 /** Profile-update form values (`PATCH /api/v1/auth/users/<id>/`, API §7). */
 export interface UpdateUserValues extends Record<string, unknown> {
   display_name: string;
-  full_name_np: string;
-  full_name_en: string;
+  full_name: string;
   email: string;
   phone: string;
 }

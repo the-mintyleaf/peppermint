@@ -80,7 +80,7 @@
 
 ## 4. Models
 
-**User** — `{ id:uuid, username:string, authority_type:string[enum], display_name:string, full_name_np:string, full_name_en:string, email:string, phone:string, is_active:bool, must_change_password:bool, mfa_enabled:bool, mfa_enrollment_required:bool, last_login:string|null, created_at:string }`
+**User** — `{ id:uuid, username:string, authority_type:string[enum], display_name:string, full_name:string, email:string, phone:string, is_active:bool, must_change_password:bool, mfa_enabled:bool, mfa_enrollment_required:bool, last_login:string|null, created_at:string }`
 
 - Read-only. Returned in FULL by both `login` (nested under `data.user`) and `me` — the two return the identical User object. `must_change_password` is `true` on a freshly provisioned/reset account and until the first password change. `mfa_enabled` is `true` once a TOTP device is confirmed. `mfa_enrollment_required` is `true` for a superadmin who has not yet enrolled MFA (mandatory). All timestamps are ISO 8601 UTC (`Z`); `last_login` is `null` before the first login.
 
@@ -114,8 +114,7 @@
   "username": "ramesh.admin",
   "authority_type": "admin",
   "display_name": "Ramesh Shrestha",
-  "full_name_np": "रमेश श्रेष्ठ",
-  "full_name_en": "Ramesh Shrestha",
+  "full_name": "Ramesh Shrestha",
   "email": "ramesh@example.com",
   "phone": "",
   "is_active": true,
@@ -140,8 +139,7 @@
     "username": "ramesh.admin",
     "authority_type": "admin",
     "display_name": "Ramesh Shrestha",
-    "full_name_np": "रमेश श्रेष्ठ",
-    "full_name_en": "Ramesh Shrestha",
+    "full_name": "Ramesh Shrestha",
     "email": "ramesh@example.com",
     "phone": "",
     "is_active": true,
@@ -323,9 +321,9 @@
 
 **Send (create):**
 
-- `username` (required), `authority_type` (required — must be the tier you manage), `display_name`, `full_name_np`, `full_name_en`, `email`, `phone` (optional), `password` (optional — omit to auto-generate a temporary one)
+- `username` (required), `authority_type` (required — must be the tier you manage), `display_name`, `full_name`, `email`, `phone` (optional), `password` (optional — omit to auto-generate a temporary one)
 
-**Send (update):** any of `display_name`, `full_name_np`, `full_name_en`, `email`, `phone` (partial). `username`, `authority_type`, and account status are immutable here.
+**Send (update):** any of `display_name`, `full_name`, `email`, `phone` (partial). `username`, `authority_type`, and account status are immutable here.
 
 **Send (block):** `reason` (optional). **Send (reset-password):** `password` (optional — omit to auto-generate). **Send (restore / reset-mfa):** none. **Send (sessions/revoke):** `session_id` (optional — omit to revoke all of the account's sessions).
 

@@ -75,8 +75,7 @@ function Overview({ user }: { user: User }) {
       <Divider label="Account" labelPosition="left" />
       <Field label="Username" value={user.username} />
       <Field label="Display name" value={user.display_name} />
-      <Field label="Full name (English)" value={user.full_name_en} />
-      <Field label="Full name (Nepali)" value={user.full_name_np} />
+      <Field label="Full name" value={user.full_name} />
       <Field label="Email" value={user.email} />
       <Field label="Phone" value={user.phone} />
       <Field

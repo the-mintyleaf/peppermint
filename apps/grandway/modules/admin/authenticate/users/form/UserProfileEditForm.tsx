@@ -12,8 +12,7 @@ import type { UserProfileEditFormProps } from "./UserForm.types";
 
 const schema = z.object({
   display_name: z.string().min(1, "Required"),
-  full_name_np: z.string(),
-  full_name_en: z.string(),
+  full_name: z.string(),
   email: z
     .string()
     .refine((v) => !v || /^\S+@\S+\.\S+$/.test(v), "Invalid email"),
@@ -32,8 +31,7 @@ export function UserProfileEditForm({
 }: UserProfileEditFormProps) {
   const initial: UpdateUserValues = {
     display_name: initialValues?.display_name ?? "",
-    full_name_np: initialValues?.full_name_np ?? "",
-    full_name_en: initialValues?.full_name_en ?? "",
+    full_name: initialValues?.full_name ?? "",
     email: initialValues?.email ?? "",
     phone: initialValues?.phone ?? "",
   };
@@ -70,18 +68,11 @@ function Fields({ isLoading }: { isLoading: boolean }) {
         disabled={isLoading}
         {...form.getInputProps("display_name")}
       />
-      <Group grow align="flex-start">
-        <TextInput
-          label="Full name (English)"
-          disabled={isLoading}
-          {...form.getInputProps("full_name_en")}
-        />
-        <TextInput
-          label="Full name (Nepali)"
-          disabled={isLoading}
-          {...form.getInputProps("full_name_np")}
-        />
-      </Group>
+      <TextInput
+        label="Full name"
+        disabled={isLoading}
+        {...form.getInputProps("full_name")}
+      />
       <Group grow align="flex-start">
         <TextInput
           label="Email"

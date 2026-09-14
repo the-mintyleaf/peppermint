@@ -40,8 +40,7 @@ export async function createUser(
     username: values.username,
     authority_type: values.authority_type,
     display_name: values.display_name,
-    full_name_np: values.full_name_np,
-    full_name_en: values.full_name_en,
+    full_name: values.full_name,
     email: values.email,
     phone: values.phone,
   };

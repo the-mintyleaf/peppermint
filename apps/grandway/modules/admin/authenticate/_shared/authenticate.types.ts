@@ -11,8 +11,8 @@ export interface User {
   username: string;
   authority_type: AuthorityType;
   display_name: string;
-  full_name_np: string;
-  full_name_en: string;
+  /** One name, in English — the backend has no `_np`/`_romanized` sibling. */
+  full_name: string;
   email: string;
   phone: string;
   is_active: boolean;

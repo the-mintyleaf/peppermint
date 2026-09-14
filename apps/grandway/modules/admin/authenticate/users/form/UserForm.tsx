@@ -38,8 +38,7 @@ const schema = z.object({
       "Lowercase letters, numbers, dot or underscore",
     ),
   display_name: z.string().min(1, "Required"),
-  full_name_np: z.string(),
-  full_name_en: z.string(),
+  full_name: z.string(),
   email: z
     .string()
     .refine((v) => !v || /^\S+@\S+\.\S+$/.test(v), "Invalid email"),
@@ -50,8 +49,7 @@ const schema = z.object({
 const INITIAL: CreateUserValues = {
   username: "",
   display_name: "",
-  full_name_np: "",
-  full_name_en: "",
+  full_name: "",
   email: "",
   phone: "",
   password: "",
@@ -144,18 +142,12 @@ function Fields({ isLoading }: UserFieldsProps) {
         disabled={isLoading}
         {...form.getInputProps("display_name")}
       />
-      <Group grow align="flex-start">
-        <TextInput
-          label="Full name (English)"
-          disabled={isLoading}
-          {...form.getInputProps("full_name_en")}
-        />
-        <TextInput
-          label="Full name (Nepali)"
-          disabled={isLoading}
-          {...form.getInputProps("full_name_np")}
-        />
-      </Group>
+      <TextInput
+        label="Full name"
+        placeholder="Jane Smith"
+        disabled={isLoading}
+        {...form.getInputProps("full_name")}
+      />
       <Group grow align="flex-start">
         <TextInput
           label="Email"
