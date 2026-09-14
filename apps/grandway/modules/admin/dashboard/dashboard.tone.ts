@@ -80,3 +80,32 @@ export function toneVar(
 ): string {
   return `var(--mantine-color-${TONE_COLOR[tone]}-${variant})`;
 }
+
+/** Severity order, quietest first. The only place tones are ranked. */
+const TONE_RANK: FigureTone[] = [
+  "neutral",
+  "good",
+  "info",
+  "warning",
+  "critical",
+];
+
+/**
+ * The tone a card wears when it carries SEVERAL figures.
+ *
+ * A card is read at a glance before any of its rows are, so it must show its
+ * worst news: a Checklist card holding one breached item and forty healthy ones
+ * is a red card. Taking the max (rather than, say, the most common) is what
+ * keeps the headline grid honest — suppression is how the one card that matters
+ * gets to stand out, and a card that averages its rows would suppress the wrong
+ * thing.
+ *
+ * `neutral` is the floor, so an empty list reads as "no reading", not "clear".
+ */
+export function worstTone(tones: FigureTone[]): FigureTone {
+  return tones.reduce<FigureTone>(
+    (worst, tone) =>
+      TONE_RANK.indexOf(tone) > TONE_RANK.indexOf(worst) ? tone : worst,
+    "neutral",
+  );
+}

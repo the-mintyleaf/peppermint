@@ -1,0 +1,52 @@
+.card {
+  overflow: hidden;
+  transition:
+    box-shadow 150ms ease,
+    transform 150ms ease,
+    border-color 150ms ease;
+}
+
+/* Only the alert cards are buttons, so only they get a hover affordance — a
+   volume card that lifts would promise a destination it doesn't have. */
+.card[data-interactive="true"]:hover {
+  box-shadow: var(--mantine-shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--card-accent);
+}
+
+.card[data-interactive="true"]:active {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: box-shadow 150ms ease;
+  }
+
+  .card[data-interactive="true"]:hover,
+  .card[data-interactive="true"]:active {
+    transform: none;
+  }
+}
+
+/* The tinted strip that names the card. Colour comes from the tone variables the
+   component sets, so light and dark both resolve through Mantine's own tokens. */
+.header {
+  background-color: var(--card-tint);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+/* One hairline of the tone at full strength along the top edge. This is the
+   card's whole "expressive" budget: at a squint the grid reads as a row of
+   coloured edges, which is the fastest possible answer to "is anything wrong",
+   and it costs no saturation anywhere else on the page. */
+.accent {
+  height: 3px;
+  background-color: var(--card-accent);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+  border-radius: var(--mantine-radius-lg);
+}
