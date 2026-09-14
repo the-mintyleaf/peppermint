@@ -46,7 +46,7 @@ always-shown "Home" entry is the dashboard.
 | `dashboard.api.ts`         | 8 `fetch*` functions — only `fetchConversion`/`fetchOutcomes` take `{fiscal_year, country}`; `fetchActivity` takes only `{fiscal_year, page, page_size}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `dashboard.hooks.ts`       | 8 independent `useQuery` hooks + `useDashboardFilters` (URL-synced `fiscal_year`/`country`) + `useDashboardTab` (URL-synced `tab`, resolved against the tabs the caller may open so a forwarded or stale `?tab=` falls back instead of rendering an empty page) + three cross-module hooks: `useApplicantsByCountry` (bounded `useQueries` fan-out over `/applicants/?country=` reading `meta.count`), `useRecentApplicants`, and **`useDueReminders`** (THREE `/reminders/?status=active` window requests — overdue / today / upcoming — whose boundary dates are computed ONCE from `nepalToday()` and sent explicitly, so one clock partitions all three. Each returns its own `meta.count`, the real total for that window). `useDashboard{Blockers,Workload,Conversion,Outcomes}` take an `enabled` flag so a multi-view card only fetches the open view |
 | `dashboard.tabs.ts`        | `DASHBOARD_TABS` (value · label · subtitle · icon · capability gate) + `visibleDashboardTabs(caps)` — **the only place a tab is declared or gated.** Adding a tab here without a band in `DashboardBands.tsx` is a type error, not an empty panel                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `dashboard.tone.ts`        | `FigureTone` · `TONE_COLOR`/`TONE_WORD` · `toneForAlert(value, band)` · `toneForShare(value, total)` — **the single place a dashboard hue is chosen.** Tone is DERIVED per render from the figure, never passed as a fixed colour                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `dashboard.tone.ts`        | `FigureTone` · `TONE_COLOR`/`TONE_WORD` · `toneForAlert(value, band)` · `toneForShare(value, total)` · `worstTone(tones)` (a card of several figures wears its worst) — **the single place a dashboard hue is chosen.** Tone is DERIVED per render from the figure, never passed as a fixed colour                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `dashboard.typeScale.ts`   | The five type roles (`TYPE_GREETING` · `TYPE_SECTION` · `TYPE_CARD_TITLE` · `TYPE_FIGURE_LG` · `TYPE_FIGURE_SM`) + `DISPLAY_TRACKING`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `dashboard.labels.ts`      | Only labels/colors with no existing home (`ApplicantStatusKey`, `DocumentRow.family`, `JOURNEY_OUTCOME_COLORS`/`OFFER_DECISION_COLORS`) + section/group headings. Every enum whose owning module already exports a color map is imported CONCRETELY, never redefined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `dashboard.utils.ts`       | `formatDate`/`formatDateTime`/`formatSince`/`formatRatePercent`/`formatFetchedAt`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -61,21 +61,21 @@ is gated on `caps.dashboardOperations` (Admin). `visibleDashboardTabs(caps)` in
 `dashboard.tabs.ts` is the only place that decides, and `useDashboardTab` resolves
 `?tab=` against its result — never branch on a role name at a call site.
 
-**The headline tiles.** `OverviewStats` above the bar is NOT gated as a block: both
+**The headline cards.** `OverviewStats` above the bar is NOT gated as a block: both
 staff tiers get the three volumes, because scale is not privileged information.
-The alert tiles are gated **one at a time, on the capability the tile's destination
-route actually checks** — every tile is a button, and a button that lands the
+The alert cards are gated **one at a time, on the capability the card's destination
+route actually checks** — every card is a button, and a button that lands the
 operator on "Access Forbidden" is worse than the figure being absent:
 
-| Destination                 | Route's own gate | `lead_manager` |
-| --------------------------- | ---------------- | -------------- |
-| `/admin/checklists`         | `checklists`     | ✗              |
-| `/admin/files/review`       | `documents`      | ✗              |
-| `/admin/lead-management`    | `leads`          | ✓              |
-| `/admin/applicant-journeys` | `leads`          | ✓              |
-| `/admin/offers`             | `leads`          | ✓              |
+| Card                   | Destination                 | Route's own gate | `lead_manager` |
+| ---------------------- | --------------------------- | ---------------- | -------------- |
+| Checklist items        | `/admin/checklists`         | `checklists`     | ✗              |
+| Files                  | `/admin/files/review`       | `documents`      | ✗              |
+| Stale leads            | `/admin/lead-management`    | `leads`          | ✓              |
+| Journeys, no checklist | `/admin/applicant-journeys` | `leads`          | ✓              |
+| Offers awaiting reply  | `/admin/offers`             | `leads`          | ✓              |
 
-So a `lead_manager` gets three alert tiles, an `admin` all eight. **Read the gate off
+So a `lead_manager` gets three alert cards, an `admin` all five. **Read the gate off
 the destination page, not the nav rail** — they disagree for file review: the rail
 uses `caps.fileReview` (`layouts/admin/Admin.tsx`), the page uses `documents`
 (`RequireDocumentAccess`), and the page is what decides whether the click works.
@@ -114,15 +114,57 @@ Every card inside a tab measures against the SAME 12 columns:
 
 ### Above the bar — always rendered, never gated by tab
 
-`OverviewStats` is the whole of `/summary/` in one region: three `volumes` as 1/3
-`lg` tiles, then the `alerts` as a responsive tile grid, then the due-soon horizon.
-One request for all eleven figures, so this region is internally consistent even
-though the rest of the page carries no cross-section guarantee (INTEGRATION.md §3)
-— and it costs exactly one request whichever tab is open.
+`OverviewStats` is the whole of `/summary/` in one region: **eight cards of one
+size** in a `SimpleGrid` (`base 1 · xs 2 · md 3 · lg 4`). One request for all
+eleven figures, so this region is internally consistent even though the rest of
+the page carries no cross-section guarantee (INTEGRATION.md §3) — and it costs
+exactly one request whichever tab is open.
 
 **Nothing that needs a human sits behind a tab.** An alert one click away is an
 alert nobody sees on the morning it matters; the tabs hold detail, never the fact
 that something is wrong.
+
+**One size, three kinds of body.** Every card is the same width and height; what
+differs is the KIND of answer. `OverviewCard` is that card — a tone hairline on
+the top edge, a tinted strip naming the subject, a fixed-height body **slot**, a
+footer pairing the caption with the tone's word. `BODY_HEIGHT` was tuned against
+the tallest body (the donut plus legend) and then pulled in until a lone figure
+stopped floating; it was **measured on the rendered page at 1440/768/390**, so do
+not change it from the source alone.
+
+| Card                                 | Figures                                                    | Body     | Destination / gate                    |
+| ------------------------------------ | ---------------------------------------------------------- | -------- | ------------------------------------- |
+| Leads · Active applicants · Journeys | the 3 `summary.volumes`                                    | `figure` | none — not buttons, no destination    |
+| **Checklist items**                  | overdue · blocked · due soon                               | `meters` | `/admin/checklists` · `checklists`    |
+| **Files**                            | rejected · awaiting verification                           | `donut`  | `/admin/files/review` · `documents`   |
+| **Stale leads**                      | stale leads (+ share of `leads_total`)                     | `figure` | `/admin/lead-management` · `leads`    |
+| **Journeys, no checklist**           | journeys without a checklist (+ share of `journeys_total`) | `figure` | `/admin/applicant-journeys` · `leads` |
+| **Offers awaiting reply**            | offers awaiting response                                   | `figure` | `/admin/offers` · `leads`             |
+
+- **The eight alerts are grouped BY DESTINATION MODULE, not by severity.** That
+  grouping is what lets a card carry a chart at all — three checklist counts
+  compared against each other say "the overdue pile is twice the blocked one",
+  which none of them says alone — and it keeps the promise every card makes: one
+  card, one click, one list. It also collapses the access rule to **one gate per
+  card** rather than one per figure. A severity grouping was considered and
+  rejected: a card mixing entities has no single destination, so it cannot be a
+  button.
+- **Chart grammar comes from `dashboard.chartConfig.ts`, applied one level up**:
+  a magnitude comparison is `MeterBar`s, a total split into named parts is a
+  `DonutStat`. Do not swap one for the other to vary the look.
+- **A share track is only ever drawn against a `volumes` figure**, because both
+  halves of that fraction arrive in the same request. The bar is clamped at 100%;
+  the TEXT is not — an alert exceeding its denominator must read as the real
+  percentage, never as a tidy full bar.
+- **Tone is still derived**, now via `worstTone()` for a card carrying several
+  figures: a card wears its worst news, so one breach still re-colours one card
+  and suppression keeps doing the work (§1.1). Volumes are permanently `neutral`
+  — a volume is never an alert.
+- **The card's accessible name carries its individual figures**, not their total:
+  12/7/5 and 0/0/24 are very different mornings that both add up to 24.
+- States are owned by `SectionState` around the WHOLE grid, not per card — so a
+  pending or failed `/summary/` replaces the region rather than painting eight
+  cards of zeros. The per-card `isPending`/`isError` props are defensive only.
 
 ### The tabs
 
@@ -214,7 +256,7 @@ that something is wrong.
    card title → figure → supporting figure.
 3. **Adapt honestly** — the source design's trend line, per-worklist age buckets,
    per-blocker reason breakdowns and 14-day sparkline have NO backing endpoint. They
-   are not faked; each is replaced with the real data (preview rows, the alert tiles,
+   are not faked; each is replaced with the real data (preview rows, the alert cards,
    the `meta.count` total).
 4. **Chart grammar** — a **breakdown** of a total is a `DonutChart` (`DonutStat`); a
    **magnitude** comparison is a single-hue `BarChart` (`CategoryBarChart`); a multi-part
