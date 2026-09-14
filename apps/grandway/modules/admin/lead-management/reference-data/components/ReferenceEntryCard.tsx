@@ -38,16 +38,9 @@ export function ReferenceEntryCard({
     <Card withBorder padding="sm" radius="md">
       <Group justify="space-between" wrap="nowrap" align="flex-start">
         <Stack gap={4}>
-          <Group gap="xs" wrap="wrap">
-            <Text fw={600} size="sm">
-              {entry.name || entry.name_np || entry.name_en}
-            </Text>
-            {entry.name_en ? (
-              <Text size="sm" c="dimmed">
-                {entry.name_en}
-              </Text>
-            ) : null}
-          </Group>
+          <Text fw={600} size="sm">
+            {entry.name}
+          </Text>
           <Group gap={6} wrap="wrap">
             <Badge size="xs" variant="light" color="gray">
               {entry.code}
@@ -72,7 +65,7 @@ export function ReferenceEntryCard({
             <ActionIcon
               variant="subtle"
               size="sm"
-              aria-label={`Edit ${entry.name || entry.name_np}`}
+              aria-label={`Edit ${entry.name}`}
               onClick={onEdit}
               disabled={activeToggleDisabled}
             >
@@ -85,7 +78,7 @@ export function ReferenceEntryCard({
                 variant="subtle"
                 color="red"
                 size="sm"
-                aria-label={`Retire ${entry.name || entry.name_np}`}
+                aria-label={`Retire ${entry.name}`}
                 onClick={handleRetire}
                 loading={isSettingActive}
                 disabled={activeToggleDisabled}
@@ -98,7 +91,7 @@ export function ReferenceEntryCard({
               <ActionIcon
                 variant="subtle"
                 size="sm"
-                aria-label={`Reactivate ${entry.name || entry.name_np}`}
+                aria-label={`Reactivate ${entry.name}`}
                 onClick={() => onSetActive(true)}
                 loading={isSettingActive}
                 disabled={activeToggleDisabled}

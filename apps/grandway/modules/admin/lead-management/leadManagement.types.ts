@@ -74,16 +74,17 @@ export interface UserBrief {
   display_name: string;
 }
 
-/** Shared shape of `LeadSource` and `LossReason`. */
+/**
+ * Shared shape of `LeadSource` and `LossReason`.
+ *
+ * One name, in English. The bilingual `name_np`/`name_en`/`name_romanized`
+ * triple this used to carry was dropped server-side by
+ * `leads/migrations/0005_english_only_names.py` — the project is English-only.
+ */
 export interface ReferenceEntry {
   id: string;
   code: string;
-  // Live backend returns a single `name`; the bilingual fields remain optional
-  // so reads stay robust across both contract shapes.
-  name?: string;
-  name_np: string;
-  name_en: string;
-  name_romanized: string;
+  name: string;
   requires_detail: boolean;
   is_active: boolean;
   display_order: number;
@@ -117,12 +118,8 @@ export interface StudyInterest {
 /** `GET /leads/` row shape — trimmed relative to detail (no `study_interest`/lifecycle fields). */
 export interface Lead {
   id: string;
-  // Live backend returns a single `full_name`; the bilingual fields remain
-  // optional so reads stay robust across both contract shapes.
-  full_name?: string;
-  full_name_np: string;
-  full_name_en: string;
-  full_name_romanized: string;
+  /** One name, in English — see `ReferenceEntry` for why there is no `_np`/`_romanized` sibling. */
+  full_name: string;
   email: string;
   address: string;
   source: LeadSource;
@@ -284,8 +281,7 @@ export interface LeadNoteCreatePayload {
  */
 export interface ReferenceEntryCreatePayload {
   code: string;
-  name_np: string;
-  name_en?: string;
+  name: string;
   requires_detail?: boolean;
   is_active?: boolean;
   display_order?: number;

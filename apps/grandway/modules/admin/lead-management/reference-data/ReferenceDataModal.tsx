@@ -32,8 +32,7 @@ function toUpdatePayload(
   values: ReferenceEntryFormValues,
 ): ReferenceEntryUpdatePayload {
   return {
-    name_np: values.name_np,
-    name_en: values.name_en,
+    name: values.name,
     requires_detail: values.requires_detail,
     display_order: values.display_order,
   };

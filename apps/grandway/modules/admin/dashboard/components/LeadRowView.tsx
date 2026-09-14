@@ -21,7 +21,7 @@ import type { LeadRowViewProps } from "./LeadRowView.types";
  * carries the one real destination instead.
  */
 export function LeadRowView({ lead }: LeadRowViewProps) {
-  const name = lead.full_name?.trim() || lead.full_name_en || "Unnamed lead";
+  const name = lead.full_name.trim() || "Unnamed lead";
   const lastTouched = lead.last_followed_up_at;
 
   return (

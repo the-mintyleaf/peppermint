@@ -19,26 +19,9 @@ import { LeadNotesPanel } from "./LeadNotesPanel";
 import { LeadOverviewPanel } from "./LeadOverviewPanel";
 import type { LeadDetailDrawerProps } from "./LeadDetailDrawer.types";
 
-function leadDisplayName(lead: LeadDetail): string {
-  return lead.full_name || lead.full_name_en || lead.full_name_np;
-}
-
 /** Big heading — the profile's anchor. Stage lives in the property list below (as its switch). */
 function LeadProfileHeader({ lead }: { lead: LeadDetail }) {
-  const displayName = leadDisplayName(lead);
-  const romanized = lead.full_name_romanized;
-  const showRomanized = romanized && romanized !== displayName;
-
-  return (
-    <Stack gap={2}>
-      <Title order={2}>{displayName}</Title>
-      {showRomanized ? (
-        <Text size="sm" c="dimmed">
-          {romanized}
-        </Text>
-      ) : null}
-    </Stack>
-  );
+  return <Title order={2}>{lead.full_name}</Title>;
 }
 
 /**

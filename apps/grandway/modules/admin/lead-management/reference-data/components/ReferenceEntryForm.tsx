@@ -32,8 +32,7 @@ function buildSchema(mode: "create" | "edit") {
       mode === "create"
         ? z.string().min(1, "Required").max(50).regex(CODE_PATTERN, CODE_ERROR)
         : z.string(),
-    name_np: z.string().min(1, "Required").max(150),
-    name_en: z.string().max(150),
+    name: z.string().min(1, "Required").max(150),
     requires_detail: z.boolean(),
     display_order: z.number().int().min(0),
   });
@@ -41,13 +40,11 @@ function buildSchema(mode: "create" | "edit") {
 
 function toInitialValues(
   entry: ReferenceEntryFormProps["initialEntry"],
-  prefillNameNp?: string,
-  prefillNameEn?: string,
+  prefillName?: string,
 ): ReferenceEntryFormValues {
   return {
     code: entry?.code ?? "",
-    name_np: entry?.name_np ?? prefillNameNp ?? "",
-    name_en: entry?.name_en ?? prefillNameEn ?? "",
+    name: entry?.name ?? prefillName ?? "",
     requires_detail: entry?.requires_detail ?? false,
     display_order: entry?.display_order ?? 0,
   };
@@ -56,14 +53,13 @@ function toInitialValues(
 export function ReferenceEntryForm({
   mode,
   initialEntry,
-  prefillNameNp,
-  prefillNameEn,
+  prefillName,
   isSubmitting,
   onSubmit,
   onCancel,
 }: ReferenceEntryFormProps) {
   const schema = buildSchema(mode);
-  const initial = toInitialValues(initialEntry, prefillNameNp, prefillNameEn);
+  const initial = toInitialValues(initialEntry, prefillName);
 
   return (
     <FormWrapper<ReferenceEntryFormValues>
@@ -168,19 +164,14 @@ function Fields({
         }
       />
 
-      <Group grow align="flex-start">
-        <TextInput
-          label="Name (Nepali)"
-          required
-          disabled={isSubmitting}
-          {...form.getInputProps("name_np")}
-        />
-        <TextInput
-          label="Name (English)"
-          disabled={isSubmitting}
-          {...form.getInputProps("name_en")}
-        />
-      </Group>
+      <TextInput
+        label="Name"
+        description="What this shows as in the picker."
+        placeholder="Referral"
+        required
+        disabled={isSubmitting}
+        {...form.getInputProps("name")}
+      />
 
       <Divider />
 

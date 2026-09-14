@@ -73,16 +73,16 @@
 - **Auth failures:** 401 (framework-produced) with no/expired/revoked token. 403 `LEADS_ACTOR_FORBIDDEN` — "Your authority level may not perform this action." — when the token is valid but the authority type may not act here (any `superadmin` call; a `lead_manager` create/edit under `/sources/` or `/loss-reasons/`).
 - **Pagination:** page-number based, `page`/`page_size` (default 20, max 100). Paginated: lead list, notes list, history list — `meta` carries `count`, `page`, `page_size`, `next`, `previous` (absolute URLs or `null`). **Not paginated:** `/sources/` and `/loss-reasons/` — full array, `meta: {}`.
 - **IDs:** UUID strings. **Times:** ISO 8601 UTC (`2026-07-23T04:00:00Z`). User-facing datetimes additionally carry a `<field>_bs` sibling (Bikram Sambat projection, see `BsDate` below); `created_at`/`updated_at` never have one.
-- **Filter/search params — `GET /leads/` only:** `stage` (single value), `source` (a source id), `search` (case-insensitive OR match across `full_name_np`/`full_name_en`/`full_name_romanized`, trigram-indexed), `fiscal_year` (`YYYY/YY` Nepali fiscal year, filters on `created_at`). **No client-controlled ordering anywhere** — leads/notes/history always newest-first; sources/loss-reasons always `display_order` then `name_np`. **No `created_by`/owner filter exists.** `/sources/` and `/loss-reasons/` accept only `include_inactive=true`.
+- **Filter/search params — `GET /leads/` only:** `stage` (single value), `source` (a source id), `search` (case-insensitive OR match across `full_name`, `email`, and contact numbers, trigram-indexed), `fiscal_year` (`YYYY/YY` Nepali fiscal year, filters on `created_at`). **No client-controlled ordering anywhere** — leads/notes/history always newest-first; sources/loss-reasons always `display_order` then `name`. **No `created_by`/owner filter exists.** `/sources/` and `/loss-reasons/` accept only `include_inactive=true`.
 
 ## 4. Models
 
 **BsDate** — `{ year, month, day, month_name_en, month_name_np, display_en, display_np }` — never sent by a client.
 
-**ReferenceEntry** (shape shared by `LeadSource` and `LossReason`) — `{ id, code, name_np, name_en, name_romanized, requires_detail, is_active, display_order, created_at, updated_at }`
+**ReferenceEntry** (shape shared by `LeadSource` and `LossReason`) — `{ id, code, name, requires_detail, is_active, display_order, created_at, updated_at }`
 
 - `code`: ASCII `^[a-z0-9](?:[a-z0-9_-]{0,48}[a-z0-9])?$`, unique, immutable after creation, lowercased on write — **runtime-configured, never hardcode a code or its meaning.**
-- `name_romanized` is server-derived — never send it.
+- `name` is a single English name. The bilingual `name_np`/`name_en`/`name_romanized` triple was dropped by `leads/migrations/0005_english_only_names.py` — the project is English-only, so one record has one name.
 - `requires_detail: true` → the lead must supply an explanation (`source_detail` for a source, `detail` for a loss reason).
 - `is_active: false` → retired: stays attached to old leads, must not appear in a picker. **No delete endpoint exists — "Retire," never "Delete."**
 
@@ -92,7 +92,7 @@
 
 **UserBrief** — `{ id, username, display_name }`.
 
-**Lead — list shape** (`GET /leads/` rows): `{ id, full_name_np, full_name_en, full_name_romanized, email, address, source: ReferenceEntry, source_detail, stage: enum, created_by: UserBrief, contact_numbers: ContactNumber[], last_followed_up_at?, last_followed_up_at_bs?: BsDate, created_at, updated_at }`
+**Lead — list shape** (`GET /leads/` rows): `{ id, full_name, email, address, source: ReferenceEntry, source_detail, stage: enum, created_by: UserBrief, contact_numbers: ContactNumber[], last_followed_up_at?, last_followed_up_at_bs?: BsDate, created_at, updated_at }`
 
 **Lead — detail shape** (retrieve, create, update, and **every lifecycle action** — only the list endpoint returns the shorter shape above): list shape **plus** `{ study_interest?: StudyInterest|null, last_followed_up_by?: UserBrief, lost_reason?: ReferenceEntry, lost_detail, lost_at?, lost_at_bs?: BsDate, lost_by?: UserBrief, stage_before_loss, converted_at?, converted_at_bs?: BsDate, converted_by?: UserBrief, converted_applicant_id?: string|null, converted_journey_id?: string|null }`.
 
@@ -158,14 +158,14 @@
 
 ### Request bodies (write endpoints)
 
-- **Create/Update lead:** `{ full_name_np (required), full_name_en?, email?, address?, source (required, id), source_detail? (required iff source.requires_detail), contact_numbers (required, ≥1 on create; whole-set-replace), study_interest? }`. Update = same shape, every field optional except the required-≥1 rule on `contact_numbers` when sent.
+- **Create/Update lead:** `{ full_name (required), email?, address?, source (required, id), source_detail? (required iff source.requires_detail), contact_numbers (required, ≥1 on create; whole-set-replace), study_interest? }`. Update = same shape, every field optional except the required-≥1 rule on `contact_numbers` when sent.
 - **Stage change:** `{ stage (required, one of the 6 selectable) }`
 - **Follow-up:** `{ note? (default ""), stage? (one of the 6 selectable), followed_up_at? (defaults now) }`
 - **Mark lost:** `{ loss_reason (required, id), detail? (default "", required in practice when reason.requires_detail) }`
 - **Reopen:** `{ stage? (one of the 6 selectable, defaults `follow_up`) }`
 - **Convert:** `{}` (empty body). **Returns:** `{ lead: <Lead detail shape, stage: converted>, applicant_id, journey_id }` — use the two ids to navigate directly, no extra fetch needed.
 - **Note create:** `{ body (required) }`
-- **Source/loss-reason create:** `{ code (required), name_np (required), name_en?, requires_detail?, is_active?, display_order? }`
+- **Source/loss-reason create:** `{ code (required), name?, requires_detail?, is_active?, display_order? }`
 - **Source/loss-reason update:** same minus `code` (immutable, omitted from the update shape entirely).
 
 ## 8. Error codes

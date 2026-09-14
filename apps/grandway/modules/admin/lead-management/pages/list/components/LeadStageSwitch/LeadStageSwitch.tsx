@@ -79,7 +79,7 @@ export function LeadStageSwitch({ lead }: LeadStageSwitchProps) {
         labelMap={STAGE_LABELS}
         targets={targets}
         menuLabel="Move to stage"
-        entityLabel={lead.full_name || lead.full_name_en || lead.full_name_np}
+        entityLabel={lead.full_name}
         terminal={isClosed}
         actions={actions}
         onConfirm={(value) =>

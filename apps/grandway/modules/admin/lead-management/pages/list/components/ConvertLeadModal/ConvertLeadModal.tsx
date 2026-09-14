@@ -30,7 +30,7 @@ export function ConvertLeadModal({
 }: ConvertLeadModalProps) {
   const router = useRouter();
   const mutation = useConvertLead(lead.id);
-  const displayName = lead.full_name || lead.full_name_en || lead.full_name_np;
+  const displayName = lead.full_name;
 
   const handleConvert = () => {
     mutation.mutate(undefined, {

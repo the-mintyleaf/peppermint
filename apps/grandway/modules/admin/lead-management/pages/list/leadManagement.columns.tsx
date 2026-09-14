@@ -23,10 +23,7 @@ export function getLeadManagementColumns({
       render: (lead: LeadBoardRow) => (
         <Stack gap={0}>
           <Text size="xs" fw={500}>
-            {lead.full_name ||
-              lead.full_name_en ||
-              lead.full_name_np ||
-              lead.full_name_romanized}
+            {lead.full_name}
           </Text>
           {lead.email ? (
             <Text size="xs" c="dimmed">
@@ -56,14 +53,10 @@ export function getLeadManagementColumns({
         type: "select",
         options: sources.map((source) => ({
           value: source.id,
-          label: source.name || source.name_en || source.name_np,
+          label: source.name,
         })),
       },
-      render: (lead: LeadBoardRow) => (
-        <Text size="xs">
-          {lead.source.name || lead.source.name_en || lead.source.name_np}
-        </Text>
-      ),
+      render: (lead: LeadBoardRow) => <Text size="xs">{lead.source.name}</Text>,
     },
     {
       accessor: "contact_numbers",

@@ -29,7 +29,7 @@ export function LeadRowActionsMenu({
     <>
       <RowActionsMenu<LeadBoardRow>
         record={lead}
-        aria-label={`Actions for ${lead.full_name || lead.full_name_en || lead.full_name_np}`}
+        aria-label={`Actions for ${lead.full_name}`}
         actions={[
           {
             label: "View details",

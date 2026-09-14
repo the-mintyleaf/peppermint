@@ -41,7 +41,7 @@ export function ReopenLeadModal({
     <Modal
       opened={opened}
       onClose={handleClose}
-      title={`Reopen — ${lead.full_name || lead.full_name_en || lead.full_name_np}`}
+      title={`Reopen — ${lead.full_name}`}
       centered
     >
       <Stack gap="md" p="md">

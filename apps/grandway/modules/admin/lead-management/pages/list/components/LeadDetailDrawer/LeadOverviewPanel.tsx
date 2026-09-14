@@ -73,10 +73,7 @@ export function LeadOverviewPanel({ lead }: { lead: LeadDetail }) {
           }
         />
 
-        <DetailField
-          label="Source"
-          value={lead.source.name || lead.source.name_en || lead.source.name_np}
-        />
+        <DetailField label="Source" value={lead.source.name} />
         {lead.source_detail ? (
           <DetailField label="Source detail" value={lead.source_detail} />
         ) : null}
@@ -182,12 +179,7 @@ export function LeadOverviewPanel({ lead }: { lead: LeadDetail }) {
           <>
             <DetailField
               label="Lost reason"
-              value={
-                lead.lost_reason?.name ||
-                lead.lost_reason?.name_en ||
-                lead.lost_reason?.name_np ||
-                null
-              }
+              value={lead.lost_reason?.name ?? null}
             />
             {lead.lost_detail ? (
               <DetailField label="Lost detail" value={lead.lost_detail} />

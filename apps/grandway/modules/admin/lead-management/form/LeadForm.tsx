@@ -33,8 +33,6 @@ import { StudyInterestSection } from "./StudyInterestSection";
 import type { LeadFormValues, StudyInterestFormValues } from "./LeadForm.types";
 
 const CREATE_SOURCE_VALUE = "__create_new_source__";
-/** Devanagari Unicode block — used to route search text to `name_np` vs `name_en` when prefilling a quick-created source. */
-const DEVANAGARI_PATTERN = /[ऀ-ॿ]/;
 
 const INITIAL_STUDY_INTEREST: StudyInterestFormValues = {
   interested_countries: [],
@@ -80,8 +78,7 @@ function toFormValues(record?: Partial<LeadBoardRow>): LeadFormValues {
   if (!record) return INITIAL;
   const interest = record.study_interest;
   return {
-    full_name:
-      record.full_name ?? record.full_name_en ?? record.full_name_np ?? "",
+    full_name: record.full_name ?? "",
     email: record.email ?? "",
     address: record.address ?? "",
     source: record.source?.id ?? "",
@@ -307,13 +304,13 @@ function Fields({
   // saving the rest of the edit.
   const sourceOptions = sources.map((s) => ({
     value: s.id,
-    label: s.name || s.name_en || s.name_np,
+    label: s.name,
   }));
 
   const trimmedSearch = sourceSearch.trim();
   const filteredSourceOptions = trimmedSearch
     ? sourceOptions.filter((o) =>
-        (o.label ?? "").toLowerCase().includes(trimmedSearch.toLowerCase()),
+        o.label.toLowerCase().includes(trimmedSearch.toLowerCase()),
       )
     : sourceOptions;
   // Only Admins may create a source (`LEADS_ACTOR_FORBIDDEN` for anyone else
@@ -398,16 +395,7 @@ function Fields({
             </Text>
             <ReferenceEntryForm
               mode="create"
-              prefillNameNp={
-                DEVANAGARI_PATTERN.test(trimmedSearch)
-                  ? trimmedSearch
-                  : undefined
-              }
-              prefillNameEn={
-                trimmedSearch && !DEVANAGARI_PATTERN.test(trimmedSearch)
-                  ? trimmedSearch
-                  : undefined
-              }
+              prefillName={trimmedSearch || undefined}
               isSubmitting={createSourceMutation.isPending}
               onSubmit={async (values) => {
                 try {

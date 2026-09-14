@@ -7,8 +7,7 @@ import type { ReferenceEntry } from "../../leadManagement.types";
  */
 export interface ReferenceEntryFormValues extends Record<string, unknown> {
   code: string;
-  name_np: string;
-  name_en: string;
+  name: string;
   requires_detail: boolean;
   display_order: number;
 }
@@ -17,10 +16,8 @@ export interface ReferenceEntryFormProps {
   mode: "create" | "edit";
   /** Required when `mode === "edit"` — supplies `code` (read-only) and the initial values. */
   initialEntry?: ReferenceEntry;
-  /** `mode === "create"` only — e.g. a quick-create trigger's search text, once script-sniffed. */
-  prefillNameNp?: string;
-  /** `mode === "create"` only — same as `prefillNameNp`, for text that isn't Devanagari. */
-  prefillNameEn?: string;
+  /** `mode === "create"` only — e.g. a quick-create trigger's search text. */
+  prefillName?: string;
   isSubmitting: boolean;
   onSubmit: (
     values: ReferenceEntryFormValues,
