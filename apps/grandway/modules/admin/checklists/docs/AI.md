@@ -15,8 +15,13 @@ MultiPageModule with TWO distinct route trees under one module: Templates
 
 A template has **no detail route** — it opens in `TemplateDrawer` over the
 templates list (`_shared/TemplateDrawer`, the same move `WorklistDrawer` made).
-`/admin/checklists/templates?template=<id>` opens the drawer on that template;
-that is the deep link global search uses.
+`/admin/checklists/templates?template=<id>` opens the drawer on that template
+— that param IS the drawer's state (read every render, rewritten by `replace`
+on open/close), not a one-shot seed, because global search can deep-link here
+while the list is already mounted. It is also the deep link global search uses.
+A duplicate derived `key` comes back as a generic `VALIDATION_ERROR` against a
+field create never shows, so `checklists.errors.ts` rewrites that one case into
+label language.
 
 ## Routes
 
@@ -68,6 +73,7 @@ that is the deep link global search uses.
 | checklists.types.ts     | DTOs for both resources — `ChecklistTemplate(Item)`, `Checklist(Detail)`, `ChecklistItem`, `JourneyAwaitingChecklist` (a DISTINCT type, never merged with `Checklist`), all payloads |
 | checklists.labels.ts    | Status/origin/item-type label + color maps, `*_OPTIONS` for selects                                                                                                                  |
 | checklists.queryKeys.ts | `templateQueryKeys` + `checklistQueryKeys` (two `createQueryKeys` sets) + `awaitingChecklistKey` (own cache slot, not nested under either)                                           |
+| checklists.errors.ts    | `getTemplateErrorMessage` — the duplicate-`key` `VALIDATION_ERROR` retold against the label, since create never renders `key`                                                        |
 | checklists.api.ts       | `templateResource`/`checklistResource` (`createResourceApi`) + hand-rolled item/status/safety-net functions                                                                          |
 | checklists.hooks.ts     | All reads/writes for both resources; `useUpdateItemStatus` is the one mutation where invalidating the checklist's own `detail(id)` is not optional                                   |
 

@@ -9,10 +9,13 @@ import type { TemplateRowActionsMenuProps } from "./TemplateRowActionsMenu.types
 
 /**
  * "View items" opens the template drawer (where the item list, publish/retire,
- * and add-requirement live) — Admin or Lead Manager may read it. "Edit" delegates to the shell's own edit modal and is Admin-only (§1);
- * the list itself is gated `RequireLeadAccess`, not exact-admin, so this
- * menu hides Edit itself rather than offering a control the shell can't back
- * (`editFormComponent`/`onEditApi` are `undefined` for a non-admin).
+ * and add-requirement live) — Admin or Lead Manager may read it. "Edit"
+ * delegates to the shell's own edit modal and is Admin-only (§1). The screen is
+ * Admin-only too (`RequireCapability capability="checklists"`), but this menu
+ * still hides Edit itself rather than offering a control the shell can't back
+ * (`editFormComponent`/`onEditApi` are `undefined` for a non-admin) — it
+ * encodes the backend rule directly, and would still hold if template reads
+ * were reopened to staff.
  */
 export function TemplateRowActionsMenu({
   template,

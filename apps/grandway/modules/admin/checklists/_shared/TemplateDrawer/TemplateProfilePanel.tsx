@@ -23,6 +23,7 @@ import {
 } from "../../checklists.labels";
 import { AddTemplateItemModal } from "./components/AddTemplateItemModal";
 import { TemplateItemsList } from "./components/TemplateItemsList";
+import type { TemplateProfilePanelProps } from "./TemplateProfilePanel.types";
 
 /**
  * A workflow template worked in place — the same header, lifecycle actions and
@@ -30,7 +31,9 @@ import { TemplateItemsList } from "./components/TemplateItemsList";
  * write gates stay Admin-only (§1): the backend grants a `lead_manager` reads,
  * so the controls hide rather than 403.
  */
-export function TemplateProfilePanel({ templateId }: { templateId: string }) {
+export function TemplateProfilePanel({
+  templateId,
+}: TemplateProfilePanelProps) {
   const [addItemOpen, setAddItemOpen] = useState(false);
   const { authorityType } = useCurrentUser();
   const isAdmin = authorityType === "admin";

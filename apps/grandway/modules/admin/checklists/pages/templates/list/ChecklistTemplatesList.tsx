@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useCallback } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ModalTableShell } from "@peppermint/admin";
 import { ModalPaper } from "@peppermint/ui";
 import { RequireCapability } from "@/components/RequireCapability";
-import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import { TemplateDrawer } from "../../../_shared/TemplateDrawer";
 import {
@@ -14,6 +13,7 @@ import {
   listTemplates,
   updateTemplate,
 } from "../../../checklists.api";
+import { getTemplateErrorMessage } from "../../../checklists.errors";
 import { templateQueryKeys } from "../../../checklists.queryKeys";
 import type { ChecklistTemplate } from "../../../checklists.types";
 import {
@@ -33,11 +33,28 @@ import { getTemplatesColumns } from "./templates.columns";
  * still hold if template reads were ever reopened to staff.
  */
 function ChecklistTemplatesListContent() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  // A deep link (global search) names the template to open; from then on the
-  // drawer is local state, so closing it doesn't push a history entry.
-  const [openedId, setOpenedId] = useState<string | null>(() =>
-    searchParams.get("template"),
+
+  // The open template lives in the URL, not in component state. Global search
+  // deep-links to `?template=<id>` and can land here while the list is already
+  // mounted, so reading the param every render is the only way the drawer
+  // reliably follows it; opening and closing rewrite the same param (`replace`,
+  // so the back button still leaves the list) and leave the shell's own query
+  // params untouched.
+  const openedId = searchParams.get("template");
+  const setOpenedId = useCallback(
+    (templateId: string | null) => {
+      const next = new URLSearchParams(searchParams);
+      if (templateId) next.set("template", templateId);
+      else next.delete("template");
+      const query = next.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [searchParams, pathname, router],
   );
   const { authorityType } = useCurrentUser();
   const isAdmin = authorityType === "admin";
@@ -80,7 +97,7 @@ function ChecklistTemplatesListContent() {
             : undefined
         }
         onEditTrigger={(record) => getTemplate(record.id)}
-        getErrorMessage={getApiErrorMessage}
+        getErrorMessage={getTemplateErrorMessage}
         disableReviewButton
         pageSizes={[10, 20, 30, 50]}
         defaultPageSize={20}
