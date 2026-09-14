@@ -142,7 +142,7 @@ export function DashboardOverview() {
               which would fire every tab's queries on first paint. Only the open
               band should cost anything. */}
           <Tabs value={tab} onChange={setTab} keepMounted={false}>
-            <Tabs.List>
+            <Tabs.List aria-label="Dashboard sections">
               {tabs.map((spec) => (
                 <Tabs.Tab
                   key={spec.value}

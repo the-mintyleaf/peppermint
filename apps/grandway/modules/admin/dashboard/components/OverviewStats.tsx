@@ -9,6 +9,8 @@ import { FileMagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/FileMagn
 import { HandshakeIcon } from "@phosphor-icons/react/dist/csr/Handshake";
 import { ListChecksIcon } from "@phosphor-icons/react/dist/csr/ListChecks";
 import { UsersIcon } from "@phosphor-icons/react/dist/csr/Users";
+import { useCapabilities } from "@/config/access";
+import type { CapabilityName } from "@/config/access";
 import { useDashboardSummary } from "../dashboard.hooks";
 import { toneForAlert, type AlertBand } from "../dashboard.tone";
 import type { DashboardSummary } from "../dashboard.types";
@@ -63,6 +65,16 @@ interface AlertSpec {
    *  the control rather than pre-fill it (`apps/grandway/docs/AI.md`). */
   href: string;
   destination: string;
+  /**
+   * The capability `href`'s route ACTUALLY checks — not the one that sounds
+   * right. A tile whose destination would 403 is not shown at all: every tile
+   * here is a button, and a button that lands the operator on "Access
+   * Forbidden" is worse than the figure being absent. Keep this in step with
+   * the gate on the destination page, not with the nav rail (the rail gates
+   * `/admin/files/review` on `fileReview`; the page itself gates on
+   * `documents`, and the page is what decides whether the click works).
+   */
+  capability: CapabilityName;
 }
 
 /**
@@ -79,6 +91,7 @@ const ALERTS: AlertSpec[] = [
     band: "critical",
     href: "/admin/checklists",
     destination: "Checklists",
+    capability: "checklists",
   },
   {
     key: "rejected_files",
@@ -87,6 +100,7 @@ const ALERTS: AlertSpec[] = [
     band: "critical",
     href: "/admin/files/review",
     destination: "File review",
+    capability: "documents",
   },
   {
     key: "blocked_checklist_items",
@@ -95,6 +109,7 @@ const ALERTS: AlertSpec[] = [
     band: "warning",
     href: "/admin/checklists",
     destination: "Checklists",
+    capability: "checklists",
   },
   {
     key: "stale_leads",
@@ -103,6 +118,7 @@ const ALERTS: AlertSpec[] = [
     band: "warning",
     href: "/admin/lead-management",
     destination: "Lead board",
+    capability: "leads",
   },
   {
     key: "journeys_without_a_checklist",
@@ -111,6 +127,7 @@ const ALERTS: AlertSpec[] = [
     band: "warning",
     href: "/admin/applicant-journeys",
     destination: "Journeys",
+    capability: "leads",
   },
   {
     key: "offers_awaiting_response",
@@ -119,6 +136,7 @@ const ALERTS: AlertSpec[] = [
     band: "info",
     href: "/admin/offers",
     destination: "Offers",
+    capability: "leads",
   },
   {
     key: "files_awaiting_verification",
@@ -127,6 +145,7 @@ const ALERTS: AlertSpec[] = [
     band: "info",
     href: "/admin/files/review",
     destination: "File review",
+    capability: "documents",
   },
   {
     key: "due_soon_checklist_items",
@@ -135,6 +154,7 @@ const ALERTS: AlertSpec[] = [
     band: "info",
     href: "/admin/checklists",
     destination: "Checklists",
+    capability: "checklists",
   },
 ];
 
@@ -161,8 +181,20 @@ const ALERTS: AlertSpec[] = [
  */
 export function OverviewStats({ filters }: OverviewStatsProps) {
   const router = useRouter();
+  const caps = useCapabilities();
   const { data, isPending, isError, refetch, isRefetching } =
     useDashboardSummary(filters);
+
+  // Only the alerts this caller can actually act on. A `lead_manager` has
+  // neither `checklists` nor `documents`, so the three checklist tiles and the
+  // two file tiles would each land them on "Access Forbidden" — they get the
+  // three funnel alerts and the volumes instead. The request is unchanged
+  // either way: `/summary/` returns all eight figures and always did.
+  const alerts = ALERTS.filter((spec) => caps[spec.capability]);
+  // The horizon only explains the Due soon tile, so it goes when that tile does.
+  const showsDueSoon = alerts.some(
+    (spec) => spec.key === "due_soon_checklist_items",
+  );
 
   return (
     <SectionState
@@ -189,30 +221,32 @@ export function OverviewStats({ filters }: OverviewStatsProps) {
           ))}
         </SimpleGrid>
 
-        <SimpleGrid cols={{ base: 1, xs: 2, sm: 3, lg: 4 }} spacing="sm">
-          {ALERTS.map((spec) => {
-            const value = data?.alerts[spec.key];
-            return (
-              <StatTile
-                key={spec.key}
-                label={spec.label}
-                value={value}
-                icon={spec.icon}
-                size="sm"
-                tone={toneForAlert(value, spec.band)}
-                caption={`Open ${spec.destination}`}
-                isPending={isPending}
-                isError={isError}
-                onActivate={() => router.push(spec.href)}
-                activateLabel={`${spec.label}: ${
-                  value ?? "unavailable"
-                }. Open ${spec.destination}.`}
-              />
-            );
-          })}
-        </SimpleGrid>
+        {alerts.length > 0 ? (
+          <SimpleGrid cols={{ base: 1, xs: 2, sm: 3, lg: 4 }} spacing="sm">
+            {alerts.map((spec) => {
+              const value = data?.alerts[spec.key];
+              return (
+                <StatTile
+                  key={spec.key}
+                  label={spec.label}
+                  value={value}
+                  icon={spec.icon}
+                  size="sm"
+                  tone={toneForAlert(value, spec.band)}
+                  caption={`Open ${spec.destination}`}
+                  isPending={isPending}
+                  isError={isError}
+                  onActivate={() => router.push(spec.href)}
+                  activateLabel={`${spec.label}: ${
+                    value ?? "unavailable"
+                  }. Open ${spec.destination}.`}
+                />
+              );
+            })}
+          </SimpleGrid>
+        ) : null}
 
-        {data ? (
+        {data && showsDueSoon ? (
           <Text size="xs" c="dimmed">
             Due-soon horizon: {data.due_within_days} days.
           </Text>
