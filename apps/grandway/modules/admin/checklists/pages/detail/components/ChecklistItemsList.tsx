@@ -43,6 +43,9 @@ const STATUS_ORDER: ItemStatus[] = [
 /** The status switch's column: one width for every row, so the labels line up. */
 const SWITCH_WIDTH = 160;
 
+/** `gap="sm"` in pixels — what the secondary lines indent past to clear the gutter. */
+const GUTTER_GAP = 12;
+
 interface StatusGroup {
   status: ItemStatus;
   items: ChecklistItem[];
@@ -59,7 +62,14 @@ function groupByStatus(items: ChecklistItem[]): StatusGroup[] {
 }
 
 /**
- * One item: its status switch in a fixed left gutter, then the work itself.
+ * One item: its status switch in a fixed left gutter, the work itself beside
+ * it, and the item's tags pushed to the right edge where they stack into a
+ * column of their own down the list. Switch, label, tags and the edit control
+ * share one centreline — a pill is taller than its label, and left-aligning
+ * their tops makes every row look a few pixels out. Secondary lines (the
+ * description, a status note, evidence) hang under the label, indented past
+ * the gutter so the column edge holds.
+ *
  * The switch *is* the item's status — there is no separate status badge, and
  * no "Update status" button, because the thing showing the state is the thing
  * that changes it.
@@ -79,6 +89,12 @@ function ItemRow({
   onOpenStatusModal: (item: ChecklistItem, initialStatus: ItemStatus) => void;
   onEdit: (item: ChecklistItem) => void;
 }) {
+  const details = [
+    item.description,
+    item.status_note ? `Note: ${item.status_note}` : "",
+    item.evidence_file ? "Evidence attached" : "",
+  ].filter(Boolean);
+
   return (
     <Paper
       withBorder
@@ -90,61 +106,57 @@ function ItemRow({
           : undefined
       }
     >
-      <Group align="flex-start" wrap="nowrap" gap="sm">
-        <Box w={SWITCH_WIDTH} style={{ flexShrink: 0 }}>
-          <ChecklistItemStatusSwitch
-            checklistId={checklist.id}
-            item={item}
-            frozen={frozen}
-            onOpenStatusModal={onOpenStatusModal}
-          />
-        </Box>
+      <Stack gap={4}>
+        <Group align="center" wrap="nowrap" gap="sm">
+          <Box w={SWITCH_WIDTH} style={{ flexShrink: 0 }}>
+            <ChecklistItemStatusSwitch
+              checklistId={checklist.id}
+              item={item}
+              frozen={frozen}
+              onOpenStatusModal={onOpenStatusModal}
+            />
+          </Box>
 
-        <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
-          <Group gap="xs">
-            <Text size="xs" fw={500}>
-              {item.label}
-            </Text>
-            <Badge size="xs" variant="light">
-              {ITEM_TYPE_LABELS[item.item_type]}
-            </Badge>
-            {item.is_required ? (
-              <Badge size="xs" variant="outline" color="orange">
-                Required
-              </Badge>
-            ) : null}
+          <Text size="xs" fw={500} style={{ flex: 1, minWidth: 0 }}>
+            {item.label}
+          </Text>
+
+          <Group gap={6} wrap="nowrap" style={{ flexShrink: 0 }}>
             {isOutstanding ? (
               <Badge size="xs" variant="filled" color="red">
                 Outstanding
               </Badge>
             ) : null}
+            {item.is_required ? (
+              <Badge size="xs" variant="outline" color="orange">
+                Required
+              </Badge>
+            ) : null}
+            <Badge size="xs" variant="light">
+              {ITEM_TYPE_LABELS[item.item_type]}
+            </Badge>
           </Group>
-          {item.description ? (
-            <Text size="xs" c="dimmed">
-              {item.description}
-            </Text>
-          ) : null}
-          {item.status_note ? (
-            <Text size="xs" c="dimmed">
-              Note: {item.status_note}
-            </Text>
-          ) : null}
-          {item.evidence_file ? (
-            <Text size="xs" c="dimmed">
-              Evidence attached
-            </Text>
-          ) : null}
-        </Stack>
 
-        <ActionIcon
-          variant="subtle"
-          color="gray"
-          aria-label={`Edit ${item.label}`}
-          onClick={() => onEdit(item)}
-        >
-          <PencilSimpleIcon size={16} aria-hidden />
-        </ActionIcon>
-      </Group>
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            aria-label={`Edit ${item.label}`}
+            onClick={() => onEdit(item)}
+          >
+            <PencilSimpleIcon size={16} aria-hidden />
+          </ActionIcon>
+        </Group>
+
+        {details.length > 0 ? (
+          <Stack gap={2} ml={SWITCH_WIDTH + GUTTER_GAP}>
+            {details.map((line) => (
+              <Text key={line} size="xs" c="dimmed">
+                {line}
+              </Text>
+            ))}
+          </Stack>
+        ) : null}
+      </Stack>
     </Paper>
   );
 }
