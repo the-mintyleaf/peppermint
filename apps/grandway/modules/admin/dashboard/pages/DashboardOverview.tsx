@@ -1,46 +1,43 @@
 "use client";
 
+import type { ComponentType } from "react";
 import { ModuleErrorBoundary } from "@peppermint/admin";
 import {
-  Grid,
   ModalPaper,
   ModuleHeader,
   Stack,
+  Tabs,
   Text,
   useQueryClient,
 } from "@peppermint/ui";
 import { useCapabilities } from "@/config/access";
 import { applicantsQueryKeys } from "@/modules/admin/applicants/applicants.queryKeys";
 import { dueRemindersKey } from "@/modules/admin/reminders/reminders.queryKeys";
-import { useDashboardFilters, useDashboardSummary } from "../dashboard.hooks";
-import { ActivityPanel } from "../components/ActivityPanel";
-import { ApplicantCountryStats } from "../components/ApplicantCountryStats";
-import { ApplicantStatTiles } from "../components/ApplicantStatTiles";
-import { AttentionPanel } from "../components/AttentionPanel";
-import { BlockersPanel } from "../components/BlockersPanel";
+import {
+  useDashboardFilters,
+  useDashboardSummary,
+  useDashboardTab,
+} from "../dashboard.hooks";
+import {
+  visibleDashboardTabs,
+  type DashboardTabValue,
+} from "../dashboard.tabs";
+import {
+  ApplicantsBand,
+  LeadsBand,
+  OperationsBand,
+} from "../components/DashboardBands";
 import { DashboardGreeting } from "../components/DashboardGreeting";
 import { DashboardHeaderControls } from "../components/DashboardHeaderControls";
-import { LeadStatTiles } from "../components/LeadStatTiles";
-import { LeadStats } from "../components/LeadStats";
-import { LeadsToAddress } from "../components/LeadsToAddress";
-import { PerformancePanel } from "../components/PerformancePanel";
-import { PipelinePanel } from "../components/PipelinePanel";
-import { RecentApplicants } from "../components/RecentApplicants";
-import { RemindersPanel } from "../components/RemindersPanel";
+import { OverviewStats } from "../components/OverviewStats";
 import { SectionBand } from "../components/SectionBand";
-import { TodayPanel } from "../components/TodayPanel";
-import { WorkloadPanel } from "../components/WorkloadPanel";
+import type { DashboardBandProps } from "../components/DashboardBands.types";
 
-/**
- * Every card measures against the same twelve columns: a large card is half the
- * page, a stat card a sixth, and the tile column a sixth of that half — so a
- * card's width tells you what kind of thing it is before you read it.
- */
 /**
  * Every cache root the "Refresh all" control has to reach.
  *
  * `["dashboard"]` covers the eight contract sections. The other two are
- * cross-module reads that sit under their own roots — the Follow-ups band
+ * cross-module reads that sit under their own roots — the Follow-ups card
  * (`reminders.due`) and the per-country applicant counts / recent applicants
  * (`applicants`) — and a prefix match will never find them from here.
  */
@@ -50,45 +47,70 @@ const REFRESH_KEYS = [
   applicantsQueryKeys.all,
 ] as const;
 
-const LARGE = { base: 12, lg: 6 } as const;
-const MEDIUM = { base: 12, sm: 8, lg: 4 } as const;
-const SMALL = { base: 12, sm: 4, lg: 2 } as const;
+/** The body each tab renders. Keyed by tab value so the tab list stays the one
+ *  place a tab is declared — adding a tab to `dashboard.tabs.ts` without a band
+ *  here is a type error rather than an empty panel. */
+const BANDS: Record<DashboardTabValue, ComponentType<DashboardBandProps>> = {
+  leads: LeadsBand,
+  applicants: ApplicantsBand,
+  operations: OperationsBand,
+};
 
 /**
  * The operational command centre, read top to bottom.
  *
- * The page opens on the operator by name, then goes straight to work in the
- * order the work decays: leads rot fastest, so they lead; the people those leads
- * became — and the follow-ups owed against them — come second; everything that
- * is a standing measure rather than a thing to do today sits below both. There are no tabs — the reading order is the
- * page's, not a choice the operator has to make before they can see anything
- * (§1.6: an always-visible option is paid for on every visit, by everyone).
+ * The page opens on the operator by name, then answers the two questions a
+ * dashboard owes, in the order it owes them (`DESIGN.md` Part 5C):
  *
- * Each of the first two bands pairs a LEFT column of figures with a RIGHT card
- * of rows: the figures say how much, the rows are where you act.
+ * 1. **Is the office healthy?** — `OverviewStats`, always visible above the bar:
+ *    three standing volumes and the eight things with a clock on them, out of
+ *    ONE `/summary/` request. Nothing that needs a human is ever behind a tab,
+ *    because an alert one click away is an alert nobody sees on the morning it
+ *    matters ("at a glance, no tab-hunting").
+ * 2. **What is behind those figures?** — the tabs, in the order the work decays:
+ *    leads rot fastest, the people those leads became come second, and standing
+ *    measurement comes last.
  *
- * The eight contract sections are still independent — one request each, one
- * `ModuleErrorBoundary` per band, so a slow or failing section never blocks the
- * rest of the page (CONCEPT.md). A card with several views fetches only the open
- * one, which is what the old tab bar bought and is kept here without it.
+ * The eight contract sections stay independent — one request each, one
+ * `ModuleErrorBoundary` per region, so a slow or failing section never blocks
+ * the rest of the page (CONCEPT.md). `keepMounted={false}` is load-bearing:
+ * Mantine keeps hidden panels mounted by DEFAULT, which would fire every tab's
+ * queries on first paint and quietly undo the whole saving. With it the page
+ * opens on the headline request plus one band's, and React Query keeps what has
+ * already landed, so coming back to a tab is instant rather than a second
+ * round-trip.
  *
  * **Follow-ups is a ninth section that is not part of the dashboard contract at
  * all** — `/api/v1/dashboard/` has no reminder data, so that card reads
  * `/api/v1/reminders/` directly. It carries the same no-cross-section-
  * consistency caveat as the other eight, and it sits in the **Applicants**
- * band on purpose (see the comment at the card).
+ * tab on purpose (see the comment at the card).
  */
 export function DashboardOverview() {
   const filters = useDashboardFilters();
-  // Staff get the two bands that ARE the work — the leads waiting on them and the
-  // applicants those became. Operations is standing measurement (queues, conversion
-  // rates, cross-team workload), which is an Admin's view of the office, not a
-  // caseworker's view of their day.
-  const { dashboardOperations, reminders: canUseReminders } = useCapabilities();
+  // Staff get the two tabs that ARE the work — the leads waiting on them and the
+  // applicants those became. Operations is standing measurement (queues,
+  // conversion rates, cross-team workload), which is an Admin's view of the
+  // office, not a caseworker's view of their day. The HEADLINE figures above the
+  // bar are deliberately NOT gated: the alerts are the office's shared worklist,
+  // and every one of them links into a module a `lead_manager` can already open.
+  const caps = useCapabilities();
+  const tabs = visibleDashboardTabs(caps);
+  const { tab, setTab } = useDashboardTab(tabs);
   const queryClient = useQueryClient();
-  // `summary` only for its fetch time — `AttentionPanel` reads the same cached entry.
+  // `summary` only for its fetch time — `OverviewStats` reads the same cached entry.
   const { dataUpdatedAt } = useDashboardSummary(filters);
   const resetKeys = [filters.fiscalYear, filters.country];
+
+  // The control is labelled "Refresh all", so it must reach every card —
+  // including the ones that read another module's endpoint and therefore live
+  // outside the `["dashboard"]` prefix. Missing one of these is silent: the card
+  // simply keeps its cached answer while everything around it moves.
+  const refreshAll = () => {
+    REFRESH_KEYS.forEach((queryKey) => {
+      void queryClient.invalidateQueries({ queryKey });
+    });
+  };
 
   return (
     <>
@@ -107,108 +129,51 @@ export function DashboardOverview() {
                 fetchedAt={dataUpdatedAt}
                 onFiscalYearChange={filters.setFiscalYear}
                 onCountryChange={filters.setCountry}
-                onRefresh={() => {
-                  // The control is labelled "Refresh all", so it must reach
-                  // every card — including the ones that read another module's
-                  // endpoint and therefore live outside the `["dashboard"]`
-                  // prefix. Missing one of these is silent: the band simply
-                  // keeps its cached answer while everything around it moves.
-                  REFRESH_KEYS.forEach((queryKey) => {
-                    void queryClient.invalidateQueries({ queryKey });
-                  });
-                }}
+                onRefresh={refreshAll}
               />
             }
           />
 
           <ModuleErrorBoundary resetKeys={resetKeys}>
-            <SectionBand
-              title="Leads"
-              subtitle="Who is waiting to hear from us, and how the live pipeline is shaped."
-            >
-              <Grid.Col span={MEDIUM}>
-                <LeadStats filters={filters} />
-              </Grid.Col>
-              <Grid.Col span={SMALL}>
-                <LeadStatTiles filters={filters} />
-              </Grid.Col>
-              <Grid.Col span={LARGE}>
-                <LeadsToAddress filters={filters} />
-              </Grid.Col>
-            </SectionBand>
+            <OverviewStats filters={filters} />
           </ModuleErrorBoundary>
 
-          <ModuleErrorBoundary resetKeys={resetKeys}>
-            <SectionBand
-              title="Applicants"
-              subtitle="Where the book of work is going, who has just joined it, and what we owe them."
-            >
-              <Grid.Col span={MEDIUM}>
-                <ApplicantCountryStats filters={filters} />
-              </Grid.Col>
-              <Grid.Col span={SMALL}>
-                <ApplicantStatTiles filters={filters} />
-              </Grid.Col>
-              {/* The right-hand 6/12 of a band is that band's ACTION slot —
-                  the Leads band puts its day's queue here, not its figures.
-                  Follow-ups is the applicant equivalent: a dated debt against
-                  one of these records, and the thing most likely to decay if
-                  unread. "Who just joined" is context and drops below it.
+          {/* `keepMounted={false}`: Mantine mounts hidden panels by DEFAULT,
+              which would fire every tab's queries on first paint. Only the open
+              band should cost anything. */}
+          <Tabs value={tab} onChange={setTab} keepMounted={false}>
+            <Tabs.List>
+              {tabs.map((spec) => (
+                <Tabs.Tab
+                  key={spec.value}
+                  value={spec.value}
+                  leftSection={<spec.icon size={16} aria-hidden />}
+                >
+                  {spec.label}
+                </Tabs.Tab>
+              ))}
+            </Tabs.List>
 
-                  Placement is also load-bearing for access. A `custom_reminder`
-                  alert is routed to Admins only, so a `lead_manager`'s own due
-                  work surfaces nowhere automatically — the reminders contract's
-                  §9 names this query as the client-side answer — and the
-                  Applicants band is one of the two bands that tier is given. */}
-              {canUseReminders && (
-                <Grid.Col span={LARGE}>
-                  <RemindersPanel />
-                </Grid.Col>
-              )}
-              <Grid.Col span={LARGE}>
-                <RecentApplicants filters={filters} />
-              </Grid.Col>
-            </SectionBand>
-          </ModuleErrorBoundary>
-
-          {dashboardOperations && (
-            <ModuleErrorBoundary resetKeys={resetKeys}>
-              <SectionBand
-                title="Operations"
-                subtitle="The queues, the standing measures, and what just changed."
-              >
-                <Grid.Col span={LARGE}>
-                  <AttentionPanel filters={filters} />
-                </Grid.Col>
-                <Grid.Col span={LARGE}>
-                  <TodayPanel filters={filters} />
-                </Grid.Col>
-                <Grid.Col span={LARGE}>
-                  <BlockersPanel filters={filters} />
-                </Grid.Col>
-                <Grid.Col span={LARGE}>
-                  <WorkloadPanel filters={filters} />
-                </Grid.Col>
-                <Grid.Col span={LARGE}>
-                  <PipelinePanel filters={filters} />
-                </Grid.Col>
-                <Grid.Col span={LARGE}>
-                  <PerformancePanel filters={filters} />
-                </Grid.Col>
-                <Grid.Col span={LARGE}>
-                  <ActivityPanel
-                    key={filters.fiscalYear}
-                    fiscalYear={filters.fiscalYear}
-                  />
-                </Grid.Col>
-              </SectionBand>
-            </ModuleErrorBoundary>
-          )}
+            {tabs.map((spec) => {
+              const Band = BANDS[spec.value];
+              return (
+                <Tabs.Panel key={spec.value} value={spec.value} pt="md">
+                  {/* One boundary per band, not per page: a band that throws
+                      leaves the headline figures and the other tabs reachable. */}
+                  <ModuleErrorBoundary resetKeys={resetKeys}>
+                    <SectionBand subtitle={spec.subtitle}>
+                      <Band filters={filters} />
+                    </SectionBand>
+                  </ModuleErrorBoundary>
+                </Tabs.Panel>
+              );
+            })}
+          </Tabs>
 
           <Text size="xs" c="dimmed" ff="monospace">
-            {dashboardOperations
+            {caps.dashboardOperations
               ? "Access: admin · lead_manager."
-              : "Access: lead_manager — the Operations band is admin-only."}{" "}
+              : "Access: lead_manager — the Operations tab is admin-only."}{" "}
             Fiscal year and destination country (top right) scope every card
             except Recent activity, which is fiscal-year only, and Follow-ups,
             which reads neither and covers client reminders as well as applicant

@@ -1,5 +1,5 @@
 import type { DashboardFilters } from "../dashboard.types";
 
-export interface AttentionPanelProps {
+export interface OverviewStatsProps {
   filters: DashboardFilters;
 }

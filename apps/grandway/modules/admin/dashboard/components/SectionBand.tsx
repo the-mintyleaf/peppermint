@@ -11,19 +11,24 @@ import type { SectionBandProps } from "./SectionBand.types";
  * 2/12 of the page, never of some nested grid that happens to look similar.
  *
  * The band title is a step below the greeting and a step above a card title, so
- * the page reads as three levels at a squint and not as one flat wall.
+ * the page reads as three levels at a squint and not as one flat wall. Inside a
+ * tab panel the title is omitted — the tab bar is the level that names the band
+ * there, and a heading repeating the active tab's own word is the flat wall
+ * this scale exists to avoid.
  */
 export function SectionBand({ title, subtitle, children }: SectionBandProps) {
   return (
     <Stack gap="sm">
-      <Stack gap={2}>
-        <Text {...TYPE_SECTION}>{title}</Text>
-        {subtitle ? (
-          <Text size="sm" c="dimmed">
-            {subtitle}
-          </Text>
-        ) : null}
-      </Stack>
+      {title || subtitle ? (
+        <Stack gap={2}>
+          {title ? <Text {...TYPE_SECTION}>{title}</Text> : null}
+          {subtitle ? (
+            <Text size="sm" c="dimmed">
+              {subtitle}
+            </Text>
+          ) : null}
+        </Stack>
+      ) : null}
       {/* Mantine 9 `Grid` is `gap`, not v7's `gutter`; 12 columns and
           `align="stretch"` are already the defaults. */}
       <Grid gap="md">{children}</Grid>

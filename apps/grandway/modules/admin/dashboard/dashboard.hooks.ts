@@ -20,6 +20,7 @@ import {
   fetchWorkload,
 } from "./dashboard.api";
 import { dashboardQueryKeys } from "./dashboard.queryKeys";
+import type { DashboardTabValue } from "./dashboard.tabs";
 import type { DashboardFilters } from "./dashboard.types";
 
 // Eight INDEPENDENT hooks — never combined into one parent query. Each has its
@@ -394,5 +395,37 @@ export function useDashboardFilters(): DashboardFilters & {
     country: searchParams.get("country") ?? "",
     setFiscalYear: (value: string) => patch("fiscal_year", value),
     setCountry: (value: string) => patch("country", value),
+  };
+}
+
+/**
+ * Which band is open, held in the URL beside the filters.
+ *
+ * In the URL so a dashboard view is shareable and survives a refresh — "look at
+ * the Operations tab for 2082/83" is one link, not an instruction. `replace`
+ * (not `push`) keeps a tab click out of the history stack, so Back still leaves
+ * the dashboard rather than walking the tabs the operator just clicked through.
+ *
+ * **`tab` is resolved against what this caller may actually open**, not against
+ * the full tab list: an `?tab=operations` link forwarded to a `lead_manager`
+ * falls back to the first tab they have instead of rendering an empty page, and
+ * so does any stale or hand-edited value. The fallback is silent on purpose —
+ * a permissions explanation on a dashboard nobody asked to see is noise.
+ */
+export function useDashboardTab(
+  allowed: readonly { value: DashboardTabValue }[],
+): {
+  tab: DashboardTabValue;
+  setTab: (value: string | null) => void;
+} {
+  const searchParams = useSearchParams();
+  const patch = useSearchParamPatch();
+  const requested = searchParams.get("tab");
+  const isAllowed = allowed.some((entry) => entry.value === requested);
+
+  return {
+    // `allowed` is never empty — the first two tabs carry no capability at all.
+    tab: isAllowed ? (requested as DashboardTabValue) : allowed[0].value,
+    setTab: (value: string | null) => patch("tab", value ?? ""),
   };
 }
