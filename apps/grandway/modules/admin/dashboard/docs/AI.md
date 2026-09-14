@@ -4,11 +4,11 @@
 
 The operational command centre — eight independent, read-only sections
 summarising what needs attention now, what is moving, and where work is stuck,
-presented as **one straight-through page** of three bands. Owns no data, writes
-nothing (`docs/backend/dashboard/INTEGRATION.md`).
+presented as an **always-visible headline row over three tabs**. Owns no data,
+writes nothing (`docs/backend/dashboard/INTEGRATION.md`).
 
 **Plus a ninth section that is not in that contract at all**: the Follow-ups
-card in the **Applicants band** reads `/api/v1/reminders/` directly, because
+card in the **Applicants tab** reads `/api/v1/reminders/` directly, because
 `/api/v1/dashboard/` has no reminder data (its §2 Requires table does not list
 `reminders`, and none of the eight endpoints touches one). See the Follow-ups
 notes below. Folder is **singular**
@@ -39,61 +39,121 @@ always-shown "Home" entry is the dashboard.
 
 ## Data layer (one file per concern, not per section)
 
-| File                       | Carries                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dashboard.types.ts`       | All 8 section response shapes + shared row/wrapper shapes (§4)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `dashboard.queryKeys.ts`   | `dashboardQueryKeys.{summary,today,pipeline,blockers,workload,conversion,outcomes,activity}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `dashboard.api.ts`         | 8 `fetch*` functions — only `fetchConversion`/`fetchOutcomes` take `{fiscal_year, country}`; `fetchActivity` takes only `{fiscal_year, page, page_size}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `dashboard.hooks.ts`       | 8 independent `useQuery` hooks + `useDashboardFilters` (URL-synced `fiscal_year`/`country`) + three cross-module hooks: `useApplicantsByCountry` (bounded `useQueries` fan-out over `/applicants/?country=` reading `meta.count`), `useRecentApplicants`, and **`useDueReminders`** (THREE `/reminders/?status=active` window requests — overdue / today / upcoming — whose boundary dates are computed ONCE from `nepalToday()` and sent explicitly, so one clock partitions all three. Each returns its own `meta.count`, the real total for that window). `useDashboard{Blockers,Workload,Conversion,Outcomes}` take an `enabled` flag so a multi-view card only fetches the open view |
-| `dashboard.tone.ts`        | `FigureTone` · `TONE_COLOR`/`TONE_WORD` · `toneForAlert(value, band)` · `toneForShare(value, total)` — **the single place a dashboard hue is chosen.** Tone is DERIVED per render from the figure, never passed as a fixed colour                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `dashboard.typeScale.ts`   | The five type roles (`TYPE_GREETING` · `TYPE_SECTION` · `TYPE_CARD_TITLE` · `TYPE_FIGURE_LG` · `TYPE_FIGURE_SM`) + `DISPLAY_TRACKING`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `dashboard.labels.ts`      | Only labels/colors with no existing home (`ApplicantStatusKey`, `DocumentRow.family`, `JOURNEY_OUTCOME_COLORS`/`OFFER_DECISION_COLORS`) + section/group headings. Every enum whose owning module already exports a color map is imported CONCRETELY, never redefined                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `dashboard.utils.ts`       | `formatDate`/`formatDateTime`/`formatSince`/`formatRatePercent`/`formatFetchedAt`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `dashboard.chartConfig.ts` | `toChartColor(name, shade)` + `CHART_TRACK_COLOR`/`CHART_ZERO_COLOR`; the shared chart-grammar notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| File                       | Carries                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dashboard.types.ts`       | All 8 section response shapes + shared row/wrapper shapes (§4)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `dashboard.queryKeys.ts`   | `dashboardQueryKeys.{summary,today,pipeline,blockers,workload,conversion,outcomes,activity}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `dashboard.api.ts`         | 8 `fetch*` functions — only `fetchConversion`/`fetchOutcomes` take `{fiscal_year, country}`; `fetchActivity` takes only `{fiscal_year, page, page_size}`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `dashboard.hooks.ts`       | 8 independent `useQuery` hooks + `useDashboardFilters` (URL-synced `fiscal_year`/`country`) + `useDashboardTab` (URL-synced `tab`, resolved against the tabs the caller may open so a forwarded or stale `?tab=` falls back instead of rendering an empty page) + three cross-module hooks: `useApplicantsByCountry` (bounded `useQueries` fan-out over `/applicants/?country=` reading `meta.count`), `useRecentApplicants`, and **`useDueReminders`** (THREE `/reminders/?status=active` window requests — overdue / today / upcoming — whose boundary dates are computed ONCE from `nepalToday()` and sent explicitly, so one clock partitions all three. Each returns its own `meta.count`, the real total for that window). `useDashboard{Blockers,Workload,Conversion,Outcomes}` take an `enabled` flag so a multi-view card only fetches the open view |
+| `dashboard.tabs.ts`        | `DASHBOARD_TABS` (value · label · subtitle · icon · capability gate) + `visibleDashboardTabs(caps)` — **the only place a tab is declared or gated.** Adding a tab here without a band in `DashboardBands.tsx` is a type error, not an empty panel                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `dashboard.tone.ts`        | `FigureTone` · `TONE_COLOR`/`TONE_WORD` · `toneForAlert(value, band)` · `toneForShare(value, total)` — **the single place a dashboard hue is chosen.** Tone is DERIVED per render from the figure, never passed as a fixed colour                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `dashboard.typeScale.ts`   | The five type roles (`TYPE_GREETING` · `TYPE_SECTION` · `TYPE_CARD_TITLE` · `TYPE_FIGURE_LG` · `TYPE_FIGURE_SM`) + `DISPLAY_TRACKING`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `dashboard.labels.ts`      | Only labels/colors with no existing home (`ApplicantStatusKey`, `DocumentRow.family`, `JOURNEY_OUTCOME_COLORS`/`OFFER_DECISION_COLORS`) + section/group headings. Every enum whose owning module already exports a color map is imported CONCRETELY, never redefined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `dashboard.utils.ts`       | `formatDate`/`formatDateTime`/`formatSince`/`formatRatePercent`/`formatFetchedAt`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `dashboard.chartConfig.ts` | `toChartColor(name, shade)` + `CHART_TRACK_COLOR`/`CHART_ZERO_COLOR`; the shared chart-grammar notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
-## Access — two bands or three
+## Access — the headline is shared, the third tab is not
 
-A `lead_manager` sees the **Leads and Applicants bands**; the Operations band is
-gated on `caps.dashboardOperations` (Admin).
+Two independent gates, and they are not the same gate.
 
-**The Follow-ups card sits INSIDE the Applicants band, gated on `caps.reminders` —
+**The tabs.** A `lead_manager` sees the **Leads and Applicants** tabs; **Operations**
+is gated on `caps.dashboardOperations` (Admin). `visibleDashboardTabs(caps)` in
+`dashboard.tabs.ts` is the only place that decides, and `useDashboardTab` resolves
+`?tab=` against its result — never branch on a role name at a call site.
+
+**The headline tiles.** `OverviewStats` above the bar is NOT gated as a block: both
+staff tiers get the three volumes, because scale is not privileged information.
+The alert tiles are gated **one at a time, on the capability the tile's destination
+route actually checks** — every tile is a button, and a button that lands the
+operator on "Access Forbidden" is worse than the figure being absent:
+
+| Destination                 | Route's own gate | `lead_manager` |
+| --------------------------- | ---------------- | -------------- |
+| `/admin/checklists`         | `checklists`     | ✗              |
+| `/admin/files/review`       | `documents`      | ✗              |
+| `/admin/lead-management`    | `leads`          | ✓              |
+| `/admin/applicant-journeys` | `leads`          | ✓              |
+| `/admin/offers`             | `leads`          | ✓              |
+
+So a `lead_manager` gets three alert tiles, an `admin` all eight. **Read the gate off
+the destination page, not the nav rail** — they disagree for file review: the rail
+uses `caps.fileReview` (`layouts/admin/Admin.tsx`), the page uses `documents`
+(`RequireDocumentAccess`), and the page is what decides whether the click works.
+The `/summary/` request is identical either way — it returns all eight figures and
+always did; this only decides what is drawn.
+
+**The Follow-ups card sits INSIDE the Applicants tab, gated on `caps.reminders` —
 do not "tidy" it into Operations or back out into a band of its own.** Two reasons,
 both load-bearing. A `custom_reminder` alert is routed to Admins only
 (`docs/backend/reminders/INTEGRATION.md` §9), so a Lead Manager's own follow-ups
 surface nowhere automatically and that section names this exact query as the
-client-side answer — the card must live in a band that tier actually gets. And a
-follow-up is a debt against a record in this band, so "who just joined" and "what we
+client-side answer — the card must live in a tab that tier actually gets. And a
+follow-up is a debt against a record in this tab, so "who just joined" and "what we
 owe them" read as one thought. Leads and Applicants are the work — who
 is waiting to hear back, and who those enquiries became. Operations is standing
 measurement, which is an Admin's view of the office rather than a caseworker's view of
 their day.
 
-Because each band is its own `ModuleErrorBoundary` over independent per-section
-queries, hiding Operations also stops its seven requests — nothing is fetched and
-discarded. The monospace footer caption states which set the reader is looking at;
-keep it truthful if the split changes.
+Because each tab is its own `ModuleErrorBoundary` over independent per-section
+queries AND `keepMounted={false}`, an unopened tab costs nothing — hiding Operations
+stops its six requests, and so does simply not clicking it. The monospace footer
+caption states which set the reader is looking at; keep it truthful if the split
+changes.
 
-## Layout — one page, three bands (no tabs)
+## Layout — a headline row, then three tabs
 
 `DashboardOverview` renders `ModuleHeader` → a scrolling `ModalPaper` →
-`DashboardGreeting` → three `SectionBand`s. Every card measures against the SAME
-12 columns: **large 6/12 · medium 4/12 · small 2/12**, and nothing exceeds 6/12.
+`DashboardGreeting` → **`OverviewStats`** → a **`Tabs`** bar with one panel per band.
+The page answers the two questions a dashboard owes, in the order it owes them
+(`DESIGN.md` Part 5C: freshness → key health indicators → exception cards):
+**is the office healthy** (above the bar, always visible), then **what is behind
+those figures** (the tabs).
 
-| Band           | Left (figures)                                                                                                                                        | Right (rows)                                                |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| **Leads**      | `LeadStats` 4/12 + `LeadStatTiles` 2/12                                                                                                               | `LeadsToAddress` 6/12                                       |
-| **Applicants** | `ApplicantCountryStats` 4/12 + `ApplicantStatTiles` 2/12                                                                                              | `RemindersPanel` 6/12, then `RecentApplicants` 6/12 (wraps) |
-| **Operations** | seven 6/12 `PanelCard`s: `AttentionPanel` · `TodayPanel` · `BlockersPanel` · `WorkloadPanel` · `PipelinePanel` · `PerformancePanel` · `ActivityPanel` | —                                                           |
+Every card inside a tab measures against the SAME 12 columns:
+**large 6/12 · medium 4/12 · small 2/12**, and nothing exceeds 6/12.
 
-- **The tab bar, `dashboard.tabs.ts` and `useDashboardTab` are gone.** The reading
-  order is the page's; `tab` is no longer URL state (`fiscal_year`/`country` still are).
+### Above the bar — always rendered, never gated by tab
+
+`OverviewStats` is the whole of `/summary/` in one region: three `volumes` as 1/3
+`lg` tiles, then the `alerts` as a responsive tile grid, then the due-soon horizon.
+One request for all eleven figures, so this region is internally consistent even
+though the rest of the page carries no cross-section guarantee (INTEGRATION.md §3)
+— and it costs exactly one request whichever tab is open.
+
+**Nothing that needs a human sits behind a tab.** An alert one click away is an
+alert nobody sees on the morning it matters; the tabs hold detail, never the fact
+that something is wrong.
+
+### The tabs
+
+| Tab            | Left (figures)                                                                                                                   | Right (rows)                                                |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| **Leads**      | `LeadStats` 4/12 + `LeadStatTiles` 2/12                                                                                          | `LeadsToAddress` 6/12                                       |
+| **Applicants** | `ApplicantCountryStats` 4/12 + `ApplicantStatTiles` 2/12                                                                         | `RemindersPanel` 6/12, then `RecentApplicants` 6/12 (wraps) |
+| **Operations** | six 6/12 `PanelCard`s: `TodayPanel` · `BlockersPanel` · `WorkloadPanel` · `PipelinePanel` · `PerformancePanel` · `ActivityPanel` | —                                                           |
+
+- **`keepMounted={false}` is load-bearing.** Mantine `Tabs` keeps hidden panels
+  mounted by DEFAULT, which would fire every tab's queries on first paint and undo
+  the whole saving. With it the page opens on the `/summary/` request plus one
+  band's; React Query keeps what has landed, so returning to a tab is a cache read
+  (or one revalidation past the 30s stale time), not a cold fetch.
+- **`dashboard.tabs.ts` + `useDashboardTab` are back**, and `tab` is URL state again
+  alongside `fiscal_year`/`country`. `useDashboardTab` resolves `?tab=` against the
+  tabs the CALLER may open, so a forwarded `?tab=operations` link, or any stale
+  value, silently falls back to the first tab they have instead of an empty page.
+- **Band bodies live in `DashboardBands.tsx`** (`LeadsBand`/`ApplicantsBand`/
+  `OperationsBand`), each returning bare `Grid.Col`s so the surrounding
+  `SectionBand` still owns the twelve columns. The page file is structure only.
 - **Every large card is a `PanelCard`** — title left, its views behind ONE `Menu`
-  dropdown right, and only the selected view rendered. This is what preserves the
-  old `keepMounted={false}` property: a card with six views costs one view's queries.
-- **One `ModuleErrorBoundary` per band** (`resetKeys = [fiscalYear, country]`), so a
-  failing band never takes the page with it.
+  dropdown right, and only the selected view rendered, so a card with six views
+  costs one view's queries.
+- **One `ModuleErrorBoundary` per region** (`resetKeys = [fiscalYear, country]`) —
+  one over `OverviewStats`, one inside each tab panel — so a failing band leaves the
+  headline figures and the other tabs reachable.
 - The greeting is the page's single display-size line (§1.1) and the only
-  page-level anchor; band titles and card titles are the two steps below it.
+  page-level anchor. Inside a tab, `SectionBand` renders its **subtitle only**: the
+  tab label already names the band, so `SectionBand.title` is optional and omitted
+  here.
 
 ## Components (`components/`, flat — no per-component folder; only non-trivial props get a `.types.ts`)
 
@@ -105,7 +165,9 @@ keep it truthful if the split changes.
 | `SuperadminLanding`       | Superadmin fallback home — Welcome + Users/Audit quick-links                                                                                                                                                                                                                                                            |
 | `DashboardGreeting`       | "Good morning, {display_name}!" + subtitle + the header controls slot. Time of day is read via `useMounted` (never during SSR — the server's clock would disagree on hydration)                                                                                                                                         |
 | `DashboardHeaderControls` | Data-freshness stamp + `fiscal_year` + `country` + "Refresh" — the only live filters (§9: the rest are validated-and-ignored). **"Refresh" invalidates `REFRESH_KEYS`, not just `["dashboard"]`** — the cross-module reads (`reminders.due`, `applicants`) sit under their own roots and a prefix match would miss them |
-| `SectionBand`             | One band: title + question + the 12-column `Grid` its cards sit in                                                                                                                                                                                                                                                      |
+| `SectionBand`             | One band: an OPTIONAL title, the question it answers, and the 12-column `Grid` its cards sit in. Inside a tab the title is omitted — the tab label is the level that names the band                                                                                                                                     |
+| `OverviewStats`           | The headline region above the tab bar: 3 `summary.volumes` + the `summary.alerts` this caller can act on, ONE request. Absorbed the old `AttentionPanel`. Each alert tile is a button into the owning module's PLAIN list, and a tile is rendered **only if its destination route would open** (see Access below)       |
+| `DashboardBands`          | `LeadsBand` / `ApplicantsBand` / `OperationsBand` — each tab's cards as bare `Grid.Col`s, so `SectionBand` keeps ownership of the twelve columns                                                                                                                                                                        |
 | `PanelCard`               | The large-card shell — title/subtitle/icon left, view `Menu` right (counts + descriptions per view), body slot. States belong to the caller's `SectionState`                                                                                                                                                            |
 
 ### Band cards
@@ -117,10 +179,9 @@ keep it truthful if the split changes.
 | `LeadsToAddress`        | The day's lead queue. Rows + counts come from `useLeadBoardData` + `categorizeLead` — **the lead board's own cached query**, so dashboard and board cannot drift. 4 mutually-exclusive views; opens on "Needs attention today"; discloses the board's 1,000-lead cap |
 | `LeadRowView`           | One lead row (name · why it is here · owner · stage badge). Nothing is a link — there is no per-lead route                                                                                                                                                           |
 | `ApplicantCountryStats` | Applicants per destination as a ranked single-hue bar chart. ONE `/applicants/?country=` count per country (`INITIAL_COUNT`=8, +`STEP`=8, deliberately no "show all")                                                                                                |
-| `ApplicantStatTiles`    | Active + dormant from `pipeline.applicants_by_status`, as two 2/12 tiles                                                                                                                                                                                             |
+| `ApplicantStatTiles`    | **Dormant + archived** from `pipeline.applicants_by_status`, as two 2/12 tiles. Active is deliberately NOT here — it is a `summary.volumes` figure in `OverviewStats`, and the same number from two endpoints on two clocks is a disagreement waiting to happen      |
 | `RecentApplicants`      | Newest applicants, 3 views over the real `creation_source` server filter. `/applicants/` is newest-first with **no client-controlled ordering**, so no `ordering` is sent                                                                                            |
 | `ApplicantRowView`      | One applicant row — the whole row is the link (an applicant HAS a route, unlike a lead)                                                                                                                                                                              |
-| `AttentionPanel`        | The 8 `summary.alerts` as 2/12 tiles, ONE request. Each tile is a button into the owning module's PLAIN list                                                                                                                                                         |
 | `TodayPanel`            | All 6 `today` worklists as views off the one `today` request                                                                                                                                                                                                         |
 | `BlockersPanel`         | The 5 blocker groups as views, grouped BY CAUSE and never merged                                                                                                                                                                                                     |
 | `WorkloadPanel`         | The 3 per-owner measures as views; `is_scoped_to_caller` drives the caption only                                                                                                                                                                                     |
@@ -172,10 +233,10 @@ keep it truthful if the split changes.
 ## Do not do
 
 - Do not combine the 8 queries into one — a slow section must never block the rest (CONCEPT.md).
-- Do not move `RemindersPanel` out of the Applicants band — not into Operations, and
+- Do not move `RemindersPanel` out of the Applicants tab — not into Operations, and
   not back into a band of its own (see Access above).
 - Do not demote it below `RecentApplicants`. The right-hand 6/12 of a band is that
-  band's ACTION slot (the Leads band puts its day's queue there, not its figures), and
+  band's ACTION slot (the Leads tab puts its day's queue there, not its figures), and
   a card that wraps to a lonely second row reads as absent — that is exactly how this
   one was missed twice.
 - Do not default the card to a fixed view. It opens on the first **populated** window
@@ -209,9 +270,11 @@ keep it truthful if the split changes.
   belong in its `PanelCard` menu.
 - Do not pass a literal colour to a `StatTile` or invent a hue at a call site — derive it
   through `dashboard.tone.ts`, or the "dynamic colour" property is silently lost.
-- **Nothing renders in two places.** The leads band owns `leads_by_stage`; the applicants
-  band owns `applicants_by_status` and the per-country counts; `AttentionPanel` owns the 8
-  alerts; each Operations card owns its own section. Check before adding a figure anywhere.
+- **Nothing renders in two places.** `OverviewStats` owns the 8 `summary.alerts` and the 3
+  `summary.volumes`; the Leads tab owns `leads_by_stage`; the Applicants tab owns the
+  per-country counts and the NON-active half of `applicants_by_status` (active is a
+  headline volume — do not put it back in `ApplicantStatTiles`); each Operations card owns
+  its own section. Check before adding a figure anywhere.
 - Do not add a "show all countries" control or raise `STEP` in `ApplicantCountryStats` —
   it costs ONE request per country and `useCountries` returns up to 100 rows.
 - Do not present the per-country counts as a backend breakdown — they are N independent
@@ -232,13 +295,13 @@ today.due_soon_checklist_items.total` (the one contract-documented exception).
 
 ## Known risks / open items
 
-- **The leads band costs up to 10 requests.** `useLeadBoardData` pages `/leads/` at 100/page
+- **The Leads tab costs up to 10 requests.** `useLeadBoardData` pages `/leads/` at 100/page
   up to a 1,000-lead cap. It is the same cached query the lead board itself uses, so opening
   the board after the dashboard is free — but a first paint of `/admin` now pays for it.
   Chosen deliberately (confirmed with the user) because the dashboard contract has no
   "leads needing attention" concept beyond a ≤10-row `stale_leads` preview.
 - **Two definitions of a stale lead coexist**: the client-side `needs_attention` category in
-  the Leads band, and the backend's `today.stale_leads` window in `TodayPanel`. Both are
+  the Leads tab, and the backend's `today.stale_leads` window in `TodayPanel`. Both are
   labelled with which they are; do not merge them.
 - **Follow-ups is the one card whose "overdue" is computed in the browser.** Every other
   overdue/expiry flag on this page is server-computed. The reminders API exposes no due
