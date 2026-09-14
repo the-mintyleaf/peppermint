@@ -51,7 +51,7 @@ import {
   toJourneyUpdatePayload,
 } from "@/modules/admin/applicant-journeys/form/JourneyForm";
 import { CloseJourneyModal } from "@/modules/admin/applicant-journeys/pages/list/components/CloseJourneyModal";
-import { ApplicantWorklistsDrawer } from "./ApplicantWorklistsDrawer";
+import { WorklistDrawer } from "@/modules/admin/checklists/_shared/WorklistDrawer";
 
 /** Already ended — Close would have nothing left to do (`FLOWS.md`, "End an objective"). */
 const ENDED_STAGES = new Set(["completed", "closed"]);
@@ -233,7 +233,7 @@ export function ApplicantJourneysPanel({
       {/* Mounted, not conditional: a closed drawer renders no children, so it
           issues no query until it is opened — and it keeps its closing
           animation, which an unmount would cut off. */}
-      <ApplicantWorklistsDrawer
+      <WorklistDrawer
         applicantId={applicantId}
         opened={worklistsOpen}
         onClose={() => setWorklistsOpen(false)}

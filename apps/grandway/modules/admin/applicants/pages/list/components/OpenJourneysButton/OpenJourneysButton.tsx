@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   ActionIcon,
   Alert,
@@ -23,25 +22,29 @@ import {
   JourneyForm,
   toJourneyPayload,
 } from "@/modules/admin/applicant-journeys/form/JourneyForm";
+import { WorklistDrawer } from "@/modules/admin/checklists/_shared/WorklistDrawer";
 import type { OpenJourneysButtonProps } from "./OpenJourneysButton.types";
 import { applicantDisplayName } from "../../../../applicants.labels";
 
 /**
- * List-row quick entry into an applicant's journeys — the row-level analog of
- * `OpenDocumentButton`. One click checks whether the applicant has any journeys
- * (through React Query, priming the same cache the worklist/detail panel read
- * under `journeyQueryKeys.list`): if so it opens the worklist deep-linked to
- * this applicant; if none, it opens the "New journey" form with the applicant
- * preset, so the operator never lands on an empty view.
+ * List-row quick entry into an applicant's requirement worklists — the
+ * row-level analog of `OpenDocumentButton`. One click checks whether the
+ * applicant has any journeys at all (through React Query, priming the same
+ * cache the journeys worklist and detail panel read under
+ * `journeyQueryKeys.list`): if so it opens the `WorklistDrawer` over the
+ * table — the row stays where it is, and the operator can set item statuses
+ * without a page change; if none, it opens the "New journey" form with the
+ * applicant preset, since worklists hang off journeys and there is nothing to
+ * show yet.
  *
  * Not admin-gated: journeys are visible to Lead Managers too (the Applicant
  * Detail Journeys panel already renders for them), unlike documents.
  */
 export function OpenJourneysButton({ applicant }: OpenJourneysButtonProps) {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const [isChecking, setChecking] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [worklistsOpen, setWorklistsOpen] = useState(false);
   const createMutation = useCreateJourney();
 
   const displayName = applicantDisplayName(applicant);
@@ -55,9 +58,6 @@ export function OpenJourneysButton({ applicant }: OpenJourneysButtonProps) {
     filters: { applicant: applicant.id },
   };
 
-  const goToWorklist = () =>
-    router.push(`/admin/applicant-journeys?applicant=${applicant.id}`);
-
   const handleClick = async () => {
     setChecking(true);
     try {
@@ -67,7 +67,7 @@ export function OpenJourneysButton({ applicant }: OpenJourneysButtonProps) {
       });
 
       if ((result.meta.total ?? result.data.length) > 0) {
-        goToWorklist();
+        setWorklistsOpen(true);
         return;
       }
 
@@ -85,12 +85,12 @@ export function OpenJourneysButton({ applicant }: OpenJourneysButtonProps) {
 
   return (
     <>
-      <Tooltip label="Journeys" withArrow>
+      <Tooltip label="Worklists" withArrow>
         <ActionIcon
           variant="subtle"
           size="sm"
           color="gray"
-          aria-label={`Journeys for ${displayName}`}
+          aria-label={`Worklists for ${displayName}`}
           loading={isChecking}
           onClick={handleClick}
         >
@@ -121,12 +121,21 @@ export function OpenJourneysButton({ applicant }: OpenJourneysButtonProps) {
             createMutation.mutate(toJourneyPayload(values), {
               onSuccess: () => {
                 setCreateOpen(false);
-                goToWorklist();
+                // The new journey's worklist is created from its destination
+                // country's template server-side, so the drawer is where the
+                // result of this form actually shows up.
+                setWorklistsOpen(true);
               },
             });
           }}
         />
       </Modal>
+
+      <WorklistDrawer
+        applicantId={applicant.id}
+        opened={worklistsOpen}
+        onClose={() => setWorklistsOpen(false)}
+      />
     </>
   );
 }

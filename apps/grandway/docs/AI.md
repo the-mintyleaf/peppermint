@@ -118,8 +118,7 @@ apps/grandway/
         │       ├── list/                 # DataTableShell; tabs = "All applicants" + one per usable country (server `?country=<uuid>`, capped at 8, sourced from institutions' useCountries); Destinations column reads the list shape's `destinations` projection; inline ApplicantStatusSwitch in Status column; row actions: OpenJourneysButton + OpenDocumentButton (admin-only, open/create doc workspace) + OpenRemindersButton (gated on `caps.reminders`; opens `RecordRemindersPanel` in a modal so a follow-up can be set without leaving the list) + menu (View/Edit). The same ApplicantStatusSwitch is the detail header's status control
         │       ├── new/, edit/           # FormShell-wrapped ApplicantForm
         │       └── detail/               # 2-col ProfileLayout: sticky sidebar grouped Identity/Contact/Address/Record | underline tabs Passport & Family / Journeys / Documents / Files / Reminders / Alerts / History — **text only, no tab icons** (`ProfileTab` has no `icon` field, so it cannot drift back); every panel opens with ProfilePanelHeader
-        │           ├── components/ApplicantJourneysPanel.tsx  # cross-module: embeds applicant-journeys (searchable ProfileList + View/Edit/Close row menu; Close reuses CloseJourneyModal — there is no delete; Edit fetches the detail, never the list row). Its "Worklists" button opens ApplicantWorklistsDrawer; the journeys route is now a "see all journeys" link in the truncation line, not a header button
-        │           └── components/ApplicantWorklistsDrawer/  # the applicant's requirement worklists without leaving the page: picker (checklists `?applicant=` — matches through the journey; archived dropped client-side) → profile (progress lines + the checklists module's own ChecklistItemsList / AddChecklistItemModal, so ticking is one flow). Mounted but inert — a closed Mantine drawer renders no children, so no query runs until it opens; the detail query is keyed per worklist and cached after
+        │           └── components/ApplicantJourneysPanel.tsx  # cross-module: embeds applicant-journeys (searchable ProfileList + View/Edit/Close row menu; Close reuses CloseJourneyModal — there is no delete; Edit fetches the detail, never the list row). Its "Worklists" button opens the shared `checklists/_shared/WorklistDrawer`; the journeys route is a "see all journeys" link in the truncation line, not a header button
         ├── applicant-journeys/  # MultiPageModule — study-objective lifecycle
         │   ├── applicantJourneys.{types,api,queryKeys,hooks,labels}.ts
         │   ├── form/JourneyForm.tsx      # shared create+edit modal form (applicantId prop for embedded use); exports toJourneyPayload (create) and toJourneyUpdatePayload (edit — drops the immutable `applicant`)
@@ -150,6 +149,7 @@ apps/grandway/
         │   └── pages/{detail,review}/     # FileDetail ([id]), FileReviewQueue (Admin-only)
         ├── checklists/       # MultiPageModule — country requirement templates + per-applicant instances
         │   ├── checklists.{types,api,queryKeys,hooks,labels}.ts   # 2 createResourceApi (templates + checklists) + dual-response awaiting-setup
+        │   ├── _shared/WorklistDrawer/   # worklists as a side surface, not a route — every row icon that used to push a page opens this. Two modes: `applicantId` (picker of that applicant's worklists → profile, with a back button) or `worklistId` (straight to the profile). Profile = progress lines + this module's own ChecklistItemsList / AddChecklistItemModal, so ticking is one flow. Mounted but inert: a closed Mantine drawer renders no children, so no query runs until it opens
         │   ├── form/         # TemplateForm, ChecklistCreateForm (template-or-blank; `journeyId` prop presets+hides the journey picker for the Journey profile's Worklist tab), ChecklistEditForm
         │   └── pages/
         │       ├── templates/{list,detail}/   # Admin-authored (reads shared with lead_manager; writes admin-gated inline)
@@ -303,9 +303,9 @@ cards. Never gate those hooks on `caps.catalogue`.
 - **Applicants ⇄ Applicant Journeys.** `ApplicantJourneysPanel` (Applicant Detail's
   Journeys tab) embeds the applicant-journeys module: a card list filtered by
   `applicant`, a "New journey" modal (`JourneyForm` with `applicantId` preset, hiding the
-  picker), a **Worklists** drawer (`ApplicantWorklistsDrawer` — the applicant's
-  checklists, picked then worked in place, deep-importing `checklists`' own items list),
-  and a "see all journeys" link to `/admin/applicant-journeys?applicant=<id>`
+  picker), a **Worklists** drawer (`checklists/_shared/WorklistDrawer` in `applicantId`
+  mode — the applicant's worklists, picked then worked in place), and a "see all
+  journeys" link to `/admin/applicant-journeys?applicant=<id>`
   (read via `useSearchParams`/`forceFilters`, same convention as Audit's `actor_id`). That
   param does double duty in `JourneyWorklist.useDeepLinkApplicant`: it filters the table
   **and** binds the shell's `createFormComponent` to `JourneyForm` with that `applicantId`,
@@ -316,8 +316,11 @@ cards. Never gate those hooks on `caps.catalogue`.
   `OpenJourneysButton` (`pages/list/components/`, the journeys analog of
   `OpenDocumentButton`) that fetch-checks the applicant's journeys via
   `queryClient.fetchQuery(journeyQueryKeys.list({ filters: { applicant } }))` and either
-  opens the worklist deep-linked to that applicant or, when they have none, opens the
-  `JourneyForm` create modal with the applicant preset.
+  opens the `WorklistDrawer` over the table or, when they have none, opens the
+  `JourneyForm` create modal with the applicant preset (whose success then opens the
+  drawer). The journeys **worklist row**'s `OpenWorklistButton` behaves the same way:
+  it resolves the journey's checklist id and opens the drawer on it, and only the
+  no-worklist-yet case still routes (to the journey page, where one is created).
   `JourneyForm`'s standalone-create applicant picker uses `applicants`' own
   `useApplicantList`/`useApplicantDetail` hooks. **Both cross-imports go through the other
   module's concrete files (`applicants.hooks.ts` / `applicantJourneys.hooks.ts`,

@@ -1,5 +1,5 @@
 import type { QueryParams } from "@peppermint/admin";
-import type { ChecklistStatus } from "@/modules/admin/checklists/checklists.types";
+import type { ChecklistStatus } from "../../checklists.types";
 
 /**
  * Every worklist this applicant has, across journeys — the list endpoint's

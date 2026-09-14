@@ -18,14 +18,14 @@ import {
 import { ArrowSquareOutIcon } from "@phosphor-icons/react/dist/csr/ArrowSquareOut";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { QueryErrorState } from "@/components/QueryErrorState";
-import { useChecklistDetail } from "@/modules/admin/checklists/checklists.hooks";
+import { useChecklistDetail } from "../../checklists.hooks";
 import {
   CHECKLIST_STATUS_COLORS,
   CHECKLIST_STATUS_LABELS,
-} from "@/modules/admin/checklists/checklists.labels";
-import { AddChecklistItemModal } from "@/modules/admin/checklists/pages/detail/components/AddChecklistItemModal";
-import { ChecklistItemsList } from "@/modules/admin/checklists/pages/detail/components/ChecklistItemsList";
-import type { ChecklistDetail } from "@/modules/admin/checklists/checklists.types";
+} from "../../checklists.labels";
+import type { ChecklistDetail } from "../../checklists.types";
+import { AddChecklistItemModal } from "../../pages/detail/components/AddChecklistItemModal";
+import { ChecklistItemsList } from "../../pages/detail/components/ChecklistItemsList";
 
 /** One measured line: what it counts, the count, the bar. Two of these are the whole summary. */
 function ProgressLine({

@@ -13,16 +13,16 @@ import {
 } from "@peppermint/ui";
 import { CaretRightIcon } from "@phosphor-icons/react/dist/csr/CaretRight";
 import { QueryErrorState } from "@/components/QueryErrorState";
-import { useChecklistsList } from "@/modules/admin/checklists/checklists.hooks";
+import { useChecklistsList } from "../../checklists.hooks";
 import {
   CHECKLIST_STATUS_COLORS,
   CHECKLIST_STATUS_LABELS,
-} from "@/modules/admin/checklists/checklists.labels";
-import type { Checklist } from "@/modules/admin/checklists/checklists.types";
+} from "../../checklists.labels";
+import type { Checklist } from "../../checklists.types";
 import {
   applicantWorklistListParams,
   sortWorklists,
-} from "./ApplicantWorklistsDrawer.utils";
+} from "./worklistDrawer.utils";
 import classes from "./WorklistPickerPanel.module.css";
 
 /** One worklist: what it is, where it stands, how far along. Nothing else — this is a picker. */
