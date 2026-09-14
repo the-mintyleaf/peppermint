@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { RowActionsMenu } from "@peppermint/admin";
 import {
+  Anchor,
   Badge,
   Button,
   Center,
@@ -16,8 +17,8 @@ import {
   TextInput,
   dayjs,
 } from "@peppermint/ui";
-import { ArrowSquareOutIcon } from "@phosphor-icons/react/dist/csr/ArrowSquareOut";
 import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
+import { ListChecksIcon } from "@phosphor-icons/react/dist/csr/ListChecks";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
@@ -50,6 +51,7 @@ import {
   toJourneyUpdatePayload,
 } from "@/modules/admin/applicant-journeys/form/JourneyForm";
 import { CloseJourneyModal } from "@/modules/admin/applicant-journeys/pages/list/components/CloseJourneyModal";
+import { ApplicantWorklistsDrawer } from "./ApplicantWorklistsDrawer";
 
 /** Already ended — Close would have nothing left to do (`FLOWS.md`, "End an objective"). */
 const ENDED_STAGES = new Set(["completed", "closed"]);
@@ -76,6 +78,7 @@ export function ApplicantJourneysPanel({
     null,
   );
   const [search, setSearch] = useState("");
+  const [worklistsOpen, setWorklistsOpen] = useState(false);
 
   const { data, isLoading, isError, isRefetching, refetch } = useJourneyList({
     page: 1,
@@ -123,14 +126,16 @@ export function ApplicantJourneysPanel({
                 onChange={(e) => setSearch(e.currentTarget.value)}
               />
             ) : null}
+            {/* "Worklist" means the requirement worklists (the nav's
+                Requirements → Worklist), so it opens them here rather than
+                sending the operator to the journeys route to find them. */}
             <Button
               size="xs"
               variant="default"
-              component={Link}
-              href={`/admin/applicant-journeys?applicant=${applicantId}`}
-              rightSection={<ArrowSquareOutIcon size={14} aria-hidden />}
+              leftSection={<ListChecksIcon size={14} aria-hidden />}
+              onClick={() => setWorklistsOpen(true)}
             >
-              Worklist
+              Worklists
             </Button>
             <Button
               size="xs"
@@ -161,7 +166,7 @@ export function ApplicantJourneysPanel({
         <Text size="xs" c="dimmed">
           No journeys match &ldquo;{search}&rdquo;
           {truncated
-            ? " on this page — open the worklist to search them all"
+            ? " on this page — see all journeys to search them all"
             : ""}
           .
         </Text>
@@ -182,8 +187,15 @@ export function ApplicantJourneysPanel({
           </ProfileList>
           {truncated ? (
             <Text size="xs" c="dimmed" ta="center">
-              Showing the {journeys.length} most recent journeys — open the
-              worklist for the full list.
+              Showing the {journeys.length} most recent journeys —{" "}
+              <Anchor
+                size="xs"
+                component={Link}
+                href={`/admin/applicant-journeys?applicant=${applicantId}`}
+              >
+                see all journeys
+              </Anchor>
+              .
             </Text>
           ) : null}
         </Stack>
@@ -217,6 +229,15 @@ export function ApplicantJourneysPanel({
           onClose={() => setClosingJourney(null)}
         />
       ) : null}
+
+      {/* Mounted, not conditional: a closed drawer renders no children, so it
+          issues no query until it is opened — and it keeps its closing
+          animation, which an unmount would cut off. */}
+      <ApplicantWorklistsDrawer
+        applicantId={applicantId}
+        opened={worklistsOpen}
+        onClose={() => setWorklistsOpen(false)}
+      />
     </Stack>
   );
 }

@@ -1,0 +1,14 @@
+/* A whole row is the target, so it has to say so on hover and on keyboard
+   focus — a bordered card with no state change reads as a static summary. */
+.row {
+  transition: background-color 120ms ease;
+}
+
+.row:hover {
+  background-color: var(--mantine-color-default-hover);
+}
+
+.trigger:focus-visible .row {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+}

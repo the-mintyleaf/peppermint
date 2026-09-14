@@ -118,7 +118,8 @@ apps/grandway/
         │       ├── list/                 # DataTableShell; tabs = "All applicants" + one per usable country (server `?country=<uuid>`, capped at 8, sourced from institutions' useCountries); Destinations column reads the list shape's `destinations` projection; inline ApplicantStatusSwitch in Status column; row actions: OpenJourneysButton + OpenDocumentButton (admin-only, open/create doc workspace) + OpenRemindersButton (gated on `caps.reminders`; opens `RecordRemindersPanel` in a modal so a follow-up can be set without leaving the list) + menu (View/Edit). The same ApplicantStatusSwitch is the detail header's status control
         │       ├── new/, edit/           # FormShell-wrapped ApplicantForm
         │       └── detail/               # 2-col ProfileLayout: sticky sidebar grouped Identity/Contact/Address/Record | underline tabs Passport & Family / Journeys / Documents / Files / Reminders / Alerts / History — **text only, no tab icons** (`ProfileTab` has no `icon` field, so it cannot drift back); every panel opens with ProfilePanelHeader
-        │           └── components/ApplicantJourneysPanel.tsx  # cross-module: embeds applicant-journeys (searchable ProfileList + View/Edit/Close row menu; Close reuses CloseJourneyModal — there is no delete; Edit fetches the detail, never the list row)
+        │           ├── components/ApplicantJourneysPanel.tsx  # cross-module: embeds applicant-journeys (searchable ProfileList + View/Edit/Close row menu; Close reuses CloseJourneyModal — there is no delete; Edit fetches the detail, never the list row). Its "Worklists" button opens ApplicantWorklistsDrawer; the journeys route is now a "see all journeys" link in the truncation line, not a header button
+        │           └── components/ApplicantWorklistsDrawer/  # the applicant's requirement worklists without leaving the page: picker (checklists `?applicant=` — matches through the journey; archived dropped client-side) → profile (progress lines + the checklists module's own ChecklistItemsList / AddChecklistItemModal, so ticking is one flow). Mounted but inert — a closed Mantine drawer renders no children, so no query runs until it opens; the detail query is keyed per worklist and cached after
         ├── applicant-journeys/  # MultiPageModule — study-objective lifecycle
         │   ├── applicantJourneys.{types,api,queryKeys,hooks,labels}.ts
         │   ├── form/JourneyForm.tsx      # shared create+edit modal form (applicantId prop for embedded use); exports toJourneyPayload (create) and toJourneyUpdatePayload (edit — drops the immutable `applicant`)
@@ -302,7 +303,9 @@ cards. Never gate those hooks on `caps.catalogue`.
 - **Applicants ⇄ Applicant Journeys.** `ApplicantJourneysPanel` (Applicant Detail's
   Journeys tab) embeds the applicant-journeys module: a card list filtered by
   `applicant`, a "New journey" modal (`JourneyForm` with `applicantId` preset, hiding the
-  picker), and a "View in worklist" link to `/admin/applicant-journeys?applicant=<id>`
+  picker), a **Worklists** drawer (`ApplicantWorklistsDrawer` — the applicant's
+  checklists, picked then worked in place, deep-importing `checklists`' own items list),
+  and a "see all journeys" link to `/admin/applicant-journeys?applicant=<id>`
   (read via `useSearchParams`/`forceFilters`, same convention as Audit's `actor_id`). That
   param does double duty in `JourneyWorklist.useDeepLinkApplicant`: it filters the table
   **and** binds the shell's `createFormComponent` to `JourneyForm` with that `applicantId`,
