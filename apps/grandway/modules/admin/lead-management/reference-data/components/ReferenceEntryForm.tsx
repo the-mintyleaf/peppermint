@@ -2,10 +2,8 @@
 
 import {
   Button,
-  Divider,
   Group,
   modals,
-  NumberInput,
   Stack,
   Switch,
   TextInput,
@@ -16,50 +14,47 @@ import {
   useFormInstance,
 } from "@peppermint/admin";
 import { z } from "zod";
+import { toReferenceCode } from "../../referenceCode.utils";
 import type {
   ReferenceEntryFormProps,
   ReferenceEntryFormValues,
 } from "./ReferenceEntryForm.types";
 
-/** Mirrors `leads/validators.py`'s `REFERENCE_CODE_PATTERN` exactly. */
-const CODE_PATTERN = /^[a-z0-9](?:[a-z0-9_-]{0,48}[a-z0-9])?$/;
-const CODE_ERROR =
-  "Lowercase letters, digits, - and _ only, starting and ending with a letter or digit.";
-
-function buildSchema(mode: "create" | "edit") {
-  return z.object({
-    code:
-      mode === "create"
-        ? z.string().min(1, "Required").max(50).regex(CODE_PATTERN, CODE_ERROR)
-        : z.string(),
-    name: z.string().min(1, "Required").max(150),
-    requires_detail: z.boolean(),
-    display_order: z.number().int().min(0),
-  });
-}
+/**
+ * Name is the only thing asked for. `code` is derived from it
+ * (`toReferenceCode`) rather than typed — it is a permanent internal
+ * identifier nobody needs to choose — and `display_order` is left at the
+ * server default, which orders the pickers alphabetically by name.
+ */
+const schema = z.object({
+  name: z
+    .string()
+    .min(1, "Required")
+    .max(150)
+    .refine(
+      (value) => toReferenceCode(value) !== "",
+      "Use at least one letter or number.",
+    ),
+  requires_detail: z.boolean(),
+});
 
 function toInitialValues(
   entry: ReferenceEntryFormProps["initialEntry"],
-  prefillName?: string,
 ): ReferenceEntryFormValues {
   return {
-    code: entry?.code ?? "",
-    name: entry?.name ?? prefillName ?? "",
+    name: entry?.name ?? "",
     requires_detail: entry?.requires_detail ?? false,
-    display_order: entry?.display_order ?? 0,
   };
 }
 
 export function ReferenceEntryForm({
   mode,
   initialEntry,
-  prefillName,
   isSubmitting,
   onSubmit,
   onCancel,
 }: ReferenceEntryFormProps) {
-  const schema = buildSchema(mode);
-  const initial = toInitialValues(initialEntry, prefillName);
+  const initial = toInitialValues(initialEntry);
 
   return (
     <FormWrapper<ReferenceEntryFormValues>
@@ -73,7 +68,7 @@ export function ReferenceEntryForm({
       }}
     >
       <Stack gap="sm">
-        <Fields mode={mode} isSubmitting={isSubmitting} />
+        <Fields isSubmitting={isSubmitting} />
         <FooterActions
           mode={mode}
           isSubmitting={isSubmitting}
@@ -137,33 +132,11 @@ function FooterActions({
   );
 }
 
-function Fields({
-  mode,
-  isSubmitting,
-}: {
-  mode: "create" | "edit";
-  isSubmitting: boolean;
-}) {
+function Fields({ isSubmitting }: { isSubmitting: boolean }) {
   const { form } = useFormInstance<ReferenceEntryFormValues>();
 
   return (
     <>
-      <TextInput
-        label="Code"
-        description={
-          mode === "create"
-            ? "A short, permanent identifier — can't be changed later."
-            : "Permanent — set when this entry was created."
-        }
-        placeholder="referral"
-        required={mode === "create"}
-        disabled={mode === "edit" || isSubmitting}
-        {...form.getInputProps("code")}
-        onChange={(e) =>
-          form.setFieldValue("code", e.currentTarget.value.toLowerCase())
-        }
-      />
-
       <TextInput
         label="Name"
         description="What this shows as in the picker."
@@ -173,8 +146,6 @@ function Fields({
         {...form.getInputProps("name")}
       />
 
-      <Divider />
-
       <Switch
         label="Needs an explanation"
         description="Shown as “Please specify” on the lead form when this is picked."
@@ -183,15 +154,6 @@ function Fields({
         onChange={(e) =>
           form.setFieldValue("requires_detail", e.currentTarget.checked)
         }
-      />
-
-      <NumberInput
-        label="Sort position"
-        description="Lower numbers show first in the picker."
-        min={0}
-        w={160}
-        disabled={isSubmitting}
-        {...form.getInputProps("display_order")}
       />
     </>
   );

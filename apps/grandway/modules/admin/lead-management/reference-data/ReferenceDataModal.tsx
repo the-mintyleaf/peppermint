@@ -17,24 +17,37 @@ import {
 import { ReferenceEntryPanel } from "./components/ReferenceEntryPanel";
 import type { ReferenceEntryFormValues } from "./components/ReferenceEntryForm.types";
 import type { ReferenceDataModalProps } from "./ReferenceDataModal.types";
-import type { ReferenceEntryUpdatePayload } from "../leadManagement.types";
+import type {
+  ReferenceEntryCreatePayload,
+  ReferenceEntryUpdatePayload,
+} from "../leadManagement.types";
+import { toReferenceCode } from "../referenceCode.utils";
 
 type ReferenceTab = "sources" | "loss-reasons";
 
 /**
- * `ReferenceEntryFormValues` always carries `code` (the edit form shows it
- * read-only rather than mounting/unmounting the field) — the backend rejects
- * an update body that includes it at all, so it must be stripped here, not
- * merely typed away (`extends Record<string, unknown>` defeats excess-
- * property checking, so passing `values` straight through would compile).
+ * `code` is required on create and rejected on update, and the form asks for
+ * neither — it is derived from the name here (see `toReferenceCode`). Both
+ * payloads are built field by field rather than spreading `values`:
+ * `ReferenceEntryFormValues extends Record<string, unknown>` defeats excess-
+ * property checking, so a stray key would compile and reach the API.
  */
+function toCreatePayload(
+  values: ReferenceEntryFormValues,
+): ReferenceEntryCreatePayload {
+  return {
+    code: toReferenceCode(values.name),
+    name: values.name,
+    requires_detail: values.requires_detail,
+  };
+}
+
 function toUpdatePayload(
   values: ReferenceEntryFormValues,
 ): ReferenceEntryUpdatePayload {
   return {
     name: values.name,
     requires_detail: values.requires_detail,
-    display_order: values.display_order,
   };
 }
 
@@ -63,7 +76,7 @@ function LeadSourcesTabPanel({ onDraftStateChange }: TabPanelProps) {
       isCreating={createMutation.isPending}
       onCreate={(values) =>
         createMutation
-          .mutateAsync(values)
+          .mutateAsync(toCreatePayload(values))
           .then(() => ({ ok: true }))
           .catch(() => ({ ok: false }))
       }
@@ -107,7 +120,7 @@ function LossReasonsTabPanel({ onDraftStateChange }: TabPanelProps) {
       isCreating={createMutation.isPending}
       onCreate={(values) =>
         createMutation
-          .mutateAsync(values)
+          .mutateAsync(toCreatePayload(values))
           .then(() => ({ ok: true }))
           .catch(() => ({ ok: false }))
       }

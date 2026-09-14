@@ -7,18 +7,9 @@ import {
   useFormInstance,
 } from "@peppermint/admin";
 import type { ModalFormComponentProps } from "@peppermint/admin";
-import {
-  Button,
-  Card,
-  Group,
-  Select,
-  Stack,
-  Text,
-  Textarea,
-  TextInput,
-} from "@peppermint/ui";
+import { Button, Loader, Select, Stack, TextInput } from "@peppermint/ui";
+import type { ComboboxItem } from "@peppermint/ui";
 import { z } from "zod";
-import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import { useCreateLeadSource, useLeadSources } from "../leadManagement.hooks";
 import type {
@@ -27,7 +18,7 @@ import type {
   LeadCreatePayload,
   LeadSource,
 } from "../leadManagement.types";
-import { ReferenceEntryForm } from "../reference-data/components/ReferenceEntryForm";
+import { toReferenceCode } from "../referenceCode.utils";
 import { ContactNumbersField } from "./ContactNumbersField";
 import { StudyInterestSection } from "./StudyInterestSection";
 import type { LeadFormValues, StudyInterestFormValues } from "./LeadForm.types";
@@ -240,7 +231,7 @@ export function LeadForm({
   isLoading,
   initialValues,
 }: ModalFormComponentProps<LeadBoardRow, LeadCreatePayload>) {
-  const { data: sources = [] } = useLeadSources();
+  const { data: sources = [], isLoading: sourcesLoading } = useLeadSources();
   const initial = toFormValues(initialValues);
   const schema = buildSchema(sources);
   const hadExistingStudyInterest = Boolean(initialValues?.study_interest);
@@ -267,7 +258,11 @@ export function LeadForm({
       }}
     >
       <Stack gap="md" p="md">
-        <Fields sources={sources} isLoading={isLoading} />
+        <Fields
+          sources={sources}
+          sourcesLoading={sourcesLoading}
+          isLoading={isLoading}
+        />
         <SubmitButton isLoading={isLoading} isEdit={Boolean(initialValues)} />
       </Stack>
     </FormWrapper>
@@ -276,9 +271,11 @@ export function LeadForm({
 
 function Fields({
   sources,
+  sourcesLoading,
   isLoading,
 }: {
   sources: LeadSource[];
+  sourcesLoading: boolean;
   isLoading: boolean;
 }) {
   const { form } = useFormInstance<LeadFormValues>();
@@ -290,7 +287,6 @@ function Fields({
   const isAdmin = authorityType === "admin";
   const selectedSource = sources.find((s) => s.id === form.values.source);
   const [sourceSearch, setSourceSearch] = useState("");
-  const [creatingSource, setCreatingSource] = useState(false);
   const createSourceMutation = useCreateLeadSource();
 
   // `fetchLeadSources()` never sends `include_inactive=true` (retired
@@ -302,31 +298,44 @@ function Fields({
   // `toUpdatePayload` (LeadManagementBoard.tsx) still omits `source` from
   // the PATCH when it's untouched, so leaving the field alone doesn't block
   // saving the rest of the edit.
-  const sourceOptions = sources.map((s) => ({
-    value: s.id,
-    label: s.name,
-  }));
+  const sourceOptions = sources.map((s) => ({ value: s.id, label: s.name }));
 
   const trimmedSearch = sourceSearch.trim();
-  const filteredSourceOptions = trimmedSearch
-    ? sourceOptions.filter((o) =>
-        o.label.toLowerCase().includes(trimmedSearch.toLowerCase()),
-      )
-    : sourceOptions;
   // Only Admins may create a source (`LEADS_ACTOR_FORBIDDEN` for anyone else
   // — `docs/backend/lead-management/INTEGRATION.md` §6), so this option only
-  // ever appears for `authorityType === "admin"`.
-  const showCreateSourceOption = isAdmin && filteredSourceOptions.length === 0;
-  const selectData = showCreateSourceOption
+  // ever appears for `authorityType === "admin"`. It is offered only once
+  // there is text to name the source with, that text isn't already a source,
+  // and it can produce a valid `code`.
+  const canCreateTypedSource =
+    isAdmin &&
+    trimmedSearch !== "" &&
+    toReferenceCode(trimmedSearch) !== "" &&
+    !sources.some((s) => s.name.toLowerCase() === trimmedSearch.toLowerCase());
+
+  const selectData = canCreateTypedSource
     ? [
+        ...sourceOptions,
         {
           value: CREATE_SOURCE_VALUE,
-          label: trimmedSearch
-            ? `+ Add "${trimmedSearch}" as a new lead source`
-            : "+ Add a new lead source",
+          label: `+ Add "${trimmedSearch}" as a new lead source`,
         },
       ]
-    : filteredSourceOptions;
+    : sourceOptions;
+
+  const handleCreateTypedSource = async () => {
+    try {
+      const created = await createSourceMutation.mutateAsync({
+        code: toReferenceCode(trimmedSearch),
+        name: trimmedSearch,
+      });
+      form.setFieldValue("source", created.id);
+      form.setFieldValue("source_detail", "");
+      setSourceSearch(created.name);
+    } catch {
+      // `useCreateLeadSource` already raised the notification; the picker
+      // keeps the typed text so the admin can retry or pick something else.
+    }
+  };
 
   return (
     <>
@@ -338,44 +347,63 @@ function Fields({
         {...form.getInputProps("full_name")}
       />
 
-      <Group grow align="flex-start">
-        <TextInput
-          label="Email"
-          type="email"
-          placeholder="ram@example.com"
-          autoComplete="email"
-          disabled={isLoading}
-          {...form.getInputProps("email")}
-        />
-        <Select
-          label="Lead source"
-          placeholder={
-            creatingSource
-              ? "Creating a new source below…"
-              : "How did they hear about us?"
+      <TextInput
+        label="Email"
+        type="email"
+        placeholder="ram@example.com"
+        autoComplete="email"
+        disabled={isLoading}
+        {...form.getInputProps("email")}
+      />
+
+      <Select
+        label="Lead source"
+        placeholder={
+          sourcesLoading ? "Loading sources…" : "How did they hear about us?"
+        }
+        description={
+          isAdmin ? "Type a new name to add a source you don't see." : undefined
+        }
+        data={selectData}
+        // Mantine's own filter, deliberately: it is skipped while the search
+        // text still equals the selected option's label, so reopening the
+        // dropdown after a pick shows every source rather than only the one
+        // already chosen. Filtering by hand outside the component (as this
+        // did) loses that and strands the user on a one-item list. The
+        // create row is exempt — it is an action, not a match.
+        filter={({ options, search }) => {
+          const query = search.trim().toLowerCase();
+          return (options as ComboboxItem[]).filter(
+            (option) =>
+              option.value === CREATE_SOURCE_VALUE ||
+              option.label.toLowerCase().includes(query),
+          );
+        }}
+        searchable
+        searchValue={sourceSearch}
+        onSearchChange={setSourceSearch}
+        nothingFoundMessage={sourcesLoading ? "Loading…" : "No matching source"}
+        rightSection={
+          sourcesLoading || createSourceMutation.isPending ? (
+            <Loader size="xs" />
+          ) : undefined
+        }
+        required
+        disabled={isLoading || createSourceMutation.isPending}
+        {...form.getInputProps("source")}
+        onChange={(value) => {
+          if (value === CREATE_SOURCE_VALUE) {
+            void handleCreateTypedSource();
+            return;
           }
-          data={selectData}
-          filter={({ options }) => options}
-          searchable
-          searchValue={sourceSearch}
-          onSearchChange={setSourceSearch}
-          required
-          disabled={isLoading || creatingSource}
-          {...form.getInputProps("source")}
-          onChange={(value) => {
-            if (value === CREATE_SOURCE_VALUE) {
-              setCreatingSource(true);
-              return;
-            }
-            form.setFieldValue("source", value ?? "");
-            // Always clear on any source change, not just when the new
-            // source doesn't require one — an explanation written for the
-            // old source is never valid for a different one, even when
-            // both happen to require detail.
-            form.setFieldValue("source_detail", "");
-          }}
-        />
-      </Group>
+          form.setFieldValue("source", value ?? "");
+          // Always clear on any source change, not just when the new
+          // source doesn't require one — an explanation written for the
+          // old source is never valid for a different one, even when
+          // both happen to require detail.
+          form.setFieldValue("source_detail", "");
+        }}
+      />
 
       {selectedSource?.requires_detail ? (
         <TextInput
@@ -387,46 +415,9 @@ function Fields({
         />
       ) : null}
 
-      {creatingSource ? (
-        <Card withBorder padding="sm" radius="md">
-          <Stack gap="xs">
-            <Text size="sm" fw={600}>
-              New lead source
-            </Text>
-            <ReferenceEntryForm
-              mode="create"
-              prefillName={trimmedSearch || undefined}
-              isSubmitting={createSourceMutation.isPending}
-              onSubmit={async (values) => {
-                try {
-                  const created =
-                    await createSourceMutation.mutateAsync(values);
-                  form.setFieldValue("source", created.id);
-                  form.setFieldValue("source_detail", "");
-                  setCreatingSource(false);
-                  setSourceSearch("");
-                  return { ok: true };
-                } catch (error) {
-                  // `useCreateLeadSource`'s own toast already fired; passing
-                  // the same resolved message here (rather than leaving it
-                  // blank) keeps `FormWrapper`'s own notification from
-                  // showing a second, vaguer "Something went wrong."
-                  return { ok: false, message: getApiErrorMessage(error) };
-                }
-              }}
-              onCancel={() => {
-                setCreatingSource(false);
-                setSourceSearch("");
-              }}
-            />
-          </Stack>
-        </Card>
-      ) : null}
-
-      <Textarea
+      <TextInput
         label="Address"
-        autosize
-        minRows={2}
+        placeholder="Ward, tole, city"
         disabled={isLoading}
         {...form.getInputProps("address")}
       />

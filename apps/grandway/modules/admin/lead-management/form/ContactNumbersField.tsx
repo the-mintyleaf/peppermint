@@ -5,12 +5,14 @@ import {
   ActionIcon,
   Button,
   Group,
+  Paper,
   Radio,
   Select,
   Stack,
   Text,
   TextInput,
 } from "@peppermint/ui";
+import { PhoneIcon } from "@phosphor-icons/react/dist/csr/Phone";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import type { ContactNumberInput } from "../leadManagement.types";
@@ -78,20 +80,48 @@ export function ContactNumbersField() {
             *
           </Text>
         </Text>
-        <Button
-          size="compact-xs"
-          variant="subtle"
-          leftSection={<PlusIcon size={14} aria-hidden />}
-          onClick={addRow}
-        >
-          Add number
-        </Button>
+        {rows.length > 0 ? (
+          <Button
+            size="compact-xs"
+            variant="subtle"
+            leftSection={<PlusIcon size={14} aria-hidden />}
+            onClick={addRow}
+          >
+            Add number
+          </Button>
+        ) : null}
       </Group>
 
       {rows.length === 0 ? (
-        <Text size="xs" c="dimmed">
-          No contact numbers yet — add at least one.
-        </Text>
+        // A real empty state, not a one-line hint: contact numbers are the
+        // one required part of this form a user can leave looking "done" by
+        // doing nothing, so the gap where they belong has to read as a gap.
+        <Paper
+          withBorder
+          radius="md"
+          py="lg"
+          px="md"
+          style={{ borderStyle: "dashed" }}
+        >
+          <Stack gap={6} align="center">
+            <PhoneIcon size={20} aria-hidden />
+            <Text size="sm" fw={500}>
+              No contact number added yet
+            </Text>
+            <Text size="xs" c="dimmed" ta="center">
+              A lead needs at least one — mobile, WhatsApp, or Viber.
+            </Text>
+            <Button
+              size="compact-xs"
+              variant="light"
+              mt={4}
+              leftSection={<PlusIcon size={14} aria-hidden />}
+              onClick={addRow}
+            >
+              Add number
+            </Button>
+          </Stack>
+        </Paper>
       ) : (
         <Radio.Group
           value={primaryIndex >= 0 ? String(primaryIndex) : null}
@@ -135,11 +165,11 @@ export function ContactNumbersField() {
         <Text size="xs" c="red">
           {arrayError}
         </Text>
-      ) : (
+      ) : rows.length > 1 ? (
         <Text size="xs" c="dimmed">
           Select the radio button next to a number to mark it primary.
         </Text>
-      )}
+      ) : null}
     </Stack>
   );
 }
