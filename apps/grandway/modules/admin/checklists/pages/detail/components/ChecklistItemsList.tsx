@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
   ActionIcon,
   Badge,
-  Button,
+  Box,
   Group,
   Paper,
   Stack,
@@ -16,7 +16,12 @@ import {
   ITEM_STATUS_LABELS,
   ITEM_TYPE_LABELS,
 } from "../../../checklists.labels";
-import type { ChecklistDetail, ChecklistItem } from "../../../checklists.types";
+import type {
+  ChecklistDetail,
+  ChecklistItem,
+  ItemStatus,
+} from "../../../checklists.types";
+import { ChecklistItemStatusSwitch } from "./ChecklistItemStatusSwitch";
 import { EditChecklistItemModal } from "./EditChecklistItemModal";
 import { ItemStatusModal } from "./ItemStatusModal";
 
@@ -26,8 +31,8 @@ interface ChecklistItemsListProps {
   outstandingIds?: Set<string>;
 }
 
-/** Blocked first (needs attention), then pending, then the three resolved statuses. */
-const STATUS_ORDER: ChecklistItem["status"][] = [
+/** Outstanding work first — blocked, then pending — then the three resolved statuses. */
+const STATUS_ORDER: ItemStatus[] = [
   "blocked",
   "pending",
   "completed",
@@ -35,20 +40,140 @@ const STATUS_ORDER: ChecklistItem["status"][] = [
   "not_applicable",
 ];
 
+/** The status switch's column: one width for every row, so the labels line up. */
+const SWITCH_WIDTH = 160;
+
+interface StatusGroup {
+  status: ItemStatus;
+  items: ChecklistItem[];
+}
+
+/** Groups in `STATUS_ORDER`, each internally by `display_order`. Empty groups are dropped. */
+function groupByStatus(items: ChecklistItem[]): StatusGroup[] {
+  return STATUS_ORDER.map((status) => ({
+    status,
+    items: items
+      .filter((item) => item.status === status)
+      .sort((a, b) => a.display_order - b.display_order),
+  })).filter((group) => group.items.length > 0);
+}
+
+/**
+ * One item: its status switch in a fixed left gutter, then the work itself.
+ * The switch *is* the item's status — there is no separate status badge, and
+ * no "Update status" button, because the thing showing the state is the thing
+ * that changes it.
+ */
+function ItemRow({
+  checklist,
+  item,
+  isOutstanding,
+  frozen,
+  onOpenStatusModal,
+  onEdit,
+}: {
+  checklist: ChecklistDetail;
+  item: ChecklistItem;
+  isOutstanding: boolean;
+  frozen: boolean;
+  onOpenStatusModal: (item: ChecklistItem, initialStatus: ItemStatus) => void;
+  onEdit: (item: ChecklistItem) => void;
+}) {
+  return (
+    <Paper
+      withBorder
+      p="sm"
+      radius="sm"
+      style={
+        isOutstanding
+          ? { borderColor: "var(--mantine-color-red-5)" }
+          : undefined
+      }
+    >
+      <Group align="flex-start" wrap="nowrap" gap="sm">
+        <Box w={SWITCH_WIDTH} style={{ flexShrink: 0 }}>
+          <ChecklistItemStatusSwitch
+            checklistId={checklist.id}
+            item={item}
+            frozen={frozen}
+            onOpenStatusModal={onOpenStatusModal}
+          />
+        </Box>
+
+        <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
+          <Group gap="xs">
+            <Text size="xs" fw={500}>
+              {item.label}
+            </Text>
+            <Badge size="xs" variant="light">
+              {ITEM_TYPE_LABELS[item.item_type]}
+            </Badge>
+            {item.is_required ? (
+              <Badge size="xs" variant="outline" color="orange">
+                Required
+              </Badge>
+            ) : null}
+            {isOutstanding ? (
+              <Badge size="xs" variant="filled" color="red">
+                Outstanding
+              </Badge>
+            ) : null}
+          </Group>
+          {item.description ? (
+            <Text size="xs" c="dimmed">
+              {item.description}
+            </Text>
+          ) : null}
+          {item.status_note ? (
+            <Text size="xs" c="dimmed">
+              Note: {item.status_note}
+            </Text>
+          ) : null}
+          {item.evidence_file ? (
+            <Text size="xs" c="dimmed">
+              Evidence attached
+            </Text>
+          ) : null}
+        </Stack>
+
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          aria-label={`Edit ${item.label}`}
+          onClick={() => onEdit(item)}
+        >
+          <PencilSimpleIcon size={16} aria-hidden />
+        </ActionIcon>
+      </Group>
+    </Paper>
+  );
+}
+
+/**
+ * The checklist as a worklist: items banded under their status, outstanding
+ * bands first, so "what is left" is read off the page instead of assembled
+ * from a flat list. Only statuses actually in use get a band — a checklist
+ * nobody has waived anything on never shows an empty "Waived" heading.
+ */
 export function ChecklistItemsList({
   checklist,
   outstandingIds,
 }: ChecklistItemsListProps) {
-  const [statusFor, setStatusFor] = useState<ChecklistItem | null>(null);
+  const [statusFor, setStatusFor] = useState<{
+    item: ChecklistItem;
+    initialStatus: ItemStatus;
+  } | null>(null);
   const [editFor, setEditFor] = useState<ChecklistItem | null>(null);
 
-  const items = [...checklist.items].sort(
-    (a, b) =>
-      STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status) ||
-      a.display_order - b.display_order,
-  );
+  // Item status only moves while the checklist is open for work: the API 409s
+  // an item change on a completed checklist (reopen first) and on an archived
+  // one (`FLOWS.md` — "Work an applicant's list to completion", step 3).
+  const frozen =
+    checklist.status === "completed" || checklist.status === "archived";
 
-  if (items.length === 0) {
+  const groups = groupByStatus(checklist.items);
+
+  if (groups.length === 0) {
     return (
       <Text size="xs" c="dimmed">
         No items on this checklist yet.
@@ -57,92 +182,45 @@ export function ChecklistItemsList({
   }
 
   return (
-    <Stack gap="xs">
-      {items.map((item) => {
-        const isOutstanding = outstandingIds?.has(item.id) ?? false;
-        return (
-          <Paper
-            key={item.id}
-            withBorder
-            p="sm"
-            radius="sm"
-            style={
-              isOutstanding
-                ? { borderColor: "var(--mantine-color-red-5)" }
-                : undefined
-            }
-          >
-            <Group justify="space-between" align="flex-start" wrap="nowrap">
-              <Stack gap={4} style={{ flex: 1 }}>
-                <Group gap="xs">
-                  <Text size="xs" fw={500}>
-                    {item.label}
-                  </Text>
-                  <Badge size="xs" variant="light">
-                    {ITEM_TYPE_LABELS[item.item_type]}
-                  </Badge>
-                  {item.is_required ? (
-                    <Badge size="xs" variant="outline" color="orange">
-                      Required
-                    </Badge>
-                  ) : null}
-                  <Badge
-                    size="xs"
-                    variant="light"
-                    color={ITEM_STATUS_COLORS[item.status]}
-                  >
-                    {ITEM_STATUS_LABELS[item.status]}
-                  </Badge>
-                  {isOutstanding ? (
-                    <Badge size="xs" variant="filled" color="red">
-                      Outstanding
-                    </Badge>
-                  ) : null}
-                </Group>
-                {item.description ? (
-                  <Text size="xs" c="dimmed">
-                    {item.description}
-                  </Text>
-                ) : null}
-                {item.status_note ? (
-                  <Text size="xs" c="dimmed">
-                    Note: {item.status_note}
-                  </Text>
-                ) : null}
-                {item.evidence_file ? (
-                  <Text size="xs" c="dimmed">
-                    Evidence attached
-                  </Text>
-                ) : null}
-              </Stack>
-              <Group gap="xs" wrap="nowrap">
-                <ActionIcon
-                  variant="subtle"
-                  color="gray"
-                  aria-label={`Edit ${item.label}`}
-                  onClick={() => setEditFor(item)}
-                >
-                  <PencilSimpleIcon size={16} aria-hidden />
-                </ActionIcon>
-                <Button
-                  size="xs"
-                  variant="default"
-                  onClick={() => setStatusFor(item)}
-                >
-                  Update status
-                </Button>
-              </Group>
-            </Group>
-          </Paper>
-        );
-      })}
+    <Stack gap="lg">
+      {groups.map((group) => (
+        <Stack key={group.status} gap="xs">
+          <Group gap="xs">
+            <Text size="xs" fw={700} tt="uppercase" c="dimmed">
+              {ITEM_STATUS_LABELS[group.status]}
+            </Text>
+            <Badge
+              size="xs"
+              variant="light"
+              color={ITEM_STATUS_COLORS[group.status]}
+            >
+              {group.items.length}
+            </Badge>
+          </Group>
+
+          {group.items.map((item) => (
+            <ItemRow
+              key={item.id}
+              checklist={checklist}
+              item={item}
+              isOutstanding={outstandingIds?.has(item.id) ?? false}
+              frozen={frozen}
+              onOpenStatusModal={(target, initialStatus) =>
+                setStatusFor({ item: target, initialStatus })
+              }
+              onEdit={setEditFor}
+            />
+          ))}
+        </Stack>
+      ))}
 
       {statusFor ? (
         <ItemStatusModal
           checklistId={checklist.id}
           applicantId={checklist.applicant.id}
-          item={statusFor}
-          opened={statusFor !== null}
+          item={statusFor.item}
+          initialStatus={statusFor.initialStatus}
+          opened
           onClose={() => setStatusFor(null)}
         />
       ) : null}

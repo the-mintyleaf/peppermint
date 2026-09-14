@@ -35,8 +35,11 @@ export function ItemStatusModal({
   item,
   opened,
   onClose,
+  initialStatus,
 }: ItemStatusModalProps) {
-  const [status, setStatus] = useState<ItemStatus>(item.status);
+  const [status, setStatus] = useState<ItemStatus>(
+    initialStatus ?? item.status,
+  );
   const [statusNote, setStatusNote] = useState(item.status_note);
   const [evidenceFileId, setEvidenceFileId] = useState<string | null>(
     item.evidence_file,
@@ -49,7 +52,7 @@ export function ItemStatusModal({
   const canSubmit = !needsNote || statusNote.trim().length > 0;
 
   const handleClose = () => {
-    setStatus(item.status);
+    setStatus(initialStatus ?? item.status);
     setStatusNote(item.status_note);
     setEvidenceFileId(item.evidence_file);
     setClearEvidence(false);

@@ -12,7 +12,9 @@ import {
   Loader,
   ModalPaper,
   ModuleHeader,
+  Paper,
   Progress,
+  SimpleGrid,
   Stack,
   Text,
   Title,
@@ -307,41 +309,51 @@ function ChecklistDetailContent() {
             </Group>
           </Group>
 
-          <Stack gap={6}>
-            <Group justify="space-between">
-              <Text size="xs" fw={500}>
-                Overall progress
-              </Text>
-              <Text size="xs" c="dimmed">
-                {progress.resolved}/{progress.total} resolved
-              </Text>
-            </Group>
-            <Progress
-              value={resolvedPct}
-              size="sm"
-              color={resolvedPct === 100 ? "green" : "blue"}
-            />
+          {/* The two questions this page answers at a glance — how much of the
+              list is done, and whether the part that actually gates completion
+              is done — as two peer cards, each led by its own figure. */}
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+            <Paper withBorder radius="md" p="md">
+              <Stack gap="xs">
+                <Title order={5}>Overall progress</Title>
+                <Group align="baseline" gap="xs" wrap="nowrap">
+                  <Title order={2}>{resolvedPct}%</Title>
+                  <Text size="xs" c="dimmed">
+                    {progress.resolved} of {progress.total} resolved
+                  </Text>
+                </Group>
+                <Progress
+                  value={resolvedPct}
+                  size="sm"
+                  color={resolvedPct === 100 ? "green" : "blue"}
+                />
+              </Stack>
+            </Paper>
 
-            <Group justify="space-between">
-              <Text size="xs" fw={500}>
-                Required items
-              </Text>
-              <Text size="xs" c="dimmed">
-                {progress.required_resolved}/{progress.required_total} resolved
-              </Text>
-            </Group>
-            <Progress
-              value={requiredPct}
-              size="sm"
-              color={requiredPct === 100 ? "green" : "orange"}
-            />
-
-            {progress.blocked > 0 ? (
-              <Text size="xs" c="red">
-                {progress.blocked} item(s) blocked — still outstanding
-              </Text>
-            ) : null}
-          </Stack>
+            <Paper withBorder radius="md" p="md">
+              <Stack gap="xs">
+                <Title order={5}>Required items</Title>
+                <Group align="baseline" gap="xs" wrap="nowrap">
+                  <Title order={2}>
+                    {progress.required_resolved}/{progress.required_total}
+                  </Title>
+                  <Text size="xs" c="dimmed">
+                    resolved
+                  </Text>
+                </Group>
+                <Progress
+                  value={requiredPct}
+                  size="sm"
+                  color={requiredPct === 100 ? "green" : "orange"}
+                />
+                {progress.blocked > 0 ? (
+                  <Text size="xs" c="red">
+                    {progress.blocked} item(s) blocked — still outstanding
+                  </Text>
+                ) : null}
+              </Stack>
+            </Paper>
+          </SimpleGrid>
 
           {pendingItemIds ? (
             <Text size="xs" fw={500} c="red">
@@ -351,9 +363,7 @@ function ChecklistDetailContent() {
           ) : null}
 
           <Group justify="space-between">
-            <Text size="sm" fw={500}>
-              Items
-            </Text>
+            <Title order={5}>Items</Title>
             <Button
               size="xs"
               variant="light"

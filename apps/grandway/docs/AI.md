@@ -153,7 +153,7 @@ apps/grandway/
         │   └── pages/
         │       ├── templates/{list,detail}/   # Admin-authored (reads shared with lead_manager; writes admin-gated inline)
         │       ├── list/      # ChecklistWorklist + AwaitingSetupList (separate — different resource, journeys not checklists)
-        │       └── detail/    # ChecklistDetail — progress, item lifecycle, evidence picker (consumes uploaded-files), alerts panel
+        │       └── detail/    # ChecklistDetail — Overall progress / Required items as side-by-side stat cards, then items as a worklist: `ChecklistItemsList` bands them under status headings (blocked → pending → completed → waived → not applicable, empty bands dropped) and each row leads with `ChecklistItemStatusSwitch` (the shared InlineStageSwitch, fixed 160px gutter) — plain statuses confirm inline, waived/blocked/evidence hand off to `ItemStatusModal` (`initialStatus` opens it on the status the menu named), and the switch is a read-only badge once the checklist is completed/archived (the API 409s item moves there). Evidence picker (consumes uploaded-files), alerts panel
         ├── reminders/        # ModalModule — dated follow-ups on an applicant/client, NO route
         │   ├── reminders.{types,api,queryKeys,hooks,labels,utils}.ts   # `nepalToday()` lives here — the app's only Nepal-calendar clock
         │   ├── _shared/RecordRemindersPanel/   # the embed; `owner` is `{applicant}|{client}`, a union so "exactly one" is compile-time
