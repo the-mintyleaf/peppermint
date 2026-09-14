@@ -210,7 +210,7 @@ export function buildAdminConfig(
             icon: ClockIcon,
           },
           {
-            label: "Requirement templates",
+            label: "Workflow templates",
             href: "/admin/checklists/templates",
             icon: BooksIcon,
           },

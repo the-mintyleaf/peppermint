@@ -13,12 +13,16 @@ Backend base path `/api/v1/checklists/`. Contract: `docs/backend/checklists/`.
 MultiPageModule with TWO distinct route trees under one module: Templates
 (Admin-only authoring) and Instances (Admin + Lead Manager tracking).
 
+A template has **no detail route** — it opens in `TemplateDrawer` over the
+templates list (`_shared/TemplateDrawer`, the same move `WorklistDrawer` made).
+`/admin/checklists/templates?template=<id>` opens the drawer on that template;
+that is the deep link global search uses.
+
 ## Routes
 
 | Route                            | Entry export                   | Component                                   |
 | -------------------------------- | ------------------------------ | ------------------------------------------- |
 | /admin/checklists/templates      | `ModuleChecklistTemplatesList` | pages/templates/list/ChecklistTemplatesList |
-| /admin/checklists/templates/[id] | `ModuleTemplateDetail`         | pages/templates/detail/TemplateDetail       |
 | /admin/checklists                | `ModuleChecklistWorklist`      | pages/list/ChecklistWorklist                |
 | /admin/checklists/awaiting-setup | `ModuleAwaitingSetupList`      | pages/list/AwaitingSetupList                |
 | /admin/checklists/[id]           | `ModuleChecklistDetail`        | pages/detail/ChecklistDetail                |
@@ -40,7 +44,7 @@ MultiPageModule with TWO distinct route trees under one module: Templates
   template, create/update template item) are **Admin-only**. These are gated
   **inline**, not at the page level: `createFormComponent`/`onCreateApi`/
   `onEditApi` on `ChecklistTemplatesList` and the publish/retire/add-item/
-  edit-item controls on `TemplateDetail`/`TemplateItemsList`/
+  edit-item controls on `TemplateProfilePanel`/`TemplateItemsList`/
   `TemplateRowActionsMenu` are all `undefined`/hidden when
   `authorityType !== "admin"`. These stay even though the screen is now Admin-only:
   they encode the narrower backend rule directly, and would still hold if template
@@ -83,22 +87,22 @@ MultiPageModule with TWO distinct route trees under one module: Templates
 
 ## Common edit targets
 
-| Task                                   | Files                                                                                                |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Templates list / shell wiring          | pages/templates/list/ChecklistTemplatesList.tsx                                                      |
-| Templates columns                      | pages/templates/list/templates.columns.tsx                                                           |
-| Template create/edit form              | form/TemplateForm.tsx (+ `.utils.ts` for payload mapping)                                            |
-| Template detail (publish/retire/items) | pages/templates/detail/TemplateDetail.tsx                                                            |
-| Template item add/edit/retire          | pages/templates/detail/components/{AddTemplateItemModal,EditTemplateItemModal,TemplateItemsList.tsx} |
-| Checklist worklist / shell wiring      | pages/list/ChecklistWorklist.tsx                                                                     |
-| Checklist worklist columns             | pages/list/checklistWorklist.columns.tsx                                                             |
-| Checklist create form (2 shapes)       | form/ChecklistCreateForm.tsx (+ `.utils.ts`'s `toCreateChecklistPayload`)                            |
-| Checklist edit form (mutable subset)   | form/ChecklistEditForm.tsx (diffs changed fields only)                                               |
-| Safety-net view                        | pages/list/AwaitingSetupList.tsx + awaitingSetup.columns.tsx                                         |
-| Checklist detail (lifecycle + items)   | pages/detail/ChecklistDetail.tsx                                                                     |
-| Item status transitions + evidence     | pages/detail/components/{ItemStatusModal,EvidencePickerModal}                                        |
-| Add/edit a one-off checklist item      | pages/detail/components/{AddChecklistItemModal,EditChecklistItemModal}                               |
-| DTO shapes / API / keys / hooks        | checklists.{types,api,queryKeys,hooks}.ts                                                            |
+| Task                                   | Files                                                                                                 |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Templates list / shell wiring          | pages/templates/list/ChecklistTemplatesList.tsx                                                       |
+| Templates columns                      | pages/templates/list/templates.columns.tsx                                                            |
+| Template create/edit form              | form/TemplateForm.tsx (+ `.utils.ts` for payload mapping)                                             |
+| Template detail (publish/retire/items) | \_shared/TemplateDrawer/{TemplateDrawer,TemplateProfilePanel}.tsx                                     |
+| Template item add/edit/retire          | \_shared/TemplateDrawer/components/{AddTemplateItemModal,EditTemplateItemModal,TemplateItemsList.tsx} |
+| Checklist worklist / shell wiring      | pages/list/ChecklistWorklist.tsx                                                                      |
+| Checklist worklist columns             | pages/list/checklistWorklist.columns.tsx                                                              |
+| Checklist create form (2 shapes)       | form/ChecklistCreateForm.tsx (+ `.utils.ts`'s `toCreateChecklistPayload`)                             |
+| Checklist edit form (mutable subset)   | form/ChecklistEditForm.tsx (diffs changed fields only)                                                |
+| Safety-net view                        | pages/list/AwaitingSetupList.tsx + awaitingSetup.columns.tsx                                          |
+| Checklist detail (lifecycle + items)   | pages/detail/ChecklistDetail.tsx                                                                      |
+| Item status transitions + evidence     | pages/detail/components/{ItemStatusModal,EvidencePickerModal}                                         |
+| Add/edit a one-off checklist item      | pages/detail/components/{AddChecklistItemModal,EditChecklistItemModal}                                |
+| DTO shapes / API / keys / hooks        | checklists.{types,api,queryKeys,hooks}.ts                                                             |
 
 ## Domain rules encoded here
 

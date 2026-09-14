@@ -1,11 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ModalTableShell } from "@peppermint/admin";
 import { ModalPaper } from "@peppermint/ui";
 import { RequireCapability } from "@/components/RequireCapability";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
+import { TemplateDrawer } from "../../../_shared/TemplateDrawer";
 import {
   createTemplate,
   getTemplate,
@@ -31,56 +33,67 @@ import { getTemplatesColumns } from "./templates.columns";
  * still hold if template reads were ever reopened to staff.
  */
 function ChecklistTemplatesListContent() {
-  const router = useRouter();
+  const searchParams = useSearchParams();
+  // A deep link (global search) names the template to open; from then on the
+  // drawer is local state, so closing it doesn't push a history entry.
+  const [openedId, setOpenedId] = useState<string | null>(() =>
+    searchParams.get("template"),
+  );
   const { authorityType } = useCurrentUser();
   const isAdmin = authorityType === "admin";
   const columns = getTemplatesColumns({
-    onViewDetails: (template) =>
-      router.push(`/admin/checklists/templates/${template.id}`),
+    onViewDetails: (template) => setOpenedId(template.id),
   });
 
   return (
-    <ModalTableShell<
-      ChecklistTemplate,
-      CreateTemplateValues,
-      UpdateTemplateValues
-    >
-      queryKey={templateQueryKeys.lists()}
-      queryGetFn={listTemplates}
-      enableServerQuery
-      dataKey="data"
-      paginationKey="meta"
-      idAccessor="id"
-      columns={columns}
-      moduleInfo={{
-        name: "checklist-template",
-        label: "Checklist templates",
-        description: "One requirement list per destination country",
-      }}
-      createModalTitle="New template"
-      editModalTitle="Edit template"
-      createFormComponent={isAdmin ? TemplateForm : undefined}
-      editFormComponent={isAdmin ? TemplateForm : undefined}
-      onCreateApi={
-        isAdmin
-          ? (values) => createTemplate(toCreateTemplatePayload(values))
-          : undefined
-      }
-      onEditApi={
-        isAdmin
-          ? (values, record) =>
-              updateTemplate(record.id, toUpdateTemplatePayload(values))
-          : undefined
-      }
-      onEditTrigger={(record) => getTemplate(record.id)}
-      getErrorMessage={getApiErrorMessage}
-      disableReviewButton
-      pageSizes={[10, 20, 30, 50]}
-      defaultPageSize={20}
-      basePath="/admin/checklists/templates"
-      mainComponent={ModalPaper}
-      mainComponentProps={{ withBorder: true }}
-    />
+    <>
+      <ModalTableShell<
+        ChecklistTemplate,
+        CreateTemplateValues,
+        UpdateTemplateValues
+      >
+        queryKey={templateQueryKeys.lists()}
+        queryGetFn={listTemplates}
+        enableServerQuery
+        dataKey="data"
+        paginationKey="meta"
+        idAccessor="id"
+        columns={columns}
+        moduleInfo={{
+          name: "checklist-template",
+          label: "Workflow templates",
+          description: "One requirement list per destination country",
+        }}
+        createModalTitle="New template"
+        editModalTitle="Edit template"
+        createFormComponent={isAdmin ? TemplateForm : undefined}
+        editFormComponent={isAdmin ? TemplateForm : undefined}
+        onCreateApi={
+          isAdmin
+            ? (values) => createTemplate(toCreateTemplatePayload(values))
+            : undefined
+        }
+        onEditApi={
+          isAdmin
+            ? (values, record) =>
+                updateTemplate(record.id, toUpdateTemplatePayload(values))
+            : undefined
+        }
+        onEditTrigger={(record) => getTemplate(record.id)}
+        getErrorMessage={getApiErrorMessage}
+        disableReviewButton
+        pageSizes={[10, 20, 30, 50]}
+        defaultPageSize={20}
+        basePath="/admin/checklists/templates"
+        mainComponent={ModalPaper}
+        mainComponentProps={{ withBorder: true }}
+      />
+      <TemplateDrawer
+        templateId={openedId}
+        opened={openedId !== null}
+        onClose={() => setOpenedId(null)}
+      />
+    </>
   );
 }
 

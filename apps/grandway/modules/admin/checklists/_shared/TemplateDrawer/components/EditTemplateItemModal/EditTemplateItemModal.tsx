@@ -12,71 +12,65 @@ import {
   Textarea,
   TextInput,
 } from "@peppermint/ui";
-import { useCreateTemplateItem } from "../../../../../checklists.hooks";
-import { ITEM_TYPE_OPTIONS } from "../../../../../checklists.labels";
-import type { ItemType } from "../../../../../checklists.types";
-import type { AddTemplateItemModalProps } from "./AddTemplateItemModal.types";
+import { useUpdateTemplateItem } from "../../../../checklists.hooks";
+import { ITEM_TYPE_OPTIONS } from "../../../../checklists.labels";
+import type {
+  ItemType,
+  UpdateTemplateItemPayload,
+} from "../../../../checklists.types";
+import type { EditTemplateItemModalProps } from "./EditTemplateItemModal.types";
 
 /**
- * Adds one requirement to a template (`POST /templates/<id>/items/`). Allowed
- * even while the template is still a draft (§6 — requirements are normally
- * added before publishing). There is no delete for template items — a mistake
- * is retired with `is_active: false` from `TemplateItemsList`, not removed.
+ * Edits a requirement's wording (`PATCH /templates/<id>/items/<item_id>/`) —
+ * descriptive fields only. Retiring/restoring (`is_active`) is a quick action
+ * on `TemplateItemsList`'s own row, not here. Only changed fields are sent.
  */
-export function AddTemplateItemModal({
+export function EditTemplateItemModal({
   templateId,
+  item,
   opened,
   onClose,
-}: AddTemplateItemModalProps) {
-  const [label, setLabel] = useState("");
-  const [description, setDescription] = useState("");
-  const [itemType, setItemType] = useState<ItemType>("document");
-  const [isRequired, setIsRequired] = useState(true);
-  const [displayOrder, setDisplayOrder] = useState<number | "">("");
-  const [dueOffsetDays, setDueOffsetDays] = useState<number | "">("");
-  const mutation = useCreateTemplateItem(templateId);
-
-  const reset = () => {
-    setLabel("");
-    setDescription("");
-    setItemType("document");
-    setIsRequired(true);
-    setDisplayOrder("");
-    setDueOffsetDays("");
-  };
-
-  const handleClose = () => {
-    reset();
-    onClose();
-  };
+}: EditTemplateItemModalProps) {
+  const [label, setLabel] = useState(item.label);
+  const [description, setDescription] = useState(item.description);
+  const [itemType, setItemType] = useState<ItemType>(item.item_type);
+  const [isRequired, setIsRequired] = useState(item.is_required);
+  const [displayOrder, setDisplayOrder] = useState<number | "">(
+    item.display_order,
+  );
+  const [dueOffsetDays, setDueOffsetDays] = useState<number | "">(
+    item.default_due_offset_days ?? "",
+  );
+  const mutation = useUpdateTemplateItem(templateId);
 
   const handleSubmit = () => {
-    mutation.mutate(
-      {
-        label: label.trim(),
-        ...(description.trim() ? { description: description.trim() } : {}),
-        item_type: itemType,
-        is_required: isRequired,
-        ...(displayOrder !== "" ? { display_order: displayOrder } : {}),
-        ...(dueOffsetDays !== ""
-          ? { default_due_offset_days: dueOffsetDays }
-          : {}),
-      },
-      { onSuccess: handleClose },
-    );
+    const body: UpdateTemplateItemPayload = {};
+    if (label.trim() !== item.label) body.label = label.trim();
+    if (description.trim() !== item.description)
+      body.description = description.trim();
+    if (itemType !== item.item_type) body.item_type = itemType;
+    if (isRequired !== item.is_required) body.is_required = isRequired;
+    if (displayOrder !== "" && displayOrder !== item.display_order)
+      body.display_order = displayOrder;
+    if (
+      dueOffsetDays !== "" &&
+      dueOffsetDays !== (item.default_due_offset_days ?? "")
+    )
+      body.default_due_offset_days = dueOffsetDays;
+
+    if (Object.keys(body).length === 0) {
+      onClose();
+      return;
+    }
+
+    mutation.mutate({ itemId: item.id, body }, { onSuccess: onClose });
   };
 
   return (
-    <Modal
-      opened={opened}
-      onClose={handleClose}
-      title="Add requirement"
-      centered
-    >
+    <Modal opened={opened} onClose={onClose} title="Edit requirement" centered>
       <Stack gap="md" p="md">
         <TextInput
           label="Label"
-          placeholder="e.g. Valid passport scan"
           required
           disabled={mutation.isPending}
           value={label}
@@ -89,7 +83,9 @@ export function AddTemplateItemModal({
             allowDeselect={false}
             disabled={mutation.isPending}
             value={itemType}
-            onChange={(value) => setItemType((value ?? "document") as ItemType)}
+            onChange={(value) =>
+              setItemType((value ?? item.item_type) as ItemType)
+            }
           />
           <NumberInput
             label="Due days after instantiation (optional)"
@@ -132,7 +128,7 @@ export function AddTemplateItemModal({
           <Button
             variant="default"
             size="xs"
-            onClick={handleClose}
+            onClick={onClose}
             disabled={mutation.isPending}
           >
             Cancel
@@ -143,7 +139,7 @@ export function AddTemplateItemModal({
             disabled={!label.trim()}
             onClick={handleSubmit}
           >
-            Add requirement
+            Save changes
           </Button>
         </Group>
       </Stack>

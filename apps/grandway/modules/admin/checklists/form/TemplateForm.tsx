@@ -20,14 +20,19 @@ import type { ModalFormComponentProps } from "@peppermint/admin";
 import { useCountries } from "@/modules/admin/institutions/institutions.hooks";
 import { TEMPLATE_STATUS_OPTIONS } from "../checklists.labels";
 import type { ChecklistTemplate } from "../checklists.types";
-import { toTemplateFormValues } from "./TemplateForm.utils";
+import { toTemplateFormValues, toTemplateKey } from "./TemplateForm.utils";
 import type { TemplateFormValues } from "./TemplateForm.types";
 
 const KEY_RE = /^[a-z0-9](?:[a-z0-9_-]{0,48}[a-z0-9])?$/;
 
 const schema = z
   .object({
-    key: z.string().regex(KEY_RE, "Lowercase letters, numbers, - and _ only"),
+    key: z
+      .string()
+      .regex(
+        KEY_RE,
+        "Add some letters or numbers — the key is built from the label",
+      ),
     label: z.string().min(1, "Required"),
     country: z.string().nullable(),
     is_default: z.boolean(),
@@ -45,8 +50,10 @@ const schema = z
 
 /**
  * Shared create + edit template form (`POST`/`PATCH /templates/`). `key` is
- * immutable once created (§7) — disabled, never hidden, so the value stays
- * visible on edit. Publishing (`status: "active"`) and retiring
+ * immutable once created (§7), so create never asks for it — it is derived from
+ * the label as you type (`toTemplateKey`) and shown under the Label field, and
+ * edit renders it disabled so the value stays visible. Publishing
+ * (`status: "active"`) and retiring
  * (`status: "inactive"`) can also happen here via the Status select, though the
  * Template Detail page's dedicated Publish/Retire buttons are the primary path.
  */
@@ -91,26 +98,39 @@ function TemplateFormFields({
     label: country.name,
   }));
 
+  const labelProps = form.getInputProps("label");
+  const derivedKey = toTemplateKey(form.values.label);
+
   return (
     <>
-      <TextInput
-        label="Key"
-        description={
-          isEdit
-            ? "Immutable once created"
-            : "Unique, lowercase — e.g. australia-default"
-        }
-        placeholder="australia-default"
-        required
-        disabled={isLoading || isEdit}
-        {...form.getInputProps("key")}
-      />
+      {isEdit ? (
+        <TextInput
+          label="Key"
+          description="Immutable once created"
+          disabled
+          {...form.getInputProps("key")}
+        />
+      ) : null}
       <TextInput
         label="Label"
-        placeholder="e.g. Australia — Default Requirements"
+        placeholder="Australia — Default Requirements"
+        description={
+          isEdit
+            ? undefined
+            : derivedKey
+              ? `Key: ${derivedKey}`
+              : "The key is built from this label."
+        }
         required
         disabled={isLoading}
-        {...form.getInputProps("label")}
+        {...labelProps}
+        onChange={(event) => {
+          const next = event.currentTarget.value;
+          form.setFieldValue("label", next);
+          // Create never shows the key, so the label is the only thing writing it.
+          if (!isEdit) form.setFieldValue("key", toTemplateKey(next));
+        }}
+        error={labelProps.error ?? (isEdit ? undefined : form.errors.key)}
       />
       <Select
         label="Country"

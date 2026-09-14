@@ -5,6 +5,22 @@ import type {
 } from "../checklists.types";
 import type { TemplateFormValues } from "./TemplateForm.types";
 
+/**
+ * The key a new template gets, built from its label: lowercased, every run of
+ * non-alphanumeric characters (spaces included) collapsed to a single `-`, and
+ * clipped to the 50 characters the backend's key format allows. Create never
+ * shows the key — this is the only thing that writes it, and edit can't change
+ * it (§7, immutable once created).
+ */
+export function toTemplateKey(label: string): string {
+  return label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+/, "")
+    .slice(0, 50)
+    .replace(/-+$/, "");
+}
+
 export function toTemplateFormValues(
   template?: Partial<ChecklistTemplate>,
 ): TemplateFormValues {

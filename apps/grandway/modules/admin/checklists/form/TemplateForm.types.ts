@@ -5,7 +5,8 @@ import type { TemplateStatus } from "../checklists.types";
  * object (empty strings, not omitted keys). `extends Record<string, unknown>`
  * is the sanctioned `*Values` exemption (`FormWrapper<T>`'s generic bound is
  * stricter than a shell's `T extends object`). `key` is always present but the
- * form disables it on edit — it is immutable once a template is created.
+ * form never asks for it: create derives it from the label, and edit renders it
+ * disabled — it is immutable once a template is created.
  */
 export interface TemplateFormValues extends Record<string, unknown> {
   key: string;

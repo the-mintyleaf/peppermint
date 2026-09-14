@@ -132,7 +132,7 @@ async function checklistTemplateResults(
     description: row.country ? row.country.name : "Global template",
     hint: TEMPLATE_STATUS_LABELS[row.status],
     icon: ListChecksIcon,
-    href: `/admin/checklists/templates/${row.id}`,
+    href: `/admin/checklists/templates?template=${row.id}`,
   }));
 }
 

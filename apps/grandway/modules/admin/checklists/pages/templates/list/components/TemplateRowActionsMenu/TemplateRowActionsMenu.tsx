@@ -8,9 +8,8 @@ import type { ChecklistTemplate } from "../../../../../checklists.types";
 import type { TemplateRowActionsMenuProps } from "./TemplateRowActionsMenu.types";
 
 /**
- * "View items" navigates to the Template Detail route (where the item list,
- * publish/retire, and add-requirement live) — Admin or Lead Manager may read
- * it. "Edit" delegates to the shell's own edit modal and is Admin-only (§1);
+ * "View items" opens the template drawer (where the item list, publish/retire,
+ * and add-requirement live) — Admin or Lead Manager may read it. "Edit" delegates to the shell's own edit modal and is Admin-only (§1);
  * the list itself is gated `RequireLeadAccess`, not exact-admin, so this
  * menu hides Edit itself rather than offering a control the shell can't back
  * (`editFormComponent`/`onEditApi` are `undefined` for a non-admin).

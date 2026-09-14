@@ -5,12 +5,12 @@ import { ActionIcon, Badge, Group, Paper, Stack, Text } from "@peppermint/ui";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
-import { useUpdateTemplateItem } from "../../../../checklists.hooks";
-import { ITEM_TYPE_LABELS } from "../../../../checklists.labels";
+import { useUpdateTemplateItem } from "../../../checklists.hooks";
+import { ITEM_TYPE_LABELS } from "../../../checklists.labels";
 import type {
   ChecklistTemplate,
   ChecklistTemplateItem,
-} from "../../../../checklists.types";
+} from "../../../checklists.types";
 import { EditTemplateItemModal } from "./EditTemplateItemModal";
 
 interface TemplateItemsListProps {
