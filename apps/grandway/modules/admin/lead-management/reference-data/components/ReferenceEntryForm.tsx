@@ -14,7 +14,7 @@ import {
   useFormInstance,
 } from "@peppermint/admin";
 import { z } from "zod";
-import { toReferenceCode } from "../../referenceCode.utils";
+import { toReferenceCode } from "../../referenceEntry.utils";
 import type {
   ReferenceEntryFormProps,
   ReferenceEntryFormValues,

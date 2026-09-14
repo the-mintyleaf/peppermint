@@ -21,7 +21,7 @@ import type {
   ReferenceEntryCreatePayload,
   ReferenceEntryUpdatePayload,
 } from "../leadManagement.types";
-import { toReferenceCode } from "../referenceCode.utils";
+import { toReferenceCode } from "../referenceEntry.utils";
 
 type ReferenceTab = "sources" | "loss-reasons";
 

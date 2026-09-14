@@ -18,7 +18,7 @@ import type {
   LeadCreatePayload,
   LeadSource,
 } from "../leadManagement.types";
-import { toReferenceCode } from "../referenceCode.utils";
+import { referenceEntryLabel, toReferenceCode } from "../referenceEntry.utils";
 import { ContactNumbersField } from "./ContactNumbersField";
 import { StudyInterestSection } from "./StudyInterestSection";
 import type { LeadFormValues, StudyInterestFormValues } from "./LeadForm.types";
@@ -298,7 +298,10 @@ function Fields({
   // `toUpdatePayload` (LeadManagementBoard.tsx) still omits `source` from
   // the PATCH when it's untouched, so leaving the field alone doesn't block
   // saving the rest of the edit.
-  const sourceOptions = sources.map((s) => ({ value: s.id, label: s.name }));
+  const sourceOptions = sources.map((s) => ({
+    value: s.id,
+    label: referenceEntryLabel(s),
+  }));
 
   const trimmedSearch = sourceSearch.trim();
   // Only Admins may create a source (`LEADS_ACTOR_FORBIDDEN` for anyone else
@@ -310,7 +313,10 @@ function Fields({
     isAdmin &&
     trimmedSearch !== "" &&
     toReferenceCode(trimmedSearch) !== "" &&
-    !sources.some((s) => s.name.toLowerCase() === trimmedSearch.toLowerCase());
+    !sources.some(
+      (s) =>
+        referenceEntryLabel(s).toLowerCase() === trimmedSearch.toLowerCase(),
+    );
 
   const selectData = canCreateTypedSource
     ? [
@@ -330,7 +336,7 @@ function Fields({
       });
       form.setFieldValue("source", created.id);
       form.setFieldValue("source_detail", "");
-      setSourceSearch(created.name);
+      setSourceSearch(referenceEntryLabel(created));
     } catch {
       // `useCreateLeadSource` already raised the notification; the picker
       // keeps the typed text so the admin can retry or pick something else.

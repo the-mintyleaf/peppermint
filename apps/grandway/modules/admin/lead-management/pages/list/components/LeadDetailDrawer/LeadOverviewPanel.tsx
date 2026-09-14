@@ -14,6 +14,7 @@ import {
 import { ArrowSquareOutIcon } from "@phosphor-icons/react/dist/csr/ArrowSquareOut";
 import { categorizeLead } from "../../../../leadCategory.utils";
 import type { LeadDetail } from "../../../../leadManagement.types";
+import { referenceEntryLabel } from "../../../../referenceEntry.utils";
 import { LeadStageSwitch } from "../LeadStageSwitch";
 import { DetailField } from "./components";
 
@@ -73,7 +74,7 @@ export function LeadOverviewPanel({ lead }: { lead: LeadDetail }) {
           }
         />
 
-        <DetailField label="Source" value={lead.source.name} />
+        <DetailField label="Source" value={referenceEntryLabel(lead.source)} />
         {lead.source_detail ? (
           <DetailField label="Source detail" value={lead.source_detail} />
         ) : null}
@@ -179,7 +180,9 @@ export function LeadOverviewPanel({ lead }: { lead: LeadDetail }) {
           <>
             <DetailField
               label="Lost reason"
-              value={lead.lost_reason?.name ?? null}
+              value={
+                lead.lost_reason ? referenceEntryLabel(lead.lost_reason) : null
+              }
             />
             {lead.lost_detail ? (
               <DetailField label="Lost detail" value={lead.lost_detail} />

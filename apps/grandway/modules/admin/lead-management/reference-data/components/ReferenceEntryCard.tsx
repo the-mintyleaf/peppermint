@@ -13,6 +13,7 @@ import {
 import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
+import { referenceEntryLabel } from "../../referenceEntry.utils";
 import type { ReferenceEntryCardProps } from "./ReferenceEntryCard.types";
 
 export function ReferenceEntryCard({
@@ -22,6 +23,13 @@ export function ReferenceEntryCard({
   isSettingActive,
   activeToggleDisabled,
 }: ReferenceEntryCardProps) {
+  // An entry saved before the frontend matched the English-only contract has
+  // no stored name at all (see `referenceEntryLabel`). It still shows and is
+  // still selectable — but it is called out here, the one screen that can fix
+  // it, rather than left looking like an entry whose name happens to be short.
+  const unnamed = entry.name.trim() === "";
+  const label = referenceEntryLabel(entry);
+
   const handleRetire = () => {
     modals.openConfirmModal({
       title: "Retire this entry?",
@@ -38,8 +46,8 @@ export function ReferenceEntryCard({
     <Card withBorder padding="sm" radius="md">
       <Group justify="space-between" wrap="nowrap" align="flex-start">
         <Stack gap={4}>
-          <Text fw={600} size="sm">
-            {entry.name}
+          <Text fw={600} size="sm" c={unnamed ? "dimmed" : undefined}>
+            {label}
           </Text>
           <Group gap={6} wrap="wrap">
             <Badge size="xs" variant="light" color="gray">
@@ -57,6 +65,11 @@ export function ReferenceEntryCard({
                 Needs explanation
               </Badge>
             ) : null}
+            {unnamed ? (
+              <Badge size="xs" variant="light" color="orange">
+                Needs a name
+              </Badge>
+            ) : null}
           </Group>
         </Stack>
 
@@ -65,7 +78,7 @@ export function ReferenceEntryCard({
             <ActionIcon
               variant="subtle"
               size="sm"
-              aria-label={`Edit ${entry.name}`}
+              aria-label={`Edit ${label}`}
               onClick={onEdit}
               disabled={activeToggleDisabled}
             >
@@ -78,7 +91,7 @@ export function ReferenceEntryCard({
                 variant="subtle"
                 color="red"
                 size="sm"
-                aria-label={`Retire ${entry.name}`}
+                aria-label={`Retire ${label}`}
                 onClick={handleRetire}
                 loading={isSettingActive}
                 disabled={activeToggleDisabled}
@@ -91,7 +104,7 @@ export function ReferenceEntryCard({
               <ActionIcon
                 variant="subtle"
                 size="sm"
-                aria-label={`Reactivate ${entry.name}`}
+                aria-label={`Reactivate ${label}`}
                 onClick={() => onSetActive(true)}
                 loading={isSettingActive}
                 disabled={activeToggleDisabled}

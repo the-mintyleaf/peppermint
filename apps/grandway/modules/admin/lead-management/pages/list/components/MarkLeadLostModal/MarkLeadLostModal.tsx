@@ -15,6 +15,7 @@ import {
   useLossReasons,
   useMarkLeadLost,
 } from "../../../../leadManagement.hooks";
+import { referenceEntryLabel } from "../../../../referenceEntry.utils";
 import type { MarkLeadLostModalProps } from "./MarkLeadLostModal.types";
 
 /**
@@ -66,7 +67,7 @@ export function MarkLeadLostModal({
           placeholder="Why isn't this proceeding?"
           data={reasons.map((r) => ({
             value: r.id,
-            label: r.name,
+            label: referenceEntryLabel(r),
           }))}
           required
           disabled={mutation.isPending}

@@ -24,3 +24,21 @@ export function toReferenceCode(name: string): string {
       .replace(/-+$/, "")
   );
 }
+
+/**
+ * What to show for a reference entry in a picker, a cell, or a card.
+ *
+ * Falls back to the `code` when the name is empty. That is not cosmetic
+ * defensiveness: rows created before the frontend caught up with the
+ * English-only contract were POSTed as `{code, name_np, name_en}`, DRF dropped
+ * the two keys it no longer knew, and `ReferenceEntryWriteSerializer.name`
+ * being `required=False, allow_blank=True` let them save with `name: ""`. Such
+ * a row is real, selectable, and attached to leads — it must stay identifiable
+ * until an admin renames it, not render as an empty line.
+ */
+export function referenceEntryLabel(entry: {
+  name: string;
+  code: string;
+}): string {
+  return entry.name.trim() || entry.code;
+}

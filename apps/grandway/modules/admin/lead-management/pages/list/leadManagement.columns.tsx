@@ -3,6 +3,7 @@
 import { Stack, Text, dayjs } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
 import { STAGE_LABELS } from "../../leadCategory.utils";
+import { referenceEntryLabel } from "../../referenceEntry.utils";
 import type { LeadBoardRow, LeadSource } from "../../leadManagement.types";
 import { LeadRowActionsMenu } from "./components/LeadRowActionsMenu";
 import { LeadStageSwitch } from "./components/LeadStageSwitch";
@@ -53,10 +54,12 @@ export function getLeadManagementColumns({
         type: "select",
         options: sources.map((source) => ({
           value: source.id,
-          label: source.name,
+          label: referenceEntryLabel(source),
         })),
       },
-      render: (lead: LeadBoardRow) => <Text size="xs">{lead.source.name}</Text>,
+      render: (lead: LeadBoardRow) => (
+        <Text size="xs">{referenceEntryLabel(lead.source)}</Text>
+      ),
     },
     {
       accessor: "contact_numbers",
