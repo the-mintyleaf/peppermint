@@ -130,12 +130,14 @@ function Fields({
       ) : null}
       <TextInput
         label="Name"
+        placeholder="The University of Melbourne"
         required
         disabled={isLoading}
         {...form.getInputProps("name")}
       />
       <TextInput
         label="Common name"
+        placeholder="Unimelb"
         description="A short or informal name, if any."
         disabled={isLoading}
         {...form.getInputProps("common_name")}
@@ -150,6 +152,7 @@ function Fields({
       <AvailabilityFields disabled={isLoading} />
       <Textarea
         label="Notes"
+        placeholder="Anything the team should know about this provider."
         autosize
         minRows={2}
         disabled={isLoading}

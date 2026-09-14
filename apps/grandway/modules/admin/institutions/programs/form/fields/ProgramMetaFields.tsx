@@ -28,6 +28,7 @@ export function ProgramMetaFields({ disabled }: ProgramFieldsProps) {
       {form.values.scholarship_available ? (
         <Textarea
           label="Scholarship notes"
+          placeholder="Merit scholarship of up to 25% for a GPA above 3.5."
           autosize
           minRows={2}
           disabled={disabled}
@@ -37,6 +38,7 @@ export function ProgramMetaFields({ disabled }: ProgramFieldsProps) {
       <Group grow align="flex-start">
         <NumberInput
           label="Duration (months)"
+          placeholder="24"
           min={1}
           max={120}
           disabled={disabled}
@@ -52,6 +54,7 @@ export function ProgramMetaFields({ disabled }: ProgramFieldsProps) {
       <AvailabilityFields disabled={disabled} />
       <Textarea
         label="Notes"
+        placeholder="Anything a counsellor should know before recommending this program."
         autosize
         minRows={2}
         disabled={disabled}

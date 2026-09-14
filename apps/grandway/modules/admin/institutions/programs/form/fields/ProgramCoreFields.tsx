@@ -84,6 +84,7 @@ export function ProgramCoreFields({
       </Group>
       <TextInput
         label="Title"
+        placeholder="Bachelor of Information Technology"
         required
         disabled={disabled}
         {...form.getInputProps("title")}

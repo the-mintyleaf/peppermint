@@ -36,6 +36,7 @@ export function AvailabilityFields({
       />
       <Textarea
         label="Availability note"
+        placeholder="Paused until the provider confirms its 2027 intakes."
         description={
           noteRequired
             ? "Required — explain why this isn't fully available."
