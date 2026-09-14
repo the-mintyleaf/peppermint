@@ -75,6 +75,12 @@ reason-confirm modal; Field withdraw needs no note.
 - **Availability rule:** a non-`active` status requires a non-empty note, on create
   AND update, re-affirmed each time — one control (`AvailabilityFields`) + Zod
   `refineAvailabilityNote` mirroring `INSTITUTIONS_AVAILABILITY_NOTE_REQUIRED`.
+  **`CountryForm` is the one exception** — it renders the status alone
+  (`withNote={false}`), skips the refine, and never sends `availability_note` or
+  `display_order`, so both survive an edit untouched. Withdraw on the country's
+  row is where a reason gets recorded. The backend rule is unchanged, so setting
+  a non-active status there on a country with no stored note still 400s
+  (`INSTITUTIONS_AVAILABILITY_NOTE_REQUIRED`) — deliberate, decided 2026-09-14.
 - **Immutable fields** are read-only on edit: `code` (Country/Field), `institution`
   (Program), and never sent for Campus. `Program.country` is derived (no field).
 - **Tuition** is a decimal string; an amount requires currency + fee period together

@@ -19,35 +19,40 @@ import type { AvailabilityFieldsProps } from "./AvailabilityFields.types";
 export function AvailabilityFields({
   disabled,
   label = "Availability",
+  description,
+  withNote = true,
 }: AvailabilityFieldsProps) {
   const { form } = useFormInstance();
   const status = form.values.availability_status as AvailabilityStatus;
-  const noteRequired = statusRequiresNote(status);
+  const noteRequired = withNote && statusRequiresNote(status);
 
   return (
     <Stack gap="xs">
       <Select
         label={label}
+        description={description}
         data={AVAILABILITY_OPTIONS}
         required
         allowDeselect={false}
         disabled={disabled}
         {...form.getInputProps("availability_status")}
       />
-      <Textarea
-        label="Availability note"
-        placeholder="Paused until the provider confirms its 2027 intakes."
-        description={
-          noteRequired
-            ? "Required — explain why this isn't fully available."
-            : "Optional context on availability."
-        }
-        required={noteRequired}
-        autosize
-        minRows={2}
-        disabled={disabled}
-        {...form.getInputProps("availability_note")}
-      />
+      {withNote ? (
+        <Textarea
+          label="Availability note"
+          placeholder="Paused until the provider confirms its 2027 intakes."
+          description={
+            noteRequired
+              ? "Required — explain why this isn't fully available."
+              : "Optional context on availability."
+          }
+          required={noteRequired}
+          autosize
+          minRows={2}
+          disabled={disabled}
+          {...form.getInputProps("availability_note")}
+        />
+      ) : null}
     </Stack>
   );
 }

@@ -1,28 +1,27 @@
 "use client";
 
-import { NumberInput, Stack, Textarea, TextInput } from "@peppermint/ui";
+import { Stack, Textarea, TextInput } from "@peppermint/ui";
 import { FormWrapper, useFormInstance } from "@peppermint/admin";
 import { z } from "zod";
-import {
-  AvailabilityFields,
-  refineAvailabilityNote,
-} from "../../components/AvailabilityFields";
+import { AvailabilityFields } from "../../components/AvailabilityFields";
 import { useCreateCountry, useUpdateCountry } from "../../institutions.hooks";
 import type { Country, CountryFormValues } from "../../institutions.types";
 import { codeField } from "./referenceCode";
 import { ReferenceFormActions } from "./ReferenceFormActions";
 
+/**
+ * No `availability_note` and no `display_order`: this form doesn't collect
+ * either, and deliberately doesn't send them — an existing note and sort
+ * position survive an edit untouched. The reason behind a withdrawal is
+ * captured by `CountryCard`'s Withdraw action instead.
+ */
 function schemaFor(mode: "create" | "edit") {
-  return z
-    .object({
-      code: codeField(mode),
-      name: z.string().min(1, "Required").max(150),
-      availability_status: z.enum(["active", "paused", "seasonal", "inactive"]),
-      availability_note: z.string(),
-      notes: z.string(),
-      display_order: z.number().int().min(0),
-    })
-    .superRefine(refineAvailabilityNote);
+  return z.object({
+    code: codeField(mode),
+    name: z.string().min(1, "Required").max(150),
+    availability_status: z.enum(["active", "paused", "seasonal", "inactive"]),
+    notes: z.string(),
+  });
 }
 
 function toInitial(entry?: Country): CountryFormValues {
@@ -30,9 +29,7 @@ function toInitial(entry?: Country): CountryFormValues {
     code: entry?.code ?? "",
     name: entry?.name ?? "",
     availability_status: entry?.availability_status ?? "active",
-    availability_note: entry?.availability_note ?? "",
     notes: entry?.notes ?? "",
-    display_order: entry?.display_order ?? 0,
   };
 }
 
@@ -62,9 +59,7 @@ export function CountryForm({
               code: values.code,
               name: values.name,
               availability_status: values.availability_status,
-              availability_note: values.availability_note,
               notes: values.notes,
-              display_order: values.display_order,
             });
           } else if (initialEntry) {
             await update.mutateAsync({
@@ -72,9 +67,7 @@ export function CountryForm({
               body: {
                 name: values.name,
                 availability_status: values.availability_status,
-                availability_note: values.availability_note,
                 notes: values.notes,
-                display_order: values.display_order,
               },
             });
           }
@@ -125,25 +118,23 @@ function Fields({
       />
       <TextInput
         label="Name"
+        placeholder="Australia"
         required
         disabled={disabled}
         {...form.getInputProps("name")}
       />
-      <AvailabilityFields disabled={disabled} />
+      <AvailabilityFields
+        disabled={disabled}
+        description="The reason behind a withdrawal is recorded by Withdraw on the country's row."
+        withNote={false}
+      />
       <Textarea
         label="Notes"
+        placeholder="Anything the team should know about this destination."
         autosize
         minRows={2}
         disabled={disabled}
         {...form.getInputProps("notes")}
-      />
-      <NumberInput
-        label="Sort position"
-        description="Lower numbers show first."
-        min={0}
-        w={160}
-        disabled={disabled}
-        {...form.getInputProps("display_order")}
       />
     </>
   );

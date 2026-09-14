@@ -237,13 +237,16 @@ export interface FieldFormValues extends Record<string, unknown> {
   display_order: number;
 }
 
+/**
+ * `availability_note` and `display_order` are deliberately absent — the country
+ * form collects neither and sends neither, so both survive an edit untouched
+ * (`CountryForm`).
+ */
 export interface CountryFormValues extends Record<string, unknown> {
   code: string;
   name: string;
   availability_status: AvailabilityStatus;
-  availability_note: string;
   notes: string;
-  display_order: number;
 }
 
 export interface InstitutionFormValues extends Record<string, unknown> {
