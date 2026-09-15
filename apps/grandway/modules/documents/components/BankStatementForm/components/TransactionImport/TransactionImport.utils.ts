@@ -690,11 +690,22 @@ export function buildSampleCsv(): string {
     `=H${lastRow}`,
   ]);
 
+  // The notes point at the sample's own interest/tax pair by line number, so the
+  // instruction and the worked example cannot drift apart if the entries change.
+  const interestRow =
+    FIRST_DATA_ROW + entries.findIndex((entry) => entry.type === "interest");
+  const taxRow =
+    FIRST_DATA_ROW + entries.findIndex((entry) => entry.type === "tax");
+
   const notes = [
     "",
     "# Row 2 is the opening balance — put the opening amount in Credit.",
     "# Type: leave blank or write normal · interest · tax.",
     "# Interest and Tax rows take a rate only — the amounts are calculated on import.",
+    `# Interest and Tax always come as a pair — see rows ${interestRow} and ${taxRow}.`,
+    `#   Row ${interestRow}: type interest, the rate in Interest %, Debit and Credit left empty.`,
+    `#   Row ${taxRow}: type tax on the next line, same date, the rate in Tax %.`,
+    "#   One without the other is wrong: the tax is deducted from that interest.",
     "# Dates: YYYY-MM-DD is read exactly; 05/01/2026 is read as day/month.",
     "# The Balance column and this note block are ignored when the file is imported.",
   ].map((note) => csvLine([note, "", "", "", "", "", "", ""]));

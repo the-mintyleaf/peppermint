@@ -167,12 +167,16 @@ export function BankStatementForm({
           <Tabs.List px="md">
             <Tabs.Tab
               value="details"
+              fz="xs"
+              fw={700}
               leftSection={<IdentificationCardIcon size={16} />}
             >
               Account details
             </Tabs.Tab>
             <Tabs.Tab
               value="transactions"
+              fz="xs"
+              fw={700}
               leftSection={<TableIcon size={16} />}
               rightSection={
                 transactions.length > 0 ? (
@@ -313,10 +317,11 @@ export function BankStatementForm({
 
               <Text size="xs" c="dimmed">
                 Row 1 is the opening balance — its description is fixed; set its
-                date and amount. Interest &amp; Tax rows are inserted as a pair,
-                compute themselves from the rows above at each row&rsquo;s own
-                rate, and re-sync when those rows change. Working in Excel
-                instead? Download the sample, fill it in, and import it back.
+                date and amount. Interest &amp; Tax are one entry over two rows:
+                they are added, moved and removed as a pair, compute themselves
+                from the rows above at each row&rsquo;s own rate, and re-sync
+                when those rows change. Working in Excel instead? Download the
+                sample, fill it in, and import it back.
               </Text>
 
               <TransactionGrid

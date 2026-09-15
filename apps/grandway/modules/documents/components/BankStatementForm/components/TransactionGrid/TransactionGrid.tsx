@@ -20,7 +20,12 @@ import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import type { TransactionGridProps } from "./TransactionGrid.types";
 import { useGridNavigation } from "./TransactionGrid.hooks";
 import { OPENING_ROW_DESCRIPTION } from "../../BankStatementForm.utils";
-import { findBackwardsDatedRows } from "./TransactionGrid.utils";
+import {
+  findBackwardsDatedRows,
+  getRowBlock,
+  moveRowBlock,
+  removeRowBlock,
+} from "./TransactionGrid.utils";
 import classes from "./TransactionGrid.module.css";
 
 const money = (n: number) =>
@@ -39,6 +44,8 @@ const money = (n: number) =>
  * Row 1 is always the opening balance (its credit seeds the balance). Interest and Tax
  * rows carry no typed amount — only a rate: `computeBankStatement` derives the figures
  * from the rows above, so those Debit/Credit/Balance cells are computed text, not inputs.
+ * The two are one entry printed over two lines, so the row controls act on the pair —
+ * see `getRowBlock`.
  */
 export function TransactionGrid({
   form,
@@ -55,6 +62,11 @@ export function TransactionGrid({
     transactions.length,
     onAddRow,
   );
+
+  const moveBlock = (index: number, direction: -1 | 1) => {
+    const next = moveRowBlock(transactions, index, direction);
+    if (next) form.setFieldValue("transactions", next);
+  };
 
   // A row dated before the one above it breaks the statement's reading order and zeroes
   // the interest accrual for that span, so it is called out per row and in summary.
@@ -139,6 +151,12 @@ export function TransactionGrid({
                   const balance = isOpening
                     ? computed.statements_opening_bal
                     : derived?.balance;
+                  // Interest and its tax move and leave as one entry, so the row
+                  // controls act on the block rather than this single line.
+                  const block = getRowBlock(transactions, index);
+                  const blockLabel = block.isPair
+                    ? `the interest and tax rows ${block.start + 1} and ${block.end + 1}`
+                    : `row ${index + 1}`;
 
                   return (
                     <tr
@@ -320,32 +338,22 @@ export function TransactionGrid({
                           <ActionIcon
                             variant="subtle"
                             size="sm"
-                            aria-label={`Move row ${index + 1} up`}
-                            disabled={isLoading || index <= 1}
-                            onClick={() =>
-                              form.reorderListItem("transactions", {
-                                from: index,
-                                to: index - 1,
-                              })
-                            }
+                            aria-label={`Move ${blockLabel} up`}
+                            disabled={isLoading || block.start <= 1}
+                            onClick={() => moveBlock(index, -1)}
                           >
                             <ArrowUpIcon size={14} />
                           </ActionIcon>
                           <ActionIcon
                             variant="subtle"
                             size="sm"
-                            aria-label={`Move row ${index + 1} down`}
+                            aria-label={`Move ${blockLabel} down`}
                             disabled={
                               isLoading ||
                               isOpening ||
-                              index === transactions.length - 1
+                              block.end >= transactions.length - 1
                             }
-                            onClick={() =>
-                              form.reorderListItem("transactions", {
-                                from: index,
-                                to: index + 1,
-                              })
-                            }
+                            onClick={() => moveBlock(index, 1)}
                           >
                             <ArrowDownIcon size={14} />
                           </ActionIcon>
@@ -353,10 +361,13 @@ export function TransactionGrid({
                             variant="subtle"
                             color="red"
                             size="sm"
-                            aria-label={`Remove row ${index + 1}`}
+                            aria-label={`Remove ${blockLabel}`}
                             disabled={isLoading || isOpening}
                             onClick={() =>
-                              form.removeListItem("transactions", index)
+                              form.setFieldValue(
+                                "transactions",
+                                removeRowBlock(transactions, index),
+                              )
                             }
                           >
                             <MinusCircleIcon size={14} />
