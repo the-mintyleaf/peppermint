@@ -81,7 +81,7 @@ export function AdminShell({
         top={12}
         left={12}
         p={4}
-        bg="dark.7"
+        bg="dark.9"
         style={{ zIndex: 1000, borderRadius: "var(--mantine-radius-sm)" }}
       >
         <Burger
