@@ -6,6 +6,7 @@ import { useState } from "react";
 
 const nav = [
   { href: "/destinations", label: "Destinations" },
+  { href: "/classes", label: "Classes" },
   { href: "/services", label: "Our services" },
   { href: "/about", label: "About us" },
 ];
@@ -20,8 +21,8 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
         <Image
           src="/img/grandway_icon.png"
           alt=""
-          width={46}
-          height={46}
+          width={62}
+          height={62}
           priority
         />
         <span className="brand-name">Grandway Education</span>

@@ -50,7 +50,13 @@ export default function ContactPage() {
               <option>Australia</option>
               <option>Canada</option>
               <option>United Kingdom</option>
+              <option>Japan</option>
+              <option>United States</option>
+              <option>South Korea</option>
               <option>Malta</option>
+              <option>New Zealand</option>
+              <option>Germany</option>
+              <option>Elsewhere in Europe</option>
               <option>I’m still exploring</option>
             </select>
           </label>

@@ -157,6 +157,150 @@ export const destinations: Destination[] = [
       "The UK offers a broad student experience and career exposure in one of the world’s most international education destinations.",
   },
   {
+    slug: "japan",
+    name: "Japan",
+    eyebrow: "Precision and possibility",
+    image:
+      "https://images.pexels.com/photos/37943558/pexels-photo-37943558.jpeg?auto=compress&cs=tinysrgb&w=2200",
+    summary:
+      "Advanced research, deep tradition and one of the safest study settings in the world.",
+    introduction:
+      "Japan pairs strong research universities with a growing number of English-taught degrees and language-school pathways. We help you select the right route, apply for your Certificate of Eligibility and prepare your visa file.",
+    reasons: [
+      "Leading research universities and English-taught degree programs",
+      "Scholarship options including MEXT and JASSO support",
+      "Safe cities, dependable transport and a rich everyday culture",
+    ],
+    steps: [
+      {
+        title: "Choose your pathway",
+        description:
+          "Decide between a degree program or a language-school route, then shortlist institutions and intakes.",
+      },
+      {
+        title: "Secure your admission",
+        description:
+          "Complete entrance requirements and receive your letter of admission from the institution.",
+      },
+      {
+        title: "Apply for your Certificate of Eligibility",
+        description:
+          "Your institution applies on your behalf with the documents you prepare with us.",
+      },
+      {
+        title: "Submit your student visa",
+        description:
+          "Apply at the embassy or consulate with your Certificate of Eligibility and supporting evidence.",
+      },
+    ],
+    documents: [
+      "Valid passport",
+      "Certificate of Eligibility",
+      "Letter of admission",
+      "Academic certificates and transcripts",
+      "Japanese or English proficiency evidence",
+      "Proof of financial support",
+    ],
+    opportunities:
+      "With the appropriate permission, students may take on limited part-time work during their studies and explore graduate employment pathways after completing their program.",
+  },
+  {
+    slug: "usa",
+    name: "the USA",
+    eyebrow: "Room for ambition",
+    image:
+      "https://images.pexels.com/photos/20007481/pexels-photo-20007481.jpeg?auto=compress&cs=tinysrgb&w=2200",
+    summary:
+      "The widest choice of universities anywhere, with the flexibility to shape your own degree.",
+    introduction:
+      "The United States has more accredited institutions than any other destination, from large research universities to focused liberal arts colleges. We help you build a realistic shortlist, prepare a genuine application and approach the F-1 visa interview with confidence.",
+    reasons: [
+      "Thousands of accredited universities and community colleges",
+      "Flexible degrees where you can change major or add a minor",
+      "Optional Practical Training for eligible graduates",
+    ],
+    steps: [
+      {
+        title: "Build your shortlist",
+        description:
+          "Balance reach, match and safe choices against tuition, scholarships and the cities you would live in.",
+      },
+      {
+        title: "Sit your tests and apply",
+        description:
+          "Prepare TOEFL or IELTS, any SAT or GRE requirement, your essays and your recommendation letters.",
+      },
+      {
+        title: "Accept your offer and get your I-20",
+        description:
+          "Choose your university, submit financial evidence and receive the Form I-20 from their international office.",
+      },
+      {
+        title: "Pay SEVIS and attend your interview",
+        description:
+          "Pay the SEVIS I-901 fee, complete the DS-160 and prepare thoroughly for your embassy interview.",
+      },
+    ],
+    documents: [
+      "Valid passport",
+      "Form I-20 and SEVIS fee receipt",
+      "Academic certificates and transcripts",
+      "TOEFL or IELTS result and any required admission test",
+      "DS-160 confirmation and visa appointment letter",
+      "Financial evidence and sponsorship documents",
+    ],
+    opportunities:
+      "Students may work on campus within their visa conditions, and eligible graduates can apply for Optional Practical Training to gain experience in their field of study.",
+  },
+  {
+    slug: "south-korea",
+    name: "South Korea",
+    eyebrow: "Where next is now",
+    image:
+      "https://images.pexels.com/photos/19222549/pexels-photo-19222549.jpeg?auto=compress&cs=tinysrgb&w=2200",
+    summary:
+      "Fast-moving universities, generous scholarships and a student life that rarely stands still.",
+    introduction:
+      "South Korea has invested heavily in attracting international students, with English-taught degrees, strong government scholarships and universities closely tied to industry. We help you choose between a degree program and a language course, and prepare your D-2 or D-4 visa file.",
+    reasons: [
+      "English-taught degrees at leading universities in Seoul and beyond",
+      "Government and university scholarships including the GKS program",
+      "Strong links to technology, engineering and design employers",
+    ],
+    steps: [
+      {
+        title: "Pick your program",
+        description:
+          "Decide between a degree course and a university language program, then confirm the intake and language of instruction.",
+      },
+      {
+        title: "Apply and secure admission",
+        description:
+          "Submit your academic records, study plan and language evidence, and receive your certificate of admission.",
+      },
+      {
+        title: "Prepare your financial evidence",
+        description:
+          "Organise proof of funds, your tuition receipt and any scholarship confirmation for the visa file.",
+      },
+      {
+        title: "Apply for your student visa",
+        description:
+          "Submit your D-2 degree visa or D-4 language visa application at the Korean embassy with complete documents.",
+      },
+    ],
+    documents: [
+      "Valid passport",
+      "Certificate of admission and tuition receipt",
+      "Academic certificates and transcripts",
+      "TOPIK or English proficiency evidence",
+      "Bank statement showing required funds",
+      "Health and tuberculosis screening where required",
+    ],
+    opportunities:
+      "With permission from their university and immigration, students can take limited part-time work during their studies, and graduates may apply to change status to look for work in Korea.",
+  },
+  {
     slug: "malta",
     name: "Malta",
     eyebrow: "Your European chapter",
@@ -203,102 +347,6 @@ export const destinations: Destination[] = [
     ],
     opportunities:
       "Subject to local permissions, students can find part-time opportunities during study and gain valuable European career exposure.",
-  },
-  {
-    slug: "london",
-    name: "London",
-    eyebrow: "A capital of ideas",
-    image:
-      "https://images.unsplash.com/photo-1486299267070-83823f5448dd?auto=format&fit=crop&w=2200&q=85",
-    summary:
-      "Study at the centre of a global city where almost every industry is on your doorstep.",
-    introduction:
-      "London gathers world-leading universities, employers and cultures into a single city. We help you choose the right London institution, prepare a competitive application and plan realistically for the cost of living there.",
-    reasons: [
-      "Universities ranked among the world’s best",
-      "Industry access and internships across every sector",
-      "One of the most connected, multicultural cities anywhere",
-    ],
-    steps: [
-      {
-        title: "Choose your institution",
-        description:
-          "Compare London universities and colleges by course content, entry requirements and campus location.",
-      },
-      {
-        title: "Apply and meet your offer",
-        description:
-          "Submit academic records, English results and a personal statement, then satisfy any offer conditions.",
-      },
-      {
-        title: "Plan your budget",
-        description:
-          "Prepare for London maintenance requirements, accommodation deposits and everyday living costs.",
-      },
-      {
-        title: "Complete your visa file",
-        description:
-          "Receive your CAS, pay the immigration health surcharge and submit your Student route application.",
-      },
-    ],
-    documents: [
-      "Passport",
-      "CAS letter",
-      "Academic certificates and transcripts",
-      "English language certificate",
-      "28-day bank statement covering tuition and London maintenance",
-      "IHS payment reference and visa application",
-    ],
-    opportunities:
-      "Students can usually work limited hours during term time under their visa conditions, and eligible graduates may apply to stay on through the Graduate route.",
-  },
-  {
-    slug: "japan",
-    name: "Japan",
-    eyebrow: "Precision and possibility",
-    image:
-      "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=2200&q=85",
-    summary:
-      "Advanced research, deep tradition and one of the safest study settings in the world.",
-    introduction:
-      "Japan pairs strong research universities with a growing number of English-taught degrees and language-school pathways. We help you select the right route, apply for your Certificate of Eligibility and prepare your visa file.",
-    reasons: [
-      "Leading research universities and English-taught degree programs",
-      "Scholarship options including MEXT and JASSO support",
-      "Safe cities, dependable transport and a rich everyday culture",
-    ],
-    steps: [
-      {
-        title: "Choose your pathway",
-        description:
-          "Decide between a degree program or a language-school route, then shortlist institutions and intakes.",
-      },
-      {
-        title: "Secure your admission",
-        description:
-          "Complete entrance requirements and receive your letter of admission from the institution.",
-      },
-      {
-        title: "Apply for your Certificate of Eligibility",
-        description:
-          "Your institution applies on your behalf with the documents you prepare with us.",
-      },
-      {
-        title: "Submit your student visa",
-        description:
-          "Apply at the embassy or consulate with your Certificate of Eligibility and supporting evidence.",
-      },
-    ],
-    documents: [
-      "Valid passport",
-      "Certificate of Eligibility",
-      "Letter of admission",
-      "Academic certificates and transcripts",
-      "Japanese or English proficiency evidence",
-      "Proof of financial support",
-    ],
-    opportunities:
-      "With the appropriate permission, students may take on limited part-time work during their studies and explore graduate employment pathways after completing their program.",
   },
   {
     slug: "new-zealand",
