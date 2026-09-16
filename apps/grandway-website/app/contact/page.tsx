@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { destinations } from "@/data/destinations";
 
 export const metadata: Metadata = {
   title: "Contact",
   description:
     "Talk to a Grandway Education counsellor about your study abroad plans — no obligation, no cost to start.",
 };
+
+// Destination names read as "the UK" mid-sentence; a select option wants "The UK".
+const optionLabel = (name: string) =>
+  name.charAt(0).toUpperCase() + name.slice(1);
 
 export default function ContactPage() {
   return (
@@ -47,16 +52,11 @@ export default function ContactPage() {
               <option value="" disabled>
                 Select a destination
               </option>
-              <option>Australia</option>
-              <option>Canada</option>
-              <option>United Kingdom</option>
-              <option>Japan</option>
-              <option>United States</option>
-              <option>South Korea</option>
-              <option>Malta</option>
-              <option>New Zealand</option>
-              <option>Germany</option>
-              <option>Elsewhere in Europe</option>
+              {destinations.map((destination) => (
+                <option key={destination.slug}>
+                  {optionLabel(destination.name)}
+                </option>
+              ))}
               <option>I’m still exploring</option>
             </select>
           </label>
