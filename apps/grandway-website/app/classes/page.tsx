@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 
 const practicalities = [
   "Small batches so everyone gets speaking time",
-  "Mock tests every week, marked and explained",
-  "Morning, day and evening batches to fit around college",
+  "Regular mock tests, marked and explained",
+  "Batch times planned around college hours",
   "Counselling and class planning under one roof",
 ];
 
@@ -50,16 +50,6 @@ export default function ClassesPage() {
                   <li key={item}>{item}</li>
                 ))}
               </ul>
-              <dl className="class-meta">
-                <div>
-                  <dt>Length</dt>
-                  <dd>{testClass.duration}</dd>
-                </div>
-                <div>
-                  <dt>Batches</dt>
-                  <dd>{testClass.schedule}</dd>
-                </div>
-              </dl>
             </div>
           </article>
         ))}
@@ -84,7 +74,7 @@ export default function ClassesPage() {
       </section>
       <section className="contact-band">
         <div>
-          <p className="eyebrow">Next batch starting soon</p>
+          <p className="eyebrow">Batch dates and fees</p>
           <h2>Ask about a seat.</h2>
         </div>
         <Link className="button button--dark" href="/contact">

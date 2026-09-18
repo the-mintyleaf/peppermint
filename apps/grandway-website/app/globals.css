@@ -1048,28 +1048,6 @@ textarea {
   padding: 7px 9px;
   font-size: 12px;
 }
-.class-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 40px;
-  margin: 30px 0 0;
-}
-.class-meta div {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.class-meta dt {
-  text-transform: uppercase;
-  letter-spacing: 0.13em;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--secondary-dark);
-}
-.class-meta dd {
-  margin: 0;
-  font-size: 14px;
-}
 
 .services-detail {
   padding-top: 0;
@@ -1534,9 +1512,6 @@ textarea {
     grid-template-columns: 1fr;
     gap: 25px;
     padding: 38px 0;
-  }
-  .class-meta {
-    gap: 28px;
   }
   .services-detail {
     padding: 0 24px 80px;

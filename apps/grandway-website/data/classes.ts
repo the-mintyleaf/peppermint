@@ -4,8 +4,6 @@ export type TestClass = {
   tagline: string;
   description: string;
   covers: string[];
-  duration: string;
-  schedule: string;
 };
 
 export const classes: TestClass[] = [
@@ -20,11 +18,9 @@ export const classes: TestClass[] = [
       "Reading",
       "Writing Task 1 and 2",
       "Speaking practice",
-      "Weekly full mock tests",
+      "Full mock tests",
       "Band-score feedback",
     ],
-    duration: "6 to 8 weeks",
-    schedule: "Morning and evening batches",
   },
   {
     slug: "pte",
@@ -40,8 +36,6 @@ export const classes: TestClass[] = [
       "Scored practice on screen",
       "Score-report review",
     ],
-    duration: "4 to 6 weeks",
-    schedule: "Morning and evening batches",
   },
   {
     slug: "japanese",
@@ -57,7 +51,5 @@ export const classes: TestClass[] = [
       "Conversation practice",
       "Everyday culture and etiquette",
     ],
-    duration: "3 to 6 months",
-    schedule: "Daily morning and day batches",
   },
 ];
