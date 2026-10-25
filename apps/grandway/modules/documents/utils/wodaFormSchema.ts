@@ -81,4 +81,9 @@ export interface WodaFormSchema {
   sections: WodaSection[];
   /** Submit-button label; defaults to "Create Document". */
   submitLabel?: string;
+  /**
+   * Upgrades content saved under an older shape before the form opens, so a
+   * re-save keeps what the old shape held. Runs once, at mount.
+   */
+  migrate?: (values: Record<string, unknown>) => Record<string, unknown>;
 }

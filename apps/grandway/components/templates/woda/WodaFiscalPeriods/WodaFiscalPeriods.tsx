@@ -18,9 +18,18 @@ export function WodaFiscalPeriods({ values }: WodaFiscalPeriodsProps) {
     >
       {fiscalYears(values).map((year, index) => (
         <li key={index}>
-          Fiscal Year {year.label} A.D. (For the period of{" "}
-          <WodaOrdinalDate value={year.start} withEra /> to{" "}
-          <WodaOrdinalDate value={year.end} withEra />)
+          Fiscal Year {year.label} A.D.
+          {/* Letters saved before periods were recorded print the year alone. */}
+          {Boolean(year.start || year.end) && (
+            <>
+              {" "}
+              (For the period of <WodaOrdinalDate
+                value={year.start}
+                withEra
+              />{" "}
+              to <WodaOrdinalDate value={year.end} withEra />)
+            </>
+          )}
         </li>
       ))}
     </ol>

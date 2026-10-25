@@ -51,6 +51,11 @@ export function kinship(values: WodaValues) {
 /** Parse an ISO/`Date`-able value; `null` when empty or unparseable. */
 export function toDate(value: unknown): Date | null {
   if (!value) return null;
+  // A date-only ISO string is a calendar day, not UTC midnight — read it as
+  // local so the printed day never shifts by the viewer's timezone.
+  const day =
+    typeof value === "string" && value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (day) return new Date(+day[1], +day[2] - 1, +day[3]);
   const date = new Date(value as string);
   return Number.isNaN(date.getTime()) ? null : date;
 }
@@ -177,7 +182,8 @@ export function relationshipMembers(values: WodaValues): WodaMember[] {
 
 /** The parent whose income or tax a letter is about (`applicant_earning_guardian`). */
 export function earningGuardian(values: WodaValues) {
-  const isMother = values?.applicant_earning_guardian === "mother";
+  // Anything but "father" is the mother — the rule the letters always used.
+  const isMother = values?.applicant_earning_guardian !== "father";
   const key = isMother ? "applicant_mother" : "applicant_father";
   return {
     name: fullName(values?.[`${key}_honorific`], values?.[`${key}_name`]),

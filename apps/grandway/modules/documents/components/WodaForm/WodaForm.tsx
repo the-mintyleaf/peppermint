@@ -163,7 +163,8 @@ export function WodaForm(props: WodaFormProps) {
   const initialValues = useMemo<WodaFormValues>(() => {
     const values: WodaFormValues = {};
     for (const field of fields) values[field.name] = emptyValue(field);
-    const existing = (initialContent ?? {}) as WodaFormValues;
+    const saved = (initialContent ?? {}) as WodaFormValues;
+    const existing = schema.migrate ? schema.migrate(saved) : saved;
     // Preserve any passthrough keys (details, headerProps, …) not owned by the schema.
     Object.assign(values, existing);
     for (const field of fields) {

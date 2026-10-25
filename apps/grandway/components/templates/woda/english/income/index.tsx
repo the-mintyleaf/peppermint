@@ -41,7 +41,7 @@ export function TemplateEnglishIncomeVerification() {
     <WodaPage>
       <WodaSubject title="Annual Income Verification" variant="plain" />
       <Text {...wodaParagraphProps}>
-        This is to certify that{" "}
+        This is to certify that {earners.length === 0 && "the family members"}
         {earners.map((earner, index) => (
           <Fragment key={earner.name}>
             {listSeparator(index, earners.length)}
@@ -50,10 +50,10 @@ export function TemplateEnglishIncomeVerification() {
           </Fragment>
         ))}{" "}
         of <b>{fullName(values.applicant_honorific, values.applicant_name)}</b>{" "}
-        (Applicant), permanent {earners.length > 1 ? "residents" : "resident"}{" "}
+        (Applicant), permanent {earners.length === 1 ? "resident" : "residents"}{" "}
         of <b>{text(values.applicant_permanent_address)}</b>{" "}
-        {earners.length > 1 ? "have" : "has"} annual income from various sources
-        as follows:
+        {earners.length === 1 ? "has" : "have"} annual income from various
+        sources as follows:
       </Text>
 
       <Space h=".2in" />
@@ -110,7 +110,9 @@ export function TemplateEnglishIncomeVerification() {
       <Text {...wodaParagraphProps}>
         The total annual income for the fiscal year{" "}
         <b>
-          {fiscalBs} B.S.{fiscalAd && ` (${fiscalAd} A.D.)`}
+          {[fiscalBs && `${fiscalBs} B.S.`, fiscalAd && `(${fiscalAd} A.D.)`]
+            .filter(Boolean)
+            .join(" ")}
         </b>{" "}
         is <b>NPR. {money(total)}</b>, equivalent to{" "}
         <b>
