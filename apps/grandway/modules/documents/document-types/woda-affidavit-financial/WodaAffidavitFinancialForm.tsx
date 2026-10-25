@@ -24,7 +24,7 @@ const PRONOUN_OPTIONS = [
 const schema: WodaFormSchema = {
   submitLabel: "Create Document",
   sections: [
-    documentSection({ dateBs: true, dispatchNo: true }),
+    documentSection(),
     {
       title: "Sponsor",
       fields: [

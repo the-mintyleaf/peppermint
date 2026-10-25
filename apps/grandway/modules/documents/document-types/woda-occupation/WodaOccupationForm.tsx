@@ -17,32 +17,63 @@ const schema: WodaFormSchema = {
     applicantSection({ address: true }),
     parentsSection(),
     {
-      title: "Occupations",
+      title: "Occupation",
       fields: [
         earningGuardianField(),
         {
-          name: "occupations",
-          label: "Occupations",
-          control: "occupations",
-          description: "Each occupation is listed as a source of income.",
-          occupationColumns: [
-            { key: "name", label: "Occupation", type: "text" },
-          ],
+          name: "occupation_title",
+          label: "Occupation",
+          description: 'Printed as "is a farmer by occupation".',
+          placeholder: "farmer",
+          defaultValue: "farmer",
+          half: true,
         },
         {
-          name: "occupation_note",
-          label: "Closing note",
-          control: "textarea",
-          description: "Extra sentence printed before the PAN statement.",
-          placeholder: "The above income supports the family.",
-          optional: true,
+          name: "occupation_activity",
+          label: "Activity",
+          description: 'Printed as "His farming activities are as follows".',
+          placeholder: "farming",
+          defaultValue: "farming",
+          half: true,
+        },
+        {
+          name: "occupations",
+          label: "Sources of income",
+          control: "occupations",
+          description:
+            "Leave the owner blank to print the earning guardian's name.",
+          emptyText: "No sources yet — add your first row.",
+          occupationColumns: [
+            {
+              key: "name",
+              label: "Source of income",
+              type: "text",
+              placeholder: "Paddy Cultivation",
+            },
+            {
+              key: "owner",
+              label: "Owner",
+              type: "text",
+              placeholder: "Mr. Dharmaraj Upadhyay",
+            },
+          ],
         },
         {
           name: "pan_status",
           label: "Earning guardian is registered on PAN",
           control: "switch",
           description:
-            "When off, the certificate states the guardian is not registered on PAN.",
+            "When off, the note ends by stating the guardian isn't registered on PAN.",
+        },
+        {
+          name: "occupation_note",
+          label: "Note",
+          control: "textarea",
+          description:
+            "Leave blank to print the standard agricultural tax-exemption note.",
+          placeholder:
+            "According to the Government of Nepal, taxes are exempted for the income from Agriculture. So, it is not necessary to register on PAN.",
+          optional: true,
         },
       ],
     },

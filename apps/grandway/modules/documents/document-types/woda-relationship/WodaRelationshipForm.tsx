@@ -6,52 +6,67 @@ import type { WodaFormSchema } from "../../utils/wodaFormSchema";
 import {
   applicantSection,
   documentSection,
-  honorificField,
-  nameField,
+  grandparentsSection,
+  identityNumbersSection,
+  legalBasisField,
   parentsSection,
-  RELATIONS,
+  relativesField,
   spokespersonSection,
 } from "../../utils/wodaCommonSections";
+import { WODA_LEGAL_BASIS } from "../../utils/wodaDefaults";
 
-const schema: WodaFormSchema = {
-  sections: [
-    documentSection(),
-    applicantSection({ address: true }),
-    parentsSection(),
-    {
-      title: "Relationship",
-      description:
-        "Certifies the applicant's family relationships (parents above).",
-      fields: [
-        {
-          name: "signature_issued_act_relationship",
-          label: "Legal basis for issuance",
-          description: "The act or record the certificate cites as its basis.",
-          placeholder: "Local Government Operation Act, 2074",
-        },
-        {
-          name: "extra_relation",
-          label: "Include an additional relative",
-          control: "switch",
-          description:
-            "Adds one more related person (below) to the certificate.",
-        },
-        honorificField("relation_extra_honorific", "Relative honorific"),
-        nameField("relation_extra_name", "Relative name", {
-          placeholder: "Gita Devi Shrestha",
-        }),
-        {
-          name: "relation_extra_relation",
-          label: "Relation to applicant",
-          control: "combobox",
-          options: RELATIONS,
-          placeholder: "Sister",
-        },
-      ],
-    },
-    spokespersonSection(),
-  ],
-};
+/**
+ * Before the repeatable `relatives` list, a letter held at most one extra
+ * relative behind the `extra_relation` switch. Move it into the list, or the
+ * first re-save would write an empty list and drop that relative.
+ */
+function migrateExtraRelative(
+  values: Record<string, unknown>,
+): Record<string, unknown> {
+  if (Array.isArray(values.relatives) || !values.extra_relation) {
+    return values;
+  }
+  const name = [values.relation_extra_honorific, values.relation_extra_name]
+    .filter((part) => typeof part === "string" && part.trim() !== "")
+    .join(" ");
+  return {
+    ...values,
+    extra_relation: false,
+    relatives: [
+      {
+        name,
+        citizenship: "",
+        relation: values.relation_extra_relation ?? "",
+      },
+    ],
+  };
+}
+
+/** The relationship letter's fields; the two sets differ only in legal basis. */
+export function relationshipSchema(legalBasis: string): WodaFormSchema {
+  return {
+    migrate: migrateExtraRelative,
+    sections: [
+      documentSection(),
+      applicantSection({ gender: true, address: true }),
+      identityNumbersSection(),
+      parentsSection({ citizenship: true }),
+      grandparentsSection(),
+      {
+        title: "Relationship table",
+        description:
+          "The applicant and each living parent are listed automatically.",
+        fields: [
+          relativesField(),
+          legalBasisField("signature_issued_act_relationship", legalBasis),
+        ],
+      },
+      spokespersonSection(),
+    ],
+  };
+}
+
+const schema = relationshipSchema(WODA_LEGAL_BASIS.japanRelationship);
 
 export function WodaRelationshipForm(props: DocumentFormProps) {
   return <WodaForm schema={schema} {...props} />;

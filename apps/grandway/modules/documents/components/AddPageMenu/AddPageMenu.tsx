@@ -16,6 +16,7 @@ import {
   getWodaMenuTypes,
 } from "../../utils/documentTypeMenu";
 import { usesCreateModal } from "../../utils/defaultDocumentContent";
+import { WODA_CATEGORIES } from "../../documentTypeDefinitions";
 
 interface AddPageMenuProps {
   children: ReactNode;
@@ -36,7 +37,10 @@ export function AddPageMenu({ children, width = 220 }: AddPageMenuProps) {
   } = useDocumentEditor();
 
   const studentTypes = getStudentMenuTypes(applicantId, documents);
-  const wodaTypes = getWodaMenuTypes(applicantId, documents);
+  const wodaGroups = WODA_CATEGORIES.map((category) => ({
+    ...category,
+    types: getWodaMenuTypes(applicantId, documents, category.key),
+  })).filter((group) => group.types.length > 0);
   const lorTypes = getLorMenuTypes(applicantId, documents);
   const moiTypes = getMoiMenuTypes(applicantId, documents);
   const bankInstitutions = canEdit
@@ -53,7 +57,7 @@ export function AddPageMenu({ children, width = 220 }: AddPageMenuProps) {
 
   const hasOptions =
     studentTypes.length > 0 ||
-    wodaTypes.length > 0 ||
+    wodaGroups.length > 0 ||
     lorTypes.length > 0 ||
     moiTypes.length > 0 ||
     bankInstitutions.length > 0;
@@ -89,13 +93,13 @@ export function AddPageMenu({ children, width = 220 }: AddPageMenuProps) {
           </Menu.Sub>
         )}
 
-        {wodaTypes.length > 0 && (
-          <Menu.Sub openDelay={80} closeDelay={120}>
+        {wodaGroups.map((group) => (
+          <Menu.Sub key={group.key} openDelay={80} closeDelay={120}>
             <Menu.Sub.Target>
-              <Menu.Sub.Item fz="xs">WODA</Menu.Sub.Item>
+              <Menu.Sub.Item fz="xs">{group.label}</Menu.Sub.Item>
             </Menu.Sub.Target>
             <Menu.Sub.Dropdown>
-              {wodaTypes.map((variant) => (
+              {group.types.map((variant) => (
                 <Menu.Item
                   key={variant.slug}
                   fz="xs"
@@ -106,7 +110,7 @@ export function AddPageMenu({ children, width = 220 }: AddPageMenuProps) {
               ))}
             </Menu.Sub.Dropdown>
           </Menu.Sub>
-        )}
+        ))}
 
         {lorTypes.length > 0 && (
           <Menu.Sub openDelay={80} closeDelay={120}>

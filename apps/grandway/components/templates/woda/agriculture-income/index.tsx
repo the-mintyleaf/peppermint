@@ -1,27 +1,12 @@
 "use client";
 import React, { useContext } from "react";
-import { Divider, Group, Paper, SimpleGrid, Space, Text } from "@peppermint/ui";
+import { Paper, SimpleGrid, Space, Text } from "@peppermint/ui";
 import classes from "./agriculture-income.module.css";
 import { configPageProps } from "../../templateprops";
 import { ContextEditor } from "@/components/layout/editor/editor.context";
 import { wodaTextProps, wodaTitleProps } from "../wodaProps";
+import { WodaReferenceHeader } from "../WodaReferenceHeader";
 import { FormHandler } from "@/components/framework/FormHandler";
-import { getDaySuffix } from "@/components/helper/getDaySuffix";
-
-const monthNames = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
 
 export function TemplateAgricultureIncome() {
   const form = FormHandler.useForm();
@@ -29,23 +14,6 @@ export function TemplateAgricultureIncome() {
 
   const propsText = wodaTextProps;
   const propsTitle = wodaTitleProps;
-
-  const formattedDate = form.values?.wodadoc_date ? (
-    (() => {
-      const d = new Date(form.values.wodadoc_date);
-      return (
-        <>
-          {d.getDate()}
-          <span style={{ verticalAlign: "super", fontSize: 8 }}>
-            {getDaySuffix(d.getDate())}
-          </span>{" "}
-          {monthNames[d.getMonth()]}, {d.getFullYear()}
-        </>
-      );
-    })()
-  ) : (
-    <span style={{ display: "inline-block", width: 100 }} />
-  );
 
   const formattedIncome = Number(
     form.values?.annual_income_nrs ?? 0,
@@ -58,41 +26,7 @@ export function TemplateAgricultureIncome() {
     <>
       <Paper p=".6in" className={classes.root} {...configPageProps}>
         <Space h={state?.headerProps?.height + "in" || "1in"} />
-
-        <Group
-          gap="4px"
-          style={{ opacity: state?.headerProps?.enable ? 0 : 1 }}
-        >
-          <Text {...propsText} fw={600}>
-            Ref. No.:
-          </Text>
-          <Text {...propsText}>{form.values?.wodadoc_refno}</Text>
-        </Group>
-
-        <Group
-          justify="space-between"
-          style={{ opacity: state?.headerProps?.enable ? 0 : 1 }}
-        >
-          <Group gap="4px">
-            <Text {...propsText} fw={600}>
-              Dispatch No.:
-            </Text>
-          </Group>
-          <Group gap="4px">
-            <Text {...propsText} fw={600}>
-              Date:
-            </Text>
-            <Text {...propsText}>{formattedDate}</Text>
-          </Group>
-        </Group>
-
-        <Divider
-          opacity={!state.headerProps?.enableLine ? 1 : 0}
-          size={1}
-          color="dark.9"
-          mt="xs"
-          mb="sm"
-        />
+        <WodaReferenceHeader values={form.values} />
 
         <Text {...propsTitle} ta="center" td="underline" fw={600} mt=".2in">
           Subject: Agriculture Income

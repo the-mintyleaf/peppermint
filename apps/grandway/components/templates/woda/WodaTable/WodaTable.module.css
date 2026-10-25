@@ -1,0 +1,18 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15.4px;
+  line-height: 0.22in;
+}
+
+.table th,
+.table td {
+  border: 1px solid black;
+  padding: 0.03in 0.08in;
+  vertical-align: top;
+}
+
+.table th {
+  text-align: center;
+  font-weight: 700;
+}

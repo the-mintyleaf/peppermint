@@ -1,5 +1,6 @@
 // ─── Woda Document Templates ──────────────────────────────────────────────────
-// All WODA document templates
+// All WODA document templates. The top-level folders are the Japan set;
+// `english/` holds the English-country set.
 
 // Import individual templates
 import { TemplatePermanentAddress } from "./address";
@@ -12,6 +13,10 @@ import { TemplateRelationshipVerification } from "./relationship";
 import { TemplateSurname } from "./surname";
 import { TemplateTaxClearance } from "./taxClearance";
 import { TemplateAgricultureIncome } from "./agriculture-income";
+import { TemplateFamilyCertificate } from "./family";
+import { TemplateEnglishDOBVerification } from "./english/dob";
+import { TemplateEnglishRelationshipVerification } from "./english/relationship";
+import { TemplateEnglishIncomeVerification } from "./english/income";
 
 import { Stack, Container } from "@peppermint/ui";
 import { WodaDocData } from "@/context/DocumentContext";
@@ -75,6 +80,10 @@ export const WodaTemplates = {
   surname: TemplateSurname,
   address: TemplatePermanentAddress,
   agriculture_income: TemplateAgricultureIncome,
+  family: TemplateFamilyCertificate,
+  english_dob_verification: TemplateEnglishDOBVerification,
+  english_relationship_verification: TemplateEnglishRelationshipVerification,
+  english_annual_income_verification: TemplateEnglishIncomeVerification,
 } as const;
 
 export type WodaTemplateKey = keyof typeof WodaTemplates;

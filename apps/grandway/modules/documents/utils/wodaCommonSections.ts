@@ -6,6 +6,7 @@
  */
 
 import type { WodaField, WodaSection } from "./wodaFormSchema";
+import { WODA_DEFAULT_SIGNER_POST } from "./wodaDefaults";
 
 /** Honorifics printed verbatim on the document — suggestions, not a closed set.
  *  "Late" prefixes a deceased person (several templates branch on it). */
@@ -66,44 +67,43 @@ export function nameField(
   };
 }
 
-/** Document reference + AD date, with optional BS date / dispatch number. */
-export function documentSection(
-  opts: { dateBs?: boolean; dispatchNo?: boolean } = {},
-): WodaSection {
-  const fields: WodaField[] = [
-    {
-      name: "wodadoc_refno",
-      label: "Reference no.",
-      placeholder: "079/80-1234",
-      half: true,
-    },
-  ];
-  if (opts.dispatchNo) {
-    fields.push({
-      name: "dispatch_no",
-      label: "Dispatch no.",
-      placeholder: "512",
-      half: true,
-    });
-  }
-  fields.push({
-    name: "wodadoc_date",
-    label: "Issue date (A.D.)",
-    control: "date-ad",
-    half: opts.dateBs ? true : false,
-  });
-  if (opts.dateBs) {
-    fields.push({
-      name: "wodadoc_date_bs",
-      label: "Issue date (B.S.)",
-      control: "date-bs",
-      half: true,
-    });
-  }
+/**
+ * Reference and dispatch numbers, each behind its own print switch. Neither is
+ * printed unless switched on, and there is no issue date — the ward office dates
+ * and stamps the letter itself.
+ */
+export function documentSection(): WodaSection {
   return {
     title: "Document",
-    description: "Reference and issue date printed in the letterhead.",
-    fields,
+    description: "Choose which numbers print under the letterhead.",
+    fields: [
+      {
+        name: "show_refno",
+        label: "Print reference no.",
+        control: "switch",
+        reveals: "wodadoc_refno",
+        half: true,
+      },
+      {
+        name: "show_dispatch_no",
+        label: "Print dispatch no.",
+        control: "switch",
+        reveals: "dispatch_no",
+        half: true,
+      },
+      {
+        name: "wodadoc_refno",
+        label: "Reference no.",
+        placeholder: "079/80-1234",
+        half: true,
+      },
+      {
+        name: "dispatch_no",
+        label: "Dispatch no.",
+        placeholder: "512",
+        half: true,
+      },
+    ],
   };
 }
 
@@ -138,19 +138,162 @@ export function applicantSection(
   return { title: "Applicant", fields };
 }
 
-/** Father + mother honorific/name pairs. */
-export function parentsSection(): WodaSection {
+/** Father + mother honorific/name pairs, optionally with their citizenship numbers. */
+export function parentsSection(
+  opts: { citizenship?: boolean } = {},
+): WodaSection {
+  const citizenship = (name: string, label: string): WodaField[] =>
+    opts.citizenship
+      ? [{ name, label, placeholder: "41/1066", optional: true }]
+      : [];
   return {
     title: "Parents",
+    description: 'Write "Late" as the honorific for a deceased parent.',
     fields: [
       honorificField("applicant_father_honorific", "Father honorific", "Mr."),
       nameField("applicant_father_name", "Father name", {
         placeholder: "Hari Bahadur Shrestha",
       }),
+      ...citizenship("applicant_father_citizenship", "Father citizenship no."),
       honorificField("applicant_mother_honorific", "Mother honorific", "Mrs."),
       nameField("applicant_mother_name", "Mother name", {
         placeholder: "Sita Devi Shrestha",
       }),
+      ...citizenship("applicant_mother_citizenship", "Mother citizenship no."),
+    ],
+  };
+}
+
+/** Grandfather + grandmother, named in the identity clause ("grandson of …"). */
+export function grandparentsSection(): WodaSection {
+  return {
+    title: "Grandparents",
+    description:
+      'Printed as "grandson/granddaughter of …". Leave both blank to omit them.',
+    fields: [
+      honorificField("grandfather_honorific", "Grandfather honorific", "Mr."),
+      nameField("grandfather_name", "Grandfather name", {
+        placeholder: "Dhan Bahadur Shrestha",
+      }),
+      honorificField("grandmother_honorific", "Grandmother honorific", "Mrs."),
+      nameField("grandmother_name", "Grandmother name", {
+        placeholder: "Harisobha Shrestha",
+      }),
+    ],
+  };
+}
+
+/**
+ * The applicant's document numbers, printed as "holder of Nepali Citizenship
+ * Certificate No. …, National Identity Card No. …, Passport No. …". Any left
+ * blank is left out of the sentence.
+ */
+export function identityNumbersSection(): WodaSection {
+  return {
+    title: "Applicant documents",
+    fields: [
+      {
+        name: "applicant_citizenship",
+        label: "Citizenship certificate no.",
+        placeholder: "61-01-71-00039",
+        third: true,
+      },
+      {
+        name: "applicant_nid",
+        label: "National ID no.",
+        placeholder: "118-180-380-5",
+        optional: true,
+        third: true,
+      },
+      {
+        name: "applicant_passport",
+        label: "Passport no.",
+        placeholder: "PA4215417",
+        optional: true,
+        third: true,
+      },
+    ],
+  };
+}
+
+/** Relatives beyond the parents (e.g. a grandparent) who appear in the relationship table. */
+export function relativesField(): WodaField {
+  return {
+    name: "relatives",
+    label: "Other relatives",
+    control: "occupations",
+    description:
+      'Each row adds a table line and a photo space. Write the relation as "Grandfather" — it prints as "Applicant\'s Grandfather".',
+    emptyText:
+      "No other relatives — the table lists the applicant and parents.",
+    occupationColumns: [
+      {
+        key: "name",
+        label: "Name",
+        type: "text",
+        width: 190,
+        placeholder: "Mr. Dhan Bahadur Khadka",
+      },
+      {
+        key: "citizenship",
+        label: "Citizenship no.",
+        type: "text",
+        placeholder: "371",
+      },
+      {
+        key: "relation",
+        label: "Relation",
+        type: "text",
+        placeholder: "Grandfather",
+      },
+    ],
+  };
+}
+
+/** Legal basis sentence, prefilled with the set's default wording. */
+export function legalBasisField(name: string, defaultValue: string): WodaField {
+  return {
+    name,
+    label: "Legal basis for issuance",
+    control: "textarea",
+    description: 'Completes "This letter is issued in accordance with …".',
+    defaultValue,
+  };
+}
+
+/**
+ * The three fiscal years an income or tax letter covers: the A.D. label printed
+ * in the table header, and the period each spans (printed in the notes).
+ */
+export function fiscalYearsSection(description: string): WodaSection {
+  const year = (n: number, label: string): WodaField[] => [
+    {
+      name: `fiscal_${n}_ad`,
+      label: `Year ${n} (A.D.)`,
+      placeholder: label,
+      third: true,
+    },
+    {
+      name: `fiscal_${n}_start`,
+      label: "Starts",
+      control: "date-ad",
+      third: true,
+    },
+    {
+      name: `fiscal_${n}_end`,
+      label: "Ends",
+      control: "date-ad",
+      third: true,
+    },
+  ];
+  return {
+    title: "Fiscal years",
+    description,
+    fields: [
+      earningGuardianField(),
+      ...year(1, "2023/2024"),
+      ...year(2, "2024/2025"),
+      ...year(3, "2025/2026"),
     ],
   };
 }
@@ -177,12 +320,13 @@ export function spokespersonSection(): WodaSection {
       {
         name: "spokesperson_name",
         label: "Name",
-        placeholder: "Hari Prasad Sharma",
+        placeholder: "Ram Lakhan Tharu",
       },
       {
         name: "spokesperson_post",
         label: "Post / designation",
-        placeholder: "Ward Secretary",
+        placeholder: "Ward Chairman",
+        defaultValue: WODA_DEFAULT_SIGNER_POST,
         half: true,
       },
       {
@@ -192,6 +336,30 @@ export function spokespersonSection(): WodaSection {
         half: true,
         optional: true,
       },
+    ],
+  };
+}
+
+/** Income sources with an amount per fiscal year — the Japan income and tax letters. */
+export function incomeSourcesField(): WodaField {
+  return {
+    name: "occupations",
+    label: "Income sources",
+    control: "occupations",
+    description:
+      "One row per source; enter the amount earned in each of the three years.",
+    emptyText: "No income sources yet — add your first row.",
+    occupationColumns: [
+      {
+        key: "name",
+        label: "Source",
+        type: "text",
+        width: 150,
+        placeholder: "Paddy Cultivation",
+      },
+      { key: "income1", label: "Year 1 (Rs.)", type: "number" },
+      { key: "income2", label: "Year 2 (Rs.)", type: "number" },
+      { key: "income3", label: "Year 3 (Rs.)", type: "number" },
     ],
   };
 }
