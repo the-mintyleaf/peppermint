@@ -34,7 +34,15 @@ export function isLate(honorificOrName: unknown): boolean {
   return /^late\b/i.test(text(honorificOrName));
 }
 
+/**
+ * The applicant's gender for son/daughter wording. A gendered honorific wins,
+ * because it is what prints beside the name — and letters saved before some
+ * forms asked for gender were all seeded "Male".
+ */
 export function isMale(values: WodaValues): boolean {
+  const honorific = text(values?.applicant_honorific).toLowerCase();
+  if (["miss", "mrs.", "mrs", "ms.", "ms"].includes(honorific)) return false;
+  if (["mr.", "mr"].includes(honorific)) return true;
   return values?.applicant_gender !== "Female";
 }
 
