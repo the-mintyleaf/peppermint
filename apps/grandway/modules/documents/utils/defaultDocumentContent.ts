@@ -13,6 +13,7 @@ import {
   MOI_INSTITUTIONS,
   WODA_VARIANTS,
 } from "../documentTypeDefinitions";
+import { WODA_DEFAULT_SIGNER_POST, WODA_LEGAL_BASIS } from "./wodaDefaults";
 
 const wodaBaseDefaults: WodaContent = {
   show_refno: false,
@@ -23,13 +24,36 @@ const wodaBaseDefaults: WodaContent = {
   applicant_honorific: "Mr.",
   applicant_gender: "Male",
   spokesperson_name: "",
-  spokesperson_post: "",
+  spokesperson_post: WODA_DEFAULT_SIGNER_POST,
   spokesperson_contact: "",
 };
 
 const wodaVariantDefaults: Partial<
   Record<DocumentType, Record<string, unknown>>
 > = {
+  "woda-dob": { signature_issued_act_dob: WODA_LEGAL_BASIS.japanBirth },
+  "woda-relationship": {
+    signature_issued_act_relationship: WODA_LEGAL_BASIS.japanRelationship,
+    relatives: [],
+  },
+  "woda-occupation": {
+    applicant_earning_guardian: "father",
+    occupation_title: "farmer",
+    occupation_activity: "farming",
+    occupations: [],
+  },
+  "woda-income": { applicant_earning_guardian: "father", occupations: [] },
+  "woda-tax-clearance": {
+    applicant_earning_guardian: "father",
+    occupations: [],
+    tax: 0,
+  },
+  "woda-english-dob": { signature_issued_act_dob: WODA_LEGAL_BASIS.english },
+  "woda-english-relationship": {
+    signature_issued_act_relationship: WODA_LEGAL_BASIS.english,
+    relatives: [],
+  },
+  "woda-english-income": { incomes: [], foreign_currency: "Euro" },
   "woda-agriculture-income": {
     land_plot_numbers: "",
     landowner_honorific: "Mr.",

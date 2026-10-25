@@ -4,6 +4,7 @@ import {
   LOR_INSTITUTIONS,
   MOI_INSTITUTIONS,
   WODA_VARIANTS,
+  type WodaCategory,
 } from "../documentTypeDefinitions";
 import type { Document, DocumentType } from "../documents.types";
 
@@ -13,9 +14,10 @@ export function getAvailableDocumentTypes(
 ) {
   return documentTypeList.filter((config) => {
     if (config.requiresStudent && !applicantId) return false;
+    // An archived document is removed, so it no longer holds the type's one slot.
     if (
       config.uniquePerStudent &&
-      documents.some((d) => d.type === config.type)
+      documents.some((d) => d.type === config.type && d.status !== "archived")
     ) {
       return false;
     }
@@ -54,11 +56,14 @@ export function getStudentMenuTypes(
 export function getWodaMenuTypes(
   applicantId: string | null,
   documents: Document[],
+  category: WodaCategory,
 ) {
   const available = new Set(
     getAvailableDocumentTypes(applicantId, documents).map((c) => c.type),
   );
-  return WODA_VARIANTS.filter((v) => available.has(v.slug));
+  return WODA_VARIANTS.filter(
+    (v) => v.category === category && available.has(v.slug),
+  );
 }
 
 /**
@@ -124,5 +129,5 @@ export function getMoiMenuLabel(label: string) {
 }
 
 export function getWodaMenuLabel(label: string) {
-  return label.replace(/^WODA — /, "");
+  return label.replace(/^WODA(?: English)? — /, "");
 }

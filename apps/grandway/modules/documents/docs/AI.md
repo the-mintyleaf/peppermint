@@ -93,6 +93,33 @@ Anything that must survive a reload or a print needs `onPersist`.
 > unmount flush so a debounced save is not lost when the panel closes or the
 > document switches.
 
+## WODA letters
+
+Ward-office letters, in two **sets** (`WODA_CATEGORIES` in
+`documentTypeDefinitions.ts`), each its own "Add page" submenu:
+
+| Set                                | Slugs                                                                                                               | Templates                                     |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `japan` — "Woda Documents - Japan" | `woda-dob`, `-relationship`, `-occupation`, `-income`, `-tax-clearance`, `-family`, plus the older address/fiscal/… | `components/templates/woda/<folder>/`         |
+| `english` — "… - English Country"  | `woda-english-dob`, `-relationship`, `-income`                                                                      | `components/templates/woda/english/<folder>/` |
+
+- **A new letter is frontend-only.** The backend accepts any well-formed
+  `woda-*` slug (`documents/INTEGRATION.md` §5); add it to `WODA_VARIANTS`
+  with its `category`, to `wodaComponents` in `documentTypeConfig.ts`, and seed
+  wording in `utils/defaultDocumentContent.ts`.
+- **Templates are assembled from shared parts** in `components/templates/woda/`
+  (`WodaPage`, `WodaSubject`, `WodaApplicantIdentity`, `WodaMembersTable`,
+  `WodaTable`, `WodaPhotoGrid`, `WodaFiscalPeriods`, `WodaSignatureBlock`) and
+  the pure helpers in `wodaFormat.ts`. The two sets differ in wording and
+  table shape, not in parts.
+- **Forms are schemas**, rendered by `components/WodaForm`. Shared sections
+  live in `utils/wodaCommonSections.ts`; the Japan and English birth and
+  relationship forms are one schema each, parameterised by legal basis
+  (`utils/wodaDefaults.ts`).
+- **Old content keeps rendering.** The relationship letter still prints the
+  single `extra_relation` relative when a document has no `relatives` list,
+  and a blank occupation note or family paragraph prints the standard wording.
+
 ## The signature seam
 
 **This module does not own signatories.** `@/modules/admin/signatures` does, and

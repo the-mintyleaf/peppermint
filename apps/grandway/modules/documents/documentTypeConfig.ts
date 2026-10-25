@@ -66,6 +66,22 @@ import {
   WodaAffidavitFinancialForm,
   WodaAffidavitFinancialTemplate,
 } from "./document-types/woda-affidavit-financial";
+import {
+  WodaFamilyForm,
+  WodaFamilyTemplate,
+} from "./document-types/woda-family";
+import {
+  WodaEnglishDobForm,
+  WodaEnglishDobTemplate,
+} from "./document-types/woda-english-dob";
+import {
+  WodaEnglishRelationshipForm,
+  WodaEnglishRelationshipTemplate,
+} from "./document-types/woda-english-relationship";
+import {
+  WodaEnglishIncomeForm,
+  WodaEnglishIncomeTemplate,
+} from "./document-types/woda-english-income";
 import { BankConfigBar } from "./document-types/bank-config-bar";
 import {
   MoiGlobalCollege,
@@ -178,7 +194,10 @@ import {
   VyasStatementTemplate,
 } from "./document-types/bank-vyas-statement";
 
-const wodaComponents = {
+const wodaComponents: Record<
+  (typeof WODA_VARIANTS)[number]["slug"],
+  Pick<DocumentTypeConfig, "Form" | "Template" | "formModalSize">
+> = {
   "woda-address": { Form: WodaAddressForm, Template: WodaAddressTemplate },
   "woda-dob": { Form: WodaDobForm, Template: WodaDobTemplate },
   "woda-fiscal": { Form: WodaFiscalForm, Template: WodaFiscalTemplate },
@@ -208,7 +227,22 @@ const wodaComponents = {
     Form: WodaAffidavitFinancialForm,
     Template: WodaAffidavitFinancialTemplate,
   },
-} as const;
+  "woda-family": { Form: WodaFamilyForm, Template: WodaFamilyTemplate },
+  "woda-english-dob": {
+    Form: WodaEnglishDobForm,
+    Template: WodaEnglishDobTemplate,
+  },
+  "woda-english-relationship": {
+    Form: WodaEnglishRelationshipForm,
+    Template: WodaEnglishRelationshipTemplate,
+  },
+  "woda-english-income": {
+    Form: WodaEnglishIncomeForm,
+    Template: WodaEnglishIncomeTemplate,
+    // Six-column income table — the default "xl" modal squeezes every cell.
+    formModalSize: "80rem",
+  },
+};
 
 const bankCertificateComponents = {
   bigyalaxmi: {
@@ -344,8 +378,7 @@ const wodaRegistry = Object.fromEntries(
       label: variant.label,
       uniquePerStudent: false,
       requiresStudent: false,
-      Form: wodaComponents[variant.slug].Form,
-      Template: wodaComponents[variant.slug].Template,
+      ...wodaComponents[variant.slug],
     },
   ]),
 ) as Record<(typeof WODA_VARIANTS)[number]["slug"], DocumentTypeConfig>;

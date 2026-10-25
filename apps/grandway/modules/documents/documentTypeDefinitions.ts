@@ -1,69 +1,120 @@
+/**
+ * WODA letters come in sets per destination: the Japan set and the
+ * English-country set (UK, USA, Australia, …). Each set is its own
+ * "Add page" submenu. The order here is the menu order.
+ */
+export const WODA_CATEGORIES = [
+  { key: "japan", label: "Woda Documents - Japan" },
+  { key: "english", label: "Woda Documents - English Country" },
+] as const;
+
+export type WodaCategory = (typeof WODA_CATEGORIES)[number]["key"];
+
 export const WODA_VARIANTS = [
   {
     slug: "woda-address",
+    category: "japan",
     folder: "address",
     exportName: "TemplatePermanentAddress",
     label: "WODA — Address Change",
   },
   {
     slug: "woda-dob",
+    category: "japan",
     folder: "dob",
     exportName: "TemplateDOBVerification",
     label: "WODA — DOB Verification",
   },
   {
     slug: "woda-fiscal",
+    category: "japan",
     folder: "fiscal",
     exportName: "TemplateFiscalYear",
     label: "WODA — Fiscal Year",
   },
   {
     slug: "woda-income",
+    category: "japan",
     folder: "income",
     exportName: "TemplateIncomeVerification",
     label: "WODA — Income Verification",
   },
   {
     slug: "woda-migration",
+    category: "japan",
     folder: "migration",
     exportName: "TemplateMigration",
     label: "WODA — Migration",
   },
   {
     slug: "woda-occupation",
+    category: "japan",
     folder: "occupation",
     exportName: "TemplateOccupationVerification",
     label: "WODA — Occupation",
   },
   {
     slug: "woda-relationship",
+    category: "japan",
     folder: "relationship",
     exportName: "TemplateRelationshipVerification",
     label: "WODA — Relationship",
   },
   {
     slug: "woda-surname",
+    category: "japan",
     folder: "surname",
     exportName: "TemplateSurname",
     label: "WODA — Surname",
   },
   {
     slug: "woda-tax-clearance",
+    category: "japan",
     folder: "taxClearance",
     exportName: "TemplateTaxClearance",
     label: "WODA — Tax Clearance",
   },
   {
     slug: "woda-agriculture-income",
+    category: "japan",
     folder: "agriculture-income",
     exportName: "TemplateAgricultureIncome",
     label: "WODA — Agriculture Income",
   },
   {
     slug: "woda-affidavit-financial",
+    category: "japan",
     folder: "affidavitFinancial",
     exportName: "TemplateAffidavitFinancial",
     label: "WODA — Affidavit of Financial Support",
+  },
+  {
+    slug: "woda-family",
+    category: "japan",
+    folder: "family",
+    exportName: "TemplateFamilyCertificate",
+    label: "WODA — Family Certificate",
+  },
+  {
+    slug: "woda-english-dob",
+    category: "english",
+    folder: "english/dob",
+    exportName: "TemplateEnglishDOBVerification",
+    label: "WODA English — DOB Verification",
+  },
+  {
+    slug: "woda-english-relationship",
+    category: "english",
+    folder: "english/relationship",
+    exportName: "TemplateEnglishRelationshipVerification",
+    label: "WODA English — Relationship Verification",
+  },
+  {
+    slug: "woda-english-income",
+    category: "english",
+    folder: "english/income",
+    exportName: "TemplateEnglishIncomeVerification",
+    label: "WODA English — Annual Income Verification",
   },
 ] as const;
 
