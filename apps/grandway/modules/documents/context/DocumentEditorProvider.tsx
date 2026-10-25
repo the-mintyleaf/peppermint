@@ -30,8 +30,9 @@ import { DocumentUnavailable } from "../components/DocumentUnavailable";
 import { useSignatures } from "../hooks/useSignatures";
 import { getDefaultDocumentContent } from "../utils/defaultDocumentContent";
 import { getDefaultLabel } from "../documentTypeConfig";
+import { getBankPartnerType } from "../utils/documentTypeMenu";
 import { confirmLeaveWithUnsavedChanges } from "../hooks/useUnsavedChangesGuard";
-import { isEditableStatus } from "../documents.status";
+import { isEditableStatus, isLiveDocument } from "../documents.status";
 import type {
   DocumentEditorContextValue,
   DocumentReadOnlyReason,
@@ -404,21 +405,44 @@ export function DocumentEditorProvider({
     [statusMutation, activeDocumentId, canEdit],
   );
 
+  // A bank certificate and its statement are removed and restored together, the
+  // way they were created — the menu can never re-add one half on its own.
+  const withBankPartner = useCallback(
+    (id: string, partnerArchived: boolean): string[] => {
+      const doc = documents.find((d) => d.id === id);
+      const partnerType = doc ? getBankPartnerType(doc.type) : null;
+      const partner = partnerType
+        ? documents.find(
+            (d) =>
+              d.type === partnerType && isLiveDocument(d) !== partnerArchived,
+          )
+        : undefined;
+      return partner ? [id, partner.id] : [id];
+    },
+    [documents],
+  );
+
   const archiveMutation = useMutation({
-    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
-      documentsApi.archive(id, reason),
-    onSuccess: (updated) => {
-      writeDocumentToCache(updated);
+    mutationFn: async ({ ids, reason }: { ids: string[]; reason: string }) => {
+      const archived: Document[] = [];
+      for (const id of ids)
+        archived.push(await documentsApi.archive(id, reason));
+      return archived;
+    },
+    onSuccess: (archived) => {
+      archived.forEach((doc) => writeDocumentToCache(doc));
       invalidateDerivedViews();
       notifications.show({
-        title: "Document archived",
-        message: updated.label,
+        title: "Document removed",
+        message: `${archived.map((d) => d.label).join(" & ")} moved to Archived in the pages list.`,
         color: "green",
       });
     },
     onError: (error) => {
+      // Re-read the list: with a pair, the first half may already have gone.
+      void queryClient.invalidateQueries({ queryKey: scopeKey });
       notifications.show({
-        title: "Could not archive",
+        title: "Could not remove",
         message: getApiErrorMessage(error),
         color: "red",
       });
@@ -428,28 +452,43 @@ export function DocumentEditorProvider({
   const archiveActiveDocument = useCallback(
     (reason: string) => {
       if (!canEdit || !activeDocumentId) return;
-      archiveMutation.mutate({ id: activeDocumentId, reason });
+      archiveMutation.mutate({
+        ids: withBankPartner(activeDocumentId, false),
+        reason,
+      });
     },
-    [archiveMutation, activeDocumentId, canEdit],
+    [archiveMutation, activeDocumentId, canEdit, withBankPartner],
   );
 
   const restoreMutation = useMutation({
-    mutationFn: (id: string) => documentsApi.restore(id),
-    onSuccess: (updated) => {
-      writeDocumentToCache(updated);
+    mutationFn: async (ids: string[]) => {
+      const restored: Document[] = [];
+      for (const id of ids) restored.push(await documentsApi.restore(id));
+      return restored;
+    },
+    onSuccess: (restored) => {
+      restored.forEach((doc) => writeDocumentToCache(doc));
       invalidateDerivedViews();
       notifications.show({
         title: "Document restored",
-        message: updated.label,
+        message: restored.map((d) => d.label).join(" & "),
         color: "green",
+      });
+    },
+    onError: (error) => {
+      void queryClient.invalidateQueries({ queryKey: scopeKey });
+      notifications.show({
+        title: "Could not restore",
+        message: getApiErrorMessage(error),
+        color: "red",
       });
     },
   });
 
   const restoreActiveDocument = useCallback(() => {
     if (!canEdit || !activeDocumentId) return;
-    restoreMutation.mutate(activeDocumentId);
-  }, [restoreMutation, activeDocumentId, canEdit]);
+    restoreMutation.mutate(withBankPartner(activeDocumentId, true));
+  }, [restoreMutation, activeDocumentId, canEdit, withBankPartner]);
 
   // ── Selection / modals / unsaved-changes ─────────────────────────────────
 

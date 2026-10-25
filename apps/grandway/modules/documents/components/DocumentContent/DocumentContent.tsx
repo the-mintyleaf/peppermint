@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Center, ScrollArea, LoadingOverlay, Box } from "@peppermint/ui";
 import { useDocumentEditor } from "../../context";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
+import { isLiveDocument } from "../../documents.status";
 import { EmptyState } from "../EmptyState";
 import styles from "../../pages/editor/DocumentEditor.module.css";
 
@@ -42,7 +43,9 @@ export function DocumentContent() {
     };
   }, [isPrintingAll, endPrintAll]);
 
-  if (isPrintingAll && documents.length > 0) {
+  const livePages = documents.filter(isLiveDocument);
+
+  if (isPrintingAll && livePages.length > 0) {
     return (
       <ScrollArea className={styles.centerContent} type="auto">
         <Box style={{ padding: "12px 8px" }}>
@@ -52,7 +55,7 @@ export function DocumentContent() {
               data-print-root
               data-mantine-color-scheme="light"
             >
-              {documents.map((doc) => {
+              {livePages.map((doc) => {
                 const Template = getDocumentTypeConfig(doc.type).Template;
                 return (
                   <Template

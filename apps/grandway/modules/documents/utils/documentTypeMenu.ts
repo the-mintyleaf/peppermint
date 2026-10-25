@@ -5,6 +5,7 @@ import {
   MOI_INSTITUTIONS,
   WODA_VARIANTS,
 } from "../documentTypeDefinitions";
+import { isLiveDocument } from "../documents.status";
 import type { Document, DocumentType } from "../documents.types";
 
 export function getAvailableDocumentTypes(
@@ -13,9 +14,10 @@ export function getAvailableDocumentTypes(
 ) {
   return documentTypeList.filter((config) => {
     if (config.requiresStudent && !applicantId) return false;
+    // A removed (archived) document no longer holds the type's one slot.
     if (
       config.uniquePerStudent &&
-      documents.some((d) => d.type === config.type)
+      documents.some((d) => d.type === config.type && isLiveDocument(d))
     ) {
       return false;
     }

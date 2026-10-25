@@ -1,4 +1,8 @@
-import type { DocumentStatus, DocumentStatusValue } from "./documents.types";
+import type {
+  Document,
+  DocumentStatus,
+  DocumentStatusValue,
+} from "./documents.types";
 
 /** Badge label + Mantine color per document status (words + color, never color alone). */
 export const STATUS_META: Record<
@@ -30,4 +34,12 @@ export function isEditableStatus(status: DocumentStatus): boolean {
 /** Archive is available from any non-archived state. */
 export function canArchiveStatus(status: DocumentStatus): boolean {
   return status !== "archived";
+}
+
+/**
+ * Removing a document archives it. A removed document can still be opened and
+ * restored, but it is not a page: no page number, no "Print all".
+ */
+export function isLiveDocument(doc: Document): boolean {
+  return doc.status !== "archived";
 }

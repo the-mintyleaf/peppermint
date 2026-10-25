@@ -8,22 +8,26 @@ import {
   Button,
   Tooltip,
   Badge,
-  Menu,
 } from "@peppermint/ui";
 import { openReasonConfirmModal } from "@peppermint/admin";
 import { Sidebar as SidebarIcon } from "@phosphor-icons/react/dist/csr/Sidebar";
 import { CaretLeft as CaretLeftIcon } from "@phosphor-icons/react/dist/csr/CaretLeft";
 import { CaretRight as CaretRightIcon } from "@phosphor-icons/react/dist/csr/CaretRight";
 import { Printer as PrinterIcon } from "@phosphor-icons/react/dist/csr/Printer";
-import { DotsThree as DotsThreeIcon } from "@phosphor-icons/react/dist/csr/DotsThree";
-import { Archive as ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
+import { Trash as TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
+import { ArrowCounterClockwise as RestoreIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
 import { useDocumentEditor } from "../../context";
 import { useDocumentActions } from "../../hooks/useDocumentActions";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
 import {
+  getBankPartnerType,
+  isTypeAvailable,
+} from "../../utils/documentTypeMenu";
+import {
   STATUS_META,
   getNextStatusAction,
   canArchiveStatus,
+  isLiveDocument,
 } from "../../documents.status";
 import styles from "../../pages/editor/DocumentEditor.module.css";
 
@@ -51,6 +55,7 @@ export function DocToolbar({
     printableContentRef,
     setDocumentStatus,
     archiveActiveDocument,
+    restoreActiveDocument,
     isRunningStatusAction,
     beginPrintAll,
     canEdit,
@@ -59,8 +64,11 @@ export function DocToolbar({
   const resolvedActiveDocument =
     activeDocument ?? documents.find((d) => d.id === activeDocumentId) ?? null;
 
+  // Removed (archived) documents can be opened, but they are not pages.
+  const livePages = documents.filter(isLiveDocument);
+
   const { handlePrintCurrent, handlePrintAll } = useDocumentActions({
-    documents,
+    documents: livePages,
     activeDocument: resolvedActiveDocument,
     printableContentRef,
     beginPrintAll,
@@ -74,9 +82,9 @@ export function DocToolbar({
     documents[0]?.updatedAt ?? "",
   );
 
-  const activeIndex = documents.findIndex((d) => d.id === activeDocumentId);
+  const activeIndex = livePages.findIndex((d) => d.id === activeDocumentId);
   const pageNum = activeIndex >= 0 ? activeIndex + 1 : 0;
-  const totalPages = documents.length;
+  const totalPages = livePages.length;
 
   const activeTypeLabel = resolvedActiveDocument
     ? getDocumentTypeConfig(resolvedActiveDocument.type).label
@@ -90,13 +98,26 @@ export function DocToolbar({
   const nextAction = canEdit && status ? getNextStatusAction(status) : null;
   const showArchive = canEdit && status ? canArchiveStatus(status) : false;
 
+  const isArchived = status === "archived";
+  // Restoring beside a live document of the same one-per-student type would
+  // leave two, so it waits until that one is removed.
+  const canRestore =
+    canEdit &&
+    isArchived &&
+    resolvedActiveDocument !== null &&
+    isTypeAvailable(resolvedActiveDocument.type, applicantId, documents);
+  const isBankPair = resolvedActiveDocument
+    ? getBankPartnerType(resolvedActiveDocument.type) !== null
+    : false;
+
   const confirmArchive = () => {
     // Archive requires a mandatory reason (`documents/INTEGRATION.md` §7).
     openReasonConfirmModal({
-      title: "Archive document",
-      description:
-        "Archiving keeps the document (and its print history) but marks it read-only. Restoring returns it to draft.",
-      confirmLabel: "Archive",
+      title: "Remove document",
+      description: isBankPair
+        ? "The bank certificate and its statement are removed together. Both move to Archived in the pages list, keep their print history, and can be restored."
+        : "It moves to Archived in the pages list, keeps its print history, and can be restored. You can then create a new one of the same kind.",
+      confirmLabel: "Remove",
       confirmColor: "red",
       reasonLabel: "Reason",
       reasonRequired: true,
@@ -106,19 +127,19 @@ export function DocToolbar({
 
   const metaParts = [
     displayName,
-    documents.length > 0 ? `${documents.length} docs` : null,
+    livePages.length > 0 ? `${livePages.length} docs` : null,
     lastUpdated
       ? `Updated ${new Date(lastUpdated).toLocaleDateString()}`
       : null,
   ].filter(Boolean);
 
   const goPrev = () => {
-    if (activeIndex > 0) setActiveDocumentId(documents[activeIndex - 1].id);
+    if (activeIndex > 0) setActiveDocumentId(livePages[activeIndex - 1].id);
   };
 
   const goNext = () => {
-    if (activeIndex < documents.length - 1) {
-      setActiveDocumentId(documents[activeIndex + 1].id);
+    if (activeIndex >= 0 && activeIndex < livePages.length - 1) {
+      setActiveDocumentId(livePages[activeIndex + 1].id);
     }
   };
 
@@ -157,14 +178,18 @@ export function DocToolbar({
           <CaretLeftIcon size={12} />
         </ActionIcon>
         <Text size="xs" c="dimmed" miw={40} ta="center">
-          {totalPages > 0 ? `${pageNum}/${totalPages}` : "—"}
+          {isArchived
+            ? "Archived"
+            : totalPages > 0
+              ? `${pageNum}/${totalPages}`
+              : "—"}
         </Text>
         <ActionIcon
           className={styles.iconBtn}
           variant="subtle"
           size="sm"
           onClick={goNext}
-          disabled={activeIndex < 0 || activeIndex >= documents.length - 1}
+          disabled={activeIndex < 0 || activeIndex >= livePages.length - 1}
           aria-label="Next page"
         >
           <CaretRightIcon size={12} />
@@ -186,29 +211,38 @@ export function DocToolbar({
             {nextAction.label}
           </Button>
         ) : null}
+        {isArchived && canEdit ? (
+          <Tooltip
+            label="Remove the live one of this kind first"
+            disabled={canRestore}
+          >
+            <Button
+              variant="light"
+              size="xs"
+              h={28}
+              px="xs"
+              leftSection={<RestoreIcon size={12} aria-hidden />}
+              onClick={restoreActiveDocument}
+              loading={isRunningStatusAction}
+              disabled={!canRestore}
+            >
+              Restore
+            </Button>
+          </Tooltip>
+        ) : null}
         {showArchive ? (
-          <Menu shadow="md" position="bottom-end" withinPortal>
-            <Menu.Target>
-              <ActionIcon
-                className={styles.iconBtn}
-                variant="subtle"
-                size="sm"
-                aria-label="More status actions"
-                disabled={!activeDocumentId || isRunningStatusAction}
-              >
-                <DotsThreeIcon size={16} />
-              </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Menu.Item
-                color="red"
-                leftSection={<ArchiveIcon size={14} aria-hidden />}
-                onClick={confirmArchive}
-              >
-                Archive document
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
+          <Button
+            variant="subtle"
+            color="red"
+            size="xs"
+            h={28}
+            px="xs"
+            leftSection={<TrashIcon size={12} aria-hidden />}
+            onClick={confirmArchive}
+            disabled={!activeDocumentId || isRunningStatusAction}
+          >
+            Remove
+          </Button>
         ) : null}
         <Divider orientation="vertical" mx={2} />
         <Button
@@ -229,7 +263,7 @@ export function DocToolbar({
           h={28}
           px="xs"
           onClick={handlePrintAll}
-          disabled={documents.length === 0}
+          disabled={livePages.length === 0}
           aria-label="Print all pages"
         >
           Print all

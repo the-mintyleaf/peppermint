@@ -52,16 +52,24 @@ Modal setters are **guarded in the provider** so a reader can never flip them.
 
 ## Chrome
 
-| Component                   | What it is                                                                  |
-| --------------------------- | --------------------------------------------------------------------------- |
-| `DocHeader`                 | Black top bar. Brand, filename, date, **Signature button**, close           |
-| `DocToolbar`                | White sub-bar. Status action, archive menu, print, print-all, panel toggles |
-| `PagesSidebar`              | Left rail — the document list for the workspace                             |
-| `HistorySidebar`            | Right rail — **Activity** (snapshots) on top, **Customizations** below      |
-| `EditCurrentDocumentButton` | Floating bottom-right FAB → the edit-fields modal                           |
+| Component                   | What it is                                                                |
+| --------------------------- | ------------------------------------------------------------------------- |
+| `DocHeader`                 | Black top bar. Brand, filename, date, **Signature button**, close         |
+| `DocToolbar`                | White sub-bar. Status action, Remove / Restore, print, print-all, toggles |
+| `PagesSidebar`              | Left rail — live pages, then an **Archived** group (removed documents)    |
+| `HistorySidebar`            | Right rail — **Activity** (snapshots) on top, **Customizations** below    |
+| `EditCurrentDocumentButton` | Floating bottom-right FAB → the edit-fields modal                         |
 
 All of them import styles from the **shared** `pages/editor/DocumentEditor.module.css`
 rather than owning a CSS module.
+
+**Removing a document archives it** — there is no delete endpoint. An archived
+document is not a page: it has no page number, is skipped by "Print all", and no
+longer holds its type's one-per-student slot, so a fresh one can be created.
+`isLiveDocument` (`documents.status.ts`) is the one test for this. A bank
+certificate and its statement are removed and restored together
+(`withBankPartner` in the provider). Restore is disabled while a live document of
+the same one-per-student type exists, so it can never leave two.
 
 Modals follow one of three patterns: a context flag (`EditFieldsModal`,
 `CreateDocumentModal`), local `useState` in the page (the two panels), or a fully
