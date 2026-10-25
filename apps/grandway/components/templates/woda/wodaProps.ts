@@ -13,3 +13,10 @@ export const wodaTitleProps = {
   lh: ".25in",
   color: "black",
 } as const;
+
+/** A justified body paragraph — the running text of every letter. */
+export const wodaParagraphProps = {
+  ...wodaTextProps,
+  lh: ".27in",
+  style: { textAlign: "justify" },
+} as const;

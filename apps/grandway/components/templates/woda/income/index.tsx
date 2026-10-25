@@ -1,337 +1,110 @@
 "use client";
-import React, { useContext } from "react";
-//mantine
-import { Center, Paper, SimpleGrid, Space, Text } from "@peppermint/ui";
-//styles
-import classes from "./income.module.css";
-//pageprops
-import { configPageProps } from "../../templateprops";
-//context
-import { ContextEditor } from "@/components/layout/editor/editor.context";
-import { wodaTextProps, wodaTitleProps } from "../wodaProps";
-import { WodaReferenceHeader } from "../WodaReferenceHeader";
+
+import { Space, Text } from "@peppermint/ui";
 import { FormHandler } from "@/components/framework/FormHandler";
-import { getDaySuffix } from "@/components/helper/getDaySuffix";
+import { wodaParagraphProps } from "../wodaProps";
+import {
+  earningGuardian,
+  fiscalTotals,
+  fiscalYears,
+  fullName,
+  money,
+  rows,
+  text,
+  toAmount,
+} from "../wodaFormat";
+import { WodaPage } from "../WodaPage";
+import { WodaSubject } from "../WodaSubject";
+import { WodaTable } from "../WodaTable";
+import { WodaOrdinalDate } from "../WodaOrdinalDate";
+import { WodaFiscalPeriods } from "../WodaFiscalPeriods";
+import { WodaSignatureBlock } from "../WodaSignatureBlock";
 
+/** Japan — Annual Income Certificate (three fiscal years, NPR and US$). */
 export function TemplateIncomeVerification() {
-  // * DEFINITION
-
   const form = FormHandler.useForm();
+  const values = form.values;
 
-  // * PRE STATES
-
-  // * STATES
-
-  // * CONTEXT
-
-  const { state, dispatch } = useContext(ContextEditor.Context);
-  const { details } = state;
-
-  // * PRELOAD
-
-  // * FUNCTIONS
-
-  // * COMPONENTS
-
-  const propsText = wodaTextProps;
-  const propsTitle = wodaTitleProps;
-
-  const guardian_father = {
-    name: form.values?.applicant_father_name,
-    relationship: "Father",
-    honorific: form.values?.applicant_father_honorific,
-  };
-  const guardian_mother = {
-    name: form.values?.applicant_mother_name,
-    relationship: "Mother",
-    honorific: form.values?.applicant_mother_honorific,
-  };
-  const guardian_earning =
-    form.values?.applicant_earning_guardian == "father"
-      ? guardian_father
-      : guardian_mother;
-
-  const calculateFiscalTotals = () => {
-    const sum = [0, 0, 0];
-    for (const occupation of form.values?.occupations ?? []) {
-      sum[0] += occupation.income1 ?? 0;
-      sum[1] += occupation.income2 ?? 0;
-      sum[2] += occupation.income3 ?? 0;
-    }
-    return sum;
-  };
-
-  const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-
-  const fiscalTotals = calculateFiscalTotals();
+  const guardian = earningGuardian(values);
+  const years = fiscalYears(values);
+  const totals = fiscalTotals(values);
+  const usdRate = toAmount(values.usd_rate);
 
   return (
-    <>
-      <Paper p=".6in" className={classes.root} {...configPageProps}>
-        <Space h={state?.headerProps?.height + "in" || "1in"} />
-        <WodaReferenceHeader values={form.values} />
-        <Text
-          {...propsTitle}
-          ta="center"
-          tt="uppercase"
-          td="underline"
-          fw={600}
-          mt={".2in"}
-        >
-          ANNUAL INCOME VERIFICATION CERTIFICATE
-          <br /> to whom it may concern
-        </Text>
-        <Space h=".35in" />
-        <Text
-          style={{
-            textAlign: "justify",
-          }}
-          {...propsText}
-        >
-          This is to certify that{" "}
-          <b>
-            {guardian_earning.honorific} {guardian_earning.name}
-          </b>
-          , {form.values?.applicant_earning_guardian} of{" "}
-          <b>
-            {form.values?.applicant_honorific} {form.values?.applicant_name}
-          </b>
-          , a permanent resident of{" "}
-          <b>{form.values?.applicant_permanent_address}</b> has the following
-          source of income for the last three fiscal years: B.S.{" "}
-          {form.values?.fiscal_1_bs} ({form.values?.fiscal_1_ad} A.D.), B.S.{" "}
-          {form.values?.fiscal_2_bs} ({form.values?.fiscal_2_ad} A.D.) and B.S.{" "}
-          {form.values?.fiscal_3_bs} ({form.values?.fiscal_3_ad} A.D.).
-        </Text>
+    <WodaPage>
+      <WodaSubject title="Annual Income Certificate" variant="formal" />
+      <Text {...wodaParagraphProps}>
+        This is to certify that <b>{guardian.name}</b>, {guardian.relation} of{" "}
+        <b>{fullName(values.applicant_honorific, values.applicant_name)}</b>, a
+        permanent resident of <b>{text(values.applicant_permanent_address)}</b>,
+        has the following income earned in last three fiscal years. This
+        certificate has been issued in reference to the sufficient relevant
+        documents submitted by <b>{guardian.name}</b> and the investigation
+        carried out by this Ward Office.
+      </Text>
 
-        <Space h=".12in" />
-
-        <table className={classes.table}>
-          <thead>
-            <tr>
-              <th style={{ width: 50 }} rowSpan={2}>
-                <Text fw={600}>S.N.</Text>
+      <Space h=".15in" />
+      <WodaTable>
+        <thead>
+          <tr>
+            <th style={{ width: "0.5in" }}>S.N.</th>
+            <th>Sources of Income</th>
+            {years.map((year, index) => (
+              <th key={index} style={{ width: "1.45in" }}>
+                Fiscal Year
+                <br />
+                {year.label} A.D.
               </th>
-              <th style={{ width: 220 }} rowSpan={2}>
-                <Text fw={600}>Income Headings</Text>
-              </th>
-              <th colSpan={3}>
-                <Text fw={600} lh=".2in">
-                  Fiscal Year
-                </Text>
-              </th>
-            </tr>
-            <tr>
-              <th>
-                <Text lh=".2in" fw={600}>
-                  B.S. {form.values?.fiscal_1_bs}
-                  <br />
-                  {form.values?.fiscal_1_ad} A.D.
-                </Text>
-              </th>
-              <th>
-                <Text lh=".2in" fw={600}>
-                  B.S. {form.values?.fiscal_2_bs}
-                  <br />
-                  {form.values?.fiscal_2_ad} A.D.
-                </Text>
-              </th>
-              <th>
-                <Text lh=".2in" fw={600}>
-                  B.S. {form.values?.fiscal_3_bs}
-                  <br />
-                  {form.values?.fiscal_3_ad} A.D.
-                </Text>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {(form.values?.occupations ?? []).map(
-              (occupationinfo: any, index: number) => (
-                <tr key={index}>
-                  <td
-                    style={{
-                      textAlign: "center",
-                    }}
-                  >
-                    <Text lh=".28in">{index + 1}.</Text>
-                  </td>
-                  <td>
-                    <Text lh=".2in">{occupationinfo.name}</Text>
-                  </td>
-                  <td
-                    style={{
-                      textAlign: "center",
-                      lineHeight: ".2in",
-                    }}
-                  >
-                    {Number(occupationinfo?.income1).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </td>
-                  <td
-                    style={{
-                      textAlign: "center",
-                      lineHeight: ".2in",
-                    }}
-                  >
-                    {Number(occupationinfo?.income2).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </td>
-                  <td
-                    style={{
-                      textAlign: "center",
-                      lineHeight: ".2in",
-                    }}
-                  >
-                    {Number(occupationinfo?.income3).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </td>
-                </tr>
-              ),
-            )}
-            <tr>
-              <td
-                colSpan={2}
-                style={{
-                  textAlign: "right",
-                }}
-              >
-                <Text fw={600} lh=".2in">
-                  Total Amount in NRs.
-                </Text>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows(values, "occupations").map((row, index) => (
+            <tr key={index}>
+              <td style={{ textAlign: "center" }}>
+                <b>{index + 1}.</b>
               </td>
-              {fiscalTotals.map((total, index) => (
-                <td
-                  key={index}
-                  style={{ textAlign: "center", lineHeight: ".2in" }}
-                >
-                  <Text fw={600} lh=".2in">
-                    {total.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </Text>
+              <td>{text(row.name)}</td>
+              {[row.income1, row.income2, row.income3].map((amount, col) => (
+                <td key={col} style={{ textAlign: "center" }}>
+                  {money(toAmount(amount))}
                 </td>
               ))}
             </tr>
-            <tr>
-              <td
-                colSpan={2}
-                style={{
-                  textAlign: "right",
-                }}
-              >
-                <Text fw={600} lh=".2in">
-                  Total Amount in USD
-                </Text>
-              </td>
-              {fiscalTotals.map((total, index) => (
-                <td
-                  key={index}
-                  style={{ textAlign: "center", lineHeight: ".2in" }}
-                >
-                  <Text fw={600} lh=".2in">
-                    {(total / (form.values?.usd_rate || 1)).toLocaleString(
-                      undefined,
-                      {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      },
-                    )}
-                  </Text>
-                </td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
+          ))}
+          <tr>
+            <th colSpan={2}>Total Annual Income in NRs.</th>
+            {totals.map((total, index) => (
+              <th key={index}>{money(total)}</th>
+            ))}
+          </tr>
+          <tr>
+            <th colSpan={2}>Total Annual Income in US $</th>
+            {totals.map((total, index) => (
+              <th key={index}>{usdRate > 0 ? money(total / usdRate) : ""}</th>
+            ))}
+          </tr>
+        </tbody>
+      </WodaTable>
 
-        <Space h=".12in" />
+      <Space h=".15in" />
+      <Text {...wodaParagraphProps} fw={700}>
+        Today&apos;s Exchange Rate is 1 US Dollar ($) = NRs.{" "}
+        {usdRate > 0 ? usdRate.toFixed(2) : ""} (Source: Nepal Rastra Bank for{" "}
+        <WodaOrdinalDate value={values.rate_date} />)
+      </Text>
 
-        <Text
-          {...propsText}
-          style={{
-            textAlign: "justify",
-          }}
-          lh={1.3}
-        >
-          The conversion of the Nepali Currency (NPR) into US Dollars (US$) is
-          done as per the foreign currency exchange rate (selling rate)
-          determined by Nepal Rastra Bank (www.nrb.org.np) on{" "}
-          <b>
-            {form.values?.rate_date ? (
-              <>
-                {new Date(form.values.rate_date).getDate()}
-                <span
-                  style={{
-                    verticalAlign: "super",
-                    fontSize: 8,
-                    marginTop: -10,
-                  }}
-                >
-                  {getDaySuffix(new Date(form.values.rate_date).getDate())}
-                </span>{" "}
-                {monthNames[new Date(form.values.rate_date).getMonth()]},{" "}
-                {new Date(form.values.rate_date).getFullYear()} A.D.
-              </>
-            ) : (
-              <span style={{ display: "inline-block", width: 120 }}></span>
-            )}
-          </b>{" "}
-          which is <b> 1 US$ = {form.values?.usd_rate?.toFixed(2)} NPR</b>.
-        </Text>
+      <Space h=".15in" />
+      <Text {...wodaParagraphProps}>
+        According to the Nepalese Fiscal year and Income Tax Act, 2058 B.S.
+        (2002 A.D.) rules. The Nepalese Fiscal Year starts from the 1
+        <sup style={{ fontSize: "0.6em" }}>st</sup> day of Shrawan and ends on
+        the final day of Ashadh of the following year. The details about the
+        fiscal years period are mentioned below:
+      </Text>
+      <WodaFiscalPeriods values={values} />
 
-        <Space h="1.5in" />
-
-        <SimpleGrid cols={2}>
-          <div />
-
-          <div
-            style={{
-              paddingLeft: ".7in",
-            }}
-          >
-            <div
-              style={{
-                display: "block",
-                borderBottom: "2px dotted black",
-                width: 200,
-                margin: "auto",
-              }}
-            />
-
-            <Text {...propsText} size="15.4px" fw={600} ta="center" mt=".04in">
-              {form.values?.spokesperson_name}
-            </Text>
-            <Text {...propsText} size="15.4px" fw={600} ta="center">
-              {form.values?.spokesperson_post}
-            </Text>
-            {form.values?.spokesperson_contact && (
-              <Text {...propsText} size="15.4px" fw={600} ta="center">
-                Contact No.: {form.values?.spokesperson_contact}
-              </Text>
-            )}
-          </div>
-        </SimpleGrid>
-      </Paper>
-    </>
+      <WodaSignatureBlock values={values} gap=".9in" />
+    </WodaPage>
   );
 }

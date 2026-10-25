@@ -1,382 +1,125 @@
 "use client";
-import React, { useContext } from "react";
-//mantine
-import { Center, Paper, SimpleGrid, Space, Text } from "@peppermint/ui";
-//styles
-import classes from "./tax.module.css";
-//pageprops
-import { configPageProps } from "../../templateprops";
-//context
-import { ContextEditor } from "@/components/layout/editor/editor.context";
-import { wodaTextProps, wodaTitleProps } from "../wodaProps";
-import { WodaReferenceHeader } from "../WodaReferenceHeader";
+
+import { Space, Text } from "@peppermint/ui";
 import { FormHandler } from "@/components/framework/FormHandler";
+import { wodaParagraphProps } from "../wodaProps";
+import {
+  earningGuardian,
+  fiscalTotals,
+  fiscalYears,
+  fullName,
+  money,
+  rows,
+  text,
+  toAmount,
+} from "../wodaFormat";
+import { WodaPage } from "../WodaPage";
+import { WodaSubject } from "../WodaSubject";
+import { WodaTable } from "../WodaTable";
+import { WodaFiscalPeriods } from "../WodaFiscalPeriods";
+import { WodaSignatureBlock } from "../WodaSignatureBlock";
 
+/** Japan — Tax Clearance Certificate. */
 export function TemplateTaxClearance() {
-  // * DEFINITION
-
   const form = FormHandler.useForm();
+  const values = form.values;
 
-  // * PRE STATES
+  const guardian = earningGuardian(values);
+  const years = fiscalYears(values);
+  const totals = fiscalTotals(values);
+  const rate = toAmount(values.tax) / 100;
+  const taxes = totals.map((total) => total * rate);
+  const lastYear = years[years.length - 1]?.label;
+  const office = text(values.tax_clearance_issuer);
 
-  // * STATES
-
-  // * CONTEXT
-
-  const { state, dispatch } = useContext(ContextEditor.Context);
-  const { details } = state;
-
-  // * PRELOAD
-
-  // * FUNCTIONS
-
-  // * COMPONENTS
-
-  const propsText = wodaTextProps;
-  const propsTitle = wodaTitleProps;
-
-  const guardian_father = {
-    name: form.values?.applicant_father_name,
-    relationship: "Father",
-    honorific: form.values?.applicant_father_honorific,
-  };
-  const guardian_mother = {
-    name: form.values?.applicant_mother_name,
-    relationship: "Mother",
-    honorific: form.values?.applicant_mother_honorific,
-  };
-  const guardian_earning =
-    form.values?.applicant_earning_guardian == "father"
-      ? guardian_father
-      : guardian_mother;
-
-  const calculateFiscalTotals = () => {
-    const sum = [0, 0, 0];
-    for (const occupation of form.values?.occupations ?? []) {
-      sum[0] += occupation.income1 ?? 0;
-      sum[1] += occupation.income2 ?? 0;
-      sum[2] += occupation.income3 ?? 0;
-    }
-    return sum;
-  };
-
-  const fiscalTotals = calculateFiscalTotals();
+  const summaryRow = (label: string, amounts: number[]) => (
+    <tr>
+      <th colSpan={2} style={{ textAlign: "right" }}>
+        {label}
+      </th>
+      {amounts.map((amount, index) => (
+        <th key={index}>{money(amount)}</th>
+      ))}
+    </tr>
+  );
 
   return (
-    <>
-      <Paper p=".6in" className={classes.root} {...configPageProps}>
-        <Space h={state?.headerProps?.height + "in" || "1in"} />
-        <WodaReferenceHeader values={form.values} />
-        <Text
-          {...propsTitle}
-          ta="center"
-          tt="uppercase"
-          td="underline"
-          fw={600}
-          mt={".2in"}
-        >
-          TAX CLEARANCE VERIFICATION CERTIFICATE
-          <br /> to whom it may concern
-        </Text>
-        <Space h=".35in" />
+    <WodaPage>
+      <WodaSubject title="Tax Clearance Certificate" variant="formal" />
+      <Text {...wodaParagraphProps}>
+        This is to certify that <b>{guardian.name}</b>, {guardian.relation} of{" "}
+        <b>{fullName(values.applicant_honorific, values.applicant_name)}</b>, a
+        permanent resident of <b>{text(values.applicant_permanent_address)}</b>,
+        has cleared all the Governmental Taxes up to fiscal year{" "}
+        <b>{lastYear} A.D.</b> of {guardian.possessive} all applicable taxes. We
+        have checked all the records with us and have found that{" "}
+        {guardian.possessive} occupations are updated till this date.
+      </Text>
 
-        <Text
-          style={{
-            textAlign: "justify",
-          }}
-          {...propsText}
-          lh=".18in"
-          size="15.75px"
-        >
-          This certificate is issued on request of{" "}
-          <b>
-            {guardian_earning.honorific} {guardian_earning.name}
-          </b>
-          , {form.values?.applicant_earning_guardian} of{" "}
-          <b>
-            {form.values?.applicant_honorific} {form.values?.applicant_name}
-          </b>
-          , a permanent resident of{" "}
-          <b>{form.values?.applicant_permanent_address}</b> has been regularly
-          paying all the Governmental Taxes up to fiscal year{" "}
-          {form.values?.fiscal_1_ad}, {form.values?.fiscal_2_ad} and{" "}
-          {form.values?.fiscal_3_ad} A.D. of{" "}
-          {form.values?.applicant_earning_guardian == "father" ? "his" : "her"}{" "}
-          all applicable taxes. We have issued this Verification of Tax
-          Clearance Certificate after related verification and investigation
-          from the records division of this office.
-        </Text>
-
-        <Space h=".12in" />
-
-        <Text
-          style={{
-            textAlign: "justify",
-          }}
-          {...propsText}
-          lh=".18in"
-        >
-          According to the Nepal Government Income Tax Act 2058 B.S. (2002 A.D.)
-          Chapter 4 (11) (1), (sources: www.lawcommission.gov.np,
-          www.ird.gov.np) taxes have been exempted for Incomes from Agriculture
-          which includes
-          <b>
-            {(form.values?.occupations ?? []).map(
-              (occupation: any, index: number) => {
-                const total = (form.values?.occupations ?? []).length;
-                return (
-                  <React.Fragment key={index}>
-                    {" "}
-                    {occupation.name}
-                    {index <= total - 3
-                      ? ","
-                      : index == total - 2
-                        ? " and "
-                        : ""}
-                  </React.Fragment>
-                );
-              },
-            )}
-          </b>
-          . Hence, there is no any outstanding tax to be paid in this office.
-        </Text>
-
-        <Space h=".2in" />
-
-        <table className={classes.table}>
-          <thead>
-            <tr>
-              <th style={{ width: 50 }} rowSpan={2}>
-                <Text fw={600}>S.N.</Text>
+      <Space h=".15in" />
+      <WodaTable>
+        <thead>
+          <tr>
+            <th style={{ width: "0.5in" }}>S.N.</th>
+            <th>Sources of Income</th>
+            {years.map((year, index) => (
+              <th key={index} style={{ width: "1.45in" }}>
+                Fiscal Year
+                <br />
+                {year.label} A.D.
               </th>
-              <th style={{ width: 220 }} rowSpan={2}>
-                <Text fw={600}>Income Headings</Text>
-              </th>
-              <th colSpan={3}>
-                <Text lh=".2in" fw={600}>
-                  Fiscal Year
-                </Text>
-              </th>
-            </tr>
-            <tr>
-              <th>
-                <Text lh=".19in" fw={600}>
-                  B.S. {form.values?.fiscal_1_bs}
-                  <br />
-                  {form.values?.fiscal_1_ad} A.D.
-                </Text>
-              </th>
-              <th>
-                <Text lh=".19in" fw={600}>
-                  B.S. {form.values?.fiscal_2_bs}
-                  <br />
-                  {form.values?.fiscal_2_ad} A.D.
-                </Text>
-              </th>
-              <th>
-                <Text lh=".19in" fw={600}>
-                  B.S. {form.values?.fiscal_3_bs}
-                  <br />
-                  {form.values?.fiscal_3_ad} A.D.
-                </Text>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {(form.values?.occupations ?? []).map(
-              (occupationinfo: any, index: number) => (
-                <tr key={index}>
-                  <td
-                    style={{
-                      textAlign: "center",
-                    }}
-                  >
-                    <Text lh=".19in">{index + 1}.</Text>
-                  </td>
-                  <td>
-                    <Text lh=".25in">{occupationinfo.name}</Text>
-                  </td>
-                  <td
-                    style={{
-                      textAlign: "center",
-                      lineHeight: ".2in",
-                    }}
-                  >
-                    {Number(occupationinfo?.income1).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </td>
-                  <td
-                    style={{
-                      textAlign: "center",
-                      lineHeight: ".2in",
-                    }}
-                  >
-                    {Number(occupationinfo?.income2).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </td>
-                  <td
-                    style={{
-                      textAlign: "center",
-                      lineHeight: ".2in",
-                    }}
-                  >
-                    {Number(occupationinfo?.income3).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </td>
-                </tr>
-              ),
-            )}
-            <tr>
-              <td
-                colSpan={2}
-                style={{
-                  textAlign: "center",
-                }}
-              >
-                <Text fw={600}>Total Amount in NRs.</Text>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows(values, "occupations").map((row, index) => (
+            <tr key={index}>
+              <td style={{ textAlign: "center" }}>
+                <b>{index + 1}.</b>
               </td>
-              {fiscalTotals.map((total, index) => (
-                <td key={index} style={{ textAlign: "center" }}>
-                  <Text fw={600}>
-                    {total.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </Text>
+              <td>{text(row.name)}</td>
+              {[row.income1, row.income2, row.income3].map((amount, col) => (
+                <td key={col} style={{ textAlign: "center" }}>
+                  {money(toAmount(amount))}
                 </td>
               ))}
             </tr>
-            <tr>
-              <td
-                colSpan={2}
-                style={{
-                  textAlign: "center",
-                }}
-              >
-                <Text lh=".2in" fw={600}>
-                  Total Taxable Amount
-                </Text>
-              </td>
-              {fiscalTotals.map((total, index) => (
-                <td key={index} style={{ textAlign: "center" }}>
-                  <Text fw={600} lh=".2in">
-                    {(total * ((form.values?.tax ?? 0) / 100)).toLocaleString(
-                      undefined,
-                      {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      },
-                    )}
-                  </Text>
-                </td>
-              ))}
-            </tr>
-            <tr>
-              <td
-                colSpan={2}
-                style={{
-                  textAlign: "center",
-                }}
-              >
-                <Text lh=".2in" fw={600}>
-                  Total Paid Amount
-                </Text>
-              </td>
-              {fiscalTotals.map((total, index) => (
-                <td key={index} style={{ textAlign: "center" }}>
-                  <Text lh=".2in" fw={600}>
-                    {(total * ((form.values?.tax ?? 0) / 100)).toLocaleString(
-                      undefined,
-                      {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      },
-                    )}
-                  </Text>
-                </td>
-              ))}
-            </tr>
-            <tr>
-              <td
-                colSpan={2}
-                style={{
-                  textAlign: "center",
-                }}
-              >
-                <Text lh=".2in" fw={600}>
-                  Status
-                </Text>
-              </td>
-              {fiscalTotals.map((total, index) => (
-                <td key={index} style={{ textAlign: "center" }}>
-                  <Text lh=".2in" fw={600}>
-                    {form.values?.tax == 0 ? "Tax Exempted" : ""}
-                  </Text>
-                </td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
-        <Space h=".12in" />
+          ))}
+          {summaryRow("Total Annual Income Before Tax (NRs.)", totals)}
+          {summaryRow("Tax Amount (NRs.)", taxes)}
+          {summaryRow(
+            "Total Annual Income After Tax (NRs.)",
+            totals.map((total, index) => total - taxes[index]),
+          )}
+          <tr>
+            <th colSpan={2} style={{ textAlign: "left" }}>
+              Status
+            </th>
+            {years.map((_, index) => (
+              <th key={index}>Tax Cleared</th>
+            ))}
+          </tr>
+        </tbody>
+      </WodaTable>
 
-        <Text
-          style={{
-            textAlign: "justify",
-          }}
-          {...propsText}
-        >
-          If you have any query regarding the issue of this certificate, the
-          related authorities are requested to contact us at office of{" "}
-          <b>{form.values?.tax_clearance_issuer}</b> or you could find about
-          income tax at the website of Government of Nepal, Ministry of Finance,
-          Inland Revenue Department (
-          <span style={{ textDecoration: "underline" }}>www.ird.gov.np</span>){" "}
-          and Nepal Law Commission (
-          <span style={{ textDecoration: "underline" }}>
-            www.lawcommission.gov.np
-          </span>
-          ).
-        </Text>
+      <Text {...wodaParagraphProps} mt=".1in">
+        Note: - The income is calculated according to the fiscal year of Nepal.
+        The Nepalese Fiscal Year starts from the middle of July to the middle of
+        July every year.
+      </Text>
+      <Space h=".08in" />
+      <WodaFiscalPeriods values={values} />
 
-        <Space h=".95in" />
+      <Space h=".15in" />
+      <Text {...wodaParagraphProps}>
+        If you have any query regarding the issue of this certificate, the
+        related authorities are requested to contact us at Office of{" "}
+        <b>{office}</b> or you could find about income tax at the website of
+        Government of Nepal, Ministry of Finance, Inland Revenue Department
+        (www.ird.gov.np) and Nepal Law Commission (www.lawcommission.gov.np).
+      </Text>
 
-        <SimpleGrid cols={2}>
-          <div />
-
-          <div
-            style={{
-              paddingLeft: ".7in",
-            }}
-          >
-            <div
-              style={{
-                display: "block",
-                borderBottom: "2px dotted black",
-                width: 200,
-                margin: "auto",
-              }}
-            />
-
-            <Text {...propsText} size="15.4px" fw={600} ta="center" mt=".04in">
-              {form.values?.spokesperson_name}
-            </Text>
-            <Text {...propsText} size="15.4px" fw={600} ta="center">
-              {form.values?.spokesperson_post}
-            </Text>
-            {form.values?.spokesperson_contact && (
-              <Text {...propsText} size="15.4px" fw={600} ta="center">
-                Contact No.: {form.values?.spokesperson_contact}
-              </Text>
-            )}
-          </div>
-        </SimpleGrid>
-      </Paper>
-    </>
+      <WodaSignatureBlock values={values} gap=".7in" />
+    </WodaPage>
   );
 }

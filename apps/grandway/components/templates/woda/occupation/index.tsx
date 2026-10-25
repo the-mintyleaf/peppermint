@@ -1,193 +1,73 @@
-/* eslint-disable react/no-unescaped-entities */
 "use client";
-import { useContext } from "react";
-//mantine
-import { Center, Paper, SimpleGrid, Space, Text } from "@peppermint/ui";
-//styles
-import classes from "./occupation.module.css";
-//pageprops
-import { configPageProps } from "../../templateprops";
-//context
-import { ContextEditor } from "@/components/layout/editor/editor.context";
-import { wodaTextProps, wodaTitleProps } from "../wodaProps";
-import { WodaReferenceHeader } from "../WodaReferenceHeader";
+
+import { Space, Text } from "@peppermint/ui";
 import { FormHandler } from "@/components/framework/FormHandler";
+import { wodaParagraphProps } from "../wodaProps";
+import { earningGuardian, fullName, rows, text } from "../wodaFormat";
+import { WodaPage } from "../WodaPage";
+import { WodaSubject } from "../WodaSubject";
+import { WodaTable } from "../WodaTable";
+import { WodaSignatureBlock } from "../WodaSignatureBlock";
 
+const DEFAULT_PAN_NOTE =
+  "According to the Government of Nepal, taxes are exempted for the income from Agriculture. So, it is not necessary to register on PAN.";
+
+/** Japan — Occupation Certificate. */
 export function TemplateOccupationVerification() {
-  // * DEFINITION
-
   const form = FormHandler.useForm();
+  const values = form.values;
 
-  // * PRE STATES
-
-  // * STATES
-
-  // * CONTEXT
-
-  const { state, dispatch } = useContext(ContextEditor.Context);
-  const { details } = state;
-
-  // * PRELOAD
-
-  // * FUNCTIONS
-
-  // * COMPONENTS
-
-  const propsText = wodaTextProps;
-  const propsTitle = wodaTitleProps;
-
-  const guardian_father = {
-    name: form.values?.applicant_father_name,
-    relationship: "Father",
-    honorific: form.values?.applicant_father_honorific,
-  };
-  const guardian_mother = {
-    name: form.values?.applicant_mother_name,
-    relationship: "Mother",
-    honorific: form.values?.applicant_mother_honorific,
-  };
+  const guardian = earningGuardian(values);
+  const occupationTitle = text(values.occupation_title) || "farmer";
+  const activity = text(values.occupation_activity) || "farming";
+  const capitalized = (word: string) =>
+    word.charAt(0).toUpperCase() + word.slice(1);
+  const note = text(values.occupation_note) || DEFAULT_PAN_NOTE;
 
   return (
-    <>
-      <Paper p=".6in" className={classes.root} {...configPageProps}>
-        <Space h={state?.headerProps?.height + "in" || "1in"} />
-        <WodaReferenceHeader values={form.values} />
-        <Text
-          {...propsTitle}
-          ta="center"
-          tt="uppercase"
-          td="underline"
-          fw={600}
-          mt={".2in"}
-        >
-          Occupation Verification Certificate
-          <br /> to whom it may concern
-        </Text>
-        <Space h=".35in" />
-        <Text
-          style={{
-            textAlign: "justify",
-          }}
-          {...propsText}
-        >
-          This is to certify that{" "}
-          <b>
-            {form.values?.applicant_earning_guardian == "father"
-              ? guardian_father.honorific
-              : guardian_mother.honorific}{" "}
-            {form.values?.applicant_earning_guardian == "father"
-              ? guardian_father.name
-              : guardian_mother.name}
-          </b>
-          ,{" "}
-          {form.values?.applicant_earning_guardian == "father"
-            ? "father"
-            : "mother"}{" "}
-          of{" "}
-          <b>
-            {form.values?.applicant_honorific} {form.values?.applicant_name}
-          </b>
-          , a permanent resident of{" "}
-          <b>{form.values?.applicant_permanent_address}</b> is found to be
-          engaged in the following occupations as the means to generate income.
-        </Text>
+    <WodaPage>
+      <WodaSubject title="Occupation Certificate" variant="formal" />
+      <Text {...wodaParagraphProps}>
+        This is to certify that <b>{guardian.name}</b>, {guardian.relation} of{" "}
+        <b>{fullName(values.applicant_honorific, values.applicant_name)}</b>, a
+        permanent resident of <b>{text(values.applicant_permanent_address)}</b>,
+        is a {occupationTitle} by occupation. {capitalized(guardian.pronoun)} is
+        a well-established {occupationTitle} of this ward area.{" "}
+        {capitalized(guardian.possessive)} {activity} activities are as follows:
+      </Text>
 
-        <Space h=".12in" />
-
-        <table className={classes.table}>
-          <thead>
-            <tr>
-              <th>
-                <Text fw={600} w=".4in" ta="center">
-                  S.N.
-                </Text>
-              </th>
-              <th>
-                <Text fw={600}> Occupation</Text>
-              </th>
+      <Space h=".15in" />
+      <WodaTable>
+        <thead>
+          <tr>
+            <th style={{ width: "0.55in" }}>S.N.</th>
+            <th>Source of Income</th>
+            <th style={{ width: "2.6in" }}>Owner</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows(values, "occupations").map((row, index) => (
+            <tr key={index}>
+              <td style={{ textAlign: "center" }}>{index + 1}</td>
+              <td>{text(row.name)}</td>
+              <td>{text(row.owner) || guardian.name}</td>
             </tr>
-          </thead>
-          <tbody>
-            {form.values?.occupations?.map(
-              (occupationinfo: any, index: number) => (
-                <tr key={index}>
-                  <td style={{ textAlign: "center" }}>
-                    <Text>{index + 1}.</Text>
-                  </td>
-                  <td
-                    style={{
-                      width: "3.9in",
-                    }}
-                  >
-                    <Text>{occupationinfo.name}</Text>
-                  </td>
-                </tr>
-              ),
-            )}
-          </tbody>
-        </table>
+          ))}
+        </tbody>
+      </WodaTable>
 
-        <Space h=".15in" />
+      <Space h=".2in" />
+      <Text {...wodaParagraphProps}>
+        Note: {note}
+        {!values.pan_status && (
+          <>
+            {" "}
+            Therefore, <b>{guardian.name}</b> isn&apos;t registered on PAN.
+          </>
+        )}
+      </Text>
 
-        <Text
-          style={{
-            textAlign: "justify",
-          }}
-          {...propsText}
-        >
-          {form.values?.occupation_note}{" "}
-          {form.values?.pan_status ? (
-            " "
-          ) : (
-            <>
-              Therefore,{" "}
-              <b>
-                {" "}
-                {form.values?.applicant_earning_guardian == "father"
-                  ? guardian_father.honorific
-                  : guardian_mother.honorific}{" "}
-                {form.values?.applicant_earning_guardian == "father"
-                  ? guardian_father.name
-                  : guardian_mother.name}
-              </b>{" "}
-              isn't registered on PAN.
-            </>
-          )}
-        </Text>
-
-        <Space h="2in" />
-
-        <SimpleGrid cols={2}>
-          <div />
-
-          <div
-            style={{
-              paddingLeft: ".7in",
-            }}
-          >
-            <div
-              style={{
-                display: "block",
-                borderBottom: "2px dotted black",
-                width: 200,
-                margin: "auto",
-              }}
-            />
-
-            <Text {...propsText} size="15.4px" fw={600} ta="center" mt=".04in">
-              {form.values?.spokesperson_name}
-            </Text>
-            <Text {...propsText} size="15.4px" fw={600} ta="center">
-              {form.values?.spokesperson_post}
-            </Text>
-            {form.values?.spokesperson_contact && (
-              <Text {...propsText} size="15.4px" fw={600} ta="center">
-                Contact No.: {form.values?.spokesperson_contact}
-              </Text>
-            )}
-          </div>
-        </SimpleGrid>
-      </Paper>
-    </>
+      <WodaSignatureBlock values={values} gap="1.4in" />
+    </WodaPage>
   );
 }

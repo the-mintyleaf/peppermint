@@ -25,11 +25,13 @@ interface OccupationsFieldProps {
   label: string;
   description?: string;
   columns: OccupationColumn[];
+  /** Shown while the table has no rows. */
+  emptyText?: string;
   disabled?: boolean;
 }
 
 /**
- * Repeatable editor for the `occupations` list (income sources). Replaces the old factory
+ * Repeatable editor for a list of rows (income sources, relatives, …). Replaces the old factory
  * behaviour that bound an array to a single `TextInput` — a field that literally could not
  * be filled. Bound to the form's list helpers so rows persist through the shared submit.
  */
@@ -39,6 +41,7 @@ export function OccupationsField({
   label,
   description,
   columns,
+  emptyText = "No income sources yet — add your first row.",
   disabled,
 }: OccupationsFieldProps) {
   const rows = (form.getValues()[name] as Record<string, unknown>[]) ?? [];
@@ -76,7 +79,7 @@ export function OccupationsField({
       {rows.length === 0 ? (
         <Paper withBorder p="sm" bg="var(--mantine-color-gray-0)">
           <Text size="xs" c="dimmed" ta="center">
-            No income sources yet — add your first row.
+            {emptyText}
           </Text>
         </Paper>
       ) : (
@@ -107,6 +110,7 @@ export function OccupationsField({
                           hideControls
                           min={0}
                           thousandSeparator=","
+                          placeholder={col.placeholder}
                           aria-label={`${col.label} for row ${index + 1}`}
                           disabled={disabled}
                           {...form.getInputProps(`${name}.${index}.${col.key}`)}
@@ -116,6 +120,7 @@ export function OccupationsField({
                       <Table.Td key={col.key}>
                         <TextInput
                           size="xs"
+                          placeholder={col.placeholder}
                           aria-label={`${col.label} for row ${index + 1}`}
                           disabled={disabled}
                           {...form.getInputProps(`${name}.${index}.${col.key}`)}

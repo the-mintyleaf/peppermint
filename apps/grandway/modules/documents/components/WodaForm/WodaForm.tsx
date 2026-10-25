@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useMemo } from "react";
+import { Fragment, type ReactNode, useMemo } from "react";
 import {
   Autocomplete,
   Button,
@@ -303,6 +303,7 @@ export function WodaForm(props: WodaFormProps) {
             label={label}
             description={field.description}
             columns={field.occupationColumns ?? []}
+            emptyText={field.emptyText}
             disabled={disabled}
           />
         );
@@ -320,23 +321,39 @@ export function WodaForm(props: WodaFormProps) {
     }
   };
 
-  // Greedily pair consecutive half-width fields onto one responsive row.
+  // Greedily group consecutive half-width (pairs) or third-width (triples)
+  // fields onto one responsive row.
   const hidden = hiddenFieldNames(fields, form.values);
+
+  const rowSpan = (field: WodaField): number => {
+    if (field.third) return 3;
+    return field.half ? 2 : 1;
+  };
 
   const renderFields = (allFields: WodaField[]): ReactNode[] => {
     const sectionFields = allFields.filter((field) => !hidden.has(field.name));
     const rows: ReactNode[] = [];
     for (let i = 0; i < sectionFields.length; i += 1) {
       const field = sectionFields[i];
-      const next = sectionFields[i + 1];
-      if (field.half && next?.half) {
+      const span = rowSpan(field);
+      const group = sectionFields.slice(i, i + span);
+      if (
+        span > 1 &&
+        group.length === span &&
+        group.every((f) => rowSpan(f) === span)
+      ) {
         rows.push(
-          <SimpleGrid key={field.name} cols={{ base: 1, sm: 2 }} spacing="sm">
-            {renderControl(field)}
-            {renderControl(next)}
+          <SimpleGrid
+            key={field.name}
+            cols={{ base: 1, sm: span }}
+            spacing="sm"
+          >
+            {group.map((f) => (
+              <Fragment key={f.name}>{renderControl(f)}</Fragment>
+            ))}
           </SimpleGrid>,
         );
-        i += 1;
+        i += span - 1;
         continue;
       }
       rows.push(<div key={field.name}>{renderControl(field)}</div>);

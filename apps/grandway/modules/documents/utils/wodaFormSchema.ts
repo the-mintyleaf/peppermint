@@ -16,7 +16,7 @@ export type WodaControl =
   | "switch" // boolean toggle (e.g. PAN registration)
   | "date-ad" // DateInput → ISO string the templates parse with `new Date(...)`
   | "date-bs" // free-text Bikram Sambat date (e.g. 2081-04-15)
-  | "occupations"; // repeatable table of income sources
+  | "occupations"; // repeatable table of rows (income sources, relatives, …)
 
 /** A column in the repeatable `occupations` table. */
 export interface OccupationColumn {
@@ -25,6 +25,8 @@ export interface OccupationColumn {
   type: "text" | "number";
   /** Rough width hint for the header cell. */
   width?: number;
+  /** Example value shown in each empty cell. */
+  placeholder?: string;
 }
 
 export interface WodaSelectOption {
@@ -47,6 +49,8 @@ export interface WodaField {
   optional?: boolean;
   /** Renders at half width so consecutive halves pair onto one row. */
   half?: boolean;
+  /** Renders at a third of the width so three consecutive thirds share one row. */
+  third?: boolean;
   /**
    * `switch` only: the field this switch shows and hides. A document saved before
    * the switch existed starts with it on when that field already has a value.
@@ -63,6 +67,8 @@ export interface WodaField {
   thousandSeparator?: boolean;
   // occupations-only options
   occupationColumns?: OccupationColumn[];
+  /** Shown while the table has no rows. */
+  emptyText?: string;
 }
 
 export interface WodaSection {
