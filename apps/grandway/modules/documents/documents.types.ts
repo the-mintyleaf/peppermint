@@ -227,8 +227,10 @@ export interface CvContent {
 }
 
 export type WodaContent = Record<string, unknown> & {
+  show_refno?: boolean;
   wodadoc_refno?: string;
-  wodadoc_date?: string;
+  show_dispatch_no?: boolean;
+  dispatch_no?: string;
   applicant_name?: string;
   details?: Record<string, unknown>;
   headerProps?: Record<string, unknown>;

@@ -47,6 +47,11 @@ export interface WodaField {
   optional?: boolean;
   /** Renders at half width so consecutive halves pair onto one row. */
   half?: boolean;
+  /**
+   * `switch` only: the field this switch shows and hides. A document saved before
+   * the switch existed starts with it on when that field already has a value.
+   */
+  reveals?: string;
   /** Seed for the field when neither `initialContent` nor a control default applies. */
   defaultValue?: unknown;
   // number-only options

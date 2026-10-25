@@ -15,8 +15,10 @@ import {
 } from "../documentTypeDefinitions";
 
 const wodaBaseDefaults: WodaContent = {
+  show_refno: false,
   wodadoc_refno: "",
-  wodadoc_date: new Date().toISOString().split("T")[0],
+  show_dispatch_no: false,
+  dispatch_no: "",
   applicant_name: "",
   applicant_honorific: "Mr.",
   applicant_gender: "Male",
@@ -39,8 +41,6 @@ const wodaVariantDefaults: Partial<
     annual_income_words: "",
   },
   "woda-affidavit-financial": {
-    dispatch_no: "",
-    wodadoc_date_bs: "",
     sponsor_honorific: "Mr.",
     sponsor_name: "",
     sponsor_relation: "Grandfather",

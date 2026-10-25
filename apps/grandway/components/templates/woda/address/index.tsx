@@ -1,15 +1,7 @@
 "use client";
 import { useContext } from "react";
 //mantine
-import {
-  Center,
-  Divider,
-  Group,
-  Paper,
-  SimpleGrid,
-  Space,
-  Text,
-} from "@peppermint/ui";
+import { Center, Paper, SimpleGrid, Space, Text } from "@peppermint/ui";
 //styles
 import classes from "./address.module.css";
 //pageprops
@@ -17,6 +9,7 @@ import { configPageProps } from "../../templateprops";
 //context
 import { ContextEditor } from "@/components/layout/editor/editor.context";
 import { wodaTextProps, wodaTitleProps } from "../wodaProps";
+import { WodaReferenceHeader } from "../WodaReferenceHeader";
 import { FormHandler } from "@/components/framework/FormHandler";
 import { getDaySuffix } from "@/components/helper/getDaySuffix";
 
@@ -72,62 +65,7 @@ export function TemplatePermanentAddress() {
     <>
       <Paper p=".8in" className={classes.root} {...configPageProps}>
         <Space h={state?.headerProps?.height + "in" || "1in"} />
-        <Group
-          gap="4px"
-          style={{
-            opacity: state?.headerProps?.enable ? 0 : 1,
-          }}
-        >
-          <Text {...propsText} fw={600}>
-            Ref. No.:
-          </Text>
-          <Text {...propsText}>{form.values?.wodadoc_refno}</Text>
-        </Group>
-        <Group
-          justify="space-between"
-          style={{
-            opacity: state?.headerProps?.enable ? 0 : 1,
-          }}
-        >
-          <Group gap="4px">
-            <Text {...propsText} fw={600}>
-              Dispatch No.:
-            </Text>
-          </Group>
-          <Group gap="4px">
-            <Text {...propsText} fw={600}>
-              Date:
-            </Text>
-            <Text {...propsText}>
-              {form.values?.wodadoc_date ? (
-                <>
-                  {new Date(form.values?.wodadoc_date || "").getDate()}
-                  <span
-                    style={{
-                      verticalAlign: "super",
-                      fontSize: 8,
-                    }}
-                  >
-                    {getDaySuffix(
-                      new Date(form.values?.wodadoc_date).getDate(),
-                    )}
-                  </span>{" "}
-                  {monthNames[new Date(form.values?.wodadoc_date).getMonth()]},{" "}
-                  {new Date(form.values?.wodadoc_date).getFullYear()}
-                </>
-              ) : (
-                <span style={{ display: "inline-block", width: 100 }}></span>
-              )}
-            </Text>
-          </Group>
-        </Group>
-        <Divider
-          opacity={!state.headerProps?.enableLine ? 1 : 0}
-          size={1}
-          color="dark.9"
-          mt="xs"
-          mb="xl"
-        />
+        <WodaReferenceHeader values={form.values} />
         <Text
           {...propsTitle}
           lh="22px"

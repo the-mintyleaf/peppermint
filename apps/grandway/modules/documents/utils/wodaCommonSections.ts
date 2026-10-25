@@ -66,44 +66,43 @@ export function nameField(
   };
 }
 
-/** Document reference + AD date, with optional BS date / dispatch number. */
-export function documentSection(
-  opts: { dateBs?: boolean; dispatchNo?: boolean } = {},
-): WodaSection {
-  const fields: WodaField[] = [
-    {
-      name: "wodadoc_refno",
-      label: "Reference no.",
-      placeholder: "079/80-1234",
-      half: true,
-    },
-  ];
-  if (opts.dispatchNo) {
-    fields.push({
-      name: "dispatch_no",
-      label: "Dispatch no.",
-      placeholder: "512",
-      half: true,
-    });
-  }
-  fields.push({
-    name: "wodadoc_date",
-    label: "Issue date (A.D.)",
-    control: "date-ad",
-    half: opts.dateBs ? true : false,
-  });
-  if (opts.dateBs) {
-    fields.push({
-      name: "wodadoc_date_bs",
-      label: "Issue date (B.S.)",
-      control: "date-bs",
-      half: true,
-    });
-  }
+/**
+ * Reference and dispatch numbers, each behind its own print switch. Neither is
+ * printed unless switched on, and there is no issue date — the ward office dates
+ * and stamps the letter itself.
+ */
+export function documentSection(): WodaSection {
   return {
     title: "Document",
-    description: "Reference and issue date printed in the letterhead.",
-    fields,
+    description: "Choose which numbers print under the letterhead.",
+    fields: [
+      {
+        name: "show_refno",
+        label: "Print reference no.",
+        control: "switch",
+        reveals: "wodadoc_refno",
+        half: true,
+      },
+      {
+        name: "show_dispatch_no",
+        label: "Print dispatch no.",
+        control: "switch",
+        reveals: "dispatch_no",
+        half: true,
+      },
+      {
+        name: "wodadoc_refno",
+        label: "Reference no.",
+        placeholder: "079/80-1234",
+        half: true,
+      },
+      {
+        name: "dispatch_no",
+        label: "Dispatch no.",
+        placeholder: "512",
+        half: true,
+      },
+    ],
   };
 }
 

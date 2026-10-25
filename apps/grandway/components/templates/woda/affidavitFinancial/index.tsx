@@ -1,41 +1,12 @@
 "use client";
 import { useContext } from "react";
-import { Divider, Group, Paper, Space, Text } from "@peppermint/ui";
+import { Group, Paper, Space, Text } from "@peppermint/ui";
 import classes from "./affidavitFinancial.module.css";
 import { configPageProps } from "../../templateprops";
 import { ContextEditor } from "@/components/layout/editor/editor.context";
 import { wodaTextProps } from "../wodaProps";
+import { WodaReferenceHeader } from "../WodaReferenceHeader";
 import { FormHandler } from "@/components/framework/FormHandler";
-import { getDaySuffix } from "@/components/helper/getDaySuffix";
-
-const monthNames = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-function fmtDateAD(s: string) {
-  const d = new Date(s);
-  if (isNaN(d.getTime())) return s;
-  return (
-    <>
-      {d.getDate()}
-      <span style={{ verticalAlign: "super", fontSize: 8 }}>
-        {getDaySuffix(d.getDate())}
-      </span>{" "}
-      {monthNames[d.getMonth()]}, {d.getFullYear()}
-    </>
-  );
-}
 
 export function TemplateAffidavitFinancial() {
   const form = FormHandler.useForm();
@@ -49,48 +20,7 @@ export function TemplateAffidavitFinancial() {
   return (
     <Paper p=".6in" className={classes.root} {...configPageProps}>
       <Space h={state?.headerProps?.height + "in" || "1in"} />
-
-      {/* Ref / Date header */}
-      <Group
-        justify="space-between"
-        align="flex-start"
-        style={{ opacity: state?.headerProps?.enable ? 0 : 1 }}
-      >
-        <div>
-          <Group gap="4px" mb="2px">
-            <Text {...tp} fw={600}>
-              Ref. No.:
-            </Text>
-            <Text {...tp}>{v.wodadoc_refno}</Text>
-          </Group>
-          <Group gap="4px">
-            <Text {...tp} fw={600}>
-              Dispatch No.:
-            </Text>
-            <Text {...tp}>{v.dispatch_no}</Text>
-          </Group>
-        </div>
-        <div style={{ textAlign: "right" }}>
-          <Text {...tp}>Date: {v.wodadoc_date_bs} B.S.</Text>
-          <Text {...tp}>
-            (
-            {v.wodadoc_date ? (
-              fmtDateAD(v.wodadoc_date)
-            ) : (
-              <span style={{ display: "inline-block", width: 100 }} />
-            )}{" "}
-            A.D.)
-          </Text>
-        </div>
-      </Group>
-
-      <Divider
-        opacity={!state.headerProps?.enableLine ? 1 : 0}
-        size={1}
-        color="dark.9"
-        mt="xs"
-        mb="xl"
-      />
+      <WodaReferenceHeader values={v} />
 
       {/* Title */}
       <Text size="16px" fw={700} ta="center" color="black" lh=".27in" mb=".2in">
