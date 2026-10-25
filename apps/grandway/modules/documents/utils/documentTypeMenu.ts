@@ -128,3 +128,37 @@ export function getMoiMenuLabel(label: string) {
 export function getWodaMenuLabel(label: string) {
   return label.replace(/^WODA — /, "");
 }
+
+/** Two halves archived by one Remove land seconds apart; anything wider is another removal. */
+const PAIR_ARCHIVE_WINDOW_MS = 60_000;
+
+/**
+ * The other half of a bank pair in the same state as `doc`. Nothing in the data
+ * links the halves, so an archived one is matched as it was removed: same
+ * reason, archived within a minute — never just the first archived statement,
+ * which after two removals could belong to a different pair.
+ */
+export function findBankPartner(
+  doc: Document,
+  documents: Document[],
+): Document | null {
+  const partnerType = getBankPartnerType(doc.type);
+  if (!partnerType) return null;
+  const sameState = documents.filter(
+    (d) => d.type === partnerType && isLiveDocument(d) === isLiveDocument(doc),
+  );
+  if (isLiveDocument(doc)) return sameState[0] ?? null;
+
+  const archivedAt = Date.parse(doc.archivedAt ?? "");
+  let best: Document | null = null;
+  let bestGap = PAIR_ARCHIVE_WINDOW_MS;
+  for (const d of sameState) {
+    if (d.archiveReason !== doc.archiveReason) continue;
+    const gap = Math.abs(Date.parse(d.archivedAt ?? "") - archivedAt);
+    if (gap <= bestGap) {
+      best = d;
+      bestGap = gap;
+    }
+  }
+  return best;
+}

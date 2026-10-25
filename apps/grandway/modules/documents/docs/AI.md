@@ -68,7 +68,7 @@ document is not a page: it has no page number, is skipped by "Print all", and no
 longer holds its type's one-per-student slot, so a fresh one can be created.
 `isLiveDocument` (`documents.status.ts`) is the one test for this. A bank
 certificate and its statement are removed and restored together
-(`withBankPartner` in the provider). Restore is disabled while a live document of
+(`findBankPartner` in `utils/documentTypeMenu.ts`, matched on reason and archive time). Restore is disabled while a live document of
 the same one-per-student type exists, so it can never leave two.
 
 Modals follow one of three patterns: a context flag (`EditFieldsModal`,

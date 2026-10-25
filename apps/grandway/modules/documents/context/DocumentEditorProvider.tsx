@@ -30,7 +30,7 @@ import { DocumentUnavailable } from "../components/DocumentUnavailable";
 import { useSignatures } from "../hooks/useSignatures";
 import { getDefaultDocumentContent } from "../utils/defaultDocumentContent";
 import { getDefaultLabel } from "../documentTypeConfig";
-import { getBankPartnerType } from "../utils/documentTypeMenu";
+import { findBankPartner } from "../utils/documentTypeMenu";
 import { confirmLeaveWithUnsavedChanges } from "../hooks/useUnsavedChangesGuard";
 import { isEditableStatus, isLiveDocument } from "../documents.status";
 import type {
@@ -408,15 +408,9 @@ export function DocumentEditorProvider({
   // A bank certificate and its statement are removed and restored together, the
   // way they were created — the menu can never re-add one half on its own.
   const withBankPartner = useCallback(
-    (id: string, partnerArchived: boolean): string[] => {
+    (id: string): string[] => {
       const doc = documents.find((d) => d.id === id);
-      const partnerType = doc ? getBankPartnerType(doc.type) : null;
-      const partner = partnerType
-        ? documents.find(
-            (d) =>
-              d.type === partnerType && isLiveDocument(d) !== partnerArchived,
-          )
-        : undefined;
+      const partner = doc ? findBankPartner(doc, documents) : null;
       return partner ? [id, partner.id] : [id];
     },
     [documents],
@@ -453,7 +447,7 @@ export function DocumentEditorProvider({
     (reason: string) => {
       if (!canEdit || !activeDocumentId) return;
       archiveMutation.mutate({
-        ids: withBankPartner(activeDocumentId, false),
+        ids: withBankPartner(activeDocumentId),
         reason,
       });
     },
@@ -487,16 +481,18 @@ export function DocumentEditorProvider({
 
   const restoreActiveDocument = useCallback(() => {
     if (!canEdit || !activeDocumentId) return;
-    restoreMutation.mutate(withBankPartner(activeDocumentId, true));
+    restoreMutation.mutate(withBankPartner(activeDocumentId));
   }, [restoreMutation, activeDocumentId, canEdit, withBankPartner]);
 
   // ── Selection / modals / unsaved-changes ─────────────────────────────────
 
   useEffect(() => {
     if (documents.length > 0 && !activeDocumentId) {
-      const cert = documents.find((d) => d.type === "student-certificate");
+      // Open on a live page; a removed document is only opened on purpose.
+      const live = documents.filter(isLiveDocument);
+      const cert = live.find((d) => d.type === "student-certificate");
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setActiveDocumentId(cert?.id ?? documents[0].id);
+      setActiveDocumentId(cert?.id ?? live[0]?.id ?? documents[0].id);
     }
   }, [documents, activeDocumentId]);
 

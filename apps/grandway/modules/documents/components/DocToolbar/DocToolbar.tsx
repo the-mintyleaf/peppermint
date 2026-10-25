@@ -20,6 +20,7 @@ import { useDocumentEditor } from "../../context";
 import { useDocumentActions } from "../../hooks/useDocumentActions";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
 import {
+  findBankPartner,
   getBankPartnerType,
   isTypeAvailable,
 } from "../../utils/documentTypeMenu";
@@ -101,14 +102,24 @@ export function DocToolbar({
   const isArchived = status === "archived";
   // Restoring beside a live document of the same one-per-student type would
   // leave two, so it waits until that one is removed.
-  const canRestore =
-    canEdit &&
-    isArchived &&
-    resolvedActiveDocument !== null &&
-    isTypeAvailable(resolvedActiveDocument.type, applicantId, documents);
   const isBankPair = resolvedActiveDocument
     ? getBankPartnerType(resolvedActiveDocument.type) !== null
     : false;
+  const restoreBlockedReason = getRestoreBlockedReason();
+  const canRestore = canEdit && isArchived && restoreBlockedReason === null;
+
+  function getRestoreBlockedReason(): string | null {
+    if (!resolvedActiveDocument || !isArchived) return null;
+    const taken = "Remove the live one of this kind first";
+    if (!isTypeAvailable(resolvedActiveDocument.type, applicantId, documents)) {
+      return taken;
+    }
+    if (!isBankPair) return null;
+    // A bank half comes back only with the page it was removed with.
+    const partner = findBankPartner(resolvedActiveDocument, documents);
+    if (!partner) return "Its paired bank page can't be found";
+    return isTypeAvailable(partner.type, applicantId, documents) ? null : taken;
+  }
 
   const confirmArchive = () => {
     // Archive requires a mandatory reason (`documents/INTEGRATION.md` §7).
@@ -213,21 +224,25 @@ export function DocToolbar({
         ) : null}
         {isArchived && canEdit ? (
           <Tooltip
-            label="Remove the live one of this kind first"
-            disabled={canRestore}
+            label={restoreBlockedReason}
+            disabled={restoreBlockedReason === null}
           >
-            <Button
-              variant="light"
-              size="xs"
-              h={28}
-              px="xs"
-              leftSection={<RestoreIcon size={12} aria-hidden />}
-              onClick={restoreActiveDocument}
-              loading={isRunningStatusAction}
-              disabled={!canRestore}
-            >
-              Restore
-            </Button>
+            {/* A disabled button fires no pointer or focus events, so the
+             * span carries the tooltip and stays reachable by keyboard. */}
+            <span tabIndex={canRestore ? -1 : 0}>
+              <Button
+                variant="light"
+                size="xs"
+                h={28}
+                px="xs"
+                leftSection={<RestoreIcon size={12} aria-hidden />}
+                onClick={restoreActiveDocument}
+                loading={isRunningStatusAction}
+                disabled={!canRestore}
+              >
+                Restore
+              </Button>
+            </span>
           </Tooltip>
         ) : null}
         {showArchive ? (

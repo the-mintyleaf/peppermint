@@ -9,7 +9,8 @@ import {
   Text,
 } from "@peppermint/ui";
 import { useFormInstance } from "@peppermint/admin";
-import { PlusIcon, TrashIcon } from "@phosphor-icons/react";
+import { Plus as PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
+import { Trash as TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { FormSection } from "@/components/FormSection";
 import { attendancePercent, classHoursFor } from "./certificateForm.utils";
 import type {
