@@ -1,14 +1,36 @@
 "use client";
 
-import { Stack, TextInput, DateInput, Select, Button } from "@peppermint/ui";
-import { useForm } from "@peppermint/ui";
+import { Button, Stack } from "@peppermint/ui";
+import { FormWrapper, useFormControls } from "@peppermint/admin";
 import { DocumentPhotoField } from "../../components/DocumentPhotoField";
+import { CertificateAttendanceField } from "./CertificateAttendanceField";
+import {
+  CertificateCourseSection,
+  CertificateDatesSection,
+  CertificateGradesSection,
+  CertificateSignatorySection,
+  CertificateStudentSection,
+} from "./CertificateFormSections";
+import {
+  certificateSchema,
+  toCertificateContent,
+  toCertificateFormValues,
+} from "./certificateForm.utils";
 import { certificateSignatureOptions } from "./certificateSignatureOptions";
+import type {
+  CertificateFormValues,
+  CertificateSubmitButtonProps,
+} from "./CertificateForm.types";
 import type {
   DocumentFormProps,
   CertificateContent,
 } from "../../documents.types";
 
+/**
+ * Every field the certificate prints. The old form saved a single
+ * `studentName` the template never read, so certificates printed without a
+ * name; a certificate saved that way opens here with the name split into parts.
+ */
 export function CertificateForm({
   applicantId,
   studentFullData,
@@ -18,96 +40,41 @@ export function CertificateForm({
   isLoading,
 }: DocumentFormProps) {
   const existing = initialContent as CertificateContent | undefined;
-  const today = new Date().toISOString().split("T")[0];
-
-  const signatureOptions = certificateSignatureOptions(signatures);
-
-  const form = useForm<CertificateContent>({
-    initialValues: {
-      issue: existing?.issue ?? existing?.issueDate ?? today,
-      issueDate: existing?.issueDate ?? existing?.issue ?? today,
-      studyType: existing?.studyType ?? 0,
-      instructorId: existing?.instructorId ?? null,
-      directorId: existing?.directorId ?? null,
-      studentName: existing?.studentName ?? studentFullData?.fullName ?? "",
-      program: existing?.program ?? studentFullData?.program ?? "",
-      nationality: existing?.nationality ?? studentFullData?.nationality ?? "",
-    },
-    validate: {
-      studentName: (v) => (!v ? "Student name is required" : null),
-      program: (v) => (!v ? "Program is required" : null),
-    },
-  });
 
   return (
-    <form onSubmit={form.onSubmit((values) => onSubmit(values))}>
-      <Stack gap="md" p="md">
+    <FormWrapper<CertificateFormValues>
+      initial={toCertificateFormValues(existing, studentFullData)}
+      validation={[certificateSchema]}
+      finalSubmitFn={async (values) => {
+        onSubmit(toCertificateContent(values, existing));
+        return { ok: true };
+      }}
+    >
+      <Stack gap="lg" p="md">
         <DocumentPhotoField
           applicantId={applicantId}
           name={studentFullData?.fullName}
         />
-
-        <TextInput
-          label="Student Name"
-          placeholder="Full name as shown on certificate"
-          {...form.getInputProps("studentName")}
+        <CertificateStudentSection disabled={isLoading} />
+        <CertificateCourseSection disabled={isLoading} />
+        <CertificateDatesSection disabled={isLoading} />
+        <CertificateAttendanceField disabled={isLoading} />
+        <CertificateGradesSection disabled={isLoading} />
+        <CertificateSignatorySection
           disabled={isLoading}
-          required
+          signatureOptions={certificateSignatureOptions(signatures)}
         />
-        <TextInput
-          label="Program"
-          placeholder="e.g., Business Administration"
-          {...form.getInputProps("program")}
-          disabled={isLoading}
-          required
-        />
-        <TextInput
-          label="Nationality"
-          placeholder="e.g., American"
-          {...form.getInputProps("nationality")}
-          disabled={isLoading}
-        />
-        <DateInput
-          label="Issue Date"
-          valueFormat="YYYY-MM-DD"
-          clearable
-          {...form.getInputProps("issue")}
-          disabled={isLoading}
-        />
-        <Select
-          label="Study Status"
-          data={[
-            { value: "0", label: "Currently Studying (履修している)" },
-            { value: "1", label: "Completed (履修した)" },
-          ]}
-          value={String(form.values.studyType)}
-          onChange={(v) => form.setFieldValue("studyType", v === "1" ? 1 : 0)}
-          disabled={isLoading}
-        />
-        <Select
-          label="Instructor"
-          placeholder="Select instructor"
-          data={signatureOptions}
-          value={form.values.instructorId ?? ""}
-          onChange={(v) => form.setFieldValue("instructorId", v || null)}
-          searchable
-          clearable
-          disabled={isLoading}
-        />
-        <Select
-          label="Managing Director"
-          placeholder="Select director"
-          data={signatureOptions}
-          value={form.values.directorId ?? ""}
-          onChange={(v) => form.setFieldValue("directorId", v || null)}
-          searchable
-          clearable
-          disabled={isLoading}
-        />
-        <Button type="submit" loading={isLoading} fullWidth>
-          {existing ? "Save Changes" : "Create Certificate"}
-        </Button>
+        <SubmitButton isEdit={Boolean(existing)} isLoading={isLoading} />
       </Stack>
-    </form>
+    </FormWrapper>
+  );
+}
+
+function SubmitButton({ isEdit, isLoading }: CertificateSubmitButtonProps) {
+  const { handleSubmit, isLoading: submitting } = useFormControls();
+  return (
+    <Button onClick={handleSubmit} loading={isLoading || submitting} fullWidth>
+      {isEdit ? "Save changes" : "Create certificate"}
+    </Button>
   );
 }
