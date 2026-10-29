@@ -93,7 +93,11 @@ export function readMonthRange(
 
 /** Whether a row holds anything typed — removing it would lose work. */
 export function rowHasData(row: CertificateAttendanceRow): boolean {
-  return row.total_days !== "" || row.present !== "";
+  return (
+    row.total_days !== "" ||
+    row.days_attended !== "" ||
+    row.present_hours !== undefined
+  );
 }
 
 /**
@@ -121,7 +125,10 @@ export function planMonthRange(
       return {
         month: `${month}-01`,
         total_days: existing ? existing.total_days : "",
-        present: existing ? existing.present : "",
+        days_attended: existing ? existing.days_attended : "",
+        ...(existing?.present_hours !== undefined
+          ? { present_hours: existing.present_hours }
+          : {}),
       };
     },
   );

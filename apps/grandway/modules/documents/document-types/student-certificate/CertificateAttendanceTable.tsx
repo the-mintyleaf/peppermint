@@ -10,7 +10,11 @@ import {
 import { useFormInstance } from "@peppermint/admin";
 import { Trash as TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { formatMonth } from "./attendanceRange";
-import { attendancePercent, classHoursFor } from "./certificateForm.utils";
+import {
+  attendancePercent,
+  classHoursFor,
+  hoursAttended,
+} from "./certificateForm.utils";
 import type {
   CertificateAttendanceRowProps,
   CertificateAttendanceTableProps,
@@ -24,7 +28,7 @@ function errorText(value: unknown): string | undefined {
 }
 
 /**
- * The month rows. Only the days held and the hours attended are typed — class
+ * The month rows. Only the days held and the days attended are typed — class
  * hours, absent hours and the percentage follow from the course's hours per
  * day, and are shown as they will print.
  */
@@ -42,7 +46,7 @@ export function CertificateAttendanceTable({
           <Table.Tr>
             <Table.Th>Month</Table.Th>
             <Table.Th>Days held</Table.Th>
-            <Table.Th>Hours attended</Table.Th>
+            <Table.Th>Days attended</Table.Th>
             <Table.Th>Attendance</Table.Th>
             {rangeDriven ? null : <Table.Th aria-label="Remove" />}
           </Table.Tr>
@@ -72,7 +76,7 @@ function AttendanceRow({
   disabled,
 }: CertificateAttendanceRowProps) {
   const classHours = classHoursFor(row, form.values.course_hours_per_day);
-  const present = Number(row.present) || 0;
+  const present = hoursAttended(row, form.values.course_hours_per_day);
   const percent = attendancePercent(present, classHours);
   const monthName = formatMonth(row.month);
   const label = monthName || `month ${i + 1}`;
@@ -114,12 +118,19 @@ function AttendanceRow({
       </Table.Td>
       <Table.Td>
         <NumberInput
-          aria-label={`Hours attended, ${label}`}
-          placeholder="40"
+          aria-label={`Days attended, ${label}`}
+          placeholder="20"
           min={0}
+          max={Number(row.total_days) || undefined}
+          decimalScale={1}
           hideControls
+          description={
+            row.days_attended === "" && row.present_hours !== undefined
+              ? `Saved as ${row.present_hours} h`
+              : undefined
+          }
           disabled={disabled}
-          {...form.getInputProps(`attendance.${i}.present`)}
+          {...form.getInputProps(`attendance.${i}.days_attended`)}
         />
       </Table.Td>
       <Table.Td>

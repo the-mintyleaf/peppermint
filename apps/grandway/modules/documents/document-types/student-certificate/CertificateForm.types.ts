@@ -14,7 +14,17 @@ export interface CertificateAttendanceRow {
   /** `YYYY-MM-DD`, always the first of the month — what the month picker yields. */
   month: string | null;
   total_days: number | "";
-  present: number | "";
+  /**
+   * Days attended — what the form asks for. The certificate stores and prints
+   * hours attended, worked out on save as days attended × hours per class.
+   */
+  days_attended: number | "";
+  /**
+   * Only on an older row whose stored hours could not be turned into days (no
+   * hours per class to divide by): those hours, kept as they are on save until
+   * days attended are typed.
+   */
+  present_hours?: number;
   /**
    * Only on a row from an older certificate whose month could not be read
    * (`0`, `13`, free text): what was stored, shown so the operator can pick the

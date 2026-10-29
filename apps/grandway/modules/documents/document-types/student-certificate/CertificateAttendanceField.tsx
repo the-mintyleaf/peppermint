@@ -41,7 +41,7 @@ const COUNT_OPTIONS = Array.from({ length: MAX_ATTENDANCE_MONTHS }, (_, k) => ({
 /**
  * The attendance table, set by a start month and a number of months: picking
  * them lists that many consecutive months (across year ends). Only the days
- * held and the hours attended are typed per row. Changing the range later keeps
+ * held and the days attended are typed per row. Changing the range later keeps
  * what was typed for months still inside it, and asks before removing months
  * that hold data. An older table that forms no range (gaps, repeats, an
  * unreadable month) is shown as saved, each row still fixable, until the
@@ -59,7 +59,7 @@ export function CertificateAttendanceField({
   return (
     <FormSection
       title="Attendance"
-      description="Pick the first month and how many months the course ran, then type the days held and hours attended for each. Class hours (days held × hours per class), absent hours and the percentage are worked out for you."
+      description="Pick the first month and how many months the course ran, then type the days held and days attended for each. Hours (days × hours per class), absent hours and the percentage are worked out for you."
     >
       <AttendanceRangeControls
         range={range}

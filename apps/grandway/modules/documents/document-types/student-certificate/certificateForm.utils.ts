@@ -83,7 +83,7 @@ export const certificateSchema = z
             (v) => v === "" || (Number.isInteger(v) && v >= 0),
             "A whole number of days",
           ),
-          present: optionalNumber.refine(
+          days_attended: optionalNumber.refine(
             (v) => v === "" || v >= 0,
             "Can't be negative",
           ),
@@ -101,7 +101,6 @@ export const certificateSchema = z
         message: "Can't be before the admission date",
       });
     }
-    const hoursPerDay = Number(values.course_hours_per_day) || 0;
     const seen = new Set<string>();
     values.attendance.forEach((row, i) => {
       const month = row.month?.slice(0, 7);
@@ -113,13 +112,13 @@ export const certificateSchema = z
         });
       }
       if (month) seen.add(month);
-      const classHours = (Number(row.total_days) || 0) * hoursPerDay;
-      // Negative / fractional values are reported by the row schema above.
-      if ((Number(row.present) || 0) > classHours) {
+      // Negative / fractional days held are reported by the row schema above.
+      const daysHeld = Number(row.total_days) || 0;
+      if ((Number(row.days_attended) || 0) > daysHeld) {
         ctx.addIssue({
           code: "custom",
-          path: ["attendance", i, "present"],
-          message: `At most ${classHours} hours that month`,
+          path: ["attendance", i, "days_attended"],
+          message: `At most ${daysHeld} days that month`,
         });
       }
     });
@@ -140,13 +139,45 @@ export function classHoursFor(
  * with `month: null` and its original text, so the form asks for the month (and
  * says what was stored) instead of the save quietly dropping it.
  */
-function toAttendanceRow(row: CertificateMarkRow): CertificateAttendanceRow {
+function toAttendanceRow(
+  row: CertificateMarkRow,
+  hoursPerDay: number,
+): CertificateAttendanceRow {
   return {
     month: row.month ? `${row.month}-01` : null,
     total_days: row.total_days,
-    present: row.present,
+    ...daysFromHours(row.present, hoursPerDay),
     ...(row.month ? {} : { source_month: row.source_month }),
   };
+}
+
+/**
+ * Stored hours attended → the form's days attended. Without hours per class
+ * there is nothing to divide by, so the hours are carried as they are and saved
+ * unchanged until days are typed.
+ */
+function daysFromHours(
+  present: number | "",
+  hoursPerDay: number,
+): Pick<CertificateAttendanceRow, "days_attended" | "present_hours"> {
+  if (present === "" || present === 0) return { days_attended: present };
+  if (hoursPerDay > 0) {
+    return { days_attended: Math.round((present / hoursPerDay) * 100) / 100 };
+  }
+  return { days_attended: "", present_hours: present };
+}
+
+/** Hours attended for a row: days attended × hours per class, or older stored hours. */
+export function hoursAttended(
+  row: CertificateAttendanceRow,
+  hoursPerDay: number | "",
+): number {
+  if (row.days_attended === "") return row.present_hours ?? 0;
+  return (
+    Math.round(
+      (Number(row.days_attended) || 0) * (Number(hoursPerDay) || 0) * 100,
+    ) / 100
+  );
 }
 
 function fromFields(
@@ -169,7 +200,9 @@ function fromFields(
     date_of_completion: f.date_of_completion || null,
     issue: f.issue || today,
     study_type: f.study_type === 1 ? "1" : "0",
-    attendance: f.marking.map(toAttendanceRow),
+    attendance: f.marking.map((row) =>
+      toAttendanceRow(row, Number(f.course_hours_per_day) || 0),
+    ),
     // An ungraded skill opens on A, as the form always has.
     grammar: f.grades.grammar || "A",
     listening: f.grades.listening || "A",
@@ -250,7 +283,7 @@ function toMarkRows(values: CertificateFormValues): CertificateMarkRow[] {
     const month = row.month ? row.month.slice(0, 7) : "";
     const totalDays = Number(row.total_days) || 0;
     const classHours = totalDays * hoursPerDay;
-    const present = Number(row.present) || 0;
+    const present = hoursAttended(row, hoursPerDay);
     return {
       month,
       source_month: month || (row.source_month ?? ""),
@@ -354,8 +387,9 @@ export function serverPathToFormPath(path: string): string | null {
     const [, index, field] = row;
     if (!field || field === "month") return `attendance.${index}.month`;
     if (field === "total_days") return `attendance.${index}.total_days`;
-    // class_hr, absent and the percentage are derived from hours attended.
-    return `attendance.${index}.present`;
+    // Hours attended, class_hr, absent and the percentage all derive from the
+    // days attended the form asks for.
+    return `attendance.${index}.days_attended`;
   }
   const grade = path.match(/^grades\.(\w+)$/);
   if (grade) {
