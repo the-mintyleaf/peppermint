@@ -6,6 +6,7 @@ import {
   ScrollArea,
   ActionIcon,
   Box,
+  Divider,
   Group,
   UnstyledButton,
 } from "@peppermint/ui";
@@ -17,6 +18,8 @@ import { useDocumentEditor } from "../../context";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
 import { AddPageMenu } from "../AddPageMenu";
 import { getAvailableDocumentTypes } from "../../utils/documentTypeMenu";
+import { isLiveDocument } from "../../documents.status";
+import type { Document } from "../../documents.types";
 import styles from "../../pages/editor/DocumentEditor.module.css";
 
 interface PagesSidebarProps {
@@ -37,11 +40,79 @@ export function PagesSidebar({ onClose }: PagesSidebarProps) {
   const applicantName = studentFullData?.fullName || "This applicant";
 
   // Standalone documents have no workspace to add pages to. Removing a page is not a delete —
-  // documents are archived (with a reason) from the toolbar for the active document.
+  // the toolbar's Remove archives the active document (with a reason).
   const availableTypes =
     applicantId && canEdit
       ? getAvailableDocumentTypes(applicantId, documents)
       : [];
+
+  // Removed documents are archived, not deleted: they sit below the live pages
+  // so they can still be opened and restored.
+  const livePages = documents.filter(isLiveDocument);
+  const archivedPages = documents.filter((d) => !isLiveDocument(d));
+
+  const renderPage = (doc: Document, marker: string, ariaPrefix: string) => {
+    const typeConfig = getDocumentTypeConfig(doc.type);
+    const isActive = doc.id === activeDocumentId;
+    const isArchived = !isLiveDocument(doc);
+
+    return (
+      <Box
+        key={doc.id}
+        className={`${styles.pageItem}${isActive ? ` ${styles.pageItemActive}` : ""}`}
+        pos="relative"
+        opacity={isArchived && !isActive ? 0.6 : 1}
+      >
+        <UnstyledButton
+          w="100%"
+          onClick={() => setActiveDocumentId(doc.id)}
+          aria-label={`${ariaPrefix}: ${doc.label}`}
+          styles={{
+            root: {
+              display: "block",
+              border: "none",
+              background: "transparent",
+              padding: 0,
+            },
+          }}
+        >
+          <Stack gap={4} align="center">
+            <Text size="xs" c="dimmed" lh={1}>
+              {marker}
+            </Text>
+            <Box className={styles.pageThumb} w="100%">
+              <FileTextIcon
+                size={16}
+                color="var(--mantine-color-brand-5)"
+                aria-hidden
+              />
+              <Text
+                size="xs"
+                c="dimmed"
+                ta="center"
+                lineClamp={1}
+                mt={2}
+                lh={1.2}
+              >
+                {typeConfig.label}
+              </Text>
+            </Box>
+            <Text
+              size="xs"
+              fw={500}
+              lineClamp={1}
+              lh={1.2}
+              ta="center"
+              w="100%"
+              px={4}
+            >
+              {doc.label}
+            </Text>
+          </Stack>
+        </UnstyledButton>
+      </Box>
+    );
+  };
 
   return (
     <aside className={styles.sidebar}>
@@ -94,68 +165,23 @@ export function PagesSidebar({ onClose }: PagesSidebarProps) {
 
       <ScrollArea className={styles.sidebarBody} p={6} type="auto">
         <Stack gap={12}>
-          {documents.map((doc, index) => {
-            const typeConfig = getDocumentTypeConfig(doc.type);
-            const isActive = doc.id === activeDocumentId;
+          {livePages.map((doc, index) =>
+            renderPage(doc, String(index + 1), `Page ${index + 1}`),
+          )}
 
-            return (
-              <Box
-                key={doc.id}
-                className={`${styles.pageItem}${isActive ? ` ${styles.pageItemActive}` : ""}`}
-                pos="relative"
-              >
-                <UnstyledButton
-                  w="100%"
-                  onClick={() => setActiveDocumentId(doc.id)}
-                  aria-label={`Page ${index + 1}: ${doc.label}`}
-                  styles={{
-                    root: {
-                      display: "block",
-                      border: "none",
-                      background: "transparent",
-                      padding: 0,
-                    },
-                  }}
-                >
-                  <Stack gap={4} align="center">
-                    <Text size="xs" c="dimmed" lh={1}>
-                      {index + 1}
-                    </Text>
-                    <Box className={styles.pageThumb} w="100%">
-                      <FileTextIcon
-                        size={16}
-                        color="var(--mantine-color-brand-5)"
-                        aria-hidden
-                      />
-                      <Text
-                        size="xs"
-                        c="dimmed"
-                        ta="center"
-                        lineClamp={1}
-                        mt={2}
-                        lh={1.2}
-                      >
-                        {typeConfig.label}
-                      </Text>
-                    </Box>
-                    <Text
-                      size="xs"
-                      fw={500}
-                      lineClamp={1}
-                      lh={1.2}
-                      ta="center"
-                      w="100%"
-                      px={4}
-                    >
-                      {doc.label}
-                    </Text>
-                  </Stack>
-                </UnstyledButton>
-              </Box>
-            );
-          })}
+          {archivedPages.length > 0 ? (
+            <Stack gap={12} mt={4}>
+              <Divider
+                label={`Archived (${archivedPages.length})`}
+                labelPosition="center"
+              />
+              {archivedPages.map((doc) =>
+                renderPage(doc, "Archived", "Archived page"),
+              )}
+            </Stack>
+          ) : null}
 
-          {documents.length === 0 && (
+          {livePages.length === 0 && (
             <Stack align="center" py="sm" gap={4}>
               <Text size="xs" c="dimmed" ta="center">
                 No pages
