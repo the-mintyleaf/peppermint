@@ -9,14 +9,14 @@
 
 ## Change History
 
-| Version | Date | Author | Summary |
-|---------|------|--------|---------|
-| 1.0.0 | 2026-07-24 | AI (Claude) | Initial integration contract — 6 endpoints, two resources |
-| 1.0.1 | 2026-07-24 | AI (Claude) | No endpoint change. Defects found by the §19.5 consumer-comprehension test: added success status codes, the recovery response shape, the 403 to every `Errors` list, the Bikram Sambat `fiscal_year` warning, corrected the query-parameter rule, and recorded three new gaps |
-| 1.0.2 | 2026-07-24 | AI (Claude) | No endpoint change. Second §19.5 review round: declared the recovery `Document` field set complete, defined `is_editable`, disambiguated the `-id` tiebreaker, removed a stale claim that the 403 was absent from §7's error lists, and documented capture-note propagation, empty-body capture, nullable BS objects, response size, and the unenforced permission keys |
-| 1.0.3 | 2026-07-24 | AI (Claude) | No endpoint change. Recorded that the signatory ids frozen into `render_context` now resolve against `document_templates` — while this module still validates nothing inside `render_context` — and that it gained no dependency on that module in either direction |
-| 1.0.4 | 2026-07-24 | AI (Claude) | No endpoint or schema change. Corrected statements that `uploaded_files` does not exist — it shipped 2026-07-24. Named the calls that store and find a generated PDF, and that nothing here will report it |
-| 1.0.5 | 2026-10-29 | AI (Claude Opus 5.5) | No endpoint change. Recorded that recovery restores the frozen body verbatim, skipping the `student-certificate` content check `documents` now applies on save |
+| Version | Date       | Author               | Summary                                                                                                                                                                                                                                                                                                                                                                 |
+| ------- | ---------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-07-24 | AI (Claude)          | Initial integration contract — 6 endpoints, two resources                                                                                                                                                                                                                                                                                                               |
+| 1.0.1   | 2026-07-24 | AI (Claude)          | No endpoint change. Defects found by the §19.5 consumer-comprehension test: added success status codes, the recovery response shape, the 403 to every `Errors` list, the Bikram Sambat `fiscal_year` warning, corrected the query-parameter rule, and recorded three new gaps                                                                                           |
+| 1.0.2   | 2026-07-24 | AI (Claude)          | No endpoint change. Second §19.5 review round: declared the recovery `Document` field set complete, defined `is_editable`, disambiguated the `-id` tiebreaker, removed a stale claim that the 403 was absent from §7's error lists, and documented capture-note propagation, empty-body capture, nullable BS objects, response size, and the unenforced permission keys |
+| 1.0.3   | 2026-07-24 | AI (Claude)          | No endpoint change. Recorded that the signatory ids frozen into `render_context` now resolve against `document_templates` — while this module still validates nothing inside `render_context` — and that it gained no dependency on that module in either direction                                                                                                     |
+| 1.0.4   | 2026-07-24 | AI (Claude)          | No endpoint or schema change. Corrected statements that `uploaded_files` does not exist — it shipped 2026-07-24. Named the calls that store and find a generated PDF, and that nothing here will report it                                                                                                                                                              |
+| 1.0.5   | 2026-10-29 | AI (Claude Opus 5.5) | No endpoint change. Recorded that recovery restores the frozen body verbatim, skipping the `student-certificate` content check `documents` now applies on save                                                                                                                                                                                                          |
 
 ---
 
@@ -29,14 +29,14 @@
 
 ## 2. Requires
 
-| Depends on | Kind | Why | What breaks without it |
-|------------|------|-----|------------------------|
-| `authenticate` | framework | Issues the access JWT and supplies `authority_type`, which is the whole access check here. | Every endpoint returns 401; any non-Admin gets 403 `DOCUMENT_HISTORY_ACTOR_FORBIDDEN` everywhere. |
-| `authenticate` | FK | `captured_by` and `performed_by` (both `PROTECT`) reference user accounts. | Snapshots could not record who captured or printed them. |
-| `documents` | FK | Every snapshot and every print event points at exactly one `Document` (`PROTECT`). There is no standalone snapshot. | The module has nothing to snapshot. Every route is document- or snapshot-scoped; none is reachable without a document that already exists. |
-| `documents` | service call | Two calls. `documents.selectors.get_document_by_id` resolves the document id in every document-scoped route. `documents.services.update_document` performs the **write** behind `snapshot.recover`. | Without the selector, every route 404s. Without the service, recovery is impossible — the snapshot could be read but never restored, and the module degrades to read-only history. |
-| `audit` | service call | Every capture, reprint, and recovery appends one immutable event. This module stores no action history of its own. | Snapshots still save but leave no trace of who captured or printed them in the central log. The per-document timeline still works — it is this module's own table, not the audit log. |
-| `applicants` | none | **No edge at all.** A snapshot reaches the applicant only through its document. | Nothing. |
+| Depends on     | Kind         | Why                                                                                                                                                                                                 | What breaks without it                                                                                                                                                                |
+| -------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `authenticate` | framework    | Issues the access JWT and supplies `authority_type`, which is the whole access check here.                                                                                                          | Every endpoint returns 401; any non-Admin gets 403 `DOCUMENT_HISTORY_ACTOR_FORBIDDEN` everywhere.                                                                                     |
+| `authenticate` | FK           | `captured_by` and `performed_by` (both `PROTECT`) reference user accounts.                                                                                                                          | Snapshots could not record who captured or printed them.                                                                                                                              |
+| `documents`    | FK           | Every snapshot and every print event points at exactly one `Document` (`PROTECT`). There is no standalone snapshot.                                                                                 | The module has nothing to snapshot. Every route is document- or snapshot-scoped; none is reachable without a document that already exists.                                            |
+| `documents`    | service call | Two calls. `documents.selectors.get_document_by_id` resolves the document id in every document-scoped route. `documents.services.update_document` performs the **write** behind `snapshot.recover`. | Without the selector, every route 404s. Without the service, recovery is impossible — the snapshot could be read but never restored, and the module degrades to read-only history.    |
+| `audit`        | service call | Every capture, reprint, and recovery appends one immutable event. This module stores no action history of its own.                                                                                  | Snapshots still save but leave no trace of who captured or printed them in the central log. The per-document timeline still works — it is this module's own table, not the audit log. |
+| `applicants`   | none         | **No edge at all.** A snapshot reaches the applicant only through its document.                                                                                                                     | Nothing.                                                                                                                                                                              |
 
 **This module writes to exactly one thing outside itself, and only on one endpoint.** `POST /snapshots/<id>/recover/` writes `label` and `content` into the working `Document` through `documents.services.update_document`. Every other endpoint here is inert with respect to the rest of the system: capturing, listing, reading, and reprinting change nothing outside this module's own two tables. In particular, **capturing a snapshot does not change the document's `status`** — there is no `printed` status in `documents`, deliberately.
 
@@ -50,7 +50,7 @@ that module. See §9.
 (`/api/v1/document-templates/`) owns the signatory library whose ids you freeze into
 `render_context.signatories`. This module holds **no dependency on it in either direction** — no
 foreign key, no import, no call. It stores whatever `render_context` you send and does not resolve,
-validate, or look inside it. What changed when that module shipped is that those ids now *resolve*
+validate, or look inside it. What changed when that module shipped is that those ids now _resolve_
 to something when a client looks them up; nothing about this module's behaviour changed at all.
 
 ## 3. Conventions
@@ -58,7 +58,7 @@ to something when a client looks them up; nothing about this module's behaviour 
 - **Access — Admin only, and this is unlike every module except `documents`.** `admin` may do everything; `lead_manager` and `superadmin` are refused on **every route including `GET`**. A document-history panel must be **hidden** for a Lead Manager, not rendered read-only or shown empty. The reasoning is argued in `documents`' `docs/SECURITY.md` §1 and applies to both modules; this one publishes no `SECURITY.md` of its own because it adds no security decision of its own.
 - **Nothing is ever edited or deleted.** There is **no `PUT`, `PATCH`, or `DELETE` method on any endpoint**. A snapshot has no status, no lifecycle, and no retirement state — it exists, and it says what it said.
 - **The backend copies the document body; it never accepts one.** A capture request has **no `content` field**. If you send one it is ignored. `content`, `family`, `template_key`, and `label` are all read off the committed document row inside the capture transaction.
-- **Recovery does not rewrite history.** It writes the frozen body *forward* into the working document and leaves the snapshot untouched. It also does not create a new snapshot — your next capture does that.
+- **Recovery does not rewrite history.** It writes the frozen body _forward_ into the working document and leaves the snapshot untouched. It also does not create a new snapshot — your next capture does that.
 - **Recovery restores the frozen body verbatim, unchecked.** Since 2026-10-29 `documents` validates `student-certificate` content on save; recovery skips that check, because a printed body may predate the rules or name a photograph archived since. So recovery never returns `DOCUMENTS_CONTENT_INVALID` — but the next ordinary `PATCH` of that document is checked again and may fail until the content is corrected.
 - **Response:** the standard project envelope — `success`, `message`, `data`, `meta`. Below, `data` is **abridged to three fields to show the envelope**; a real capture returns the full `Snapshot` shape defined in §4.
 
@@ -66,12 +66,16 @@ to something when a client looks them up; nothing about this module's behaviour 
 {
   "success": true,
   "message": "Snapshot captured.",
-  "data": { "id": "7c1f9b20-3d44-4a8e-9f01-2b3c4d5e6f70", "version_number": 2, "label": "Vyas Statement" },
+  "data": {
+    "id": "7c1f9b20-3d44-4a8e-9f01-2b3c4d5e6f70",
+    "version_number": 2,
+    "label": "Vyas Statement"
+  },
   "meta": {}
 }
 ```
 
-  **Do not assert on `message`.** It is a human-facing string, not part of the contract. Branch on the HTTP status and, for errors, on `error.code`.
+**Do not assert on `message`.** It is a human-facing string, not part of the contract. Branch on the HTTP status and, for errors, on `error.code`.
 
 - **Error:** `success` is `false` and `error` carries a stable `code`, a human `message`, and a `details` object that is always present — `{}` when there are no field-level errors.
 
@@ -87,7 +91,7 @@ to something when a client looks them up; nothing about this module's behaviour 
 }
 ```
 
-  Field-level serializer failures use the project-wide `VALIDATION_ERROR` with the offending fields in `details`:
+Field-level serializer failures use the project-wide `VALIDATION_ERROR` with the offending fields in `details`:
 
 ```json
 {
@@ -119,9 +123,9 @@ to something when a client looks them up; nothing about this module's behaviour 
 - **Query parameter encoding — read this precisely, it is not "strict validation".** A **recognised** parameter with an invalid value is **rejected with 400**: `?event_type=printed` returns a validation error rather than an unfiltered result set. An **unrecognised** parameter is **silently ignored** — `?foo=1`, and in particular a cache-busting `?_=1721815262`, is accepted and has no effect. `page_size` above the 100 maximum is **clamped, not rejected**. There is no multi-value syntax: `?event_type=capture,reprint` is one invalid value, not two valid ones, and returns 400.
 - **Request encoding:** `application/json`.
 - **Pagination:** page-number based. `page` and `page_size` (default 20, max 100). `data` is the **bare array of rows — not nested under a `results` key**. `meta` carries `count`, `page`, `page_size`, `next`, `previous`; `count` is the **total across all pages**, not the number of rows in `data`. `next`/`previous` are absolute URLs (scheme + host) or `null`. Applied to both list endpoints (snapshots, timeline).
-- **IDs:** UUID strings, unquoted and unmarked in the shapes below — a field with no type marker is a string. `version_number` is a small integer that is unique *within one document's chain* — it is **not** a global identifier and cannot be used to address a snapshot. Address snapshots by `id`.
-- **Ordering** is fixed and **not client-controllable** — there is no `sort` or `ordering` parameter. Snapshots are ordered by `-version_number`, which is unique within the one document a chain is always filtered to, so that list pages stably. Print events are ordered by `-created_at` **plus `-id` as a tiebreaker** — and `id` here is the same UUID this API returns on the row, not a hidden internal key, so you can reproduce the server's ordering exactly (descending `created_at`, then descending UUID string) when merging an optimistically-appended row into a fetched page. The tiebreaker exists because `created_at` is *not* unique: a capture writes its snapshot and its event in one transaction, and two events can share a timestamp. Without it a paginated timeline could show a row twice or skip it; with it, paging is stable.
-- **Times.** `created_at` is ISO 8601 UTC and carries a Bikram Sambat sibling `created_at_bs` on **both** resources — an object shaped `{ year, month, day, month_name, display }`, never `null` (both models always have a creation time). Dates *inside* `content` or `render_context` are opaque frontend data and are never parsed, converted, or given a BS sibling. `updated_at` is not exposed on either resource: a row that can never be updated has nothing to report there.
+- **IDs:** UUID strings, unquoted and unmarked in the shapes below — a field with no type marker is a string. `version_number` is a small integer that is unique _within one document's chain_ — it is **not** a global identifier and cannot be used to address a snapshot. Address snapshots by `id`.
+- **Ordering** is fixed and **not client-controllable** — there is no `sort` or `ordering` parameter. Snapshots are ordered by `-version_number`, which is unique within the one document a chain is always filtered to, so that list pages stably. Print events are ordered by `-created_at` **plus `-id` as a tiebreaker** — and `id` here is the same UUID this API returns on the row, not a hidden internal key, so you can reproduce the server's ordering exactly (descending `created_at`, then descending UUID string) when merging an optimistically-appended row into a fetched page. The tiebreaker exists because `created_at` is _not_ unique: a capture writes its snapshot and its event in one transaction, and two events can share a timestamp. Without it a paginated timeline could show a row twice or skip it; with it, paging is stable.
+- **Times.** `created_at` is ISO 8601 UTC and carries a Bikram Sambat sibling `created_at_bs` on **both** resources — an object shaped `{ year, month, day, month_name, display }`, never `null` (both models always have a creation time). Dates _inside_ `content` or `render_context` are opaque frontend data and are never parsed, converted, or given a BS sibling. `updated_at` is not exposed on either resource: a row that can never be updated has nothing to report there.
 - **Empty text fields are `""`, never `null`.** `capture_note` and `note` are `""` when not supplied. **No field on either resource is nullable.**
 
 ## 4. Models
@@ -180,14 +184,20 @@ to something when a client looks them up; nothing about this module's behaviour 
       "amount_in_words": "Six Hundred Thirty Thousand Only"
     },
     "signatories": [
-      { "id": "9f8e7d6c-5b4a-4392-8172-6f5e4d3c2b1a", "role": "director", "name": "Sunita Shrestha" }
+      {
+        "id": "9f8e7d6c-5b4a-4392-8172-6f5e4d3c2b1a",
+        "role": "director",
+        "name": "Sunita Shrestha"
+      }
     ]
   },
   "capture_note": "Printed for the visa file.",
   "captured_by_username": "adminuser",
   "created_at": "2026-07-24T09:41:02Z",
   "created_at_bs": {
-    "year": 2083, "month": 4, "day": 8,
+    "year": 2083,
+    "month": 4,
+    "day": 8,
     "month_name": "Shrawan",
     "display": "2083 Shrawan 8"
   }
@@ -215,7 +225,10 @@ own contract §4 is authoritative.** Fields this recovery overwrote are marked.
   "family": "bank_statement",
   "template_key": "bank-vyas-statement",
   "label": "Vyas Statement",
-  "content": { "statement_account_holder": "Ram Bahadur", "statement_opening_balance": 250000 },
+  "content": {
+    "statement_account_holder": "Ram Bahadur",
+    "statement_opening_balance": 250000
+  },
   "status": "ready",
   "is_archived": false,
   "is_editable": true,
@@ -239,7 +252,7 @@ own contract §4 is authoritative.** Fields this recovery overwrote are marked.
 - `status` is `draft` | `ready` | `archived`. A recovery cannot return `archived`: recovering into an
   archived document is a 409, so a 200 response always has `is_editable: true`.
 - **`is_archived` is `status == "archived"`, and `is_editable` is its exact negation** — there is no
-  third input. Use `is_editable` to enable or grey the Recover button *before* calling, rather than
+  third input. Use `is_editable` to enable or grey the Recover button _before_ calling, rather than
   discovering the 409 afterwards; it is the same predicate the server checks.
 - `updated_at` moves **only if the body actually changed**. A no-op recovery leaves it where it was —
   do not use it to detect success.
@@ -262,7 +275,9 @@ own contract §4 is authoritative.** Fields this recovery overwrote are marked.
   "performed_by_username": "adminuser",
   "created_at": "2026-07-24T11:15:30Z",
   "created_at_bs": {
-    "year": 2083, "month": 4, "day": 8,
+    "year": 2083,
+    "month": 4,
+    "day": 8,
     "month_name": "Shrawan",
     "display": "2083 Shrawan 8"
   }
@@ -425,10 +440,10 @@ own contract §4 is authoritative.** Fields this recovery overwrote are marked.
 1. Open the document — `GET /api/v1/documents/<document_id>/` (module: `documents`) → gives `content`, `label`, `family`, `template_key`.
 2. **Save any pending edits first** — `PATCH /api/v1/documents/<document_id>/`. Capture reads the committed row, not your local state.
 3. Render the document client-side, computing every derived value (totals, closing balance, amount in words).
-4. `POST /api/v1/document-history/documents/<document_id>/snapshots/` with `render_context` carrying those computed values, the template version, and the resolved signatories → `Snapshot` with `version_number` = *n*.
-   - *Failure — 404 `DOCUMENT_HISTORY_DOCUMENT_NOT_FOUND`:* the document id is wrong or the document was never created.
-   - *Failure — 400 `DOCUMENT_HISTORY_RENDER_CONTEXT_TOO_LARGE`:* the computed context exceeds 256 KiB. Realistically only a very long bank statement; trim per-row derived values before sending.
-   - *Failure — 403:* the user is not an Admin. This whole feature must be hidden from them, not merely error out.
+4. `POST /api/v1/document-history/documents/<document_id>/snapshots/` with `render_context` carrying those computed values, the template version, and the resolved signatories → `Snapshot` with `version_number` = _n_.
+   - _Failure — 404 `DOCUMENT_HISTORY_DOCUMENT_NOT_FOUND`:_ the document id is wrong or the document was never created.
+   - _Failure — 400 `DOCUMENT_HISTORY_RENDER_CONTEXT_TOO_LARGE`:_ the computed context exceeds 256 KiB. Realistically only a very long bank statement; trim per-row derived values before sending.
+   - _Failure — 403:_ the user is not an Admin. This whole feature must be hidden from them, not merely error out.
 
 **Review a document's history**
 
@@ -448,9 +463,9 @@ own contract §4 is authoritative.** Fields this recovery overwrote are marked.
 1. `GET /api/v1/document-history/snapshots/<snapshot_id>/` → show the user what they are about to restore.
 2. Confirm in the Recover Snapshot dialog.
 3. `POST /api/v1/document-history/snapshots/<snapshot_id>/recover/` → returns the updated `Document`.
-   - *Failure — 409 `DOCUMENT_HISTORY_DOCUMENT_NOT_EDITABLE`:* the document is archived. Offer `POST /api/v1/documents/<id>/restore/` (module: `documents`) and retry.
+   - _Failure — 409 `DOCUMENT_HISTORY_DOCUMENT_NOT_EDITABLE`:_ the document is archived. Offer `POST /api/v1/documents/<id>/restore/` (module: `documents`) and retry.
 4. Re-render the workspace from the returned document.
-5. The old snapshot is still there, unchanged, and still in the chain. Capture again to freeze the recovered state as version *n+1*.
+5. The old snapshot is still there, unchanged, and still in the chain. Capture again to freeze the recovered state as version _n+1_.
 
 **Reprint an earlier issue**
 
@@ -464,18 +479,18 @@ own contract §4 is authoritative.** Fields this recovery overwrote are marked.
 - **A "has this been printed?" badge on a documents list costs one extra request per row, and there is no way around it.** No field on the `Document` resource reports snapshot existence or count, and **both list endpoints here require a document id** — there is no cross-document query of any kind. A 50-row Documents list with a printed indicator is 50 additional calls, against a shared 1000/hour budget with no separate throttle for this module. There is no batch endpoint, no `?document_id__in=`, and no aggregate. `GET /api/v1/audit/events/?app=document_history` is the nearest substitute and returns audit events with a different shape, from a different module. **Design the screen around this or do not build the badge** — this is a structural constraint, not an oversight to route around.
 - **The actor is exposed only as a username string.** `captured_by_username` and `performed_by_username` are backed by `PROTECT` foreign keys to user accounts, but **neither id is returned**. You cannot deep-link a timeline row to a user, join to a directory, or render an avatar without a name lookup. Worse for an append-only history: a username is mutable, so renaming a user retroactively changes what every one of their past snapshots appears to say, and there is nothing to anchor the true actor to. This matches the convention in `documents` and every other module in the project — it is consistent, not accidental — but on a module whose entire purpose is proving what was issued and by whom, it is the sharpest gap in this contract.
 - **`Snapshot.family` will grow without a version bump.** §5 lists six values, but the field is a plain string copied from `documents`, and a family added there appears here with no change to this module and no `/api/v2/`. **Do not generate a closed union type from §5.** Treat `family` as an open string with a fallback branch; the six values are what exists today, not a guarantee.
-- **No generated-file reference *on this resource*.** A snapshot payload has no file field, no PDF URL, and no attachment. **`uploaded_files` (`/api/v1/files/`) is now built**, so a client-generated PDF can be stored against a snapshot — `POST /api/v1/files/` with `snapshot=<snapshot_id>`, `category=generated_document`, `upload_source=system_generated` — and listed with `GET /api/v1/files/?snapshot=<snapshot_id>`. **Nothing in this API will tell you it exists**: the snapshot *is* the record, and the link is visible only from the file's side. `concepts/document_history.txt` names "Generated file reference" as a core entity — the reverse pointer is deliberately deferred, not overlooked.
+- **No generated-file reference _on this resource_.** A snapshot payload has no file field, no PDF URL, and no attachment. **`uploaded_files` (`/api/v1/files/`) is now built**, so a client-generated PDF can be stored against a snapshot — `POST /api/v1/files/` with `snapshot=<snapshot_id>`, `category=generated_document`, `upload_source=system_generated` — and listed with `GET /api/v1/files/?snapshot=<snapshot_id>`. **Nothing in this API will tell you it exists**: the snapshot _is_ the record, and the link is visible only from the file's side. `concepts/document_history.txt` names "Generated file reference" as a core entity — the reverse pointer is deliberately deferred, not overlooked.
 - **No compare endpoint.** The concept file's "Compare Snapshots" screen is backed by two retrieves and a client-side diff. The backend does not compute, return, or store a diff between two versions.
 - **No cross-document view.** Both list endpoints require a document id. You cannot ask "everything printed this month", "every snapshot of family `bank_statement`", or "everything user X printed". The `audit` module's event list (`GET /api/v1/audit/events/?app=document_history`) is the nearest available substitute and returns audit events, not snapshots.
 - **`render_context` is completely unvalidated.** The backend checks only that it is a JSON object under 256 KiB. It does not know what a template version is, cannot tell a real signatory id from a typo, and will return whatever you stored forever. **If your client stops sending a computed value, older snapshots keep theirs and newer ones simply lack it** — with no error and no migration. Version your own `render_context` shape; `template_version` is the conventional place, but nothing enforces it.
 - **Nothing stops a computed value being placed in `content` instead of `render_context`.** `content` is copied wholesale from the document, and `documents` does not strip derived values either. A snapshot whose `content` carries a stale `statement_closing_balance` is possible and the API will not flag it. Treat `content` as inputs and `render_context.computed` as outputs by convention — it is not enforced anywhere.
 - **Signatory ids inside `render_context` are resolvable but still unvalidated.** They name records in `document_templates`, which now exists — `GET /api/v1/document-templates/signatories/<id>/` will resolve one, and a retired signatory stays retrievable forever precisely so old snapshots keep working. But **this module validates nothing inside `render_context`**: it stores whatever you send. A snapshot may still name a signatory that never existed. **Freeze the signatory's name and role alongside the id**, as the §4 worked example does — an id alone leaves a snapshot dependent on a lookup that may return a since-renamed record, which defeats the point of freezing it.
 - **Capturing does not mark the document as printed.** `documents.Document.status` has no `printed` value and this module does not set one. To show "has been printed" you must call the snapshot list (or timeline) yourself; there is no count or flag on the document resource.
-- **No `updated_at` on either resource.** Both models carry one internally, but neither is exposed, because a row that can never be updated has nothing to report there. Use `created_at`. (The `Document` returned by a recovery *does* carry one — it belongs to the other module.)
-- **401 bodies are not enumerated here.** This contract states *that* a missing, expired, or revoked-session token returns 401 with the `authenticate` module's codes, but not what those codes are — so you cannot distinguish "refresh the token silently" from "redirect to login" without reading that module's contract. That is a real dependency this file does not remove.
+- **No `updated_at` on either resource.** Both models carry one internally, but neither is exposed, because a row that can never be updated has nothing to report there. Use `created_at`. (The `Document` returned by a recovery _does_ carry one — it belongs to the other module.)
+- **401 bodies are not enumerated here.** This contract states _that_ a missing, expired, or revoked-session token returns 401 with the `authenticate` module's codes, but not what those codes are — so you cannot distinguish "refresh the token silently" from "redirect to login" without reading that module's contract. That is a real dependency this file does not remove.
 - **No route-deprecation signal has ever been exercised.** The project promises a `Deprecation: <date>` header before any endpoint is removed. Nothing here is deprecated, so that mechanism is untested. Note that this module's "nothing is ever deleted" guarantee is about **rows**, not routes — it says nothing about the stability of these six paths.
 - **`SnapshotImmutableError` has an error code (`DOCUMENT_HISTORY_SNAPSHOT_IMMUTABLE`) but no reachable HTTP path.** There is no update or delete endpoint that could raise it. It exists so the envelope is already defined if one is ever added. **Do not write client handling for it.**
 - **No throttle beyond the project default** (`UserRateThrottle`, 1000/hour). A capture writes up to 512 KiB per call and is not separately rate-limited.
 - **Snapshot retrieve is the heaviest read in the project and nothing bounds it below ~512 KiB.** A frozen body can be 256 KiB and its render context another 256 KiB, both returned in full with no field-selection parameter, no partial fetch, and no documented compression. The Compare Snapshots screen is two of these concurrently. Budget for it on a slow connection; the list endpoints exist precisely so you do not pay this to render a chain.
-- **This contract cannot tell you the caller's `authority_type`, which is what every access rule here turns on.** Both this file and the project-level contract instruct you to *hide* these screens from a non-Admin rather than let them 403 — but neither states where a client reads the caller's authority from a login response. That is `authenticate`'s contract, and building the navigation gating these files demand requires reading it.
+- **This contract cannot tell you the caller's `authority_type`, which is what every access rule here turns on.** Both this file and the project-level contract instruct you to _hide_ these screens from a non-Admin rather than let them 403 — but neither states where a client reads the caller's authority from a login response. That is `authenticate`'s contract, and building the navigation gating these files demand requires reading it.
 - **The permission keys in §7 are not enforced in the request path.** Every endpoint has one registered, and no view consults it — access is decided solely by the `admin` authority check. Do not build a client-side permission gate off those keys expecting the server to agree with it; today the server's only question is whether you are an Admin.

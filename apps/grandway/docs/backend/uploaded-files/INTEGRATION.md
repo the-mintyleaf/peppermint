@@ -9,11 +9,11 @@
 
 ## Change History
 
-| Version | Date | Author | Summary |
-|---------|------|--------|---------|
-| 1.0.0 | 2026-07-24 | AI (Claude) | Initial integration contract — 10 endpoints, one resource, the project's first file storage |
-| 1.0.1 | 2026-07-24 | AI (Claude) | Defects found by the §19.5 consumer-comprehension test. **One was a real authorization leak and was fixed in code, not in prose:** a Lead Manager could list and download files owned by a `document` or a print snapshot, which `documents` and `document_history` hide from them entirely. Also **split `UPLOADED_FILES_FILE_EMPTY` out of `..._FILE_TOO_LARGE`** (one code for two opposite problems), **added `superseded_by_username`** (stored and never returned, so "who replaced this?" was unanswerable), corrected a nullable-field miscount and a false "every endpoint takes an id" claim, resolved the missing-owner error contradiction, stated the `details` rule for every custom code, and added seven gaps a client would have hit |
-| 1.1.0 | 2026-09-10 | AI (Claude Opus 5) | **`signatory` added as a sixth owner type**, so `document_templates` can store certificate signature images here. Signatory-owned files are Admin-only (§3) and excluded from the review queue (§3). New `?signatory=` list filter and upload field. §2 now records **two** inbound references and the project's only bidirectional app pair. **A §19.5 review of the 1.0.x text caught that the first pass updated §1–§3 and left the rest stale**, and the following were wrong rather than merely incomplete: §5 `owner_type` listed five values, §6 and §7 listed five owner fields in three places, §9 asserted "no other module links to a file" and "`document_templates.signature_image_url` … has no upload endpoint" — both refuted by §2 of the same file. Also corrected two errors predating this session: **"Sending JSON to either returns 400" is actually 415** (verified against both routes), and a stray brace in the `details` rule. Cross-module side effects added to archive, restore, and replace |
+| Version | Date       | Author             | Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------- | ---------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-07-24 | AI (Claude)        | Initial integration contract — 10 endpoints, one resource, the project's first file storage                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| 1.0.1   | 2026-07-24 | AI (Claude)        | Defects found by the §19.5 consumer-comprehension test. **One was a real authorization leak and was fixed in code, not in prose:** a Lead Manager could list and download files owned by a `document` or a print snapshot, which `documents` and `document_history` hide from them entirely. Also **split `UPLOADED_FILES_FILE_EMPTY` out of `..._FILE_TOO_LARGE`** (one code for two opposite problems), **added `superseded_by_username`** (stored and never returned, so "who replaced this?" was unanswerable), corrected a nullable-field miscount and a false "every endpoint takes an id" claim, resolved the missing-owner error contradiction, stated the `details` rule for every custom code, and added seven gaps a client would have hit                                                                                                                                                                                                                                                                      |
+| 1.1.0   | 2026-09-10 | AI (Claude Opus 5) | **`signatory` added as a sixth owner type**, so `document_templates` can store certificate signature images here. Signatory-owned files are Admin-only (§3) and excluded from the review queue (§3). New `?signatory=` list filter and upload field. §2 now records **two** inbound references and the project's only bidirectional app pair. **A §19.5 review of the 1.0.x text caught that the first pass updated §1–§3 and left the rest stale**, and the following were wrong rather than merely incomplete: §5 `owner_type` listed five values, §6 and §7 listed five owner fields in three places, §9 asserted "no other module links to a file" and "`document_templates.signature_image_url` … has no upload endpoint" — both refuted by §2 of the same file. Also corrected two errors predating this session: **"Sending JSON to either returns 400" is actually 415** (verified against both routes), and a stray brace in the `details` rule. Cross-module side effects added to archive, restore, and replace |
 
 ---
 
@@ -27,24 +27,24 @@
 
 ## 2. Requires
 
-| Depends on | Kind | Why | What breaks without it |
-|------------|------|-----|------------------------|
-| `authenticate` | framework | Issues the access JWT and supplies `authority_type`, which is the whole access check here. | Every endpoint returns 401; a `superadmin` gets 403 everywhere and a `lead_manager` gets 403 on the three review/archival routes. |
-| `authenticate` | FK | `uploaded_by` (`PROTECT`) plus three `SET_NULL` lifecycle actors reference user accounts. | No file could record who uploaded, reviewed, archived, or superseded it. |
-| `applicants` | FK + service call | An applicant-owned file points at one, resolved through `applicants.selectors.get_applicant_by_id` on upload. | `POST` with `applicant=` returns 400 `UPLOADED_FILES_OWNER_NOT_FOUND` for any id that does not resolve; no applicant could hold a file. |
-| `applicant_journeys` | FK + service call | Same, through `applicant_journeys.selectors.get_journey_by_id`. | No journey could hold a file. |
-| `offers` | FK + service call | Same, through `offers.selectors.get_offer_by_id`. | No offer could hold its letter. |
-| `documents` | FK + service call | Same, through `documents.selectors.get_document_by_id`. | No document could hold an attachment. |
-| `document_history` | FK + service call | Same, through `document_history.selectors.get_snapshot_by_id`. | No print snapshot could hold a generated PDF. |
-| `document_templates` | FK + service call | Same, through `document_templates.selectors.get_signatory_by_id`. **The one dependency that runs both ways** — that module also calls this one's `upload_file`/`replace_file` to store a signature. | No signatory could hold a signature image, and `POST /api/v1/document-templates/signatories/<id>/signature/` would fail. |
-| `audit` | service call | Every write **and every download** appends one immutable event. This module stores no history of its own. | Records still save but leave no trace of who uploaded, reviewed, archived, or downloaded a file. |
-| Local filesystem | infrastructure | `MEDIA_ROOT` is the byte store. **No URL maps to it in any environment** — reachable only through the download endpoint. | Uploads fail; existing rows return 404 `UPLOADED_FILES_FILE_BYTES_MISSING` on download. |
+| Depends on           | Kind              | Why                                                                                                                                                                                                 | What breaks without it                                                                                                                  |
+| -------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `authenticate`       | framework         | Issues the access JWT and supplies `authority_type`, which is the whole access check here.                                                                                                          | Every endpoint returns 401; a `superadmin` gets 403 everywhere and a `lead_manager` gets 403 on the three review/archival routes.       |
+| `authenticate`       | FK                | `uploaded_by` (`PROTECT`) plus three `SET_NULL` lifecycle actors reference user accounts.                                                                                                           | No file could record who uploaded, reviewed, archived, or superseded it.                                                                |
+| `applicants`         | FK + service call | An applicant-owned file points at one, resolved through `applicants.selectors.get_applicant_by_id` on upload.                                                                                       | `POST` with `applicant=` returns 400 `UPLOADED_FILES_OWNER_NOT_FOUND` for any id that does not resolve; no applicant could hold a file. |
+| `applicant_journeys` | FK + service call | Same, through `applicant_journeys.selectors.get_journey_by_id`.                                                                                                                                     | No journey could hold a file.                                                                                                           |
+| `offers`             | FK + service call | Same, through `offers.selectors.get_offer_by_id`.                                                                                                                                                   | No offer could hold its letter.                                                                                                         |
+| `documents`          | FK + service call | Same, through `documents.selectors.get_document_by_id`.                                                                                                                                             | No document could hold an attachment.                                                                                                   |
+| `document_history`   | FK + service call | Same, through `document_history.selectors.get_snapshot_by_id`.                                                                                                                                      | No print snapshot could hold a generated PDF.                                                                                           |
+| `document_templates` | FK + service call | Same, through `document_templates.selectors.get_signatory_by_id`. **The one dependency that runs both ways** — that module also calls this one's `upload_file`/`replace_file` to store a signature. | No signatory could hold a signature image, and `POST /api/v1/document-templates/signatories/<id>/signature/` would fail.                |
+| `audit`              | service call      | Every write **and every download** appends one immutable event. This module stores no history of its own.                                                                                           | Records still save but leave no trace of who uploaded, reviewed, archived, or downloaded a file.                                        |
+| Local filesystem     | infrastructure    | `MEDIA_ROOT` is the byte store. **No URL maps to it in any environment** — reachable only through the download endpoint.                                                                            | Uploads fail; existing rows return 404 `UPLOADED_FILES_FILE_BYTES_MISSING` on download.                                                 |
 
 **Two modules reference this one, and only two.** `checklists.ChecklistItem.evidence_file` cites the file proving a requirement was met, and `document_templates.Signatory.signature_file` names the signature image that renders on a certificate. Both hold a nullable `PROTECT` foreign key to a file. Everywhere else the relationship is still one-way, and that has a consequence you must plan around:
 
 > **There is no "attach" action on most other modules' endpoints.** `applicants` has no photograph field, `offers` has no attachment field, `documents` has no attachment field, `document_history` has no generated-file field, and `clients.logo_url` is still a plain URL to a host this API knows nothing about. To attach a passport to an applicant you `POST /api/v1/files/` with `applicant=<id>`; to show that applicant's files you `GET /api/v1/files/?applicant=<id>`. A file knows its owner; an owner does not know its files.
 
-**The exception is worth understanding, because it is the pattern the others will follow.** A reverse pointer earns its place when *which* file is the answer to a question, rather than merely *some* file among several. A signatory renders exactly one signature, so `document_templates` holds a pointer and exposes a `signature_source` field saying which of its two possible sources won. An applicant has many files and no single "the photograph", so `applicants` holds nothing and `concepts/applicants_flows.md` records the resulting dead end. **Do not try to derive "the current X" from a `?owner=` filter** — two independent uploads both satisfy "current and non-archived", and the tie breaks on row ordering.
+**The exception is worth understanding, because it is the pattern the others will follow.** A reverse pointer earns its place when _which_ file is the answer to a question, rather than merely _some_ file among several. A signatory renders exactly one signature, so `document_templates` holds a pointer and exposes a `signature_source` field saying which of its two possible sources won. An applicant has many files and no single "the photograph", so `applicants` holds nothing and `concepts/applicants_flows.md` records the resulting dead end. **Do not try to derive "the current X" from a `?owner=` filter** — two independent uploads both satisfy "current and non-archived", and the tie breaks on row ordering.
 
 **One module writes here through its own route.** `POST /api/v1/document-templates/signatories/<id>/signature/` stores a signature image in this ledger, owned by the signatory, and links it in one transaction. That endpoint re-codes every rejection this module raises into its own `DOCUMENT_TEMPLATES_*` namespace, so a client calling it never sees an `UPLOADED_FILES_*` code. **Uploading a signature through `POST /api/v1/files/` with `signatory=<id>` is possible and does not set the link** — the file will be owned by the signatory and will never render. Use that module's route.
 
@@ -75,7 +75,7 @@
 }
 ```
 
-  **Do not assert on `message`.** It is a human-facing string, not part of the contract. Branch on the HTTP status and, for errors, on `error.code`.
+**Do not assert on `message`.** It is a human-facing string, not part of the contract. Branch on the HTTP status and, for errors, on `error.code`.
 
 - **The download response is the one exception to the envelope.** On success it is the raw file, not JSON, with `Content-Type` set to the stored type, `Content-Disposition: attachment; filename="<original_filename>"`, `X-Content-Type-Options: nosniff`, and `Cache-Control: private, no-store`. Every **failure** on that route still uses the standard error envelope.
 - **Error:** `success` is `false` and `error` carries a stable `code`, a human `message`, and a `details` object that is always present — `{}` when there are no field-level errors.
@@ -87,13 +87,15 @@
   "error": {
     "code": "UPLOADED_FILES_FILE_CONTENT_MISMATCH",
     "message": "The file's contents do not match its '.pdf' extension.",
-    "details": { "file": ["The file's contents do not match its '.pdf' extension."] }
+    "details": {
+      "file": ["The file's contents do not match its '.pdf' extension."]
+    }
   },
   "meta": {}
 }
 ```
 
-  Field-level serializer failures use the project-wide `VALIDATION_ERROR` with the offending fields in `details`. The missing-owner case is keyed under the synthetic field `owner`, because the request could legitimately have carried any of six:
+Field-level serializer failures use the project-wide `VALIDATION_ERROR` with the offending fields in `details`. The missing-owner case is keyed under the synthetic field `owner`, because the request could legitimately have carried any of six:
 
 ```json
 {
@@ -102,14 +104,16 @@
     "code": "VALIDATION_ERROR",
     "message": "Validation failed.",
     "details": {
-      "owner": ["Supply exactly one of: applicant, journey, offer, document, snapshot. Received 0."]
+      "owner": [
+        "Supply exactly one of: applicant, journey, offer, document, snapshot. Received 0."
+      ]
     }
   },
   "meta": {}
 }
 ```
 
-  **Query-string failures use the same code and the same shape**, keyed by the parameter name — there is no separate envelope for them:
+**Query-string failures use the same code and the same shape**, keyed by the parameter name — there is no separate envelope for them:
 
 ```json
 {
@@ -185,7 +189,9 @@ A verified passport scan, replacing an earlier upload:
   "rejection_reason": "",
   "reviewed_at": "2026-07-24T11:20:41Z",
   "reviewed_at_bs": {
-    "year": 2083, "month": 4, "day": 9,
+    "year": 2083,
+    "month": 4,
+    "day": 9,
     "month_name": "Shrawan",
     "display": "2083 Shrawan 9"
   },
@@ -199,7 +205,9 @@ A verified passport scan, replacing an earlier upload:
   "uploaded_by_username": "lm.bikash",
   "created_at": "2026-07-24T10:58:03Z",
   "created_at_bs": {
-    "year": 2083, "month": 4, "day": 9,
+    "year": 2083,
+    "month": 4,
+    "day": 9,
     "month_name": "Shrawan",
     "display": "2083 Shrawan 9"
   },
@@ -230,7 +238,9 @@ Its predecessor, still readable and still downloadable:
   "rejection_reason": "Page 2 is unreadable.",
   "reviewed_at": "2026-07-24T09:41:12Z",
   "reviewed_at_bs": {
-    "year": 2083, "month": 4, "day": 9,
+    "year": 2083,
+    "month": 4,
+    "day": 9,
     "month_name": "Shrawan",
     "display": "2083 Shrawan 9"
   },
@@ -244,7 +254,9 @@ Its predecessor, still readable and still downloadable:
   "uploaded_by_username": "lm.bikash",
   "created_at": "2026-07-24T09:12:55Z",
   "created_at_bs": {
-    "year": 2083, "month": 4, "day": 9,
+    "year": 2083,
+    "month": 4,
+    "day": 9,
     "month_name": "Shrawan",
     "display": "2083 Shrawan 9"
   },
@@ -278,12 +290,14 @@ Its predecessor, still readable and still downloadable:
 **Use it when:** rendering any per-record files panel (applicant, journey, offer, document, snapshot), the review queue, a global file search, or the file detail screen.
 
 **Methods:**
+
 - `GET /api/v1/files/` — list, paginated (`uploaded_files.file.list`)
 - `POST /api/v1/files/` — upload, `multipart/form-data` (`uploaded_files.file.upload`)
 - `GET /api/v1/files/<file_id>/` — retrieve (`uploaded_files.file.read`)
 - `PATCH /api/v1/files/<file_id>/` — edit (`uploaded_files.file.update`)
 
 **Send (upload — `multipart/form-data`):**
+
 - exactly one of `applicant`, `journey`, `offer`, `document`, `snapshot`, `signatory` — the owning record's UUID
 - `category` — required, one of the eleven values in §5
 - `file` — required, the file part, ≤ 10 MB
@@ -291,9 +305,11 @@ Its predecessor, still readable and still downloadable:
 - `notes` — optional free text
 
 **Send (edit — `application/json`):**
+
 - `category` and/or `notes`. **Nothing else.** Any other field is refused by name with `UPLOADED_FILES_FIELD_IMMUTABLE`, not silently dropped
 
 **Query parameters (list):**
+
 - `applicant`, `journey`, `offer`, `document`, `snapshot`, `signatory` — UUID, narrows to that record's files
 - `category`, `verification_status`, `upload_source` — enum values from §5
 - `is_archived` — boolean. **Omitting it returns archived files too**; pass `false` for the active-only view
@@ -304,16 +320,19 @@ Its predecessor, still readable and still downloadable:
 **Returns:** `UploadedFile` | `list[UploadedFile]`
 
 **Requires state:**
+
 - list, retrieve — nothing beyond authority. A `lead_manager` sees no `document`- or `snapshot`-owned rows at all
 - upload — the owning record must already exist in its own module; a `lead_manager` may not name a `document` or a `snapshot`
 - **edit — the file must exist and must NOT be archived.** An archived file returns `UPLOADED_FILES_FILE_ARCHIVED`; restore it first
 
 **Side effects:**
+
 - upload writes a file to the platform's storage and appends a `file_uploaded` event to the `audit` log
 - edit appends a `file_updated` event, **unless nothing actually changed** — a no-op `PATCH` returns 200 and writes no event
 - list and retrieve have no side effects
 
 **Notes:**
+
 - The stored filename is **not** the one you sent. `original_filename` keeps yours; the file on disk is a UUID. This is not configurable.
 - `content_type` is derived from the extension after the leading bytes are checked against it. **The `Content-Type` you set on the multipart part is ignored.**
 - Extension checking uses the **last** dot-segment, so `passport.pdf.exe` is an `exe` and is refused.
@@ -323,6 +342,7 @@ Its predecessor, still readable and still downloadable:
 - A recognised filter with a bad value is a 400; an unrecognised parameter is ignored.
 
 **Errors:**
+
 - `UPLOADED_FILES_ACTOR_FORBIDDEN` (403) — a `superadmin` on any method; **or a `lead_manager` uploading against a `document` or `snapshot` owner.** Both authorities are otherwise permitted on all four methods, edit included
 - `UPLOADED_FILES_FILE_NOT_FOUND` (404) — no file with that id, **or a `lead_manager` addressing a `document`- or `snapshot`-owned file**, which is reported as absent rather than forbidden
 - `UPLOADED_FILES_OWNER_REQUIRED` (400) — zero or more than one owner supplied
@@ -346,6 +366,7 @@ Its predecessor, still readable and still downloadable:
 **Use it when:** the user clicks a file to open or save it. This is the **only** way to obtain a file's contents.
 
 **Methods:**
+
 - `GET /api/v1/files/<file_id>/download/` (`uploaded_files.file.download`)
 
 **Send:** none
@@ -357,6 +378,7 @@ Its predecessor, still readable and still downloadable:
 **Side effects:** appends a `file_downloaded` event to the `audit` log, **before** the transfer begins — an aborted download is still recorded. This is the only read in the whole API that writes an audit event.
 
 **Notes:**
+
 - **Archived files and superseded files are both still downloadable.** Archival is a lifecycle state, not a deletion, and keeping old versions readable is the point of the version chain.
 - The response is always an attachment, never inline. A browser will not render it in place; plan for a download rather than an embedded preview.
 - There is no thumbnail, no preview, and **no documented `Content-Length`, `ETag`, `Last-Modified`, or `Accept-Ranges`** — assume a whole-file transfer with no resume and no reliable progress bar.
@@ -364,6 +386,7 @@ Its predecessor, still readable and still downloadable:
 - Requires the same bearer token as everything else — you cannot put this URL in an `<img src>` and expect it to load.
 
 **Errors:**
+
 - `UPLOADED_FILES_ACTOR_FORBIDDEN` (403) — a `superadmin`
 - `UPLOADED_FILES_FILE_NOT_FOUND` (404) — no file with that id
 - `UPLOADED_FILES_FILE_BYTES_MISSING` (404) — **the record exists and its bytes do not.** This is a platform fault, not a client one; no retry will fix it. Surface it as "this file could not be retrieved" and report it, rather than treating it as a missing record
@@ -373,6 +396,7 @@ Its predecessor, still readable and still downloadable:
 **Use it when:** rendering the replacement history on a file detail screen.
 
 **Methods:**
+
 - `GET /api/v1/files/<file_id>/versions/` (`uploaded_files.file.versions`)
 
 **Send:** none
@@ -384,11 +408,13 @@ Its predecessor, still readable and still downloadable:
 **Side effects:** none
 
 **Notes:**
+
 - **Not paginated.** `page`/`page_size` are ignored.
 - The chain reads identically from any member, so you may call it with a superseded id and still get the full history including what replaced it.
 - A file that has never been replaced returns a chain of one — itself. That is a valid result, not an empty state.
 
 **Errors:**
+
 - `UPLOADED_FILES_ACTOR_FORBIDDEN` (403) — a `superadmin`
 - `UPLOADED_FILES_FILE_NOT_FOUND` (404)
 
@@ -397,9 +423,11 @@ Its predecessor, still readable and still downloadable:
 **Use it when:** the applicant supplies a better copy of a document already on file — a re-scan, a corrected version, a certified copy.
 
 **Methods:**
+
 - `POST /api/v1/files/<file_id>/replace/` — `multipart/form-data` (`uploaded_files.file.replace`)
 
 **Send:**
+
 - `file` — required, the new bytes, ≤ 10 MB, same rules as upload
 - `notes` — optional free text for the **new** file
 
@@ -410,17 +438,20 @@ Its predecessor, still readable and still downloadable:
 **Requires state:** the addressed file must exist, must not be archived, and must not already have been replaced.
 
 **Side effects:**
+
 - creates a **second** file record and writes a second file to storage — the predecessor's bytes are kept, not overwritten
 - sets `superseded_at`/`is_current: false` on the predecessor; nothing else about it changes
 - appends a `file_replaced` event to the `audit` log
 
 **Notes:**
+
 - **The successor carries no owner or category of its own** — both are inherited. There is no way to move a file to another record through this endpoint, and no way to reclassify it; sending `applicant` or `category` here has no effect.
 - **The successor is always `pending`, even when the predecessor was `verified`.** A replacement is a different artefact and must be reviewed again. Do not assume a verified file stays verified across a replace.
 - A file may be replaced **once**. To supersede again, address the current version — `GET .../versions/` and take the last entry.
 - The predecessor keeps its own verdict and rejection reason. A rejected v1 under a pending v2 is normal and expected.
 
 **Errors:**
+
 - `UPLOADED_FILES_ACTOR_FORBIDDEN` (403) — a `superadmin`; `lead_manager` **is** permitted here
 - `UPLOADED_FILES_FILE_NOT_FOUND` (404)
 - `UPLOADED_FILES_ALREADY_SUPERSEDED` (400) — this file has already been replaced
@@ -435,9 +466,11 @@ Its predecessor, still readable and still downloadable:
 **Use it when:** an Admin works the review queue (`GET /files/?verification_status=pending`) and accepts or refuses a document.
 
 **Methods:**
+
 - `POST /api/v1/files/<file_id>/verify/` (`uploaded_files.file.verify`)
 
 **Send:**
+
 - `status` — required, `verified` or `rejected`. **`pending` is rejected**
 - `reason` — required when `status` is `rejected`, ignored otherwise
 
@@ -448,11 +481,13 @@ Its predecessor, still readable and still downloadable:
 **Side effects:** sets `reviewed_at`/`reviewed_by_username`, appends a `file_reviewed` event to the `audit` log.
 
 **Notes:**
+
 - **A verdict may be revised.** There is no lock — an Admin who rejected the wrong file can verify it afterwards, and the audit log carries the sequence.
 - Re-verifying a rejected file **clears `rejection_reason`**, so a stale refusal never sits under a current acceptance.
 - **Verification gates nothing.** No endpoint in this API — or anywhere else in Grandway — refuses to proceed because a file is unverified. Treat it as a review record, not a precondition, and do not build a flow that expects the backend to block on it.
 
 **Errors:**
+
 - `UPLOADED_FILES_ACTOR_FORBIDDEN` (403) — **a `lead_manager` as well as a `superadmin`**
 - `UPLOADED_FILES_FILE_NOT_FOUND` (404)
 - `UPLOADED_FILES_REJECTION_REASON_REQUIRED` (400) — rejecting with no reason
@@ -464,9 +499,11 @@ Its predecessor, still readable and still downloadable:
 **Use it when:** a file is no longer part of active work but must remain on record — a superseded document, a wrong upload, a closed matter.
 
 **Methods:**
+
 - `POST /api/v1/files/<file_id>/archive/` (`uploaded_files.file.archive`)
 
 **Send:**
+
 - `reason` — **required**
 
 **Returns:** `UploadedFile` with `is_archived: true`
@@ -476,12 +513,14 @@ Its predecessor, still readable and still downloadable:
 **Side effects:** sets `archived_at`/`archived_by_username`/`archive_reason`, appends a `file_archived` event to the `audit` log. **Across modules:** archiving a file that is a signatory's signature stops it rendering — `document_templates` reports `signature_file: null` and `signature_source` falls back to `"url"` or `"none"`. **This is the documented way to remove a signature**; that module has no removal endpoint of its own.
 
 **Notes:**
+
 - **Nothing is deleted.** The bytes stay and the file is still downloadable.
 - **The version chain is untouched.** An archived v1 is still v1 and still v2's predecessor.
 - An archived file refuses `PATCH`, `replace`, and `verify` until it is restored.
 - This is the closest thing to deletion the API offers. There is no harder option.
 
 **Errors:**
+
 - `UPLOADED_FILES_ACTOR_FORBIDDEN` (403) — a `lead_manager` or a `superadmin`
 - `UPLOADED_FILES_FILE_NOT_FOUND` (404)
 - `UPLOADED_FILES_ALREADY_ARCHIVED` (400)
@@ -493,9 +532,11 @@ Its predecessor, still readable and still downloadable:
 **Use it when:** a file was archived in error, or becomes relevant again.
 
 **Methods:**
+
 - `POST /api/v1/files/<file_id>/restore/` (`uploaded_files.file.restore`)
 
 **Send:**
+
 - `note` — optional. **No reason is required**, unlike archiving
 
 **Returns:** `UploadedFile` with `is_archived: false`
@@ -505,10 +546,12 @@ Its predecessor, still readable and still downloadable:
 **Side effects:** clears all three archive fields, appends a `file_restored` event to the `audit` log. **Across modules:** restoring a file that is a signatory's signature makes it render again — `document_templates` reports `signature_source: "uploaded"` once more, provided the file is also still current. **Restoring is a real undo of the remove-signature gesture**, and the link was never broken; only its validity was.
 
 **Notes:**
+
 - `archive_reason` is cleared to `""` and `archived_at`/`archived_by_username` to `null` — **the record keeps no trace of having been archived.** The history lives in the `audit` log, so do not expect to reconstruct "was this ever archived" from the file payload.
 - **`note` does not appear in the response and is not stored on the record.** It is written into the audit event as its reason. Do not send anything through it that a user expects to read back.
 
 **Errors:**
+
 - `UPLOADED_FILES_ACTOR_FORBIDDEN` (403) — a `lead_manager` or a `superadmin`
 - `UPLOADED_FILES_FILE_NOT_FOUND` (404)
 - `UPLOADED_FILES_NOT_ARCHIVED` (400)

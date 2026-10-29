@@ -25,8 +25,8 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `GET /api/v1/leads/sources/` (`leads.source.list`)
    - **Requires state:** an authenticated Admin or Lead Manager.
    - **Side effects:** none.
-   - *Failure — empty array:* no sources are configured. A Lead Manager cannot resolve this — block submission and show "Ask an Admin to configure lead sources."
-   - *Failure — `LEADS_ACTOR_FORBIDDEN`:* the signed-in account is a Superadmin. This module is not available to it at all; hide Leads from the navigation for that authority.
+   - _Failure — empty array:_ no sources are configured. A Lead Manager cannot resolve this — block submission and show "Ask an Admin to configure lead sources."
+   - _Failure — `LEADS_ACTOR_FORBIDDEN`:_ the signed-in account is a Superadmin. This module is not available to it at all; hide Leads from the navigation for that authority.
 
 2. **New Lead Form** — the user picks a source flagged `requires_detail` →
    no call; the form reveals a required "Please specify" field bound to `source_detail`.
@@ -37,11 +37,11 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `POST /api/v1/leads/` (`leads.lead.create`)
    - **Requires state:** at least one active lead source must exist. The caller becomes the lead's permanent owner.
    - **Side effects:** the lead is created at stage `new`; one history entry (`lead_created`) appears. Every other active Admin receives a `lead_created` notification **(cross-app: `notifications`)**. Refresh the Lead List.
-   - *Failure — `LEADS_SOURCE_DETAIL_REQUIRED`:* inline field error under "Please specify."
-   - *Failure — `LEADS_STUDY_INTEREST_INVALID` / `LEADS_CERTIFICATE_INVALID`:* mark each path in `error.details.fields` (`study_interest.academic_score`, `language_certificates[1].overall_score`) on its input. A score needs its type and a pass year its BS/AD calendar — keep each pair together in the UI.
-   - *Failure — `LEADS_CERTIFICATE_LIMIT`:* more than 10 certificates — cap the repeater at 10.
-   - *Failure — `LEADS_CONTACT_REQUIRED` or 400 on `contact_numbers`:* inline error on the contact-number repeater; at least one row is mandatory.
-   - *Failure — `LEADS_SOURCE_INACTIVE`:* the source was retired while the form was open. Re-fetch the source list and ask the user to re-pick.
+   - _Failure — `LEADS_SOURCE_DETAIL_REQUIRED`:_ inline field error under "Please specify."
+   - _Failure — `LEADS_STUDY_INTEREST_INVALID` / `LEADS_CERTIFICATE_INVALID`:_ mark each path in `error.details.fields` (`study_interest.academic_score`, `language_certificates[1].overall_score`) on its input. A score needs its type and a pass year its BS/AD calendar — keep each pair together in the UI.
+   - _Failure — `LEADS_CERTIFICATE_LIMIT`:_ more than 10 certificates — cap the repeater at 10.
+   - _Failure — `LEADS_CONTACT_REQUIRED` or 400 on `contact_numbers`:_ inline error on the contact-number repeater; at least one row is mandatory.
+   - _Failure — `LEADS_SOURCE_INACTIVE`:_ the source was retired while the form was open. Re-fetch the source list and ask the user to re-pick.
 
 4. **Lead Detail** — redirect to the newly created lead using the returned `id`.
 
@@ -59,45 +59,45 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `GET /api/v1/leads/?stage=new` (`leads.lead.list`)
    - **Requires state:** an authenticated Admin or Lead Manager.
    - **Side effects:** none.
-   - *Note:* a Lead Manager sees only leads they created; an Admin sees all. The same call serves both — no separate "all leads" endpoint.
-   - *Note:* the same endpoint's `?search=` matches the name in either script, the email, and **any** of the lead's contact numbers. Label the box "Search name, phone, or email" — a lead is very often a number in a call log before anyone has agreed how to spell the name.
-   - *Note:* a searched list is **relevance-ordered** (exact name match first), not newest-first. Every other list here is newest-first. Do not re-sort a searched list client-side.
-   - *Note:* ranking never widens scope. A Lead Manager's search reorders their own leads and can never surface another manager's, so the result count is still owner-scoped.
+   - _Note:_ a Lead Manager sees only leads they created; an Admin sees all. The same call serves both — no separate "all leads" endpoint.
+   - _Note:_ the same endpoint's `?search=` matches the name in either script, the email, and **any** of the lead's contact numbers. Label the box "Search name, phone, or email" — a lead is very often a number in a call log before anyone has agreed how to spell the name.
+   - _Note:_ a searched list is **relevance-ordered** (exact name match first), not newest-first. Every other list here is newest-first. Do not re-sort a searched list client-side.
+   - _Note:_ ranking never widens scope. A Lead Manager's search reorders their own leads and can never surface another manager's, so the result count is still owner-scoped.
 
 2. **Lead Detail** — the page loads →
    `GET /api/v1/leads/<lead_id>/` (`leads.lead.read`)
    - **Requires state:** the lead must be in the caller's scope.
    - **Side effects:** none.
-   - *Failure — `LEADS_LEAD_NOT_FOUND`:* full-page not-found state. Do **not** word it as "you don't have access" — the API deliberately does not distinguish missing from not-yours, and the UI must not imply otherwise.
+   - _Failure — `LEADS_LEAD_NOT_FOUND`:_ full-page not-found state. Do **not** word it as "you don't have access" — the API deliberately does not distinguish missing from not-yours, and the UI must not imply otherwise.
 
 3. **Lead Detail** — the user picks a new stage from the dropdown →
    `POST /api/v1/leads/<lead_id>/stage/` (`leads.lead.change_stage`)
    - **Requires state:** the lead must not be `lost` or `converted`.
    - **Side effects:** stage changes; a `lead_stage_changed` entry appears in the History panel. Refresh both.
-   - *Failure — `LEADS_STAGE_NOT_EDITABLE`:* the lead is terminal. Replace the dropdown with a "Reopen" button.
-   - *Note:* the dropdown must offer only the six active stages. `Lost` and `Converted` are separate deliberate actions, not dropdown options.
+   - _Failure — `LEADS_STAGE_NOT_EDITABLE`:_ the lead is terminal. Replace the dropdown with a "Reopen" button.
+   - _Note:_ the dropdown must offer only the six active stages. `Lost` and `Converted` are separate deliberate actions, not dropdown options.
 
 4. **Lead Detail → Record Follow-up dialog** — the user logs a call they just made, optionally with a note and a stage change →
    `POST /api/v1/leads/<lead_id>/follow-up/` (`leads.lead.record_followup`)
    - **Requires state:** the lead must not be `lost` or `converted`.
    - **Side effects:** `last_followed_up_at`/`_by` update; a `lead_followup_recorded` entry appears, plus `lead_note_added` and `lead_stage_changed` when those fields were sent. Refresh the lead header, Notes panel, and History panel.
-   - *Failure — `LEADS_STAGE_NOT_EDITABLE`:* as step 3.
-   - *Note:* Grandway does not schedule follow-ups or send reminders — this dialog records that contact already happened. Do not build a "schedule next follow-up" control.
+   - _Failure — `LEADS_STAGE_NOT_EDITABLE`:_ as step 3.
+   - _Note:_ Grandway does not schedule follow-ups or send reminders — this dialog records that contact already happened. Do not build a "schedule next follow-up" control.
 
 5. **Lead Detail → Notes panel** — the user adds a note on the General or Visit tab →
    `POST /api/v1/leads/<lead_id>/notes/` (`leads.note.create`) with `category`, `body`, and an optional `noted_at` (date-time picker, defaults to now; may be in the past)
    - **Requires state:** the lead is in the caller's scope, not deleted, and not converted.
    - **Side effects:** the note appears; a `lead_note_added` entry appears in History. A **visit** note written by someone other than the lead's owner sends the owner a `visit_note_added` notification **(cross-app: `notifications`)**; general notes notify nobody. Refresh the tab badges from `meta.counts`.
-   - *Failure — `LEADS_NOTE_FUTURE_DATE` (400):* the picked time is in the future — block it in the picker.
-   - *Failure — `LEADS_LEAD_ALREADY_CONVERTED` (409):* the lead was converted; link to the applicant's notes instead.
-   - *Note:* send `noted_at` with an offset; an offset-less value is read as Nepal time. Show a "backdated" marker when `is_backdated` is true.
+   - _Failure — `LEADS_NOTE_FUTURE_DATE` (400):_ the picked time is in the future — block it in the picker.
+   - _Failure — `LEADS_LEAD_ALREADY_CONVERTED` (409):_ the lead was converted; link to the applicant's notes instead.
+   - _Note:_ send `noted_at` with an offset; an offset-less value is read as Nepal time. Show a "backdated" marker when `is_backdated` is true.
 
 6. **Lead Detail → Notes panel → Edit / Delete on a note** →
    `PATCH /api/v1/leads/<lead_id>/notes/<note_id>/` (`leads.note.update`) or `DELETE …/notes/<note_id>/` (`leads.note.delete`)
    - **Requires state:** the caller is the note's author or an Admin; the lead is not deleted or converted.
    - **Side effects:** `lead_note_updated` / `lead_note_deleted` in History; a deleted note leaves the list.
-   - *Failure — `LEADS_NOTE_FORBIDDEN` (403):* render Edit/Delete only on the caller's own notes (all notes for an Admin).
-   - *Note:* say "Remove" in the confirmation — the note leaves the panel but is kept in the record's history.
+   - _Failure — `LEADS_NOTE_FORBIDDEN` (403):_ render Edit/Delete only on the caller's own notes (all notes for an Admin).
+   - _Note:_ say "Remove" in the confirmation — the note leaves the panel but is kept in the record's history.
 
 ---
 
@@ -113,31 +113,31 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `GET /api/v1/leads/<lead_id>/` (`leads.lead.read`)
    - **Requires state:** the lead must be in the caller's scope.
    - **Side effects:** none.
-   - *Note:* the "Convert" action is visible to Admins only — hide it for Lead Managers rather than showing a disabled button. `Ready for Conversion` is a signal, not a gate: conversion works from **any** active stage.
+   - _Note:_ the "Convert" action is visible to Admins only — hide it for Lead Managers rather than showing a disabled button. `Ready for Conversion` is a signal, not a gate: conversion works from **any** active stage.
 
 2. **Lead Detail** — the Admin confirms →
    `POST /api/v1/leads/<lead_id>/convert/` (`leads.lead.convert`)
    - **Requires state:** Admin authority, and the lead in an active stage.
-   - **Side effects:** creates an applicant *(cross-app: `applicants`)* **and** an initial journey *(cross-app: `applicant_journeys`)*, links both to the lead permanently, and moves the lead to its terminal `converted` stage. Two entries appear in the lead's history. **The new applicant is assigned to the lead's owner** *(cross-app: `applicants`)* — or left unassigned if that person is no longer an active Admin or Lead Manager. The owner and the other Admins receive a `lead_converted` notification **(cross-app: `notifications`)**. Refresh the lead and the Lead List.
-   - *Failure — `LEADS_ACTOR_FORBIDDEN`:* the caller is a Lead Manager or Superadmin.
-   - *Failure — `LEADS_CONVERSION_NOT_READY`:* the lead is lost. Offer Reopen, then retry.
-   - *Failure — `LEADS_LEAD_ALREADY_CONVERTED`:* someone converted it already. Read `converted_applicant_id` off the lead and navigate there — **do not retry**, and do not present this as the user's mistake.
+   - **Side effects:** creates an applicant _(cross-app: `applicants`)_ **and** an initial journey _(cross-app: `applicant_journeys`)_, links both to the lead permanently, and moves the lead to its terminal `converted` stage. Two entries appear in the lead's history. **The new applicant is assigned to the lead's owner** _(cross-app: `applicants`)_ — or left unassigned if that person is no longer an active Admin or Lead Manager. The owner and the other Admins receive a `lead_converted` notification **(cross-app: `notifications`)**. Refresh the lead and the Lead List.
+   - _Failure — `LEADS_ACTOR_FORBIDDEN`:_ the caller is a Lead Manager or Superadmin.
+   - _Failure — `LEADS_CONVERSION_NOT_READY`:_ the lead is lost. Offer Reopen, then retry.
+   - _Failure — `LEADS_LEAD_ALREADY_CONVERTED`:_ someone converted it already. Read `converted_applicant_id` off the lead and navigate there — **do not retry**, and do not present this as the user's mistake.
 
 3. **Applicant Detail** — redirect using the returned `applicant_id` →
    `GET /api/v1/applicants/<applicant_id>/` (`applicants.applicant.read`) **(cross-app: `applicants`)**
    - **Requires state:** conversion must have succeeded.
    - **Side effects:** none.
-   - *Note:* only name, email, contact numbers, and address were copied. Date of birth, passport, family, and emergency contacts are blank — prompt the user to complete them.
-   - *Note:* `assigned_to` names the lead's owner (or is `null`). Assignment decides who is notified about the applicant, never who may see it — see `concepts/applicants_flows.md` → "Assign, take, or release an applicant".
+   - _Note:_ only name, email, contact numbers, and address were copied. Date of birth, passport, family, and emergency contacts are blank — prompt the user to complete them.
+   - _Note:_ `assigned_to` names the lead's owner (or is `null`). Assignment decides who is notified about the applicant, never who may see it — see `concepts/applicants_flows.md` → "Assign, take, or release an applicant".
 
 4. **Journey Detail** — review the seeded objective →
    `GET /api/v1/journeys/<journey_id>/` (`applicant_journeys.journey.read`) **(cross-app: `applicant_journeys`)**
    - **Requires state:** conversion must have succeeded.
    - **Side effects:** none.
-   - *Note:* if the lead named **more than one** interested country, `target_country` is blank and the full list sits in the journey's `notes`. Surface that as an incomplete-journey prompt. `language_test_status` is also in `notes` (a status has no applicant record), and so is a qualification recorded **without** a level. A qualification **with** a level becomes the applicant's first education record, and every certificate a language test (cross-app: applicants) — show them on the applicant's file.
+   - _Note:_ if the lead named **more than one** interested country, `target_country` is blank and the full list sits in the journey's `notes`. Surface that as an incomplete-journey prompt. `language_test_status` is also in `notes` (a status has no applicant record), and so is a qualification recorded **without** a level. A qualification **with** a level becomes the applicant's first education record, and every certificate a language test (cross-app: applicants) — show them on the applicant's file.
 
 5. **Lead Detail** — the lead stays readable at `stage: converted`, with `converted_applicant_id` and `converted_journey_id` for navigation.
-   - *Note:* conversion deletes nothing. Notes, contact numbers, and the full history all survive. The lead's notes are **copied** to the applicant (`source_lead_id` set) and become read-only here — hide the add/edit controls on a converted lead and link to the applicant's Notes panel (`applicants.note.list`) (cross-app: applicants).
+   - _Note:_ conversion deletes nothing. Notes, contact numbers, and the full history all survive. The lead's notes are **copied** to the applicant (`source_lead_id` set) and become read-only here — hide the add/edit controls on a converted lead and link to the applicant's Notes panel (`applicants.note.list`) (cross-app: applicants).
 
 ---
 
@@ -153,7 +153,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `GET /api/v1/leads/loss-reasons/` (`leads.loss_reason.list`)
    - **Requires state:** an authenticated Admin or Lead Manager.
    - **Side effects:** none.
-   - *Failure — empty array:* no reasons are configured, and a reason is mandatory. Block the dialog and show "Ask an Admin to configure loss reasons."
+   - _Failure — empty array:_ no reasons are configured, and a reason is mandatory. Block the dialog and show "Ask an Admin to configure loss reasons."
 
 2. **Mark Lost dialog** — the user picks a reason flagged `requires_detail` →
    no call; the dialog reveals a required explanation field bound to `detail`.
@@ -162,9 +162,9 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `POST /api/v1/leads/<lead_id>/lost/` (`leads.lead.mark_lost`)
    - **Requires state:** at least one active loss reason; the lead must not already be `lost` or `converted`.
    - **Side effects:** stage becomes `lost`; `lost_reason`, `lost_at`, `lost_by`, and `stage_before_loss` populate; a `lead_marked_lost` entry appears. The lead stays in the list — it is not removed or archived.
-   - *Failure — `LEADS_LOSS_DETAIL_REQUIRED`:* inline field error on the explanation field.
-   - *Failure — `LEADS_LOSS_REASON_INACTIVE`:* the reason was retired mid-dialog. Re-fetch and ask the user to re-pick.
-   - *Failure — `LEADS_STAGE_NOT_EDITABLE`:* someone else already closed it. Refresh the lead and show its current state.
+   - _Failure — `LEADS_LOSS_DETAIL_REQUIRED`:_ inline field error on the explanation field.
+   - _Failure — `LEADS_LOSS_REASON_INACTIVE`:_ the reason was retired mid-dialog. Re-fetch and ask the user to re-pick.
+   - _Failure — `LEADS_STAGE_NOT_EDITABLE`:_ someone else already closed it. Refresh the lead and show its current state.
 
 4. **Lead Detail** — the page now renders the closed state: reason, explanation, who closed it, when, and the stage it held beforehand. The primary action becomes "Reopen."
 
@@ -182,10 +182,10 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `POST /api/v1/leads/<lead_id>/reopen/` (`leads.lead.reopen`)
    - **Requires state:** the lead must currently be `lost` or `converted`.
    - **Side effects:** stage returns to an active value; all five loss fields clear; a `lead_reopened` entry appears. `converted_at`/`converted_by` are **not** cleared.
-   - *Failure — `LEADS_LEAD_NOT_LOST`:* the lead is already active — someone reopened it first. Refresh and hide the button.
+   - _Failure — `LEADS_LEAD_NOT_LOST`:_ the lead is already active — someone reopened it first. Refresh and hide the button.
 
 2. **Lead Detail** — the History panel still shows the original `lead_marked_lost` entry alongside the new `lead_reopened` one.
-   - *Note:* reopening never erases history, and reopening a **converted** lead never undoes the conversion. If the lead was converted, keep showing its applicant link after reopening — a second applicant must never be created from it.
+   - _Note:_ reopening never erases history, and reopening a **converted** lead never undoes the conversion. If the lead was converted, keep showing its applicant link after reopening — a second applicant must never be created from it.
 
 ---
 
@@ -202,23 +202,23 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `GET /api/v1/leads/loss-reasons/?include_inactive=true` (`leads.loss_reason.list`)
    - **Requires state:** an authenticated Admin or Lead Manager (reads are open to both).
    - **Side effects:** none.
-   - *Note:* only this settings screen passes `include_inactive=true`. Every picker elsewhere must omit it so retired entries stay hidden.
+   - _Note:_ only this settings screen passes `include_inactive=true`. Every picker elsewhere must omit it so retired entries stay hidden.
 
 2. **Lead Configuration** — the Admin adds an entry →
    `POST /api/v1/leads/sources/` (`leads.source.create`) or
    `POST /api/v1/leads/loss-reasons/` (`leads.loss_reason.create`)
    - **Requires state:** Admin authority.
    - **Side effects:** the entry becomes available in every picker immediately. An audit event is written, but it does **not** appear in any lead's history.
-   - *Failure — `LEADS_ACTOR_FORBIDDEN`:* the caller is a Lead Manager or Superadmin. Hide this screen from non-Admins entirely rather than showing a disabled form.
-   - *Failure — `LEADS_SOURCE_CODE_TAKEN` / `LEADS_LOSS_REASON_CODE_TAKEN`:* inline error on the code field. The clash may be with a *retired* entry, so suggest checking the retired list.
+   - _Failure — `LEADS_ACTOR_FORBIDDEN`:_ the caller is a Lead Manager or Superadmin. Hide this screen from non-Admins entirely rather than showing a disabled form.
+   - _Failure — `LEADS_SOURCE_CODE_TAKEN` / `LEADS_LOSS_REASON_CODE_TAKEN`:_ inline error on the code field. The clash may be with a _retired_ entry, so suggest checking the retired list.
 
 3. **Lead Configuration** — the Admin retires an entry →
    `PATCH /api/v1/leads/sources/<source_id>/` (`leads.source.update`) or
    `PATCH /api/v1/leads/loss-reasons/<reason_id>/` (`leads.loss_reason.update`) with `is_active: false`
    - **Requires state:** Admin authority; the entry must exist.
    - **Side effects:** the entry disappears from pickers but stays attached to existing leads.
-   - *Failure — `LEADS_SOURCE_NOT_FOUND` / `LEADS_LOSS_REASON_NOT_FOUND`:* row-level error; refresh the list.
-   - *Note:* there is no delete. The UI must offer "Retire," never "Delete."
+   - _Failure — `LEADS_SOURCE_NOT_FOUND` / `LEADS_LOSS_REASON_NOT_FOUND`:_ row-level error; refresh the list.
+   - _Note:_ there is no delete. The UI must offer "Retire," never "Delete."
 
 ---
 
@@ -234,13 +234,13 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `GET /api/v1/leads/<lead_id>/history/` (`leads.lead.list_history`) **(cross-app: `audit`)**
    - **Requires state:** the lead must be in the caller's scope.
    - **Side effects:** none.
-   - *Note:* entries originate in the central `audit` log; this endpoint is a scoped view of it. Render `summary` as the primary label and `changes` (when present) as a from→to detail line.
+   - _Note:_ entries originate in the central `audit` log; this endpoint is a scoped view of it. Render `summary` as the primary label and `changes` (when present) as a from→to detail line.
 
 2. **Lead Detail → Notes panel** — loaded alongside →
    `GET /api/v1/leads/<lead_id>/notes/` (`leads.note.list`)
    - **Requires state:** the lead must be in the caller's scope.
    - **Side effects:** none.
-   - *Note:* note **text** lives only here — history entries record that a note was added, never its contents. A complete activity view needs both panels.
+   - _Note:_ note **text** lives only here — history entries record that a note was added, never its contents. A complete activity view needs both panels.
 
 ---
 
@@ -256,46 +256,46 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `DELETE /api/v1/leads/<lead_id>/` (`leads.lead.delete`) with `{ "reason": "…" }`
    - **Requires state:** Admin; the lead is not converted and not already deleted.
    - **Side effects:** `lead_deleted` in History; the lead disappears from the Lead List, global search, dashboards, and its owner's view. The owner and the other Admins receive a `lead_deleted` notification **(cross-app: `notifications`)**.
-   - *Failure — `LEADS_LEAD_ALREADY_CONVERTED` (409):* converted leads cannot be deleted — hide Delete on them.
-   - *Failure — `LEADS_ACTOR_FORBIDDEN` (403):* a Lead Manager — the Delete action is Admin-only; hide it.
+   - _Failure — `LEADS_LEAD_ALREADY_CONVERTED` (409):_ converted leads cannot be deleted — hide Delete on them.
+   - _Failure — `LEADS_ACTOR_FORBIDDEN` (403):_ a Lead Manager — the Delete action is Admin-only; hide it.
 2. **Lead List → "Deleted" tab** (Admin only) →
    `GET /api/v1/leads/?deleted=true` (`leads.lead.list`)
-   - *Failure — `LEADS_ACTOR_FORBIDDEN` (403):* never show this tab to a Lead Manager.
+   - _Failure — `LEADS_ACTOR_FORBIDDEN` (403):_ never show this tab to a Lead Manager.
 3. **Deleted lead → Restore** →
    `POST /api/v1/leads/<lead_id>/restore/` (`leads.lead.restore`) with an optional `{ "reason": "…" }`
    - **Side effects:** `lead_restored` in History; the lead returns to every list exactly as it was. The owner and the other Admins receive a `lead_restored` notification **(cross-app: `notifications`)**.
-   - *Failure — `LEADS_LEAD_NOT_DELETED` (409):* already restored — refresh.
+   - _Failure — `LEADS_LEAD_NOT_DELETED` (409):_ already restored — refresh.
 
-- *Note:* while deleted, every edit, stage, follow-up, lost, reopen, convert, and note action returns 409 `LEADS_LEAD_DELETED`. Render a deleted lead read-only with a "Deleted — restore to edit" banner.
+- _Note:_ while deleted, every edit, stage, follow-up, lost, reopen, convert, and note action returns 409 `LEADS_LEAD_DELETED`. Render a deleted lead read-only with a "Deleted — restore to edit" banner.
 
 ---
 
 ## Endpoint coverage
 
-| `permission_key` | `METHOD /path` | Used by flow(s) | Notes |
-|------------------|----------------|-----------------|-------|
-| `leads.source.list` | `GET /api/v1/leads/sources/` | Record a new enquiry; Configure the pickers | |
-| `leads.source.create` | `POST /api/v1/leads/sources/` | Configure the pickers | Admin only |
-| `leads.source.update` | `PATCH /api/v1/leads/sources/<source_id>/` | Configure the pickers | Admin only; retire, never delete |
-| `leads.loss_reason.list` | `GET /api/v1/leads/loss-reasons/` | Close an enquiry; Configure the pickers | |
-| `leads.loss_reason.create` | `POST /api/v1/leads/loss-reasons/` | Configure the pickers | Admin only |
-| `leads.loss_reason.update` | `PATCH /api/v1/leads/loss-reasons/<reason_id>/` | Configure the pickers | Admin only |
-| `leads.lead.list` | `GET /api/v1/leads/` | Work a lead through follow-up; Delete and restore (Deleted tab) | Owner-scoped; deleted leads hidden, Admin-only `?deleted=true`. Search spans name, email, and phone and returns relevance-ordered results |
-| `leads.lead.create` | `POST /api/v1/leads/` | Record a new enquiry | Notifies the other Admins |
-| `leads.lead.read` | `GET /api/v1/leads/<lead_id>/` | Work a lead; Close; Revive; Review | |
-| `leads.lead.update` | `PATCH /api/v1/leads/<lead_id>/` | — | `unused by flow — correction path (Edit Lead form), not a journey. Same form as create; replaces contact numbers wholesale.` |
-| `leads.lead.change_stage` | `POST /api/v1/leads/<lead_id>/stage/` | Work a lead through follow-up | Active stages only |
-| `leads.lead.record_followup` | `POST /api/v1/leads/<lead_id>/follow-up/` | Work a lead through follow-up | |
-| `leads.lead.mark_lost` | `POST /api/v1/leads/<lead_id>/lost/` | Close an enquiry that will not proceed | |
-| `leads.lead.reopen` | `POST /api/v1/leads/<lead_id>/reopen/` | Revive a closed enquiry | |
-| `leads.note.list` | `GET /api/v1/leads/<lead_id>/notes/` | Review a lead's full story | `?category=` tabs; `meta.counts` badges |
-| `leads.note.create` | `POST /api/v1/leads/<lead_id>/notes/` | Work a lead through follow-up | General/Visit, backdatable; also via the follow-up dialog's `note` field; a visit note notifies the owner |
-| `leads.note.update` | `PATCH /api/v1/leads/<lead_id>/notes/<note_id>/` | Work a lead through follow-up (step 6) | Author or Admin |
-| `leads.note.delete` | `DELETE /api/v1/leads/<lead_id>/notes/<note_id>/` | Work a lead through follow-up (step 6) | Author or Admin; soft |
-| `leads.lead.delete` | `DELETE /api/v1/leads/<lead_id>/` | Delete and restore a lead | Admin only; reason required; soft; notifies owner + Admins |
-| `leads.lead.restore` | `POST /api/v1/leads/<lead_id>/restore/` | Delete and restore a lead | Admin only; notifies owner + Admins |
-| `leads.lead.list_history` | `GET /api/v1/leads/<lead_id>/history/` | Review a lead's full story | Backed by `audit` |
-| `leads.lead.convert` | `POST /api/v1/leads/<lead_id>/convert/` | Convert a lead into a client | Admin only; idempotent; creates records in two other apps, copies notes, assigns the applicant to the lead owner; notifies owner + Admins |
+| `permission_key`             | `METHOD /path`                                    | Used by flow(s)                                                 | Notes                                                                                                                                     |
+| ---------------------------- | ------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `leads.source.list`          | `GET /api/v1/leads/sources/`                      | Record a new enquiry; Configure the pickers                     |                                                                                                                                           |
+| `leads.source.create`        | `POST /api/v1/leads/sources/`                     | Configure the pickers                                           | Admin only                                                                                                                                |
+| `leads.source.update`        | `PATCH /api/v1/leads/sources/<source_id>/`        | Configure the pickers                                           | Admin only; retire, never delete                                                                                                          |
+| `leads.loss_reason.list`     | `GET /api/v1/leads/loss-reasons/`                 | Close an enquiry; Configure the pickers                         |                                                                                                                                           |
+| `leads.loss_reason.create`   | `POST /api/v1/leads/loss-reasons/`                | Configure the pickers                                           | Admin only                                                                                                                                |
+| `leads.loss_reason.update`   | `PATCH /api/v1/leads/loss-reasons/<reason_id>/`   | Configure the pickers                                           | Admin only                                                                                                                                |
+| `leads.lead.list`            | `GET /api/v1/leads/`                              | Work a lead through follow-up; Delete and restore (Deleted tab) | Owner-scoped; deleted leads hidden, Admin-only `?deleted=true`. Search spans name, email, and phone and returns relevance-ordered results |
+| `leads.lead.create`          | `POST /api/v1/leads/`                             | Record a new enquiry                                            | Notifies the other Admins                                                                                                                 |
+| `leads.lead.read`            | `GET /api/v1/leads/<lead_id>/`                    | Work a lead; Close; Revive; Review                              |                                                                                                                                           |
+| `leads.lead.update`          | `PATCH /api/v1/leads/<lead_id>/`                  | —                                                               | `unused by flow — correction path (Edit Lead form), not a journey. Same form as create; replaces contact numbers wholesale.`              |
+| `leads.lead.change_stage`    | `POST /api/v1/leads/<lead_id>/stage/`             | Work a lead through follow-up                                   | Active stages only                                                                                                                        |
+| `leads.lead.record_followup` | `POST /api/v1/leads/<lead_id>/follow-up/`         | Work a lead through follow-up                                   |                                                                                                                                           |
+| `leads.lead.mark_lost`       | `POST /api/v1/leads/<lead_id>/lost/`              | Close an enquiry that will not proceed                          |                                                                                                                                           |
+| `leads.lead.reopen`          | `POST /api/v1/leads/<lead_id>/reopen/`            | Revive a closed enquiry                                         |                                                                                                                                           |
+| `leads.note.list`            | `GET /api/v1/leads/<lead_id>/notes/`              | Review a lead's full story                                      | `?category=` tabs; `meta.counts` badges                                                                                                   |
+| `leads.note.create`          | `POST /api/v1/leads/<lead_id>/notes/`             | Work a lead through follow-up                                   | General/Visit, backdatable; also via the follow-up dialog's `note` field; a visit note notifies the owner                                 |
+| `leads.note.update`          | `PATCH /api/v1/leads/<lead_id>/notes/<note_id>/`  | Work a lead through follow-up (step 6)                          | Author or Admin                                                                                                                           |
+| `leads.note.delete`          | `DELETE /api/v1/leads/<lead_id>/notes/<note_id>/` | Work a lead through follow-up (step 6)                          | Author or Admin; soft                                                                                                                     |
+| `leads.lead.delete`          | `DELETE /api/v1/leads/<lead_id>/`                 | Delete and restore a lead                                       | Admin only; reason required; soft; notifies owner + Admins                                                                                |
+| `leads.lead.restore`         | `POST /api/v1/leads/<lead_id>/restore/`           | Delete and restore a lead                                       | Admin only; notifies owner + Admins                                                                                                       |
+| `leads.lead.list_history`    | `GET /api/v1/leads/<lead_id>/history/`            | Review a lead's full story                                      | Backed by `audit`                                                                                                                         |
+| `leads.lead.convert`         | `POST /api/v1/leads/<lead_id>/convert/`           | Convert a lead into a client                                    | Admin only; idempotent; creates records in two other apps, copies notes, assigns the applicant to the lead owner; notifies owner + Admins |
 
 ## Cross-app dependencies
 

@@ -67,9 +67,9 @@ Authored and updated by the backend author in the same commit as any endpoint ch
      step by construction.
    - **This app does not check the catalogue.** A slug absent from it, or present but retired, is
      still accepted here. **The picker is the only guard** — there is no server-side one.
-   - *Failure — `DOCUMENTS_TEMPLATE_KEY_INVALID`:* the two came from different pickers. A UI bug,
+   - _Failure — `DOCUMENTS_TEMPLATE_KEY_INVALID`:_ the two came from different pickers. A UI bug,
      not user error.
-   - *Failure — `VALIDATION_ERROR` on `template_key`:* the slug is malformed — uppercase, spaces, or
+   - _Failure — `VALIDATION_ERROR` on `template_key`:_ the slug is malformed — uppercase, spaces, or
      underscores. Slugs are lowercase ASCII with single hyphens.
    - **`content` is optional here** and defaults to `{}`. The workspace opens before anything is
      typed into it.
@@ -84,20 +84,21 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Render `label`, never `template_key`,** to the user — the slug is a machine key.
 
 3a. **Document Workspace → any form field (optional)** — suggest a clipboard snippet for the field →
-   `GET /api/v1/auth/me/clipboard/?field_key=<key>` (`authenticate.clipboard_entry.list`)
-   **(cross-app: `authenticate`)**, where `<key>` is the frontend's own name for the field
-   (`father.name`, `ward.spokesperson.name`); comma-separate several keys. After the user copies a
-   suggestion into the field →
-   `POST /api/v1/auth/me/clipboard/<entry_id>/use/` (`authenticate.clipboard_entry.use`)
-   **(cross-app: `authenticate`)** so it ranks first next time.
-   - **Requires state:** a valid access token. The clipboard is the **caller's own** — every
-     authority has one; there is no shared or applicant-scoped clipboard, so nothing about the
-     applicant is looked up here.
-   - **Side effects:** `use` bumps the snippet's `usage_count`; nothing in this module changes. The
-     value only reaches the document when step 4 saves it.
-   - An empty result means nothing is saved for that key — offer "save to my clipboard"
-     (`authenticate.clipboard_entry.create`, same `field_key`). Full flow in
-     `concepts/authenticate_flows.md` → "Fill a document form field from the clipboard".
+`GET /api/v1/auth/me/clipboard/?field_key=<key>` (`authenticate.clipboard_entry.list`)
+**(cross-app: `authenticate`)**, where `<key>` is the frontend's own name for the field
+(`father.name`, `ward.spokesperson.name`); comma-separate several keys. After the user copies a
+suggestion into the field →
+`POST /api/v1/auth/me/clipboard/<entry_id>/use/` (`authenticate.clipboard_entry.use`)
+**(cross-app: `authenticate`)** so it ranks first next time.
+
+- **Requires state:** a valid access token. The clipboard is the **caller's own** — every
+  authority has one; there is no shared or applicant-scoped clipboard, so nothing about the
+  applicant is looked up here.
+- **Side effects:** `use` bumps the snippet's `usage_count`; nothing in this module changes. The
+  value only reaches the document when step 4 saves it.
+- An empty result means nothing is saved for that key — offer "save to my clipboard"
+  (`authenticate.clipboard_entry.create`, same `field_key`). Full flow in
+  `concepts/authenticate_flows.md` → "Fill a document form field from the clipboard".
 
 4. **Document Workspace** — save →
    `PATCH /api/v1/documents/<document_id>/` (`documents.document.update`)
@@ -109,16 +110,16 @@ Authored and updated by the backend author in the same commit as any endpoint ch
      `family`, or `template_key` fails the whole request — this module rejects immutable fields
      rather than dropping them, unlike `institutions`. Do not reuse a read-modify-write-the-whole-object
      form component from the catalogue screens.
-   - *Failure — `DOCUMENTS_OWNERSHIP_IMMUTABLE` / `DOCUMENTS_STATUS_IMMUTABLE`:* strip those keys
+   - _Failure — `DOCUMENTS_OWNERSHIP_IMMUTABLE` / `DOCUMENTS_STATUS_IMMUTABLE`:_ strip those keys
      before submitting; `details` names each offending field.
-   - *Failure — `DOCUMENTS_CONTENT_INVALID` (student certificate only):* a field breaks the
+   - _Failure — `DOCUMENTS_CONTENT_INVALID` (student certificate only):_ a field breaks the
      certificate rules (a date order, attendance hours over class hours, a grade outside A–D, a photo
      that is not this applicant's photograph). `error.details.fields` maps each content path — e.g.
      `marking[2].present` — to a message; mark those inputs. Other templates never return this for
      their keys.
-   - *Failure — `DOCUMENTS_CONTENT_TOO_LARGE`:* the body exceeds 256 KiB. Realistically only a very
+   - _Failure — `DOCUMENTS_CONTENT_TOO_LARGE`:_ the body exceeds 256 KiB. Realistically only a very
      long bank statement. Show it against the transactions table, not as a form-level error.
-   - *Failure — `DOCUMENTS_DOCUMENT_NOT_EDITABLE` (409):* the document was archived, probably by
+   - _Failure — `DOCUMENTS_DOCUMENT_NOT_EDITABLE` (409):_ the document was archived, probably by
      someone else. Refetch and switch the workspace to read-only.
    - **A no-op save writes no history event.** A UI showing "saved, history updated" after an
      unchanged submit will be lying.
@@ -133,7 +134,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
 6. **Print** — save first, then
    `POST /api/v1/document-history/documents/<document_id>/snapshots/`
    (`document_history.snapshot.capture`) **(cross-app: `document_history`)**. Capture reads the
-   *committed* row, so step 4 must have completed. Full sequence in
+   _committed_ row, so step 4 must have completed. Full sequence in
    `concepts/document_history_flows.md` → "Capture a print snapshot".
 
 ---
@@ -161,7 +162,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Send `standalone_purpose` and omit `applicant`.** The concept requires that a standalone
      document "must still say who owns or commissioned it", and the API enforces it: exactly one of
      the two must be present.
-   - *Failure — `DOCUMENTS_OWNER_REQUIRED`:* neither was given. Make the purpose field mandatory on
+   - _Failure — `DOCUMENTS_OWNER_REQUIRED`:_ neither was given. Make the purpose field mandatory on
      the standalone branch of the form.
 
 3. **Work it forward** — identical to steps 3–5 of the applicant flow.
@@ -187,8 +188,8 @@ Authored and updated by the backend author in the same commit as any endpoint ch
      counted in the landing table's `archived_count`. Allowed from `draft` and `ready` alike.
    - **The reason input is mandatory** — enforce it before submit. Archived documents are kept
      forever, so why one is archived must be answerable from the record.
-   - *Failure — `DOCUMENTS_ARCHIVE_REASON_REQUIRED`:* a whitespace-only reason reached the server.
-   - *Failure — `DOCUMENTS_DOCUMENT_ALREADY_ARCHIVED` (409):* refetch; someone else archived it.
+   - _Failure — `DOCUMENTS_ARCHIVE_REASON_REQUIRED`:_ a whitespace-only reason reached the server.
+   - _Failure — `DOCUMENTS_DOCUMENT_ALREADY_ARCHIVED` (409):_ refetch; someone else archived it.
    - **"Delete" or "Remove" is fine as a label** — the UI may call it that, as long as the
      confirmation says the record is kept and can be restored.
 
@@ -204,7 +205,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
      archive fields. The document reappears in the default list.
    - **It returns to the status it had** — a `ready` document comes back `ready`. Documents removed
      before 2026-10-29 come back `draft`.
-   - *Failure — `DOCUMENTS_DOCUMENT_NOT_ARCHIVED` (409):* it was already active.
+   - _Failure — `DOCUMENTS_DOCUMENT_NOT_ARCHIVED` (409):_ it was already active.
 
 4. **History panel** — the archiving is still there →
    `GET /api/v1/documents/<document_id>/history/` (`documents.document.list_history`)
@@ -250,11 +251,11 @@ history app". **That app now exists**, so the flow is deliverable — but not on
 this file. See **`concepts/document_history_flows.md` → "Capture a print snapshot"**, which begins
 where this app's workspace flow ends.
 
-What a client of *this* module needs to know about it:
+What a client of _this_ module needs to know about it:
 
 - **The print button posts to a different base path**, `/api/v1/document-history/`, not to
   `/api/v1/documents/`. There is no print endpoint under this app and there will not be one.
-- **Save before printing.** Capture reads the *committed* document row, so an unsaved workspace
+- **Save before printing.** Capture reads the _committed_ document row, so an unsaved workspace
   freezes the old body and nobody is told. Sequence step 4 of the applicant flow above before the
   capture, always.
 - **Printing changes nothing here.** No status moves, `updated_at` does not shift, and no field on
@@ -299,18 +300,18 @@ it itself. The signatory dropdown must be backed by the real endpoint rather tha
 
 ## Endpoint coverage
 
-| `permission_key` | `METHOD /path` | Used by flow(s) | Notes |
-|------------------|----------------|-----------------|-------|
-| `documents.document.list` | `GET /api/v1/documents/` | Applicant document panel; Standalone list; Landing row click; Remove → restore (step 3) | Omits `content`. Hides archived unless `?status=archived` / `?include_archived=true`. `?applicant=`, `?standalone=`, `?status=`, `?family=`, `?search=` |
-| `documents.document.create` | `POST /api/v1/documents/` | Create applicant document; Create standalone | `family` + `template_key` cross-validated; `template_version`; `student-certificate` content validated |
-| `documents.document.list_workspaces` | `GET /api/v1/documents/workspaces/` | Documents landing table | Excludes standalone; archived counted in `archived_count` |
-| `documents.document.read` | `GET /api/v1/documents/<document_id>/` | Document Workspace | **The only endpoint returning `content`** |
-| `documents.document.update` | `PATCH /api/v1/documents/<document_id>/` | Document Workspace save | `content` replaces wholesale; immutable fields rejected; `student-certificate` content validated |
-| `documents.document.change_status` | `POST /api/v1/documents/<document_id>/status/` | Mark ready | `draft` / `ready` only; `ready` notifies the other Admins |
-| `documents.document.archive` | `POST /api/v1/documents/<document_id>/archive/` | Remove | Reason mandatory. **This is the delete button** |
-| `documents.document.restore` | `POST /api/v1/documents/<document_id>/restore/` | Remove → restore | Returns to the pre-archive status; optional `reason` |
-| `documents.document.list_history` | `GET /api/v1/documents/<document_id>/history/` | Remove (step 4); Workspace history panel | Body changes shown as a marker only |
-| `documents.prefill.read` | `GET /api/v1/documents/prefill/<applicant_id>/` | Create and work on an applicant's document (step 2) | Admin only; read-only; no `name_native`/`honorific` |
+| `permission_key`                     | `METHOD /path`                                  | Used by flow(s)                                                                         | Notes                                                                                                                                                   |
+| ------------------------------------ | ----------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `documents.document.list`            | `GET /api/v1/documents/`                        | Applicant document panel; Standalone list; Landing row click; Remove → restore (step 3) | Omits `content`. Hides archived unless `?status=archived` / `?include_archived=true`. `?applicant=`, `?standalone=`, `?status=`, `?family=`, `?search=` |
+| `documents.document.create`          | `POST /api/v1/documents/`                       | Create applicant document; Create standalone                                            | `family` + `template_key` cross-validated; `template_version`; `student-certificate` content validated                                                  |
+| `documents.document.list_workspaces` | `GET /api/v1/documents/workspaces/`             | Documents landing table                                                                 | Excludes standalone; archived counted in `archived_count`                                                                                               |
+| `documents.document.read`            | `GET /api/v1/documents/<document_id>/`          | Document Workspace                                                                      | **The only endpoint returning `content`**                                                                                                               |
+| `documents.document.update`          | `PATCH /api/v1/documents/<document_id>/`        | Document Workspace save                                                                 | `content` replaces wholesale; immutable fields rejected; `student-certificate` content validated                                                        |
+| `documents.document.change_status`   | `POST /api/v1/documents/<document_id>/status/`  | Mark ready                                                                              | `draft` / `ready` only; `ready` notifies the other Admins                                                                                               |
+| `documents.document.archive`         | `POST /api/v1/documents/<document_id>/archive/` | Remove                                                                                  | Reason mandatory. **This is the delete button**                                                                                                         |
+| `documents.document.restore`         | `POST /api/v1/documents/<document_id>/restore/` | Remove → restore                                                                        | Returns to the pre-archive status; optional `reason`                                                                                                    |
+| `documents.document.list_history`    | `GET /api/v1/documents/<document_id>/history/`  | Remove (step 4); Workspace history panel                                                | Body changes shown as a marker only                                                                                                                     |
+| `documents.prefill.read`             | `GET /api/v1/documents/prefill/<applicant_id>/` | Create and work on an applicant's document (step 2)                                     | Admin only; read-only; no `name_native`/`honorific`                                                                                                     |
 
 **Screens from `concepts/documents.txt`, and whether they are backed:**
 

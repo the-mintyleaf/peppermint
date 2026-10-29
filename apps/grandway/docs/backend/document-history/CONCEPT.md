@@ -118,15 +118,15 @@ workspace as the starting point for a new working version.
 
 ## Constraints / Out of scope
 
-* No editing of existing snapshots.
-* No deletion of historical snapshots.
-* No replacement of the live document workspace.
-* No template authoring or rendering engine.
-* No recomputation of display-only values from current data once the snapshot is
+- No editing of existing snapshots.
+- No deletion of historical snapshots.
+- No replacement of the live document workspace.
+- No template authoring or rendering engine.
+- No recomputation of display-only values from current data once the snapshot is
   stored.
-* No Lead Manager access if the project keeps document data restricted to Admins
+- No Lead Manager access if the project keeps document data restricted to Admins
   only, which is the current direction of the documents app.
-* No assumption that a generated PDF must exist; the snapshot is the record,
+- No assumption that a generated PDF must exist; the snapshot is the record,
   the file is optional.
 
 ## Open questions
@@ -136,47 +136,47 @@ built on 2026-07-24. The resolutions are recorded inline; the reasoning for each
 is in backend/document_history/docs/DATA_CONTRACT.md under "Deliberate
 Deviations". The concept text above is left as originally written.
 
-* Should the stored snapshot include the full rendered HTML/markup, or only the
+- Should the stored snapshot include the full rendered HTML/markup, or only the
   source data plus enough render metadata to reproduce it?
   -> RESOLVED: source data plus render context. The backend copies the document
-     body verbatim; the frontend supplies a render_context holding the values it
-     computed, the template version, and the signatory metadata. No markup is
-     stored: it is unbounded, duplicates data held twice already, and would be
-     an injection liability if anything ever served it back.
+  body verbatim; the frontend supplies a render_context holding the values it
+  computed, the template version, and the signatory metadata. No markup is
+  stored: it is unbounded, duplicates data held twice already, and would be
+  an injection liability if anything ever served it back.
 
-* Should generated PDFs be retained by default, or only when a user explicitly
+- Should generated PDFs be retained by default, or only when a user explicitly
   chooses to keep one?
   -> RESOLVED (deferred): neither, for now. There is no file field at all,
-     because uploaded_files does not exist and any reference stored today would
-     be an opaque string nothing can resolve. Adding it later is additive. The
-     "Generated file reference" entity above is therefore not built.
+  because uploaded_files does not exist and any reference stored today would
+  be an opaque string nothing can resolve. Adding it later is additive. The
+  "Generated file reference" entity above is therefore not built.
 
-* Should the history timeline be per-document only, or also support a wider
+- Should the history timeline be per-document only, or also support a wider
   document-family view for Admin review?
   -> RESOLVED: per-document only. Both list endpoints require a document id.
-     A wider view is additive and was not built (CLAUDE.md §32).
+  A wider view is additive and was not built (CLAUDE.md §32).
 
-* What exact fields must be frozen in the snapshot for each document family so
+- What exact fields must be frozen in the snapshot for each document family so
   recovery is reliable?
   -> STILL OPEN, and deliberately so. The backend freezes the whole body
-     verbatim rather than a per-family field list, for the same reason the
-     documents app does not validate content: 42 template shapes, all open. The
-     unresolved half is that **nothing enforces the split** between input fields
-     (content) and computed values (render_context) — a client that puts a
-     closing balance in the body will have it frozen there silently. That
-     convention is load-bearing for recovery and invisible to the backend.
+  verbatim rather than a per-family field list, for the same reason the
+  documents app does not validate content: 42 template shapes, all open. The
+  unresolved half is that **nothing enforces the split** between input fields
+  (content) and computed values (render_context) — a client that puts a
+  closing balance in the body will have it frozen there silently. That
+  convention is load-bearing for recovery and invisible to the backend.
 
-* Should the history app expose a direct restore endpoint, or only a recovery
+- Should the history app expose a direct restore endpoint, or only a recovery
   payload for the documents app to consume?
   -> RESOLVED: a direct recover endpoint. A payload-only design makes recovery
-     two client calls that can fail between, and the resulting write would not
-     be attributable to a recovery at all. The endpoint writes through the
-     documents app's own update service, so that app's archive lock, size cap,
-     and redacted audit event still apply.
+  two client calls that can fail between, and the resulting write would not
+  be attributable to a recovery at all. The endpoint writes through the
+  documents app's own update service, so that app's archive lock, size cap,
+  and redacted audit event still apply.
 
 ## Correction notes
 
-* **Access is Admin only, reads included.** The Constraints section above says
+- **Access is Admin only, reads included.** The Constraints section above says
   "No Lead Manager access if the project keeps document data restricted to
   Admins only, which is the current direction of the documents app." It does,
   so that is what was built. A Lead Manager receives 403 on every route here.

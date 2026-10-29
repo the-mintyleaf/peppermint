@@ -26,8 +26,8 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Side effects:** one `reminder_created` audit event; from the due date onward, the nightly
      sweep raises a `custom_reminder` alert to every active Admin, and — for an applicant reminder — to the
      applicant's assignee when one is set (cross-app: `notifications`).
-   - *Failure — `VALIDATION_ERROR`:* inline field errors (past date, blank note).
-   - *Failure — `REMINDERS_OWNER_NOT_FOUND`:* the record id is stale — refresh the record screen.
+   - _Failure — `VALIDATION_ERROR`:_ inline field errors (past date, blank note).
+   - _Failure — `REMINDERS_OWNER_NOT_FOUND`:_ the record id is stale — refresh the record screen.
 3. **Reminders panel** — refresh the list to show the new entry →
    `GET /api/v1/reminders/?applicant=<id>&status=active` (`reminders.reminder.list`)
    - **Requires state:** none
@@ -49,7 +49,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `GET /api/v1/reminders/<id>/` (`reminders.reminder.read`)
    - **Requires state:** none
    - **Side effects:** none
-   - *Failure — `REMINDERS_REMINDER_NOT_FOUND`:* show "this reminder no longer resolves" and let
+   - _Failure — `REMINDERS_REMINDER_NOT_FOUND`:_ show "this reminder no longer resolves" and let
      the user dismiss the notification manually — should not occur, since reminders are never deleted.
 3. **Reminder detail** — jump to the owning record via its `applicant`/`client` id →
    `GET /api/v1/applicants/<id>/` (`applicants.applicant.read`) **(cross-app: `applicants`)** or
@@ -63,7 +63,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Side effects:** `closed_at`/`closed_by` stamped; one audit event; the pending admin alert
      auto-resolves as `source_cleared` on the next nightly sweep (cross-app: `notifications`) —
      **do not also dismiss the notification**.
-   - *Failure — `REMINDERS_REMINDER_ALREADY_CLOSED` (409):* a colleague got there first — refresh;
+   - _Failure — `REMINDERS_REMINDER_ALREADY_CLOSED` (409):_ a colleague got there first — refresh;
      the alert clears on the next sweep.
 
 ## Flow: Reschedule a follow-up
@@ -80,9 +80,9 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Side effects:** a `reminder_rescheduled` (date moved) or `reminder_updated` (note only)
      audit event with the old→new values; any already-raised alert auto-resolves on the next sweep
      and a fresh one fires when the new date arrives (cross-app: `notifications`).
-   - *Failure — `REMINDERS_FIELD_IMMUTABLE`:* the edit form sent an owner or lifecycle field —
+   - _Failure — `REMINDERS_FIELD_IMMUTABLE`:_ the edit form sent an owner or lifecycle field —
      send only `due_date`/`note`.
-   - *Failure — `REMINDERS_REMINDER_ALREADY_CLOSED` (409):* closed reminders cannot move; offer
+   - _Failure — `REMINDERS_REMINDER_ALREADY_CLOSED` (409):_ closed reminders cannot move; offer
      "create a new reminder" instead.
 2. **Reminder history** — show what changed →
    `GET /api/v1/reminders/<id>/history/` (`reminders.reminder.list_history`)
@@ -93,15 +93,15 @@ Authored and updated by the backend author in the same commit as any endpoint ch
 
 ## Endpoint coverage
 
-| `permission_key` | `METHOD /path` | Used by flow(s) | Notes |
-|------------------|----------------|-----------------|-------|
-| `reminders.reminder.list` | `GET /api/v1/reminders/` | Set a follow-up on a record | Also the due-window worklist (`?due_before=`), which has no dedicated flow yet |
-| `reminders.reminder.create` | `POST /api/v1/reminders/` | Set a follow-up on a record | |
-| `reminders.reminder.read` | `GET /api/v1/reminders/<id>/` | Act on a due reminder alert | The `source_api_path` target of a `custom_reminder` notification |
-| `reminders.reminder.update` | `PATCH /api/v1/reminders/<id>/` | Reschedule a follow-up | |
-| `reminders.reminder.complete` | `POST /api/v1/reminders/<id>/complete/` | Act on a due reminder alert | Also available from the reminders panel directly |
-| `reminders.reminder.dismiss` | `POST /api/v1/reminders/<id>/dismiss/` | Act on a due reminder alert | The "no longer relevant" branch |
-| `reminders.reminder.list_history` | `GET /api/v1/reminders/<id>/history/` | Reschedule a follow-up | The concept's "operational memory" — also useful on the reminder detail view unconditionally |
+| `permission_key`                  | `METHOD /path`                          | Used by flow(s)             | Notes                                                                                        |
+| --------------------------------- | --------------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------- |
+| `reminders.reminder.list`         | `GET /api/v1/reminders/`                | Set a follow-up on a record | Also the due-window worklist (`?due_before=`), which has no dedicated flow yet               |
+| `reminders.reminder.create`       | `POST /api/v1/reminders/`               | Set a follow-up on a record |                                                                                              |
+| `reminders.reminder.read`         | `GET /api/v1/reminders/<id>/`           | Act on a due reminder alert | The `source_api_path` target of a `custom_reminder` notification                             |
+| `reminders.reminder.update`       | `PATCH /api/v1/reminders/<id>/`         | Reschedule a follow-up      |                                                                                              |
+| `reminders.reminder.complete`     | `POST /api/v1/reminders/<id>/complete/` | Act on a due reminder alert | Also available from the reminders panel directly                                             |
+| `reminders.reminder.dismiss`      | `POST /api/v1/reminders/<id>/dismiss/`  | Act on a due reminder alert | The "no longer relevant" branch                                                              |
+| `reminders.reminder.list_history` | `GET /api/v1/reminders/<id>/history/`   | Reschedule a follow-up      | The concept's "operational memory" — also useful on the reminder detail view unconditionally |
 
 ## Cross-app dependencies
 

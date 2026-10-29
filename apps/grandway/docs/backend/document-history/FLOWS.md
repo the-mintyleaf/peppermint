@@ -17,7 +17,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
 >    edit is not what gets frozen.
 > 3. **Send the computed values in `render_context`, not in `content`.** The running balances,
 >    totals, closing balance, and amount-in-words that `documents` forbids you from persisting are
->    exactly what you *must* freeze here. This is the one place in Grandway where a derived value is
+>    exactly what you _must_ freeze here. This is the one place in Grandway where a derived value is
 >    stored on purpose.
 > 4. **Nothing here can be edited or deleted.** There is no `PUT`, `PATCH`, or `DELETE` on any route.
 >    A mistaken snapshot is corrected by capturing a new one, never by fixing the old one.
@@ -43,7 +43,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `PATCH /api/v1/documents/<document_id>/` (`documents.document.update`) **(cross-app: `documents`)**
    - **Requires state:** the document must not be archived.
    - **Side effects:** appends `document_updated` in `documents`.
-   - **This step is not optional in practice.** Capture reads the *committed* row under a lock. A
+   - **This step is not optional in practice.** Capture reads the _committed_ row under a lock. A
      workspace with unsaved changes will freeze the old body and the user will not be told.
 
 3. **Print Preview** — render locally, computing every derived value.
@@ -60,11 +60,11 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Put the computed values under `render_context`.** Everything the renderer calculated, plus the
      template version and the resolved signatories.
    - **Do not compute `version_number` client-side.** The server allocates it under a row lock;
-     two people printing at once get *n* and *n+1*.
-   - *Failure — `DOCUMENT_HISTORY_RENDER_CONTEXT_TOO_LARGE`:* the context exceeds 256 KiB. Realistically
+     two people printing at once get _n_ and _n+1_.
+   - _Failure — `DOCUMENT_HISTORY_RENDER_CONTEXT_TOO_LARGE`:_ the context exceeds 256 KiB. Realistically
      only a very long bank statement. Trim per-row derived values rather than failing the print.
-   - *Failure — `DOCUMENT_HISTORY_RENDER_CONTEXT_INVALID`:* an array or scalar was sent. A client bug.
-   - *Failure — `DOCUMENT_HISTORY_DOCUMENT_NOT_FOUND`:* the document id is wrong.
+   - _Failure — `DOCUMENT_HISTORY_RENDER_CONTEXT_INVALID`:_ an array or scalar was sent. A client bug.
+   - _Failure — `DOCUMENT_HISTORY_DOCUMENT_NOT_FOUND`:_ the document id is wrong.
 
 5. **Document Workspace** — the print button does **not** need to disable afterwards. Printing twice
    is legitimate and produces two versions.
@@ -89,12 +89,12 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - Rows carry `version_number` and `label` inline — no per-row fetch is needed to render them.
    - A document that has never been printed returns an **empty list**, not a 404. Render an empty
      state, not an error.
-   - *Failure — `DOCUMENT_HISTORY_DOCUMENT_NOT_FOUND`:* the document itself does not exist. This is a
+   - _Failure — `DOCUMENT_HISTORY_DOCUMENT_NOT_FOUND`:_ the document itself does not exist. This is a
      genuine 404, distinct from the empty list above.
 
 2. **Document History Timeline** — filter to originals only →
    `GET /api/v1/document-history/documents/<document_id>/timeline/?event_type=capture`
-   - *Failure — `VALIDATION_ERROR` on `event_type`:* only `capture`, `reprint`, and `recovery` exist.
+   - _Failure — `VALIDATION_ERROR` on `event_type`:_ only `capture`, `reprint`, and `recovery` exist.
      An unrecognised value is **rejected, not ignored** — do not send a free-text filter.
 
 3. **Document History Timeline** — the version list beside the timeline →
@@ -164,12 +164,12 @@ Authored and updated by the backend author in the same commit as any endpoint ch
      **The snapshot is not altered and no new snapshot is created.**
    - **The response is the updated `Document`, not the snapshot.** Re-render the workspace from it
      directly — no follow-up fetch.
-   - **Warn the user what is *not* restored:** `notes` and `status` stay as they are. A note written
+   - **Warn the user what is _not_ restored:** `notes` and `status` stay as they are. A note written
      after the print survives; a document marked `ready` stays `ready`.
-   - *Failure — `DOCUMENT_HISTORY_DOCUMENT_NOT_EDITABLE` (409):* **the document is archived, not the
+   - _Failure — `DOCUMENT_HISTORY_DOCUMENT_NOT_EDITABLE` (409):_ **the document is archived, not the
      snapshot.** Snapshots have no lifecycle. Offer the restore action below and retry.
    - **A no-op recovery is not an error.** If the body already matches, nothing changes in `documents`
-     and `updated_at` does not move — but the recovery *is* recorded. Do not report failure.
+     and `updated_at` does not move — but the recovery _is_ recorded. Do not report failure.
 
 3. **Document Workspace** — if step 2 returned 409, restore the document first →
    `POST /api/v1/documents/<document_id>/restore/` (`documents.document.restore`)
@@ -182,7 +182,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
 4. **Document Workspace** — capture again to freeze the recovered state →
    `POST /api/v1/document-history/documents/<document_id>/snapshots/`
    (`document_history.snapshot.capture`)
-   - Optional, but this is how the recovered body enters the chain as version *n+1*. A recovery on
+   - Optional, but this is how the recovered body enters the chain as version _n+1_. A recovery on
      its own leaves the chain untouched.
 
 ---
@@ -210,20 +210,20 @@ Authored and updated by the backend author in the same commit as any endpoint ch
      document may be reprinted, because reprinting writes nothing to the document.
    - **Side effects:** creates one `reprint` print event; appends `snapshot_reprinted`. **No new
      snapshot**, and nothing in `documents` changes.
-   - *Failure — `DOCUMENT_HISTORY_SNAPSHOT_NOT_FOUND`:* the snapshot id is wrong.
+   - _Failure — `DOCUMENT_HISTORY_SNAPSHOT_NOT_FOUND`:_ the snapshot id is wrong.
 
 ---
 
 ## Endpoint coverage
 
-| `permission_key` | `METHOD /path` | Used by flow(s) | Notes |
-|------------------|----------------|-----------------|-------|
-| `document_history.snapshot.capture` | `POST /api/v1/document-history/documents/<document_id>/snapshots/` | Capture a print snapshot; Recover (step 4) | Send `render_context`, never `content` |
-| `document_history.snapshot.list` | `GET /api/v1/document-history/documents/<document_id>/snapshots/` | Review history; Compare | Omits both JSON columns. `?fiscal_year=` |
-| `document_history.snapshot.read` | `GET /api/v1/document-history/snapshots/<snapshot_id>/` | Review history; Compare; Recover; Reprint | **The only endpoint returning a frozen body** |
-| `document_history.print_event.list` | `GET /api/v1/document-history/documents/<document_id>/timeline/` | Review history | `?event_type=`, `?fiscal_year=` |
-| `document_history.print_event.reprint` | `POST /api/v1/document-history/snapshots/<snapshot_id>/reprint/` | Reprint | Writes an event, never a snapshot |
-| `document_history.snapshot.recover` | `POST /api/v1/document-history/snapshots/<snapshot_id>/recover/` | Recover | **Writes into `documents`.** Returns a `Document` |
+| `permission_key`                       | `METHOD /path`                                                     | Used by flow(s)                            | Notes                                             |
+| -------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------ | ------------------------------------------------- |
+| `document_history.snapshot.capture`    | `POST /api/v1/document-history/documents/<document_id>/snapshots/` | Capture a print snapshot; Recover (step 4) | Send `render_context`, never `content`            |
+| `document_history.snapshot.list`       | `GET /api/v1/document-history/documents/<document_id>/snapshots/`  | Review history; Compare                    | Omits both JSON columns. `?fiscal_year=`          |
+| `document_history.snapshot.read`       | `GET /api/v1/document-history/snapshots/<snapshot_id>/`            | Review history; Compare; Recover; Reprint  | **The only endpoint returning a frozen body**     |
+| `document_history.print_event.list`    | `GET /api/v1/document-history/documents/<document_id>/timeline/`   | Review history                             | `?event_type=`, `?fiscal_year=`                   |
+| `document_history.print_event.reprint` | `POST /api/v1/document-history/snapshots/<snapshot_id>/reprint/`   | Reprint                                    | Writes an event, never a snapshot                 |
+| `document_history.snapshot.recover`    | `POST /api/v1/document-history/snapshots/<snapshot_id>/recover/`   | Recover                                    | **Writes into `documents`.** Returns a `Document` |
 
 **Screens from `concepts/document_history.txt`, and whether they are backed:**
 
@@ -236,7 +236,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
 
 **Not backed, and deliberately so:**
 
-- **Any generated-file link *in a snapshot payload*.** A snapshot still has no file field.
+- **Any generated-file link _in a snapshot payload_.** A snapshot still has no file field.
   `uploaded_files` shipped on 2026-07-24 and a snapshot **is** one of its five owner types, so a
   client that generates a PDF may store it — `POST /api/v1/files/` with `snapshot=<snapshot_id>`,
   `category=generated_document`, `upload_source=system_generated` (`uploaded_files.file.upload`,
@@ -255,7 +255,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
   - **Keep freezing the name and role alongside the id.** This app validates nothing inside
     `render_context`, and an id alone would leave a snapshot dependent on a lookup that may return a
     since-renamed record — which is exactly what freezing exists to prevent.
-  - **The signature *image* is not frozen, and a reprint therefore renders the current one.** Since
+  - **The signature _image_ is not frozen, and a reprint therefore renders the current one.** Since
     2026-09-10 a signatory can carry a real uploaded signature, and a reprint resolves it live
     through `document_templates.signatory.read` and `uploaded_files.file.download`
     **(cross-app: `uploaded_files`)**. Replace a director's signature and every historical reprint
@@ -291,7 +291,7 @@ not just this file.
   returns audit events, not snapshots.
 - **Should generated PDFs be retained?** Now answerable and still unanswered. `uploaded_files`
   exists, carries a `generated_document` category, and accepts a snapshot as an owner — so retention
-  is a product decision rather than a missing capability. What is still absent is any *automatic*
+  is a product decision rather than a missing capability. What is still absent is any _automatic_
   retention: nothing on the backend generates a PDF, and a snapshot payload has no reverse pointer to
   one that was uploaded.
 - **Nothing enforces the `content` / `render_context` split.** A client that puts a computed closing

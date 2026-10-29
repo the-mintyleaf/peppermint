@@ -9,14 +9,14 @@
 
 ## Change History
 
-| Version | Date | Author | Summary |
-|---------|------|--------|---------|
-| 1.0.0 | 2026-07-22 | AI (Claude Opus 4.8) | Initial contract — Phase 1 (login, refresh, logout, me, change password) |
-| 1.1.0 | 2026-07-22 | AI (Claude Opus 4.8) | Phase 2 MFA — mfa/enroll·verify·disable, login `otp_code`, `mfa_enabled`/`mfa_enrollment_required` |
-| 1.2.0 | 2026-07-22 | AI (Claude Opus 4.8) | Phase 3 — account management (users CRUD, block/restore, admin password/MFA reset), own + admin session management, per-account auth-activity review |
-| 1.3.0 | 2026-07-25 | AI (Claude Opus 4.8) | **Breaking:** English-only names — dropped the `_np`/`_romanized` columns and renamed `_en` fields to bare (User `full_name`). Taken in place on `/api/v1/`; see the iterations log 20260725_0037 |
-| 1.4.0 | 2026-10-28 | AI (Claude Opus 5.5) | Fix for sign-outs every 15–20 min: refresh on any 401 (expired access is `AUTHENTICATION_FAILED`, not `AUTHENTICATION_REQUIRED`); reuse grace window for concurrent refreshes; `access_expires_at`; `AUTH_REFRESH_INVALID` `details.reason`; persistent refresh cookie; per-token refresh throttle; own-session revoke keeps the caller's cookie on `others_only`. Non-breaking |
-| 1.5.0 | 2026-10-29 | AI (Claude Opus 5.5) | **Personal clipboard** — 9 endpoints under `/api/v1/auth/me/clipboard/` (entries list/save/update/delete/use, categories list/create/rename/delete); models ClipboardEntry, ClipboardCategory, Clipboard delete result; three flows. Every authority, Superadmin included; owner-only. Additive, non-breaking |
+| Version | Date       | Author               | Summary                                                                                                                                                                                                                                                                                                                                                                         |
+| ------- | ---------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-07-22 | AI (Claude Opus 4.8) | Initial contract — Phase 1 (login, refresh, logout, me, change password)                                                                                                                                                                                                                                                                                                        |
+| 1.1.0   | 2026-07-22 | AI (Claude Opus 4.8) | Phase 2 MFA — mfa/enroll·verify·disable, login `otp_code`, `mfa_enabled`/`mfa_enrollment_required`                                                                                                                                                                                                                                                                              |
+| 1.2.0   | 2026-07-22 | AI (Claude Opus 4.8) | Phase 3 — account management (users CRUD, block/restore, admin password/MFA reset), own + admin session management, per-account auth-activity review                                                                                                                                                                                                                            |
+| 1.3.0   | 2026-07-25 | AI (Claude Opus 4.8) | **Breaking:** English-only names — dropped the `_np`/`_romanized` columns and renamed `_en` fields to bare (User `full_name`). Taken in place on `/api/v1/`; see the iterations log 20260725_0037                                                                                                                                                                               |
+| 1.4.0   | 2026-10-28 | AI (Claude Opus 5.5) | Fix for sign-outs every 15–20 min: refresh on any 401 (expired access is `AUTHENTICATION_FAILED`, not `AUTHENTICATION_REQUIRED`); reuse grace window for concurrent refreshes; `access_expires_at`; `AUTH_REFRESH_INVALID` `details.reason`; persistent refresh cookie; per-token refresh throttle; own-session revoke keeps the caller's cookie on `others_only`. Non-breaking |
+| 1.5.0   | 2026-10-29 | AI (Claude Opus 5.5) | **Personal clipboard** — 9 endpoints under `/api/v1/auth/me/clipboard/` (entries list/save/update/delete/use, categories list/create/rename/delete); models ClipboardEntry, ClipboardCategory, Clipboard delete result; three flows. Every authority, Superadmin included; owner-only. Additive, non-breaking                                                                   |
 
 ---
 
@@ -28,14 +28,14 @@
 
 ## 2. Requires
 
-| Depends on | Kind | Why | What breaks without it |
-|------------|------|-----|------------------------|
-| `core` | framework | Response envelope, exception handler, `BaseModel`, Nepali text helpers | Responses lose the `{ success, message, data, meta }` shape; models fail to import |
-| `django-axes` | framework | Sole brute-force lockout counter; login routes through `django.contrib.auth.authenticate()` so axes observes attempts | Repeated wrong passwords are never throttled/locked at the account level |
-| `rest_framework_simplejwt` | framework | Signs/verifies the access JWT | No access token can be issued or validated; every protected call returns 401 |
-| `argon2-cffi` | framework | Argon2id password hashing (primary hasher) | Passwords fall back to PBKDF2; below the app's security target |
-| `django-otp` | framework | Stores the TOTP secret (`TOTPDevice`) and verifies authenticator codes | MFA enrollment/verification and the login MFA step cannot function |
-| `audit` | service call | `record_auth_event` also emits each event to the central audit log (federated, best-effort). Clipboard writes record their own events there directly (they are not `AuthEvent`s) | Auth events stop appearing in the central `/api/v1/audit/` log; this app's own `AuthEvent` log and its `/users/<id>/events/` endpoint are unaffected (the emit is best-effort and never breaks auth). **Clipboard writes are not best-effort:** if the audit write fails, the clipboard write returns 500 and is rolled back — nothing is saved |
+| Depends on                 | Kind         | Why                                                                                                                                                                              | What breaks without it                                                                                                                                                                                                                                                                                                                          |
+| -------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core`                     | framework    | Response envelope, exception handler, `BaseModel`, Nepali text helpers                                                                                                           | Responses lose the `{ success, message, data, meta }` shape; models fail to import                                                                                                                                                                                                                                                              |
+| `django-axes`              | framework    | Sole brute-force lockout counter; login routes through `django.contrib.auth.authenticate()` so axes observes attempts                                                            | Repeated wrong passwords are never throttled/locked at the account level                                                                                                                                                                                                                                                                        |
+| `rest_framework_simplejwt` | framework    | Signs/verifies the access JWT                                                                                                                                                    | No access token can be issued or validated; every protected call returns 401                                                                                                                                                                                                                                                                    |
+| `argon2-cffi`              | framework    | Argon2id password hashing (primary hasher)                                                                                                                                       | Passwords fall back to PBKDF2; below the app's security target                                                                                                                                                                                                                                                                                  |
+| `django-otp`               | framework    | Stores the TOTP secret (`TOTPDevice`) and verifies authenticator codes                                                                                                           | MFA enrollment/verification and the login MFA step cannot function                                                                                                                                                                                                                                                                              |
+| `audit`                    | service call | `record_auth_event` also emits each event to the central audit log (federated, best-effort). Clipboard writes record their own events there directly (they are not `AuthEvent`s) | Auth events stop appearing in the central `/api/v1/audit/` log; this app's own `AuthEvent` log and its `/users/<id>/events/` endpoint are unaffected (the emit is best-effort and never breaks auth). **Clipboard writes are not best-effort:** if the audit write fails, the clipboard write returns 500 and is rolled back — nothing is saved |
 
 **Note for consumers:** this app authenticates and sizes authority (`superadmin`/`admin`/`lead_manager`); it does NOT authorize access to business resources. Its own account-management authority is a fixed one-tier hierarchy enforced inline — there is no application-level permission-key engine in the request path yet.
 
@@ -45,18 +45,44 @@
 - **Error:** `{ success: false, error: { code, message, details }, meta }`.
 
 ```json
-{ "success": true, "message": "Login successful.", "data": { "access": "<jwt>", "access_expires_at": "2026-10-28T09:30:00Z", "must_change_password": false, "user": { "…full User model — see §4…": "" } }, "meta": {} }
+{
+  "success": true,
+  "message": "Login successful.",
+  "data": {
+    "access": "<jwt>",
+    "access_expires_at": "2026-10-28T09:30:00Z",
+    "must_change_password": false,
+    "user": { "…full User model — see §4…": "" }
+  },
+  "meta": {}
+}
 ```
 
 ```json
-{ "success": false, "error": { "code": "AUTH_CREDENTIALS_INVALID", "message": "Invalid username or password.", "details": {} }, "meta": {} }
+{
+  "success": false,
+  "error": {
+    "code": "AUTH_CREDENTIALS_INVALID",
+    "message": "Invalid username or password.",
+    "details": {}
+  },
+  "meta": {}
+}
 ```
 
 ```json
-{ "success": false, "error": { "code": "AUTH_REFRESH_INVALID", "message": "Refresh credential is invalid or expired.", "details": { "reason": "replaced_same_device" } }, "meta": {} }
+{
+  "success": false,
+  "error": {
+    "code": "AUTH_REFRESH_INVALID",
+    "message": "Refresh credential is invalid or expired.",
+    "details": { "reason": "replaced_same_device" }
+  },
+  "meta": {}
+}
 ```
 
-- **Auth failures:** a protected call returns 401 with `AUTHENTICATION_REQUIRED` when no access token is sent, and `AUTHENTICATION_FAILED` when the token is expired, malformed, or bound to a revoked session. **Treat any 401 from a protected endpoint as "refresh, then retry once"** — an expired access token is `AUTHENTICATION_FAILED`, so a client that refreshes only on `AUTHENTICATION_REQUIRED` signs the user out at every access-token expiry. `403` is used for authority failures via specific codes (`AUTH_INVALID_AUTHORITY`, `AUTH_MFA_MANDATORY`), not a bare `PERMISSION_DENIED`; an out-of-authority *target* returns `AUTH_USER_NOT_FOUND` (404, enumeration-safe) rather than 403. Session revocation surfaces as `AUTHENTICATION_FAILED` (401) on the next protected call; the follow-up `refresh` then fails with `AUTH_REFRESH_INVALID` and `details.reason` naming the cause.
+- **Auth failures:** a protected call returns 401 with `AUTHENTICATION_REQUIRED` when no access token is sent, and `AUTHENTICATION_FAILED` when the token is expired, malformed, or bound to a revoked session. **Treat any 401 from a protected endpoint as "refresh, then retry once"** — an expired access token is `AUTHENTICATION_FAILED`, so a client that refreshes only on `AUTHENTICATION_REQUIRED` signs the user out at every access-token expiry. `403` is used for authority failures via specific codes (`AUTH_INVALID_AUTHORITY`, `AUTH_MFA_MANDATORY`), not a bare `PERMISSION_DENIED`; an out-of-authority _target_ returns `AUTH_USER_NOT_FOUND` (404, enumeration-safe) rather than 403. Session revocation surfaces as `AUTHENTICATION_FAILED` (401) on the next protected call; the follow-up `refresh` then fails with `AUTH_REFRESH_INVALID` and `details.reason` naming the cause.
 - **Access token:** short-lived (15 min) Bearer JWT sent as `Authorization: Bearer <access>`. `login` and `refresh` return its expiry as `access_expires_at`; schedule the next refresh shortly before it rather than waiting for a 401. It carries a session id; the server re-validates the session on every request, so blocking/logout/password-change take effect immediately regardless of token lifetime.
 - **Refresh credential:** opaque, NOT a JWT. In development it is returned in the response body as `data.refresh`; in production it is set as a `Secure; HttpOnly; SameSite=Lax` cookie (`grandway_refresh`, path `/api/v1/auth/`, expiring with the session's 7-day absolute lifetime so it survives a browser restart) and must be sent back automatically by the browser — it is never readable by JavaScript. Send refresh requests with credentials included (`fetch(..., { credentials: "include" })`). Refresh needs no CSRF token. **Concurrent refreshes are safe:** several tabs or requests refreshing with the same cookie at once all succeed — within 30 s of a rotation the old token is answered with a new access token (and no new cookie) instead of being treated as theft.
 - **Device binding:** `login` requires a client-generated stable `device_id` — an opaque string up to 255 chars (a UUID is recommended but not server-validated; any stable non-empty string works). Persist one per browser/device. One active session per device; a user may hold at most 3 active devices concurrently. `device_name` is an optional free-text label up to 255 chars (returned in the Session read shape).
@@ -71,30 +97,39 @@
 ## 4. Models
 
 **User** — `{ id:uuid, username:string, authority_type:string[enum], display_name:string, full_name:string, email:string, phone:string, is_active:bool, must_change_password:bool, mfa_enabled:bool, mfa_enrollment_required:bool, last_login:string|null, created_at:string }`
+
 - Read-only. Returned in FULL by both `login` (nested under `data.user`) and `me` — the two return the identical User object. `must_change_password` is `true` on a freshly provisioned/reset account and until the first password change. `mfa_enabled` is `true` once a TOTP device is confirmed. `mfa_enrollment_required` is `true` for a superadmin who has not yet enrolled MFA (mandatory). All timestamps are ISO 8601 UTC (`Z`); `last_login` is `null` before the first login.
 
 **MFA enrollment** — `{ secret:string(base32), otpauth_url:string }`
+
 - Returned ONCE by `mfa/enroll`. `secret` is the base32 TOTP secret for manual entry. `otpauth_url` is a standard `otpauth://totp/<issuer>:<username>?secret=<base32>&issuer=<issuer>&algorithm=SHA1&digits=6&period=30` URI to render as a QR code (issuer defaults to `Grandway`, SHA1 / 6 digits / 30s — the standard TOTP defaults). The secret is never returned again after enrollment.
 
 **Session tokens** — `{ access:string(jwt), access_expires_at:string, refresh?:string(opaque), must_change_password:bool, mfa_enrollment_required:bool }`
+
 - `refresh` appears in the body only in development; in production it is a cookie and absent from the body. A `refresh` answered from the grace window (a concurrent refresh) carries no `refresh` in either transport — keep the newest one you have. `refresh` responses omit `mfa_enrollment_required`. `access_expires_at` is ISO 8601 UTC. `access` is always in the body. `must_change_password` and `mfa_enrollment_required` here always equal the User object's fields.
 
 **Session** — `{ id:uuid, device_id:string, device_name:string, ip_address:string|null, user_agent:string, is_active:bool, revoked_reason:string[enum], revoked_at:string|null, last_used_at:string, idle_expires_at:string, expires_at:string, created_at:string }`
+
 - Returned by the own-session list (`GET /sessions/`) and the admin per-account session list (`GET /users/<id>/sessions/`). Never includes the refresh token or its hash.
 
 **AuthEvent** — `{ id:uuid, event_type:string[enum], actor_username:string|null, subject_username:string, success:bool, reason:string, ip_address:string|null, device_id:string, created_at:string }`
+
 - Returned by `GET /users/<id>/events/`. Append-only audit; never contains secrets.
 
 **Account create/reset result** — `{ user?:User, temporary_password?:string }`
+
 - `POST /users/` returns `{ user, temporary_password? }`; `POST /users/<id>/reset-password/` returns `{ temporary_password? }`. `temporary_password` is present ONLY when the server generated it (i.e. no `password` was supplied) and is shown once — the account must change it at next login.
 
 **ClipboardEntry** — `{ id:uuid, label:string, text:string, field_key:string, category:{ id:uuid, name:string }|null, usage_count:int, last_used_at:string|null, created_at:string, updated_at:string }`
+
 - One saved snippet on the caller's own clipboard. `field_key` is `""` when unset — otherwise an opaque lowercase dotted key naming a document form field (e.g. `father.name`, `ward.spokesperson.name`); the server checks only its shape (`^[a-z0-9_]+(\.[a-z0-9_]+)*$`, ≤100), never its meaning, so the key vocabulary is the client's convention. `usage_count` and `last_used_at` change only through `POST …/use/`; `last_used_at` is `null` until first use. `use` also moves `updated_at`.
 
 **ClipboardCategory** — `{ id:uuid, name:string, entry_count:int, created_at:string, updated_at:string }`
+
 - One of the caller's own groups. `entry_count` is how many of the caller's entries are in it. Names are unique per account ignoring case.
 
 **Clipboard delete result** — `{ deleted:bool, entries_uncategorized?:int }`
+
 - `DELETE /me/clipboard/<entry_id>/` returns `{ deleted: true }`; `DELETE /me/clipboard/categories/<category_id>/` returns `{ deleted: true, entries_uncategorized }` — the entries are kept and become uncategorized.
 
 ### Worked examples
@@ -154,7 +189,10 @@
   "label": "Ward 7 chairman",
   "text": "Ram Bahadur Thapa",
   "field_key": "ward.spokesperson.name",
-  "category": { "id": "3c1f7e0a-5d2b-4b8e-9a61-0f2d4c6b8e11", "name": "Ward office" },
+  "category": {
+    "id": "3c1f7e0a-5d2b-4b8e-9a61-0f2d4c6b8e11",
+    "name": "Ward office"
+  },
   "usage_count": 0,
   "last_used_at": null,
   "created_at": "2026-10-29T04:12:40Z",
@@ -166,7 +204,13 @@
 
 ```json
 [
-  { "id": "3c1f7e0a-5d2b-4b8e-9a61-0f2d4c6b8e11", "name": "Ward office", "entry_count": 4, "created_at": "2026-10-29T04:10:00Z", "updated_at": "2026-10-29T04:10:00Z" }
+  {
+    "id": "3c1f7e0a-5d2b-4b8e-9a61-0f2d4c6b8e11",
+    "name": "Ward office",
+    "entry_count": 4,
+    "created_at": "2026-10-29T04:10:00Z",
+    "updated_at": "2026-10-29T04:10:00Z"
+  }
 ]
 ```
 
@@ -193,11 +237,13 @@
 **Use it when:** signing a user in, keeping them signed in, and signing them out.
 
 **Methods:**
+
 - `POST /api/v1/auth/login/` (`authenticate.session.login`)
 - `POST /api/v1/auth/refresh/` (`authenticate.session.refresh`)
 - `POST /api/v1/auth/logout/` (`authenticate.session.logout`)
 
 **Send (login):**
+
 - `username` (string, required)
 - `password` (string, required)
 - `device_id` (string, required — stable per-device UUID)
@@ -205,6 +251,7 @@
 - `otp_code` (string, optional — required only when the account has MFA enabled; see the MFA login flow in §8)
 
 **Send (refresh):**
+
 - `refresh` (string) — development only; in production the cookie is used and the body is empty
 
 **Send (logout):** none (uses the access token + its session)
@@ -212,20 +259,24 @@
 **Returns:** `login` → Session tokens + nested `user`; `refresh` → Session tokens without `mfa_enrollment_required` (rotated refresh via body/cookie, none on a grace-window answer); `logout` → empty `data`.
 
 **Requires state:**
+
 - `login`: the target account exists and is active (not blocked); the `(username, ip)` pair is not locked out; fewer than 3 active devices unless re-using an existing `device_id`.
 - `refresh`: a currently-active session whose refresh credential you hold; not expired (idle 12h / absolute 7d).
 - `logout`: a valid access token.
 
 **Side effects:**
+
 - `login`: creates an `AuthSession`; if the same `device_id` was already active, that prior session is revoked and replaced; sets `last_login`; writes an `AuthEvent`.
 - `refresh`: rotates the session (new refresh issued, old one retired); re-presenting a token within 30 s of its rotation returns an access token for the current session without rotating; re-presenting it later revokes the whole device family; an expired session is revoked; writes an `AuthEvent` (`session_refreshed`, or `refresh_rejected` with the reason).
 - `logout`: revokes the current session; clears the refresh cookie (prod); writes an `AuthEvent`.
 
 **Notes:**
+
 - `login`/`refresh` are throttled (per-IP and, for login, per-username) and are the only public endpoints.
 - Login errors are deliberately uniform — the same `AUTH_CREDENTIALS_INVALID` is returned for wrong password, unknown user, blocked account, and lockout (no enumeration).
 
 **Errors:**
+
 - `AUTH_CREDENTIALS_INVALID` (401) — login failed (any reason; uniform).
 - `AUTH_MFA_REQUIRED` (401) — password correct but the account has MFA enabled and no `otp_code` was sent; resend `login` with `otp_code`.
 - `AUTH_MFA_INVALID` (401) — the supplied `otp_code` is wrong or expired.
@@ -239,25 +290,31 @@
 **Use it when:** loading the signed-in user after login, and letting them change their password (including the forced first-login change).
 
 **Methods:**
+
 - `GET /api/v1/auth/me/` (`authenticate.user.me`)
 - `POST /api/v1/auth/password/change/` (`authenticate.user.change_password`)
 
 **Send (password change):**
+
 - `current_password` (string, required)
 - `new_password` (string, required)
 
 **Returns:** `me` → **User**; `password change` → empty `data`.
 
 **Requires state:**
+
 - Both: a valid access token. `password change` is permitted even while `must_change_password` is `true` (it is how the user clears it).
 
 **Side effects:**
+
 - `password change`: replaces the password hash, sets `must_change_password=false` + `password_changed_at`, and **revokes all of the user's sessions** — the client must log in again afterward; clears the refresh cookie (prod); writes an `AuthEvent`.
 
 **Notes:**
+
 - After a successful password change every session (including the current one) is invalidated by design; treat a `200` as "now redirect to login".
 
 **Errors:**
+
 - `AUTH_PASSWORD_INCORRECT` (400) — `current_password` did not match.
 - `AUTH_PASSWORD_WEAK` (400) — `new_password` failed strength rules; offending messages are in `error.details.new_password`.
 
@@ -266,36 +323,43 @@
 **Use it when:** enrolling an authenticator app, and (for non-superadmins) turning MFA off. Superadmin MFA is mandatory and cannot be disabled here.
 
 **Methods:**
+
 - `POST /api/v1/auth/mfa/enroll/` (`authenticate.mfa.enroll`)
 - `POST /api/v1/auth/mfa/verify/` (`authenticate.mfa.verify`)
 - `POST /api/v1/auth/mfa/disable/` (`authenticate.mfa.disable`)
 
 **Send (enroll):** none
 **Send (verify):**
+
 - `code` (string, required — current 6-digit authenticator code)
 
 **Send (disable):**
+
 - `current_password` (string, required)
 - `code` (string, required — current authenticator code)
 
 **Returns:** `enroll` → MFA enrollment `{ secret, otpauth_url }` (see §4); `verify` → empty `data`; `disable` → empty `data`.
 
 **Requires state:**
+
 - `enroll`: authenticated; MFA not already confirmed.
 - `verify`: authenticated; a pending enrollment started by `enroll`.
 - `disable`: authenticated; MFA currently enabled; the account is not a superadmin.
 
 **Side effects:**
+
 - `verify`: marks the TOTP device confirmed (MFA now active); writes an `AuthEvent`. Subsequent logins require `otp_code`.
 - `disable`: deletes the TOTP device and **revokes all of the user's sessions** (client must log in again); clears the refresh cookie (prod); writes an `AuthEvent`.
 
 **Notes:**
+
 - The `enroll` `secret`/`otpauth_url` are returned only once — re-enrolling generates a new secret and invalidates any prior pending one.
 - MFA does not affect the device/session model; the `otp_code` is checked at login only, after the password.
 - `verify` does NOT revoke the current session (unlike `disable`/`password change`) — the access token you enrolled with stays valid.
 - Ordering with forced password change: when a freshly provisioned superadmin has both `must_change_password` and `mfa_enrollment_required` true, do the password change first (it revokes sessions → re-login), then enroll MFA. Enrollment is not blocked while `must_change_password` is true, but the intended sequence is password → MFA.
 
 **Errors:**
+
 - `AUTH_MFA_ALREADY_ENROLLED` (409) — `enroll`/`verify` when MFA is already active.
 - `AUTH_MFA_NOT_ENROLLED` (400) — `verify` with no pending enrollment, or `disable` when MFA is off.
 - `AUTH_MFA_INVALID` (400) — the `code` is wrong or expired.
@@ -307,6 +371,7 @@
 **Use it when:** an admin/superadmin manages the tier below them. Superadmin manages **admins**; admin manages **lead managers**; a lead manager manages no one (these endpoints return empty lists or `404` for them). Nobody manages a superadmin via the API.
 
 **Methods:**
+
 - `GET /api/v1/auth/users/` (`authenticate.user.list`)
 - `POST /api/v1/auth/users/` (`authenticate.user.create`)
 - `GET /api/v1/auth/users/<id>/` (`authenticate.user.read`)
@@ -320,6 +385,7 @@
 - `GET /api/v1/auth/users/<id>/events/` (`authenticate.user.list_events`)
 
 **Send (create):**
+
 - `username` (required), `authority_type` (required — must be the tier you manage), `display_name`, `full_name`, `full_name`, `email`, `phone` (optional), `password` (optional — omit to auto-generate a temporary one)
 
 **Send (update):** any of `display_name`, `full_name`, `full_name`, `email`, `phone` (partial). `username`, `authority_type`, and account status are immutable here.
@@ -329,10 +395,12 @@
 **Returns:** `list` → paginated list[User]; `create` → Account create result (`{ user, temporary_password? }`); `read`/`update` → User; `block`/`restore`/`reset-mfa` → empty `data`; `reset-password` → `{ temporary_password? }`; `sessions` → list[Session]; `sessions/revoke` → `{ revoked:int }`; `events` → paginated list[AuthEvent].
 
 **Requires state:**
+
 - All: a valid access token AND the caller's authority tier must be exactly one above the target's. The target must exist within the caller's managed tier — otherwise `AUTH_USER_NOT_FOUND` (not distinguishable from "no authority", by design).
 - `create`: `authority_type` must equal the tier the caller manages (superadmin→admin, admin→lead_manager).
 
 **Side effects:**
+
 - `create`: creates the account with `must_change_password=true`; audit `account_created`.
 - `block`: deactivates, records block metadata, revokes all the target's sessions; audit `account_blocked`.
 - `restore`: reactivates, clears block metadata; audit `account_restored`.
@@ -342,12 +410,14 @@
 - `update`: audit `account_updated`. `list`/`read`/`sessions`/`events`: none.
 
 **Notes:**
-- **Scope is by tier (type), not ownership.** An admin manages *every* lead manager in the system, not only ones they created; a superadmin manages every admin. There is no per-creator ownership. (Grandway V1 is a single consultancy.)
+
+- **Scope is by tier (type), not ownership.** An admin manages _every_ lead manager in the system, not only ones they created; a superadmin manages every admin. There is no per-creator ownership. (Grandway V1 is a single consultancy.)
 - **Self is not manageable here.** Acting on your own id via `users/<id>/*` returns `AUTH_USER_NOT_FOUND` (404) — you are not "one tier below" yourself. Manage your own account via `me`, `password/change`, `mfa/*`, and `sessions/*`.
 - Pagination applies to `list` and `events` (`?page=`, `?page_size=`); `sessions` returns an unpaginated array of active sessions.
 - `temporary_password` is present once and only when generated (no `password` supplied) — the key is **absent** otherwise, not null.
 
 **Errors:**
+
 - `AUTH_USER_NOT_FOUND` (404) — the target is not within the caller's managed tier (or does not exist).
 - `AUTH_INVALID_AUTHORITY` (403) — `create` with an `authority_type` the caller may not create.
 - `AUTH_USERNAME_TAKEN` (409) — `create` with an existing username.
@@ -360,10 +430,12 @@
 **Use it when:** a signed-in user reviews their own devices and signs out specific ones or everywhere.
 
 **Methods:**
+
 - `GET /api/v1/auth/sessions/` (`authenticate.session.list`)
 - `POST /api/v1/auth/sessions/revoke/` (`authenticate.session.revoke`)
 
 **Send (revoke):**
+
 - `session_id` (optional — revoke that one), `others_only` (optional bool — revoke all except the current session). Omit both to revoke ALL of your sessions.
 
 **Returns:** `list` → list[Session] (your active sessions); `revoke` → `{ revoked:int }`.
@@ -373,6 +445,7 @@
 **Side effects:** `revoke` deactivates the selected sessions. The refresh cookie (prod) is cleared only when the current session is among them — omit both fields, or pass the current session's `session_id`; that ends this session and requires re-login. `others_only` or another session's id leaves you signed in.
 
 **Errors:**
+
 - `AUTH_SESSION_NOT_FOUND` (404) — `session_id` is not one of your sessions.
 
 ### Clipboard entries — `/api/v1/auth/me/clipboard/`
@@ -380,18 +453,21 @@
 **Use it when:** a signed-in user (any authority, Superadmin included) keeps a personal list of text snippets they type often — names, addresses, ward details — and copies them into document forms; the clipboard panel lists, searches, adds, edits, and removes them.
 
 **Methods:**
+
 - `GET /api/v1/auth/me/clipboard/` (`authenticate.clipboard_entry.list`)
 - `POST /api/v1/auth/me/clipboard/` (`authenticate.clipboard_entry.create`)
 - `PATCH /api/v1/auth/me/clipboard/<entry_id>/` (`authenticate.clipboard_entry.update`)
 - `DELETE /api/v1/auth/me/clipboard/<entry_id>/` (`authenticate.clipboard_entry.delete`)
 
 **Send (list, query):**
+
 - `field_key` (optional) — one key or a comma list (`father.name,mother.name`); exact match; each key must be lowercase dotted words or the request is `VALIDATION_ERROR`
 - `category` (optional) — a category id, or `none` for uncategorized entries; another account's category id matches nothing (empty page, not an error)
 - `search` (optional, ≤100) — case-insensitive substring of the label, the text, or the category name
 - `page`, `page_size` (optional) — standard pagination
 
 **Send (create):**
+
 - `label` (string, required, ≤120)
 - `text` (string, required, ≤2000)
 - `field_key` (string, optional, ≤100, lowercase dotted words, e.g. `father.name`)
@@ -402,11 +478,13 @@
 **Returns:** `list` → paginated list[ClipboardEntry] (`message` is `""`); `create` (201, "Clipboard entry saved.") / `update` ("Clipboard entry updated.") → ClipboardEntry; `delete` ("Clipboard entry deleted.") → Clipboard delete result `{ deleted: true }`. There is **no single-entry `GET`** — an edit form works from the list row it was opened from.
 
 **Requires state:**
+
 - All: a valid access token. Any `authority_type`; `must_change_password` and MFA enrollment do not block these endpoints.
 - `create`: fewer than 200 entries on your clipboard; a `category`, if sent, must be one of your own.
 - `update`/`delete`: the entry is yours (from your list or a save response).
 
 **Side effects:**
+
 - `create`: stores the entry (label and text Unicode-normalized and trimmed); records `clipboard_entry_created` in the central audit log with the entry id and `field_key` only — never the label or text.
 - `update`: when a value actually changed, records `clipboard_entry_updated` with the names of the changed fields (never their values); an unchanged update records nothing.
 - `delete`: removes the entry permanently (no restore); records `clipboard_entry_deleted`.
@@ -414,6 +492,7 @@
 - `list`: none.
 
 **Notes:**
+
 - **Owner-only, every authority.** You only ever see and change your own entries; there is no sharing and no way to read another account's clipboard through this API — not even as Superadmin or Admin. (The central audit log, which Admins can read, records that an entry was created, changed, or deleted, with its id and `field_key` — never its label or text.)
 - An entry's `field_key` is a client convention for naming document-form fields; the backend never interprets it. Agree a key vocabulary in the frontend (e.g. `father.name`, `ward.spokesperson.name`) and use it both when saving and when looking up suggestions.
 - `PATCH` checks the entry exists before validating the body, so a stale id returns 404 even with a bad body.
@@ -426,6 +505,7 @@
 - Labels and text are trimmed; whitespace-only values are rejected.
 
 **Errors:**
+
 - `AUTH_CLIPBOARD_ENTRY_NOT_FOUND` (404) — "No such entry on your clipboard." — the id is not one of yours (another account's id and a made-up id answer identically).
 - `AUTH_CLIPBOARD_LIMIT_REACHED` (400) — "A clipboard holds at most 200 entries." — delete some first.
 - `AUTH_CLIPBOARD_CATEGORY_INVALID` (400) — "That category is not one of yours." (also in `error.details.category`) — `category` names a category you do not own or that no longer exists; refetch the category list.
@@ -436,6 +516,7 @@
 **Use it when:** the user copies or inserts an entry, so the list ranks it higher next time.
 
 **Methods:**
+
 - `POST /api/v1/auth/me/clipboard/<entry_id>/use/` (`authenticate.clipboard_entry.use`)
 
 **Send (use):** none
@@ -443,15 +524,19 @@
 **Returns:** ClipboardEntry, with `usage_count` incremented by one and `last_used_at` set to now. Message "Clipboard entry used."
 
 **Requires state:**
+
 - A valid access token; the entry is yours.
 
 **Side effects:**
+
 - Increments `usage_count`, sets `last_used_at` and `updated_at`. Not audited — a ranking signal, not an action anyone reviews.
 
 **Notes:**
+
 - Call it after the copy succeeds; failing to call it only affects ordering. Concurrent calls are counted correctly.
 
 **Errors:**
+
 - `AUTH_CLIPBOARD_ENTRY_NOT_FOUND` (404) — "No such entry on your clipboard."
 
 ### Clipboard categories — `/api/v1/auth/me/clipboard/categories/`
@@ -459,30 +544,36 @@
 **Use it when:** the user groups their snippets (e.g. "Ward office", "Bank") and filters the clipboard by group.
 
 **Methods:**
+
 - `GET /api/v1/auth/me/clipboard/categories/` (`authenticate.clipboard_category.list`)
 - `POST /api/v1/auth/me/clipboard/categories/` (`authenticate.clipboard_category.create`)
 - `PATCH /api/v1/auth/me/clipboard/categories/<category_id>/` (`authenticate.clipboard_category.update`)
 - `DELETE /api/v1/auth/me/clipboard/categories/<category_id>/` (`authenticate.clipboard_category.delete`)
 
 **Send (create / rename):**
+
 - `name` (string, required, ≤60) — rename takes the same single required field (not partial)
 
 **Returns:** `list` ("Clipboard categories retrieved.") → list[ClipboardCategory] (bare array, unpaginated, at most 50, ordered by name ignoring case, `meta: {}`); `create` (201, "Clipboard category created.") / `rename` ("Clipboard category renamed.") → ClipboardCategory; `delete` ("Clipboard category deleted.") → Clipboard delete result `{ deleted: true, entries_uncategorized }`.
 
 **Requires state:**
+
 - All: a valid access token; any `authority_type`.
 - `create`: fewer than 50 categories; no other category of yours with the same name, ignoring case.
 - `rename`/`delete`: the category is yours.
 
 **Side effects:**
+
 - `create`/`rename`: records `clipboard_category_created`/`clipboard_category_updated` in the central audit log (id only — never the name). Renaming to the identical name changes nothing and records nothing.
 - `delete`: removes the category; **its entries are kept and become uncategorized** (`category: null`); records `clipboard_category_deleted` with `entries_uncategorized`.
 
 **Notes:**
+
 - A case-only rename of a category's own name ("bank" → "Bank") is allowed.
 - When both checks fail on create, the name clash is reported before the limit.
 
 **Errors:**
+
 - `AUTH_CLIPBOARD_CATEGORY_NOT_FOUND` (404) — "No such category on your clipboard." — the id in the path is not one of yours.
 - `AUTH_CLIPBOARD_CATEGORY_NAME_TAKEN` (400) — "You already have a category with that name." (also in `error.details.name`).
 - `AUTH_CLIPBOARD_CATEGORY_LIMIT_REACHED` (400) — "A clipboard holds at most 50 categories."
@@ -491,6 +582,7 @@
 ## 8. Flows
 
 **First login after provisioning**
+
 1. Superadmin/admin provisions the account out-of-band; the user receives a temporary password and `must_change_password=true`.
 2. `POST /login/` with `device_id` → `data.must_change_password` is `true`; you receive an access token.
 3. `POST /password/change/` with the temporary password as `current_password` and the new password.
@@ -498,6 +590,7 @@
 4. All sessions are revoked → send the user back to `POST /login/` with the new password.
 
 **Steady-state session lifecycle**
+
 1. `POST /login/` (device A) → store access in memory; refresh is a cookie (prod) or `data.refresh` (dev).
 2. Use the access token; schedule `POST /refresh/` shortly before `data.access_expires_at`. If a protected call returns any 401 (`AUTHENTICATION_FAILED` or `AUTHENTICATION_REQUIRED`) first, refresh then and retry that call once.
 3. `POST /refresh/` → new access + `access_expires_at` (+ rotated refresh).
@@ -507,11 +600,13 @@
 4. `POST /logout/` to end the session on this device.
 
 **Multi-device limit**
+
 1. `login` on devices A, B, C (distinct `device_id`s) → three active sessions.
 2. `login` on device D → `AUTH_DEVICE_LIMIT_REACHED` (409).
    - Resolve by `logout` on one device, then retry device D; or re-login on an existing `device_id` (replaces that device's session, no new device slot used).
 
 **Enroll MFA**
+
 1. `POST /mfa/enroll/` → `data.secret` + `data.otpauth_url`; render the URL as a QR code and show the secret for manual entry.
    - On `AUTH_MFA_ALREADY_ENROLLED` (409): MFA is already on; skip enrollment.
 2. `POST /mfa/verify/` with the current authenticator `code` → MFA enabled.
@@ -519,31 +614,37 @@
 3. All future logins on this account now require `otp_code`.
 
 **Log in with MFA enabled**
+
 1. `POST /login/` with `username`/`password`/`device_id` (no `otp_code`) → `AUTH_MFA_REQUIRED` (401).
 2. Re-`POST /login/` with the same fields plus a current `otp_code` → success.
    - On `AUTH_MFA_INVALID` (401): wrong/expired code → prompt again.
 
 **Superadmin mandatory MFA**
+
 1. Superadmin completes first-login password change, then `login` → `data.mfa_enrollment_required` is `true`.
 2. Frontend routes to enrollment: `POST /mfa/enroll/` → `POST /mfa/verify/`.
 3. `mfa_enrollment_required` becomes `false`; `disable` is refused for superadmin (`AUTH_MFA_MANDATORY`, 403).
 
 **Provision and hand off a subordinate account** (admin creating a lead manager)
+
 1. `POST /users/` with `{ username, authority_type: "lead_manager" }` (no `password`) → `201` with `data.temporary_password` (shown once).
    - `AUTH_INVALID_AUTHORITY` (403): you tried an `authority_type` you can't create.
    - `AUTH_USERNAME_TAKEN` (409): pick another username.
 2. Deliver the temp password to the user out-of-band. They `POST /login/` → `must_change_password: true` → `POST /password/change/` (see the first-login flow).
 
 **Recover a locked-out subordinate**
+
 1. Lost password → `POST /users/<id>/reset-password/` (no body) → `data.temporary_password`; their sessions are revoked.
 2. Lost authenticator → `POST /users/<id>/reset-mfa/` → their MFA is removed and sessions revoked; they re-enroll after next login.
 3. Compromise → `POST /users/<id>/block/` (revokes all sessions); later `POST /users/<id>/restore/`.
 
 **Review a subordinate's activity / sessions**
+
 1. `GET /users/<id>/events/` (paginated) to review login/lockout/MFA history.
 2. `GET /users/<id>/sessions/` to see active devices; `POST /users/<id>/sessions/revoke/` (optionally `{ session_id }`) to sign one or all out.
 
 **Save and reuse a snippet**
+
 1. `POST /me/clipboard/` with `{ label, text }` (optionally `field_key`, `category`) → `201` ClipboardEntry.
    - `AUTH_CLIPBOARD_LIMIT_REACHED` (400): 200 entries already — offer to delete old ones.
    - `VALIDATION_ERROR` (400): show `error.details` per field.
@@ -553,12 +654,14 @@
 4. Edit with `PATCH /me/clipboard/<entry_id>/`; remove with `DELETE /me/clipboard/<entry_id>/` (permanent).
 
 **Fill a document form field from the clipboard**
+
 1. A document form field with a client-defined key (e.g. `father.name`) gains focus → `GET /me/clipboard/?field_key=father.name` (several keys: `?field_key=father.name,mother.name`) → suggestions for that field, most-used first.
    - Empty page: nothing saved for that key — offer "save this value to my clipboard" (`POST /me/clipboard/` with that `field_key`).
 2. The user picks a suggestion → copy or insert its `text` into the field.
 3. `POST /me/clipboard/<entry_id>/use/` so the pick ranks higher next time.
 
 **Organise snippets into categories**
+
 1. `POST /me/clipboard/categories/` with `{ name }` → `201` ClipboardCategory.
    - `AUTH_CLIPBOARD_CATEGORY_NAME_TAKEN` (400): the name exists (any case) — pick another.
    - `AUTH_CLIPBOARD_CATEGORY_LIMIT_REACHED` (400): 50 categories already.

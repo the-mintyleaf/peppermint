@@ -22,15 +22,15 @@ Screen names below are quoted from `concepts/applicants.txt` → `UI screens & w
    no call; the "New applicant" action is visible to Admins only.
    - **Requires state:** an authenticated Admin.
    - **Side effects:** none.
-   - *Failure — `APPLICANTS_ACTOR_FORBIDDEN`:* a Lead Manager reached this screen. Hide the action entirely for non-Admins rather than showing a disabled button.
+   - _Failure — `APPLICANTS_ACTOR_FORBIDDEN`:_ a Lead Manager reached this screen. Hide the action entirely for non-Admins rather than showing a disabled button.
 
 2. **New Applicant Form** — the Admin submits name, at least one contact number, and whatever else is known →
    `POST /api/v1/applicants/` (`applicants.applicant.create`)
    - **Requires state:** an authenticated Admin. No other resource needs to exist.
    - **Side effects:** the applicant is created at status `active` with `creation_source: direct_admin`, unassigned (`assigned_to` is not accepted here — use the assign flow); one history entry appears. Refresh the Applicant List.
-   - *Failure — `APPLICANTS_CONTACT_REQUIRED` or 400 on `contact_numbers`:* inline error on the contact-number repeater; at least one row is mandatory.
-   - *Failure — `APPLICANTS_PASSPORT_EXPIRY_INVALID`:* inline error on the passport expiry field — the two dates were likely transposed.
-   - *Failure — 400 on `addresses`:* two addresses of the same type were sent; the form must offer at most one permanent and one current.
+   - _Failure — `APPLICANTS_CONTACT_REQUIRED` or 400 on `contact_numbers`:_ inline error on the contact-number repeater; at least one row is mandatory.
+   - _Failure — `APPLICANTS_PASSPORT_EXPIRY_INVALID`:_ inline error on the passport expiry field — the two dates were likely transposed.
+   - _Failure — 400 on `addresses`:_ two addresses of the same type were sent; the form must offer at most one permanent and one current.
 
 3. **Applicant Detail** — redirect to the new file using the returned `id`.
 
@@ -38,7 +38,7 @@ Screen names below are quoted from `concepts/applicants.txt` → `UI screens & w
    `POST /api/v1/journeys/` (`applicant_journeys.journey.create`) **(cross-app: `applicant_journeys`)**
    - **Requires state:** the applicant must exist.
    - **Side effects:** a journey is created at stage `planning`. Refresh the journeys panel.
-   - *Note:* an applicant with no journey has no objective. This step is optional in the API but should be strongly prompted in the UI.
+   - _Note:_ an applicant with no journey has no objective. This step is optional in the API but should be strongly prompted in the UI.
 
 ---
 
@@ -54,23 +54,23 @@ Screen names below are quoted from `concepts/applicants.txt` → `UI screens & w
    `GET /api/v1/applicants/<applicant_id>/` (`applicants.applicant.read`)
    - **Requires state:** the applicant must exist.
    - **Side effects:** none.
-   - *Note:* `creation_source` reads `lead_conversion` and `originating_lead_id` is populated. Render a link back to the lead — the header is the natural place for it.
-   - *Note:* `assigned_to` is the lead's owner — or `null` if that person is no longer an active Admin or Lead Manager. Show it in the header with the assignment control (see "Assign, take, or release an applicant").
+   - _Note:_ `creation_source` reads `lead_conversion` and `originating_lead_id` is populated. Render a link back to the lead — the header is the natural place for it.
+   - _Note:_ `assigned_to` is the lead's owner — or `null` if that person is no longer an active Admin or Lead Manager. Show it in the header with the assignment control (see "Assign, take, or release an applicant").
 
 2. **Edit Applicant Form** — the user adds date of birth, citizenship and national ID numbers, passport, addresses, family (with grandparents and their citizenship numbers, for ward-office letters), emergency contacts, education, and language tests →
    `PATCH /api/v1/applicants/<applicant_id>/` (`applicants.applicant.update`)
    - **Requires state:** the applicant must exist.
    - **Side effects:** one history entry per section actually changed. Refresh the detail panels.
-   - *Failure — `APPLICANTS_PASSPORT_EXPIRY_INVALID`:* inline error on the expiry field.
-   - *Failure — `APPLICANTS_EDUCATION_INVALID` / `APPLICANTS_LANGUAGE_TEST_INVALID`:* mark each `educations[i].field` / `language_tests[i].field` from `error.details.fields` on its row.
-   - *Note:* `educations` and `language_tests` replace their whole list, like every collection here — send every row back, not just the edited one.
-   - *Note:* conversion copies name, email, contact numbers, address, notes, the lead's qualification (when it had a level) as an education record, and its certificates as language tests (`source_lead_id` set). Everything else is blank by design and the form should make that visible rather than looking complete.
+   - _Failure — `APPLICANTS_PASSPORT_EXPIRY_INVALID`:_ inline error on the expiry field.
+   - _Failure — `APPLICANTS_EDUCATION_INVALID` / `APPLICANTS_LANGUAGE_TEST_INVALID`:_ mark each `educations[i].field` / `language_tests[i].field` from `error.details.fields` on its row.
+   - _Note:_ `educations` and `language_tests` replace their whole list, like every collection here — send every row back, not just the edited one.
+   - _Note:_ conversion copies name, email, contact numbers, address, notes, the lead's qualification (when it had a level) as an education record, and its certificates as language tests (`source_lead_id` set). Everything else is blank by design and the form should make that visible rather than looking complete.
 
 3. **Applicant Detail → Journeys panel** — review the seeded journey →
    `GET /api/v1/journeys/?applicant=<applicant_id>` (`applicant_journeys.journey.list`) **(cross-app: `applicant_journeys`)**
    - **Requires state:** the applicant must exist.
    - **Side effects:** none.
-   - *Note:* if the originating lead named more than one country, the seeded journey has a **blank** `target_country`. Surface that as an incomplete-journey prompt rather than letting it sit empty.
+   - _Note:_ if the originating lead named more than one country, the seeded journey has a **blank** `target_country`. Surface that as an incomplete-journey prompt rather than letting it sit empty.
 
 ---
 
@@ -86,22 +86,22 @@ Screen names below are quoted from `concepts/applicants.txt` → `UI screens & w
    `GET /api/v1/applicants/?search=<query>` (`applicants.applicant.list`)
    - **Requires state:** an authenticated Admin or Lead Manager.
    - **Side effects:** none.
-   - *Note:* one search box matches the name, email, contact number, and passport number. Do not build separate fields per attribute.
-   - *Note:* the same box also matches the email, **any** of the person's contact numbers, and the passport number — staff often have a phone number from a call log rather than a spelling. Label it "Search name, phone, email, or passport", not "Search by name".
-   - *Note:* a searched list comes back **relevance-ordered** (exact name match first), not newest-first. Do not re-sort it client-side, and do not add a "sort by newest" control that silently discards the ranking.
-   - *Failure — empty result:* the search is substring-based, not fuzzy. A misspelling matches nothing and there is no did-you-mean. Prompt the user to try a shorter fragment rather than showing "no such applicant".
+   - _Note:_ one search box matches the name, email, contact number, and passport number. Do not build separate fields per attribute.
+   - _Note:_ the same box also matches the email, **any** of the person's contact numbers, and the passport number — staff often have a phone number from a call log rather than a spelling. Label it "Search name, phone, email, or passport", not "Search by name".
+   - _Note:_ a searched list comes back **relevance-ordered** (exact name match first), not newest-first. Do not re-sort it client-side, and do not add a "sort by newest" control that silently discards the ranking.
+   - _Failure — empty result:_ the search is substring-based, not fuzzy. A misspelling matches nothing and there is no did-you-mean. Prompt the user to try a shorter fragment rather than showing "no such applicant".
 
 2. **Applicant Detail** — the user opens the file →
    `GET /api/v1/applicants/<applicant_id>/` (`applicants.applicant.read`)
    - **Requires state:** the applicant must exist.
    - **Side effects:** none.
-   - *Failure — `APPLICANTS_APPLICANT_NOT_FOUND`:* a genuine not-found state. Unlike leads, this never means "not yours" — every lead actor sees every applicant.
+   - _Failure — `APPLICANTS_APPLICANT_NOT_FOUND`:_ a genuine not-found state. Unlike leads, this never means "not yours" — every lead actor sees every applicant.
 
 3. **Edit Applicant Form** — the user adds a second phone number →
    `PATCH /api/v1/applicants/<applicant_id>/` (`applicants.applicant.update`)
    - **Requires state:** the applicant must exist.
    - **Side effects:** the contact set is replaced; one history entry appears.
-   - *Note:* **the form must submit the complete list**, not just the new number. Sending one entry deletes the others. The same applies to addresses, family members, and emergency contacts.
+   - _Note:_ **the form must submit the complete list**, not just the new number. Sending one entry deletes the others. The same applies to addresses, family members, and emergency contacts.
 
 ---
 
@@ -117,23 +117,23 @@ Screen names below are quoted from `concepts/applicants.txt` → `UI screens & w
    `POST /api/v1/applicants/<applicant_id>/status/` (`applicants.applicant.change_status`)
    - **Requires state:** the applicant must exist. No journey state is consulted.
    - **Side effects:** status changes; one history entry appears. An `applicant_status_changed` notification goes to the assignee and every Admin — or to every Admin and Lead Manager when unassigned — never the caller **(cross-app: `notifications`)**. **Nothing else changes** — open journeys stay open.
-   - *Note:* status is changed from a dedicated control, never by editing a field on the edit form.
+   - _Note:_ status is changed from a dedicated control, never by editing a field on the edit form.
 
 2. **Applicant Detail** — later, the user archives the file →
    `POST /api/v1/applicants/<applicant_id>/status/` (`applicants.applicant.change_status`)
    - **Requires state:** the applicant must exist.
    - **Side effects:** status becomes `archived`, and the status it left is remembered. The record is not hidden or deleted. Its notes become read-only, and it can no longer be (re)assigned. The same `applicant_status_changed` notification as step 1 **(cross-app: `notifications`)**.
-   - *Note:* the UI may label this "Delete"; keep wording neutral ("This applicant has been deleted").
-   - *Note:* archived applicants still appear in unfiltered lists and search results. If the UI wants them out of the default view it must filter on `status` itself (`?status=archived` for a "Deleted" tab).
-   - *Failure — `APPLICANTS_APPLICANT_ARCHIVED` (409):* sending any other status to an archived applicant — use step 3.
+   - _Note:_ the UI may label this "Delete"; keep wording neutral ("This applicant has been deleted").
+   - _Note:_ archived applicants still appear in unfiltered lists and search results. If the UI wants them out of the default view it must filter on `status` itself (`?status=archived` for a "Deleted" tab).
+   - _Failure — `APPLICANTS_APPLICANT_ARCHIVED` (409):_ sending any other status to an archived applicant — use step 3.
 
 3. **Applicant Detail** — the person returns and an **Admin** restores the file →
    `POST /api/v1/applicants/<applicant_id>/restore/` (`applicants.applicant.restore`) with an optional `{ "reason": "…" }`
    - **Requires state:** Admin; the applicant is archived.
    - **Side effects:** status returns to what it was before archiving (`dormant` here; `active` for files archived before 2026-10-29); an `applicant_restored` history entry; an `applicant_restored` notification, routed as in step 1 **(cross-app: `notifications`)**. Nothing was ever destroyed.
-   - *Failure — `APPLICANTS_ACTOR_FORBIDDEN` (403):* a Lead Manager — hide Restore for them.
-   - *Failure — `APPLICANTS_APPLICANT_NOT_ARCHIVED` (409):* already restored — refresh.
-   - *Note:* if their journeys should also resume, reopen those separately — archival never closed them.
+   - _Failure — `APPLICANTS_ACTOR_FORBIDDEN` (403):_ a Lead Manager — hide Restore for them.
+   - _Failure — `APPLICANTS_APPLICANT_NOT_ARCHIVED` (409):_ already restored — refresh.
+   - _Note:_ if their journeys should also resume, reopen those separately — archival never closed them.
 
 ---
 
@@ -152,12 +152,12 @@ Screen names below are quoted from `concepts/applicants.txt` → `UI screens & w
    `POST /api/v1/applicants/<applicant_id>/notes/` (`applicants.note.create`) with `category`, `body`, optional `noted_at`
    - **Requires state:** the applicant is not archived.
    - **Side effects:** `applicant_note_added` in History. A **visit** note also sends a `visit_note_added` notification to the assignee — or to every Admin and Lead Manager when unassigned — never the author **(cross-app: `notifications`)**. General notes notify nobody.
-   - *Failure — `APPLICANTS_NOTE_FUTURE_DATE` (400):* block future dates in the picker.
-   - *Failure — `APPLICANTS_APPLICANT_ARCHIVED` (409):* the file is archived — render the panel read-only.
+   - _Failure — `APPLICANTS_NOTE_FUTURE_DATE` (400):_ block future dates in the picker.
+   - _Failure — `APPLICANTS_APPLICANT_ARCHIVED` (409):_ the file is archived — render the panel read-only.
 3. **Notes panel → Edit / Remove on a note** →
    `PATCH` / `DELETE /api/v1/applicants/<applicant_id>/notes/<note_id>/` (`applicants.note.update` / `applicants.note.delete`)
    - **Requires state:** the caller is the author or an Admin; the applicant is not archived.
-   - *Failure — `APPLICANTS_NOTE_FORBIDDEN` (403):* show the controls only on the caller's own notes (all, for an Admin).
+   - _Failure — `APPLICANTS_NOTE_FORBIDDEN` (403):_ show the controls only on the caller's own notes (all, for an Admin).
 
 ---
 
@@ -173,8 +173,8 @@ Screen names below are quoted from `concepts/applicants.txt` → `UI screens & w
    `GET /api/v1/applicants/<applicant_id>/history/` (`applicants.applicant.list_history`) **(cross-app: `audit`)**
    - **Requires state:** the applicant must exist.
    - **Side effects:** none.
-   - *Note:* entries originate in the central `audit` log; this endpoint is a scoped view of it. Render `summary` as the primary label, and `changes` as a from→to detail line where present.
-   - *Note:* nested-collection events carry only a **count** in `metadata` — no passport numbers, no addresses, no family names. The history answers "what kind of thing changed and when," never "what was it before." Do not build a diff viewer expecting old values.
+   - _Note:_ entries originate in the central `audit` log; this endpoint is a scoped view of it. Render `summary` as the primary label, and `changes` as a from→to detail line where present.
+   - _Note:_ nested-collection events carry only a **count** in `metadata` — no passport numbers, no addresses, no family names. The history answers "what kind of thing changed and when," never "what was it before." Do not build a diff viewer expecting old values.
 
 ---
 
@@ -190,16 +190,16 @@ Screen names below are quoted from `concepts/applicants.txt` → `UI screens & w
    `GET /api/v1/catalogue/countries/` (`institutions.country.list`) **(cross-app: `institutions`)**
    - **Requires state:** an authenticated Admin or Lead Manager.
    - **Side effects:** none.
-   - *Note:* populate the picker from this endpoint. Never hardcode country codes — the catalogue is data, added by staff without a deployment.
+   - _Note:_ populate the picker from this endpoint. Never hardcode country codes — the catalogue is data, added by staff without a deployment.
 
 2. **Applicant List** — the user picks Australia →
    `GET /api/v1/applicants/?country_code=au` (`applicants.applicant.list`)
    - **Requires state:** an authenticated Admin or Lead Manager. Matching applicants must already **have a journey** — an applicant with none is invisible to this filter, which is correct: they have not chosen a destination yet.
    - **Side effects:** none.
-   - *Note:* **an applicant has no country of its own.** The destination belongs to the journey, so this filter means "has *a* journey to Australia" — including a journey that was closed years ago. Render `destinations[].stage` on each row so the user can see which destination is live. Do not label the column "Destination" as though there were one.
-   - *Note:* a person with two Australian journeys appears **once**. Do not de-duplicate again client-side, and do not assume `destinations.length === 1`.
-   - *Note:* the filters compose. Add `status=active` to drop archived files, and `journey_stage=offer_stage` to narrow to those awaiting a decision, in the same request.
-   - *Failure — empty result:* an unknown country code returns an empty page and `200`, exactly like a real country with no applicants. The two are indistinguishable, so validate the code against step 1 rather than showing an error.
+   - _Note:_ **an applicant has no country of its own.** The destination belongs to the journey, so this filter means "has _a_ journey to Australia" — including a journey that was closed years ago. Render `destinations[].stage` on each row so the user can see which destination is live. Do not label the column "Destination" as though there were one.
+   - _Note:_ a person with two Australian journeys appears **once**. Do not de-duplicate again client-side, and do not assume `destinations.length === 1`.
+   - _Note:_ the filters compose. Add `status=active` to drop archived files, and `journey_stage=offer_stage` to narrow to those awaiting a decision, in the same request.
+   - _Failure — empty result:_ an unknown country code returns an empty page and `200`, exactly like a real country with no applicants. The two are indistinguishable, so validate the code against step 1 rather than showing an error.
 
 3. **Applicant Detail** — the user opens one row →
    `GET /api/v1/applicants/<applicant_id>/` (`applicants.applicant.read`)
@@ -210,7 +210,7 @@ Screen names below are quoted from `concepts/applicants.txt` → `UI screens & w
    `GET /api/v1/journeys/?applicant=<applicant_id>` (`applicant_journeys.journey.list`) **(cross-app: `applicant_journeys`)**
    - **Requires state:** the applicant must exist.
    - **Side effects:** none.
-   - *Note:* `destinations` on the applicant carries only `journey_id`, `stage`, and the country. Institution, program, intake, and budget live on the journey itself.
+   - _Note:_ `destinations` on the applicant carries only `journey_id`, `stage`, and the country. Institution, program, intake, and budget live on the journey itself.
 
 ---
 
@@ -226,23 +226,23 @@ Screen names below are quoted from `concepts/applicants.txt` → `UI screens & w
    `GET /api/v1/applicants/<applicant_id>/` (`applicants.applicant.read`)
    - **Requires state:** the applicant must exist.
    - **Side effects:** none.
-   - *Note:* choose the control from `assigned_to` and the viewer's authority: an Admin always sees a picker with "Unassigned"; a Lead Manager sees "Take" when `assigned_to` is `null`, "Release" when it is them, and nothing (read-only name) when it is someone else.
-   - *Note:* assignment never hides or locks anything — every Admin and Lead Manager still reads and edits the file whoever holds it. Do not grey out other controls for non-assignees.
+   - _Note:_ choose the control from `assigned_to` and the viewer's authority: an Admin always sees a picker with "Unassigned"; a Lead Manager sees "Take" when `assigned_to` is `null`, "Release" when it is them, and nothing (read-only name) when it is someone else.
+   - _Note:_ assignment never hides or locks anything — every Admin and Lead Manager still reads and edits the file whoever holds it. Do not grey out other controls for non-assignees.
 
 2. **Assignee picker (Admin)** — the Admin picks a person or "Unassigned" →
    `POST /api/v1/applicants/<applicant_id>/assign/` (`applicants.applicant.assign`) with `{ "assigned_to": "<user id>" }` or `{ "assigned_to": null }`
    - **Requires state:** the applicant is not archived; the person is an active Admin or Lead Manager.
    - **Side effects:** `applicant_assigned` / `applicant_unassigned` in History; the new assignee gets an `applicant_assigned` notification and the previous one `applicant_unassigned`, never the caller **(cross-app: `notifications`)**. From now on the assignee also receives this applicant's status, visit-note, journey, passport-expiry, language-test-expiry, and reminder alerts. Re-render the header from the returned applicant.
-   - *Failure — `APPLICANTS_ASSIGNEE_INVALID` (400):* the person is deactivated, unknown, or a Superadmin — mark the picker field from `error.details.assigned_to` and refresh the options.
-   - *Failure — `APPLICANTS_APPLICANT_ARCHIVED` (409):* the file is archived — hide the control until an Admin restores it.
-   - *Note:* the picker's options come from outside this module — `GET /api/v1/auth/users/` lists the Lead Managers an Admin manages **(cross-app: `authenticate`)**; there is no endpoint here listing eligible assignees.
+   - _Failure — `APPLICANTS_ASSIGNEE_INVALID` (400):_ the person is deactivated, unknown, or a Superadmin — mark the picker field from `error.details.assigned_to` and refresh the options.
+   - _Failure — `APPLICANTS_APPLICANT_ARCHIVED` (409):_ the file is archived — hide the control until an Admin restores it.
+   - _Note:_ the picker's options come from outside this module — `GET /api/v1/auth/users/` lists the Lead Managers an Admin manages **(cross-app: `authenticate`)**; there is no endpoint here listing eligible assignees.
 
 3. **Take / Release (Lead Manager)** →
    `POST /api/v1/applicants/<applicant_id>/assign/` (`applicants.applicant.assign`) with their own id (take) or `null` (release)
    - **Requires state:** take — `assigned_to` is `null`; release — `assigned_to` is the caller; the applicant is not archived.
    - **Side effects:** as step 2. A Lead Manager taking a file is not notified about their own action; on release, nobody is told.
-   - *Failure — `APPLICANTS_ASSIGNMENT_FORBIDDEN` (403):* someone else took it first, or the request named another person — refresh the applicant and show who holds it.
-   - *Note:* sending the current value is a harmless no-op (200, nothing recorded).
+   - _Failure — `APPLICANTS_ASSIGNMENT_FORBIDDEN` (403):_ someone else took it first, or the request named another person — refresh the applicant and show who holds it.
+   - _Note:_ sending the current value is a harmless no-op (200, nothing recorded).
 
 ---
 
@@ -258,13 +258,13 @@ Screen names below are quoted from `concepts/applicants.txt` → `UI screens & w
    `GET /api/v1/applicants/?assigned_to=me` (`applicants.applicant.list`)
    - **Requires state:** an authenticated Admin or Lead Manager.
    - **Side effects:** none.
-   - *Note:* composes with every other filter — `?assigned_to=me&status=active` is the everyday "my active files" view. Render the `assigned_to` column on every row.
-   - *Failure — 400 `VALIDATION_ERROR`:* the value was not `me`, `none`, or a user UUID.
+   - _Note:_ composes with every other filter — `?assigned_to=me&status=active` is the everyday "my active files" view. Render the `assigned_to` column on every row.
+   - _Failure — 400 `VALIDATION_ERROR`:_ the value was not `me`, `none`, or a user UUID.
 
 2. **Applicant List** — a Lead Manager looks for work to take →
    `GET /api/v1/applicants/?assigned_to=none` (`applicants.applicant.list`)
    - **Side effects:** none.
-   - *Note:* the filter narrows; it never scopes. The unfiltered list still shows every applicant, assigned or not.
+   - _Note:_ the filter narrows; it never scopes. The unfiltered list still shows every applicant, assigned or not.
 
 3. **Applicant Detail** — open a row and, from the unassigned pool, take it (see "Assign, take, or release an applicant", step 3).
 
@@ -272,20 +272,20 @@ Screen names below are quoted from `concepts/applicants.txt` → `UI screens & w
 
 ## Endpoint coverage
 
-| `permission_key` | `METHOD /path` | Used by flow(s) | Notes |
-|------------------|----------------|-----------------|-------|
-| `applicants.applicant.list` | `GET /api/v1/applicants/` | Maintain a file over time; Work a destination cohort; Work my caseload | Also the search surface. Search spans name, email, phone, and passport and returns relevance-ordered results; `country`/`country_code`/`journey_stage` resolve through the person's journeys; `assigned_to=me|none|<uuid>` filters by assignee |
-| `applicants.applicant.create` | `POST /api/v1/applicants/` | Create an applicant directly | Admin only |
-| `applicants.applicant.read` | `GET /api/v1/applicants/<applicant_id>/` | Complete a file; Maintain a file; Assign, take, or release an applicant | `assigned_to` on the detail shape |
-| `applicants.applicant.update` | `PATCH /api/v1/applicants/<applicant_id>/` | Complete a file; Maintain a file | Collections replace wholesale — including `educations` and `language_tests` |
-| `applicants.applicant.change_status` | `POST /api/v1/applicants/<applicant_id>/status/` | Wind a file down and revive it (steps 1–2) | Never triggered by journey activity; cannot leave `archived`; notifies |
-| `applicants.applicant.restore` | `POST /api/v1/applicants/<applicant_id>/restore/` | Wind a file down and revive it (step 3) | Admin only; back to the pre-archive status; notifies |
-| `applicants.applicant.assign` | `POST /api/v1/applicants/<applicant_id>/assign/` | Assign, take, or release an applicant | Routing only, never access; Lead Manager take/release only; notifies new and previous assignee |
-| `applicants.note.list` | `GET /api/v1/applicants/<applicant_id>/notes/` | Keep notes on a file | `?category=` tabs; `meta.counts` |
-| `applicants.note.create` | `POST /api/v1/applicants/<applicant_id>/notes/` | Keep notes on a file | Also written by lead conversion (copied notes); a visit note notifies |
-| `applicants.note.update` | `PATCH /api/v1/applicants/<applicant_id>/notes/<note_id>/` | Keep notes on a file | Author or Admin |
-| `applicants.note.delete` | `DELETE /api/v1/applicants/<applicant_id>/notes/<note_id>/` | Keep notes on a file | Author or Admin; soft |
-| `applicants.applicant.list_history` | `GET /api/v1/applicants/<applicant_id>/history/` | Review what changed on a file | Backed by `audit` |
+| `permission_key`                     | `METHOD /path`                                              | Used by flow(s)                                                         | Notes                                                                                                                                                                                                         |
+| ------------------------------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------- |
+| `applicants.applicant.list`          | `GET /api/v1/applicants/`                                   | Maintain a file over time; Work a destination cohort; Work my caseload  | Also the search surface. Search spans name, email, phone, and passport and returns relevance-ordered results; `country`/`country_code`/`journey_stage` resolve through the person's journeys; `assigned_to=me | none | <uuid>` filters by assignee |
+| `applicants.applicant.create`        | `POST /api/v1/applicants/`                                  | Create an applicant directly                                            | Admin only                                                                                                                                                                                                    |
+| `applicants.applicant.read`          | `GET /api/v1/applicants/<applicant_id>/`                    | Complete a file; Maintain a file; Assign, take, or release an applicant | `assigned_to` on the detail shape                                                                                                                                                                             |
+| `applicants.applicant.update`        | `PATCH /api/v1/applicants/<applicant_id>/`                  | Complete a file; Maintain a file                                        | Collections replace wholesale — including `educations` and `language_tests`                                                                                                                                   |
+| `applicants.applicant.change_status` | `POST /api/v1/applicants/<applicant_id>/status/`            | Wind a file down and revive it (steps 1–2)                              | Never triggered by journey activity; cannot leave `archived`; notifies                                                                                                                                        |
+| `applicants.applicant.restore`       | `POST /api/v1/applicants/<applicant_id>/restore/`           | Wind a file down and revive it (step 3)                                 | Admin only; back to the pre-archive status; notifies                                                                                                                                                          |
+| `applicants.applicant.assign`        | `POST /api/v1/applicants/<applicant_id>/assign/`            | Assign, take, or release an applicant                                   | Routing only, never access; Lead Manager take/release only; notifies new and previous assignee                                                                                                                |
+| `applicants.note.list`               | `GET /api/v1/applicants/<applicant_id>/notes/`              | Keep notes on a file                                                    | `?category=` tabs; `meta.counts`                                                                                                                                                                              |
+| `applicants.note.create`             | `POST /api/v1/applicants/<applicant_id>/notes/`             | Keep notes on a file                                                    | Also written by lead conversion (copied notes); a visit note notifies                                                                                                                                         |
+| `applicants.note.update`             | `PATCH /api/v1/applicants/<applicant_id>/notes/<note_id>/`  | Keep notes on a file                                                    | Author or Admin                                                                                                                                                                                               |
+| `applicants.note.delete`             | `DELETE /api/v1/applicants/<applicant_id>/notes/<note_id>/` | Keep notes on a file                                                    | Author or Admin; soft                                                                                                                                                                                         |
+| `applicants.applicant.list_history`  | `GET /api/v1/applicants/<applicant_id>/history/`            | Review what changed on a file                                           | Backed by `audit`                                                                                                                                                                                             |
 
 ## Cross-app dependencies
 
@@ -300,7 +300,7 @@ When an endpoint here is added, changed, or deprecated, grep `concepts/*_flows.m
 ## Open questions
 
 - **No flow covers duplicate applicants.** Nothing prevents two records for the same person, and there is no merge endpoint. A UI could warn on a near-name match at create time, but the backend offers no support for detecting or resolving it.
-- **No photograph flow *in this module*.** `concepts/applicants.txt` lists a photograph; no file handling exists here and none is planned. Since 2026-07-24 the flow is buildable against `uploaded_files` — `POST /api/v1/files/` with `applicant=<applicant_id>`, `category=photograph` (`uploaded_files.file.upload`, cross-app: `uploaded_files`), listed with `GET /api/v1/files/?applicant=<applicant_id>&category=photograph` (`uploaded_files.file.list`, cross-app: `uploaded_files`). See `concepts/uploaded_files_flows.md`. **Two things still block a simple avatar:** an applicant payload carries no file reference, and nothing marks one file as *the* photograph — the filter can return several, and choosing among them is a client convention, not a backend rule. **`document_templates` solved exactly this shape on 2026-09-10** and is the pattern to copy if the photograph is ever built: a nullable `PROTECT` pointer from the record to the file, written only by a dedicated upload endpoint, plus a `*_source` field saying which of the possible sources is in force. Do not instead try to derive "the current photograph" from the `?applicant=` filter — two independent uploads both satisfy "current and non-archived", and the tie breaks on row ordering.
+- **No photograph flow _in this module_.** `concepts/applicants.txt` lists a photograph; no file handling exists here and none is planned. Since 2026-07-24 the flow is buildable against `uploaded_files` — `POST /api/v1/files/` with `applicant=<applicant_id>`, `category=photograph` (`uploaded_files.file.upload`, cross-app: `uploaded_files`), listed with `GET /api/v1/files/?applicant=<applicant_id>&category=photograph` (`uploaded_files.file.list`, cross-app: `uploaded_files`). See `concepts/uploaded_files_flows.md`. **Two things still block a simple avatar:** an applicant payload carries no file reference, and nothing marks one file as _the_ photograph — the filter can return several, and choosing among them is a client convention, not a backend rule. **`document_templates` solved exactly this shape on 2026-09-10** and is the pattern to copy if the photograph is ever built: a nullable `PROTECT` pointer from the record to the file, written only by a dedicated upload endpoint, plus a `*_source` field saying which of the possible sources is in force. Do not instead try to derive "the current photograph" from the `?applicant=` filter — two independent uploads both satisfy "current and non-archived", and the tie breaks on row ordering.
 - **No education or test-score panels.** Both modules are specified in `concepts/education.txt` and `concepts/test_scores.txt` but not built, so the Applicant Detail page has no academic or test sections yet.
 - **Whether passport and date of birth should be Admin-only is unresolved.** Today any Lead Manager reads and edits them, so the UI must not imply a restriction that does not exist.
 - **No flow for linking a directly created applicant to a lead discovered later.** `concepts/applicants.txt` mentions an "approved correction process" for this; no endpoint supports it.

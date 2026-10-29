@@ -9,43 +9,43 @@
 
 ## Change History
 
-| Version | Date | Author | Summary |
-|---------|------|--------|---------|
-| 1.0.0 | 2026-07-24 | AI (Claude) | Initial integration contract — 10 endpoints, two resources |
-| 1.0.1 | 2026-07-24 | AI (Claude) | Defects found by the §19.5 consumer-comprehension test. **`DOCUMENT_TEMPLATES_STATUS_INVALID_TRANSITION` renamed to `..._STATUS_IMMUTABLE` for the `PATCH` guard** — no transition in this app is ever invalid, so the old name described a rule that does not exist. Documented that a rename re-derives `name`, that omitting `status` returns everything, the create-error precedence, a worked query-parameter error body, the real pagination cost of mirroring the catalogue, and four new gaps |
-| 1.0.2 | 2026-07-24 | AI (Claude) | No endpoint or schema change. Corrected statements that `uploaded_files` does not exist — it shipped 2026-07-24. Same, for `signature_image_url` |
-| 1.1.0 | 2026-07-25 | AI (Claude Opus 4.8) | **Breaking:** English-only names — dropped the `_np`/`_romanized` columns and renamed `_en` fields to bare (Signatory `name`/`title`). Taken in place on `/api/v1/`; see the iterations log 20260725_0037 |
-| 1.2.0 | 2026-09-10 | AI (Claude Opus 5) | **Signature images are now uploadable.** New endpoint `POST /signatories/<id>/signature/` (§7), two new `Signatory` response fields (`signature_file`, `signature_source`), and a new `uploaded_files` dependency (§2). `signature_image_url` is retained and still honoured — additive, non-breaking. Retires the "no signature image storage" gap in §9 |
+| Version | Date       | Author               | Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------- | ---------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0.0   | 2026-07-24 | AI (Claude)          | Initial integration contract — 10 endpoints, two resources                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| 1.0.1   | 2026-07-24 | AI (Claude)          | Defects found by the §19.5 consumer-comprehension test. **`DOCUMENT_TEMPLATES_STATUS_INVALID_TRANSITION` renamed to `..._STATUS_IMMUTABLE` for the `PATCH` guard** — no transition in this app is ever invalid, so the old name described a rule that does not exist. Documented that a rename re-derives `name`, that omitting `status` returns everything, the create-error precedence, a worked query-parameter error body, the real pagination cost of mirroring the catalogue, and four new gaps |
+| 1.0.2   | 2026-07-24 | AI (Claude)          | No endpoint or schema change. Corrected statements that `uploaded_files` does not exist — it shipped 2026-07-24. Same, for `signature_image_url`                                                                                                                                                                                                                                                                                                                                                      |
+| 1.1.0   | 2026-07-25 | AI (Claude Opus 4.8) | **Breaking:** English-only names — dropped the `_np`/`_romanized` columns and renamed `_en` fields to bare (Signatory `name`/`title`). Taken in place on `/api/v1/`; see the iterations log 20260725_0037                                                                                                                                                                                                                                                                                             |
+| 1.2.0   | 2026-09-10 | AI (Claude Opus 5)   | **Signature images are now uploadable.** New endpoint `POST /signatories/<id>/signature/` (§7), two new `Signatory` response fields (`signature_file`, `signature_source`), and a new `uploaded_files` dependency (§2). `signature_image_url` is retained and still honoured — additive, non-breaking. Retires the "no signature image storage" gap in §9                                                                                                                                             |
 
 ---
 
 ## 1. Module
 
-- **Name:** Document Templates — the signatory library that certificate documents name, and the catalogue of template slugs the document picker offers. **This module stores what is *offered*, not what is *rendered*:** the templates themselves are frontend code, and nothing here describes how any document draws itself.
+- **Name:** Document Templates — the signatory library that certificate documents name, and the catalogue of template slugs the document picker offers. **This module stores what is _offered_, not what is _rendered_:** the templates themselves are frontend code, and nothing here describes how any document draws itself.
 - **Base path:** `/api/v1/document-templates/`
 - **Auth:** Bearer access JWT on every endpoint, obtained from `POST /api/v1/auth/login/`. **Admin authority only.** A `lead_manager` and a `superadmin` are both rejected with 403 on every route, reads included — identical to `documents` and `document_history`.
 - **Status:** active
 
 ## 2. Requires
 
-| Depends on | Kind | Why | What breaks without it |
-|------------|------|-----|------------------------|
-| `authenticate` | framework | Issues the access JWT and supplies `authority_type`, which is the whole access check here. | Every endpoint returns 401; any non-Admin gets 403 `DOCUMENT_TEMPLATES_ACTOR_FORBIDDEN` everywhere. |
-| `authenticate` | FK | `created_by` (`PROTECT`) on both models references a user account. | Neither resource could record who added it. |
-| `documents` | constant + validator + service call | Three Python imports and **no database relation of any kind**: the `family` enum, the template-key slug validator, and the key/family agreement rule (a service function, called at request time). | Template creation could not validate a key at all, and this module's family vocabulary would drift from the one `documents` enforces. **Signatories are unaffected** — that half of the module has no `documents` dependency. |
-| `audit` | service call | Every mutation appends one immutable event. This module stores no history of its own. | Records still save but leave no trace of who changed what. |
-| `uploaded_files` | service call + FK | Signature images are stored in the file ledger, not here. `Signatory.signature_file` is a `PROTECT` foreign key into it, and the signature endpoint calls that module's `upload_file`/`replace_file`. | `POST /signatories/<id>/signature/` fails outright; `signature_file` is permanently `null` and `signature_source` never leaves `"url"`/`"none"`. Every other route in this module is unaffected. |
+| Depends on       | Kind                                | Why                                                                                                                                                                                                   | What breaks without it                                                                                                                                                                                                        |
+| ---------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `authenticate`   | framework                           | Issues the access JWT and supplies `authority_type`, which is the whole access check here.                                                                                                            | Every endpoint returns 401; any non-Admin gets 403 `DOCUMENT_TEMPLATES_ACTOR_FORBIDDEN` everywhere.                                                                                                                           |
+| `authenticate`   | FK                                  | `created_by` (`PROTECT`) on both models references a user account.                                                                                                                                    | Neither resource could record who added it.                                                                                                                                                                                   |
+| `documents`      | constant + validator + service call | Three Python imports and **no database relation of any kind**: the `family` enum, the template-key slug validator, and the key/family agreement rule (a service function, called at request time).    | Template creation could not validate a key at all, and this module's family vocabulary would drift from the one `documents` enforces. **Signatories are unaffected** — that half of the module has no `documents` dependency. |
+| `audit`          | service call                        | Every mutation appends one immutable event. This module stores no history of its own.                                                                                                                 | Records still save but leave no trace of who changed what.                                                                                                                                                                    |
+| `uploaded_files` | service call + FK                   | Signature images are stored in the file ledger, not here. `Signatory.signature_file` is a `PROTECT` foreign key into it, and the signature endpoint calls that module's `upload_file`/`replace_file`. | `POST /signatories/<id>/signature/` fails outright; `signature_file` is permanently `null` and `signature_source` never leaves `"url"`/`"none"`. Every other route in this module is unaffected.                              |
 
 **This module holds exactly one database relation outside itself: `Signatory.signature_file` into `uploaded_files`.** There is still **no foreign key to `documents` in either direction**, and `documents` does not consult this catalogue — see §9, because that has a consequence you need to plan around.
 
-**The `uploaded_files` relationship runs both ways, and this is the only such pair in the project.** A file may be *owned by* a signatory (that module's sixth owner type), and a signatory *points at* the file that currently renders. The two answer different questions — which signatory these bytes belong to, versus which file renders — and the second cannot be derived from the first, because archived and superseded predecessors remain owned by the same signatory.
+**The `uploaded_files` relationship runs both ways, and this is the only such pair in the project.** A file may be _owned by_ a signatory (that module's sixth owner type), and a signatory _points at_ the file that currently renders. The two answer different questions — which signatory these bytes belong to, versus which file renders — and the second cannot be derived from the first, because archived and superseded predecessors remain owned by the same signatory.
 
 **Two modules reference this one without a foreign key, and neither validates the reference:**
 
-| Referencing module | Where | What it stores |
-|---|---|---|
-| `documents` | `content.instructorId`, `content.directorId` on certificate templates | This module's `Signatory.id`, as an opaque string inside an unvalidated JSON body |
-| `document_history` | `render_context.signatories[].id` on a print snapshot | The same, frozen at print time |
+| Referencing module | Where                                                                 | What it stores                                                                    |
+| ------------------ | --------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `documents`        | `content.instructorId`, `content.directorId` on certificate templates | This module's `Signatory.id`, as an opaque string inside an unvalidated JSON body |
+| `document_history` | `render_context.signatories[].id` on a print snapshot                 | The same, frozen at print time                                                    |
 
 Both stored those ids against a table that did not exist until this module shipped. **What changed is that you now have a real list to pick from. What did not change is that nothing stops either module accepting an id that was never in that list** — see §9.
 
@@ -64,12 +64,16 @@ Both stored those ids against a table that did not exist until this module shipp
 {
   "success": true,
   "message": "Signatory created.",
-  "data": { "id": "9f8e7d6c-5b4a-4392-8172-6f5e4d3c2b1a", "name": "Sunita Shrestha", "status": "draft" },
+  "data": {
+    "id": "9f8e7d6c-5b4a-4392-8172-6f5e4d3c2b1a",
+    "name": "Sunita Shrestha",
+    "status": "draft"
+  },
   "meta": {}
 }
 ```
 
-  **Do not assert on `message`.** It is a human-facing string, not part of the contract. Branch on the HTTP status and, for errors, on `error.code`.
+**Do not assert on `message`.** It is a human-facing string, not part of the contract. Branch on the HTTP status and, for errors, on `error.code`.
 
 - **Error:** `success` is `false` and `error` carries a stable `code`, a human `message`, and a `details` object that is always present — `{}` when there are no field-level errors.
 
@@ -85,7 +89,7 @@ Both stored those ids against a table that did not exist until this module shipp
 }
 ```
 
-  **Query-string failures use the same code and the same shape**, keyed by the parameter name — there is no separate envelope for them:
+**Query-string failures use the same code and the same shape**, keyed by the parameter name — there is no separate envelope for them:
 
 ```json
 {
@@ -99,7 +103,7 @@ Both stored those ids against a table that did not exist until this module shipp
 }
 ```
 
-  Field-level serializer failures on a request **body** use the same code with the offending fields in `details`:
+Field-level serializer failures on a request **body** use the same code with the offending fields in `details`:
 
 ```json
 {
@@ -107,7 +111,11 @@ Both stored those ids against a table that did not exist until this module shipp
   "error": {
     "code": "VALIDATION_ERROR",
     "message": "Validation failed.",
-    "details": { "key": ["Template key must be a lowercase ASCII slug: letters and digits in hyphen-separated segments, e.g. 'bank-vyas-statement'."] }
+    "details": {
+      "key": [
+        "Template key must be a lowercase ASCII slug: letters and digits in hyphen-separated segments, e.g. 'bank-vyas-statement'."
+      ]
+    }
   },
   "meta": {}
 }
@@ -133,8 +141,8 @@ Both stored those ids against a table that did not exist until this module shipp
 - **Pagination:** page-number based, and the **default page size is 20** — so the 53-row template catalogue is three requests, not one. Pass `?page_size=100` to mirror it locally in a single call, and re-check that when the catalogue passes 100 rows, because the maximum clamps silently. `page` and `page_size` (default 20, max 100). `data` is the **bare array of rows — not nested under a `results` key**. `meta` carries `count`, `page`, `page_size`, `next`, `previous`; `count` is the **total across all pages**, not the rows in `data`. `next`/`previous` are absolute URLs (scheme + host) or `null`. Applied to both list endpoints.
 - **IDs:** UUID strings, unquoted and unmarked in the shapes below — a field with no type marker is a string. A template's `key` is a human-readable slug and is unique, but **it is not an address**: every endpoint here takes the UUID `id` in its path. There is no lookup-by-key endpoint — see §9.
 - **Ordering** is fixed and **not client-controllable** — there is no `sort` or `ordering` parameter. Signatories are ordered by `name` (alphabetical). Templates by `family`, then `display_order`, then `label`.
-- **Times.** `created_at` and `updated_at` are ISO 8601 UTC. **Neither carries a Bikram Sambat sibling anywhere in this module** — unlike `documents` and `document_history`, which expose `archived_at_bs` and `created_at_bs`. §39.4 requires BS representation for *user-facing temporal data*; both timestamps here are system-internal bookkeeping on a reference library, and there is no business date on either resource. There is also **no `?fiscal_year=` filter** on either list, for the same reason.
-- **Empty text fields are `""`, never `null`.** Every *text* field on both resources is non-null. **Exactly one field in this module is nullable: `Signatory.signature_file`**, an object, which is `null` when no uploaded signature is in force. `signature_source` is never null — it reports `"none"` instead. Nothing else on either resource can be `null`.
+- **Times.** `created_at` and `updated_at` are ISO 8601 UTC. **Neither carries a Bikram Sambat sibling anywhere in this module** — unlike `documents` and `document_history`, which expose `archived_at_bs` and `created_at_bs`. §39.4 requires BS representation for _user-facing temporal data_; both timestamps here are system-internal bookkeeping on a reference library, and there is no business date on either resource. There is also **no `?fiscal_year=` filter** on either list, for the same reason.
+- **Empty text fields are `""`, never `null`.** Every _text_ field on both resources is non-null. **Exactly one field in this module is nullable: `Signatory.signature_file`**, an object, which is `null` when no uploaded signature is in force. `signature_source` is never null — it reports `"none"` instead. Nothing else on either resource can be `null`.
 
 ## 4. Models
 
@@ -143,7 +151,7 @@ Both stored those ids against a table that did not exist until this module shipp
 **SignatureFile** (the nested `signature_file` object) — `{ id, download_path, original_filename, content_type, size_bytes, version_number, uploaded_at }`
 
 - **One shape for list and detail** — there is no large column to withhold from a list, so a second shape would exist only to drift from this one. The list carries `signature_file` too, at no extra query cost.
-- **`is_active` is `status == "active"`.** A `draft` signatory is *not* active. This is the boolean to gate a picker on.
+- **`is_active` is `status == "active"`.** A `draft` signatory is _not_ active. This is the boolean to gate a picker on.
 - **`role` is free text, not an enum** — see §5.
 - **`signature_image_url` may be `""`.** A signatory can exist without a signature image, and one in `draft` usually does.
 - **`signature_file` is `null` in three different situations** — never uploaded, uploaded then archived, uploaded then superseded through the file module directly — and you cannot tell them apart from this field. You do not need to: render from `signature_source`.
@@ -326,10 +334,10 @@ Both stored those ids against a table that did not exist until this module shipp
 **Side effects:**
 
 - **A row is created in `uploaded_files`** owned by this signatory, categorised `signature_image`, verification status `pending`.
-- **If a signature was already in force, it is superseded** — the new file is version *n+1* with the old one as its predecessor. The old bytes are kept and readable through `GET /api/v1/files/<old_id>/versions/`. Nothing is deleted.
+- **If a signature was already in force, it is superseded** — the new file is version _n+1_ with the old one as its predecessor. The old bytes are kept and readable through `GET /api/v1/files/<old_id>/versions/`. Nothing is deleted.
 - **`Signatory.signature_file` is re-pointed** and `signature_source` becomes `"uploaded"`.
 - **Two `audit` events are written**, one in each module: the file ledger records that bytes arrived, this module records that the signatory's signature changed.
-- **Documents and snapshots already naming this signatory are not touched** — but see the note below about what they will *render*.
+- **Documents and snapshots already naming this signatory are not touched** — but see the note below about what they will _render_.
 
 **Notes:**
 
@@ -344,13 +352,13 @@ Both stored those ids against a table that did not exist until this module shipp
 **Errors:**
 
 - `DOCUMENT_TEMPLATES_ACTOR_FORBIDDEN` (403) — the caller is not an Admin
-- `DOCUMENT_TEMPLATES_SIGNATORY_NOT_FOUND` (404) — no signatory with that id. Checked *after* authority, so a refused caller cannot probe for ids
+- `DOCUMENT_TEMPLATES_SIGNATORY_NOT_FOUND` (404) — no signatory with that id. Checked _after_ authority, so a refused caller cannot probe for ids
 - `DOCUMENT_TEMPLATES_SIGNATURE_NOT_AN_IMAGE` (400) — not PNG/JPG/JPEG/WEBP
 - `DOCUMENT_TEMPLATES_SIGNATURE_FILE_TOO_LARGE` (400) — over 10 MB
 - `DOCUMENT_TEMPLATES_SIGNATURE_FILE_CONTENT_MISMATCH` (400) — the bytes contradict the extension
 - `VALIDATION_ERROR` (400) — no `file` part, or an empty one
-- *(no code)* **415** — a JSON body was sent to this multipart-only route
-- *(no code)* **405** — any method other than `POST`
+- _(no code)_ **415** — a JSON body was sent to this multipart-only route
+- _(no code)_ **405** — any method other than `POST`
 
 ### DocumentTemplate — `/api/v1/document-templates/templates/`
 
@@ -388,7 +396,7 @@ Both stored those ids against a table that did not exist until this module shipp
 - **Omitting `status` returns everything**, as on signatories. Pickers pass `?status=active`.
 - **Query parameters:** `family`, `status`, `search`, `page`, `page_size`. `search` matches `label` and `key`.
 
-**Errors** — and when a payload trips more than one, they fire in this order: serializer validation first, then uniqueness, then the family agreement rule. A malformed slug that is *also* a duplicate returns `VALIDATION_ERROR`; a well-formed duplicate that *also* mismatches its family returns `KEY_ALREADY_EXISTS`. Highlight the field named in `details` rather than guessing which rule the user broke.
+**Errors** — and when a payload trips more than one, they fire in this order: serializer validation first, then uniqueness, then the family agreement rule. A malformed slug that is _also_ a duplicate returns `VALIDATION_ERROR`; a well-formed duplicate that _also_ mismatches its family returns `KEY_ALREADY_EXISTS`. Highlight the field named in `details` rather than guessing which rule the user broke.
 
 - `DOCUMENT_TEMPLATES_ACTOR_FORBIDDEN` (403)
 - `DOCUMENT_TEMPLATES_TEMPLATE_NOT_FOUND` (404) — no template with that id
@@ -428,11 +436,11 @@ Both stored those ids against a table that did not exist until this module shipp
 **Add a certificate signer**
 
 1. `POST /api/v1/document-templates/signatories/` with `name`, `title`, and `role` → `Signatory`, `status: "draft"`, `signature_source: "none"`.
-   - *Failure — `VALIDATION_ERROR` on `name`:* the name is required.
+   - _Failure — `VALIDATION_ERROR` on `name`:_ the name is required.
 2. `POST /api/v1/document-templates/signatories/<id>/signature/` as `multipart/form-data` with one `file` part → `Signatory`, `signature_source: "uploaded"`, `signature_file.version_number: 1`.
-   - *Failure — `DOCUMENT_TEMPLATES_SIGNATURE_NOT_AN_IMAGE`:* PNG, JPG/JPEG, or WEBP only.
-   - *Failure — `DOCUMENT_TEMPLATES_SIGNATURE_FILE_TOO_LARGE`:* 10 MB cap.
-   - *Alternative, no upload:* `PATCH` the signatory with `signature_image_url` instead → `signature_source: "url"`. You host the image; this API never fetches or validates it.
+   - _Failure — `DOCUMENT_TEMPLATES_SIGNATURE_NOT_AN_IMAGE`:_ PNG, JPG/JPEG, or WEBP only.
+   - _Failure — `DOCUMENT_TEMPLATES_SIGNATURE_FILE_TOO_LARGE`:_ 10 MB cap.
+   - _Alternative, no upload:_ `PATCH` the signatory with `signature_image_url` instead → `signature_source: "url"`. You host the image; this API never fetches or validates it.
 3. `POST /api/v1/document-templates/signatories/<id>/status/` with `{"status": "active"}` → now `is_active: true`.
 4. `GET /api/v1/document-templates/signatories/?status=active` → the signer now appears in the picker.
 
@@ -441,8 +449,8 @@ Both stored those ids against a table that did not exist until this module shipp
 1. `GET /api/v1/document-templates/signatories/<id>/` → read `signature_source`.
 2. Branch on it, and only on it: `"uploaded"` → step 3; `"url"` → render `signature_image_url` directly; `"none"` → render no signature.
 3. `fetch(signature_file.download_path)` **with the bearer token**, then `URL.createObjectURL(blob)` and use that as the `<img src>`.
-   - *Failure — 401:* you pointed an `<img>` straight at `download_path`. It is an authenticated route; fetch it instead.
-   - *Failure — 404:* the file row exists but its bytes do not — a media volume restored older than the database. Report it; no client action fixes it.
+   - _Failure — 401:_ you pointed an `<img>` straight at `download_path`. It is an authenticated route; fetch it instead.
+   - _Failure — 404:_ the file row exists but its bytes do not — a media volume restored older than the database. Report it; no client action fixes it.
 4. **Cache the object URL for the session.** The route forbids browser caching and audits every read, so re-fetching per render floods the audit log and burns the shared 1000/hour request budget.
 
 **Replace a signature that has changed**
@@ -491,10 +499,10 @@ Both stored those ids against a table that did not exist until this module shipp
 - **`created_by_username` is a username string, with no user id.** You cannot join a signatory or template to an `authenticate` user record, render an avatar, or survive a username change. Consistent with every other module in this project, but stated here because nothing else tells you.
 - **No bulk reorder.** `display_order` is set one `PATCH` at a time, with no transaction across them — reordering a family of eleven bank templates is eleven independent writes that can half-apply.
 - **No lookup-by-key endpoint.** Every route takes the UUID `id`. Holding a `documents.template_key` and wanting its label means listing the catalogue and matching client-side — cheap at 53 rows, but there is no `GET /templates/?key=...` and no `GET /templates/by-key/<key>/`.
-- **No template *definition* of any kind.** No sections, no field hints, no signature slots, no layout, no preview, and no version chain. The templates are frontend code; this module knows only that a slug exists, what family it belongs to, and what to call it. `concepts/document_templates.txt` describes a Template Editor, a Template Detail / Version History screen, and a Template Preview — **none of the three has a backing endpoint**, deliberately, because nothing consumes that metadata and inventing a schema for it would guarantee drift from the templates that actually render.
-- **~~No signature image storage.~~ Retired 2026-09-10.** This gap read: *"`signature_image_url` is a link to a host this API knows nothing about. No upload endpoint … a `Signatory` is not one of that module's owner types, so there is nowhere to attach a signature even by hand."* All of that is now false — `signatory` is the file module's sixth owner type and §7 has an upload endpoint. What remains true, and is why the gap is rewritten rather than deleted: **`signature_image_url` is still an unvalidated external link** for any signatory that has no uploaded file, with no reachability check and no CDN. If that link rots, the certificate shows a broken image and nothing here reports it. Uploading a real image is the fix, per signatory.
+- **No template _definition_ of any kind.** No sections, no field hints, no signature slots, no layout, no preview, and no version chain. The templates are frontend code; this module knows only that a slug exists, what family it belongs to, and what to call it. `concepts/document_templates.txt` describes a Template Editor, a Template Detail / Version History screen, and a Template Preview — **none of the three has a backing endpoint**, deliberately, because nothing consumes that metadata and inventing a schema for it would guarantee drift from the templates that actually render.
+- **~~No signature image storage.~~ Retired 2026-09-10.** This gap read: _"`signature_image_url` is a link to a host this API knows nothing about. No upload endpoint … a `Signatory` is not one of that module's owner types, so there is nowhere to attach a signature even by hand."_ All of that is now false — `signatory` is the file module's sixth owner type and §7 has an upload endpoint. What remains true, and is why the gap is rewritten rather than deleted: **`signature_image_url` is still an unvalidated external link** for any signatory that has no uploaded file, with no reachability check and no CDN. If that link rots, the certificate shows a broken image and nothing here reports it. Uploading a real image is the fix, per signatory.
 - **Signature bytes cost an authenticated round trip per render.** There is no public URL, no data URI, and no cacheable variant: `download_path` requires the bearer token, forbids browser caching, and writes an audit event on every read. A certificate naming two signers is two authenticated fetches per fresh render. Hold the object URLs for the session — see §8 — because nothing on the server side will do it for you.
-- **A reprint that re-renders shows the *current* signature, not the one that was issued.** A snapshot freezes a signer's name and role and never the image, so replacing a signature rewrites the appearance of every past certificate that names that signer, while the frozen name beside it stays historical. **This applies to reprints that re-render from snapshot data.** If your client instead stored a generated PDF against the snapshot (the file module accepts a `snapshot` owner with `category=generated_document`), that PDF is unaffected and will keep showing the original signature — so the two reprint strategies diverge. Neither this module nor `document_history` chooses for you; see `document_history/docs/INTEGRATION.md`. If byte-identical reprints matter, store the rendered PDF or capture the image at print time.
+- **A reprint that re-renders shows the _current_ signature, not the one that was issued.** A snapshot freezes a signer's name and role and never the image, so replacing a signature rewrites the appearance of every past certificate that names that signer, while the frozen name beside it stays historical. **This applies to reprints that re-render from snapshot data.** If your client instead stored a generated PDF against the snapshot (the file module accepts a `snapshot` owner with `category=generated_document`), that PDF is unaffected and will keep showing the original signature — so the two reprint strategies diverge. Neither this module nor `document_history` chooses for you; see `document_history/docs/INTEGRATION.md`. If byte-identical reprints matter, store the rendered PDF or capture the image at print time.
 - **No way to tell a never-uploaded signature from a removed one.** `signature_file: null` with `signature_source: "url"` could mean the signature was archived last week or that one was never uploaded. The distinction lives in the `audit` module and in the file module's own list filtered by `?signatory=<id>`, not in this payload.
 
 **The `signature_source` rule, stated exhaustively.** §3 says part of it is invisible to you, which makes a partial list worse than none. It is `"uploaded"` when a linked file exists **and** is neither archived nor superseded; `"url"` when that fails and `signature_image_url` is non-empty; `"none"` otherwise. Exactly two conditions disqualify a linked file, and these are the consequences worth knowing:
@@ -505,6 +513,6 @@ Both stored those ids against a table that did not exist until this module shipp
 - **Missing bytes are not consulted either.** If the storage volume and the database diverge, `signature_source` still reads `"uploaded"` and the fetch 404s. Handle that at the fetch, not the branch.
 - **`family` will grow without a version bump.** The six values come from `documents` and a seventh would appear here with no change to this module and no `/api/v2/`. Treat it as an open string.
 - **No Bikram Sambat dates and no `?fiscal_year=` filter**, unlike `documents` and `document_history`. Both timestamps here are system bookkeeping on a reference library, not user-facing business dates.
-- **401 bodies are not enumerated here.** This contract states *that* a missing, expired, or revoked-session token returns 401 with the `authenticate` module's codes, but not what those codes are — so distinguishing "refresh silently" from "redirect to login" requires that module's contract.
+- **401 bodies are not enumerated here.** This contract states _that_ a missing, expired, or revoked-session token returns 401 with the `authenticate` module's codes, but not what those codes are — so distinguishing "refresh silently" from "redirect to login" requires that module's contract.
 - **The permission keys in §7 are not enforced in the request path.** Every endpoint has one registered and no view consults it; access is decided solely by the `admin` authority check. Do not build a client-side permission gate off those keys expecting the server to agree.
 - **The seeded catalogue may not match the real template set.** `seed_document_templates` loads 53 slugs transcribed from the frontend's own contract — whose heading says "42 slugs" and then lists 53. The discrepancy is unresolved. If 42 is correct, eleven seeded rows name templates the frontend cannot render, and a picker built from `?status=active` would offer them.

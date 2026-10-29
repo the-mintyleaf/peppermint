@@ -47,43 +47,43 @@ nothing that varies per study objective.
 
 Identity
 
-* Full name
-* Date of birth
-* Gender
-* Nationality
+- Full name
+- Date of birth
+- Gender
+- Nationality
 
 Contact
 
-* Multiple contact numbers, each labelled
-* One email address
-* Addresses — permanent and current
+- Multiple contact numbers, each labelled
+- One email address
+- Addresses — permanent and current
 
 The same reasoning as leads applies: a person may have several usable numbers
 but one working email address.
 
 Identity documents
 
-* Citizenship certificate number and the district that issued it
-* National identity card number
+- Citizenship certificate number and the district that issued it
+- National identity card number
 
 Ward-office (Woda) letters print these. They are stored as entered.
 
 Passport
 
-* Passport number
-* Issuing country
-* Place of issue
-* Issue date and expiry date
+- Passport number
+- Issuing country
+- Place of issue
+- Issue date and expiry date
 
 Passport expiry matters operationally, because an expiring passport can block a
 visa application. The record should make that date easy to find.
 
 Family
 
-* Family members, each with a relationship (including grandfather and
+- Family members, each with a relationship (including grandfather and
   grandmother, for ward-office letters), name, occupation, contact number, and
   citizenship number
-* Emergency contacts, each with a relationship and contact details
+- Emergency contacts, each with a relationship and contact details
 
 Family members and emergency contacts are recorded separately because they are
 not the same thing. A person's emergency contact may be a friend, a landlord, or
@@ -96,10 +96,10 @@ Education records and language-test results are kept on the applicant
 `concepts/education.txt` and `concepts/test_scores.txt` were folded in here,
 because the requirement was small enough not to justify new modules:
 
-* Education — each qualification with its level (SEE / +2 / Diploma / Bachelor /
+- Education — each qualification with its level (SEE / +2 / Diploma / Bachelor /
   Master / PhD / Other), programme, institution, completion status, score (GPA or
   percentage) with how it reads, and start/completion years in BS or AD.
-* Language tests — each IELTS, PTE, TOEFL, Duolingo, or other sitting with its
+- Language tests — each IELTS, PTE, TOEFL, Duolingo, or other sitting with its
   overall and four skill scores (validated per test), test date, certificate
   number, and expiry date.
 
@@ -166,13 +166,13 @@ every Admin and Lead Manager still views and edits every applicant, assigned or
 not. Small teams can ignore it; an unassigned applicant's alerts go to the whole
 team.
 
-* An Admin may assign anyone eligible, reassign, or clear the assignment.
-* A Lead Manager may take an unassigned applicant for themselves, or release one
+- An Admin may assign anyone eligible, reassign, or clear the assignment.
+- A Lead Manager may take an unassigned applicant for themselves, or release one
   they hold — never assign someone else or take a colleague's file.
-* A converted applicant starts assigned to the lead's owner, when that person is
+- A converted applicant starts assigned to the lead's owner, when that person is
   still an active Admin or Lead Manager; a directly created one starts unassigned.
-* The list can be filtered to "mine", "unassigned", or a named person.
-* Assigning and unassigning appear in the applicant's history, and the person
+- The list can be filtered to "mine", "unassigned", or a named person.
+- Assigning and unassigning appear in the applicant's history, and the person
   gaining or losing the applicant is notified.
 
 ## No deletion
@@ -193,14 +193,14 @@ people move, passports are renewed.
 
 Important applicant actions should appear in a chronological history, including:
 
-* Applicant created, noting whether from a lead or directly
-* Identity information changed
-* Contact information changed
-* Address changed
-* Passport information changed
-* Family or emergency contact changed
-* Status changed
-* Assigned or unassigned
+- Applicant created, noting whether from a lead or directly
+- Identity information changed
+- Contact information changed
+- Address changed
+- Passport information changed
+- Family or emergency contact changed
+- Status changed
+- Assigned or unassigned
 
 History entries should not be silently rewritten or removed.
 
@@ -210,35 +210,35 @@ Admin
 
 An Admin may:
 
-* Create an applicant directly
-* Convert a lead into an applicant
-* View and edit any applicant
-* Change applicant status
-* Archive and restore an applicant
-* Review applicant history
-* Read, write, correct, and remove any note on an applicant
-* Assign any applicant to any active Admin or Lead Manager, or clear it
+- Create an applicant directly
+- Convert a lead into an applicant
+- View and edit any applicant
+- Change applicant status
+- Archive and restore an applicant
+- Review applicant history
+- Read, write, correct, and remove any note on an applicant
+- Assign any applicant to any active Admin or Lead Manager, or clear it
 
 Lead Manager
 
 A Lead Manager may:
 
-* View any applicant
-* Edit any applicant's information
-* Change applicant status, including archiving — but not restoring
-* Review applicant history
-* Read and write notes on any applicant (General or Visit, backdatable), and
+- View any applicant
+- Edit any applicant's information
+- Change applicant status, including archiving — but not restoring
+- Review applicant history
+- Read and write notes on any applicant (General or Visit, backdatable), and
   correct or remove their own
-* Take an unassigned applicant, or release one assigned to them
+- Take an unassigned applicant, or release one assigned to them
 
 A Lead Manager may not:
 
-* Create an applicant, by either path
-* Restore an archived applicant
-* Correct or remove another person's note
-* Assign an applicant to someone else, or take or clear one assigned to a
+- Create an applicant, by either path
+- Restore an archived applicant
+- Correct or remove another person's note
+- Assign an applicant to someone else, or take or clear one assigned to a
   colleague
-* Delete an applicant or any part of its history
+- Delete an applicant or any part of its history
 
 Superadmin
 
@@ -281,20 +281,20 @@ row, so the form always submits the complete intended state.
 
 ## Constraints / Out of scope
 
-* Applicants are not system users and cannot sign in.
-* No applicant self-service portal.
-* No photograph in V1. A photograph needs a documented file contract — permitted
+- Applicants are not system users and cannot sign in.
+- No applicant self-service portal.
+- No photograph in V1. A photograph needs a documented file contract — permitted
   types, size limits, storage location, and access rules — and files belong to
   the uploaded files module. Adding an image field here would pre-empt that
   module or ship an undocumented upload path.
-* No duplicate detection or merging. Two records for the same person is a real
+- No duplicate detection or merging. Two records for the same person is a real
   risk, but resolving it needs a merge process that preserves both histories,
   and that is its own piece of work.
-* No documents or files on the applicant record (they have their own modules).
+- No documents or files on the applicant record (they have their own modules).
   Education gaps, training records, and non-language tests (SAT, GRE) are not
   recorded.
-* No deletion, and no hard archival that hides a record from search.
-* No automatic status changes driven by journey activity.
+- No deletion, and no hard archival that hides a record from search.
+- No automatic status changes driven by journey activity.
 
 ## Notes (added 2026-10-29, frontend updates.md §2)
 
@@ -306,18 +306,18 @@ be read but not changed.
 
 ## Open questions
 
-* Should passport renewals keep history? V1 stores one current passport and
+- Should passport renewals keep history? V1 stores one current passport and
   overwrites it on renewal, with the change captured in the audit history. If
   old passport numbers turn out to matter for visa history, this needs to become
   a collection with a current flag.
-* Should an address use Nepal's structured hierarchy — province, district,
+- Should an address use Nepal's structured hierarchy — province, district,
   municipality, ward — or free text? V1 offers structured optional fields plus a
   free-text line, but the right level of rigidity is not settled.
-* Is nationality ever anything but Nepali in practice? If it is effectively
+- Is nationality ever anything but Nepali in practice? If it is effectively
   constant, it may not deserve a field.
-* Should archiving an applicant do anything to their open journeys, or are the
+- Should archiving an applicant do anything to their open journeys, or are the
   two lifecycles fully independent? V1 keeps them independent.
-* Can a Lead Manager really edit any applicant, or should some fields —
+- Can a Lead Manager really edit any applicant, or should some fields —
   passport, status — be Admin-only? V1 allows full edit access.
-* What happens when a directly created applicant is later discovered to have had
+- What happens when a directly created applicant is later discovered to have had
   a lead? The "approved correction process" for linking them is not defined.

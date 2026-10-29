@@ -1,10 +1,13 @@
 # uploaded_files
 
 ## Goal
+
 `uploaded_files` is the single place for files that belong to the platform and are attached to business records. It owns the file lifecycle, while other apps keep their own domain logic and only point to file records.
 
 ## Why it exists
+
 The project overview says this app must cover files connected to applicants, education records, journeys, offers, and documents. That includes:
+
 - category
 - ownership
 - versioning
@@ -17,7 +20,9 @@ The project overview says this app must cover files connected to applicants, edu
 This is not the document renderer. The frontend still assembles document views, and `documents` / `document_history` keep their own state. `uploaded_files` is the durable file registry underneath them.
 
 ## What it stores
+
 Each uploaded file should carry:
+
 - unique identifier
 - owning record type and owner id
 - file category
@@ -34,7 +39,9 @@ Each uploaded file should carry:
 - timestamps and audit metadata
 
 ## Core relationships
+
 Files may be linked to:
+
 - applicants
 - education records
 - journeys
@@ -45,7 +52,9 @@ Files may be linked to:
 Other apps should store references to file ids instead of embedding blobs or inventing separate file fields.
 
 ## Lifecycle
+
 The expected flow is:
+
 1. Upload a file.
 2. Attach it to one supported record.
 3. Review and mark it verified, pending, or rejected.
@@ -55,7 +64,9 @@ The expected flow is:
 Deletion should be exceptional. The system should preserve traceability over time.
 
 ## UI shape
+
 The app should support:
+
 - file list and filters
 - file detail view
 - upload flow
@@ -66,7 +77,9 @@ The app should support:
 This can be embedded inside parent workflows, but the underlying state should still come from the same file ledger.
 
 ## Boundaries
+
 `uploaded_files` should not:
+
 - render documents
 - manage templates
 - own document business rules
@@ -74,6 +87,7 @@ This can be embedded inside parent workflows, but the underlying state should st
 - silently remove historical records
 
 ## Rules to keep aligned with current project
+
 - Frontend-generated document views stay in the frontend.
 - `documents` keeps the persisted document state.
 - `document_history` keeps immutable snapshots.
@@ -81,21 +95,23 @@ This can be embedded inside parent workflows, but the underlying state should st
 - `uploaded_files` is the shared storage and lifecycle layer for file assets referenced by those apps.
 
 ## Open questions
+
 - Which file categories are required in v1.
 - Whether a file can belong to more than one business record.
 - Whether generated PDFs live here immediately or only later.
 - Which categories require verification before use.
 - Which assets move from URL-based references into this app first, such as logos or signatures.
   -> ANSWERED (2026-09-10): signatures first. document_templates.Signatory became this app's sixth
-     owner type and its signature image is now a real upload, stored here with the full file
-     contract. clients.logo_url is unchanged -- Client is still not an owner type.
-     Two things decided the order. A signatory renders exactly ONE signature, so the owning record
-     can hold a single pointer at the file that counts; a partner logo has the same property but no
-     consumer pressing for it, while the applicant photograph has real pressure and NO single
-     answer, so it stays blocked. And the migration was made additive: the old URL field was kept
-     and still renders for any signatory without an upload, so no shipped response shape broke.
-     That combination -- one canonical file, plus an additive migration -- is the bar for the next
-     asset to move.
+  owner type and its signature image is now a real upload, stored here with the full file
+  contract. clients.logo_url is unchanged -- Client is still not an owner type.
+  Two things decided the order. A signatory renders exactly ONE signature, so the owning record
+  can hold a single pointer at the file that counts; a partner logo has the same property but no
+  consumer pressing for it, while the applicant photograph has real pressure and NO single
+  answer, so it stays blocked. And the migration was made additive: the old URL field was kept
+  and still renders for any signatory without an upload, so no shipped response shape broke.
+  That combination -- one canonical file, plus an additive migration -- is the bar for the next
+  asset to move.
 
 ## Outcome
+
 This app should make file handling consistent across the platform without taking over the frontend document generation flow.

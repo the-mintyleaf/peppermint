@@ -81,18 +81,18 @@ document, not the rendered instance.
 
 The current frontend taxonomy uses 42 concrete document slugs:
 
-* Student: `student-certificate`, `student-cv`, `student-cv-standard`,
+- Student: `student-certificate`, `student-cv`, `student-cv-standard`,
   `student-cv-extended`
-* WODA: `woda-address`, `woda-dob`, `woda-fiscal`, `woda-income`,
+- WODA: `woda-address`, `woda-dob`, `woda-fiscal`, `woda-income`,
   `woda-migration`, `woda-occupation`, `woda-relationship`, `woda-surname`,
   `woda-tax-clearance`, `woda-agriculture-income`,
   `woda-affidavit-financial`
-* LOR: `lor-janajagriti`, `lor-bageshwari-chief`, `lor-bageshwari-hod`,
+- LOR: `lor-janajagriti`, `lor-bageshwari-chief`, `lor-bageshwari-hod`,
   `lor-shiva`, `lor-kcmit`, `lor-tri-chandra`, `lor-monastic`, `lor-om-health`,
   `lor-atlantic`, `lor-model-technical`, `lor-nepalgunj`
-* MOI: `moi-global-college`, `moi-janajagriti`, `moi-vinayak`, `moi-reliance`,
+- MOI: `moi-global-college`, `moi-janajagriti`, `moi-vinayak`, `moi-reliance`,
   `moi-bheri-nursing`
-* Bank certificates/statements:
+- Bank certificates/statements:
   `bank-bigyalaxmi-certificate`, `bank-bigyalaxmi-statement`,
   `bank-birendranagar-certificate`, `bank-birendranagar-statement`,
   `bank-himchuli-certificate`, `bank-himchuli-statement`,
@@ -115,11 +115,11 @@ shape verbatim and not recompute client-side presentation values.
 
 Bank documents are the clearest example:
 
-* running balances are derived in the frontend from the transaction rows
-* debit and credit totals are derived in the frontend
-* closing balance is derived in the frontend
-* auto interest and tax rows are derived in the frontend
-* amount-in-words is derived in the frontend
+- running balances are derived in the frontend from the transaction rows
+- debit and credit totals are derived in the frontend
+- closing balance is derived in the frontend
+- auto interest and tax rows are derived in the frontend
+- amount-in-words is derived in the frontend
 
 Those values may appear in the rendered document and print snapshot, but they
 are not the canonical editable source data.
@@ -217,25 +217,25 @@ and the action that captures the immutable snapshot.
 
 ## Constraints / Out of scope
 
-* No template authoring or version management. That belongs in document
+- No template authoring or version management. That belongs in document
   templates.
-* No immutable historical snapshot storage. That belongs in document history.
-* No uploaded-file storage or verification workflow. That belongs in uploaded
+- No immutable historical snapshot storage. That belongs in document history.
+- No uploaded-file storage or verification workflow. That belongs in uploaded
   files.
-* No applicant self-service document portal.
-* No automatic rewriting of historical print snapshots when the source data or
+- No applicant self-service document portal.
+- No automatic rewriting of historical print snapshots when the source data or
   template changes.
-* No document deletion that erases history. Retire, archive, or restore instead.
-* No full word processor or rich document editor in V1.
-* No e-signature workflow unless explicitly added later.
-* No backend-side rendering engine for the final layout unless that becomes a
+- No document deletion that erases history. Retire, archive, or restore instead.
+- No full word processor or rich document editor in V1.
+- No e-signature workflow unless explicitly added later.
+- No backend-side rendering engine for the final layout unless that becomes a
   separately approved requirement.
 
 ## Open questions
 
 Settled in V1 (2026-07-24):
 
-* **Are the frontend slugs the canonical types, or template keys?** Template
+- **Are the frontend slugs the canonical types, or template keys?** Template
   keys. The backend owns a stable six-value `family` enum — `student`, `woda`,
   `lor`, `moi`, `bank_statement`, `bank_certificate` — and stores the slug as a
   format-validated string that must agree with the family. Onboarding a new bank
@@ -243,39 +243,39 @@ Settled in V1 (2026-07-24):
   `document_templates` additively when that app ships. Bank documents are two
   families rather than one because a statement and a certificate have different
   content shapes and different screens.
-* **Which status enum?** `draft`, `ready`, `archived`. `active` was dropped as a
+- **Which status enum?** `draft`, `ready`, `archived`. `active` was dropped as a
   synonym for `draft`. **`printed` was deliberately excluded**: nothing in this
   deployment can set it, because print snapshots belong to the unbuilt
   `document_history`. A status no code writes is a lie in the schema, and adding
   it later — derived from snapshot existence — is additive. The frontend's
   `submitted` maps to `ready`; nothing in Grandway submits a document anywhere.
-* **Should Lead Managers see all documents, or only an assigned scope?**
+- **Should Lead Managers see all documents, or only an assigned scope?**
   Neither — **they see none.** See the correction at the top of this file.
-* **Which fields are source data, and which are computed at render?** Exactly as
+- **Which fields are source data, and which are computed at render?** Exactly as
   the frontend contract states: the backend stores the input fields verbatim and
   computes nothing. Running balances, debit and credit totals, closing balance,
   the automatic interest and tax rows, and amount-in-words are all derived in
   the workspace at render time and are never persisted. The backend also does
-  not *strip* a derived value if one is sent — it cannot, without knowing all 42
+  not _strip_ a derived value if one is sent — it cannot, without knowing all 42
   shapes — so a stored derived value must never be read back as truth.
 
 Settled 2026-10-29 (frontend request, updates.md §6 and §7.1):
 
-* **Does "remove" hide a document?** Yes. Archive stays the only removal, but
+- **Does "remove" hide a document?** Yes. Archive stays the only removal, but
   archived documents are left out of the default document list; they are
   listed on request (`status=archived`, `include_archived=true`) and counted
   separately on the landing table, so flow 4's "no historical document should
   disappear" still holds — nothing is deleted, only filtered.
-* **Where does a restored document land?** In the status it had when it was
+- **Where does a restored document land?** In the status it had when it was
   archived. Archiving is how staff remove a document, and restoring is undoing
   that; the earlier always-draft rule demoted finished documents.
-* **Does the backend validate any template's content?** One:
+- **Does the backend validate any template's content?** One:
   `student-certificate`. Its form now covers every printed field and the
   frontend specified the keys (snake_case) and asked for them to be checked,
   including that the printed photo is that applicant's own photograph. The
   check is lenient — nothing required, unknown keys kept — and the body is
   still stored exactly as sent. Every other template stays opaque.
-* **Is the template layout version stored?** Yes, per document
+- **Is the template layout version stored?** Yes, per document
   (`template_version`, default "1"), because the frontend renders old
   documents with the layout they were authored for (Woda letters moved to
   layout 2). A print snapshot still records what was printed in its own
@@ -283,21 +283,21 @@ Settled 2026-10-29 (frontend request, updates.md §6 and §7.1):
 
 Still open:
 
-* Should standalone documents have their own list and lifecycle, or live inside
+- Should standalone documents have their own list and lifecycle, or live inside
   the workspace only? V1 gives them a filter (`?standalone=true`) but no
   separate lifecycle, and they are excluded from the workspaces landing table
   because they have no applicant to group under.
-* Should final generated PDF files be retained in addition to document data and
+- Should final generated PDF files be retained in addition to document data and
   print snapshots? Unanswerable until `document_history` and `uploaded_files`
   exist.
-* Can one document reference multiple supporting files, or only a primary one?
+- Can one document reference multiple supporting files, or only a primary one?
   Waits on `uploaded_files`; V1 references none.
-* What is the final canonical set of template families for V1? The six families
+- What is the final canonical set of template families for V1? The six families
   cover the current 42 slugs, but nothing validates a slug against a real
   template — a typo matching the family prefix is accepted until
   `document_templates` provides a registry.
-* Should a document's previous body be recoverable? Today it is not: the audit
+- Should a document's previous body be recoverable? Today it is not: the audit
   log deliberately redacts the body, and there is no versioning. Editing a
   document loses its previous contents irrecoverably until print snapshots exist.
-* Should `content` be searchable? V1 searches labels only; full-text search over
+- Should `content` be searchable? V1 searches labels only; full-text search over
   personal financial data needs its own decision.

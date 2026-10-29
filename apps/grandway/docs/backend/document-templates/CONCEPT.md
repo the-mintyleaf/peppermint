@@ -34,12 +34,12 @@ Template family
 The broad document class a template belongs to. The current project uses six
 families:
 
-* `student`
-* `woda`
-* `lor`
-* `moi`
-* `bank_statement`
-* `bank_certificate`
+- `student`
+- `woda`
+- `lor`
+- `moi`
+- `bank_statement`
+- `bank_certificate`
 
 Template key
 
@@ -139,17 +139,17 @@ configuration.
 
 ## Constraints / Out of scope
 
-* No editable document body or per-document source data.
-* No immutable print snapshot storage. That belongs in `document_history`.
-* No file storage or attachment workflow. That belongs elsewhere.
-* No document workflow state such as draft/ready/archived for a concrete
+- No editable document body or per-document source data.
+- No immutable print snapshot storage. That belongs in `document_history`.
+- No file storage or attachment workflow. That belongs elsewhere.
+- No document workflow state such as draft/ready/archived for a concrete
   document record.
-* No signatory as a system actor. A signatory is just a stored person/signature
+- No signatory as a system actor. A signatory is just a stored person/signature
   record.
-* No backend-side rendering engine for the final document layout.
-* No deletion of published template history. Inactive versions should remain
+- No backend-side rendering engine for the final document layout.
+- No deletion of published template history. Inactive versions should remain
   available for old records.
-* No Lead Manager maintenance access in V1 if the rest of the document stack is
+- No Lead Manager maintenance access in V1 if the rest of the document stack is
   Admin-only, which is the current direction.
 
 ## Open questions
@@ -160,54 +160,54 @@ inline; the reasoning for each is in
 backend/document_templates/docs/DATA_CONTRACT.md under "Deliberate Deviations".
 The concept text above is left as originally written.
 
-* Should published template versions be immutable rows, or can a draft be
+- Should published template versions be immutable rows, or can a draft be
   promoted in place once it is approved?
   -> RESOLVED (neither): there is no version chain at all. See the correction
-     note below.
+  note below.
 
-* Should the 42 frontend document slugs remain the backend canonical registry,
+- Should the 42 frontend document slugs remain the backend canonical registry,
   or should the backend normalize some of them into broader template families
   with the slug as a label?
   -> RESOLVED: both, as they already were. The six families stay a backend enum
-     (owned by the documents app and imported here); the slug stays a validated
-     string and is now catalogued as a row. Note the count: that list contains
-     53 slugs, not 42 — see the correction note below.
+  (owned by the documents app and imported here); the slug stays a validated
+  string and is now catalogued as a row. Note the count: that list contains
+  53 slugs, not 42 — see the correction note below.
 
-* Should template previews be stored or generated on demand?
+- Should template previews be stored or generated on demand?
   -> RESOLVED (neither): no preview is built. A preview would have to render a
-     template, and the templates are frontend code.
+  template, and the templates are frontend code.
 
-* Should signature images be stored as path/URL references, or as file records
+- Should signature images be stored as path/URL references, or as file records
   once the file layer exists?
   -> RESOLVED (2026-07-24): a URL reference, exactly as this document's
-     "Signature asset" section permits. uploaded_files does not exist, and a file
-     record needs a full CLAUDE.md §14 contract. Additively replaceable later.
-     Fourth deferral of this kind in the project, after the applicant photograph,
-     offer attachments, and the client logo.
+  "Signature asset" section permits. uploaded_files does not exist, and a file
+  record needs a full CLAUDE.md §14 contract. Additively replaceable later.
+  Fourth deferral of this kind in the project, after the applicant photograph,
+  offer attachments, and the client logo.
   -> SUPERSEDED (2026-09-10): both. The condition the first resolution named --
-     "once the file layer exists" -- was met when uploaded_files shipped on
-     2026-07-24, and "additively replaceable later" is exactly how it was
-     replaced. A Signatory is now that module's sixth owner type, and
-     signatory.upload_signature stores a real image against it with the full §14
-     contract applied. The URL reference was KEPT, not removed: repointing it
-     would have been a breaking change to a shipped response shape, and a
-     signatory with no uploaded file still renders from it. A signature_source
-     field on the API says which of the two is in force.
+  "once the file layer exists" -- was met when uploaded_files shipped on
+  2026-07-24, and "additively replaceable later" is exactly how it was
+  replaced. A Signatory is now that module's sixth owner type, and
+  signatory.upload_signature stores a real image against it with the full §14
+  contract applied. The URL reference was KEPT, not removed: repointing it
+  would have been a breaking change to a shipped response shape, and a
+  signatory with no uploaded file still renders from it. A signature_source
+  field on the API says which of the two is in force.
 
-     Three of the four deferrals this was grouped with are still open -- the
-     applicant photograph, offer attachments, and the client logo. What made this
-     one solvable first is that a signatory renders exactly ONE signature, which
-     is what justifies a reverse pointer from the record to the file. An
-     applicant has many files and no single "the photograph", so that one still
-     has nowhere to point; see concepts/applicants_flows.md.
+  Three of the four deferrals this was grouped with are still open -- the
+  applicant photograph, offer attachments, and the client logo. What made this
+  one solvable first is that a signatory renders exactly ONE signature, which
+  is what justifies a reverse pointer from the record to the file. An
+  applicant has many files and no single "the photograph", so that one still
+  has nowhere to point; see concepts/applicants_flows.md.
 
-* Should one template key have multiple active versions during a migration, or
+- Should one template key have multiple active versions during a migration, or
   only one active version at a time?
   -> MOOT: there are no versions. A template key is one row with one status.
 
 ## Correction notes
 
-* **The version chain, section metadata, field hints, signature slots, and
+- **The version chain, section metadata, field hints, signature slots, and
   preview were deliberately not built.** The frontend's own contract
   (frontend_data-contract.md, frontend_api-used.md) makes exactly one call into
   this domain — GET /signatures?active=true — and carries no template-definition
@@ -224,18 +224,18 @@ The concept text above is left as originally written.
   template catalogue carrying key, family, label, display order, and activation
   state.
 
-* **The concept's historical-reproduction requirement is already met without a
+- **The concept's historical-reproduction requirement is already met without a
   version chain.** "Once a version has been used by a document or history
   snapshot, it should remain available for historical reproduction" — the
   document_history app freezes the template key, version string, and resolved
   signatories into every snapshot's render_context, so a snapshot reproduces
   itself without reading this module at all.
 
-* **The catalogue is advisory.** The documents app does not consult it: a
+- **The catalogue is advisory.** The documents app does not consult it: a
   template key absent from the catalogue, or present but retired, is still
   accepted when creating a document. Enforcing it would narrow a shipped
   endpoint's accepted input and needs its own decision.
 
-* **Access is Admin only, reads included** — as the Constraints section
+- **Access is Admin only, reads included** — as the Constraints section
   anticipated. Note this module holds no applicant data at all; the rule is
   inherited from its consumer, not from the sensitivity of what it stores.

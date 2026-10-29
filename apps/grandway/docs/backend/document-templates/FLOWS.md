@@ -10,10 +10,10 @@ Authored and updated by the backend author in the same commit as any endpoint ch
 > **Five things govern every flow below.**
 >
 > 1. **Admin only — a Lead Manager cannot open any of these screens.** Not read-only, not empty:
->    **hidden**. Note that this is *not* because the data is sensitive — there is no applicant data
+>    **hidden**. Note that this is _not_ because the data is sensitive — there is no applicant data
 >    in this module at all. It is inherited from the consumer: a Lead Manager cannot open a document
 >    workspace, so a signatory picker is a screen they can never reach.
-> 2. **This module stores what is *offered*, not what is *rendered*.** The templates are frontend
+> 2. **This module stores what is _offered_, not what is _rendered_.** The templates are frontend
 >    code. Nothing here describes sections, field layout, or how a document draws itself, and no
 >    endpoint ever will — see "Not backed" below before designing a Template Editor.
 > 3. **Everything is created as `draft`.** A signatory or template you just created will **not**
@@ -49,9 +49,9 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Side effects:** appends `signatory_created` to the audit log. Nothing outside this module
      changes.
    - **`name` is required.** It is a single English field.
-   - *Failure — `VALIDATION_ERROR` on `name`:* the name is mandatory. Make it a
+   - _Failure — `VALIDATION_ERROR` on `name`:_ the name is mandatory. Make it a
      required field on the form.
-   - *Failure — `VALIDATION_ERROR` on `signature_image_url`:* it must be a well-formed URL. The API
+   - _Failure — `VALIDATION_ERROR` on `signature_image_url`:_ it must be a well-formed URL. The API
      never fetches it, so a well-formed link to nothing passes. This field is now the **fallback** —
      prefer step 3.
 
@@ -61,19 +61,19 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Requires state:** the signatory must exist. **No status precondition** — a `draft`,
      `active`, or `inactive` signatory may all receive a signature.
    - **Side effects:** creates a file in the ledger owned by this signatory
-     *(cross-app: `uploaded_files`)*, supersedes the previous signature if one was in force,
+     _(cross-app: `uploaded_files`)_, supersedes the previous signature if one was in force,
      re-points `signature_file`, and appends **two** audit events — one in each module.
-   - **This reverses earlier guidance in this file.** Until 2026-09-10 this step said *"there is
-     still no image upload … do not ship a file-picker control"*, because a `Signatory` was not one
+   - **This reverses earlier guidance in this file.** Until 2026-09-10 this step said _"there is
+     still no image upload … do not ship a file-picker control"_, because a `Signatory` was not one
      of the file ledger's owner types. It is now the sixth. Build the picker.
    - **`multipart/form-data`, exactly one `file` part.** PNG, JPG/JPEG, or WEBP, max 10 MB. A JSON
-     body gets **415**. A *second* file part fails during parsing as a **500**, not a validation
+     body gets **415**. A _second_ file part fails during parsing as a **500**, not a validation
      error — so enforce single-file selection in the control itself.
-   - *Failure — `DOCUMENT_TEMPLATES_SIGNATURE_NOT_AN_IMAGE`:* the file ledger accepts PDF and Office
+   - _Failure — `DOCUMENT_TEMPLATES_SIGNATURE_NOT_AN_IMAGE`:_ the file ledger accepts PDF and Office
      formats; a signature may not be one. Filter the picker to images.
-   - *Failure — `DOCUMENT_TEMPLATES_SIGNATURE_FILE_TOO_LARGE`:* 10 MB. Check size client-side first;
+   - _Failure — `DOCUMENT_TEMPLATES_SIGNATURE_FILE_TOO_LARGE`:_ 10 MB. Check size client-side first;
      a rejected 10 MB upload still costs the user the upload.
-   - *Failure — `DOCUMENT_TEMPLATES_SIGNATURE_FILE_CONTENT_MISMATCH`:* the bytes contradict the
+   - _Failure — `DOCUMENT_TEMPLATES_SIGNATURE_FILE_CONTENT_MISMATCH`:_ the bytes contradict the
      extension. Almost always a renamed file.
    - **No `UPLOADED_FILES_*` code ever reaches you here**, even though that module raised the error.
 
@@ -177,7 +177,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
      archived or superseded stops counting, and nothing in this payload tells you that happened.
 
 2. **Fetch the bytes** → `GET {signature_file.download_path}`
-   (`uploaded_files.file.download`) *(cross-app: `uploaded_files`)*
+   (`uploaded_files.file.download`) _(cross-app: `uploaded_files`)_
    - **Requires state:** `signature_source == "uploaded"`.
    - **Side effects:** appends `file_downloaded` to the audit log — **on every call**.
    - **This is a `fetch` with the bearer token, not an `<img src>`.** The route is authenticated and
@@ -187,8 +187,8 @@ Authored and updated by the backend author in the same commit as any endpoint ch
      the browser will re-fetch every time, and every fetch writes an audit event. A certificate
      naming two signers re-rendered thirty times is sixty rows in the project's only audited read.
      Holding the blob is the whole mitigation and there is nothing server-side that does it for you.
-   - *Failure — 401:* you used an `<img src>`. See above.
-   - *Failure — 404:* the row exists but the bytes do not — a media volume restored older than the
+   - _Failure — 401:_ you used an `<img src>`. See above.
+   - _Failure — 404:_ the row exists but the bytes do not — a media volume restored older than the
      database. No client action fixes it; report it.
 
 ---
@@ -211,7 +211,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
      the old frozen name. That is real and intended; it will look like a bug if unannounced.
 
 2. **Remove** → `POST /api/v1/files/<file_id>/archive/` with a `reason`
-   (`uploaded_files.file.archive`) *(cross-app: `uploaded_files`)*
+   (`uploaded_files.file.archive`) _(cross-app: `uploaded_files`)_
    - **Requires state:** `signature_file` must be present; take its `id` from the signatory payload.
    - **Side effects:** the file is archived. `signature_file` returns to `null` and
      `signature_source` falls back to `"url"` or `"none"`.
@@ -246,7 +246,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Side effects:** appends `template_status_changed`. **No document changes and none can break.**
    - `concepts/document_templates.txt` flow 4 requires that retirement not break records pointing at
      the key. It cannot: `documents` never reads this table.
-   - *No failure branch worth handling* — there is no state this can conflict with. This module has
+   - _No failure branch worth handling_ — there is no state this can conflict with. This module has
      no 409 anywhere.
 
 3. **New Document Form** — the picker, fed by `?status=active`, stops offering it.
@@ -268,15 +268,15 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Requires state:** nothing.
    - **Side effects:** appends `template_created`.
    - **This does not make the template renderable.** The frontend must already support the slug —
-     registering it here only makes it *offerable*. Registering a slug the frontend cannot draw
+     registering it here only makes it _offerable_. Registering a slug the frontend cannot draw
      produces documents nobody can print.
    - **Send `key` and `family` from one control.** They are cross-validated by the same rule
      `documents` applies, so a `bank-` slug under family `lor` is refused.
-   - *Failure — `DOCUMENT_TEMPLATES_KEY_ALREADY_EXISTS`:* the slug is registered. Offer to edit the
+   - _Failure — `DOCUMENT_TEMPLATES_KEY_ALREADY_EXISTS`:_ the slug is registered. Offer to edit the
      existing row instead.
-   - *Failure — `DOCUMENT_TEMPLATES_TEMPLATE_KEY_INVALID`:* the slug and family disagree. A UI bug,
+   - _Failure — `DOCUMENT_TEMPLATES_TEMPLATE_KEY_INVALID`:_ the slug and family disagree. A UI bug,
      not user error, if they came from one control.
-   - *Failure — `VALIDATION_ERROR` on `key`:* malformed slug — uppercase, spaces, or underscores.
+   - _Failure — `VALIDATION_ERROR` on `key`:_ malformed slug — uppercase, spaces, or underscores.
 
 2. **Template Catalog** — publish it →
    `POST /api/v1/document-templates/templates/<template_id>/status/` with `active`
@@ -290,19 +290,19 @@ Authored and updated by the backend author in the same commit as any endpoint ch
 
 ## Endpoint coverage
 
-| `permission_key` | `METHOD /path` | Used by flow(s) | Notes |
-|------------------|----------------|-----------------|-------|
-| `document_templates.signatory.list` | `GET /api/v1/document-templates/signatories/` | Add a signer; Fill the selects; Retire a signer | **The frontend's only call into this module**, with `?status=active` |
-| `document_templates.signatory.create` | `POST /api/v1/document-templates/signatories/` | Add a signer | Always creates as `draft` |
-| `document_templates.signatory.read` | `GET /api/v1/document-templates/signatories/<id>/` | — | `unused by flow — resolving a single id, e.g. rendering a retired signer named by an old document` |
-| `document_templates.signatory.update` | `PATCH /api/v1/document-templates/signatories/<id>/` | Add a signer (corrections) | `status` rejected; use the status action |
-| `document_templates.signatory.upload_signature` | `POST /api/v1/document-templates/signatories/<id>/signature/` | Add a signer; Replace a signature; Render a signature | **Multipart.** Ship a file picker. Images only, one part, 10 MB |
-| `document_templates.signatory.change_status` | `POST /api/v1/document-templates/signatories/<id>/status/` | Add a signer; Retire a signer | **This is the retire button** |
-| `document_templates.template.list` | `GET /api/v1/document-templates/templates/` | Retire a partner; New Document picker (cross-app) | `?family=`, `?status=`, `?search=` |
-| `document_templates.template.create` | `POST /api/v1/document-templates/templates/` | Register a slug | `key` + `family` cross-validated |
-| `document_templates.template.read` | `GET /api/v1/document-templates/templates/<id>/` | — | `unused by flow — single-row inspection from the catalog` |
-| `document_templates.template.update` | `PATCH /api/v1/document-templates/templates/<id>/` | Register a slug (corrections) | `key` **immutable**, rejected not dropped |
-| `document_templates.template.change_status` | `POST /api/v1/document-templates/templates/<id>/status/` | Retire a partner; Register a slug | **This is the retire button** |
+| `permission_key`                                | `METHOD /path`                                                | Used by flow(s)                                       | Notes                                                                                              |
+| ----------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `document_templates.signatory.list`             | `GET /api/v1/document-templates/signatories/`                 | Add a signer; Fill the selects; Retire a signer       | **The frontend's only call into this module**, with `?status=active`                               |
+| `document_templates.signatory.create`           | `POST /api/v1/document-templates/signatories/`                | Add a signer                                          | Always creates as `draft`                                                                          |
+| `document_templates.signatory.read`             | `GET /api/v1/document-templates/signatories/<id>/`            | —                                                     | `unused by flow — resolving a single id, e.g. rendering a retired signer named by an old document` |
+| `document_templates.signatory.update`           | `PATCH /api/v1/document-templates/signatories/<id>/`          | Add a signer (corrections)                            | `status` rejected; use the status action                                                           |
+| `document_templates.signatory.upload_signature` | `POST /api/v1/document-templates/signatories/<id>/signature/` | Add a signer; Replace a signature; Render a signature | **Multipart.** Ship a file picker. Images only, one part, 10 MB                                    |
+| `document_templates.signatory.change_status`    | `POST /api/v1/document-templates/signatories/<id>/status/`    | Add a signer; Retire a signer                         | **This is the retire button**                                                                      |
+| `document_templates.template.list`              | `GET /api/v1/document-templates/templates/`                   | Retire a partner; New Document picker (cross-app)     | `?family=`, `?status=`, `?search=`                                                                 |
+| `document_templates.template.create`            | `POST /api/v1/document-templates/templates/`                  | Register a slug                                       | `key` + `family` cross-validated                                                                   |
+| `document_templates.template.read`              | `GET /api/v1/document-templates/templates/<id>/`              | —                                                     | `unused by flow — single-row inspection from the catalog`                                          |
+| `document_templates.template.update`            | `PATCH /api/v1/document-templates/templates/<id>/`            | Register a slug (corrections)                         | `key` **immutable**, rejected not dropped                                                          |
+| `document_templates.template.change_status`     | `POST /api/v1/document-templates/templates/<id>/status/`      | Retire a partner; Register a slug                     | **This is the retire button**                                                                      |
 
 **Screens from `concepts/document_templates.txt`, and whether they are backed:**
 
@@ -325,8 +325,8 @@ Authored and updated by the backend author in the same commit as any endpoint ch
   document or snapshot stay available. That already holds without a version chain here:
   `document_history` freezes the template key, version string, and resolved signatories into each
   snapshot's `render_context`, so a snapshot reproduces itself without reading this app at all.
-- **~~Signature image upload.~~ Closed 2026-09-10.** This read: *"`uploaded_files` now exists but a
-  `Signatory` is not one of its owner types, so this field was deliberately left alone."* A
+- **~~Signature image upload.~~ Closed 2026-09-10.** This read: _"`uploaded_files` now exists but a
+  `Signatory` is not one of its owner types, so this field was deliberately left alone."_ A
   `Signatory` is now its sixth owner type, and `signatory.upload_signature` uploads a real image
   with size, type, and leading-byte checks. `signature_image_url` was **kept** rather than repointed,
   so no shipped response shape changed — which is what unblocked it. What remains: **that fallback
@@ -342,7 +342,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
 ## Cross-app dependencies
 
 - **This app references (outbound):** `uploaded_files.file.download` — the "Render a signature" and
-  "Remove a signature" flows both call it *(cross-app: `uploaded_files`)*. That is new as of
+  "Remove a signature" flows both call it _(cross-app: `uploaded_files`)_. That is new as of
   2026-09-10; this section previously read `none`. The backend also imports three Python objects
   from `documents` (the `family` enum, the slug validator, and the key/family rule) so the catalogue
   cannot accept a pairing that app would reject, and holds one database relation outside itself —

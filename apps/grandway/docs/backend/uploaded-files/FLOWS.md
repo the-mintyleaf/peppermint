@@ -34,7 +34,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Requires state:** the applicant exists. Nothing else — an applicant with no files returns an
      empty array, which is a normal empty state, not an error.
    - **Side effects:** none
-   - *Failure — `VALIDATION_ERROR`:* the applicant id in the URL is malformed. This is a routing bug
+   - _Failure — `VALIDATION_ERROR`:_ the applicant id in the URL is malformed. This is a routing bug
      in the client, not a user-facing state; log it rather than showing it.
 2. **Applicant Detail — Files panel → Upload dialog** — pick a category, choose a file, submit →
    `POST /api/v1/files/` (`uploaded_files.file.upload`), `multipart/form-data`
@@ -42,17 +42,17 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Side effects:** a file is written to platform storage; an audit event is recorded; the panel in
      step 1 must be refetched. The new file is **`pending`** — render the pending badge immediately,
      do not optimistically show it as accepted.
-   - *Failure — `UPLOADED_FILES_FILE_TOO_LARGE`:* inline error on the file input, naming the 10 MB
+   - _Failure — `UPLOADED_FILES_FILE_TOO_LARGE`:_ inline error on the file input, naming the 10 MB
      limit. Check size client-side first so the user does not wait for a 10 MB upload to be refused.
-   - *Failure — `UPLOADED_FILES_FILE_TYPE_NOT_ALLOWED`:* inline error on the file input, listing the
+   - _Failure — `UPLOADED_FILES_FILE_TYPE_NOT_ALLOWED`:_ inline error on the file input, listing the
      seven accepted extensions.
-   - *Failure — `UPLOADED_FILES_FILE_CONTENT_MISMATCH`:* inline error — "this file is not really a
+   - _Failure — `UPLOADED_FILES_FILE_CONTENT_MISMATCH`:_ inline error — "this file is not really a
      PDF". Rare and confusing to users; word it as "the file appears to be damaged or renamed".
-   - *Failure — `UPLOADED_FILES_OWNER_NOT_FOUND`:* the applicant was deleted or the id is stale.
+   - _Failure — `UPLOADED_FILES_OWNER_NOT_FOUND`:_ the applicant was deleted or the id is stale.
      Blocking dialog, then reload the applicant.
 3. **Applicant Detail — Files panel** — the file appears with a `pending` badge. **No further Lead
    Manager action exists.** Do not render a verify control for this actor; it returns 403.
-4. **File Review queue** *(Admin only screen)* — the queue loads →
+4. **File Review queue** _(Admin only screen)_ — the queue loads →
    `GET /api/v1/files/?verification_status=pending` (`uploaded_files.file.list`)
    - **Requires state:** Admin authority. A Lead Manager reaching this screen gets 403 on every row;
      hide the screen from them entirely rather than rendering it empty.
@@ -67,11 +67,11 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Requires state:** Admin authority; the file exists and is not archived.
    - **Side effects:** `verification_status`, `reviewed_at`, and `reviewed_by_username` change; an
      audit event is recorded; both the queue and any open Files panel are stale.
-   - *Failure — `UPLOADED_FILES_REJECTION_REASON_REQUIRED`:* the reason field is mandatory when
+   - _Failure — `UPLOADED_FILES_REJECTION_REASON_REQUIRED`:_ the reason field is mandatory when
      refusing. Make it a required field in the reject dialog rather than discovering this at submit.
-   - *Failure — `UPLOADED_FILES_FILE_ARCHIVED`:* the file was archived by someone else while the
+   - _Failure — `UPLOADED_FILES_FILE_ARCHIVED`:_ the file was archived by someone else while the
      queue was open. Blocking dialog, then refetch the queue.
-   - *Failure — `UPLOADED_FILES_ACTOR_FORBIDDEN`:* the actor is a Lead Manager. This should be
+   - _Failure — `UPLOADED_FILES_ACTOR_FORBIDDEN`:_ the actor is a Lead Manager. This should be
      unreachable if the screen is gated correctly — treat it as a client bug.
 
 ## Flow: Replace a rejected document with a better copy
@@ -92,11 +92,11 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Side effects:** a **new file record with a new id** is created — navigate to it, do not stay on
      the old one. The predecessor becomes `is_current: false` and keeps its bytes, its rejection, and
      its reason. The successor is **`pending`** even though this flow started from a rejection.
-   - *Failure — `UPLOADED_FILES_ALREADY_SUPERSEDED`:* someone else already replaced it. Fetch the
+   - _Failure — `UPLOADED_FILES_ALREADY_SUPERSEDED`:_ someone else already replaced it. Fetch the
      version chain (flow below) and offer the current version instead.
-   - *Failure — the three upload failures:* identical treatment to the upload flow above.
+   - _Failure — the three upload failures:_ identical treatment to the upload flow above.
 3. **File Detail (successor)** — the new file shows `pending` and a "replaces" link to the old one.
-4. **File Review queue** *(Admin)* — the successor is reviewed exactly as in the flow above →
+4. **File Review queue** _(Admin)_ — the successor is reviewed exactly as in the flow above →
    `POST /api/v1/files/<file_id>/verify/` (`uploaded_files.file.verify`)
    - **Side effects:** only the successor changes. The predecessor keeps its rejection permanently.
 
@@ -113,7 +113,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Requires state:** the file exists. It may be any member of the chain, including a superseded
      one — the response is the same either way.
    - **Side effects:** none
-   - *Failure — `UPLOADED_FILES_FILE_NOT_FOUND`:* the id is stale. Return to the Files panel.
+   - _Failure — `UPLOADED_FILES_FILE_NOT_FOUND`:_ the id is stale. Return to the Files panel.
 2. Render **oldest first** — this is the opposite order to the file list, deliberately, because a
    chain is read as a history. `meta.count` is the chain length; there is no pagination.
    A chain of one is normal, not an empty state.
@@ -135,7 +135,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Side effects:** **an audit event is recorded for every download**, before the transfer begins.
      This is the only read in the API that is audited; a user should not be surprised that opening a
      passport is logged.
-   - *Failure — `UPLOADED_FILES_FILE_BYTES_MISSING`:* a platform fault, not a user error. Show "this
+   - _Failure — `UPLOADED_FILES_FILE_BYTES_MISSING`:_ a platform fault, not a user error. Show "this
      file could not be retrieved" and offer a report path. **Do not retry** — nothing about it is
      transient.
 2. The response is the raw file as an **attachment**, not JSON.
@@ -157,9 +157,9 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Requires state:** Admin authority; the file exists and is not already archived.
    - **Side effects:** the file drops out of every `?is_archived=false` panel. It stays downloadable
      and stays in its version chain. An audit event is recorded.
-   - *Failure — `UPLOADED_FILES_ARCHIVE_REASON_REQUIRED`:* make the reason a required field in the
+   - _Failure — `UPLOADED_FILES_ARCHIVE_REASON_REQUIRED`:_ make the reason a required field in the
      dialog. Archiving is the closest thing to deletion the API offers, and the reason is the record.
-   - *Failure — `UPLOADED_FILES_ALREADY_ARCHIVED`:* stale state; refetch.
+   - _Failure — `UPLOADED_FILES_ALREADY_ARCHIVED`:_ stale state; refetch.
 2. **Files panel** — the archived file is hidden by the default filter. Offer a "show archived"
    toggle that drops `is_archived` from the query — **omitting the parameter returns archived files
    too**; there is no `is_archived=true`-only convention to learn.
@@ -171,7 +171,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Side effects:** all three archive fields are cleared — **the payload keeps no trace that it was
      ever archived.** If a screen needs "was this archived before", it must come from the `audit`
      module, not from the file.
-   - *Failure — `UPLOADED_FILES_NOT_ARCHIVED`:* stale state; refetch.
+   - _Failure — `UPLOADED_FILES_NOT_ARCHIVED`:_ stale state; refetch.
 
 ## Flow: Correct a misfiled document
 
@@ -186,27 +186,27 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Requires state:** the file exists and is not archived.
    - **Side effects:** an audit event is recorded — **unless nothing actually changed**, in which case
      the call still returns 200 and writes nothing.
-   - *Failure — `UPLOADED_FILES_FIELD_IMMUTABLE`:* the form sent something other than `category` or
+   - _Failure — `UPLOADED_FILES_FIELD_IMMUTABLE`:_ the form sent something other than `category` or
      `notes`. **Only build those two inputs.** A file cannot be moved to another record, renamed, or
      have its verification set through this endpoint; the response names each refused field.
-   - *Failure — `UPLOADED_FILES_FILE_ARCHIVED`:* restore it first.
+   - _Failure — `UPLOADED_FILES_FILE_ARCHIVED`:_ restore it first.
 
 ---
 
 ## Endpoint coverage
 
-| `permission_key` | `METHOD /path` | Used by flow(s) | Notes |
-|------------------|----------------|-----------------|-------|
-| `uploaded_files.file.list` | `GET /api/v1/files/` | Attach a document; Retire a file | **Every** files panel in the product is this endpoint with a filter. Owner filters: `?applicant=`, `?journey=`, `?offer=`, `?document=`, `?snapshot=`, `?signatory=` |
-| `uploaded_files.file.upload` | `POST /api/v1/files/` | Attach a document | `multipart/form-data` |
-| `uploaded_files.file.read` | `GET /api/v1/files/<file_id>/` | Replace a rejected document; Correct a misfiled document | |
-| `uploaded_files.file.update` | `PATCH /api/v1/files/<file_id>/` | Correct a misfiled document | `category` and `notes` only |
-| `uploaded_files.file.download` | `GET /api/v1/files/<file_id>/download/` | Retrieve a file's contents; Read a file's history | Returns bytes, not JSON. Audited |
-| `uploaded_files.file.versions` | `GET /api/v1/files/<file_id>/versions/` | Read a file's replacement history | Oldest first, unpaginated |
-| `uploaded_files.file.replace` | `POST /api/v1/files/<file_id>/replace/` | Replace a rejected document | Returns a **new** file id |
-| `uploaded_files.file.verify` | `POST /api/v1/files/<file_id>/verify/` | Attach a document; Replace a rejected document | Admin only |
-| `uploaded_files.file.archive` | `POST /api/v1/files/<file_id>/archive/` | Retire a file | Admin only |
-| `uploaded_files.file.restore` | `POST /api/v1/files/<file_id>/restore/` | Retire a file | Admin only |
+| `permission_key`               | `METHOD /path`                          | Used by flow(s)                                          | Notes                                                                                                                                                                |
+| ------------------------------ | --------------------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `uploaded_files.file.list`     | `GET /api/v1/files/`                    | Attach a document; Retire a file                         | **Every** files panel in the product is this endpoint with a filter. Owner filters: `?applicant=`, `?journey=`, `?offer=`, `?document=`, `?snapshot=`, `?signatory=` |
+| `uploaded_files.file.upload`   | `POST /api/v1/files/`                   | Attach a document                                        | `multipart/form-data`                                                                                                                                                |
+| `uploaded_files.file.read`     | `GET /api/v1/files/<file_id>/`          | Replace a rejected document; Correct a misfiled document |                                                                                                                                                                      |
+| `uploaded_files.file.update`   | `PATCH /api/v1/files/<file_id>/`        | Correct a misfiled document                              | `category` and `notes` only                                                                                                                                          |
+| `uploaded_files.file.download` | `GET /api/v1/files/<file_id>/download/` | Retrieve a file's contents; Read a file's history        | Returns bytes, not JSON. Audited                                                                                                                                     |
+| `uploaded_files.file.versions` | `GET /api/v1/files/<file_id>/versions/` | Read a file's replacement history                        | Oldest first, unpaginated                                                                                                                                            |
+| `uploaded_files.file.replace`  | `POST /api/v1/files/<file_id>/replace/` | Replace a rejected document                              | Returns a **new** file id                                                                                                                                            |
+| `uploaded_files.file.verify`   | `POST /api/v1/files/<file_id>/verify/`  | Attach a document; Replace a rejected document           | Admin only                                                                                                                                                           |
+| `uploaded_files.file.archive`  | `POST /api/v1/files/<file_id>/archive/` | Retire a file                                            | Admin only                                                                                                                                                           |
+| `uploaded_files.file.restore`  | `POST /api/v1/files/<file_id>/restore/` | Retire a file                                            | Admin only                                                                                                                                                           |
 
 Every registered endpoint is used by at least one flow. There is no admin-only maintenance endpoint
 here without a screen behind it.
@@ -220,7 +220,7 @@ here without a screen behind it.
 - **Referenced by other apps (inbound):** `none yet`. No other app's flow file calls a
   `uploaded_files.*` endpoint today, because no other module has a file-bearing screen wired up. The
   file panels described in `concepts/applicants_flows.md`, `concepts/offers_flows.md`,
-  `concepts/documents_flows.md`, and `concepts/document_history_flows.md` as *missing* are now
+  `concepts/documents_flows.md`, and `concepts/document_history_flows.md` as _missing_ are now
   buildable — each of those files records the gap and points here.
 
 When an endpoint here is added, changed, or deprecated, grep `concepts/*_flows.md` for its
@@ -235,12 +235,12 @@ or an offer letter gets a first-class field in its own module.
 
 - **Which screen owns the review queue?** `?verification_status=pending` is a global cross-applicant
   list. `concepts/uploaded_files.txt` names a "review queue" but not where it lives in the navigation.
-- **How does a screen pick *the* photograph or *the* passport?** There is no primary-file concept
-  *in this module*. Filtering by category can return several files, and nothing marks one as
+- **How does a screen pick _the_ photograph or _the_ passport?** There is no primary-file concept
+  _in this module_. Filtering by category can return several files, and nothing marks one as
   canonical; "the newest current one" is a client-side convention, not a backend rule, and it is
   wrong often enough to matter — two independent uploads both look current, and restoring an
   archived file resurrects a second candidate.
-  **`document_templates` answered this for signatures and the answer generalises:** the *owning*
+  **`document_templates` answered this for signatures and the answer generalises:** the _owning_
   module holds a nullable pointer to the one file that counts, written only by its own upload
   endpoint, and publishes a `*_source` field saying which source is in force. The pointer lives in
   the owning app, not here — this module stays the ledger that "decides nothing about what those

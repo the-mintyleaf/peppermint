@@ -13,7 +13,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
 - **No notification is created by a user.** There is no compose screen, no create endpoint, and no way for
   one staff member to notify another. Alerts appear because a nightly sweep found a deadline or because
   something happened in another module (a lead converted, an applicant's status changed, a visit
-  recorded…). Every inbox flow below is therefore a *reading* flow that ends by leaving this app. The one
+  recorded…). Every inbox flow below is therefore a _reading_ flow that ends by leaving this app. The one
   thing a user writes here is their own preferences — which categories they are told about.
 - **A notification is not the work.** Dismissing an alert about an overdue passport scan does not
   collect the passport scan. Every flow that actually resolves something crosses into the owning app —
@@ -38,7 +38,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Requires state:** an authenticated Admin or Lead Manager session. Nothing else — a user who has
      never received an alert gets a valid all-zero summary.
    - **Side effects:** none. Reading the summary marks nothing read.
-   - *Failure — `NOTIFICATIONS_ACTOR_FORBIDDEN`:* the caller is a Superadmin. Hide the bell entirely
+   - _Failure — `NOTIFICATIONS_ACTOR_FORBIDDEN`:_ the caller is a Superadmin. Hide the bell entirely
      rather than showing an error badge — this authority has no inbox and never will.
    - **Note:** the same response carries `by_category` — per-tab counts for the flow "Browse the inbox
      by category". There is no separate unread-count endpoint.
@@ -47,7 +47,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `GET /api/v1/notifications/?status=active` (`notifications.notification.list`)
    - **Requires state:** as above.
    - **Side effects:** none.
-   - *Failure — `VALIDATION_ERROR`:* only reachable by sending a bad filter value. Treat as a bug in
+   - _Failure — `VALIDATION_ERROR`:_ only reachable by sending a bad filter value. Treat as a bug in
      the client, not as an empty state.
    - **Note:** send `status=active` explicitly. Omitting it returns dismissed and resolved history too,
      which is correct for an archive view and wrong for a working inbox.
@@ -63,7 +63,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
      a resolved alert can still be marked read.
    - **Side effects:** sets `read_at` on this notification only. Refresh the badge, not the list —
      `status` is unchanged, so the row stays where it is.
-   - *Failure — `NOTIFICATIONS_NOTIFICATION_NOT_FOUND`:* the alert was addressed to somebody else, or
+   - _Failure — `NOTIFICATIONS_NOTIFICATION_NOT_FOUND`:_ the alert was addressed to somebody else, or
      never existed. Remove the row and re-fetch; do not retry.
 
 5. **Notification Centre** — the user clicks through to the underlying record →
@@ -72,7 +72,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Requires state:** the caller must independently hold permission for the target record.
      Receiving an alert does not grant it.
    - **Side effects:** none in this app.
-   - *Failure — a 403 or 404 from the other module:* show the alert's `title` and `body` as the whole
+   - _Failure — a 403 or 404 from the other module:_ show the alert's `title` and `body` as the whole
      of what the user gets, and say the record is not available to them. Do **not** treat this as a
      broken link.
 
@@ -99,10 +99,10 @@ Authored and updated by the backend author in the same commit as any endpoint ch
      after 90 days like any other; dismissed deadline alerts are kept). An audit event is written
      **(cross-app: `audit`)**. Most importantly: **no later sweep will raise this condition again.**
      Refresh both the list and the badge.
-   - *Failure — `NOTIFICATIONS_ALREADY_TERMINAL` (409):* another session already closed it. Re-fetch
+   - _Failure — `NOTIFICATIONS_ALREADY_TERMINAL` (409):_ another session already closed it. Re-fetch
      the single row with `notifications.notification.read` and show its current state — do not retry
      and do not show a generic error.
-   - *Failure — `NOTIFICATIONS_NOTIFICATION_NOT_FOUND`:* as in the flow above.
+   - _Failure — `NOTIFICATIONS_NOTIFICATION_NOT_FOUND`:_ as in the flow above.
    - **UI treatment — this one matters.** Present dismissal as a decision, not as "hide for now".
      There is no snooze and no un-dismiss in this version. A confirmation step is warranted on
      `high` and `urgent` rows.
@@ -127,7 +127,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
      `marked_read: 0` when nothing is unread — no need to disable the button.
    - **Side effects:** every unread notification on the caller's feed becomes read, **including
      dismissed and resolved ones**. Nothing is dismissed or resolved. No other user is affected.
-   - *Failure:* none beyond the global auth failures.
+   - _Failure:_ none beyond the global auth failures.
 
 2. **Global header (bell badge)** — reconcile →
    `GET /api/v1/notifications/summary/` (`notifications.notification.summary`)
@@ -177,7 +177,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Requires state:** as above.
    - **Side effects:** none.
    - **Note:** a combined tab can send several categories comma-separated (`?category=lead,notes`).
-   - *Failure — `VALIDATION_ERROR` (400, `category`):* the client sent a category the server does not
+   - _Failure — `VALIDATION_ERROR` (400, `category`):_ the client sent a category the server does not
      know — a client bug, not an empty tab.
 
 3. **Notification Centre (a tab)** — the user clicks "mark all read" on this tab →
@@ -187,7 +187,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Side effects:** only that category's unread notifications become read. Nothing is dismissed.
      Re-fetch the summary — that tab's count drops to 0, the others do not move.
    - **Note:** one category per call. A combined tab issues one call per category it covers.
-   - *Failure — `VALIDATION_ERROR` (400, `category`):* unknown category; a client bug.
+   - _Failure — `VALIDATION_ERROR` (400, `category`):_ unknown category; a client bug.
 
 ## Flow: Set my notification preferences
 
@@ -202,7 +202,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Requires state:** an authenticated Admin or Lead Manager session. Nothing saved is needed — a
      new user gets every category on and "only my applicants" off.
    - **Side effects:** none.
-   - *Failure — `NOTIFICATIONS_ACTOR_FORBIDDEN`:* Superadmin; do not offer this screen.
+   - _Failure — `NOTIFICATIONS_ACTOR_FORBIDDEN`:_ Superadmin; do not offer this screen.
 
 2. **Notification settings** — the user flips a category switch or the "only my applicants" toggle →
    `PATCH /api/v1/notifications/preferences/` (`notifications.preference.update`)
@@ -211,7 +211,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    - **Requires state:** as above.
    - **Side effects:** changes which alerts are **created** for this user from now on. Nothing already in
      the feed is hidden, deleted, or restored, and the badge does not change on the spot.
-   - *Failure — `VALIDATION_ERROR` (400, `categories`):* an unknown category key — a client bug.
+   - _Failure — `VALIDATION_ERROR` (400, `categories`):_ an unknown category key — a client bug.
    - **UI treatment — say this on the screen.** "Applies to new notifications." Turning a category back
      on does not bring back alerts that were skipped while it was off. "Only my applicants" affects only
      alerts about an applicant; lead, offer, and checklist alerts without an applicant still arrive.
@@ -220,17 +220,17 @@ Authored and updated by the backend author in the same commit as any endpoint ch
 
 ## Endpoint coverage
 
-| `permission_key` | `METHOD /path` | Used by flow(s) | Notes |
-|------------------|----------------|-----------------|-------|
-| `notifications.notification.list` | `GET /api/v1/notifications/` | Work the daily inbox; Review the alert history for one record; Browse the inbox by category | Three call sites with different filters (`status`, `applicant_id`/`source_entity_id`, `category`) |
-| `notifications.notification.summary` | `GET /api/v1/notifications/summary/` | Work the daily inbox; Clear the badge without deciding anything; Browse the inbox by category | The only endpoint the app shell polls; `by_category` feeds the tab badges |
-| `notifications.notification.read` | `GET /api/v1/notifications/<id>/` | Clear an alert that needs no action (409 recovery) | No flow opens a notification detail *screen* — the feed row is the whole resource, so this is a re-fetch call, not a navigation target |
-| `notifications.notification.mark_read` | `POST /api/v1/notifications/<id>/read/` | Work the daily inbox | |
-| `notifications.notification.mark_unread` | `POST /api/v1/notifications/<id>/unread/` | — | `unused by flow — the "put it back" affordance. Deliberately available and deliberately not part of a named journey: it exists so opening a row is a safe act, not because any flow depends on it` |
-| `notifications.notification.mark_all_read` | `POST /api/v1/notifications/read-all/` | Clear the badge without deciding anything; Browse the inbox by category | No body clears all; `{ category }` clears one tab |
-| `notifications.notification.dismiss` | `POST /api/v1/notifications/<id>/dismiss/` | Clear an alert that needs no action | The only irreversible action in this app |
-| `notifications.preference.read` | `GET /api/v1/notifications/preferences/` | Set my notification preferences | Always the caller's own |
-| `notifications.preference.update` | `PATCH /api/v1/notifications/preferences/` | Set my notification preferences | Partial update; affects new alerts only |
+| `permission_key`                           | `METHOD /path`                             | Used by flow(s)                                                                               | Notes                                                                                                                                                                                              |
+| ------------------------------------------ | ------------------------------------------ | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `notifications.notification.list`          | `GET /api/v1/notifications/`               | Work the daily inbox; Review the alert history for one record; Browse the inbox by category   | Three call sites with different filters (`status`, `applicant_id`/`source_entity_id`, `category`)                                                                                                  |
+| `notifications.notification.summary`       | `GET /api/v1/notifications/summary/`       | Work the daily inbox; Clear the badge without deciding anything; Browse the inbox by category | The only endpoint the app shell polls; `by_category` feeds the tab badges                                                                                                                          |
+| `notifications.notification.read`          | `GET /api/v1/notifications/<id>/`          | Clear an alert that needs no action (409 recovery)                                            | No flow opens a notification detail _screen_ — the feed row is the whole resource, so this is a re-fetch call, not a navigation target                                                             |
+| `notifications.notification.mark_read`     | `POST /api/v1/notifications/<id>/read/`    | Work the daily inbox                                                                          |                                                                                                                                                                                                    |
+| `notifications.notification.mark_unread`   | `POST /api/v1/notifications/<id>/unread/`  | —                                                                                             | `unused by flow — the "put it back" affordance. Deliberately available and deliberately not part of a named journey: it exists so opening a row is a safe act, not because any flow depends on it` |
+| `notifications.notification.mark_all_read` | `POST /api/v1/notifications/read-all/`     | Clear the badge without deciding anything; Browse the inbox by category                       | No body clears all; `{ category }` clears one tab                                                                                                                                                  |
+| `notifications.notification.dismiss`       | `POST /api/v1/notifications/<id>/dismiss/` | Clear an alert that needs no action                                                           | The only irreversible action in this app                                                                                                                                                           |
+| `notifications.preference.read`            | `GET /api/v1/notifications/preferences/`   | Set my notification preferences                                                               | Always the caller's own                                                                                                                                                                            |
+| `notifications.preference.update`          | `PATCH /api/v1/notifications/preferences/` | Set my notification preferences                                                               | Partial update; affects new alerts only                                                                                                                                                            |
 
 ## Cross-app dependencies
 
@@ -242,7 +242,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
   rather than parsing the path.
 - **Referenced by other apps (inbound):** `concepts/reminders_flows.md` — its "Act on a due reminder
   alert" flow enters from this app's feed (`notifications.notification.list`) and clears the alert by
-  closing the *reminder*, relying on the sweep's auto-resolve rather than a dismiss call here. The natural future inbound reference is an "alerts" panel on the applicant, checklist,
+  closing the _reminder_, relying on the sweep's auto-resolve rather than a dismiss call here. The natural future inbound reference is an "alerts" panel on the applicant, checklist,
   and offer detail screens — the fourth flow above — which those apps' flow files may want to
   reference once those panels are designed.
 

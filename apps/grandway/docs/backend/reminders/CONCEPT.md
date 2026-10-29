@@ -1,8 +1,7 @@
-CONCEPT — Reminders
-===================
+# CONCEPT — Reminders
 
-Purpose
--------
+## Purpose
+
 Grandway needs a lightweight reminder capability so staff can set a future note
 against a record and be prompted to revisit it on a specific date.
 
@@ -15,9 +14,8 @@ attaches to the same kinds of records the consultancy already works on, instead
 of creating a separate to-do system. The reminder lives as a note on the person
 or company record, and later becomes a notification when its date arrives.
 
+## Actors / Users
 
-Actors / Users
---------------
 - Admin: creates and maintains reminders on records; receives the reminder
   alert in the notification feed when the date arrives and acts on it.
 - Lead Manager: creates and maintains reminders on the records they work on.
@@ -26,9 +24,8 @@ Actors / Users
 Reminders are for internal operational use. They are not a customer-facing
 feature.
 
+## Core entities
 
-Core entities
--------------
 - Reminder: a future follow-up note tied to exactly one source record — an
   applicant or a client. Three essential parts: the source record, a future
   due date, and a note explaining why the reminder exists. The due date is
@@ -39,9 +36,8 @@ Core entities
   follow-up happened) or dismissed (no longer relevant). While still open it
   may be rescheduled to a new date or have its note corrected.
 
+## Key user flows
 
-Key user flows
---------------
 1. Set a follow-up: open an applicant or client record -> add a reminder with
    a due date and a note -> the reminder sits on the record until its date.
 2. Due date arrives: Grandway surfaces the reminder as an actionable alert in
@@ -56,9 +52,8 @@ Key user flows
    - If a reminder still needs attention after it was completed or dismissed,
      the user creates a new reminder with a new date and note (no snooze).
 
+## UI screens & wireframe notes
 
-UI screens & wireframe notes
-----------------------------
 - Reminders panel (on the applicant detail and client detail screens): the
   record's reminders, most recent first, showing due date, note, status, and
   who set it. Primary actions: add reminder, reschedule, complete, dismiss.
@@ -71,10 +66,10 @@ UI screens & wireframe notes
   consultancy should be able to tell why a reminder existed even after the
   date has passed.
 
+## Constraints / Out of scope
 
-Constraints / Out of scope
---------------------------
 This feature is not:
+
 - a general task board
 - a recurring scheduler
 - a messaging inbox
@@ -82,6 +77,7 @@ This feature is not:
 - a replacement for the underlying applicant or client record
 
 Hard boundaries:
+
 - Attachable to applicants and clients only.
 - Date-only due dates; due at the start of the chosen day (Nepal time).
 - One-off reminders; no snooze. A follow-up that outlives its reminder gets a
@@ -91,9 +87,8 @@ Hard boundaries:
   remain traceable in Grandway's history model.
 - The reminder only exists to surface a future follow-up at the right time.
 
+## Open questions
 
-Open questions
---------------
 None outstanding. Decisions settled at planning: due dates may be today or
 later (a today-dated reminder fires on the next nightly sweep); note-only
 edits are allowed while a reminder is open; completed/dismissed are final
