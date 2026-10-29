@@ -1,6 +1,7 @@
 import api from "@/lib/api";
 import { getDeviceId } from "@/lib/deviceId";
-import type { LoginTokens } from "@/modules/admin/authenticate/_shared/authenticate.types";
+
+import type { SignInLoginResult } from "./SignIn.types";
 
 export interface LoginValues {
   username: string;
@@ -13,8 +14,8 @@ export interface LoginValues {
  * `POST /api/v1/auth/login/` — always sends the persisted `device_id` (device binding,
  * max 3 concurrent devices per account) and an optional `device_name` label.
  */
-export async function login(values: LoginValues): Promise<LoginTokens> {
-  const { data } = await api.post<LoginTokens>("/api/v1/auth/login/", {
+export async function login(values: LoginValues): Promise<SignInLoginResult> {
+  const { data } = await api.post<SignInLoginResult>("/api/v1/auth/login/", {
     username: values.username,
     password: values.password,
     device_id: getDeviceId(),

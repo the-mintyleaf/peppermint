@@ -65,6 +65,20 @@ export const ERROR_MESSAGES: Record<string, string> = {
     "This lead has already been converted into an applicant.",
   LEADS_CONVERSION_NOT_READY:
     "A lost or converted lead must be reopened before it can be converted.",
+  LEADS_LEAD_DELETED:
+    "This lead has been deleted. An Admin must restore it before anything can be changed.",
+  LEADS_LEAD_NOT_DELETED:
+    "This lead is not deleted, so there is nothing to restore.",
+  LEADS_NOTE_NOT_FOUND: "That note no longer exists. It may have been deleted.",
+  LEADS_NOTE_FORBIDDEN:
+    "Only the note's author or an Admin can change or remove it.",
+  LEADS_NOTE_FUTURE_DATE:
+    "A note can't be dated in the future. Pick a time up to now.",
+  LEADS_CERTIFICATE_INVALID:
+    "One or more language certificates need fixing. See the highlighted fields.",
+  LEADS_CERTIFICATE_LIMIT: "A lead can hold at most 10 language certificates.",
+  LEADS_STUDY_INTEREST_INVALID:
+    "Some study-interest details need fixing. See the highlighted fields.",
 
   // Applicants
   APPLICANTS_ACTOR_FORBIDDEN:
@@ -73,6 +87,24 @@ export const ERROR_MESSAGES: Record<string, string> = {
   APPLICANTS_CONTACT_REQUIRED: "At least one contact number is required.",
   APPLICANTS_PASSPORT_EXPIRY_INVALID:
     "Expiry date must be after the issue date.",
+  APPLICANTS_APPLICANT_ARCHIVED:
+    "This applicant is archived. An Admin must restore them before anything can be changed.",
+  APPLICANTS_APPLICANT_NOT_ARCHIVED:
+    "This applicant is not archived, so there is nothing to restore.",
+  APPLICANTS_NOTE_NOT_FOUND:
+    "That note no longer exists. It may have been deleted.",
+  APPLICANTS_NOTE_FORBIDDEN:
+    "Only the note's author or an Admin can change or remove it.",
+  APPLICANTS_NOTE_FUTURE_DATE:
+    "A note can't be dated in the future. Pick a time up to now.",
+  APPLICANTS_EDUCATION_INVALID:
+    "One or more education records need fixing. See the highlighted fields.",
+  APPLICANTS_LANGUAGE_TEST_INVALID:
+    "One or more language tests need fixing. See the highlighted fields.",
+  APPLICANTS_ASSIGNEE_INVALID:
+    "That person can't be assigned. Only an active Admin or Lead Manager can hold an applicant.",
+  APPLICANTS_ASSIGNMENT_FORBIDDEN:
+    "Someone else holds this applicant. Ask an Admin to reassign it.",
 
   // Applicant journeys
   JOURNEYS_ACTOR_FORBIDDEN: "Your authority level may not perform this action.",
