@@ -342,6 +342,16 @@ export interface FollowUpPayload {
   followed_up_at?: string;
 }
 
+/**
+ * The board's quick "Add visit note" — `POST /leads/<id>/notes/` with
+ * `category: "visit"` fixed by the hook. `noted_at` omitted = now; when sent
+ * it carries a UTC offset and is ≤ now + 5 min (`LEADS_NOTE_FUTURE_DATE`).
+ */
+export interface VisitNotePayload {
+  body: string;
+  noted_at?: string;
+}
+
 export interface MarkLostPayload {
   loss_reason: string;
   detail?: string;
