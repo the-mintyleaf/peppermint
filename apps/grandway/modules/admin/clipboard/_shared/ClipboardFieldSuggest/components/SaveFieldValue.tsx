@@ -62,7 +62,7 @@ export function SaveFieldValue({
     return (
       <Button
         variant="light"
-        size="compact-sm"
+        size="compact-xs"
         leftSection={<BookmarkSimpleIcon size={14} aria-hidden />}
         onClick={start}
         {...STOP_MODAL_ESCAPE}
@@ -107,7 +107,7 @@ export function SaveFieldValue({
         <Button
           variant="subtle"
           color="gray"
-          size="compact-sm"
+          size="compact-xs"
           onClick={() => setAsking(false)}
           disabled={create.isPending}
           {...STOP_MODAL_ESCAPE}
@@ -115,7 +115,7 @@ export function SaveFieldValue({
           Cancel
         </Button>
         <Button
-          size="compact-sm"
+          size="compact-xs"
           onClick={save}
           loading={create.isPending}
           disabled={!label.trim() || tooLong}

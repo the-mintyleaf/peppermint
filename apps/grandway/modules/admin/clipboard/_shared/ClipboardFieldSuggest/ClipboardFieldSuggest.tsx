@@ -71,11 +71,11 @@ export function ClipboardFieldSuggest({
     if (suggestions.isError) {
       return (
         <Stack gap="xs" align="flex-start">
-          <Text size="sm" c="red">
+          <Text size="xs" c="red">
             Couldn&apos;t load your saved snippets.
           </Text>
           <Button
-            size="compact-sm"
+            size="compact-xs"
             variant="default"
             onClick={() => suggestions.refetch()}
             loading={suggestions.isRefetching}
@@ -91,7 +91,7 @@ export function ClipboardFieldSuggest({
     }
     if (entries.length === 0) {
       return (
-        <Text size="sm" c="dimmed">
+        <Text size="xs" c="dimmed">
           Nothing saved for this field yet.
           {hasText ? "" : " Type a value, then save it here to reuse it."}
         </Text>
@@ -108,7 +108,7 @@ export function ClipboardFieldSuggest({
             aria-label={`Insert ${entry.label}`}
             {...STOP_MODAL_ESCAPE}
           >
-            <Text size="sm" fw={600} truncate>
+            <Text size="xs" fw={600} truncate>
               {entry.label}
             </Text>
             <Text

@@ -53,13 +53,13 @@ Modal setters are **guarded in the provider** so a reader can never flip them.
 
 ## Chrome
 
-| Component                   | What it is                                                                   |
-| --------------------------- | ---------------------------------------------------------------------------- |
-| `DocHeader`                 | Black top bar. Brand, filename, date, Clipboard, **Signature button**, close |
-| `DocToolbar`                | White sub-bar. Status action, Remove / Restore, print, print-all, toggles    |
-| `PagesSidebar`              | Left rail — live pages, then an **Archived** group (removed documents)       |
-| `HistorySidebar`            | Right rail — **Activity** (snapshots) on top, **Customizations** below       |
-| `EditCurrentDocumentButton` | Floating bottom-right FAB → the edit-fields modal                            |
+| Component                   | What it is                                                                                                |
+| --------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `DocHeader`                 | Black top bar. Brand, filename, date, Clipboard, **Signature button**, close                              |
+| `DocToolbar`                | White sub-bar. Status action, Remove / Restore, print, print-all, toggles                                 |
+| `PagesSidebar`              | Left rail — live pages; removed documents only behind a collapsed "Show removed (n)" toggle at the bottom |
+| `HistorySidebar`            | Right rail — **Activity** (snapshots) on top, **Customizations** below                                    |
+| `EditCurrentDocumentButton` | Floating bottom-right FAB → the edit-fields modal                                                         |
 
 All of them import styles from the **shared** `pages/editor/DocumentEditor.module.css`
 rather than owning a CSS module.

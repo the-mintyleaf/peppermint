@@ -18,6 +18,11 @@ import {
   MonthPickerInput,
   YearPickerInput,
   Input,
+  SegmentedControl,
+  TagsInput,
+  Autocomplete,
+  Switch,
+  Combobox,
 } from "@peppermint/ui";
 import type { MantineThemeOverride } from "@peppermint/ui";
 
@@ -188,6 +193,59 @@ export const configThemeMantineComponents: MantineThemeOverride["components"] =
       defaultProps: {
         size: defaults.inputSize,
         styles: defaultInputStyleProps,
+      },
+    }),
+
+    // The rest of the form controls, so a form built from them (the student
+    // certificate's segmented grades, tags, autocompletes) reads at the same
+    // size as one built from plain inputs (the bank forms).
+    InputWrapper: Input.Wrapper.extend({
+      defaultProps: {
+        styles: {
+          label: { fontSize: defaults.fontSize },
+          description: { fontSize: defaults.fontSize },
+          error: { fontSize: defaults.fontSize },
+        },
+      },
+    }),
+    SegmentedControl: SegmentedControl.extend({
+      defaultProps: {
+        size: "xs",
+      },
+    }),
+    TagsInput: TagsInput.extend({
+      defaultProps: {
+        size: defaults.inputSize,
+        styles: {
+          ...defaultInputStyleProps,
+          option: { fontSize: defaults.fontSize },
+          pill: { fontSize: defaults.fontSize },
+        },
+      },
+    }),
+    Autocomplete: Autocomplete.extend({
+      defaultProps: {
+        size: defaults.inputSize,
+        styles: {
+          ...defaultInputStyleProps,
+          option: { fontSize: defaults.fontSize },
+        },
+      },
+    }),
+    Switch: Switch.extend({
+      defaultProps: {
+        styles: {
+          label: { fontSize: defaults.fontSize },
+          description: { fontSize: defaults.fontSize },
+        },
+      },
+    }),
+    // Hand-built dropdowns (Combobox) get the same option size as Select's.
+    Combobox: Combobox.extend({
+      defaultProps: {
+        styles: {
+          option: { fontSize: defaults.fontSize },
+        },
       },
     }),
 

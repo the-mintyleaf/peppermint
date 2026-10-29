@@ -1,12 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import {
   Stack,
   Text,
   ScrollArea,
   ActionIcon,
   Box,
-  Divider,
+  Button,
   Group,
   UnstyledButton,
 } from "@peppermint/ui";
@@ -50,6 +51,9 @@ export function PagesSidebar({ onClose }: PagesSidebarProps) {
   // so they can still be opened and restored.
   const livePages = documents.filter(isLiveDocument);
   const archivedPages = documents.filter((d) => !isLiveDocument(d));
+  // Removed documents stay out of the list unless asked for — they are only
+  // here so they can be opened and restored.
+  const [showArchived, setShowArchived] = useState(false);
 
   const renderPage = (doc: Document, marker: string, ariaPrefix: string) => {
     const typeConfig = getDocumentTypeConfig(doc.type);
@@ -171,13 +175,22 @@ export function PagesSidebar({ onClose }: PagesSidebarProps) {
 
           {archivedPages.length > 0 ? (
             <Stack gap={12} mt={4}>
-              <Divider
-                label={`Archived (${archivedPages.length})`}
-                labelPosition="center"
-              />
-              {archivedPages.map((doc) =>
-                renderPage(doc, "Archived", "Archived page"),
-              )}
+              <Button
+                variant="subtle"
+                color="gray"
+                size="compact-xs"
+                onClick={() => setShowArchived((open) => !open)}
+                aria-expanded={showArchived}
+              >
+                {showArchived
+                  ? "Hide removed"
+                  : `Show removed (${archivedPages.length})`}
+              </Button>
+              {showArchived
+                ? archivedPages.map((doc) =>
+                    renderPage(doc, "Archived", "Archived page"),
+                  )
+                : null}
             </Stack>
           ) : null}
 
