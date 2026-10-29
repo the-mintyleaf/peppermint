@@ -4,7 +4,6 @@ import { createSchemaForm } from "../../components/WodaForm";
 import type { WodaFormSchema } from "../../utils/wodaFormSchema";
 import {
   applicantSection,
-  documentSection,
   grandparentsSection,
   identityNumbersSection,
   legalBasisField,
@@ -17,7 +16,6 @@ import { WODA_LEGAL_BASIS } from "../../utils/wodaDefaults";
 export function birthVerificationSchema(legalBasis: string): WodaFormSchema {
   return {
     sections: [
-      documentSection(),
       applicantSection({ gender: true, address: true }),
       identityNumbersSection(),
       parentsSection(),

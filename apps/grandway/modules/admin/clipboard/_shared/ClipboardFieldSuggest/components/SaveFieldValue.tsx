@@ -8,6 +8,7 @@ import {
   CLIPBOARD_TEXT_MAX,
 } from "../../../clipboard.constants";
 import { useCreateClipboardEntry } from "../../../clipboard.hooks";
+import { STOP_MODAL_ESCAPE } from "../ClipboardFieldSuggest.constants";
 import type { ClipboardSaveValueProps } from "../ClipboardFieldSuggest.types";
 
 const DEFAULT_LABEL_CHARS = 40;
@@ -22,6 +23,7 @@ export function SaveFieldValue({
   fieldKey,
   value,
   fieldLabel,
+  fieldKeyLabel,
   onSaved,
 }: ClipboardSaveValueProps) {
   const create = useCreateClipboardEntry();
@@ -60,9 +62,10 @@ export function SaveFieldValue({
     return (
       <Button
         variant="light"
-        size="compact-sm"
+        size="compact-xs"
         leftSection={<BookmarkSimpleIcon size={14} aria-hidden />}
         onClick={start}
+        {...STOP_MODAL_ESCAPE}
       >
         Save this value
       </Button>
@@ -79,12 +82,20 @@ export function SaveFieldValue({
         data-autofocus
         onChange={(e) => setLabel(e.currentTarget.value)}
         onKeyDown={(e) => {
-          if (e.key === "Enter") save();
+          if (e.key !== "Enter") return;
+          // Never let Enter reach the document form this popover belongs to.
+          e.preventDefault();
+          e.stopPropagation();
+          save();
         }}
         error={label.trim() ? undefined : "Give it a short name."}
+        {...STOP_MODAL_ESCAPE}
       />
       <Text size="xs" c="dimmed" lineClamp={2}>
         {text}
+      </Text>
+      <Text size="xs" c="dimmed">
+        Offered again on: {fieldKeyLabel}
       </Text>
       {tooLong ? (
         <Text size="xs" c="red">
@@ -96,17 +107,19 @@ export function SaveFieldValue({
         <Button
           variant="subtle"
           color="gray"
-          size="compact-sm"
+          size="compact-xs"
           onClick={() => setAsking(false)}
           disabled={create.isPending}
+          {...STOP_MODAL_ESCAPE}
         >
           Cancel
         </Button>
         <Button
-          size="compact-sm"
+          size="compact-xs"
           onClick={save}
           loading={create.isPending}
           disabled={!label.trim() || tooLong}
+          {...STOP_MODAL_ESCAPE}
         >
           Save
         </Button>

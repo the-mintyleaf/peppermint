@@ -36,7 +36,7 @@ import {
   updateLossReason,
 } from "./leadManagement.api";
 import { emptyCategoryCounts, toLeadBoardRow } from "./leadCategory.utils";
-import { isStaleLeadError } from "./leadErrors.utils";
+import { getLeadNoteErrorMessage, isStaleLeadError } from "./leadErrors.utils";
 import {
   deletedLeadsKey,
   leadHistoryKey,
@@ -59,6 +59,7 @@ import type {
   ReferenceEntryUpdatePayload,
   ReopenPayload,
   StageChangePayload,
+  VisitNotePayload,
 } from "./leadManagement.types";
 
 export interface LeadBoardQueryResult {
@@ -520,4 +521,39 @@ export function useLeadNotesAdapter(leadId: string): NotesAdapter<LeadNote> {
     }),
     [leadId],
   );
+}
+
+/**
+ * The board's quick "Add visit note" (row icon + row menu) — writes a `visit`
+ * note without opening the drawer. Invalidates the same keys a write from the
+ * drawer's `NotesPanel` does: the notes base (every tab/page, and the
+ * `meta.counts` tab badges ride on those responses) and the History tab.
+ * Not `lists()`: a note changes no field the board shows (`last_followed_up_at`
+ * is set only by a follow-up), and it would refetch the whole aggregate.
+ *
+ * On a stale-lead 409 (converted since — even if reopened — or deleted) the
+ * lead + board refetch (`detail(id)` prefixes the notes key, so the notes
+ * refresh too); `LEADS_LEAD_NOT_FOUND` means the lead left the caller's
+ * scope, so the board refetches as well.
+ */
+export function useAddLeadVisitNote(leadId: string, leadName: string) {
+  const refreshLead = useRefreshLead();
+  return useAppMutation<LeadNote, VisitNotePayload>({
+    mutationFn: ({ body, noted_at }) =>
+      createLeadNote(leadId, {
+        category: "visit",
+        body,
+        // Omitted = "now", stamped by the server at save time.
+        ...(noted_at ? { noted_at } : {}),
+      }),
+    successTitle: "Visit note added",
+    successMessage: `Saved to ${leadName}'s visit notes.`,
+    errorTitle: "Couldn't add visit note",
+    getErrorMessage: getLeadNoteErrorMessage,
+    invalidateKeys: [leadNotesKey(leadId), leadHistoryKey(leadId)],
+    onError: (error) => {
+      const notFound = getApiError(error).code === "LEADS_LEAD_NOT_FOUND";
+      if (isStaleLeadError(error) || notFound) refreshLead(leadId);
+    },
+  });
 }

@@ -16,10 +16,7 @@ import {
   useForm,
 } from "@peppermint/ui";
 import { FormSection } from "@/components/FormSection";
-import {
-  ClipboardFieldSuggest,
-  fieldKeyLabel,
-} from "@/modules/admin/clipboard";
+import { bindClipboardFields } from "@/modules/admin/clipboard";
 import type { DocumentContent, DocumentFormProps } from "../../documents.types";
 import type {
   WodaField,
@@ -141,22 +138,6 @@ function comboboxData(options: (string | WodaSelectOption)[] = []): string[] {
   return options.map((opt) => (typeof opt === "string" ? opt : opt.value));
 }
 
-function hasText(value: unknown): boolean {
-  return typeof value === "string" && value.trim() !== "";
-}
-
-/** Names of fields whose revealing switch is currently off. */
-function hiddenFieldNames(
-  fields: WodaField[],
-  values: WodaFormValues,
-): Set<string> {
-  return new Set(
-    fields
-      .filter((field) => field.reveals && !values[field.name])
-      .map((field) => field.reveals as string),
-  );
-}
-
 function fieldLabel(field: WodaField): string {
   return field.optional ? `${field.label} (optional)` : field.label;
 }
@@ -168,7 +149,13 @@ function fieldLabel(field: WodaField): string {
  * existing document opens prefilled (the old factory opened blank and discarded values).
  */
 export function WodaForm(props: WodaFormProps) {
-  const { schema, initialContent, onSubmit, isLoading } = props;
+  const {
+    schema,
+    initialContent,
+    onSubmit,
+    isLoading,
+    clipboardFamily = "woda",
+  } = props;
 
   const fields = useMemo(() => collectFields(schema), [schema]);
 
@@ -177,16 +164,12 @@ export function WodaForm(props: WodaFormProps) {
     for (const field of fields) values[field.name] = emptyValue(field);
     const saved = (initialContent ?? {}) as WodaFormValues;
     const existing = schema.migrate ? schema.migrate(saved) : saved;
-    // Preserve any passthrough keys (details, headerProps, …) not owned by the schema.
+    // Preserve any passthrough keys not owned by the schema (headerProps, and the
+    // reference/dispatch numbers the Customizations panel edits) — the submit
+    // sends them back unchanged, so an Edit-fields save never drops them.
     Object.assign(values, existing);
     for (const field of fields) {
       values[field.name] = coerceValue(field, values[field.name]);
-    }
-    // A switch saved before it existed starts on when its field already has a value.
-    for (const field of fields) {
-      if (field.reveals && typeof existing[field.name] !== "boolean") {
-        values[field.name] = hasText(values[field.reveals]);
-      }
     }
     return values;
     // initialContent is read once at mount, matching the sibling document forms.
@@ -203,28 +186,20 @@ export function WodaForm(props: WodaFormProps) {
     ),
   });
 
-  // The saved-snippets button, as the input's right section. Only fields whose
-  // schema names a `clipboardKey` get one — it inserts through the form, so the
+  // The saved-snippets button, as the right section of EVERY text / textarea field
+  // (never number, date, combobox, segmented or switch). Key: the schema's explicit
+  // `clipboardKey` when it names one (registered, shared across families), else
+  // derived as `<clipboardFamily>.<field name>`. Inserts through the form, so the
   // value is dirty-tracked and validated like typed text.
-  const clipboardSection = (field: WodaField, disabled?: boolean) => {
-    const fieldKey = field.clipboardKey;
-    if (!fieldKey) return {};
-    const current = form.values[field.name];
-    return {
-      rightSection: (
-        <ClipboardFieldSuggest
-          fieldKey={fieldKey}
-          value={typeof current === "string" ? current : ""}
-          fieldLabel={fieldKeyLabel(fieldKey)}
-          onInsert={(text) => form.setFieldValue(field.name, text)}
-          disabled={disabled}
-          size="sm"
-        />
-      ),
-      // Mantine sections ignore the pointer by default; this one is a button.
-      rightSectionPointerEvents: "all" as const,
-    };
-  };
+  const clip = bindClipboardFields(form, {
+    family: clipboardFamily,
+    disabled: isLoading,
+  });
+  const clipboardSection = (field: WodaField) =>
+    clip(field.name, field.label, {
+      clipboardKey: field.clipboardKey,
+      multiline: field.control === "textarea",
+    });
 
   const renderControl = (field: WodaField): ReactNode => {
     const disabled = isLoading;
@@ -242,7 +217,7 @@ export function WodaForm(props: WodaFormProps) {
             required={field.required}
             disabled={disabled}
             {...form.getInputProps(field.name)}
-            {...clipboardSection(field, disabled)}
+            {...clipboardSection(field)}
           />
         );
       case "number":
@@ -353,7 +328,7 @@ export function WodaForm(props: WodaFormProps) {
             required={field.required}
             disabled={disabled}
             {...form.getInputProps(field.name)}
-            {...clipboardSection(field, disabled)}
+            {...clipboardSection(field)}
           />
         );
     }
@@ -361,15 +336,12 @@ export function WodaForm(props: WodaFormProps) {
 
   // Greedily group consecutive half-width (pairs) or third-width (triples)
   // fields onto one responsive row.
-  const hidden = hiddenFieldNames(fields, form.values);
-
   const rowSpan = (field: WodaField): number => {
     if (field.third) return 3;
     return field.half ? 2 : 1;
   };
 
-  const renderFields = (allFields: WodaField[]): ReactNode[] => {
-    const sectionFields = allFields.filter((field) => !hidden.has(field.name));
+  const renderFields = (sectionFields: WodaField[]): ReactNode[] => {
     const rows: ReactNode[] = [];
     for (let i = 0; i < sectionFields.length; i += 1) {
       const field = sectionFields[i];
@@ -430,12 +402,13 @@ export function WodaForm(props: WodaFormProps) {
  */
 export function createSchemaForm(
   schema: WodaFormSchema,
-  { displayName, transformSubmit }: CreateSchemaFormOptions,
+  { displayName, transformSubmit, clipboardFamily }: CreateSchemaFormOptions,
 ): SchemaFormComponent {
   function SchemaForm({ onSubmit, ...props }: DocumentFormProps) {
     return (
       <WodaForm
         schema={schema}
+        clipboardFamily={clipboardFamily}
         onSubmit={(content) =>
           onSubmit(transformSubmit ? transformSubmit(content) : content)
         }

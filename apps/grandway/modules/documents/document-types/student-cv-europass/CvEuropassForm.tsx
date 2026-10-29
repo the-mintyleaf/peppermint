@@ -15,6 +15,7 @@ import {
 import { Plus as PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { Trash as TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { DEFAULT_EUROPASS_APPEARANCE } from "@/components/templates/student-cv-europass/appearance";
+import { bindClipboardFields } from "@/modules/admin/clipboard";
 import { DocumentPhotoField } from "../../components/DocumentPhotoField";
 import type { DocumentFormProps, CvContent } from "../../documents.types";
 
@@ -74,6 +75,10 @@ export function CvEuropassForm({
     },
   });
 
+  // Saved-snippets button on every free-text field (not the date-like ones or the
+  // CEFR selects). List rows share one key per column (`cv.educations.institution`).
+  const clip = bindClipboardFields(form, { family: "cv", disabled: isLoading });
+
   const handleSubmit = (values: typeof form.values) => {
     // Spread `initial` so appearance (set via the Customizations panel) and any other
     // fields not on this form survive the wholesale content replacement.
@@ -101,6 +106,7 @@ export function CvEuropassForm({
           <TextInput
             label="Place of birth"
             {...form.getInputProps("place_of_birth")}
+            {...clip("place_of_birth", "Place of birth")}
             disabled={isLoading}
           />
         </Group>
@@ -108,22 +114,26 @@ export function CvEuropassForm({
           <TextInput
             label="Gender"
             {...form.getInputProps("gender")}
+            {...clip("gender", "Gender")}
             disabled={isLoading}
           />
           <TextInput
             label="Nationality"
             {...form.getInputProps("nationality")}
+            {...clip("nationality", "Nationality")}
             disabled={isLoading}
           />
         </Group>
         <TextInput
           label="Address"
           {...form.getInputProps("current_address")}
+          {...clip("current_address", "Address")}
           disabled={isLoading}
         />
         <TextInput
           label="Passport number"
           {...form.getInputProps("passport_number")}
+          {...clip("passport_number", "Passport number")}
           disabled={isLoading}
         />
 
@@ -143,6 +153,7 @@ export function CvEuropassForm({
           description="Leave empty to use the applicant's photograph."
           placeholder="https://…"
           {...form.getInputProps("image")}
+          {...clip("image", "Photo URL")}
           disabled={isLoading}
         />
 
@@ -155,6 +166,7 @@ export function CvEuropassForm({
           autosize
           minRows={3}
           {...form.getInputProps("summary")}
+          {...clip("summary", "Summary", { multiline: true })}
           disabled={isLoading}
         />
 
@@ -196,11 +208,13 @@ export function CvEuropassForm({
               <TextInput
                 label="Qualification"
                 {...form.getInputProps(`educations.${i}.degree`)}
+                {...clip(`educations.${i}.degree`, "Qualification")}
                 disabled={isLoading}
               />
               <TextInput
                 label="Institution"
                 {...form.getInputProps(`educations.${i}.institution`)}
+                {...clip(`educations.${i}.institution`, "Institution")}
                 disabled={isLoading}
               />
             </Group>
@@ -218,6 +232,7 @@ export function CvEuropassForm({
               <TextInput
                 label="Location / field"
                 {...form.getInputProps(`educations.${i}.field_of_study`)}
+                {...clip(`educations.${i}.field_of_study`, "Location / field")}
                 disabled={isLoading}
               />
             </Group>
@@ -262,11 +277,13 @@ export function CvEuropassForm({
               <TextInput
                 label="Role"
                 {...form.getInputProps(`experiences.${i}.role`)}
+                {...clip(`experiences.${i}.role`, "Role")}
                 disabled={isLoading}
               />
               <TextInput
                 label="Organization"
                 {...form.getInputProps(`experiences.${i}.company`)}
+                {...clip(`experiences.${i}.company`, "Organization")}
                 disabled={isLoading}
               />
             </Group>
@@ -287,6 +304,9 @@ export function CvEuropassForm({
               autosize
               minRows={2}
               {...form.getInputProps(`experiences.${i}.description`)}
+              {...clip(`experiences.${i}.description`, "Responsibilities", {
+                multiline: true,
+              })}
               disabled={isLoading}
             />
           </Stack>
@@ -301,6 +321,7 @@ export function CvEuropassForm({
           autosize
           minRows={2}
           {...form.getInputProps("skills")}
+          {...clip("skills", "Skills", { multiline: true })}
           disabled={isLoading}
         />
 
@@ -324,6 +345,7 @@ export function CvEuropassForm({
         <TextInput
           label="Mother tongue(s)"
           {...form.getInputProps("mother_tongue")}
+          {...clip("mother_tongue", "Mother tongue(s)")}
           disabled={isLoading}
         />
         {form.values.languages.map((_, i) => (
@@ -333,6 +355,7 @@ export function CvEuropassForm({
                 label="Language"
                 style={{ flex: 1 }}
                 {...form.getInputProps(`languages.${i}.language`)}
+                {...clip(`languages.${i}.language`, "Language")}
                 disabled={isLoading}
               />
               <ActionIcon

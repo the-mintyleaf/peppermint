@@ -17,20 +17,20 @@ applicants. Contract: `docs/backend/lead-management/INTEGRATION.md` (v1.5.0,
 
 ## Files
 
-| Area             | Path                                                                                                                                                                                                                  |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Types / DTOs     | `leadManagement.types.ts` (`StudyInterest` academic fields, `LanguageCertificate`, `LeadNote` v2, `deleted_*`, `LeadListFilters`)                                                                                     |
-| API              | `leadManagement.api.ts` — `fetchAllLeads` (aggregate, server filters), `deleteLead`/`restoreLead`/`fetchDeletedLeads`, notes CRUD, history                                                                            |
-| Query keys       | `leadManagement.queryKeys.ts` — `leadNotesKey`, `leadHistoryKey`, `deletedLeadsKey` (under `lists()`)                                                                                                                 |
-| Hooks            | `leadManagement.hooks.ts` — `useLeadBoardData(fiscalYear, filters)`, lifecycle mutations, `useDeleteLead`/`useRestoreLead`/`useDeletedLeads`, `useLeadNotesAdapter`, `useRefreshLead`                                 |
-| Errors           | `leadErrors.utils.ts` — `isStaleLeadError` (the stale-lead 409 family)                                                                                                                                                |
-| Permissions      | `leadAccess.hooks.ts` — `useLeadAccess()` → `isLeadAdmin` (exact `admin` tier), `currentUserId`                                                                                                                       |
-| Labels           | `studyInterest.labels.ts` (study level, test status); `leadCategory.utils.ts` (board categories, stage labels/colours, `toLeadBoardRow`)                                                                              |
-| Form             | `form/LeadForm.tsx` + `LeadForm.{types,schema,utils,context}.ts`; sections `StudyInterestSection`, `AcademicBackgroundSection`, `LanguageSection`, `ContactNumbersField`                                              |
-| Board            | `pages/list/LeadManagementBoard.tsx`, `leadManagement.columns.tsx`, `leadDeletion.utils.ts` (delete/restore confirm modals)                                                                                           |
-| Board components | `pages/list/components/` — `LeadRowActionsMenu`, `LeadStageSwitch`, `LeadDetailDrawer/`, `DeletedLeadsModal`, `LeadProfileFilters`, `RecordFollowUpModal`, `MarkLeadLostModal`, `ReopenLeadModal`, `ConvertLeadModal` |
-| Drawer           | `LeadDetailDrawer.tsx` (header + Admin delete menu, `DeletedLeadBanner`, notes tab), `LeadOverviewPanel.tsx`, `LeadHistoryPanel.tsx`, `components/{DetailField,DetailSection,LeadStudyProfile}`                       |
-| Reference data   | `reference-data/` — Admin-only sources / loss reasons modal                                                                                                                                                           |
+| Area             | Path                                                                                                                                                                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Types / DTOs     | `leadManagement.types.ts` (`StudyInterest` academic fields, `LanguageCertificate`, `LeadNote` v2, `deleted_*`, `LeadListFilters`)                                                                                                          |
+| API              | `leadManagement.api.ts` — `fetchAllLeads` (aggregate, server filters), `deleteLead`/`restoreLead`/`fetchDeletedLeads`, notes CRUD, history                                                                                                 |
+| Query keys       | `leadManagement.queryKeys.ts` — `leadNotesKey`, `leadHistoryKey`, `deletedLeadsKey` (under `lists()`)                                                                                                                                      |
+| Hooks            | `leadManagement.hooks.ts` — `useLeadBoardData(fiscalYear, filters)`, lifecycle mutations, `useDeleteLead`/`useRestoreLead`/`useDeletedLeads`, `useLeadNotesAdapter`, `useAddLeadVisitNote`, `useRefreshLead`                               |
+| Errors           | `leadErrors.utils.ts` — `isStaleLeadError` (the stale-lead 409 family), `getLeadNoteErrorMessage` (note-write toast copy)                                                                                                                  |
+| Permissions      | `leadAccess.hooks.ts` — `useLeadAccess()` → `isLeadAdmin` (exact `admin` tier), `currentUserId`                                                                                                                                            |
+| Labels           | `studyInterest.labels.ts` (study level, test status); `leadCategory.utils.ts` (board categories, stage labels/colours, `toLeadBoardRow`)                                                                                                   |
+| Form             | `form/LeadForm.tsx` + `LeadForm.{types,schema,utils,context}.ts`; sections `StudyInterestSection`, `AcademicBackgroundSection`, `LanguageSection`, `ContactNumbersField`                                                                   |
+| Board            | `pages/list/LeadManagementBoard.tsx`, `leadManagement.columns.tsx`, `leadDeletion.utils.ts` (delete/restore confirm modals)                                                                                                                |
+| Board components | `pages/list/components/` — `LeadRowActionsMenu`, `AddVisitNoteModal`, `LeadStageSwitch`, `LeadDetailDrawer/`, `DeletedLeadsModal`, `LeadProfileFilters`, `RecordFollowUpModal`, `MarkLeadLostModal`, `ReopenLeadModal`, `ConvertLeadModal` |
+| Drawer           | `LeadDetailDrawer.tsx` (header + Admin delete menu, `DeletedLeadBanner`, notes tab), `LeadOverviewPanel.tsx`, `LeadHistoryPanel.tsx`, `components/{DetailField,DetailSection,LeadStudyProfile}`                                            |
+| Reference data   | `reference-data/` — Admin-only sources / loss reasons modal                                                                                                                                                                                |
 
 ## Shared components used (do not re-implement)
 
@@ -38,6 +38,9 @@ applicants. Contract: `docs/backend/lead-management/INTEGRATION.md` (v1.5.0,
   General/Visit tabs, `meta.counts` badges, backdated `noted_at`, edit/delete
   for author or Admin. `readOnlyReason` set for deleted and ever-converted
   leads; a 409 calls `useRefreshLead`. History key invalidated on note writes.
+- `@/components/notes-panel` → `NoteForm` + `toApiNotedAt` in
+  `AddVisitNoteModal` (the board's quick visit note) — same body/"When"
+  form, validation and discard prompt as the drawer's composer.
 - `@/components/academic` → qualification/score/calendar/test-type options and
   labels, `LanguageTestsField` (`path="language_certificates"`, max 10),
   `createLanguageTestsSchema`, `toLanguageTestFormRows`/`toLanguageTestPayloads`,
@@ -79,6 +82,17 @@ applicants. Contract: `docs/backend/lead-management/INTEGRATION.md` (v1.5.0,
   reason ≤2000) or opens the drawer, which shows `DeletedLeadBanner`, a
   read-only stage badge and read-only notes. A Lead Manager's link to a
   deleted lead 404s → "Lead not found … may have been deleted".
+- **Quick visit note**: a row icon (NotePencil, tooltip "Add visit note") and
+  a row-menu item open `AddVisitNoteModal` ("Add visit note — <name>") —
+  writes `category: "visit"`, "When" blank = now (server-stamped), backdatable,
+  ≤ now + 5 min. Both hide per `canAddVisitNote` (converted stage, deleted,
+  `converted_applicant_id`); lost leads stay writable. `useAddLeadVisitNote`
+  invalidates `leadNotesKey` (lists + `meta.counts` badges) and
+  `leadHistoryKey`, not `lists()` (no board field changes). A stale-lead 409
+  or `LEADS_LEAD_NOT_FOUND` refreshes lead + board; a converted/deleted 409
+  keeps the draft and shows "Notes are on the applicant" / "This lead was
+  deleted". The modal ignores Escape/outside clicks and has no X — the form's
+  Cancel asks before discarding.
 - **History** labels/icons include `lead_note_updated`, `lead_note_deleted`,
   `lead_deleted`, `lead_restored`; `summary` stays the primary label.
 
@@ -88,8 +102,11 @@ applicants. Contract: `docs/backend/lead-management/INTEGRATION.md` (v1.5.0,
   `deleted_*` fields — the modal shows "Open to see" unless the server sends
   them; the drawer always has them.
 - A converted-then-reopened lead looks active in the list shape, so the row
-  menu still offers Delete; the server's `LEADS_LEAD_ALREADY_CONVERTED` toast
-  is the guard. The drawer (full detail) hides it correctly.
+  menu still offers Delete and Add visit note; the server's
+  `LEADS_LEAD_ALREADY_CONVERTED` 409 is the guard. The drawer (full detail)
+  hides both correctly.
+- The dashboard's Recent activity feed is not invalidated by a quick visit
+  note (other module's key); it catches up on its own refetch.
 - BS pass-year upper bound is deliberately loose (AD year + 58, up to a year
   of slack over the real BS year + 1); the server's field error is final.
 - `isLeadAdmin` compares `authorityType === "admin"` in `useLeadAccess` only —

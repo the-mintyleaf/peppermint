@@ -1,8 +1,8 @@
 import { dayjs } from "@peppermint/ui";
 import type {
   AcceptedExtension,
-  FileCategory,
   FileOwnerScope,
+  UploadedFile,
 } from "./uploadedFiles.types";
 
 /** Exactly 10,485,760 bytes — checked client-side before submit (§5/§7). */
@@ -25,15 +25,61 @@ export const ACCEPTED_FILE_INPUT_ACCEPT = ACCEPTED_EXTENSIONS.map(
 ).join(",");
 
 /**
- * Image categories eligible for an inline thumbnail preview. There is no
- * preview/thumbnail endpoint (§9) — the only way to show one is to fetch the
- * bytes and build an object URL (`useFileBlob`), so this is deliberately
- * restricted to the two categories where that's worth the extra request.
+ * What opening a file does: `image`/`pdf` open the in-app viewer, `download`
+ * saves it under its original filename. Decided by type, never by category —
+ * a passport scan can be a JPEG or a PDF.
  */
-export const PREVIEWABLE_CATEGORIES = new Set<FileCategory>([
-  "photograph",
-  "signature_image",
-]);
+export type FileViewKind = "image" | "pdf" | "download";
+
+/** Accepted image extensions → the MIME type the browser needs to render them. */
+const IMAGE_EXTENSION_TYPES: Record<string, string> = {
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+};
+
+/** The last dot-segment, lower-cased — the same rule the backend checks (§5). */
+function extensionOf(filename: string): string {
+  const dot = filename.lastIndexOf(".");
+  return dot === -1 ? "" : filename.slice(dot + 1).toLowerCase();
+}
+
+/**
+ * `content_type` first, extension as the fallback: the backend derives
+ * `content_type` from the extension after checking the leading bytes against
+ * it (§5), but the exact extension → type strings are not published, so
+ * the extension is the safety net if a stored type is unexpected.
+ */
+export function getFileViewKind(
+  file: Pick<UploadedFile, "content_type" | "original_filename">,
+): FileViewKind {
+  const type = file.content_type.toLowerCase();
+  const ext = extensionOf(file.original_filename);
+  if (type === "application/pdf") return "pdf";
+  if (type.startsWith("image/")) return "image";
+  if (ext === "pdf") return "pdf";
+  if (ext in IMAGE_EXTENSION_TYPES) return "image";
+  return "download";
+}
+
+/**
+ * The MIME type the viewer stamps on its object URL. Always set explicitly
+ * rather than trusting the blob's own type: the `<iframe>` only gets the
+ * browser's PDF viewer for `application/pdf`, and pinning the type means the
+ * viewer can never render the bytes as anything else (e.g. HTML).
+ */
+export function getViewerMimeType(
+  file: Pick<UploadedFile, "content_type" | "original_filename">,
+  kind: Exclude<FileViewKind, "download">,
+): string {
+  if (kind === "pdf") return "application/pdf";
+  const type = file.content_type.toLowerCase();
+  if (type.startsWith("image/")) return type;
+  return (
+    IMAGE_EXTENSION_TYPES[extensionOf(file.original_filename)] ?? "image/jpeg"
+  );
+}
 
 /**
  * Resolve the single owner key set on a scope object. Exactly one must be

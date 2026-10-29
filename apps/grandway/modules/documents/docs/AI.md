@@ -53,13 +53,13 @@ Modal setters are **guarded in the provider** so a reader can never flip them.
 
 ## Chrome
 
-| Component                   | What it is                                                                |
-| --------------------------- | ------------------------------------------------------------------------- |
-| `DocHeader`                 | Black top bar. Brand, filename, date, **Signature button**, close         |
-| `DocToolbar`                | White sub-bar. Status action, Remove / Restore, print, print-all, toggles |
-| `PagesSidebar`              | Left rail — live pages, then an **Archived** group (removed documents)    |
-| `HistorySidebar`            | Right rail — **Activity** (snapshots) on top, **Customizations** below    |
-| `EditCurrentDocumentButton` | Floating bottom-right FAB → the edit-fields modal                         |
+| Component                   | What it is                                                                                                |
+| --------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `DocHeader`                 | Black top bar. Brand, filename, date, Clipboard, **Signature button**, close                              |
+| `DocToolbar`                | White sub-bar. Status action, Remove / Restore, print, print-all, toggles                                 |
+| `PagesSidebar`              | Left rail — live pages; removed documents only behind a collapsed "Show removed (n)" toggle at the bottom |
+| `HistorySidebar`            | Right rail — **Activity** (snapshots) on top, **Customizations** below                                    |
+| `EditCurrentDocumentButton` | Floating bottom-right FAB → the edit-fields modal                                                         |
 
 All of them import styles from the **shared** `pages/editor/DocumentEditor.module.css`
 rather than owning a CSS module.
@@ -83,7 +83,8 @@ the same one-per-student type exists, so it can never leave two.
   a mandatory one, and restore is itself reversible).
 
 Modals follow one of three patterns: a context flag (`EditFieldsModal`,
-`CreateDocumentModal`), local `useState` in the page (the two panels), or a fully
+`CreateDocumentModal` — both render `DocumentFormModal`, which adds the sticky
+Clipboard button), local `useState` in the page (the two panels), or a fully
 imperative `@peppermint/admin` modal (`openReasonConfirmModal` for archive).
 
 ## The template seam
@@ -106,7 +107,17 @@ ConfigBar?, formModalSize?, templateVersion?, formSchema? }`.
   never fetch.
 - **`Form`** is the create/edit field set, shown in a modal.
 - **`ConfigBar`** is the **Customizations** panel in the right rail. Optional; a
-  type without one shows "No Customizations for this Document".
+  type without one shows "No Customizations for this Document". When the
+  document is read-only (`isActiveDocumentEditable`) `HistorySidebar` shows the
+  `readOnlyReason` copy instead of mounting the bar.
+
+| ConfigBar              | Types                 | Channel                  | Writes                                                           |
+| ---------------------- | --------------------- | ------------------------ | ---------------------------------------------------------------- |
+| `BankConfigBar`        | every `bank-*`        | `onUpdate` only          | `headerProps` padding (render-only)                              |
+| `CvEuropassConfigBar`  | `student-cv-europass` | `onUpdate` + `onPersist` | `appearance`                                                     |
+| `CertificateConfigBar` | `student-certificate` | `onUpdate` + `onPersist` | see Student certificate content                                  |
+| `WodaConfigBar`        | every `woda-*`        | `onUpdate` + `onPersist` | `show_refno`, `wodadoc_refno`, `show_dispatch_no`, `dispatch_no` |
+
 - **Adapters** (`utils/createTemplateAdapter.tsx`, and per-type files like
   `document-types/student-certificate/CertificateTemplate.tsx`) sit between the
   two, resolving `document.content` into the shape a template wants.
@@ -129,15 +140,33 @@ and on every PATCH with content, snake_case keys; a refusal is 400
 `DOCUMENTS_CONTENT_INVALID` with `error.details.fields` keyed by path
 (`marking[2].present`). Folder: `document-types/student-certificate/`.
 
-| File                       | Role                                                                                                                     |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `certificateContent.ts`    | **Pure.** `normalizeCertificateContent` (read either era) / `toStoredCertificateContent` (write the validated keys only) |
-| `certificateForm.utils.ts` | Zod schema mirroring the backend rules, content ↔ form values, `serverPathToFormPath`                                    |
-| `CertificateForm.tsx`      | Form; seeds a NEW certificate from the prefill; marks server refusals                                                    |
-| `CertificateConfigBar.tsx` | Customizations: issue date, signatories, study status — writes only those keys (`withCertificatePanelChange`)            |
-| `CertificateTemplate.tsx`  | Adapter → `StudentCertificateData` (`@/context/DocumentContext`)                                                         |
-| `useCertificatePhoto.ts`   | Resolves `photo_media_id` to a URL, reusing the editor's current photo                                                   |
+| File                             | Role                                                                                                                                        |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `certificateContent.ts`          | **Pure.** `normalizeCertificateContent` (read either era) / `toStoredCertificateContent` (write the validated keys only)                    |
+| `certificateForm.utils.ts`       | Zod schema mirroring the backend rules, content ↔ form values, `serverPathToFormPath`; `applyServerFieldErrors` returns placed and unplaced |
+| `CertificateFormTabs.tsx`        | The form's two tabs (General details · Attendance & grades), both kept mounted; error-count badge per tab                                   |
+| `certificateTabs.ts`             | **Pure.** Field path → tab; error counts per tab; first tab with an error                                                                   |
+| `CertificateAttendanceField.tsx` | Start month + number of months → the month rows; asks before removing months that hold data                                                 |
+| `attendanceRange.ts`             | **Pure.** Month-range maths: generate, read back, plan a resize (keeps typed data), year rollover                                           |
+| `CertificateForm.tsx`            | Form; seeds a NEW certificate from the prefill; marks server refusals                                                                       |
+| `CertificateConfigBar.tsx`       | Customizations: issue date, signatories, study status — writes only those keys (`withCertificatePanelChange`)                               |
+| `CertificateTemplate.tsx`        | Adapter → `StudentCertificateData` (`@/context/DocumentContext`)                                                                            |
+| `useCertificatePhoto.ts`         | Resolves `photo_media_id` to a URL, reusing the editor's current photo                                                                      |
 
+- **Two tabs, one form.** One `FormWrapper` and one Save. Both panels stay
+  mounted (`keepMounted`), so switching tabs keeps every typed value. Save runs
+  `form.validate()` first and opens the first tab (General before Attendance)
+  holding an error; a `DOCUMENTS_CONTENT_INVALID` refusal opens the tab of the
+  first marked field. Unplaceable refusals and the prefill notice sit above the tabs.
+- **Attendance is a month range.** A start month and a number of months (1–12)
+  generate consecutive rows across year ends. Changing them keeps the days and
+  hours of months still in range, adds empty rows, and asks before removing rows
+  that hold data. A table that forms no unbroken run (older certificates: gaps,
+  repeats, an unreadable month) shows as saved with a note and per-row month
+  pickers until a range is picked.
+- **Clipboard:** the free-text fields (name parts, address, course name and
+  level, branch name and phone) use `bindClipboardFields(form, { family:
+"certificate" })`; the sticky header button comes from `DocumentFormModal`.
 - **Read both, write only the new.** Certificates saved before 2026-10-29 use
   the template's old keys (`gender: "Male"`, top-level grades, `coursehour`,
   `studyType`, `instructorId`/`directorId`, `customBranch`/`customBranchNo`,
@@ -256,6 +285,24 @@ Ward-office letters, in two **sets** (`WODA_CATEGORIES` in
   `WodaTable`, `WodaPhotoGrid`, `WodaFiscalPeriods`, `WodaSignatureBlock`) and
   the pure helpers in `wodaFormat.ts`. The two sets differ in wording and
   table shape, not in parts.
+- **Reference and dispatch numbers are Customizations, not Edit fields**
+  (`document-types/woda-config-bar/`). `WodaConfigBar` has a "Print reference
+  no." and a "Print dispatch no." switch, each revealing its number. It writes
+  only the keys changed (of `show_refno`, `wodadoc_refno`, `show_dispatch_no`,
+  `dispatch_no`) onto the stored body — never migrates anything else — previews
+  via `onUpdate`, saves debounced via `onPersist` with an unmount flush, and on
+  a refused save puts just those keys back (`restoreWodaReference`) and says so.
+  - **The switch reads what prints.** Its state is `isWodaLineShown` — the
+    template's own rule: a stored flag wins; a letter saved without flags prints
+    a number that has text. Toggling writes that one flag; editing a number also
+    pins its flag on, so clearing the text cannot hide the input mid-edit. An
+    untouched unset flag stays unset, so opening the panel never changes the
+    printout.
+  - The edit forms no longer show these fields. `WodaForm` merges every
+    `initialContent` key over the schema defaults and submits them back, so an
+    Edit-fields save keeps them. New letters seed both flags `false` and both
+    numbers `""` (`utils/defaultDocumentContent.ts`); the prefill never touches
+    them.
 - **Forms are schemas**, rendered by `components/WodaForm`. Shared sections
   live in `utils/wodaCommonSections.ts`; the Japan and English birth and
   relationship forms are one schema each, parameterised by legal basis
@@ -263,21 +310,71 @@ Ward-office letters, in two **sets** (`WODA_CATEGORIES` in
   `createSchemaForm(schema, { displayName })` — it carries the schema for the
   registry's `formSchema` (see Prefill). LOR/MOI use the same factory through
   `utils/sharedForms.tsx` + `utils/letterFormSchema.ts`.
-- **Clipboard suggestions** (`@/modules/admin/clipboard`): a schema field with
-  `clipboardKey` (text/textarea) gets `ClipboardFieldSuggest` as its right
-  section, inserting via `form.setFieldValue`. Given only to values retyped
-  across applicants — spokesperson name/post/contact (`spokespersonSection`),
-  tax-clearance contact office, occupation title, the affidavit's institution
-  and ward chairman, LOR recommender name/title, MOI signatory name; plus the
-  bank certificate's spokesperson name/post (hand-built form). Never on the
-  applicant's own details. A new key must be registered in
-  `modules/admin/clipboard/clipboard.fieldKeys.ts`. The modal sits at Mantine's
-  default 200 and the popover at 300, so no `popoverZIndex` is passed.
+- **Clipboard**: every text/textarea field has the saved-snippets button — see
+  "Clipboard on document forms" below. A schema field's `clipboardKey` only
+  overrides the derived key.
 - **New letters are created with `template_version: "2"`** (registry
   `templateVersion`); letters created before keep `"1"`. Nothing branches on it.
 - **Old content keeps rendering.** The relationship letter still prints the
   single `extra_relation` relative when a document has no `relatives` list,
   and a blank occupation note or family paragraph prints the standard wording.
+
+## Clipboard on document forms
+
+The personal clipboard (`@/modules/admin/clipboard`, owner-only, never gated) is
+reachable from every document form in two ways.
+
+**1. A button on the side of every free-text field** (`ClipboardFieldSuggest` in the
+input's right section: saved snippets for that field, "Save this value"). Never on
+number, date (incl. date-like text such as B.S. dates, CV periods), combobox/select,
+switch or segmented controls; not in repeatable tables (Woda occupations rows, the
+bank statement's transaction sheet). Inserts go through the field's own form
+`onChange`, so validation and dirty state follow.
+
+| Form                                                 | How                                                     | Family                                                            |
+| ---------------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------- |
+| Every Woda letter (Japan + English), LOR/MOI         | `WodaForm` — automatic for `text` / `textarea` controls | `woda` / `lor` / `moi` (`clipboardFamily` via `createSchemaForm`) |
+| `BankStatementForm`, `BankCertificateForm`           | `bindClipboardFields(form, { family: "bank" })`         | `bank`                                                            |
+| `CvEuropassForm`, `CvExtendedForm`, `CvStandardForm` | `bindClipboardFields(form, { family: "cv" })`           | `cv`                                                              |
+| `CvForm` (student-cv)                                | no text fields                                          | —                                                                 |
+| Student certificate                                  | not yet — family `certificate` reserved                 | —                                                                 |
+
+**Key rule**: the field's explicit key if it has one (schema `clipboardKey`, or
+`clip(path, label, { clipboardKey })`), else `<family>.<field path>` with list
+indexes dropped (`deriveFieldKey`). So `woda.applicant_name` is one key across every
+Woda letter, and both bank forms share `bank.statement_account_holder`. Explicit
+keys kept so existing snippets still match: the Woda spokesperson section, tax
+clearance office, occupation, affidavit, LOR recommender, MOI signatory, bank
+spokesperson, and `cv.reference.*` (both Extended-CV referees). Rule and labels:
+`modules/admin/clipboard/docs/AI.md`.
+
+**Adding it to a new form field** — one spread:
+
+```tsx
+const clip = bindClipboardFields(form, { family: "cv", disabled: isLoading });
+<TextInput
+  {...form.getInputProps("religion")}
+  {...clip("religion", "Religion")}
+/>;
+```
+
+`{ multiline: true }` for a `Textarea`. A schema form needs nothing. A form in a new
+family: add its family name to `FAMILY_LABELS` in `clipboard.fieldKeys.ts`.
+
+**2. A sticky Clipboard button on the form** — `components/DocumentFormModal`, the
+modal both `EditFieldsModal` and `CreateDocumentModal` render (so every type's
+`Form`, the certificate included, gets it). The button sits in the modal header
+(sticky — visible however far the form scrolls), beside the close button. It opens the
+full `ClipboardDrawer` at `CLIPBOARD_DRAWER_OVER_MODAL_Z_INDEX` (250) above the modal
+(200), rendered as the modal's sibling so no drawer event reaches the form; the modal
+ignores Escape while the drawer is open. The form stays mounted underneath — nothing
+typed is lost; closing the drawer returns focus to the button. **Show a document form
+anywhere else → use `DocumentFormModal`, not a bare `Modal`.**
+
+Layers: modal 200 → drawer 250 → field popovers and tooltips 300 → the drawer's
+confirms/select lists 400–500. Escape in a field popover closes only the popover
+(`data-mantine-stop-propagation`). The editor header's own Clipboard button
+(`DocHeader`) is unchanged.
 
 ## The signature seam
 

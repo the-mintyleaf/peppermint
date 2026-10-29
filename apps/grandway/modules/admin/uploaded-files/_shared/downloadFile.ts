@@ -1,6 +1,25 @@
 import { notifications } from "@peppermint/ui";
-import { getApiErrorMessage } from "@/lib/authErrorMessages";
+import { getFileBytesErrorMessage } from "./fileBytesError";
 import { downloadFileBlob } from "../uploadedFiles.api";
+
+/**
+ * Hand an already-fetched blob to the browser as a download named
+ * `filename`. Used directly by the in-app viewer's Download button, which
+ * already holds the bytes — re-fetching would write a second audit event.
+ */
+export function saveBlobAs(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  // Deferred rather than immediate: revoking synchronously right after
+  // `.click()` has been observed to cancel the download in some browsers
+  // before they've finished reading the blob.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
 
 /**
  * The ONLY way anything in this module retrieves file bytes to the user's
@@ -20,22 +39,12 @@ export async function downloadFile(
 ): Promise<void> {
   try {
     const blob = await downloadFileBlob(id);
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    // Deferred rather than immediate: revoking synchronously right after
-    // `.click()` has been observed to cancel the download in some browsers
-    // before they've finished reading the blob.
-    setTimeout(() => URL.revokeObjectURL(url), 0);
+    saveBlobAs(blob, filename);
   } catch (error) {
     notifications.show({
       color: "red",
       title: "Couldn't download file",
-      message: getApiErrorMessage(error),
+      message: getFileBytesErrorMessage(error),
     });
   }
 }

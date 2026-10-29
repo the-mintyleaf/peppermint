@@ -4,14 +4,12 @@ import { createSchemaForm } from "../../components/WodaForm";
 import type { WodaFormSchema } from "../../utils/wodaFormSchema";
 import {
   applicantSection,
-  documentSection,
   spokespersonSection,
 } from "../../utils/wodaCommonSections";
 import { WODA_FOREIGN_CURRENCIES } from "../../utils/wodaDefaults";
 
 const schema: WodaFormSchema = {
   sections: [
-    documentSection(),
     applicantSection({ address: true }),
     {
       title: "Income",

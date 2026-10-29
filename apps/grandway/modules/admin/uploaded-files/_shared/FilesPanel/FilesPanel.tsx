@@ -19,6 +19,7 @@ import { QueryErrorState } from "@/components/QueryErrorState";
 import { FileFolderGrid, type FileFolder } from "./components/FileFolderGrid";
 import { FileTileGrid } from "./components/FileTileGrid";
 import { EditFileModal } from "../components/EditFileModal";
+import { FilePreviewModal } from "../components/FilePreviewModal";
 import { ReplaceFileModal } from "../components/ReplaceFileModal";
 import { UploadFileModal } from "../components/UploadFileModal";
 import { VerifyFileModal } from "../components/VerifyFileModal";
@@ -52,6 +53,10 @@ export function FilesPanel({ scope }: FilesPanelProps) {
   const [replaceFor, setReplaceFor] = useState<UploadedFile | null>(null);
   const [editFor, setEditFor] = useState<UploadedFile | null>(null);
   const [verifyFor, setVerifyFor] = useState<UploadedFile | null>(null);
+  // Two pieces so the viewer can play its close transition (and return focus)
+  // before unmounting — unmounting is what revokes its object URL.
+  const [previewFor, setPreviewFor] = useState<UploadedFile | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const { data, isLoading, isError, isRefetching, refetch } =
     useFilesList(scope);
@@ -89,6 +94,11 @@ export function FilesPanel({ scope }: FilesPanelProps) {
   const openFolder = (category: FileCategory) => {
     setOpenCategory(category);
     setSearch("");
+  };
+
+  const openPreview = (file: UploadedFile) => {
+    setPreviewFor(file);
+    setPreviewOpen(true);
   };
 
   return (
@@ -163,6 +173,7 @@ export function FilesPanel({ scope }: FilesPanelProps) {
       ) : (
         <FileTileGrid
           files={folderFiles}
+          onPreview={openPreview}
           onReplace={setReplaceFor}
           onEdit={setEditFor}
           onVerify={setVerifyFor}
@@ -186,6 +197,14 @@ export function FilesPanel({ scope }: FilesPanelProps) {
           file={editFor}
           opened={editFor !== null}
           onClose={() => setEditFor(null)}
+        />
+      ) : null}
+      {previewFor ? (
+        <FilePreviewModal
+          file={previewFor}
+          opened={previewOpen}
+          onClose={() => setPreviewOpen(false)}
+          onExited={() => setPreviewFor(null)}
         />
       ) : null}
       {verifyFor ? (

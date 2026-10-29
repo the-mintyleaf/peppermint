@@ -27,6 +27,7 @@ export function createLorForm(
 ): SchemaFormComponent {
   return createSchemaForm(buildLorSchema(constants), {
     displayName: "LorVariantForm",
+    clipboardFamily: "lor",
     transformSubmit: (content) =>
       ({ ...constants, ...content }) as DocumentContent,
   });
@@ -38,5 +39,6 @@ export function createMoiForm(
 ): SchemaFormComponent {
   return createSchemaForm(buildMoiSchema(constants), {
     displayName: "MoiVariantForm",
+    clipboardFamily: "moi",
   });
 }

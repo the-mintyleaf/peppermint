@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Modal } from "@peppermint/ui";
 import { useDocumentEditor } from "../../context";
+import { DocumentFormModal } from "../DocumentFormModal";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
 import type { DocumentContent } from "../../documents.types";
 
@@ -57,7 +57,7 @@ export function EditFieldsModal() {
   };
 
   return (
-    <Modal
+    <DocumentFormModal
       opened={editFieldsModalOpen}
       onClose={() => setEditFieldsModalOpen(false)}
       title={`Edit ${config.label} Fields`}
@@ -75,6 +75,6 @@ export function EditFieldsModal() {
           isLoading={isSavingContent}
         />
       )}
-    </Modal>
+    </DocumentFormModal>
   );
 }

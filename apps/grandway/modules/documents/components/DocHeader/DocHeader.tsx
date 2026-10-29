@@ -11,7 +11,9 @@ import { useRouter } from "next/navigation";
 import { X as XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { FileText as DocumentIcon } from "@phosphor-icons/react/dist/csr/FileText";
 import { Signature as SignatureIcon } from "@phosphor-icons/react/dist/csr/Signature";
+import { Clipboard as ClipboardIcon } from "@phosphor-icons/react/dist/csr/Clipboard";
 import { SignatureManagerModal } from "@/modules/admin/signatures";
+import { ClipboardDrawer } from "@/modules/admin/clipboard/drawer";
 import { useCapabilities } from "@/config/access";
 import { useDocumentEditor } from "../../context";
 import styles from "../../pages/editor/DocumentEditor.module.css";
@@ -36,6 +38,7 @@ export function DocHeader() {
   } = useDocumentEditor();
   const capabilities = useCapabilities();
   const [signaturesOpened, signatureManager] = useDisclosure(false);
+  const [clipboardOpened, clipboard] = useDisclosure(false);
   const currentDate = formatHeaderDate(new Date());
 
   // Keyed on the capability that governs the DESTINATION, not on write access —
@@ -97,6 +100,20 @@ export function DocHeader() {
             rule (it refuses superadmin as well as lead_manager, reads
             included), and conflating the two is how a control ends up pointing
             at an endpoint the viewer will be refused. */}
+        {/* The editor sits outside the admin shell, so its sidebar Clipboard
+            item is unreachable here — and this is where snippets are used most.
+            Every account has a clipboard, so it is never gated. */}
+        <Tooltip label="Clipboard" withArrow>
+          <ActionIcon
+            className={styles.barCloseBtn}
+            variant="subtle"
+            size="sm"
+            onClick={clipboard.open}
+            aria-label="Open clipboard"
+          >
+            <ClipboardIcon size={14} color="#fff" aria-hidden />
+          </ActionIcon>
+        </Tooltip>
         {capabilities.signatories && (
           <Tooltip label="Manage signatures" withArrow>
             <ActionIcon
@@ -125,6 +142,7 @@ export function DocHeader() {
         opened={signaturesOpened}
         onClose={signatureManager.close}
       />
+      <ClipboardDrawer opened={clipboardOpened} onClose={clipboard.close} />
     </div>
   );
 }

@@ -22,3 +22,9 @@ export const FIELD_KEY_MAX = 100;
 
 /** Layer above a Drawer (200) so confirm modals opened from inside it are reachable. */
 export const CLIPBOARD_CONFIRM_Z_INDEX = 400;
+
+/**
+ * The drawer opened over an open Modal (200): above it, still below the popovers and
+ * tooltips the drawer shows (300) and its confirms / select lists (400–500).
+ */
+export const CLIPBOARD_DRAWER_OVER_MODAL_Z_INDEX = 250;

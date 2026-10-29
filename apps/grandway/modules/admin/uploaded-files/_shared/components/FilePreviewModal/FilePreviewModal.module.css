@@ -1,0 +1,27 @@
+/* Mantine's modal header is a flex row and its title has no min-width, so a
+   long filename would push the close button out of the modal. Let the title
+   shrink and ellipsize on one line instead (the full name is on hover via the
+   inner span's `title`, and in the accessible name regardless). */
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  background-color: var(--mantine-color-default-hover);
+  border-radius: var(--mantine-radius-sm);
+}
+
+.frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: var(--mantine-radius-sm);
+}

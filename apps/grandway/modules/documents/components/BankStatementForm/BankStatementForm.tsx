@@ -18,6 +18,7 @@ import {
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
 import { TableIcon } from "@phosphor-icons/react/dist/csr/Table";
 import { FormSection } from "@/components/FormSection";
+import { bindClipboardFields } from "@/modules/admin/clipboard";
 import type {
   BankStatementContent,
   BankTransaction,
@@ -77,6 +78,13 @@ export function BankStatementForm({
         !v ? "Account holder is required" : null,
       statement_account_no: (v) => (!v ? "Account number is required" : null),
     },
+  });
+
+  // The saved-snippets button on every Details text field (not the transaction
+  // sheet's cells). Shares the `bank` family with the bank certificate.
+  const clip = bindClipboardFields(form, {
+    family: "bank",
+    disabled: isLoading,
   });
 
   // Derived preview — shares the exact computation used by the print template.
@@ -198,6 +206,7 @@ export function BankStatementForm({
                   placeholder="Ram Bahadur Shrestha"
                   required
                   {...form.getInputProps("statement_account_holder")}
+                  {...clip("statement_account_holder", "Account holder")}
                   disabled={isLoading}
                 />
                 <TextInput
@@ -205,6 +214,7 @@ export function BankStatementForm({
                   placeholder="0123456789012"
                   required
                   {...form.getInputProps("statement_account_no")}
+                  {...clip("statement_account_no", "Account number")}
                   disabled={isLoading}
                 />
                 <Textarea
@@ -213,6 +223,11 @@ export function BankStatementForm({
                   autosize
                   minRows={1}
                   {...form.getInputProps("statement_account_address")}
+                  {...clip(
+                    "statement_account_address",
+                    "Account holder address",
+                    { multiline: true },
+                  )}
                   disabled={isLoading}
                 />
                 <Group grow>
@@ -220,12 +235,14 @@ export function BankStatementForm({
                     label="Account type"
                     placeholder="Savings"
                     {...form.getInputProps("statement_account_type")}
+                    {...clip("statement_account_type", "Account type")}
                     disabled={isLoading}
                   />
                   <TextInput
                     label="Reference no."
                     placeholder="079/80-1234"
                     {...form.getInputProps("statement_ref_no")}
+                    {...clip("statement_ref_no", "Reference no.")}
                     disabled={isLoading}
                   />
                 </Group>

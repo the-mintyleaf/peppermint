@@ -18,8 +18,10 @@ import {
   useClipboardSuggestions,
   useMarkClipboardEntryUsed,
 } from "../../clipboard.hooks";
+import { fieldKeyLabel as registeredFieldKeyLabel } from "../../clipboard.fieldKeys";
 import type { ClipboardEntry } from "../../clipboard.types";
 import { SaveFieldValue } from "./components/SaveFieldValue";
+import { STOP_MODAL_ESCAPE } from "./ClipboardFieldSuggest.constants";
 import type { ClipboardFieldSuggestProps } from "./ClipboardFieldSuggest.types";
 
 /**
@@ -28,6 +30,11 @@ import type { ClipboardFieldSuggestProps } from "./ClipboardFieldSuggest.types";
  * the hourly rate, so never per keystroke). The dropdown lists this field's saved
  * snippets most-used first; choosing one hands its text to `onInsert` and bumps its
  * ranking. When the input already holds text it also offers "Save this value".
+ *
+ * Safe inside a form Modal: every control is a `type="button"`, the dropdown is
+ * portalled (so Enter in it never submits the host form), and Escape closes only the
+ * popover — the focused element carries `data-mantine-stop-propagation`, which every
+ * Mantine Modal/Drawer checks before closing itself on Escape.
  *
  * Owner-only for every authority, so it is safe to render for any signed-in account.
  * States: loading → a spinner row; request-failed → message + Retry; empty → says nothing
@@ -39,6 +46,7 @@ export function ClipboardFieldSuggest({
   value,
   onInsert,
   fieldLabel,
+  fieldKeyLabel,
   disabled = false,
   size = "md",
   popoverZIndex,
@@ -48,6 +56,10 @@ export function ClipboardFieldSuggest({
   const { mutate: markUsed } = useMarkClipboardEntryUsed();
   const hasText = value.trim().length > 0;
   const entries = suggestions.data?.data ?? [];
+  const keyLabel = fieldKeyLabel ?? registeredFieldKeyLabel(fieldKey);
+  const buttonLabel = fieldLabel
+    ? `Saved snippets for ${fieldLabel}`
+    : "Insert from saved snippets";
 
   const choose = (entry: ClipboardEntry) => {
     onInsert(entry.text);
@@ -59,14 +71,15 @@ export function ClipboardFieldSuggest({
     if (suggestions.isError) {
       return (
         <Stack gap="xs" align="flex-start">
-          <Text size="sm" c="red">
+          <Text size="xs" c="red">
             Couldn&apos;t load your saved snippets.
           </Text>
           <Button
-            size="compact-sm"
+            size="compact-xs"
             variant="default"
             onClick={() => suggestions.refetch()}
             loading={suggestions.isRefetching}
+            {...STOP_MODAL_ESCAPE}
           >
             Retry
           </Button>
@@ -78,7 +91,7 @@ export function ClipboardFieldSuggest({
     }
     if (entries.length === 0) {
       return (
-        <Text size="sm" c="dimmed">
+        <Text size="xs" c="dimmed">
           Nothing saved for this field yet.
           {hasText ? "" : " Type a value, then save it here to reuse it."}
         </Text>
@@ -93,8 +106,9 @@ export function ClipboardFieldSuggest({
             p="xs"
             style={{ borderRadius: "var(--mantine-radius-sm)" }}
             aria-label={`Insert ${entry.label}`}
+            {...STOP_MODAL_ESCAPE}
           >
-            <Text size="sm" fw={600} truncate>
+            <Text size="xs" fw={600} truncate>
               {entry.label}
             </Text>
             <Text
@@ -123,20 +137,25 @@ export function ClipboardFieldSuggest({
       zIndex={popoverZIndex}
     >
       <Popover.Target>
-        <Tooltip label="Saved snippets for this field" disabled={opened}>
+        <Tooltip label="Saved snippets" disabled={opened}>
+          {/* Subtle and grey so it reads as a quiet aid, not a second input. */}
           <ActionIcon
-            variant="default"
+            type="button"
+            variant="subtle"
+            color="gray"
             size={size}
             disabled={disabled}
             onClick={() => setOpened((o) => !o)}
-            aria-label="Insert from saved snippets"
+            aria-label={buttonLabel}
             aria-expanded={opened}
+            // Mirrors Mantine's Combobox: while open, Escape belongs to the popover.
+            data-mantine-stop-propagation={opened}
           >
-            <ClipboardIcon size={16} aria-hidden />
+            <ClipboardIcon size={size === "xs" ? 12 : 16} aria-hidden />
           </ActionIcon>
         </Tooltip>
       </Popover.Target>
-      <Popover.Dropdown p="sm">
+      <Popover.Dropdown p="sm" {...STOP_MODAL_ESCAPE}>
         <Stack gap="sm">
           {renderEntries()}
           {hasText ? (
@@ -146,6 +165,7 @@ export function ClipboardFieldSuggest({
                 fieldKey={fieldKey}
                 value={value}
                 fieldLabel={fieldLabel}
+                fieldKeyLabel={keyLabel}
                 onSaved={() => setOpened(false)}
               />
             </>

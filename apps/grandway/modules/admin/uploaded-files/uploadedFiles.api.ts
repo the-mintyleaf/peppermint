@@ -127,8 +127,32 @@ export async function replaceFile(
  * audited read in the API.
  */
 export async function downloadFileBlob(id: string): Promise<Blob> {
-  const { data } = await api.get<Blob>(`${FILES}/${id}/download/`, {
-    responseType: "blob",
-  });
-  return data;
+  try {
+    const { data } = await api.get<Blob>(`${FILES}/${id}/download/`, {
+      responseType: "blob",
+    });
+    return data;
+  } catch (error) {
+    await decodeBlobErrorBody(error);
+    throw error;
+  }
+}
+
+/**
+ * Failures on the download route still use the standard error envelope,
+ * but `responseType: "blob"` hands that JSON back as a `Blob`, so
+ * `getApiError` would see no `error.code` and every failure — including
+ * `UPLOADED_FILES_FILE_BYTES_MISSING` — would read as UNKNOWN_ERROR. Decode it
+ * in place so callers can branch on the code like any other endpoint.
+ */
+async function decodeBlobErrorBody(error: unknown): Promise<void> {
+  const response = (error as { response?: { data?: unknown } } | null)
+    ?.response;
+  if (!response || !(response.data instanceof Blob)) return;
+  try {
+    response.data = JSON.parse(await response.data.text()) as unknown;
+  } catch {
+    // Not JSON (an empty body, a proxy's HTML page): leave it untouched —
+    // `getApiError` then falls back to its generic message.
+  }
 }

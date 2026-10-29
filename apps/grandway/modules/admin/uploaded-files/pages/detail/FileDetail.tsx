@@ -119,9 +119,14 @@ function FileDetailContent() {
       <ModalPaper withBorder>
         <Stack gap="md" p="md">
           <Group justify="space-between" align="flex-start" wrap="wrap">
-            <Stack gap={4}>
-              <Group gap="xs">
-                <Title order={4}>{file.original_filename}</Title>
+            <Stack gap={4} miw={0}>
+              <Group gap="xs" miw={0}>
+                {/* A page title, so it wraps rather than ellipsizes — but
+                    `anywhere` lets an unbroken name break instead of
+                    overflowing the paper. */}
+                <Title order={4} style={{ overflowWrap: "anywhere" }}>
+                  {file.original_filename}
+                </Title>
                 <Badge
                   size="sm"
                   variant="light"

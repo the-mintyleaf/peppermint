@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Box,
   Button,
   Center,
   List,
@@ -15,20 +16,12 @@ import {
   useFormControls,
   useFormInstance,
 } from "@peppermint/admin";
-import { DocumentPhotoField } from "../../components/DocumentPhotoField";
 import { useDocumentPrefill } from "../../hooks/useDocumentPrefill";
 import {
   contentPathLabel,
   getContentFieldErrors,
 } from "../../utils/contentFieldErrors";
-import { CertificateAttendanceField } from "./CertificateAttendanceField";
-import {
-  CertificateCourseSection,
-  CertificateDatesSection,
-  CertificateGradesSection,
-  CertificateSignatorySection,
-  CertificateStudentSection,
-} from "./CertificateFormSections";
+import { CertificateFormTabs } from "./CertificateFormTabs";
 import {
   applyServerFieldErrors,
   certificateSchema,
@@ -37,21 +30,20 @@ import {
   toCertificateFormValues,
 } from "./certificateForm.utils";
 import { certificateSignatureOptions } from "./certificateSignatureOptions";
+import { errorPaths, firstTabWithError } from "./certificateTabs";
 import type {
   CertificateFormBodyProps,
   CertificateFormInstance,
   CertificateFormRefBridgeProps,
   CertificateFormValues,
   CertificateSubmitButtonProps,
+  CertificateTab,
   CertificateUnplacedErrorsProps,
 } from "./CertificateForm.types";
 import type {
   CertificateContent,
   DocumentFormProps,
 } from "../../documents.types";
-
-const PHOTO_CAPTION =
-  "This is the applicant's photograph — changing it here updates their profile too. The certificate prints the one that is current when you save.";
 
 /**
  * Every field the certificate prints is entered here (or in its Customizations
@@ -127,10 +119,28 @@ function CertificateFormBody({
     toCertificateFormValues(existing, studentFullData, prefill),
   );
   const [unplaced, setUnplaced] = useState<Record<string, string>>({});
+  const [tab, setTab] = useState<CertificateTab>("general");
 
   const registerForm = useCallback((form: CertificateFormInstance) => {
     formRef.current = form;
   }, []);
+
+  /** Opens the first tab holding one of `paths`; stays put when none does. */
+  const showFirstError = (paths: string[]) => {
+    const target = firstTabWithError(paths);
+    if (target) setTab(target);
+  };
+
+  // Validates before `handleSubmit` (which validates again, silently) so a
+  // failed save can open the tab with the first error instead of failing
+  // behind the other one.
+  const validateForSave = () => {
+    const form = formRef.current;
+    if (!form) return true;
+    const { hasErrors, errors } = form.validate();
+    if (hasErrors) showFirstError(errorPaths(errors));
+    return !hasErrors;
+  };
 
   const handleFinalSubmit = async (values: CertificateFormValues) => {
     setUnplaced({});
@@ -146,7 +156,10 @@ function CertificateFormBody({
       // field, and list the ones no input owns (the photograph) above the form.
       const fields = getContentFieldErrors(error);
       if (fields && formRef.current) {
-        setUnplaced(applyServerFieldErrors(formRef.current, fields));
+        const applied = applyServerFieldErrors(formRef.current, fields);
+        setUnplaced(applied.unplaced);
+        // The unplaced list sits above the tabs, so only marked fields move it.
+        showFirstError(applied.placed);
       }
     }
     // `ok: true` even on a refusal: the editor has already toasted it, and
@@ -162,31 +175,36 @@ function CertificateFormBody({
       finalSubmitFn={handleFinalSubmit}
     >
       <FormRefBridge onForm={registerForm} />
-      <Stack gap="lg" p="md">
-        {prefillFailed ? (
-          <Alert color="yellow" variant="light" p="xs">
-            <Text size="xs">
-              Couldn&apos;t load the applicant&apos;s details, so nothing is
-              filled in. Type the fields below.
-            </Text>
-          </Alert>
+      <Stack gap={0} pt="md">
+        {/* Above the tabs, so they show whichever tab is open. */}
+        {prefillFailed || Object.keys(unplaced).length > 0 ? (
+          <Stack gap="xs" px="md" pb="md">
+            {prefillFailed ? (
+              <Alert color="yellow" variant="light" p="xs">
+                <Text size="xs">
+                  Couldn&apos;t load the applicant&apos;s details, so nothing is
+                  filled in. Type the fields below.
+                </Text>
+              </Alert>
+            ) : null}
+            <UnplacedErrors errors={unplaced} />
+          </Stack>
         ) : null}
-        <UnplacedErrors errors={unplaced} />
-        <DocumentPhotoField
+        <CertificateFormTabs
+          tab={tab}
+          onTabChange={setTab}
           applicantId={applicantId}
-          name={studentFullData?.fullName}
-          caption={PHOTO_CAPTION}
-        />
-        <CertificateStudentSection disabled={isLoading} />
-        <CertificateCourseSection disabled={isLoading} />
-        <CertificateDatesSection disabled={isLoading} />
-        <CertificateAttendanceField disabled={isLoading} />
-        <CertificateGradesSection disabled={isLoading} />
-        <CertificateSignatorySection
-          disabled={isLoading}
+          studentName={studentFullData?.fullName}
           signatureOptions={certificateSignatureOptions(signatures)}
+          disabled={isLoading}
         />
-        <SubmitButton isEdit={Boolean(existing)} isLoading={isLoading} />
+        <Box p="md">
+          <SubmitButton
+            isEdit={Boolean(existing)}
+            isLoading={isLoading}
+            onBeforeSubmit={validateForSave}
+          />
+        </Box>
       </Stack>
     </FormWrapper>
   );
@@ -215,10 +233,17 @@ function UnplacedErrors({ errors }: CertificateUnplacedErrorsProps) {
   );
 }
 
-function SubmitButton({ isEdit, isLoading }: CertificateSubmitButtonProps) {
+function SubmitButton({
+  isEdit,
+  isLoading,
+  onBeforeSubmit,
+}: CertificateSubmitButtonProps) {
   const { handleSubmit, isLoading: submitting } = useFormControls();
+  const submit = () => {
+    if (onBeforeSubmit()) void handleSubmit();
+  };
   return (
-    <Button onClick={handleSubmit} loading={isLoading || submitting} fullWidth>
+    <Button onClick={submit} loading={isLoading || submitting} fullWidth>
       {isEdit ? "Save changes" : "Create certificate"}
     </Button>
   );

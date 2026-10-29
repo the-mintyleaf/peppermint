@@ -5,6 +5,12 @@ import type { WodaFormSchema } from "../../utils/wodaFormSchema";
 export interface WodaFormProps extends DocumentFormProps {
   /** Declarative description of the WODA variant's sections and fields. */
   schema: WodaFormSchema;
+  /**
+   * First segment of the clipboard key derived for every text/textarea field without
+   * an explicit `clipboardKey` (`<family>.<field name>`). Default `"woda"`; LOR and
+   * MOI pass `"lor"` / `"moi"`.
+   */
+  clipboardFamily?: string;
 }
 
 /**
@@ -21,4 +27,6 @@ export interface CreateSchemaFormOptions {
   displayName: string;
   /** Reshapes the submitted content before the editor saves it (LOR bakes its constants in). */
   transformSubmit?: (content: DocumentContent) => DocumentContent;
+  /** See `WodaFormProps.clipboardFamily`. */
+  clipboardFamily?: string;
 }

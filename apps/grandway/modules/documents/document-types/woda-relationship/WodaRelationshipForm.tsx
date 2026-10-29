@@ -4,7 +4,6 @@ import { createSchemaForm } from "../../components/WodaForm";
 import type { WodaFormSchema } from "../../utils/wodaFormSchema";
 import {
   applicantSection,
-  documentSection,
   grandparentsSection,
   identityNumbersSection,
   legalBasisField,
@@ -46,7 +45,6 @@ export function relationshipSchema(legalBasis: string): WodaFormSchema {
   return {
     migrate: migrateExtraRelative,
     sections: [
-      documentSection(),
       applicantSection({ gender: true, address: true }),
       identityNumbersSection(),
       parentsSection({ citizenship: true }),

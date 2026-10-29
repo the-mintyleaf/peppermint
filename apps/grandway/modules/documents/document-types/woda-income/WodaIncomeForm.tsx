@@ -4,7 +4,6 @@ import { createSchemaForm } from "../../components/WodaForm";
 import type { WodaFormSchema } from "../../utils/wodaFormSchema";
 import {
   applicantSection,
-  documentSection,
   fiscalYearsSection,
   incomeSourcesField,
   parentsSection,
@@ -13,7 +12,6 @@ import {
 
 const schema: WodaFormSchema = {
   sections: [
-    documentSection(),
     applicantSection({ address: true }),
     parentsSection(),
     fiscalYearsSection("The three Nepali fiscal years the income covers."),

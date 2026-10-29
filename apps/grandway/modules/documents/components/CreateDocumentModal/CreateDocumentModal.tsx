@@ -1,8 +1,9 @@
 "use client";
 
-import { Modal, notifications } from "@peppermint/ui";
 import { useCallback, useEffect } from "react";
+import { notifications } from "@peppermint/ui";
 import { useDocumentEditor } from "../../context";
+import { DocumentFormModal } from "../DocumentFormModal";
 import { getDocumentTypeConfig } from "../../documentTypeConfig";
 import type { DocumentContent } from "../../documents.types";
 
@@ -48,7 +49,7 @@ export function CreateDocumentModal() {
   );
 
   return (
-    <Modal
+    <DocumentFormModal
       opened={createModalOpen && !!createModalType}
       onClose={closeCreateModal}
       title={config ? `Create ${config.label}` : "Create page"}
@@ -63,6 +64,6 @@ export function CreateDocumentModal() {
           isLoading={isCreatingDocument}
         />
       )}
-    </Modal>
+    </DocumentFormModal>
   );
 }

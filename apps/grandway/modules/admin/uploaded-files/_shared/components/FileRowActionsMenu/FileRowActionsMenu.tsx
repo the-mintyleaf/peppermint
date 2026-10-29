@@ -7,6 +7,7 @@ import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockw
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/csr/CheckCircle";
 import { DownloadSimpleIcon } from "@phosphor-icons/react/dist/csr/DownloadSimple";
 import { EyeIcon } from "@phosphor-icons/react/dist/csr/Eye";
+import { InfoIcon } from "@phosphor-icons/react/dist/csr/Info";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
@@ -17,11 +18,13 @@ import {
 } from "../../fileLifecycleModals";
 import { useArchiveFile, useRestoreFile } from "../../../uploadedFiles.hooks";
 import type { UploadedFile } from "../../../uploadedFiles.types";
+import { getFileViewKind } from "../../../uploadedFiles.utils";
 import type { FileRowActionsMenuProps } from "./FileRowActionsMenu.types";
 
 /**
  * Per-file menu for `FilesPanel`'s cards. "Download" and "View detail" are
- * always available (reads are shared with lead managers, §1). "Replace" is
+ * always available (reads are shared with lead managers, §1); "Preview" (the
+ * in-app viewer) joins them for images/PDFs when the caller passes `onPreview`. "Replace" is
  * hidden once superseded or archived (`UPLOADED_FILES_ALREADY_SUPERSEDED` /
  * `UPLOADED_FILES_FILE_ARCHIVED`). Verify/Archive/Restore are gated on the
  * exact `admin` tier — a lead manager gets `UPLOADED_FILES_ACTOR_FORBIDDEN`
@@ -31,6 +34,7 @@ import type { FileRowActionsMenuProps } from "./FileRowActionsMenu.types";
  */
 export function FileRowActionsMenu({
   file,
+  onPreview,
   onReplace,
   onEdit,
   onVerify,
@@ -47,6 +51,13 @@ export function FileRowActionsMenu({
       aria-label={`Actions for ${file.original_filename}`}
       actions={[
         {
+          label: "Preview",
+          icon: <EyeIcon size={16} aria-hidden />,
+          hidden: (record) =>
+            !onPreview || getFileViewKind(record) === "download",
+          onClick: (record) => onPreview?.(record),
+        },
+        {
           label: "Download",
           icon: <DownloadSimpleIcon size={16} aria-hidden />,
           onClick: (record) =>
@@ -54,7 +65,7 @@ export function FileRowActionsMenu({
         },
         {
           label: "View detail",
-          icon: <EyeIcon size={16} aria-hidden />,
+          icon: <InfoIcon size={16} aria-hidden />,
           onClick: (record) => router.push(`/admin/files/${record.id}`),
         },
         {
