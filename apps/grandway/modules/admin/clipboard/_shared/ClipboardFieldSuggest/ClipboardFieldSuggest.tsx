@@ -23,6 +23,7 @@ import type { ClipboardEntry } from "../../clipboard.types";
 import { SaveFieldValue } from "./components/SaveFieldValue";
 import { STOP_MODAL_ESCAPE } from "./ClipboardFieldSuggest.constants";
 import type { ClipboardFieldSuggestProps } from "./ClipboardFieldSuggest.types";
+import classes from "./ClipboardFieldSuggest.module.css";
 
 /**
  * A small clipboard button a document form attaches beside a text input. Nothing is
@@ -104,7 +105,7 @@ export function ClipboardFieldSuggest({
             key={entry.id}
             onClick={() => choose(entry)}
             p="xs"
-            style={{ borderRadius: "var(--mantine-radius-sm)" }}
+            className={classes.item}
             aria-label={`Insert ${entry.label}`}
             {...STOP_MODAL_ESCAPE}
           >

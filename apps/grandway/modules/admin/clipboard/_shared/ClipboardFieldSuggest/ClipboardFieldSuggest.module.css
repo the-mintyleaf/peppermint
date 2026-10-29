@@ -1,0 +1,24 @@
+/* A suggestion row: highlighted on hover and on keyboard focus, so it reads as
+   something to pick. Mantine's own hover token keeps light and dark in step. */
+.item {
+  display: block;
+  width: 100%;
+  border-radius: var(--mantine-radius-sm);
+  transition: background-color 120ms ease;
+}
+
+.item:hover,
+.item:focus-visible {
+  background-color: var(--mantine-color-default-hover);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item {
+    transition: none;
+  }
+}
