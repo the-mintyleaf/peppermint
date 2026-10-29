@@ -3,6 +3,12 @@ import type { ClipboardEntry } from "../../clipboard.types";
 export interface ClipboardDrawerProps {
   opened: boolean;
   onClose: () => void;
+  /**
+   * Raise when the drawer opens over a Modal (Mantine's 200 — the drawer's default
+   * too): pass `CLIPBOARD_DRAWER_OVER_MODAL_Z_INDEX`. Its own confirms and select
+   * lists already sit higher.
+   */
+  zIndex?: number;
 }
 
 /**

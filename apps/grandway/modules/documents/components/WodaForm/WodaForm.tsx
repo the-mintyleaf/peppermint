@@ -16,10 +16,7 @@ import {
   useForm,
 } from "@peppermint/ui";
 import { FormSection } from "@/components/FormSection";
-import {
-  ClipboardFieldSuggest,
-  fieldKeyLabel,
-} from "@/modules/admin/clipboard";
+import { bindClipboardFields } from "@/modules/admin/clipboard";
 import type { DocumentContent, DocumentFormProps } from "../../documents.types";
 import type {
   WodaField,
@@ -152,7 +149,13 @@ function fieldLabel(field: WodaField): string {
  * existing document opens prefilled (the old factory opened blank and discarded values).
  */
 export function WodaForm(props: WodaFormProps) {
-  const { schema, initialContent, onSubmit, isLoading } = props;
+  const {
+    schema,
+    initialContent,
+    onSubmit,
+    isLoading,
+    clipboardFamily = "woda",
+  } = props;
 
   const fields = useMemo(() => collectFields(schema), [schema]);
 
@@ -183,28 +186,20 @@ export function WodaForm(props: WodaFormProps) {
     ),
   });
 
-  // The saved-snippets button, as the input's right section. Only fields whose
-  // schema names a `clipboardKey` get one — it inserts through the form, so the
+  // The saved-snippets button, as the right section of EVERY text / textarea field
+  // (never number, date, combobox, segmented or switch). Key: the schema's explicit
+  // `clipboardKey` when it names one (registered, shared across families), else
+  // derived as `<clipboardFamily>.<field name>`. Inserts through the form, so the
   // value is dirty-tracked and validated like typed text.
-  const clipboardSection = (field: WodaField, disabled?: boolean) => {
-    const fieldKey = field.clipboardKey;
-    if (!fieldKey) return {};
-    const current = form.values[field.name];
-    return {
-      rightSection: (
-        <ClipboardFieldSuggest
-          fieldKey={fieldKey}
-          value={typeof current === "string" ? current : ""}
-          fieldLabel={fieldKeyLabel(fieldKey)}
-          onInsert={(text) => form.setFieldValue(field.name, text)}
-          disabled={disabled}
-          size="sm"
-        />
-      ),
-      // Mantine sections ignore the pointer by default; this one is a button.
-      rightSectionPointerEvents: "all" as const,
-    };
-  };
+  const clip = bindClipboardFields(form, {
+    family: clipboardFamily,
+    disabled: isLoading,
+  });
+  const clipboardSection = (field: WodaField) =>
+    clip(field.name, field.label, {
+      clipboardKey: field.clipboardKey,
+      multiline: field.control === "textarea",
+    });
 
   const renderControl = (field: WodaField): ReactNode => {
     const disabled = isLoading;
@@ -222,7 +217,7 @@ export function WodaForm(props: WodaFormProps) {
             required={field.required}
             disabled={disabled}
             {...form.getInputProps(field.name)}
-            {...clipboardSection(field, disabled)}
+            {...clipboardSection(field)}
           />
         );
       case "number":
@@ -333,7 +328,7 @@ export function WodaForm(props: WodaFormProps) {
             required={field.required}
             disabled={disabled}
             {...form.getInputProps(field.name)}
-            {...clipboardSection(field, disabled)}
+            {...clipboardSection(field)}
           />
         );
     }
@@ -407,12 +402,13 @@ export function WodaForm(props: WodaFormProps) {
  */
 export function createSchemaForm(
   schema: WodaFormSchema,
-  { displayName, transformSubmit }: CreateSchemaFormOptions,
+  { displayName, transformSubmit, clipboardFamily }: CreateSchemaFormOptions,
 ): SchemaFormComponent {
   function SchemaForm({ onSubmit, ...props }: DocumentFormProps) {
     return (
       <WodaForm
         schema={schema}
+        clipboardFamily={clipboardFamily}
         onSubmit={(content) =>
           onSubmit(transformSubmit ? transformSubmit(content) : content)
         }

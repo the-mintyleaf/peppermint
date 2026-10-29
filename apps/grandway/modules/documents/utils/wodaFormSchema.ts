@@ -54,11 +54,12 @@ export interface WodaField {
   /** Seed for the field when neither `initialContent` nor a control default applies. */
   defaultValue?: unknown;
   /**
-   * `text` / `textarea` only: the personal-clipboard `field_key` (registered in
-   * `modules/admin/clipboard/clipboard.fieldKeys.ts`). Renders the saved-snippets
-   * button in the input's right section. Give it only to values staff retype
-   * across applicants (ward official, contact office) — never to the applicant's
-   * own details, which the prefill fills.
+   * `text` / `textarea` only: an EXPLICIT personal-clipboard `field_key` (registered
+   * in `modules/admin/clipboard/clipboard.fieldKeys.ts`). Every text/textarea field
+   * gets the saved-snippets button anyway, keyed `<family>.<name>` (`WodaForm`'s
+   * `clipboardFamily`); name a key only when one value is shared across families or
+   * field names (the ward spokesperson on every Woda letter and the affidavit's ward
+   * chairman), or to keep matching snippets saved under an existing key.
    */
   clipboardKey?: string;
   // number-only options

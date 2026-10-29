@@ -9,6 +9,7 @@ import {
   Textarea,
 } from "@peppermint/ui";
 import { useForm } from "@peppermint/ui";
+import { bindClipboardFields } from "@/modules/admin/clipboard";
 import { DocumentPhotoField } from "../../components/DocumentPhotoField";
 import type { DocumentFormProps, CvContent } from "../../documents.types";
 
@@ -34,6 +35,9 @@ export function CvStandardForm({
       skills: "",
     },
   });
+  // Free-text fields only — not the dates, and not the IELTS band scores
+  // (per-applicant numbers nobody reuses).
+  const clip = bindClipboardFields(form, { family: "cv", disabled: isLoading });
 
   const handleSubmit = (values: typeof form.values) => {
     const content: CvContent = {
@@ -64,11 +68,13 @@ export function CvStandardForm({
         <TextInput
           label="Nationality"
           {...form.getInputProps("nationality")}
+          {...clip("nationality", "Nationality")}
           disabled={isLoading}
         />
         <TextInput
           label="Language Known"
           {...form.getInputProps("languages_known")}
+          {...clip("languages_known", "Languages known")}
           disabled={isLoading}
         />
 
@@ -78,6 +84,7 @@ export function CvStandardForm({
         <TextInput
           label="Passport Number"
           {...form.getInputProps("passport_number")}
+          {...clip("passport_number", "Passport number")}
           disabled={isLoading}
         />
         <DateInput
@@ -145,6 +152,7 @@ export function CvStandardForm({
           autosize
           minRows={3}
           {...form.getInputProps("skills")}
+          {...clip("skills", "Skills", { multiline: true })}
           disabled={isLoading}
         />
 

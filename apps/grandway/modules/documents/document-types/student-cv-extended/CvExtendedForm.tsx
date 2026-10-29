@@ -1,9 +1,27 @@
 "use client";
 
+import { Fragment } from "react";
 import { Stack, Button, Text, TextInput, Textarea } from "@peppermint/ui";
 import { useForm } from "@peppermint/ui";
+import { bindClipboardFields } from "@/modules/admin/clipboard";
 import { DocumentPhotoField } from "../../components/DocumentPhotoField";
 import type { DocumentFormProps, CvContent } from "../../documents.types";
+
+// One clipboard key per reference column, shared by both references — a referee
+// saved from Reference 1 is offered under Reference 2 as well.
+const REFERENCE_FIELDS = [
+  { suffix: "name", label: "Name" },
+  { suffix: "title", label: "Title / Position" },
+  { suffix: "institution", label: "Institution" },
+  { suffix: "address", label: "Address" },
+  { suffix: "email", label: "Email" },
+  { suffix: "contact", label: "Contact Number" },
+] as const;
+
+const REFERENCES = [
+  { prefix: "ref1", title: "Reference 1" },
+  { prefix: "ref2", title: "Reference 2 (optional)" },
+] as const;
 
 export function CvExtendedForm({
   applicantId,
@@ -34,6 +52,7 @@ export function CvExtendedForm({
       ref2_contact: "",
     },
   });
+  const clip = bindClipboardFields(form, { family: "cv", disabled: isLoading });
 
   const handleSubmit = (values: typeof form.values) => {
     const content: CvContent = {
@@ -64,26 +83,31 @@ export function CvExtendedForm({
         <TextInput
           label="Nationality"
           {...form.getInputProps("nationality")}
+          {...clip("nationality", "Nationality")}
           disabled={isLoading}
         />
         <TextInput
           label="Language Known"
           {...form.getInputProps("languages_known")}
+          {...clip("languages_known", "Languages known")}
           disabled={isLoading}
         />
         <TextInput
           label="Religion"
           {...form.getInputProps("religion")}
+          {...clip("religion", "Religion")}
           disabled={isLoading}
         />
         <TextInput
           label="Alternate Email"
           {...form.getInputProps("alternate_email")}
+          {...clip("alternate_email", "Alternate email")}
           disabled={isLoading}
         />
         <TextInput
           label="Passport Number"
           {...form.getInputProps("passport_number")}
+          {...clip("passport_number", "Passport number")}
           disabled={isLoading}
         />
 
@@ -98,6 +122,7 @@ export function CvExtendedForm({
           autosize
           minRows={3}
           {...form.getInputProps("skills")}
+          {...clip("skills", "Skills", { multiline: true })}
           disabled={isLoading}
         />
 
@@ -112,76 +137,33 @@ export function CvExtendedForm({
           autosize
           minRows={3}
           {...form.getInputProps("courses_training")}
+          {...clip("courses_training", "Courses and training", {
+            multiline: true,
+          })}
           disabled={isLoading}
         />
 
-        <Text fw={600} size="sm">
-          Reference 1
-        </Text>
-        <TextInput
-          label="Name"
-          {...form.getInputProps("ref1_name")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Title / Position"
-          {...form.getInputProps("ref1_title")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Institution"
-          {...form.getInputProps("ref1_institution")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Address"
-          {...form.getInputProps("ref1_address")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Email"
-          {...form.getInputProps("ref1_email")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Contact Number"
-          {...form.getInputProps("ref1_contact")}
-          disabled={isLoading}
-        />
-
-        <Text fw={600} size="sm">
-          Reference 2 (optional)
-        </Text>
-        <TextInput
-          label="Name"
-          {...form.getInputProps("ref2_name")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Title / Position"
-          {...form.getInputProps("ref2_title")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Institution"
-          {...form.getInputProps("ref2_institution")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Address"
-          {...form.getInputProps("ref2_address")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Email"
-          {...form.getInputProps("ref2_email")}
-          disabled={isLoading}
-        />
-        <TextInput
-          label="Contact Number"
-          {...form.getInputProps("ref2_contact")}
-          disabled={isLoading}
-        />
+        {REFERENCES.map((reference) => (
+          <Fragment key={reference.prefix}>
+            <Text fw={600} size="sm">
+              {reference.title}
+            </Text>
+            {REFERENCE_FIELDS.map((field) => {
+              const path = `${reference.prefix}_${field.suffix}`;
+              return (
+                <TextInput
+                  key={path}
+                  label={field.label}
+                  {...form.getInputProps(path)}
+                  {...clip(path, `${reference.title} — ${field.label}`, {
+                    clipboardKey: `cv.reference.${field.suffix}`,
+                  })}
+                  disabled={isLoading}
+                />
+              );
+            })}
+          </Fragment>
+        ))}
 
         <Button type="submit" loading={isLoading} fullWidth>
           Create CV

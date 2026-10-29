@@ -39,7 +39,11 @@ function titleFor(view: ClipboardDrawerView): string {
  * Access is the caller's: the clipboard is owner-only for EVERY authority (superadmin
  * included), so mount it for any signed-in account — there is no capability to gate on.
  */
-export function ClipboardDrawer({ opened, onClose }: ClipboardDrawerProps) {
+export function ClipboardDrawer({
+  opened,
+  onClose,
+  zIndex,
+}: ClipboardDrawerProps) {
   const [view, setView] = useState<ClipboardDrawerView>(LIST_VIEW);
   const [deletedCategoryId, setDeletedCategoryId] = useState<string | null>(
     null,
@@ -95,6 +99,7 @@ export function ClipboardDrawer({ opened, onClose }: ClipboardDrawerProps) {
       position="right"
       size={460}
       padding={0}
+      zIndex={zIndex}
       scrollAreaComponent={ScrollArea.Autosize}
       title={
         <Text fw={600} size="sm">

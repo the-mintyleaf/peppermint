@@ -13,10 +13,7 @@ import {
   useForm,
 } from "@peppermint/ui";
 import { FormSection } from "@/components/FormSection";
-import {
-  ClipboardFieldSuggest,
-  fieldKeyLabel,
-} from "@/modules/admin/clipboard";
+import { bindClipboardFields } from "@/modules/admin/clipboard";
 import type {
   BankCertificateContent,
   DocumentFormProps,
@@ -59,26 +56,12 @@ export function BankCertificateForm({
   const usdRate = Number(values.statement_usdrate ?? 0) || 0;
   const usdAmount = usdRate > 0 ? balance / usdRate : 0;
 
-  // The saved-snippets button as a text input's right section; inserts through the form.
-  const clipboardSection = (
-    name: "statement_spokesperson" | "statement_spokesperson_post",
-    fieldKey: string,
-  ) => {
-    const current = values[name];
-    return {
-      rightSection: (
-        <ClipboardFieldSuggest
-          fieldKey={fieldKey}
-          value={typeof current === "string" ? current : ""}
-          fieldLabel={fieldKeyLabel(fieldKey)}
-          onInsert={(text) => form.setFieldValue(name, text)}
-          disabled={isLoading}
-          size="sm"
-        />
-      ),
-      rightSectionPointerEvents: "all" as const,
-    };
-  };
+  // The saved-snippets button on every text field; inserts through the form. The
+  // statement shares the `bank` family, so a value saved on one comes back on both.
+  const clip = bindClipboardFields(form, {
+    family: "bank",
+    disabled: isLoading,
+  });
 
   return (
     <form onSubmit={form.onSubmit((v) => onSubmit(v as never))}>
@@ -89,6 +72,7 @@ export function BankCertificateForm({
             placeholder="Ram Bahadur Shrestha"
             required
             {...form.getInputProps("statement_account_holder")}
+            {...clip("statement_account_holder", "Account holder")}
             disabled={isLoading}
           />
           <TextInput
@@ -96,6 +80,7 @@ export function BankCertificateForm({
             placeholder="0123456789012"
             required
             {...form.getInputProps("statement_account_no")}
+            {...clip("statement_account_no", "Account number")}
             disabled={isLoading}
           />
           <Textarea
@@ -104,6 +89,9 @@ export function BankCertificateForm({
             autosize
             minRows={1}
             {...form.getInputProps("statement_account_address")}
+            {...clip("statement_account_address", "Account holder address", {
+              multiline: true,
+            })}
             disabled={isLoading}
           />
           <Group grow>
@@ -111,12 +99,14 @@ export function BankCertificateForm({
               label="Account type"
               placeholder="Savings"
               {...form.getInputProps("statement_account_type")}
+              {...clip("statement_account_type", "Account type")}
               disabled={isLoading}
             />
             <TextInput
               label="Reference no."
               placeholder="079/80-1234"
               {...form.getInputProps("statement_ref_no")}
+              {...clip("statement_ref_no", "Reference no.")}
               disabled={isLoading}
             />
           </Group>
@@ -190,19 +180,19 @@ export function BankCertificateForm({
               label="Spokesperson name"
               placeholder="Hari Prasad Sharma"
               {...form.getInputProps("statement_spokesperson")}
-              {...clipboardSection(
-                "statement_spokesperson",
-                "bank.spokesperson.name",
-              )}
+              {...clip("statement_spokesperson", "Spokesperson name", {
+                clipboardKey: "bank.spokesperson.name",
+              })}
               disabled={isLoading}
             />
             <TextInput
               label="Spokesperson post / designation"
               placeholder="Branch Manager"
               {...form.getInputProps("statement_spokesperson_post")}
-              {...clipboardSection(
+              {...clip(
                 "statement_spokesperson_post",
-                "bank.spokesperson.post",
+                "Spokesperson post / designation",
+                { clipboardKey: "bank.spokesperson.post" },
               )}
               disabled={isLoading}
             />
