@@ -1,5 +1,7 @@
 export { NotificationDrawer } from "./drawer";
 export { RecordAlertsPanel } from "./_shared/RecordAlertsPanel";
+export { ApplicantAlertsPanel } from "./_shared/ApplicantAlertsPanel";
+export type { ApplicantAlertsPanelProps } from "./_shared/ApplicantAlertsPanel";
 
 // Public API for cross-module reuse — the sidebar bell (`Admin.tsx` owns the drawer's
 // open state and the badge count) and any detail screen embedding `RecordAlertsPanel`.
@@ -13,6 +15,7 @@ export {
 } from "./notifications.labels";
 export type {
   Notification,
+  NotificationCategory,
   NotificationType,
   NotificationPriority,
   NotificationStatus,

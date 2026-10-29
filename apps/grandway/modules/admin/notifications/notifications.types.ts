@@ -1,17 +1,18 @@
 // DTOs mirror `docs/backend/notifications/INTEGRATION.md` §4 (model) and §5
-// (enums), field-for-field. Read/act-only domain — there is no create/update
-// payload anywhere (§7: all seven endpoints accept no request body).
+// (enums), field-for-field. The feed is read/act-only — the only bodies in the
+// domain are `read-all`'s optional `{ category }` and the preferences PATCH.
 
 /**
- * 15 declared values; only 12 are ever produced (§5). `missing_information`,
- * `test_score_expiring`, and `appointment_reminder` have no generator today —
- * typed anyway because the contract says render them if they ever arrive,
- * never design a screen around them.
+ * 25 declared values (backend v1.2.0). `missing_information` and
+ * `appointment_reminder` have no generator today — typed anyway because the
+ * contract says render them if they ever arrive, never design a screen around
+ * them. `test_score_expiring` is produced since 2026-10-29.
  *
- * `custom_reminder` (added in backend v1.1.0) is the odd one out: it is the
- * only type a **user** ultimately causes, by setting a dated follow-up in the
- * `reminders` module. It is routed to Admins only — a Lead Manager who sets a
- * reminder never receives its alert here.
+ * `custom_reminder` (added in backend v1.1.0) is the only type a **user**
+ * ultimately causes, by setting a dated follow-up in the `reminders` module.
+ * The ten event types (`lead_*`, `applicant_*`, `visit_note_added`,
+ * `document_ready`) are raised after the source write commits, to everyone
+ * except the person who acted.
  */
 export type NotificationType =
   | "checklist_item_due"
@@ -28,7 +29,58 @@ export type NotificationType =
   | "file_rejected"
   | "journey_stage_changed"
   | "journey_closed"
-  | "offer_decided";
+  | "offer_decided"
+  | "lead_created"
+  | "lead_converted"
+  | "lead_deleted"
+  | "lead_restored"
+  | "applicant_status_changed"
+  | "applicant_restored"
+  | "applicant_assigned"
+  | "applicant_unassigned"
+  | "visit_note_added"
+  | "document_ready";
+
+/**
+ * Derived from `notification_type` server-side (never stored) — drives tabs,
+ * per-tab counts, mute switches, and `read-all`'s `{ category }` body. There is
+ * no `case` category: journeys are the project's equivalent.
+ */
+export type NotificationCategory =
+  | "lead"
+  | "applicant_status"
+  | "journey"
+  | "assignment"
+  | "notes"
+  | "follow_up"
+  | "documents"
+  | "checklist"
+  | "offer"
+  | "file"
+  | "expiry";
+
+/**
+ * Non-sensitive structured facts, keys depend on `notification_type` (§4).
+ * Every key is optional — older rows carry `{}`, and unknown keys are additive.
+ * Values are loosely typed on purpose: the vocabularies (`stage`, `test_type`,
+ * `family`, applicant status) are owned by other modules.
+ */
+export interface NotificationPayload {
+  /** journey_* — the journey's stage value. */
+  stage?: string;
+  /** test_score_expiring — language test type, e.g. `ielts`. */
+  test_type?: string;
+  /** applicant_status_changed / applicant_restored — applicant status values. */
+  from?: string;
+  to?: string;
+  originating_lead_id?: string | null;
+  /** lead_converted — the new applicant. */
+  applicant_id?: string;
+  /** visit_note_added — pick the note out of the notes feed by this id. */
+  note_id?: string;
+  /** document_ready — document family, e.g. `bank_statement`. */
+  family?: string;
+}
 
 /** Fixed per type at creation, stored not derived — read from the payload (§5). */
 export type NotificationPriority = "low" | "normal" | "high" | "urgent";
@@ -79,9 +131,13 @@ export interface BsDate {
 export interface Notification {
   id: string;
   notification_type: NotificationType;
+  category: NotificationCategory;
   priority: NotificationPriority;
   title: string;
   body: string;
+  /** The applicant the alert is about; `null` on every alert raised before 2026-10-29 and on types with no applicant. */
+  applicant_id?: string | null;
+  payload: NotificationPayload;
   source_app: string;
   source_entity_type: string;
   source_entity_id?: string | null;
@@ -111,11 +167,39 @@ export interface FeedSummary {
   active: number;
   by_priority: Record<NotificationPriority, number>;
   by_due_bucket: Record<DueBucket, number>;
+  /** Same population as `unread` split by category — all eleven keys, zero-filled; `unread` is exactly their sum. `?category=` does NOT narrow the summary. */
+  by_category: Record<NotificationCategory, number>;
 }
 
 /** `POST /notifications/read-all/` result — how many rows changed, not which ones (§4). */
 export interface BulkReadResult {
   marked_read: number;
+}
+
+/** `POST /notifications/read-all/` body — one category per call; a comma list is a 400. Omit for "everything". */
+export interface MarkAllReadBody {
+  category?: NotificationCategory;
+}
+
+/** One category's delivery settings — an object so a second channel can join `in_app` later without a breaking change. */
+export interface CategoryPreference {
+  in_app: boolean;
+}
+
+/**
+ * `GET`/`PATCH /notifications/preferences/` — always complete (all eleven
+ * categories) on read. A muted alert is never written, and changes apply only
+ * to alerts created from now on; the existing feed is untouched.
+ */
+export interface NotificationPreferences {
+  categories: Record<NotificationCategory, CategoryPreference>;
+  assigned_only: boolean;
+}
+
+/** PATCH body — any subset; unsent categories and `assigned_only` stay as they are. */
+export interface NotificationPreferencesUpdate {
+  categories?: Partial<Record<NotificationCategory, CategoryPreference>>;
+  assigned_only?: boolean;
 }
 
 /**
@@ -127,6 +211,13 @@ export interface NotificationListFilters {
   status?: NotificationStatus;
   is_read?: boolean;
   notification_type?: NotificationType;
+  /**
+   * One or more categories, comma-separated (`"lead,notes"`) — the only
+   * multi-value parameter on the feed. Build it with `joinCategories`.
+   */
+  category?: string;
+  /** Every alert about this applicant's record (not just alerts whose source IS the applicant). Misses pre-2026-10-29 rows. */
+  applicant_id?: string;
   priority?: NotificationPriority;
   source_app?: string;
   source_entity_id?: string;

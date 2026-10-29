@@ -11,6 +11,9 @@ export const notificationQueryKeys = createQueryKeys(
  * invalidating `notificationQueryKeys.all` never accidentally misses it, and
  * vice versa; every mutation invalidates both explicitly).
  */
+/** The caller's own preferences — a singleton resource, own cache slot. */
+export const preferencesKey = () => ["notifications.preferences"] as const;
+
 export const summaryKey = (params?: NotificationSummaryParams) =>
   params
     ? (["notifications.summary", params] as const)

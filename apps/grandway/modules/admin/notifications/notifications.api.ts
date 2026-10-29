@@ -5,6 +5,9 @@ import type {
   BulkReadResult,
   FeedSummary,
   Notification,
+  NotificationCategory,
+  NotificationPreferences,
+  NotificationPreferencesUpdate,
   NotificationSummaryParams,
 } from "./notifications.types";
 
@@ -90,11 +93,37 @@ export async function dismissNotification(id: string): Promise<Notification> {
 }
 
 /**
- * `POST /read-all/` — no body, no filters. Not a per-id action (no id to hang
- * it on), so it's a standalone call rather than forced through
+ * `POST /read-all/` — with no category, clears everything unread; with
+ * `{ category }`, only that category (ONE per call — a comma list is a 400, so a
+ * combined tab clears with one call per category). Not a per-id action (no id
+ * to hang it on), so it's a standalone call rather than forced through
  * `notificationResource.action`.
  */
-export async function markAllRead(): Promise<BulkReadResult> {
-  const { data } = await api.post<BulkReadResult>(`${NOTIFICATIONS}/read-all/`);
+export async function markAllRead(
+  category?: NotificationCategory,
+): Promise<BulkReadResult> {
+  const { data } = await api.post<BulkReadResult>(
+    `${NOTIFICATIONS}/read-all/`,
+    category ? { category } : undefined,
+  );
+  return data;
+}
+
+/** `GET /preferences/` — the caller's own; defaults (everything on, `assigned_only` off) before anything is saved. */
+export async function fetchPreferences(): Promise<NotificationPreferences> {
+  const { data } = await api.get<NotificationPreferences>(
+    `${NOTIFICATIONS}/preferences/`,
+  );
+  return data;
+}
+
+/** `PATCH /preferences/` — partial; returns the FULL set after the change (render from this, not from what was sent). `PUT` is a 405. */
+export async function updatePreferences(
+  body: NotificationPreferencesUpdate,
+): Promise<NotificationPreferences> {
+  const { data } = await api.patch<NotificationPreferences>(
+    `${NOTIFICATIONS}/preferences/`,
+    body,
+  );
   return data;
 }

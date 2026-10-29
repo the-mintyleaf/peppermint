@@ -5,7 +5,11 @@ import { QueryErrorState } from "@/components/QueryErrorState";
 import { useNotificationList } from "../../notifications.hooks";
 import { NotificationRow } from "../NotificationRow";
 import { DUE_BUCKET_LABELS } from "../../notifications.labels";
-import { orderedDueBucketGroups } from "../../notifications.utils";
+import {
+  joinCategories,
+  orderedDueBucketGroups,
+} from "../../notifications.utils";
+import type { NotificationFeedProps } from "./NotificationFeed.types";
 
 /**
  * The working inbox body — `GET /notifications/?status=active` (FLOWS.md "Work the
@@ -25,9 +29,16 @@ import { orderedDueBucketGroups } from "../../notifications.utils";
  * Rendered inside the notifications drawer; it owns no chrome of its own, so any
  * surface can host it.
  */
-export function NotificationFeed() {
+export function NotificationFeed({
+  categories = [],
+  scopeLabel,
+}: NotificationFeedProps) {
   const { data, isLoading, isError, isRefetching, refetch } =
-    useNotificationList({ status: "active", page_size: 100 });
+    useNotificationList({
+      status: "active",
+      category: joinCategories(categories),
+      page_size: 100,
+    });
 
   const notifications = data?.data ?? [];
   const total = data?.meta.total ?? 0;
@@ -56,7 +67,9 @@ export function NotificationFeed() {
     return (
       <Center h={200}>
         <Text size="sm" c="dimmed">
-          You&apos;re all caught up — no active alerts.
+          {scopeLabel
+            ? `You're all caught up — no active alerts in ${scopeLabel}.`
+            : "You're all caught up — no active alerts."}
         </Text>
       </Center>
     );

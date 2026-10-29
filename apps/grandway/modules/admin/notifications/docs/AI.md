@@ -17,11 +17,13 @@ links out to the record it concerns). No create/edit forms; every write is a bod
 
 ## Entry points
 
-| Surface          | Export               | Component                                        |
-| ---------------- | -------------------- | ------------------------------------------------ |
-| Sidebar bell     | `NotificationDrawer` | drawer/NotificationDrawer/NotificationDrawer.tsx |
-| Drawer body      | `NotificationFeed`   | \_shared/NotificationFeed/NotificationFeed.tsx   |
-| Per-record embed | `RecordAlertsPanel`  | \_shared/RecordAlertsPanel/RecordAlertsPanel.tsx |
+| Surface          | Export                 | Component                                              |
+| ---------------- | ---------------------- | ------------------------------------------------------ |
+| Sidebar bell     | `NotificationDrawer`   | drawer/NotificationDrawer/NotificationDrawer.tsx       |
+| Drawer body      | `NotificationFeed`     | \_shared/NotificationFeed/NotificationFeed.tsx         |
+| Per-record embed | `RecordAlertsPanel`    | \_shared/RecordAlertsPanel/RecordAlertsPanel.tsx       |
+| Applicant file   | `ApplicantAlertsPanel` | \_shared/ApplicantAlertsPanel/ApplicantAlertsPanel.tsx |
+| Drawer settings  | `NotificationSettings` | \_shared/NotificationSettings/NotificationSettings.tsx |
 
 `layouts/admin/Admin.tsx` owns the drawer's open state and passes
 `onNotificationsClick` into `buildAdminConfig` — the bell nav item carries `onClick`,
@@ -38,21 +40,49 @@ here since it happens to match this domain's gate exactly.
 
 ## Read/act-only — no create, no update, no delete
 
-There is no compose screen anywhere in the product and no create endpoint (§7 — all
-seven endpoints accept no request body). The only writes are the four action verbs:
-`read`, `unread`, `dismiss`, and the bulk `read-all`. Do not add a create/edit form or
-a modal here.
+There is no compose screen anywhere in the product and no create endpoint. The feed's
+writes are the four action verbs: `read`, `unread`, `dismiss`, and the bulk `read-all`
+(optional `{ category }` body, one category per call). The one other write is
+`PATCH /preferences/` (v1.2.0, 9 endpoints total) — instant-apply switches in the
+drawer, not a form. Do not add a create/edit form or a modal here.
+
+## Categories, tabs, settings (backend v1.2.0, 2026-10-29)
+
+- `Notification` gained `category` (derived, 11 values), `applicant_id` (null on every
+  pre-2026-10-29 row), `payload` (keys per type; `{}` on old rows). 25 types now.
+- **Inbox tabs** (`INBOX_TAB_GROUPS` in labels): All, Leads, Applicants
+  (applicant_status+assignment+notes+journey), Tasks (checklist+follow_up), Offers &
+  expiry (offer+expiry), Files (documents+file). Eleven tabs overrun the 480px drawer
+  and most are empty most days; grouping answers "who / what to do / deadlines /
+  paperwork". Every category is in exactly one group. Badges = `sumCategoryCounts`
+  over `by_category` (All = `unread`).
+- **Per-tab Mark all read**: `useMarkAllRead().mutate(categories)` — empty → one
+  unfiltered call; else ONE call per category (comma list is a 400), summed. Always
+  pass the tab's whole group, never filter by the possibly-stale summary.
+- Feed filter: `category: joinCategories(cats)` → `?category=a,b`. `?category=` does
+  NOT narrow `/summary/`.
+- **Settings** (`NotificationSettings`, swapped into the drawer body by the header gear;
+  back arrow returns): switch per category + `assigned_only`, each switch = one partial
+  PATCH, re-rendered from the full response (`setQueryData(preferencesKey())`). No
+  Save button / FormWrapper — independent levers with nothing in progress. Disabled
+  while a save is in flight. Copy states changes apply to NEW alerts only.
+- **Retention**: event alerts purge after 90 days; mentioned in `ApplicantAlertsPanel`'s
+  empty state (the only natural place).
+- `ApplicantAlertsPanel({ applicantId })` — `?applicant_id=`, no `status` (full
+  history), wider than `RecordAlertsPanel` (which matches source rows only). Exported
+  from the barrel; the applicants builder mounts it in place of the passport-id
+  `RecordAlertsPanel` on the Alerts tab.
 
 ## Data layer (module root)
 
-| File                       | Holds                                                                                                                                                                                                       |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| notifications.types.ts     | `Notification` (identical list/detail), `FeedSummary`, `BulkReadResult`, filters. **15 declared types since backend v1.1.0** — `custom_reminder` is the newest, and the only one a _user_ ultimately causes |
-| notifications.labels.ts    | Type/priority/due-bucket label, color, and icon maps                                                                                                                                                        |
-| notifications.queryKeys.ts | `notificationQueryKeys` (`createQueryKeys`) + `summaryKey` (own cache slot)                                                                                                                                 |
-| notifications.api.ts       | `createResourceApi<Notification, never, never>` + hand-rolled summary/read-all                                                                                                                              |
-| notifications.hooks.ts     | `useNotificationSummary` (polled), `useNotificationList`, action mutations                                                                                                                                  |
-| notifications.utils.ts     | Date formatting, `groupByDueBucket`/`orderedDueBucketGroups`, `resolveNotificationLink`                                                                                                                     |
+| File                       | Holds                                                                                                                                                                                                                                          |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| notifications.types.ts     | `Notification` (identical list/detail), `FeedSummary`, `BulkReadResult`, filters. **25 declared types since backend v1.2.0**, `NotificationCategory`, `NotificationPreferences`; `custom_reminder` is the only type a _user_ ultimately causes |
+| notifications.labels.ts    | Type/priority/due-bucket label, color, and icon maps                                                                                                                                                                                           |
+| notifications.queryKeys.ts | `notificationQueryKeys` (`createQueryKeys`) + `summaryKey` (own cache slot)                                                                                                                                                                    |
+| notifications.api.ts       | `createResourceApi<Notification, never, never>` + hand-rolled summary/read-all                                                                                                                                                                 |
+| notifications.hooks.ts     | `useNotificationSummary` (polled), `useNotificationList`, action mutations                                                                                                                                                                     |
+| notifications.utils.ts     | Date formatting, `groupByDueBucket`/`orderedDueBucketGroups`, `resolveNotificationLink`                                                                                                                                                        |
 
 - `TCreate`/`TUpdate` are `never` on the resource — there is nothing to create or
   update, so those methods can never be called by accident.
@@ -68,15 +98,17 @@ a modal here.
 
 ## Common edit targets
 
-| Task                                   | Files                                              |
-| -------------------------------------- | -------------------------------------------------- |
-| Inbox grouping / states                | \_shared/NotificationFeed/NotificationFeed.tsx     |
-| Drawer chrome / mark-all-read lever    | drawer/NotificationDrawer/NotificationDrawer.tsx   |
-| Per-row rendering + read/dismiss lever | \_shared/NotificationRow/NotificationRow.tsx       |
-| Embeddable per-record alerts panel     | \_shared/RecordAlertsPanel/RecordAlertsPanel.tsx   |
-| Source-triple → frontend route mapping | notifications.utils.ts (`resolveNotificationLink`) |
-| Type/priority/due-bucket labels+colors | notifications.labels.ts                            |
-| DTO shapes / API / keys / mutations    | notifications.{types,api,queryKeys,hooks}.ts       |
+| Task                                   | Files                                                      |
+| -------------------------------------- | ---------------------------------------------------------- |
+| Inbox grouping / states                | \_shared/NotificationFeed/NotificationFeed.tsx             |
+| Drawer chrome / tabs / mark-all lever  | drawer/NotificationDrawer/NotificationDrawer.tsx           |
+| Settings switches / copy               | \_shared/NotificationSettings/NotificationSettings.tsx     |
+| Tab grouping / category copy           | notifications.labels.ts (`INBOX_TAB_GROUPS`, `CATEGORY_*`) |
+| Per-row rendering + read/dismiss lever | \_shared/NotificationRow/NotificationRow.tsx               |
+| Embeddable per-record alerts panel     | \_shared/RecordAlertsPanel/RecordAlertsPanel.tsx           |
+| Source-triple → frontend route mapping | notifications.utils.ts (`resolveNotificationLink`)         |
+| Type/priority/due-bucket labels+colors | notifications.labels.ts                                    |
+| DTO shapes / API / keys / mutations    | notifications.{types,api,queryKeys,hooks}.ts               |
 
 ## Inbox (drawer)
 
@@ -129,8 +161,8 @@ a modal here.
 - Titled **"Your alerts for this record"**, never "All alerts" — it only returns
   alerts addressed to the calling user. A cross-user history is `audit`, not this
   module.
-- Not yet embedded anywhere — Phase 4 (cross-module wiring, orchestrator-owned)
-  adds it to `ApplicantDetail`/`OfferDetail`/`JourneyDetail`.
+- Embedded in `OfferDetail`, `ChecklistDetail`, and (until `ApplicantAlertsPanel`
+  replaces it) `ApplicantDetail`.
 
 ## Polling (badge)
 
@@ -143,7 +175,26 @@ a modal here.
   ANY status and is what "mark all read" drives to zero; `active` does not move on
   mark-all-read and would make that button look broken.
 
+## New-type destinations (`resolveNotificationLink`)
+
+| Type(s)                                                                               | Route                                                                    |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `lead_created`, `lead_restored`, lead `visit_note_added`                              | `/admin/lead-management?lead=<id>` (needs board support — see below)     |
+| `lead_deleted`                                                                        | `/admin/lead-management` (the lead is gone from the board)               |
+| `lead_converted`                                                                      | `/admin/applicants/<applicant_id>` (the NEW applicant)                   |
+| `applicant_status_changed/restored/assigned/unassigned`, applicant `visit_note_added` | `/admin/applicants/<id>`                                                 |
+| `test_score_expiring`, applicant `custom_reminder`                                    | `/admin/applicants/<applicant_id>`                                       |
+| `document_ready`                                                                      | `/documents/workspace/<applicant_id>`, else `/documents/standalone/<id>` |
+| client `custom_reminder` (`applicant_id` null)                                        | no route — `ReminderAlertLink` asks (fetches the reminder)               |
+
+`describeNotification` builds a one-line summary from `payload` (status from → to,
+stage, test type, document family); each fragment drops if its key is missing.
+
 ## Known risk / unverified
+
+- **`/admin/lead-management?lead=<id>` is not read by the lead board yet** — the board
+  only honours `?q=`. Until `LeadManagementBoard` opens `LeadDetailDrawer` from `?lead=`,
+  those links land on the plain board (harmless, not a 404). Fix lives in lead-management.
 
 - `resolveNotificationLink`'s `/admin/checklists/<id>` path (for `missing_documents`
   and the `checklist`-shaped `assignment_received`) assumes the checklists module

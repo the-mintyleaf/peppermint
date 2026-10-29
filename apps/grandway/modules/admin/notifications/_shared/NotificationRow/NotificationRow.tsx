@@ -26,9 +26,11 @@ import {
 } from "../../notifications.labels";
 import { useDismiss, useMarkRead } from "../../notifications.hooks";
 import {
+  describeNotification,
   formatDateTime,
   formatDueAt,
   resolveNotificationLink,
+  resolveNotificationLinkLabel,
 } from "../../notifications.utils";
 import type { NotificationRowProps } from "./NotificationRow.types";
 
@@ -53,10 +55,13 @@ export function NotificationRow({
   // reachable by fetching that reminder. See `resolveNotificationLink`.
   // Narrowed to a string rather than cast — `source_entity_id` is optional and
   // nullable on the DTO, and a reminder alert without one has nothing to open.
+  // Since 2026-10-29 an applicant reminder carries `applicant_id` and resolves
+  // directly; only a client reminder (or an older row) still has to ask.
   const reminderId =
-    notification.notification_type === "custom_reminder"
+    notification.notification_type === "custom_reminder" && !link
       ? (notification.source_entity_id ?? null)
       : null;
+  const description = describeNotification(notification);
 
   const handleOpen = () => {
     if (!notification.is_read) markRead.mutate();
@@ -124,6 +129,11 @@ export function NotificationRow({
         <Text size="sm" fw={500}>
           {notification.title}
         </Text>
+        {description ? (
+          <Text size="xs" fw={500}>
+            {description}
+          </Text>
+        ) : null}
         {/* Plain English text, never HTML — rendered as a text node, never dangerouslySetInnerHTML. */}
         <Text size="xs" c="dimmed">
           {notification.body}
@@ -177,7 +187,7 @@ export function NotificationRow({
                 rightSection={<ArrowSquareOutIcon size={12} aria-hidden />}
                 onClick={handleOpen}
               >
-                View record
+                {resolveNotificationLinkLabel(notification)}
               </Button>
             ) : null}
           </Group>
