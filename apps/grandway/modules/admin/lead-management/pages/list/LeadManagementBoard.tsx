@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ModalTableShell } from "@peppermint/admin";
 import type { DataTableShellTab } from "@peppermint/admin";
 import {
@@ -13,12 +14,18 @@ import {
 } from "@peppermint/ui";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import { TagIcon } from "@phosphor-icons/react/dist/csr/Tag";
+import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { useDeepLinkSearch } from "@/lib/useDeepLinkSearch";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
 import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
-import { LeadForm } from "../../form";
+import {
+  LeadForm,
+  LeadFormSubmitErrorContext,
+  useLeadFormSubmitErrorChannel,
+} from "../../form";
+import { useLeadAccess } from "../../leadAccess.hooks";
 import { CATEGORY_LABELS } from "../../leadCategory.utils";
 import { createLead, getLead, updateLead } from "../../leadManagement.api";
 import { useLeadBoardData, useLeadSources } from "../../leadManagement.hooks";
@@ -27,10 +34,16 @@ import type {
   LeadBoardRow,
   LeadCategory,
   LeadCreatePayload,
+  LeadListFilters,
   LeadUpdatePayload,
 } from "../../leadManagement.types";
+import { DeletedLeadsModal } from "./components/DeletedLeadsModal";
 import { LeadDetailDrawer } from "./components/LeadDetailDrawer";
+import { LeadProfileFilters } from "./components/LeadProfileFilters";
 import { getLeadManagementColumns } from "./leadManagement.columns";
+
+/** `?lead=<id>` — the open drawer. Notifications deep-link here (`notifications.utils.ts`). */
+const LEAD_PARAM = "lead";
 
 /**
  * The backend rejects *any* PATCH whose body includes an inactive `source`,
@@ -53,23 +66,59 @@ function toUpdatePayload(
   return values;
 }
 
+/**
+ * The open lead lives in the URL (`?lead=<id>`), not component state — the
+ * same convention as `ChecklistTemplatesList`'s `?template=`. A notification
+ * link can land here while the board is already mounted, so reading the param
+ * every render is the only way the drawer reliably follows it; opening and
+ * closing rewrite just that param (`replace`, so Back still leaves the board)
+ * and leave `?q=` and the shell's own params untouched.
+ */
+function useOpenLeadParam() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const openLeadId = searchParams.get(LEAD_PARAM)?.trim() || null;
+
+  const setOpenLeadId = useCallback(
+    (leadId: string | null) => {
+      const next = new URLSearchParams(searchParams);
+      if (leadId) next.set(LEAD_PARAM, leadId);
+      else next.delete(LEAD_PARAM);
+      const query = next.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [searchParams, pathname, router],
+  );
+
+  return { openLeadId, setOpenLeadId };
+}
+
 function LeadManagementBoardContent() {
-  const { isLeadManager, authorityType } = useCurrentUser();
+  const { isLeadManager } = useCurrentUser();
+  const { isLeadAdmin } = useLeadAccess();
   // A leads hit in the global spotlight lands here carrying the matched name —
   // leads open in a drawer, not on a route of their own.
   const deepLinkSearch = useDeepLinkSearch();
+  const { openLeadId, setOpenLeadId } = useOpenLeadParam();
   const [fiscalYearInput, setFiscalYearInput] = useState("");
   const [fiscalYear, setFiscalYear] = useState<string | null>(null);
+  const [profileFilters, setProfileFilters] = useState<LeadListFilters>({});
   const [referenceDataOpen, setReferenceDataOpen] = useState(false);
+  const [deletedLeadsOpen, setDeletedLeadsOpen] = useState(false);
+  const { submitError, captureSubmitError } = useLeadFormSubmitErrorChannel();
 
-  const { capped, isLoading, boardQueryKey, queryFn } =
-    useLeadBoardData(fiscalYear);
+  const { capped, isLoading, boardQueryKey, queryFn } = useLeadBoardData(
+    fiscalYear,
+    profileFilters,
+  );
   const { data: sources = [] } = useLeadSources();
-  const [detailLeadId, setDetailLeadId] = useState<string | null>(null);
 
   const columns = getLeadManagementColumns({
     sources,
-    onViewDetails: (lead) => setDetailLeadId(lead.id),
+    onViewDetails: (lead) => setOpenLeadId(lead.id),
   });
 
   // "All leads" carries no `filter` — the shell resets filters on every tab
@@ -93,7 +142,7 @@ function LeadManagementBoardContent() {
   };
 
   return (
-    <>
+    <LeadFormSubmitErrorContext.Provider value={submitError}>
       <ModalTableShell<LeadBoardRow, LeadCreatePayload, LeadCreatePayload>
         queryKey={boardQueryKey}
         queryGetFn={queryFn}
@@ -116,9 +165,14 @@ function LeadManagementBoardContent() {
         modalWidth={640}
         createFormComponent={LeadForm}
         editFormComponent={LeadForm}
-        onCreateApi={(values) => createLead(values)}
+        // `captureSubmitError` hands a rejection's field details to the open
+        // form (`LeadFormSubmitErrorContext`) and rethrows, so the shell still
+        // toasts and keeps the modal open.
+        onCreateApi={(values) => captureSubmitError(createLead(values))}
         onEditApi={(values, record) =>
-          updateLead(record.id, toUpdatePayload(values, record))
+          captureSubmitError(
+            updateLead(record.id, toUpdatePayload(values, record)),
+          )
         }
         onEditTrigger={async (record) => ({
           ...(await getLead(record.id)),
@@ -132,17 +186,31 @@ function LeadManagementBoardContent() {
         mainComponent={ModalPaper}
         mainComponentProps={{ withBorder: true }}
         headerRight={
-          <Group gap="xs" align="flex-end">
-            {authorityType === "admin" ? (
-              <Button
-                size="xs"
-                variant="default"
-                leftSection={<TagIcon size={14} aria-hidden />}
-                onClick={() => setReferenceDataOpen(true)}
-              >
-                Manage sources
-              </Button>
+          <Group gap="xs" align="flex-end" wrap="wrap">
+            {isLeadAdmin ? (
+              <>
+                <Button
+                  size="xs"
+                  variant="default"
+                  leftSection={<TagIcon size={14} aria-hidden />}
+                  onClick={() => setReferenceDataOpen(true)}
+                >
+                  Manage sources
+                </Button>
+                <Button
+                  size="xs"
+                  variant="default"
+                  leftSection={<TrashIcon size={14} aria-hidden />}
+                  onClick={() => setDeletedLeadsOpen(true)}
+                >
+                  Deleted leads
+                </Button>
+              </>
             ) : null}
+            <LeadProfileFilters
+              value={profileFilters}
+              onChange={setProfileFilters}
+            />
             <TextInput
               size="xs"
               placeholder="e.g. 2081/82"
@@ -180,23 +248,30 @@ function LeadManagementBoardContent() {
           mt="md"
         >
           This account has more leads than this dashboard loads at once. Narrow
-          by fiscal year to see the rest.
+          by fiscal year or profile to see the rest.
         </Alert>
       ) : null}
 
       <LeadDetailDrawer
-        leadId={detailLeadId}
-        opened={detailLeadId !== null}
-        onClose={() => setDetailLeadId(null)}
+        leadId={openLeadId}
+        opened={openLeadId !== null}
+        onClose={() => setOpenLeadId(null)}
       />
 
-      {authorityType === "admin" ? (
-        <ReferenceDataModal
-          opened={referenceDataOpen}
-          onClose={() => setReferenceDataOpen(false)}
-        />
+      {isLeadAdmin ? (
+        <>
+          <ReferenceDataModal
+            opened={referenceDataOpen}
+            onClose={() => setReferenceDataOpen(false)}
+          />
+          <DeletedLeadsModal
+            opened={deletedLeadsOpen}
+            onClose={() => setDeletedLeadsOpen(false)}
+            onViewLead={setOpenLeadId}
+          />
+        </>
       ) : null}
-    </>
+    </LeadFormSubmitErrorContext.Provider>
   );
 }
 

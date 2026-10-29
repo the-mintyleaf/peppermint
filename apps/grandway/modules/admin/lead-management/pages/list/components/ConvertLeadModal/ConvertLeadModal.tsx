@@ -5,6 +5,7 @@ import {
   Alert,
   Button,
   Group,
+  List,
   Modal,
   Stack,
   Text,
@@ -17,11 +18,14 @@ import { useConvertLead } from "../../../../leadManagement.hooks";
 import type { ConvertLeadModalProps } from "./ConvertLeadModal.types";
 
 /**
- * Admin only (`LeadRowActionsMenu` hides this action for a Lead Manager).
+ * Admin only (`LeadStageSwitch` hides this action for a Lead Manager).
  * Empty request body — the backend creates the applicant and a seed journey
  * in one step and returns both ids directly, so there's nothing to fetch
  * after success, only where to navigate
  * (`docs/backend/lead-management/FLOWS.md` "Convert a lead into a client").
+ * The copy lists what conversion carries over as of 2026-10-29 (notes,
+ * education record, language tests, owner assignment) and that the lead's
+ * notes turn read-only (`INTEGRATION.md` §7 convert).
  */
 export function ConvertLeadModal({
   lead,
@@ -88,12 +92,31 @@ export function ConvertLeadModal({
           icon={<ArrowsLeftRightIcon size={16} aria-hidden />}
           title="Creates an applicant and a starting study objective"
         >
-          <Text size="sm">
-            This lead moves to <b>Converted</b> — a terminal stage reachable
-            only by reopening first. Identity and contact details carry over to
-            the new applicant; a journey is seeded from this lead&apos;s study
-            interest.
-          </Text>
+          <Stack gap={6}>
+            <Text size="sm">
+              This lead moves to <b>Converted</b> — a terminal stage reachable
+              only by reopening first.
+            </Text>
+            <List size="sm" spacing={2}>
+              <List.Item>
+                Name, email, contact numbers, address and every note carry over
+                to the new applicant.
+              </List.Item>
+              <List.Item>
+                The highest qualification becomes an education record (when its
+                level is set), and each language certificate becomes a language
+                test.
+              </List.Item>
+              <List.Item>
+                The applicant is assigned to this lead&apos;s owner, and a
+                journey is seeded from the study interest.
+              </List.Item>
+            </List>
+            <Text size="sm">
+              From then on this lead&apos;s notes are read-only — keep writing
+              them on the applicant.
+            </Text>
+          </Stack>
         </Alert>
 
         <Group justify="flex-end" gap="xs">

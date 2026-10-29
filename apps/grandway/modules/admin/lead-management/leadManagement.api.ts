@@ -1,14 +1,22 @@
 import { createResourceApi } from "@peppermint/admin";
 import type { ResourceListResponse } from "@peppermint/admin";
 import api from "@/lib/api";
+import { toNotesListResult } from "@/components/notes-panel";
+import type {
+  NoteCreatePayload,
+  NotesListParams,
+  NotesListResult,
+  NoteUpdatePayload,
+} from "@/components/notes-panel";
 import type {
   ConvertLeadResponse,
+  DeleteLeadPayload,
   FollowUpPayload,
   Lead,
   LeadCreatePayload,
   LeadDetail,
+  LeadListFilters,
   LeadNote,
-  LeadNoteCreatePayload,
   LeadSource,
   LeadUpdatePayload,
   LossReason,
@@ -17,6 +25,7 @@ import type {
   ReferenceEntryCreatePayload,
   ReferenceEntryUpdatePayload,
   ReopenPayload,
+  RestoreLeadPayload,
   StageChangePayload,
   HistoryEntry,
 } from "./leadManagement.types";
@@ -60,6 +69,57 @@ export function reopenLead(id: string, body: ReopenPayload = {}) {
 }
 
 /**
+ * `DELETE /api/v1/leads/<id>/` — Admin-only SOFT delete, the reason sent as
+ * the JSON body (hence not `leadResource.remove`, which sends none). Returns
+ * the lead with `deleted_*` set. 409 `LEADS_LEAD_ALREADY_CONVERTED` for a lead
+ * that was ever converted; 409 `LEADS_LEAD_DELETED` when already deleted.
+ */
+export async function deleteLead(
+  id: string,
+  body: DeleteLeadPayload,
+): Promise<LeadDetail> {
+  const { data } = await api.delete<LeadDetail>(`/api/v1/leads/${id}/`, {
+    data: body,
+  });
+  return data;
+}
+
+/** `POST /api/v1/leads/<id>/restore/` — Admin only; 409 `LEADS_LEAD_NOT_DELETED` on a live lead. */
+export function restoreLead(id: string, body: RestoreLeadPayload = {}) {
+  return leadResource.action<LeadDetail>(id, "restore", body);
+}
+
+/**
+ * List-shape row of `?deleted=true`. The contract's list shape carries no
+ * `deleted_*` fields, so they are optional here — rendered when the server
+ * includes them, otherwise the drawer's detail fetch is where they show.
+ */
+export type DeletedLeadRow = Lead &
+  Partial<Pick<LeadDetail, "deleted_at" | "deleted_by" | "delete_reason">>;
+
+export interface DeletedLeadsPage {
+  data: DeletedLeadRow[];
+  total: number;
+}
+
+/**
+ * `GET /api/v1/leads/?deleted=true` — Admin only (a Lead Manager gets 403
+ * `LEADS_ACTOR_FORBIDDEN`). Lists deleted leads, and only them.
+ */
+export async function fetchDeletedLeads(
+  page: number,
+  pageSize: number,
+): Promise<DeletedLeadsPage> {
+  const { data } = await api.get<{
+    data: DeletedLeadRow[];
+    meta: { count: number };
+  }>("/api/v1/leads/", {
+    params: { deleted: true, page, page_size: pageSize },
+  });
+  return { data: data.data, total: data.meta.count };
+}
+
+/**
  * `POST /api/v1/leads/<id>/convert/` — Admin only, empty body. Response shape
  * differs from the other lifecycle actions (`{ lead, applicant_id,
  * journey_id }`, not a bare `LeadDetail`) so it can't reuse the `<LeadDetail>`
@@ -80,7 +140,7 @@ export function convertLead(id: string) {
 const AGGREGATE_PAGE_SIZE = 100;
 const AGGREGATE_PAGE_CAP = 10;
 
-export interface FetchAllLeadsParams {
+export interface FetchAllLeadsParams extends LeadListFilters {
   fiscalYear?: string;
 }
 
@@ -94,7 +154,27 @@ interface LeadListPage {
   meta: { count: number; next: string | null };
 }
 
-/** Loops `GET /api/v1/leads/` at `page_size=100` until exhausted or capped at 1000 leads. */
+/** Camel-cased params → the backend's snake_case query, blank values dropped. */
+function toLeadListQuery(params: FetchAllLeadsParams): Record<string, string> {
+  const query: Record<string, string> = {};
+  if (params.fiscalYear) query.fiscal_year = params.fiscalYear;
+  if (params.highestQualificationLevel) {
+    query.highest_qualification_level = params.highestQualificationLevel;
+  }
+  if (params.languageTestStatus) {
+    query.language_test_status = params.languageTestStatus;
+  }
+  if (params.languageTestType) {
+    query.language_test_type = params.languageTestType;
+  }
+  return query;
+}
+
+/**
+ * Loops `GET /api/v1/leads/` at `page_size=100` until exhausted or capped at
+ * 1000 leads. Deleted leads are excluded server-side for everyone — they only
+ * come back through `fetchDeletedLeads`.
+ */
 export async function fetchAllLeads(
   params: FetchAllLeadsParams = {},
 ): Promise<FetchAllLeadsResult> {
@@ -102,14 +182,11 @@ export async function fetchAllLeads(
   let page = 1;
   let total = 0;
   let capped = false;
+  const query = toLeadListQuery(params);
 
   while (page <= AGGREGATE_PAGE_CAP) {
     const { data } = await api.get<LeadListPage>("/api/v1/leads/", {
-      params: {
-        page,
-        page_size: AGGREGATE_PAGE_SIZE,
-        ...(params.fiscalYear ? { fiscal_year: params.fiscalYear } : {}),
-      },
+      params: { page, page_size: AGGREGATE_PAGE_SIZE, ...query },
     });
     collected.push(...data.data);
     total = data.meta.count;
@@ -188,38 +265,62 @@ export const updateLossReason = lossReasonAdminApi.update;
 // of re-declaring an identical local type.
 
 /**
- * `GET /api/v1/leads/<id>/notes/` — paginated, newest-first. The detail
- * drawer shows recent activity, not a full paginated history browser, so
- * this requests a generous single page (`pageSize`, default 100) rather than
- * the backend's own default of 20 — a lead with more notes than that is an
- * edge case this view doesn't yet handle, not a silent one (the panel shows
- * a "showing the N most recent" disclosure when `meta.total` exceeds it).
+ * `GET /api/v1/leads/<id>/notes/` — one page of one category (`general` |
+ * `visit`), in the requested `ordering`. `meta.counts` carries BOTH tabs'
+ * live-note counts on every response, so one request feeds both badges.
+ * Readable on any lead in scope, converted included.
  */
 export async function fetchLeadNotes(
   id: string,
-  pageSize = 100,
-): Promise<ResourceListResponse<LeadNote>> {
+  { category, ordering, page, pageSize }: NotesListParams,
+): Promise<NotesListResult<LeadNote>> {
   const { data } = await api.get<{
     data: LeadNote[];
-    meta: { count: number } & Record<string, unknown>;
+    meta: { count?: number; counts?: Partial<Record<string, number>> };
   }>(`/api/v1/leads/${id}/notes/`, {
-    params: { page: 1, page_size: pageSize },
+    params: { category, ordering, page, page_size: pageSize },
   });
-  return { data: data.data, meta: { ...data.meta, total: data.meta.count } };
+  return toNotesListResult(data);
 }
 
-/** `POST /api/v1/leads/<id>/notes/` — append-only, no edit/delete. */
+/**
+ * `POST /api/v1/leads/<id>/notes/` — `noted_at` omitted = now. 409
+ * `LEADS_LEAD_ALREADY_CONVERTED` / `LEADS_LEAD_DELETED` once the lead is
+ * converted or deleted (notes are read-only then).
+ */
 export async function createLeadNote(
   id: string,
-  body: LeadNoteCreatePayload,
+  body: NoteCreatePayload,
 ): Promise<LeadNote> {
   const { data } = await api.post<LeadNote>(`/api/v1/leads/${id}/notes/`, body);
   return data;
 }
 
+/** `PATCH /api/v1/leads/<id>/notes/<note_id>/` — the note's author or an Admin. */
+export async function updateLeadNote(
+  id: string,
+  noteId: string,
+  body: NoteUpdatePayload,
+): Promise<LeadNote> {
+  const { data } = await api.patch<LeadNote>(
+    `/api/v1/leads/${id}/notes/${noteId}/`,
+    body,
+  );
+  return data;
+}
+
+/** `DELETE /api/v1/leads/<id>/notes/<note_id>/` — soft; `lead_note_deleted` stays in history. */
+export async function deleteLeadNote(
+  id: string,
+  noteId: string,
+): Promise<void> {
+  await api.delete(`/api/v1/leads/${id}/notes/${noteId}/`);
+}
+
 /**
  * `GET /api/v1/leads/<id>/history/` — paginated, newest-first, backed by the
- * central audit log. Same generous-single-page approach as `fetchLeadNotes`.
+ * central audit log. The drawer requests a generous single page (`pageSize`,
+ * default 100) and discloses truncation when `meta.total` exceeds it.
  */
 export async function fetchLeadHistory(
   id: string,

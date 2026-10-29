@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   FormWrapper,
   useFormControls,
@@ -9,222 +9,39 @@ import {
 import type { ModalFormComponentProps } from "@peppermint/admin";
 import { Button, Loader, Select, Stack, TextInput } from "@peppermint/ui";
 import type { ComboboxItem } from "@peppermint/ui";
-import { z } from "zod";
-import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import { useCreateLeadSource, useLeadSources } from "../leadManagement.hooks";
+import { useLeadAccess } from "../leadAccess.hooks";
 import type {
-  ContactNumberInput,
   LeadBoardRow,
   LeadCreatePayload,
   LeadSource,
 } from "../leadManagement.types";
 import { referenceEntryLabel, toReferenceCode } from "../referenceEntry.utils";
+import { AcademicBackgroundSection } from "./AcademicBackgroundSection";
 import { ContactNumbersField } from "./ContactNumbersField";
+import { LanguageSection } from "./LanguageSection";
+import { useLeadFormSubmitError } from "./LeadForm.context";
+import { buildLeadSchema } from "./LeadForm.schema";
+import type { LeadFormValues } from "./LeadForm.types";
+import {
+  applyLeadServerErrors,
+  toLeadFormValues,
+  toLeadPayload,
+} from "./LeadForm.utils";
 import { StudyInterestSection } from "./StudyInterestSection";
-import type { LeadFormValues, StudyInterestFormValues } from "./LeadForm.types";
 
 const CREATE_SOURCE_VALUE = "__create_new_source__";
-
-const INITIAL_STUDY_INTEREST: StudyInterestFormValues = {
-  interested_countries: [],
-  study_level: "",
-  field_of_study: "",
-  preferred_intake: "",
-  budget_amount: null,
-  budget_currency: "",
-  scholarship_interest: false,
-  highest_qualification: "",
-  language_test_status: "",
-  interest_notes: "",
-};
-
-const INITIAL: LeadFormValues = {
-  full_name: "",
-  email: "",
-  address: "",
-  source: "",
-  source_detail: "",
-  contact_numbers: [],
-  study_interest: INITIAL_STUDY_INTEREST,
-};
-
-/**
- * Guarantees exactly one `is_primary: true` by the time the form is
- * interactive — nothing in the backend contract enforces that invariant on
- * the data it returns, so a pre-existing record with zero or multiple
- * primaries must be normalized on load rather than silently resubmitted
- * as-is (or compounded further by `ContactNumbersField`'s add/remove logic,
- * which assumes a clean starting state).
- */
-function normalizeContactNumbers(
-  rows: ContactNumberInput[],
-): ContactNumberInput[] {
-  if (rows.length === 0) return rows;
-  const primaryIndex = rows.findIndex((r) => r.is_primary);
-  const targetIndex = primaryIndex >= 0 ? primaryIndex : 0;
-  return rows.map((r, i) => ({ ...r, is_primary: i === targetIndex }));
-}
-
-function toFormValues(record?: Partial<LeadBoardRow>): LeadFormValues {
-  if (!record) return INITIAL;
-  const interest = record.study_interest;
-  return {
-    full_name: record.full_name ?? "",
-    email: record.email ?? "",
-    address: record.address ?? "",
-    source: record.source?.id ?? "",
-    source_detail: record.source_detail ?? "",
-    contact_numbers: normalizeContactNumbers(record.contact_numbers ?? []),
-    study_interest: interest
-      ? {
-          interested_countries: interest.interested_countries,
-          study_level: interest.study_level,
-          field_of_study: interest.field_of_study,
-          preferred_intake: interest.preferred_intake,
-          budget_amount:
-            interest.budget_amount !== null
-              ? Number(interest.budget_amount)
-              : null,
-          budget_currency: interest.budget_currency,
-          scholarship_interest: interest.scholarship_interest,
-          highest_qualification: interest.highest_qualification,
-          language_test_status: interest.language_test_status,
-          interest_notes: interest.interest_notes,
-        }
-      : INITIAL_STUDY_INTEREST,
-  };
-}
-
-function isBlankStudyInterest(v: StudyInterestFormValues): boolean {
-  return (
-    v.interested_countries.length === 0 &&
-    v.study_level === "" &&
-    v.field_of_study.trim() === "" &&
-    v.preferred_intake.trim() === "" &&
-    v.budget_amount === null &&
-    v.budget_currency.trim() === "" &&
-    !v.scholarship_interest &&
-    v.highest_qualification.trim() === "" &&
-    v.language_test_status === "" &&
-    v.interest_notes.trim() === ""
-  );
-}
-
-/**
- * `study_interest` is omitted entirely (not sent as an all-blank object)
- * when the section is blank *and* the record never had one — the backend
- * distinguishes "no study interest on file" (`study_interest: null`) from
- * "an explicitly blank record," and creating the latter for every lead
- * nobody filled this section in for would be a real, if quiet, data-shape
- * drift. `hadExistingStudyInterest` is the escape hatch: if a record already
- * carried study interest and the user deliberately cleared every field, that
- * blank object must still be sent — omitting it would leave the old data
- * untouched server-side (PATCH semantics), silently ignoring the clear.
- * Contact numbers never carry an `id` — the write contract's shape is
- * `{number, label, is_primary}` only.
- */
-function toLeadPayload(
-  values: LeadFormValues,
-  hadExistingStudyInterest: boolean,
-): LeadCreatePayload {
-  const payload: LeadCreatePayload = {
-    full_name: values.full_name.trim(),
-    email: values.email.trim(),
-    address: values.address.trim(),
-    source: values.source,
-    source_detail: values.source_detail.trim(),
-    contact_numbers: values.contact_numbers.map((c) => ({
-      number: c.number.trim(),
-      label: c.label,
-      is_primary: c.is_primary,
-    })),
-  };
-  if (
-    hadExistingStudyInterest ||
-    !isBlankStudyInterest(values.study_interest)
-  ) {
-    payload.study_interest = {
-      interested_countries: values.study_interest.interested_countries,
-      study_level: values.study_interest.study_level,
-      field_of_study: values.study_interest.field_of_study.trim(),
-      preferred_intake: values.study_interest.preferred_intake.trim(),
-      budget_amount: values.study_interest.budget_amount,
-      budget_currency: values.study_interest.budget_currency
-        .trim()
-        .toUpperCase(),
-      scholarship_interest: values.study_interest.scholarship_interest,
-      highest_qualification: values.study_interest.highest_qualification.trim(),
-      language_test_status: values.study_interest.language_test_status,
-      interest_notes: values.study_interest.interest_notes.trim(),
-    };
-  }
-  return payload;
-}
-
-function buildSchema(sources: LeadSource[]) {
-  return z
-    .object({
-      full_name: z.string().min(1, "Required").max(255),
-      email: z
-        .string()
-        .refine((v) => !v || /^\S+@\S+\.\S+$/.test(v), "Invalid email"),
-      address: z.string(),
-      source: z.string().min(1, "Select a lead source"),
-      source_detail: z.string().max(255),
-      contact_numbers: z
-        .array(
-          z.object({
-            id: z.string().optional(),
-            number: z
-              .string()
-              .min(1, "Required")
-              .regex(
-                /^\+?[0-9][0-9 ()\-]{4,31}$/,
-                "Enter a valid phone number",
-              ),
-            label: z.enum([
-              "mobile",
-              "home",
-              "work",
-              "whatsapp",
-              "viber",
-              "other",
-            ]),
-            is_primary: z.boolean(),
-          }),
-        )
-        .min(1, "Add at least one contact number"),
-      study_interest: z.object({
-        interested_countries: z.array(z.string()),
-        study_level: z.string(),
-        field_of_study: z.string(),
-        preferred_intake: z.string(),
-        budget_amount: z.number().min(0).nullable(),
-        budget_currency: z.string().max(3),
-        scholarship_interest: z.boolean(),
-        highest_qualification: z.string(),
-        language_test_status: z.string(),
-        interest_notes: z.string(),
-      }),
-    })
-    .superRefine((values, ctx) => {
-      const selectedSource = sources.find((s) => s.id === values.source);
-      if (selectedSource?.requires_detail && !values.source_detail.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["source_detail"],
-          message: "This lead source requires a short description.",
-        });
-      }
-    });
-}
 
 /**
  * Shared create+edit form (`POST`/`PATCH /api/v1/leads/`,
  * `docs/backend/lead-management/INTEGRATION.md` §7). No `stage` field —
  * never writable here; stage moves only through the dedicated lifecycle
- * actions built in a later phase. Same field set both times, so one
- * component serves both `createFormComponent` and `editFormComponent`.
+ * actions. Same field set both times, so one component serves both
+ * `createFormComponent` and `editFormComponent`.
+ *
+ * Sections, in the order a call goes: who they are (identity, source,
+ * contact) → what they want to study → what they have already studied →
+ * English tests. Everything after contact is optional preliminary detail.
  */
 export function LeadForm({
   onSubmit,
@@ -232,9 +49,10 @@ export function LeadForm({
   initialValues,
 }: ModalFormComponentProps<LeadBoardRow, LeadCreatePayload>) {
   const { data: sources = [], isLoading: sourcesLoading } = useLeadSources();
-  const initial = toFormValues(initialValues);
-  const schema = buildSchema(sources);
+  const initial = toLeadFormValues(initialValues);
+  const schema = buildLeadSchema(sources);
   const hadExistingStudyInterest = Boolean(initialValues?.study_interest);
+  const isEdit = Boolean(initialValues);
 
   return (
     <FormWrapper<LeadFormValues>
@@ -253,20 +71,41 @@ export function LeadForm({
             message: "This lead source requires a short description.",
           };
         }
-        onSubmit(toLeadPayload(values, hadExistingStudyInterest));
+        onSubmit(toLeadPayload(values, { hadExistingStudyInterest, isEdit }));
         return { ok: true };
       }}
     >
       <Stack gap="md" p="md">
+        <ServerErrorsBridge />
         <Fields
           sources={sources}
           sourcesLoading={sourcesLoading}
           isLoading={isLoading}
         />
-        <SubmitButton isLoading={isLoading} isEdit={Boolean(initialValues)} />
+        <SubmitButton isLoading={isLoading} isEdit={isEdit} />
       </Stack>
     </FormWrapper>
   );
+}
+
+/**
+ * Applies a failed save's field details (from the board's
+ * `LeadFormSubmitErrorContext`) to this form. Only errors raised after the
+ * form mounted, and each once — so reopening the modal never resurrects a
+ * previous attempt's errors, and editing a field never re-applies them.
+ */
+function ServerErrorsBridge() {
+  const { form } = useFormInstance<LeadFormValues>();
+  const submitError = useLeadFormSubmitError();
+  const appliedSeq = useRef(submitError?.seq ?? 0);
+
+  useEffect(() => {
+    if (!submitError || submitError.seq <= appliedSeq.current) return;
+    appliedSeq.current = submitError.seq;
+    applyLeadServerErrors(form, submitError.error);
+  }, [form, submitError]);
+
+  return null;
 }
 
 function Fields({
@@ -279,12 +118,9 @@ function Fields({
   isLoading: boolean;
 }) {
   const { form } = useFormInstance<LeadFormValues>();
-  const { authorityType } = useCurrentUser();
-  // Deliberately narrower than `useCurrentUser().isAdmin`, which also covers
-  // `superadmin` — the backend rejects a source create from `superadmin` too
-  // (`LEADS_ACTOR_FORBIDDEN`, INTEGRATION.md §6), so this option must stay
-  // gated on the exact tier, not the broader flag.
-  const isAdmin = authorityType === "admin";
+  // The exact `admin` tier, not `useCurrentUser().isAdmin` (which also
+  // covers `superadmin`, refused with `LEADS_ACTOR_FORBIDDEN` too).
+  const { isLeadAdmin: isAdmin } = useLeadAccess();
   const selectedSource = sources.find((s) => s.id === form.values.source);
   const [sourceSearch, setSourceSearch] = useState("");
   const createSourceMutation = useCreateLeadSource();
@@ -431,6 +267,10 @@ function Fields({
       <ContactNumbersField />
 
       <StudyInterestSection />
+
+      <AcademicBackgroundSection />
+
+      <LanguageSection />
     </>
   );
 }

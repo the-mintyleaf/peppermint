@@ -101,10 +101,10 @@ apps/grandway/
         │   ├── globalSearch.sources.ts   # source list: role gate + row → spotlight result + href
         │   ├── globalSearch.provider.ts  # searchEverything() — allSettled fan-out, partial failure tolerated
         │   └── globalSearch.types.ts     # GlobalSearchAccess — one field per capability; `signatories` is split from `documents` because its hit lands on the Admin-only workspaces roll-up
-        ├── lead-management/ # categorized leads board — admin (all) / lead_manager (own)
+        ├── lead-management/ # categorized leads board — admin (all) / lead_manager (own). Module map: `modules/admin/lead-management/docs/AI.md`
         │   ├── leadManagement.{types,api,queryKeys,hooks}.ts   # also carries the Reference data admin CRUD (sources/loss-reasons)
         │   ├── leadCategory.utils.ts     # categorizeLead(), toLeadBoardRow(), stage/category labels+colors
-        │   ├── form/                     # shared create+edit modal (LeadForm, ContactNumbersField, StudyInterestSection)
+        │   ├── form/                     # shared create+edit modal: LeadForm + LeadForm.{schema,utils,context} (server field errors reach the open form via context), ContactNumbersField, StudyInterestSection, AcademicBackgroundSection (level / grade+type / pass year+calendar), LanguageSection (test status + LanguageTestsField certificates, ≤10)
         │   ├── reference-data/           # Admin-only "Reference data" modal — manage LeadSource/LossReason (FLOWS.md "Configure the pickers")
         │   │   ├── ReferenceDataModal.tsx    # Tabs: Lead sources / Loss reasons; guards close on an unsaved add/edit draft
         │   │   └── components/               # ReferenceEntryPanel (list+toggle+add), ReferenceEntryCard (retire/reactivate), ReferenceEntryForm (inline create/edit)
@@ -112,10 +112,10 @@ apps/grandway/
         │       ├── LeadManagementBoard.tsx
         │       ├── leadManagement.columns.tsx
         │       └── components/
-        │           ├── LeadRowActionsMenu/   # View / Edit / Record follow-up only
+        │           ├── LeadRowActionsMenu/   # View / Edit / Record follow-up / Delete (Admin; soft delete with reason, hidden on converted leads)
         │           ├── LeadStageSwitch/      # inline Stage-column switch: plain moves inline-confirm; Mark lost / Convert (Admin) / Reopen open the modals below
-        │           ├── RecordFollowUpModal/, MarkLeadLostModal/, ReopenLeadModal/, ConvertLeadModal/
-        │           └── LeadDetailDrawer/     # `md`-width (narrow single column) drawer: name + "added" provenance heading, full-width LeadStageSwitch as the one lever, then always-on Overview as divider-labelled sections (Contact / Source & follow-up / Study interest / Conversion / Closed) above Notes (cards: body first, author · time footer) / History (plain icon-led list) tabs. components/: DetailField (row pairs; `stacked` for free text)
+        │           ├── RecordFollowUpModal/, MarkLeadLostModal/, ReopenLeadModal/, ConvertLeadModal/, DeletedLeadsModal/ (Admin, `?deleted=true`, restore), LeadProfileFilters/ (server filters: qualification level, test status, test type)
+        │           └── LeadDetailDrawer/     # `md`-width (narrow single column) drawer: name + "added" provenance heading, full-width LeadStageSwitch as the one lever, then always-on Overview as divider-labelled sections (Contact / Source & follow-up / Study interest / Conversion / Closed) above Notes (cards: body first, author · time footer) / History (plain icon-led list) tabs. components/: DetailField (row pairs; `stacked` for free text) Opens from `?lead=<id>` (notification links). Notes are the shared `NotesPanel` (General/Visit, backdated, edit/delete; read-only once deleted or ever converted); a deleted lead shows `DeletedLeadBanner` with Restore (Admin); Overview adds Academic background and Language tests.
         ├── applicants/       # MultiPageModule — identity/contact/passport/family CRUD
         │   ├── applicants.{types,api,queryKeys,hooks}.ts
         │   ├── photograph/               # the applicant's portrait — an `uploaded_files` row (`category=photograph`), NOT a field on the applicant. `applicantPhotograph.{hooks,utils}.ts` resolve "the photo" (newest current non-archived) and save it (replace when one exists, upload when not — decided inside the mutation, never from a render-time read); `ApplicantPhoto/` is the read-only avatar (initials fallback), `ApplicantPhotoField/` the picker (`deferred` = staged for a form's submit, `immediate` = uploads on pick). **Cross-module consumers import this sub-barrel directly, never the applicants `index.ts`** — see the cycle rule below

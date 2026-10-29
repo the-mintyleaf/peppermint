@@ -1,47 +1,20 @@
 "use client";
 
-import type { ReactNode } from "react";
 import Link from "next/link";
-import {
-  Anchor,
-  Badge,
-  Box,
-  Divider,
-  Group,
-  Stack,
-  Text,
-  dayjs,
-} from "@peppermint/ui";
+import { Anchor, Badge, Box, Group, Stack, Text, dayjs } from "@peppermint/ui";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react/dist/csr/ArrowSquareOut";
-import { categorizeLead } from "../../../../leadCategory.utils";
+import {
+  STAGE_COLORS,
+  STAGE_LABELS,
+  categorizeLead,
+} from "../../../../leadCategory.utils";
 import type { LeadDetail } from "../../../../leadManagement.types";
 import { referenceEntryLabel } from "../../../../referenceEntry.utils";
 import { LeadStageSwitch } from "../LeadStageSwitch";
-import { DetailField } from "./components";
+import { DetailField, DetailSection, LeadStudyProfile } from "./components";
 
 function formatDateTime(value: string | null): string | null {
   return value ? dayjs(value).format("MMM D, YYYY h:mm A") : null;
-}
-
-/**
- * A labelled band of related pairs. The divider label is the section's own
- * quiet anchor — enough to group the pairs beneath it without competing with
- * the lead's name above.
- */
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <Stack gap="xs">
-      <Divider
-        label={
-          <Text size="xs" fw={700} tt="uppercase" c="dimmed">
-            {title}
-          </Text>
-        }
-        labelPosition="left"
-      />
-      <Stack gap={6}>{children}</Stack>
-    </Stack>
-  );
 }
 
 /** The lead's phone numbers, primary first-class and labelled, one per line. */
@@ -73,11 +46,15 @@ function ContactNumbers({ lead }: { lead: LeadDetail }) {
  * The always-on body of the lead profile, a single narrow column: the stage
  * lever first — full width, larger, and the only interactive thing here — then
  * read-only fact grouped into labelled sections, so the eye lands on the one
- * decision before the detail. Study interest and the outcome sections only
- * exist when that data does; a section never renders as an empty band.
+ * decision before the detail. Study interest, academic background, language
+ * tests and the outcome sections only exist when that data does; a section
+ * never renders as an empty band.
+ *
+ * A deleted lead refuses every write (409 `LEADS_LEAD_DELETED`), so its stage
+ * is shown as a fact (a badge), never as a lever.
  */
 export function LeadOverviewPanel({ lead }: { lead: LeadDetail }) {
-  const studyInterest = lead.study_interest;
+  const isDeleted = lead.deleted_at !== null;
   const followedUpBy =
     lead.last_followed_up_by?.display_name ||
     lead.last_followed_up_by?.username ||
@@ -89,12 +66,24 @@ export function LeadOverviewPanel({ lead }: { lead: LeadDetail }) {
         <Text size="xs" c="dimmed">
           Stage
         </Text>
-        <Box w="100%">
-          <LeadStageSwitch lead={{ ...lead, category: categorizeLead(lead) }} />
-        </Box>
+        {isDeleted ? (
+          <Badge
+            variant="light"
+            color={STAGE_COLORS[lead.stage]}
+            style={{ alignSelf: "flex-start" }}
+          >
+            {STAGE_LABELS[lead.stage]}
+          </Badge>
+        ) : (
+          <Box w="100%">
+            <LeadStageSwitch
+              lead={{ ...lead, category: categorizeLead(lead) }}
+            />
+          </Box>
+        )}
       </Stack>
 
-      <Section title="Contact">
+      <DetailSection title="Contact">
         <DetailField label="Email" value={lead.email} />
         <DetailField
           label="Phone"
@@ -105,9 +94,9 @@ export function LeadOverviewPanel({ lead }: { lead: LeadDetail }) {
           }
         />
         <DetailField label="Address" value={lead.address} />
-      </Section>
+      </DetailSection>
 
-      <Section title="Source & follow-up">
+      <DetailSection title="Source & follow-up">
         <DetailField label="Source" value={referenceEntryLabel(lead.source)} />
         {lead.source_detail ? (
           <DetailField
@@ -121,61 +110,15 @@ export function LeadOverviewPanel({ lead }: { lead: LeadDetail }) {
           value={formatDateTime(lead.last_followed_up_at)}
         />
         <DetailField label="Followed up by" value={followedUpBy} />
-      </Section>
+      </DetailSection>
 
-      {studyInterest ? (
-        <Section title="Study interest">
-          <DetailField
-            label="Countries"
-            value={studyInterest.interested_countries.join(", ") || null}
-          />
-          <DetailField
-            label="Study level"
-            value={studyInterest.study_level || null}
-          />
-          <DetailField
-            label="Field of study"
-            value={studyInterest.field_of_study || null}
-          />
-          <DetailField
-            label="Preferred intake"
-            value={studyInterest.preferred_intake || null}
-          />
-          <DetailField
-            label="Budget"
-            value={
-              studyInterest.budget_amount
-                ? `${studyInterest.budget_amount} ${studyInterest.budget_currency}`
-                : null
-            }
-          />
-          <DetailField
-            label="Scholarship"
-            value={studyInterest.scholarship_interest ? "Yes" : "No"}
-          />
-          <DetailField
-            label="Qualification"
-            value={studyInterest.highest_qualification || null}
-          />
-          <DetailField
-            label="Language test"
-            value={studyInterest.language_test_status || null}
-          />
-          {studyInterest.interest_notes ? (
-            <DetailField
-              label="Interest notes"
-              value={studyInterest.interest_notes}
-              stacked
-            />
-          ) : null}
-        </Section>
-      ) : null}
+      <LeadStudyProfile lead={lead} />
 
       {lead.converted_applicant_id ? (
         // Keyed off the id, not `stage === "converted"` — reopening a converted
         // lead moves its stage to an active one but never clears the conversion
         // link, so the applicant reference must stay visible after reopen.
-        <Section title="Conversion">
+        <DetailSection title="Conversion">
           <DetailField
             label="Converted"
             value={formatDateTime(lead.converted_at)}
@@ -204,11 +147,11 @@ export function LeadOverviewPanel({ lead }: { lead: LeadDetail }) {
               </Anchor>
             }
           />
-        </Section>
+        </DetailSection>
       ) : null}
 
       {lead.stage === "lost" ? (
-        <Section title="Closed">
+        <DetailSection title="Closed">
           <DetailField
             label="Lost reason"
             value={
@@ -223,7 +166,7 @@ export function LeadOverviewPanel({ lead }: { lead: LeadDetail }) {
             label="Closed by"
             value={lead.lost_by?.display_name || lead.lost_by?.username || null}
           />
-        </Section>
+        </DetailSection>
       ) : null}
     </Stack>
   );

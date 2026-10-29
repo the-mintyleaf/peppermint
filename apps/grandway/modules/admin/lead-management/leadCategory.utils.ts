@@ -87,6 +87,7 @@ export function toLeadBoardRow(
   return {
     ...lead,
     study_interest: null,
+    language_certificates: [],
     last_followed_up_by: null,
     lost_reason: null,
     lost_detail: "",
@@ -99,6 +100,12 @@ export function toLeadBoardRow(
     converted_by: null,
     converted_applicant_id: null,
     converted_journey_id: null,
+    // The board never lists a deleted lead (the server hides them for
+    // everyone), so these padded nulls are also the truth for every row.
+    deleted_at: null,
+    deleted_at_bs: null,
+    deleted_by: null,
+    delete_reason: "",
     category: categorizeLead(lead, now),
   };
 }

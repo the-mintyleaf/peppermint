@@ -2,13 +2,16 @@
 
 import type { ReactNode } from "react";
 import { Box, Center, Group, Loader, Stack, Text, dayjs } from "@peppermint/ui";
+import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
 import { ArrowsClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowsClockwise";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ClockCounterClockwise";
 import { NoteBlankIcon } from "@phosphor-icons/react/dist/csr/NoteBlank";
+import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import { PhoneCallIcon } from "@phosphor-icons/react/dist/csr/PhoneCall";
 import { PlusCircleIcon } from "@phosphor-icons/react/dist/csr/PlusCircle";
 import { ProhibitIcon } from "@phosphor-icons/react/dist/csr/Prohibit";
 import { SwapIcon } from "@phosphor-icons/react/dist/csr/Swap";
+import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { useLeadHistory } from "../../../../leadManagement.hooks";
 import type {
   HistoryAction,
@@ -35,6 +38,19 @@ const ACTION_ICON: Partial<
     icon: <NoteBlankIcon size={14} aria-hidden />,
     color: "gray",
   },
+  lead_note_updated: {
+    icon: <PencilSimpleIcon size={14} aria-hidden />,
+    color: "gray",
+  },
+  lead_note_deleted: {
+    icon: <TrashIcon size={14} aria-hidden />,
+    color: "gray",
+  },
+  lead_deleted: { icon: <TrashIcon size={14} aria-hidden />, color: "red" },
+  lead_restored: {
+    icon: <ArrowCounterClockwiseIcon size={14} aria-hidden />,
+    color: "teal",
+  },
   lead_marked_lost: {
     icon: <ProhibitIcon size={14} aria-hidden />,
     color: "red",
@@ -50,6 +66,48 @@ const FALLBACK_ICON = {
   icon: <ClockCounterClockwiseIcon size={14} aria-hidden />,
   color: "gray",
 };
+
+/**
+ * Plain-language name per action, shown when the server's `summary` is blank
+ * (it is the primary label otherwise). An action added later still renders —
+ * as its de-underscored code.
+ */
+const ACTION_LABELS: Record<HistoryAction, string> = {
+  lead_created: "Lead created",
+  lead_updated: "Lead details updated",
+  lead_contact_changed: "Contact numbers changed",
+  lead_source_changed: "Source changed",
+  lead_interest_changed: "Study interest changed",
+  lead_stage_changed: "Stage changed",
+  lead_followup_recorded: "Follow-up recorded",
+  lead_marked_lost: "Marked as lost",
+  lead_reopened: "Reopened",
+  lead_note_added: "Note added",
+  lead_note_updated: "Note edited",
+  lead_note_deleted: "Note deleted",
+  lead_deleted: "Lead deleted",
+  lead_restored: "Lead restored",
+  lead_source_created: "Lead source created",
+  lead_source_updated: "Lead source updated",
+  loss_reason_created: "Loss reason created",
+  loss_reason_updated: "Loss reason updated",
+  lead_converted: "Converted to an applicant",
+  lead_applicant_created: "Applicant created from this lead",
+};
+
+function actionLabel(entry: HistoryEntry): string {
+  return (
+    entry.summary ||
+    (ACTION_LABELS as Partial<Record<string, string>>)[entry.action] ||
+    entry.action.replace(/_/g, " ")
+  );
+}
+
+/** A note edit's `body` change is recorded as `"<changed>"` — the text never enters the audit log. */
+function renderChange(field: string, change: { from: unknown; to: unknown }) {
+  if (field === "body") return "Note text edited";
+  return `${field}: ${renderValue(change.from)} → ${renderValue(change.to)}`;
+}
 
 function renderValue(value: unknown): string {
   if (value === null || value === undefined || value === "") return "—";
@@ -74,7 +132,7 @@ function HistoryRow({ entry }: { entry: HistoryEntry }) {
       </Box>
       <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
         <Text size="xs" fw={500}>
-          {entry.summary || entry.action.replace(/_/g, " ")}
+          {actionLabel(entry)}
         </Text>
         <Text size="xs" c="dimmed">
           {dayjs(entry.created_at).format("MMM D, YYYY h:mm A")} ·{" "}
@@ -87,7 +145,7 @@ function HistoryRow({ entry }: { entry: HistoryEntry }) {
         ) : null}
         {changeEntries.map(([field, change]) => (
           <Text key={field} size="xs" c="dimmed">
-            {field}: {renderValue(change.from)} → {renderValue(change.to)}
+            {renderChange(field, change)}
           </Text>
         ))}
       </Stack>
