@@ -600,8 +600,10 @@ export interface DocumentConfigBarProps {
   /**
    * Persisting update — PATCHes the content to the backend so the change survives reload/print.
    * Optional: config bars that only tweak the live preview (e.g. bank padding) omit it.
+   * Returns the save's promise: it rejects (already handled — no unhandled rejection)
+   * when the backend refuses, so a bar can undo its preview and explain why.
    */
-  onPersist?: (content: DocumentContent) => void;
+  onPersist?: (content: DocumentContent) => void | Promise<void>;
   signatures?: Signature[];
   disabled?: boolean;
 }

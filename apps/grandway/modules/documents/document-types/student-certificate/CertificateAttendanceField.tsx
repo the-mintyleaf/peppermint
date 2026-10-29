@@ -86,6 +86,11 @@ export function CertificateAttendanceField({
                         aria-label={`Month ${i + 1}`}
                         placeholder="Pick a month"
                         valueFormat="MMM YYYY"
+                        description={
+                          !row.month && row.source_month
+                            ? `Saved as “${row.source_month}” — pick the month`
+                            : undefined
+                        }
                         disabled={disabled}
                         {...form.getInputProps(`attendance.${i}.month`)}
                       />

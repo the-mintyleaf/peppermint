@@ -23,7 +23,9 @@ import type {
  * - **Write only the new.** `toStoredCertificateContent` emits the validated keys
  *   and drops the legacy ones (`gender: "Male"` would now be refused). Keys this
  *   file does not own (`image`, `details`, `headerProps`, …) are carried over —
- *   content is saved wholesale.
+ *   content is saved wholesale. Used by the form save only — the full migration.
+ * - **The panel patches, never migrates.** `withCertificatePanelChange` writes
+ *   the Customizations panel's four keys onto the stored body as it is.
  */
 
 export const CERTIFICATE_SKILLS: readonly CertificateSkill[] = [
@@ -56,8 +58,14 @@ export const LEGACY_CERTIFICATE_KEYS = [
 
 /** One attendance month as the form and the template read it. */
 export interface CertificateMarkRow {
-  /** `YYYY-MM`, or `""` when an old row's month could not be placed. */
+  /**
+   * `YYYY-MM`, or `""` when an old row's month could not be placed (`0`, `13`,
+   * free text). Such a row is never dropped: the form keeps it and asks for the
+   * month, and the save is blocked until it is picked.
+   */
   month: string;
+  /** The month exactly as stored, for telling the operator what it was. */
+  source_month: string;
   total_days: number;
   class_hr: number;
   present: number;
@@ -130,29 +138,61 @@ export function toIsoDate(value: unknown): string {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
 
+const MONTH_NAMES = [
+  "january",
+  "february",
+  "march",
+  "april",
+  "may",
+  "june",
+  "july",
+  "august",
+  "september",
+  "october",
+  "november",
+  "december",
+];
+
 /**
- * A row's month → `YYYY-MM`. The oldest certificates stored a bare month number;
- * it is placed in the year that follows the admission date (a month before the
- * admission month belongs to the next year), else the current year.
+ * Month `n` (1–12) in `year`, or — with no year — in the year that follows the
+ * admission date (a month before the admission month belongs to the next year),
+ * else the current year. `""` when `n` is not a month.
+ */
+function placeMonth(n: number, year: number | null, admission: string): string {
+  if (!Number.isInteger(n) || n < 1 || n > 12) return "";
+  if (year !== null) return `${year}-${pad2(n)}`;
+  const adm = admission.match(/^(\d{4})-(\d{2})/);
+  if (!adm) return `${new Date().getFullYear()}-${pad2(n)}`;
+  const admYear = Number(adm[1]);
+  return `${n >= Number(adm[2]) ? admYear : admYear + 1}-${pad2(n)}`;
+}
+
+/** `"August"`, `"Aug 2024"`, `"sept"` → 1–12, or `0` when it names no month. */
+function monthFromName(text: string): number {
+  const word = text.toLowerCase().match(/[a-z]{3,}/)?.[0];
+  if (!word) return 0;
+  return MONTH_NAMES.findIndex((name) => name.startsWith(word)) + 1;
+}
+
+/**
+ * A row's month → `YYYY-MM`, tolerating every shape older certificates used:
+ * `"2024-08"`, `"2024-8"`, `"2024-08-15"`, `"2024/8"`, a bare `8` or `"8"`, and
+ * an English month name with or without a year. `""` when it cannot be placed.
  */
 export function toYearMonth(
   month: CertificateMarkEntry["month"],
   admission: string,
 ): string {
-  if (typeof month === "string") {
-    const m = month.trim().match(/^(\d{4})-(\d{2})/);
-    if (m) {
-      const n = Number(m[2]);
-      return n >= 1 && n <= 12 ? `${m[1]}-${m[2]}` : "";
-    }
-  }
-  const n = Number(month);
-  if (!Number.isInteger(n) || n < 1 || n > 12) return "";
-  const adm = admission.match(/^(\d{4})-(\d{2})/);
-  if (!adm) return `${new Date().getFullYear()}-${pad2(n)}`;
-  const admYear = Number(adm[1]);
-  const year = n >= Number(adm[2]) ? admYear : admYear + 1;
-  return `${year}-${pad2(n)}`;
+  if (typeof month === "number") return placeMonth(month, null, admission);
+  const v = String(month ?? "").trim();
+  if (!v) return "";
+  const dated = v.match(/^(\d{4})[-/.](\d{1,2})(?:[-/.]\d{1,2})?(?:T.*)?$/);
+  if (dated) return placeMonth(Number(dated[2]), Number(dated[1]), admission);
+  if (/^\d{1,2}$/.test(v)) return placeMonth(Number(v), null, admission);
+  const named = monthFromName(v);
+  if (!named) return "";
+  const year = v.match(/\b(\d{4})\b/);
+  return placeMonth(named, year ? Number(year[1]) : null, admission);
 }
 
 function num(value: unknown): number {
@@ -184,6 +224,7 @@ function toMarkRow(
   const stored = numOrNull(entry.attendance_percentage);
   return {
     month: toYearMonth(entry.month, admission),
+    source_month: String(entry.month ?? ""),
     total_days: num(entry.total_days),
     class_hr,
     present,
@@ -290,23 +331,29 @@ export function withoutLegacyCertificateKeys(
   return rest;
 }
 
+/**
+ * Values pass through unchanged — no truncating or clamping. The certificate
+ * form's schema already holds them to the backend's rules, so what is stored is
+ * exactly what was typed (and what the operator saw computed).
+ */
 function toStoredRow(row: CertificateMarkRow): CertificateMarkEntry {
   return {
     month: row.month,
-    total_days: Math.max(0, Math.trunc(row.total_days)),
-    class_hr: Math.max(0, row.class_hr),
-    present: Math.max(0, row.present),
-    absent: Math.max(0, row.absent),
-    attendance_percentage: Math.min(
-      100,
-      Math.max(0, round2(row.attendance_percentage)),
-    ),
+    total_days: row.total_days,
+    class_hr: row.class_hr,
+    present: row.present,
+    absent: row.absent,
+    attendance_percentage: row.attendance_percentage,
   };
 }
 
 /**
- * Fields → the body the backend validates. Only the new keys are written; a row
- * whose month could not be placed is dropped (it never printed either).
+ * Fields → the body the backend validates: the **full migration** of a body to
+ * the new keys, legacy keys dropped. Only the certificate form calls it, where
+ * every field is on screen and validated first — the Customizations panel never
+ * migrates a body (`withCertificatePanelChange`). **No row is dropped:** a row
+ * whose month could not be placed is written as-is so the backend refuses it
+ * loudly; the form's schema keeps that from happening by asking for the month.
  */
 export function toStoredCertificateContent(
   fields: CertificateFields,
@@ -329,7 +376,7 @@ export function toStoredCertificateContent(
     date_of_admission: fields.date_of_admission,
     date_of_completion: fields.date_of_completion,
     issue: fields.issue,
-    marking: fields.marking.filter((r) => r.month).map(toStoredRow),
+    marking: fields.marking.map(toStoredRow),
     grades: { ...fields.grades },
     study_type: fields.study_type,
     photo_media_id: fields.photo_media_id,
@@ -338,4 +385,35 @@ export function toStoredCertificateContent(
     branch_name: fields.branch_name.trim(),
     branch_no: fields.branch_no.trim(),
   };
+}
+
+/** The four keys the Customizations panel owns — all in the new key set. */
+export interface CertificatePanelChange {
+  issue?: string;
+  study_type?: 0 | 1;
+  instructor_id?: string | null;
+  director_id?: string | null;
+}
+
+/**
+ * A Customizations-panel change, applied to the **stored body as it is**: only
+ * the panel's own keys are written (new names), everything else is sent back
+ * untouched — legacy keys pass the backend, and the normalizer prefers a new key
+ * over its legacy twin, so `issue` wins over an old `issueDate`.
+ *
+ * The one other change is `gender`'s case (`"Male"` → `"male"`): lossless, and
+ * without it every older certificate's panel save would be refused. Anything
+ * else an older body breaks (an unplaceable month, too many rows, …) is left for
+ * the form to fix, where the operator sees every field.
+ */
+export function withCertificatePanelChange(
+  content: CertificateContent,
+  change: CertificatePanelChange,
+): CertificateContent {
+  const next: CertificateContent = { ...content, ...change };
+  if (typeof content.gender === "string" && content.gender) {
+    const lowered = toCertificateGender(content.gender);
+    if (lowered) next.gender = lowered;
+  }
+  return next;
 }

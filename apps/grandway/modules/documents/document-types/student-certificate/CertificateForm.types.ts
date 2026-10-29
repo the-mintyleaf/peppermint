@@ -14,6 +14,12 @@ export interface CertificateAttendanceRow {
   month: string | null;
   total_days: number | "";
   present: number | "";
+  /**
+   * Only on a row from an older certificate whose month could not be read
+   * (`0`, `13`, free text): what was stored, shown so the operator can pick the
+   * right month. The row is kept, never dropped.
+   */
+  source_month?: string;
 }
 
 /**
@@ -86,6 +92,15 @@ export interface CertificateFormBodyProps extends DocumentFormProps {
   prefill: DocumentPrefill | null;
   /** The prefill was asked for and failed — the form opens unseeded. */
   prefillFailed: boolean;
+}
+
+/** Why a Customizations-panel save was refused. */
+export type CertificatePanelRefusal =
+  | { kind: "fields"; fields: Record<string, string> }
+  | { kind: "other"; message: string };
+
+export interface CertificatePanelRefusalProps {
+  refusal: CertificatePanelRefusal;
 }
 
 export interface CertificateUnplacedErrorsProps {

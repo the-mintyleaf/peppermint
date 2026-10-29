@@ -53,6 +53,15 @@ const DocumentEditorContext = createContext<DocumentEditorContextValue | null>(
   null,
 );
 
+/**
+ * A save or create the editor refuses before calling the API: say why, then
+ * reject, so the caller's "close on success" never fires for a no-op.
+ */
+function refuseLocally(title: string, message: string): never {
+  notifications.show({ title, message, color: "red" });
+  throw new Error(message);
+}
+
 export function useDocumentEditor() {
   const ctx = useContext(DocumentEditorContext);
   if (!ctx) {
@@ -262,9 +271,20 @@ export function DocumentEditorProvider({
   const { mutateAsync: updateContentAsync } = updateMutation;
   const saveDocumentContent = useCallback(
     async (documentId: string, content: DocumentContent) => {
-      if (!canEdit) return;
+      // Never resolve without saving — a caller closes its modal on success.
+      if (!canEdit) {
+        refuseLocally(
+          "Could not save changes",
+          "You have view-only access to documents.",
+        );
+      }
       const doc = documentsRef.current.find((d) => d.id === documentId);
-      if (!doc) return;
+      if (!doc) {
+        refuseLocally(
+          "Could not save changes",
+          "This document is no longer in the editor. Reload the page and try again.",
+        );
+      }
       setHasPendingEdits(true);
       await updateContentAsync({ id: documentId, content });
     },
@@ -336,7 +356,19 @@ export function DocumentEditorProvider({
   // can stay open on a refused body (see `DocumentFormProps.onSubmit`).
   const createDocumentWithContent = useCallback(
     async (type: DocumentType, content: DocumentContent, label?: string) => {
-      if (!canEdit || !applicantId) return;
+      // Never resolve without creating — the create modal closes on success.
+      if (!canEdit) {
+        refuseLocally(
+          "Failed to add page",
+          "You have view-only access to documents.",
+        );
+      }
+      if (!applicantId) {
+        refuseLocally(
+          "Failed to add page",
+          "Pages can only be added inside an applicant's workspace.",
+        );
+      }
       await createDocumentAsync({
         applicantId,
         family: familyForType(type),

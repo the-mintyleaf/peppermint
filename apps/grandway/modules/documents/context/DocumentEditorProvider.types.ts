@@ -95,6 +95,8 @@ export interface DocumentEditorContextValue {
    * **rejects with the API error** (after the usual toast) so the form that asked
    * can stay open and mark refused fields — a `student-certificate` body is
    * validated server-side (400 `DOCUMENTS_CONTENT_INVALID`, `details.fields`).
+   * It also rejects (with a toast) when nothing was sent — a reader, or a
+   * document no longer in the editor — so it never resolves without saving.
    * Callers that ignore the result must still attach a rejection handler.
    */
   saveDocumentContent: (
@@ -116,7 +118,8 @@ export interface DocumentEditorContextValue {
   /**
    * Creates a page from a form's content (with the type's `template_version`).
    * Resolves once created; rejects with the API error after the toast, so the
-   * create form can stay open on a refused body.
+   * create form can stay open on a refused body. Also rejects (with a toast)
+   * for a reader or outside an applicant workspace — never resolves for a no-op.
    */
   createDocumentWithContent: (
     type: DocumentType,

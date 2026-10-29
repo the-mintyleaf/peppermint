@@ -59,15 +59,24 @@ const PHOTO_CAPTION =
  * certificate opens seeded from the applicant file (`GET /documents/prefill/`):
  * name parts, date of birth, gender, address and photograph, all still editable.
  *
- * `FormWrapper` reads `initial` once, so the form mounts only after the prefill
- * settles — successfully or not; a failed prefill opens the form empty.
+ * `FormWrapper` reads `initial` once, so a NEW form mounts only after (a) a
+ * **fresh** prefill fetch for this open has settled — successfully or not; a
+ * failed prefill opens the form empty — and (b) the editor's applicant summary
+ * has arrived (the name fallback and photograph id come from it), or
+ * `SUMMARY_WAIT_MS` has passed, whichever is first. Editing never waits.
  */
 export function CertificateForm(props: DocumentFormProps) {
   const existing = props.initialContent as CertificateContent | undefined;
   const isNew = !existing;
+  const seeds = isNew && Boolean(props.applicantId);
   const prefill = useDocumentPrefill(props.applicantId, { enabled: isNew });
+  const summaryWaitOver = useSummaryWait(seeds && !props.studentFullData);
 
-  if (isNew && prefill.isLoading) {
+  const waitingForPrefill =
+    seeds && !prefill.isFetchedAfterMount && !prefill.isError;
+  const waitingForSummary = seeds && !props.studentFullData && !summaryWaitOver;
+
+  if (waitingForPrefill || waitingForSummary) {
     return (
       <Center p="xl">
         <Loader size="sm" aria-label="Loading the applicant's details" />
@@ -83,6 +92,24 @@ export function CertificateForm(props: DocumentFormProps) {
       prefillFailed={isNew && prefill.isError}
     />
   );
+}
+
+/** How long a new form waits for the applicant summary before opening without it. */
+const SUMMARY_WAIT_MS = 4000;
+
+/**
+ * `true` once `waiting` has held for `SUMMARY_WAIT_MS` — the fallback that keeps
+ * a slow or failed summary from holding the create form shut. It only ever
+ * flips once, so a form that has opened never unmounts again.
+ */
+function useSummaryWait(waiting: boolean): boolean {
+  const [over, setOver] = useState(false);
+  useEffect(() => {
+    if (!waiting || over) return;
+    const timer = setTimeout(() => setOver(true), SUMMARY_WAIT_MS);
+    return () => clearTimeout(timer);
+  }, [waiting, over]);
+  return over;
 }
 
 function CertificateFormBody({

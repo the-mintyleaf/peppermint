@@ -134,7 +134,7 @@ and on every PATCH with content, snake_case keys; a refusal is 400
 | `certificateContent.ts`    | **Pure.** `normalizeCertificateContent` (read either era) / `toStoredCertificateContent` (write the validated keys only) |
 | `certificateForm.utils.ts` | Zod schema mirroring the backend rules, content ↔ form values, `serverPathToFormPath`                                    |
 | `CertificateForm.tsx`      | Form; seeds a NEW certificate from the prefill; marks server refusals                                                    |
-| `CertificateConfigBar.tsx` | Customizations: issue date, signatories, study status — same keys                                                        |
+| `CertificateConfigBar.tsx` | Customizations: issue date, signatories, study status — writes only those keys (`withCertificatePanelChange`)            |
 | `CertificateTemplate.tsx`  | Adapter → `StudentCertificateData` (`@/context/DocumentContext`)                                                         |
 | `useCertificatePhoto.ts`   | Resolves `photo_media_id` to a URL, reusing the editor's current photo                                                   |
 
@@ -143,20 +143,34 @@ and on every PATCH with content, snake_case keys; a refusal is 400
   `studyType`, `instructorId`/`directorId`, `customBranch`/`customBranchNo`,
   `batch.course.*`, `issueDate`, `studentName`, `program`). Every reader goes
   through `normalizeCertificateContent`, so they open, preview and print
-  unchanged; the next save from the form **or** the Customizations panel rewrites
-  them under the new keys and drops the old ones (`LEGACY_CERTIFICATE_KEYS`).
-  `gender: "Male"` would now be refused, so a legacy body is never sent back.
+  unchanged. **Only an Edit-fields save migrates a body** — it rewrites it under
+  the new keys and drops the old ones (`LEGACY_CERTIFICATE_KEYS`), with every
+  field on screen and validated first.
+- **The Customizations panel never migrates.** `withCertificatePanelChange`
+  writes only its four keys (`issue`, `study_type`, `instructor_id`,
+  `director_id`) onto the stored body as it is, plus one lossless fix:
+  `gender` lowercased (`"Male"` is refused). If older data still breaks a rule,
+  the panel reverts its preview to the content before the change and lists the
+  fields to fix in Edit fields — preview and print never show an unsaved choice.
+- **No attendance row is ever dropped or rewritten in passing.** `toYearMonth`
+  reads `"2024-08"`, `"2024-8"`, `"2024-08-15"`, `"2024/8"`, bare numbers and
+  English month names. A row it still can't place (`0`, `13`, free text) opens in
+  the form with its stored text and "pick the month"; the save waits for it.
+  The printed table has one slot per month, so such a row is not printed.
+  Stored numbers pass through unclamped; the schema keeps them valid.
 - **Every printed field is entered in the certificate's own form or its
   Customizations panel.** Nothing needs filling in on the applicant's profile.
   Keep it that way — the prefill only seeds editable fields.
 - **Prefill seeds a NEW certificate only**: name parts, date of birth, gender,
   address (current, else permanent, `formatted`), `photo_media_id`.
-  `FormWrapper` reads `initial` once, so the form waits for the prefill to
-  settle; a failed prefill opens it empty with a notice.
+  `FormWrapper` reads `initial` once, so the form waits for a **fresh** prefill
+  fetch (`isFetchedAfterMount`; the hook keeps no cache) and for the applicant
+  summary (at most 4 s); a failed prefill opens it empty with a notice.
 - **Photograph.** The photo field edits the applicant's photograph; the save
   stores whichever is current as `photo_media_id` (`resolvePhotoMediaId`). The
   template prints the stored one — reusing the editor's resolved URL when it is
-  the current photo, fetching its own bytes only when pinned to an older one.
+  the current photo, otherwise resolving the stored id itself (the byte query is
+  shared by file id, so the common case downloads nothing extra).
   No `photo_media_id` (older certificates) → stored `image`, else current photo.
 - **Server field errors land on the open form.** `saveDocumentContent` /
   `createDocumentWithContent` reject after the provider's toast; the form maps
@@ -164,19 +178,22 @@ and on every PATCH with content, snake_case keys; a refusal is 400
   `course_books[i]` → `course_books`, others by name) with `form.setErrors`, and
   lists the unplaceable ones (`photo_media_id`) in an alert above the fields.
   The form's `finalSubmitFn` returns `ok: true` on purpose — `ok: false` would
-  add a second, generic toast.
-- **Customizations refusals** have no form to mark: the toast names the fields
-  (`describeContentSaveError`, `utils/contentFieldErrors.ts`). A certificate
-  whose stored photograph was archived after saving is refused on its next
-  content save; opening Edit fields and saving re-pins the current photo.
+  add a second, generic toast. Both also reject (with a toast) when the editor
+  sends nothing (reader, missing document, no applicant), so a modal never
+  closes on a no-op.
+- **Customizations refusals**: the toast names the fields
+  (`describeContentSaveError`, `utils/contentFieldErrors.ts`) and the panel shows
+  them with "open Edit fields". `onPersist` returns the save's promise for this.
+  A certificate whose stored photograph was archived after saving is refused on
+  its next content save; opening Edit fields and saving re-pins the current photo.
 
 ## Prefill
 
 `useDocumentPrefill(applicantId, { enabled })` (`hooks/useDocumentPrefill.ts`,
 exported from the barrel) → `GET /documents/prefill/<applicant_id>/`, mapped to
 camelCase `DocumentPrefill` (`documentPrefill.types.ts`). Key
-`documentPrefillKey(id)`, outside the documents tree. `staleTime: 0` (read when
-a form opens), no retry. Used today by the certificate form; **not yet wired
+`documentPrefillKey(id)`, outside the documents tree. No cache (`gcTime: 0`,
+`refetchOnMount: "always"`) — seed only once `isFetchedAfterMount`; no retry. Used today by the certificate form; **not yet wired
 into the Woda letters**.
 
 ## WODA letters

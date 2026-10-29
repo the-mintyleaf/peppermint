@@ -41,7 +41,11 @@ function toCertificateData(
     image,
     branch_name: f.branch_name,
     branch_no: f.branch_no,
-    marking: f.marking,
+    // The printed table has one slot per calendar month, so a row whose month
+    // can't be placed (`0`, `13`, free text) has nowhere to go — and handing the
+    // template an unparseable month would derail its start-month arithmetic for
+    // every row. Such rows stay in the content and the form flags them.
+    marking: f.marking.filter((row) => row.month),
   };
 }
 

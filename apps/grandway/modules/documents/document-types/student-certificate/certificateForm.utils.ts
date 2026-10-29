@@ -74,13 +74,19 @@ export const certificateSchema = z
     branch_no: text(50),
     attendance: z
       .array(
-        z.object({
+        z.looseObject({
           month: z
             .string()
             .nullable()
             .refine((v) => !!v, "Pick a month"),
-          total_days: optionalNumber,
-          present: optionalNumber,
+          total_days: optionalNumber.refine(
+            (v) => v === "" || (Number.isInteger(v) && v >= 0),
+            "A whole number of days",
+          ),
+          present: optionalNumber.refine(
+            (v) => v === "" || v >= 0,
+            "Can't be negative",
+          ),
         }),
       )
       .max(MAX_ATTENDANCE_MONTHS, `At most ${MAX_ATTENDANCE_MONTHS} months`),
@@ -108,6 +114,7 @@ export const certificateSchema = z
       }
       if (month) seen.add(month);
       const classHours = (Number(row.total_days) || 0) * hoursPerDay;
+      // Negative / fractional values are reported by the row schema above.
       if ((Number(row.present) || 0) > classHours) {
         ctx.addIssue({
           code: "custom",
@@ -128,11 +135,17 @@ export function classHoursFor(
   return (Number(row.total_days) || 0) * (Number(hoursPerDay) || 0);
 }
 
+/**
+ * A stored row → a form row. A row whose month could not be placed is **kept**
+ * with `month: null` and its original text, so the form asks for the month (and
+ * says what was stored) instead of the save quietly dropping it.
+ */
 function toAttendanceRow(row: CertificateMarkRow): CertificateAttendanceRow {
   return {
     month: row.month ? `${row.month}-01` : null,
     total_days: row.total_days,
     present: row.present,
+    ...(row.month ? {} : { source_month: row.source_month }),
   };
 }
 
@@ -198,6 +211,9 @@ function seedFromPrefill(
     gender: toCertificateGender(p?.gender),
     address:
       p?.currentAddress?.formatted || p?.permanentAddress?.formatted || "",
+    // `fetchApplicantSummary` leaves `program` blank today (Grandway applicants
+    // carry none), so this is usually "" — typed in the form, never required
+    // from the profile. The form waits for the summary so it is at least current.
     course_name: student?.program ?? "",
     photo_media_id: prefill?.photoMediaId ?? student?.photoFileId ?? null,
   };
@@ -223,22 +239,28 @@ export function toCertificateFormValues(
 
 // ── Form → content ───────────────────────────────────────────────────────────
 
+/**
+ * Form rows → stored rows. Every row is kept (the schema refuses a save with a
+ * month missing), and class hours are computed from the **stored** `total_days`
+ * — the same number the row shows — so the printed row matches what was typed.
+ */
 function toMarkRows(values: CertificateFormValues): CertificateMarkRow[] {
   const hoursPerDay = Number(values.course_hours_per_day) || 0;
-  return values.attendance
-    .filter((row) => row.month)
-    .map((row) => {
-      const classHours = classHoursFor(row, hoursPerDay);
-      const present = Number(row.present) || 0;
-      return {
-        month: (row.month as string).slice(0, 7),
-        total_days: Number(row.total_days) || 0,
-        class_hr: classHours,
-        present,
-        absent: Math.max(classHours - present, 0),
-        attendance_percentage: attendancePercent(present, classHours),
-      };
-    });
+  return values.attendance.map((row) => {
+    const month = row.month ? row.month.slice(0, 7) : "";
+    const totalDays = Number(row.total_days) || 0;
+    const classHours = totalDays * hoursPerDay;
+    const present = Number(row.present) || 0;
+    return {
+      month,
+      source_month: month || (row.source_month ?? ""),
+      total_days: totalDays,
+      class_hr: classHours,
+      present,
+      absent: Math.max(classHours - present, 0),
+      attendance_percentage: attendancePercent(present, classHours),
+    };
+  });
 }
 
 /**
@@ -323,8 +345,8 @@ const SAME_NAME_KEYS = new Set<string>([
 /**
  * A `DOCUMENTS_CONTENT_INVALID` path → the form field that shows it, or `null`
  * when no input owns it (`photo_media_id`, a whole-list `marking` error).
- * Attendance rows map one-to-one: rows without a month are never saved, and the
- * schema refuses a row without one, so `marking[i]` is `attendance.i`.
+ * Attendance rows map one-to-one: every form row is saved, in order, so
+ * `marking[i]` is `attendance.i`.
  */
 export function serverPathToFormPath(path: string): string | null {
   const row = path.match(/^marking\[(\d+)\](?:\.(\w+))?$/);
