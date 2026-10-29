@@ -4,6 +4,7 @@ import {
   LEAD_DELETE_REASON_MAX,
   LEAD_RESTORE_REASON_MAX,
 } from "../../leadManagement.types";
+import { isStaleLeadError } from "../../leadErrors.utils";
 
 interface LeadRef {
   id: string;
@@ -35,11 +36,27 @@ function assertReasonLength(reason: string, max: number) {
 }
 
 /**
+ * Runs the write; a stale-lead 409 (already deleted / already restored /
+ * converted) RESOLVES instead of rejecting, so the confirm modal closes —
+ * retrying can't succeed. The mutation hook has already toasted why and
+ * refetched the lead and board. Any other failure rejects, keeping the modal
+ * open with the reason intact for a retry.
+ */
+async function closeOnStale(write: Promise<unknown>): Promise<void> {
+  try {
+    await write;
+  } catch (error) {
+    if (!isStaleLeadError(error)) throw error;
+  }
+}
+
+/**
  * Admin-only soft delete, behind a required reason. The copy separates it
  * from "Mark as lost" on purpose: lost is a real enquiry that stays
  * reportable; deleted should never have counted (a duplicate, spam, a test).
- * `deleteLead` is `useDeleteLead().mutateAsync` — it toasts its own outcome,
- * and a rejection keeps the modal open for retry.
+ * `deleteLead` is `useDeleteLead().mutateAsync` — it toasts its own outcome.
+ * A failure keeps the modal open for retry, except a stale-lead 409
+ * (`closeOnStale`), which closes it because a retry can't succeed.
  */
 export function openDeleteLeadModal(lead: LeadRef, deleteLead: DeleteLeadFn) {
   openReasonConfirmModal({
@@ -55,7 +72,7 @@ export function openDeleteLeadModal(lead: LeadRef, deleteLead: DeleteLeadFn) {
     confirmColor: "red",
     onConfirm: async (reason) => {
       assertReasonLength(reason, LEAD_DELETE_REASON_MAX);
-      await deleteLead({ id: lead.id, reason });
+      await closeOnStale(deleteLead({ id: lead.id, reason }));
     },
   });
 }
@@ -79,7 +96,11 @@ export function openRestoreLeadModal(
     confirmLabel: "Restore lead",
     onConfirm: async (reason) => {
       assertReasonLength(reason, LEAD_RESTORE_REASON_MAX);
-      await restoreLead({ id: lead.id, reason: reason || undefined });
+      // `onRestored` fires on a stale refusal too: either way the lead has
+      // left the deleted list, so the caller's page adjustment still applies.
+      await closeOnStale(
+        restoreLead({ id: lead.id, reason: reason || undefined }),
+      );
       onRestored?.();
     },
   });

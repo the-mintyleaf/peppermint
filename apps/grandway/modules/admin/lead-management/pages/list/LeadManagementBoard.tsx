@@ -28,7 +28,12 @@ import {
 import { useLeadAccess } from "../../leadAccess.hooks";
 import { CATEGORY_LABELS } from "../../leadCategory.utils";
 import { createLead, getLead, updateLead } from "../../leadManagement.api";
-import { useLeadBoardData, useLeadSources } from "../../leadManagement.hooks";
+import {
+  useLeadBoardData,
+  useLeadSources,
+  useRefreshLead,
+  useRefreshOnStaleLead,
+} from "../../leadManagement.hooks";
 import { ReferenceDataModal } from "../../reference-data";
 import type {
   LeadBoardRow,
@@ -109,6 +114,8 @@ function LeadManagementBoardContent() {
   const [referenceDataOpen, setReferenceDataOpen] = useState(false);
   const [deletedLeadsOpen, setDeletedLeadsOpen] = useState(false);
   const { submitError, captureSubmitError } = useLeadFormSubmitErrorChannel();
+  const refreshLead = useRefreshLead();
+  const refreshOnStale = useRefreshOnStaleLead();
 
   const { capped, isLoading, boardQueryKey, queryFn } = useLeadBoardData(
     fiscalYear,
@@ -167,13 +174,28 @@ function LeadManagementBoardContent() {
         editFormComponent={LeadForm}
         // `captureSubmitError` hands a rejection's field details to the open
         // form (`LeadFormSubmitErrorContext`) and rethrows, so the shell still
-        // toasts and keeps the modal open.
-        onCreateApi={(values) => captureSubmitError(createLead(values))}
-        onEditApi={(values, record) =>
-          captureSubmitError(
-            updateLead(record.id, toUpdatePayload(values, record)),
-          )
-        }
+        // toasts and keeps the modal open. The shell itself only invalidates
+        // `boardQueryKey` — the CURRENT scope — so a filtered board would
+        // leave the unscoped dashboard queries and the lead's detail stale;
+        // `refreshLead` invalidates `lists()` (every scope) + `detail(id)`,
+        // on success and on a stale-lead 409 (deleted/converted meanwhile).
+        onCreateApi={async (values) => {
+          const created = await captureSubmitError(createLead(values));
+          refreshLead(created.id);
+          return created;
+        }}
+        onEditApi={async (values, record) => {
+          try {
+            const updated = await captureSubmitError(
+              updateLead(record.id, toUpdatePayload(values, record)),
+            );
+            refreshLead(record.id);
+            return updated;
+          } catch (error) {
+            refreshOnStale(error, record.id);
+            throw error;
+          }
+        }}
         onEditTrigger={async (record) => ({
           ...(await getLead(record.id)),
           category: record.category,

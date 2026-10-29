@@ -1,16 +1,11 @@
 import {
-  ACADEMIC_SCORE_RANGE,
   applyApiFieldErrors,
   getApiFieldErrors,
   nepalTodayIso,
   toLanguageTestFormRows,
   toLanguageTestPayloads,
 } from "@/components/academic";
-import type {
-  AcademicScoreType,
-  FieldErrorTarget,
-  YearCalendar,
-} from "@/components/academic";
+import type { FieldErrorTarget, YearCalendar } from "@/components/academic";
 import { getApiError, getApiErrorMessage } from "@/lib/authErrorMessages";
 import type {
   ContactNumberInput,
@@ -52,35 +47,38 @@ export const INITIAL_LEAD_FORM: LeadFormValues = {
 
 // ── Years ────────────────────────────────────────────────────────────────────
 
+/** BS 2000 is the backend's floor for a BS pass year. */
+const BS_PASS_YEAR_MIN = 2000;
+const AD_PASS_YEAR_MIN = 1950;
+
 /**
  * The backend's pass-year windows: BS 2000 … this BS year + 1, AD 1950 …
- * this year + 1. The BS year is approximated from Nepal's AD date (the BS new
- * year falls on ~14 April) — the server stays authoritative, and its
- * `LEADS_STUDY_INTEREST_INVALID` lands on the field if the edge disagrees.
+ * this year + 1. The client can't know the exact BS new-year date, so the BS
+ * upper bound is the LATER of the two BS years today could be (AD + 57) plus
+ * one — i.e. up to a year of slack. A client check may only ever be looser
+ * than the server's; the server's `LEADS_STUDY_INTEREST_INVALID` field error
+ * is the final word on the edge.
  */
 export function passYearRange(calendar: YearCalendar): {
   min: number;
   max: number;
 } {
-  const today = nepalTodayIso();
-  const adYear = Number(today.slice(0, 4));
-  if (calendar === "ad") return { min: 1950, max: adYear + 1 };
-  const bsYear = adYear + (today.slice(5) >= "04-14" ? 57 : 56);
-  return { min: 2000, max: bsYear + 1 };
+  const adYear = Number(nepalTodayIso().slice(0, 4));
+  if (calendar === "ad") return { min: AD_PASS_YEAR_MIN, max: adYear + 1 };
+  return { min: BS_PASS_YEAR_MIN, max: adYear + 57 + 1 };
 }
 
 /**
- * Best guess for a blank calendar once a year is typed: a year past the AD
- * window can only be BS (2080 BS); anything inside it is read as AD. Only
- * ever fills a BLANK calendar — never overrides the user's pick.
+ * The calendar a typed year can ONLY be in, or `null` when it could be
+ * either. Past the AD window (e.g. 2080) it can only be BS; before BS 2000
+ * (e.g. 1998) it can only be AD. Anything in the overlap (2000 … this AD year
+ * + 1) is ambiguous — the user must pick. Callers only ever fill a BLANK
+ * calendar with this, and must show that they did.
  */
-export function inferYearCalendar(year: number): YearCalendar {
-  return year > passYearRange("ad").max ? "bs" : "ad";
-}
-
-/** A blank score type once a score is typed: ≤ 4 reads as a GPA, above as a percentage. */
-export function inferScoreType(score: number): AcademicScoreType {
-  return score <= ACADEMIC_SCORE_RANGE.gpa.max ? "gpa" : "percentage";
+export function unambiguousYearCalendar(year: number): YearCalendar | null {
+  if (year > passYearRange("ad").max) return "bs";
+  if (year < BS_PASS_YEAR_MIN) return "ad";
+  return null;
 }
 
 // ── Record → form ────────────────────────────────────────────────────────────

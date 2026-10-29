@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Alert,
   Button,
@@ -56,7 +57,7 @@ function LeadProfileHeader({ lead }: { lead: LeadDetail }) {
   const deleteLead = useDeleteLead();
   const addedBy = userName(lead.created_by);
   const canDelete =
-    isLeadAdmin && lead.deleted_at === null && !lead.converted_applicant_id;
+    isLeadAdmin && !lead.deleted_at && !lead.converted_applicant_id;
 
   return (
     <Group justify="space-between" align="flex-start" wrap="nowrap" gap="xs">
@@ -152,7 +153,7 @@ function LeadNotesTab({ lead }: { lead: LeadDetail }) {
   const refreshLead = useRefreshLead();
 
   let readOnlyReason: string | undefined;
-  if (lead.deleted_at !== null) {
+  if (lead.deleted_at) {
     readOnlyReason =
       "This lead was deleted. Restore it to add or change notes.";
   } else if (lead.converted_applicant_id) {
@@ -186,13 +187,23 @@ export function LeadDetailDrawer({
   opened,
   onClose,
 }: LeadDetailDrawerProps) {
+  // Closing clears `leadId` before the drawer's exit animation finishes, so
+  // the last opened id is retained and kept rendered while it slides out —
+  // otherwise the closing drawer flashes "Couldn't load this lead". Derived
+  // during render (the documented "adjust state on prop change" pattern).
+  const [retainedLeadId, setRetainedLeadId] = useState(leadId);
+  if (leadId !== null && leadId !== retainedLeadId) {
+    setRetainedLeadId(leadId);
+  }
+  const shownLeadId = leadId ?? retainedLeadId;
+
   const {
     data: lead,
     isLoading,
     isError,
     error,
     refetch,
-  } = useLeadDetail(leadId);
+  } = useLeadDetail(shownLeadId);
   const notFound =
     isError && getApiError(error).code === "LEADS_LEAD_NOT_FOUND";
 
@@ -229,8 +240,12 @@ export function LeadDetailDrawer({
           </Button>
         </Stack>
       ) : (
-        <Stack gap="md">
-          {lead.deleted_at !== null ? <DeletedLeadBanner lead={lead} /> : null}
+        // Keyed by id: `?lead=` can switch A → B while the drawer stays open
+        // (a notification link, a spotlight hit). Remounting resets the tab,
+        // the notes page/tab, any in-place note edit and the composer draft,
+        // so nothing from A carries onto B.
+        <Stack gap="md" key={lead.id}>
+          {lead.deleted_at ? <DeletedLeadBanner lead={lead} /> : null}
 
           <LeadProfileHeader lead={lead} />
 

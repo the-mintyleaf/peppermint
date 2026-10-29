@@ -54,7 +54,9 @@ function ContactNumbers({ lead }: { lead: LeadDetail }) {
  * is shown as a fact (a badge), never as a lever.
  */
 export function LeadOverviewPanel({ lead }: { lead: LeadDetail }) {
-  const isDeleted = lead.deleted_at !== null;
+  // Truthiness, not `!== null`: a record cached before the field existed
+  // has it `undefined`, which must read as "not deleted".
+  const isDeleted = Boolean(lead.deleted_at);
   const followedUpBy =
     lead.last_followed_up_by?.display_name ||
     lead.last_followed_up_by?.username ||

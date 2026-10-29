@@ -23,6 +23,7 @@ applicants. Contract: `docs/backend/lead-management/INTEGRATION.md` (v1.5.0,
 | API              | `leadManagement.api.ts` — `fetchAllLeads` (aggregate, server filters), `deleteLead`/`restoreLead`/`fetchDeletedLeads`, notes CRUD, history                                                                            |
 | Query keys       | `leadManagement.queryKeys.ts` — `leadNotesKey`, `leadHistoryKey`, `deletedLeadsKey` (under `lists()`)                                                                                                                 |
 | Hooks            | `leadManagement.hooks.ts` — `useLeadBoardData(fiscalYear, filters)`, lifecycle mutations, `useDeleteLead`/`useRestoreLead`/`useDeletedLeads`, `useLeadNotesAdapter`, `useRefreshLead`                                 |
+| Errors           | `leadErrors.utils.ts` — `isStaleLeadError` (the stale-lead 409 family)                                                                                                                                                |
 | Permissions      | `leadAccess.hooks.ts` — `useLeadAccess()` → `isLeadAdmin` (exact `admin` tier), `currentUserId`                                                                                                                       |
 | Labels           | `studyInterest.labels.ts` (study level, test status); `leadCategory.utils.ts` (board categories, stage labels/colours, `toLeadBoardRow`)                                                                              |
 | Form             | `form/LeadForm.tsx` + `LeadForm.{types,schema,utils,context}.ts`; sections `StudyInterestSection`, `AcademicBackgroundSection`, `LanguageSection`, `ContactNumbersField`                                              |
@@ -57,8 +58,19 @@ applicants. Contract: `docs/backend/lead-management/INTEGRATION.md` (v1.5.0,
   `study_interest.<field>`, `language_certificates[i].<field>` and
   `LEADS_CERTIFICATE_LIMIT` onto fields (`applyLeadServerErrors`).
 - **Pairs**: score + type and pass year + calendar are revealed once a level is
-  chosen (or a value exists); a blank unit is inferred on leaving the pair; a
-  unit without its value is dropped from the payload; no clamping.
+  chosen (or a value exists). The score type is never guessed (a score with no
+  type is a validation error). The calendar is filled only when the year
+  allows one (`unambiguousYearCalendar`: >this AD year+1 → BS, <2000 → AD) and
+  the field says "Read as …"; overlap years must be picked. A unit without its
+  value is dropped from the payload; no clamping.
+- **Cache freshness**: every lead write (`useRefreshOnStaleLead`) refetches the
+  lead + `lists()` on a stale-lead 409 (`leadErrors.utils.ts`:
+  `LEADS_LEAD_DELETED` / `_NOT_DELETED` / `_ALREADY_CONVERTED`); the board's
+  create/edit wrappers refresh `lists()` + `detail(id)` on success too, since
+  the shell only invalidates the current scoped key. A stale delete/restore
+  closes its confirm modal (the toast says why).
+- **Drawer**: content is keyed by lead id (switching `?lead=` resets tabs,
+  notes state and drafts); the last id is retained while the drawer closes.
 - **Certificates** replace wholesale: an edit always sends the full list (`[]`
   clears), a create omits an empty one.
 - **Soft delete (Admin only)**: row menu + drawer dots menu → reason modal
@@ -78,8 +90,8 @@ applicants. Contract: `docs/backend/lead-management/INTEGRATION.md` (v1.5.0,
 - A converted-then-reopened lead looks active in the list shape, so the row
   menu still offers Delete; the server's `LEADS_LEAD_ALREADY_CONVERTED` toast
   is the guard. The drawer (full detail) hides it correctly.
-- BS pass-year upper bound is approximated client-side (new year ≈ 14 April);
-  the server's field error is authoritative.
+- BS pass-year upper bound is deliberately loose (AD year + 58, up to a year
+  of slack over the real BS year + 1); the server's field error is final.
 - `isLeadAdmin` compares `authorityType === "admin"` in `useLeadAccess` only —
   `config/access` has no lead-admin capability yet. Do not add new inline
   authority comparisons; use `useLeadAccess`.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import {
   keepPreviousData,
   useMutation,
@@ -36,6 +36,7 @@ import {
   updateLossReason,
 } from "./leadManagement.api";
 import { emptyCategoryCounts, toLeadBoardRow } from "./leadCategory.utils";
+import { isStaleLeadError } from "./leadErrors.utils";
 import {
   deletedLeadsKey,
   leadHistoryKey,
@@ -330,39 +331,79 @@ function invalidateKeysFor(leadId: string) {
   ];
 }
 
+/**
+ * Refetch one lead and the board (`lists()` — every scope, the dashboard's
+ * and the Deleted-leads view included). Used after delete/restore, after a
+ * lead create/edit, and whenever a write is refused as stale.
+ */
+export function useRefreshLead() {
+  const queryClient = useQueryClient();
+  return useCallback(
+    (leadId: string) => {
+      invalidateKeysFor(leadId).forEach((queryKey) => {
+        void queryClient.invalidateQueries({ queryKey });
+      });
+    },
+    [queryClient],
+  );
+}
+
+/**
+ * `onError` for every lead write: on a stale-lead 409 (`isStaleLeadError` —
+ * deleted / not deleted / already converted) refetch the lead and the board,
+ * since `useAppMutation` only invalidates on success.
+ */
+export function useRefreshOnStaleLead() {
+  const refreshLead = useRefreshLead();
+  return useCallback(
+    (error: unknown, leadId: string) => {
+      if (isStaleLeadError(error)) refreshLead(leadId);
+    },
+    [refreshLead],
+  );
+}
+
 export function useChangeLeadStage(leadId: string) {
+  const refreshOnStale = useRefreshOnStaleLead();
   return useAppMutation<unknown, StageChangePayload>({
     mutationFn: (body) => changeLeadStage(leadId, body),
     successMessage: "Stage updated.",
     errorTitle: "Couldn't update stage",
     invalidateKeys: invalidateKeysFor(leadId),
+    onError: (error) => refreshOnStale(error, leadId),
   });
 }
 
 export function useRecordLeadFollowUp(leadId: string) {
+  const refreshOnStale = useRefreshOnStaleLead();
   return useAppMutation<unknown, FollowUpPayload>({
     mutationFn: (body) => recordLeadFollowUp(leadId, body),
     successMessage: "Follow-up recorded.",
     errorTitle: "Couldn't record follow-up",
     invalidateKeys: invalidateKeysFor(leadId),
+    onError: (error) => refreshOnStale(error, leadId),
   });
 }
 
 export function useMarkLeadLost(leadId: string) {
+  const refreshOnStale = useRefreshOnStaleLead();
   return useAppMutation<unknown, MarkLostPayload>({
     mutationFn: (body) => markLeadLost(leadId, body),
     successMessage: "Lead marked as lost.",
     errorTitle: "Couldn't mark lead as lost",
     invalidateKeys: invalidateKeysFor(leadId),
+    onError: (error) => refreshOnStale(error, leadId),
   });
 }
 
 export function useReopenLead(leadId: string) {
+  const refreshOnStale = useRefreshOnStaleLead();
   return useAppMutation<unknown, ReopenPayload>({
     mutationFn: (body) => reopenLead(leadId, body),
     successMessage: "Lead reopened.",
     errorTitle: "Couldn't reopen lead",
     invalidateKeys: invalidateKeysFor(leadId),
+    onError: (error) => refreshOnStale(error, leadId),
   });
 }
 
@@ -377,29 +418,15 @@ export function useReopenLead(leadId: string) {
  * decisions to the caller instead.
  */
 export function useConvertLead(leadId: string) {
-  const queryClient = useQueryClient();
+  const refreshLead = useRefreshLead();
+  const refreshOnStale = useRefreshOnStaleLead();
   return useMutation<ConvertLeadResponse, unknown, void>({
     mutationFn: () => convertLead(leadId),
-    onSuccess: () => {
-      invalidateKeysFor(leadId).forEach((queryKey) => {
-        void queryClient.invalidateQueries({ queryKey });
-      });
-    },
+    onSuccess: () => refreshLead(leadId),
+    // Hook-level, so it runs alongside the caller's own `onError` (the
+    // already-converted redirect) — the board/dashboard catch up either way.
+    onError: (error) => refreshOnStale(error, leadId),
   });
-}
-
-/**
- * Refetch one lead and the board — after delete/restore, and when a note
- * write is refused with 409 (the lead was converted or deleted since the
- * drawer loaded) so the drawer's `readOnlyReason` follows.
- */
-export function useRefreshLead() {
-  const queryClient = useQueryClient();
-  return (leadId: string) => {
-    invalidateKeysFor(leadId).forEach((queryKey) => {
-      void queryClient.invalidateQueries({ queryKey });
-    });
-  };
 }
 
 /**
@@ -410,32 +437,47 @@ export function useRefreshLead() {
  */
 export function useDeleteLead() {
   const refreshLead = useRefreshLead();
+  const refreshOnStale = useRefreshOnStaleLead();
   return useAppMutation<LeadDetail, { id: string; reason: string }>({
     mutationFn: ({ id, reason }) => deleteLead(id, { reason }),
     successTitle: "Lead deleted",
     successMessage: "An Admin can restore it from Deleted leads.",
     errorTitle: "Couldn't delete lead",
-    // The shared copy for this code is about converting; on delete it means
-    // the lead is an applicant's origin record (covers converted-then-reopened
-    // leads, which look active in the board's list shape).
-    getErrorMessage: (error) =>
-      getApiError(error).code === "LEADS_LEAD_ALREADY_CONVERTED"
-        ? "A lead that was converted can't be deleted — it is the applicant's origin record."
-        : getApiErrorMessage(error),
+    // The shared copy for these codes is written for other actions; on a
+    // delete they mean "someone got there first" / "this is an applicant's
+    // origin record" (also covers converted-then-reopened leads, which look
+    // active in the board's list shape).
+    getErrorMessage: (error) => {
+      const { code } = getApiError(error);
+      if (code === "LEADS_LEAD_DELETED") {
+        return "Someone already deleted this lead — the board has been refreshed.";
+      }
+      if (code === "LEADS_LEAD_ALREADY_CONVERTED") {
+        return "A lead that was converted can't be deleted — it is the applicant's origin record.";
+      }
+      return getApiErrorMessage(error);
+    },
     // `invalidateKeys` is static; these keys depend on the variables' id.
     onSuccess: (_data, { id }) => refreshLead(id),
+    onError: (error, { id }) => refreshOnStale(error, id),
   });
 }
 
 /** Admin-only restore — see `useDeleteLead` for why the id rides the variables. */
 export function useRestoreLead() {
   const refreshLead = useRefreshLead();
+  const refreshOnStale = useRefreshOnStaleLead();
   return useAppMutation<LeadDetail, { id: string; reason?: string }>({
     mutationFn: ({ id, reason }) => restoreLead(id, reason ? { reason } : {}),
     successTitle: "Lead restored",
     successMessage: "It is back on the board, exactly as it was.",
     errorTitle: "Couldn't restore lead",
+    getErrorMessage: (error) =>
+      getApiError(error).code === "LEADS_LEAD_NOT_DELETED"
+        ? "This lead was already restored — the board has been refreshed."
+        : getApiErrorMessage(error),
     onSuccess: (_data, { id }) => refreshLead(id),
+    onError: (error, { id }) => refreshOnStale(error, id),
   });
 }
 
