@@ -5,6 +5,7 @@ import type {
   CertificateGender,
   DocumentFormProps,
 } from "../../documents.types";
+import type { AttendanceMonthRange } from "./attendanceRange";
 
 export type CertificateGrade = "A" | "B" | "C" | "D";
 
@@ -78,6 +79,66 @@ export interface CertificateSignatorySectionProps extends CertificateSectionProp
 export interface CertificateSubmitButtonProps {
   isEdit: boolean;
   isLoading?: boolean;
+  /**
+   * Runs the client validation before the save. Returns `false` (after opening
+   * the tab with the first error) to stop it.
+   */
+  onBeforeSubmit: () => boolean;
+}
+
+/** The form's two tabs. */
+export type CertificateTab = "general" | "attendance";
+
+export interface CertificateFormTabsProps {
+  tab: CertificateTab;
+  onTabChange: (tab: CertificateTab) => void;
+  applicantId: string | null;
+  /** The applicant's name, for the photo field. */
+  studentName?: string;
+  signatureOptions: { value: string; label: string }[];
+  disabled?: boolean;
+}
+
+export interface CertificateTabErrorBadgeProps {
+  /** Fields with an error on the tab; nothing renders at 0. */
+  count: number;
+}
+
+/** Start month / number of months picked while the table forms no range yet. */
+export interface AttendanceRangeDraft {
+  /** `YYYY-MM-01`. */
+  start: string | null;
+  count: number | null;
+}
+
+export interface CertificateAttendanceTableProps extends CertificateSectionProps {
+  /**
+   * `true` when the rows are one unbroken run, so the range sets every month and
+   * the month column only names it. `false` for an older table shown as saved:
+   * each month stays pickable and a row can be removed.
+   */
+  rangeDriven: boolean;
+}
+
+export interface CertificateAttendanceRowProps extends CertificateSectionProps {
+  form: CertificateFormInstance;
+  row: CertificateAttendanceRow;
+  index: number;
+  rangeDriven: boolean;
+}
+
+export interface CertificateMonthNameProps {
+  /** `"Aug 2024"`. */
+  name: string;
+  /** A server refusal on the row's month. */
+  error?: string;
+}
+
+export interface CertificateAttendanceRangeProps extends CertificateSectionProps {
+  /** The range the rows form, or `null` when they form none. */
+  range: AttendanceMonthRange | null;
+  /** The table holds rows that form no range — an older certificate. */
+  legacy: boolean;
 }
 
 export interface CertificateFormRefBridgeProps {

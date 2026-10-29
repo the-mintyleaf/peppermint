@@ -20,13 +20,13 @@ import type {
   CertificateFormValues,
   CertificateGrade,
 } from "./CertificateForm.types";
+import { MAX_ATTENDANCE_MONTHS } from "./attendanceRange";
 
 export { attendancePercent } from "./certificateContent";
+export { MAX_ATTENDANCE_MONTHS } from "./attendanceRange";
 
 export const CERTIFICATE_GRADES: CertificateGrade[] = ["A", "B", "C", "D"];
 
-/** The template prints a twelve-month table, and the backend takes at most 12 rows. */
-export const MAX_ATTENDANCE_MONTHS = 12;
 /** Backend limit on `course_books`. */
 export const MAX_TEXTBOOKS = 20;
 
@@ -367,14 +367,23 @@ export function serverPathToFormPath(path: string): string | null {
   return SAME_NAME_KEYS.has(path) ? path : null;
 }
 
+/** What `applyServerFieldErrors` did with a refusal. */
+export interface AppliedServerErrors {
+  /** Form paths now marked, in the order the server listed them. */
+  placed: string[];
+  /** Refusals no input owns, keyed by their server path. */
+  unplaced: Record<string, string>;
+}
+
 /**
- * Marks every refused field on the open form. Returns the refusals no input owns,
- * keyed by their server path, for the form to list above its fields.
+ * Marks every refused field on the open form. Returns the marked form paths
+ * (so the form can open the tab holding the first) and the refusals no input
+ * owns, for the form to list above its fields.
  */
 export function applyServerFieldErrors(
   form: CertificateFormInstance,
   fields: Record<string, string>,
-): Record<string, string> {
+): AppliedServerErrors {
   const mapped: Record<string, string> = {};
   const unplaced: Record<string, string> = {};
   for (const [path, message] of Object.entries(fields)) {
@@ -383,5 +392,5 @@ export function applyServerFieldErrors(
     else unplaced[path] = message;
   }
   form.setErrors(mapped);
-  return unplaced;
+  return { placed: Object.keys(mapped), unplaced };
 }

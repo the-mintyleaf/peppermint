@@ -1,146 +1,230 @@
 "use client";
 
+import { useState } from "react";
 import {
-  ActionIcon,
-  Button,
+  Alert,
+  List,
   MonthPickerInput,
-  NumberInput,
-  Table,
+  Select,
+  SimpleGrid,
+  Stack,
   Text,
+  modals,
 } from "@peppermint/ui";
 import { useFormInstance } from "@peppermint/admin";
-import { Plus as PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
-import { Trash as TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { FormSection } from "@/components/FormSection";
 import {
-  MAX_ATTENDANCE_MONTHS as MAX_MONTHS,
-  attendancePercent,
-  classHoursFor,
-} from "./certificateForm.utils";
+  MAX_ATTENDANCE_MONTHS,
+  consecutiveMonths,
+  describeRowMonth,
+  formatMonth,
+  planMonthRange,
+  readMonthRange,
+  type AttendanceRangePlan,
+} from "./attendanceRange";
+import { CertificateAttendanceTable } from "./CertificateAttendanceTable";
 import type {
+  AttendanceRangeDraft,
+  CertificateAttendanceRangeProps,
+  CertificateAttendanceRow,
+  CertificateFormInstance,
   CertificateFormValues,
   CertificateSectionProps,
 } from "./CertificateForm.types";
 
+const COUNT_OPTIONS = Array.from({ length: MAX_ATTENDANCE_MONTHS }, (_, k) => ({
+  value: String(k + 1),
+  label: k === 0 ? "1 month" : `${k + 1} months`,
+}));
+
 /**
- * One row per month the student attended. Only the days held and the hours
- * attended are typed — class hours, absent hours and the percentage follow from
- * the course's hours per day, and are shown here as they will print.
+ * The attendance table, set by a start month and a number of months: picking
+ * them lists that many consecutive months (across year ends). Only the days
+ * held and the hours attended are typed per row. Changing the range later keeps
+ * what was typed for months still inside it, and asks before removing months
+ * that hold data. An older table that forms no range (gaps, repeats, an
+ * unreadable month) is shown as saved, each row still fixable, until the
+ * operator sets a range.
  */
 export function CertificateAttendanceField({
   disabled,
 }: CertificateSectionProps) {
   const { form } = useFormInstance<CertificateFormValues>();
   const rows = form.values.attendance;
-
-  const addRow = () =>
-    form.insertListItem("attendance", {
-      month: null,
-      total_days: "",
-      present: "",
-    });
+  const range = readMonthRange(rows);
+  const legacy = rows.length > 0 && !range;
+  const listError = form.errors.attendance;
 
   return (
     <FormSection
       title="Attendance"
-      description="One row per month. Class hours, absent hours and the percentage are worked out from the hours per day."
-      actions={
-        <Button
-          size="xs"
-          variant="light"
-          leftSection={<PlusIcon aria-hidden />}
-          onClick={addRow}
-          disabled={disabled || rows.length >= MAX_MONTHS}
-        >
-          Add month
-        </Button>
-      }
+      description="Pick the first month and how many months the course ran, then type the days held and hours attended for each. Class hours, absent hours and the percentage are worked out from the hours per day."
     >
+      <AttendanceRangeControls
+        range={range}
+        legacy={legacy}
+        disabled={disabled}
+      />
+      {legacy ? (
+        <Alert color="yellow" variant="light" p="xs">
+          <Text size="xs">
+            These months were saved with gaps, repeats or a month that
+            can&apos;t be read, so they&apos;re shown as saved. Fix each row
+            below, or pick a start month and number of months to rebuild the
+            table — days and hours already typed for months in the new range are
+            kept.
+          </Text>
+        </Alert>
+      ) : null}
       {rows.length === 0 ? (
         <Text size="sm" c="dimmed">
-          No months yet. The attendance table prints empty until you add one.
+          No months yet. The attendance table prints empty until you pick a
+          start month and the number of months.
         </Text>
       ) : (
-        <Table.ScrollContainer minWidth={520}>
-          <Table verticalSpacing="xs">
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Month</Table.Th>
-                <Table.Th>Days held</Table.Th>
-                <Table.Th>Hours attended</Table.Th>
-                <Table.Th>Attendance</Table.Th>
-                <Table.Th aria-label="Remove" />
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {rows.map((row, i) => {
-                const classHours = classHoursFor(
-                  row,
-                  form.values.course_hours_per_day,
-                );
-                const present = Number(row.present) || 0;
-                return (
-                  <Table.Tr key={form.key(`attendance.${i}`)}>
-                    <Table.Td>
-                      <MonthPickerInput
-                        aria-label={`Month ${i + 1}`}
-                        placeholder="Pick a month"
-                        valueFormat="MMM YYYY"
-                        description={
-                          !row.month && row.source_month
-                            ? `Saved as “${row.source_month}” — pick the month`
-                            : undefined
-                        }
-                        disabled={disabled}
-                        {...form.getInputProps(`attendance.${i}.month`)}
-                      />
-                    </Table.Td>
-                    <Table.Td>
-                      <NumberInput
-                        aria-label={`Days held, month ${i + 1}`}
-                        placeholder="22"
-                        min={0}
-                        max={31}
-                        allowDecimal={false}
-                        hideControls
-                        disabled={disabled}
-                        {...form.getInputProps(`attendance.${i}.total_days`)}
-                      />
-                    </Table.Td>
-                    <Table.Td>
-                      <NumberInput
-                        aria-label={`Hours attended, month ${i + 1}`}
-                        placeholder="40"
-                        min={0}
-                        hideControls
-                        disabled={disabled}
-                        {...form.getInputProps(`attendance.${i}.present`)}
-                      />
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm">
-                        {present} of {classHours} h (
-                        {attendancePercent(present, classHours)}%)
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <ActionIcon
-                        variant="subtle"
-                        color="red"
-                        aria-label={`Remove month ${i + 1}`}
-                        onClick={() => form.removeListItem("attendance", i)}
-                        disabled={disabled}
-                      >
-                        <TrashIcon />
-                      </ActionIcon>
-                    </Table.Td>
-                  </Table.Tr>
-                );
-              })}
-            </Table.Tbody>
-          </Table>
-        </Table.ScrollContainer>
+        <CertificateAttendanceTable
+          rangeDriven={Boolean(range)}
+          disabled={disabled}
+        />
       )}
+      {typeof listError === "string" && listError ? (
+        <Text size="xs" c="red" role="alert">
+          {listError}
+        </Text>
+      ) : null}
     </FormSection>
   );
+}
+
+/**
+ * Start month + number of months. When the rows form a range, both show it and
+ * a change applies at once. Otherwise (no rows yet, or an older table) the
+ * picks are held here until both are set — kept across tab switches because
+ * the tab panels stay mounted.
+ */
+function AttendanceRangeControls({
+  range,
+  legacy,
+  disabled,
+}: CertificateAttendanceRangeProps) {
+  const { form } = useFormInstance<CertificateFormValues>();
+  const [draft, setDraft] = useState<AttendanceRangeDraft>({
+    start: null,
+    count: null,
+  });
+
+  const start = range ? range.start : draft.start;
+  const count = range ? range.count : draft.count;
+  const months = range ? consecutiveMonths(range.start, range.count) : [];
+  const lastMonth = months[months.length - 1];
+
+  const requestRange = (nextStart: string | null, nextCount: number | null) => {
+    const next = { start: nextStart, count: nextCount };
+    if (range && nextStart === range.start && nextCount === range.count) return;
+    if (!nextStart && range) {
+      // Clearing the start month empties the table (after asking, if typed).
+      applyPlan(form, planMonthRange(form.values.attendance, null, 0), () =>
+        setDraft(next),
+      );
+      return;
+    }
+    if (!nextStart || !nextCount) {
+      setDraft(next);
+      return;
+    }
+    applyPlan(
+      form,
+      planMonthRange(form.values.attendance, nextStart, nextCount),
+      () => setDraft(next),
+    );
+  };
+
+  return (
+    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+      <MonthPickerInput
+        label="Start month"
+        placeholder="Pick a month"
+        valueFormat="MMM YYYY"
+        clearable
+        disabled={disabled}
+        value={start}
+        onChange={(value) => requestRange(value || null, count)}
+        description={
+          !range && start && !count
+            ? "Now pick the number of months."
+            : undefined
+        }
+      />
+      <Select
+        label="Number of months"
+        placeholder={legacy ? "Pick to rebuild" : "Pick 1–12"}
+        data={COUNT_OPTIONS}
+        allowDeselect={false}
+        disabled={disabled}
+        value={count ? String(count) : null}
+        onChange={(value) => requestRange(start, value ? Number(value) : null)}
+        description={
+          lastMonth ? `Through ${formatMonth(lastMonth)}` : undefined
+        }
+      />
+    </SimpleGrid>
+  );
+}
+
+/**
+ * Writes the planned table, asking first when it would remove months that hold
+ * typed attendance. Errors on the old rows are cleared — their indexes no
+ * longer match.
+ */
+function applyPlan(
+  form: CertificateFormInstance,
+  plan: AttendanceRangePlan,
+  onApplied: () => void,
+) {
+  const write = () => {
+    const kept = Object.fromEntries(
+      Object.entries(form.errors).filter(
+        ([path]) => path !== "attendance" && !path.startsWith("attendance."),
+      ),
+    );
+    form.setFieldValue("attendance", plan.rows);
+    form.setErrors(kept);
+    onApplied();
+  };
+  if (plan.dropped.length === 0) write();
+  else confirmDropMonths(plan.dropped, write);
+}
+
+function confirmDropMonths(
+  dropped: CertificateAttendanceRow[],
+  onConfirm: () => void,
+) {
+  const one = dropped.length === 1;
+  modals.openConfirmModal({
+    title: one
+      ? "Remove a month with attendance?"
+      : `Remove ${dropped.length} months with attendance?`,
+    children: (
+      <Stack gap="xs">
+        <Text size="sm">
+          The new range leaves out {one ? "this month" : "these months"}, and
+          the days and hours typed for {one ? "it" : "them"} will be removed:
+        </Text>
+        <List size="sm" spacing={2}>
+          {dropped.map((row, i) => (
+            <List.Item key={i}>{describeRowMonth(row)}</List.Item>
+          ))}
+        </List>
+        <Text size="xs" c="dimmed">
+          Nothing is saved until you save the certificate.
+        </Text>
+      </Stack>
+    ),
+    labels: { confirm: "Remove", cancel: "Keep the current months" },
+    confirmProps: { color: "red" },
+    // The theme zeroes modal body padding; this module's confirms restore it
+    // on the body so the text and the buttons both clear the edges.
+    styles: { body: { padding: "var(--mantine-spacing-md)" } },
+    onConfirm,
+  });
 }
