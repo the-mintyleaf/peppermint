@@ -42,3 +42,4 @@ yarn-error.log*
 # Nested backend doc-reference repo (has its own .git) — not tracked here
 .backend/
 
+be/
