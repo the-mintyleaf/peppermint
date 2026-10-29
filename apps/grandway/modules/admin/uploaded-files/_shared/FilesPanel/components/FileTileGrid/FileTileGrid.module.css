@@ -1,5 +1,9 @@
 .tile {
   position: relative;
+  /* A grid item's default `min-width: auto` lets one unbreakable filename
+     widen the tile past its column; 0 keeps it inside and lets the name
+     ellipsize instead. */
+  min-width: 0;
   padding: var(--mantine-spacing-sm);
   border-radius: var(--mantine-radius-md);
   border: 1px solid transparent;
@@ -14,21 +18,22 @@
 }
 
 /* The actions menu sits in the tile's corner rather than on its own line —
-   the tile is already the smallest thing that identifies a file. */
+   the tile is already the smallest thing that identifies a file. Stacked
+   above the open button, which spans the tile's full width. */
 .tileMenu {
   position: absolute;
   top: 4px;
   right: 4px;
+  z-index: 1;
 }
 
-/* Fixed square so a portrait scan and a landscape one leave the filenames
-   below them on the same baseline. */
-.preview {
-  width: 64px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* The open/download button: full tile width so the name can use all of it. */
+.open {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 4px 0;
+  border-radius: var(--mantine-radius-sm);
 }
 
 @media (prefers-reduced-motion: reduce) {

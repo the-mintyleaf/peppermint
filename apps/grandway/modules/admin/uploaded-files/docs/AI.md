@@ -62,17 +62,20 @@ without a `pages/list/` route.
 
 ## Common edit targets
 
-| Task                                   | Files                                                                                  |
-| -------------------------------------- | -------------------------------------------------------------------------------------- |
-| Embed a files panel on another screen  | Import `FilesPanel` from this module's barrel; pass `scope`                            |
-| Panel card layout / row menu           | `_shared/FilesPanel/FilesPanel.tsx`, `_shared/components/FileRowActionsMenu/`          |
-| Upload / Replace / Edit / Verify forms | `_shared/components/{UploadFileModal,ReplaceFileModal,EditFileModal,VerifyFileModal}/` |
-| Archive / Restore confirms             | `_shared/fileLifecycleModals.ts`                                                       |
-| Inline image preview / downloads       | `_shared/useFileBlob.ts`, `_shared/downloadFile.ts`                                    |
-| File Detail page / lifecycle buttons   | `pages/detail/FileDetail.tsx`                                                          |
-| Overview / Version history panels      | `pages/detail/components/{FileOverviewPanel,FileVersionHistoryPanel}.tsx`              |
-| Review queue                           | `pages/review/FileReviewQueue.tsx`, `pages/review/fileReview.columns.tsx`              |
-| DTO shapes / API / keys                | `uploadedFiles.{types,api,queryKeys,hooks,labels,utils}.ts`                            |
+| Task                                   | Files                                                                                   |
+| -------------------------------------- | --------------------------------------------------------------------------------------- |
+| Embed a files panel on another screen  | Import `FilesPanel` from this module's barrel; pass `scope`                             |
+| Panel tile layout / row menu           | `_shared/FilesPanel/components/FileTileGrid/`, `_shared/components/FileRowActionsMenu/` |
+| Click-to-view / click-to-download      | `FileTileGrid` (`handleOpen`), `uploadedFiles.utils.ts` (`getFileViewKind`)             |
+| In-app image/PDF viewer                | `_shared/components/FilePreviewModal/` (`useFilePreview` in its `.hooks.ts`)            |
+| Upload / Replace / Edit / Verify forms | `_shared/components/{UploadFileModal,ReplaceFileModal,EditFileModal,VerifyFileModal}/`  |
+| Archive / Restore confirms             | `_shared/fileLifecycleModals.ts`                                                        |
+| Single-file image embed / downloads    | `_shared/useFileBlob.ts`, `_shared/downloadFile.ts` (`downloadFile`, `saveBlobAs`)      |
+| Byte-fetch error copy                  | `_shared/fileBytesError.ts` (`isFileBytesMissing`, `getFileBytesErrorMessage`)          |
+| File Detail page / lifecycle buttons   | `pages/detail/FileDetail.tsx`                                                           |
+| Overview / Version history panels      | `pages/detail/components/{FileOverviewPanel,FileVersionHistoryPanel}.tsx`               |
+| Review queue                           | `pages/review/FileReviewQueue.tsx`, `pages/review/fileReview.columns.tsx`               |
+| DTO shapes / API / keys                | `uploadedFiles.{types,api,queryKeys,hooks,labels,utils}.ts`                             |
 
 ## Domain rules encoded here
 
@@ -84,9 +87,24 @@ without a `pages/list/` route.
 - **A replace creates a NEW file id.** `ReplaceFileModal`'s optional
   `onReplaced(newFileId)` callback exists so `FileDetail` can navigate to the
   successor; `FilesPanel`'s usage ignores it (the list just refetches).
-- **Bytes never appear in any JSON payload.** `downloadFileBlob`/`downloadFile`/`useFileBlob`
-  are the ONLY places this module fetches file contents — never build
-  `<img src>` or `<a href>` against anything in a file payload.
+- **Bytes never appear in any JSON payload.** `downloadFileBlob` (called by
+  `downloadFile`/`useFileBlob`/`useFilePreview`) is the ONLY place this module
+  fetches file contents — never build `<img src>` or `<a href>` against anything
+  in a file payload. It decodes the blob-typed error body back into the standard
+  envelope, so `getApiError` sees codes like `UPLOADED_FILES_FILE_BYTES_MISSING`.
+- **Every download is audited, so bytes are fetched only on a user's click.**
+  The panel draws no thumbnails: tiles show a type glyph, and clicking the
+  tile's name button (or "Preview"/"Download" in the row menu) is the fetch.
+  `getFileViewKind` decides by `content_type` (extension as fallback): image/\*
+  and PDF open `FilePreviewModal` (image fit-to-view / PDF `<iframe>` over a
+  blob URL re-typed to the viewer MIME type, Download reuses the fetched blob,
+  `retry: false` + explicit Retry hidden for bytes-missing); everything else
+  downloads under `original_filename`. `FilesPanel` unmounts the viewer on
+  `onExitTransitionEnd`, which revokes its object URL.
+- **Filenames truncate to one line** in tiles (`truncate` at `w="100%"`, `miw={0}`
+  parents, `min-width: 0` on the grid item) with the full name in a tooltip and
+  in the button's accessible name; the viewer title ellipsizes via a CSS-module
+  class on Mantine's modal `title`. Don't reintroduce a centred fit-content name.
 - **`FileOwnerScope` currently covers `applicant`/`journey`/`offer`/`document`
   only** (not `snapshot`) — this phase's consumers don't embed a panel for a
   print snapshot yet. Extend the type + the four-key assumption together if that changes.
@@ -96,20 +114,23 @@ without a `pages/list/` route.
 - Server data: React Query (`useQuery` / `useAppMutation`); no `useEffect` fetching.
 - Form state: `@mantine/form` via `FormWrapper` (Upload/Replace/Edit); Verify is
   hand-rolled local state (mirrors `offers`' `RecordDecisionModal`).
-- Object-URL lifecycle (`useFileBlob`): the fetch is `useQuery`; a scoped
-  `useEffect` only creates/revokes the blob URL when the query's data changes.
-- **`useFileBlob`'s query key sits OUTSIDE `fileQueryKeys.all`** (`["files.file-bytes",
-id]`) — the one query in this module that does. Every mutation here invalidates the
+- Object-URL lifecycle (`useFileBlob`, `useFilePreview`): the fetch is `useQuery`;
+  a scoped `useEffect` only creates/revokes the blob URL when the query's data changes.
+- **The byte query key (`fileBytesKey(id)` → `["files.file-bytes", id]`, shared by
+  `useFileBlob` and `useFilePreview`) sits OUTSIDE `fileQueryKeys.all`** — the one
+  key in this module that does. Every mutation here invalidates the
   whole `files.files` tree, which would otherwise re-download every mounted preview on any
   unrelated write, and each download writes an audit event. Bytes are immutable for a file
   id (a replacement is a new id, so it lands on a new key), so no invalidation can ever be
   the right answer for this query. Do not "fix" it back under the shared root.
-- Local UI (active modal, panel open state): `useState`.
+- Local UI (active modal, panel open state, viewer `previewFor`/`previewOpen`): `useState`.
 
 ## Do not do
 
 - Do not point `<img src>` or `<a href>` at anything in a file API response —
-  fetch as a blob (`useFileBlob`/`downloadFile`) every time.
+  fetch as a blob (`useFileBlob`/`useFilePreview`/`downloadFile`) every time.
+- Do not prefetch bytes for a list (thumbnails, hover previews) — each fetch writes
+  an audit event. Fetch on the user's click only.
 - Do not gate Replace/Edit/Download on `authorityType === "admin"` — those are
   shared with Lead Manager. Only Verify/Archive/Restore are Admin-only.
 - Do not build a flow that assumes verification blocks anything downstream.
