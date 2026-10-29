@@ -3,13 +3,14 @@
  * (`GET /documents/prefill/<applicant_id>/`, `documentPrefill.types.ts`).
  *
  * Pure. Three rules keep it safe:
- * 1. **Only into fields the letter's form shows** (its `WodaFormSchema`), or keys
- *    its default content already holds — so every seeded value is editable.
+ * 1. **Only into fields the letter's form shows** (its `WodaFormSchema`), so every
+ *    seeded value can be seen and edited.
  * 2. **Only into an empty value.** A default the letter ships with (legal basis,
  *    institution constants, a stock relation) is never overwritten.
  * 3. **Nothing is invented.** A `null` relative or address, or a blank part,
  *    leaves the field as it was. Honorifics follow gender only where that is
- *    unambiguous (see `honorificFor`).
+ *    unambiguous (see `honorificFor`); a seeded parent gets the form's default
+ *    honorific, or "Mr." / "Mrs." when the form has none, so no name prints bare.
  *
  * The backend does not know template keys (`documents/INTEGRATION.md` §7, prefill
  * notes): this mapping is the frontend's.
@@ -81,7 +82,9 @@ function candidateValues(prefill: DocumentPrefill): Values {
     // LOR / MOI
     student_first_name: a.firstName,
     student_last_name: a.lastName,
-    student_address: permanent || wardAddress(a.currentAddress),
+    // Permanent only: the MOI/LOR prints this as the permanent residence, so a
+    // current address would be wrong, not just incomplete.
+    student_address: permanent,
     student_dob: a.dateOfBirth ?? "",
   };
 }
@@ -179,16 +182,31 @@ function isBlank(value: unknown): boolean {
   );
 }
 
+/** Honorifics for a seeded parent when the form gives none. */
+const PARENT_HONORIFIC: Record<string, string> = {
+  father_honorific: "Mr.",
+  applicant_father_honorific: "Mr.",
+  grandfather_honorific: "Mr.",
+  mother_honorific: "Mrs.",
+  applicant_mother_honorific: "Mrs.",
+  grandmother_honorific: "Mrs.",
+};
+
 /** Writes the honorific's form default ("Mr.", "Mrs.") beside a seeded name, if blank. */
 function fillHonorific(
   out: Values,
   honorificKey: string | undefined,
   defaults: Map<string, unknown>,
 ): void {
-  if (!honorificKey || !isBlank(out[honorificKey])) return;
+  if (!honorificKey || !defaults.has(honorificKey)) return;
+  if (!isBlank(out[honorificKey])) return;
   const fallback = defaults.get(honorificKey);
   if (typeof fallback === "string" && fallback.trim()) {
     out[honorificKey] = fallback;
+  } else if (PARENT_HONORIFIC[honorificKey]) {
+    // LOR/MOI give the parent honorific no default; without one the letter
+    // would print the name bare.
+    out[honorificKey] = PARENT_HONORIFIC[honorificKey];
   }
 }
 
@@ -255,7 +273,9 @@ export function seedContentFromPrefill(
   const base = content as Values;
   const defaults = schemaDefaults(schema);
   const out: Values = { ...base };
-  const owns = (key: string) => defaults.has(key) || key in base;
+  // Only fields the letter's form shows, so every seeded value can be seen and
+  // edited; a key that lives only in default content is never written.
+  const owns = (key: string) => defaults.has(key);
 
   const fill = (values: Values) => {
     for (const [key, value] of Object.entries(values)) {
