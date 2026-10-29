@@ -150,10 +150,11 @@ function AttendanceRangeControls({
         disabled={disabled}
         value={start}
         onChange={(value) => requestRange(value || null, count)}
+        // Always present, so the row never jumps — only the wording changes.
         description={
-          !range && start && !count
-            ? "Now pick the number of months."
-            : undefined
+          start && !count
+            ? "Now pick the number of months"
+            : "First month of classes"
         }
       />
       <Select
@@ -165,7 +166,7 @@ function AttendanceRangeControls({
         value={count ? String(count) : null}
         onChange={(value) => requestRange(start, value ? Number(value) : null)}
         description={
-          lastMonth ? `Through ${formatMonth(lastMonth)}` : undefined
+          lastMonth ? `Through ${formatMonth(lastMonth)}` : "1 to 12 months"
         }
       />
       {/* Stored as `course_hours_per_day` — the same figure the certificate
