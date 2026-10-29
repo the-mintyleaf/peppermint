@@ -119,15 +119,11 @@ function ApplicantEditPageContent() {
           initialValues={applicant}
           onBack={() => history.back()}
           onSubmit={async (payload, photograph) => {
-            try {
-              await mutation.mutateAsync(payload);
-            } catch {
-              // `useUpdateApplicant` (useAppMutation) already showed the
-              // failure notification. Stay on the form and skip the photo:
-              // uploading a picture for a record whose own edits just failed
-              // would split the save in half.
-              return;
-            }
+            // A refused save rejects out of here: `useUpdateApplicant` has
+            // already toasted it, and `ApplicantForm` lays its field errors
+            // onto the fields. The photo is skipped — uploading a picture for a
+            // record whose own edits just failed would split the save in half.
+            await mutation.mutateAsync(payload);
             if (photograph) {
               try {
                 await savePhotograph.mutateAsync(photograph);

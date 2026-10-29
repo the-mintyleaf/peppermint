@@ -46,13 +46,11 @@ function ApplicantCreatePageContent() {
           // needs an existing owner. It is added from the edit form, which is
           // where this push lands the user anyway.
           onSubmit={async (payload) => {
-            try {
-              const created = await mutation.mutateAsync(payload);
-              router.push(`/admin/applicants/${created.id}`);
-            } catch {
-              // `useCreateApplicant` (useAppMutation) already showed the
-              // failure notification — nothing further to do here.
-            }
+            // A refused create rejects out of here: `useCreateApplicant` has
+            // already toasted it, and `ApplicantForm` lays its field errors
+            // (e.g. an invalid education score) onto the fields.
+            const created = await mutation.mutateAsync(payload);
+            router.push(`/admin/applicants/${created.id}`);
           }}
         />
       </ModalPaper>

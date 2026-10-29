@@ -9,10 +9,12 @@ import { EnvelopeSimpleIcon } from "@phosphor-icons/react/dist/csr/EnvelopeSimpl
 import { GlobeHemisphereWestIcon } from "@phosphor-icons/react/dist/csr/GlobeHemisphereWest";
 import { IdentificationCardIcon } from "@phosphor-icons/react/dist/csr/IdentificationCard";
 import { PulseIcon } from "@phosphor-icons/react/dist/csr/Pulse";
-import { STATUS_LABELS } from "../../applicants.labels";
+import { UserCircleIcon } from "@phosphor-icons/react/dist/csr/UserCircle";
 import {
+  STATUS_LABELS,
   applicantDestinationNames,
   applicantDisplayName,
+  userBriefLabel,
 } from "../../applicants.labels";
 import type { Applicant } from "../../applicants.types";
 import { ApplicantPhoto } from "../../photograph";
@@ -24,10 +26,19 @@ import { OpenRemindersButton } from "./components/OpenRemindersButton";
 
 interface ApplicantsColumnsOptions {
   onViewDetails: (applicant: Applicant) => void;
+  /** The signed-in user's id — their own rows read "You", not their name. */
+  currentUserId: string | null;
+  /**
+   * `?assigned_to=` choices: always Me / Unassigned; an Admin also gets each
+   * person their account list shows. Clearing the filter is "anyone".
+   */
+  assigneeFilterOptions: { value: string; label: string }[];
 }
 
 export function getApplicantsColumns({
   onViewDetails,
+  currentUserId,
+  assigneeFilterOptions,
 }: ApplicantsColumnsOptions): DataTableShellColumn<Applicant>[] {
   return [
     {
@@ -85,6 +96,35 @@ export function getApplicantsColumns({
       render: (applicant: Applicant) => (
         <ApplicantStatusSwitch applicant={applicant} />
       ),
+    },
+    {
+      // A fact, not a lever: assigning happens on the file itself, where the
+      // Assign / Take / Release control lives. Routing only — an assignee is
+      // who gets the alerts, never who may open the record.
+      accessor: "assigned_to",
+      title: "Assigned to",
+      icon: UserCircleIcon,
+      filter: {
+        type: "select",
+        options: assigneeFilterOptions,
+        placeholder: "Anyone",
+      },
+      render: (applicant: Applicant) => {
+        const assignee = applicant.assigned_to;
+        if (!assignee) {
+          return (
+            <Text size="xs" c="dimmed">
+              Unassigned
+            </Text>
+          );
+        }
+        const isMe = assignee.id === currentUserId;
+        return (
+          <Text size="xs" fw={isMe ? 600 : undefined}>
+            {isMe ? "You" : userBriefLabel(assignee)}
+          </Text>
+        );
+      },
     },
     {
       // Email, not a phone number: an operator scanning this list is

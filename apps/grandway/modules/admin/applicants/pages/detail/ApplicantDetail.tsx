@@ -2,6 +2,8 @@
 
 import { useParams, useRouter } from "next/navigation";
 import {
+  Alert,
+  Box,
   Button,
   Center,
   Group,
@@ -11,6 +13,8 @@ import {
   Stack,
   Text,
 } from "@peppermint/ui";
+import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
+import { ArrowCounterClockwiseIcon } from "@phosphor-icons/react/dist/csr/ArrowCounterClockwise";
 import { PencilSimpleIcon } from "@phosphor-icons/react/dist/csr/PencilSimple";
 import {
   ProfileLayout,
@@ -22,18 +26,60 @@ import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { getApiError } from "@/lib/authErrorMessages";
 import { useCapabilities } from "@/config/access";
 import { ApplicantDocumentsPanel } from "@/modules/admin/documents";
-import { RecordAlertsPanel } from "@/modules/admin/notifications/_shared/RecordAlertsPanel";
+import { ApplicantAlertsPanel } from "@/modules/admin/notifications/_shared/ApplicantAlertsPanel";
 import { RecordRemindersPanel } from "@/modules/admin/reminders/_shared/RecordRemindersPanel";
 import { FilesPanel } from "@/modules/admin/uploaded-files/_shared/FilesPanel";
 import { useApplicantDetail } from "../../applicants.hooks";
 import { applicantDisplayName } from "../../applicants.labels";
+import { useApplicantLifecycleActions } from "../../applicants.lifecycle";
 import type { ApplicantDetail as ApplicantDetailRecord } from "../../applicants.types";
 import { useApplicantPhotograph } from "../../photograph";
+import { ApplicantAssigneeControl } from "./components/ApplicantAssigneeControl";
+import { ApplicantEducationPanel } from "./components/ApplicantEducationPanel";
 import { ApplicantHistoryPanel } from "./components/ApplicantHistoryPanel";
 import { ApplicantJourneysPanel } from "./components/ApplicantJourneysPanel";
+import { ApplicantNotesPanel } from "./components/ApplicantNotesPanel";
 import { ApplicantOverviewPanel } from "./components/ApplicantOverviewPanel";
 import { ApplicantPassportFamilyPanel } from "./components/ApplicantPassportFamilyPanel";
 import { ApplicantStatusSwitch } from "../list/components/ApplicantStatusSwitch";
+import type { ArchivedBannerProps } from "./ApplicantDetail.types";
+
+/**
+ * The page-level anchor for an archived ("deleted") file: says plainly that
+ * nothing was erased, what is frozen, and — for an Admin — offers Restore
+ * right here. A Lead Manager sees the same facts and who can undo it.
+ */
+function ArchivedBanner({ applicant }: ArchivedBannerProps) {
+  const lifecycle = useApplicantLifecycleActions(applicant);
+  return (
+    <Box p="md" pb={0}>
+      <Alert
+        color="gray"
+        variant="light"
+        icon={<ArchiveIcon size={18} aria-hidden />}
+        title="This applicant is archived (deleted)"
+      >
+        <Group justify="space-between" align="flex-end" gap="sm">
+          <Text size="sm">
+            Nothing was erased. Notes are read-only and the file can&apos;t be
+            assigned until it is restored
+            {lifecycle.canRestore ? "." : " — ask an Admin to restore it."}
+          </Text>
+          {lifecycle.canRestore ? (
+            <Button
+              size="xs"
+              variant="default"
+              leftSection={<ArrowCounterClockwiseIcon size={14} aria-hidden />}
+              onClick={lifecycle.confirmRestore}
+            >
+              Restore applicant
+            </Button>
+          ) : null}
+        </Group>
+      </Alert>
+    </Box>
+  );
+}
 
 /**
  * Content-column tabs (Overview is the sidebar, not a tab).
@@ -46,9 +92,12 @@ import { ApplicantStatusSwitch } from "../list/components/ApplicantStatusSwitch"
  * read/write split, so the panel inside is fully writable for either.
  *
  * **The rest stay for everyone who reaches this page, deliberately.** The applicant
- * *record* is read-only for staff — identity, passport, family, status — but
- * Journeys, Files, Reminders, Alerts and History belong to modules staff still work
- * in fully. Do not extend the read-only rule to them.
+ * *record* is read-only for staff — identity, passport, family, education, status —
+ * but Journeys, Notes, Files, Reminders, Alerts and History belong to resources staff
+ * still work in fully. Do not extend the read-only rule to them.
+ *
+ * Notes sits right after Journeys: it is the tab people write in most, and a visit
+ * note is usually about the journey just above it.
  */
 function getApplicantTabs(
   applicant: ApplicantDetailRecord,
@@ -66,9 +115,22 @@ function getApplicantTabs(
       panel: <ApplicantPassportFamilyPanel applicant={applicant} />,
     },
     {
+      value: "education",
+      label: "Education & Tests",
+      count:
+        applicant.educations.length + applicant.language_tests.length ||
+        undefined,
+      panel: <ApplicantEducationPanel applicant={applicant} />,
+    },
+    {
       value: "journeys",
       label: "Journeys",
       panel: <ApplicantJourneysPanel applicantId={applicant.id} />,
+    },
+    {
+      value: "notes",
+      label: "Notes",
+      panel: <ApplicantNotesPanel applicant={applicant} />,
     },
     ...(includeDocuments
       ? [
@@ -104,14 +166,10 @@ function getApplicantTabs(
     {
       value: "alerts",
       label: "Alerts",
-      // Only `passport_expiring` is applicant-adjacent, and it keys to the
-      // passport's own id, not the applicant's — pass that when a passport is on
-      // file; an empty array is the honest "nothing to query" case.
-      panel: (
-        <RecordAlertsPanel
-          sourceEntityId={applicant.passport?.id ? [applicant.passport.id] : []}
-        />
-      ),
+      // Every alert about this applicant (`?applicant_id=`) — status, restore,
+      // visit-note, assignment, journey, passport and test expiry — not just
+      // the passport-keyed ones the old `RecordAlertsPanel` could reach.
+      panel: <ApplicantAlertsPanel applicantId={applicant.id} />,
     },
     {
       value: "history",
@@ -205,9 +263,10 @@ function ApplicantDetailContent() {
         ]}
         right={
           <Group gap="xs" wrap="nowrap">
-            {/* Status is the interactive control (current value + dropdown),
-                Edit is the action — different look, different position. The
-                switch self-gates to a plain badge for a reader. */}
+            {/* Assignee (routing), then status (current value + dropdown), then
+                Edit (the action) — different look, different position. Both
+                controls self-gate to plain facts for a reader. */}
+            <ApplicantAssigneeControl applicant={applicant} />
             <ApplicantStatusSwitch applicant={applicant} fullWidth={false} />
             {applicantEdit && (
               <Button
@@ -230,6 +289,9 @@ function ApplicantDetailContent() {
           sticky sidebar sticks within this scroll container). No padding — the
           ProfileLayout owns its own column spacing + divider. */}
       <ModalPaper withBorder style={{ overflowY: "auto" }}>
+        {applicant.status === "archived" ? (
+          <ArchivedBanner applicant={applicant} />
+        ) : null}
         <ProfileLayout
           sidebar={
             <ProfileSidebar

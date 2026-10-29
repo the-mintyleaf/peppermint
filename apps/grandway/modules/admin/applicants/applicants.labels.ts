@@ -2,14 +2,24 @@ import type {
   ApplicantDestination,
   ApplicantStatus,
   CreationSource,
+  EducationCompletionStatus,
+  FamilyRelationship,
+  UserBrief,
 } from "./applicants.types";
 
-/** All statuses in display order — freely interchangeable, no terminal state. */
+/** All statuses in display order. */
 export const APPLICANT_STATUSES: ApplicantStatus[] = [
   "active",
   "dormant",
   "archived",
 ];
+
+/**
+ * The statuses `POST /status/` may move between freely. `archived` is not one
+ * of them any more: archiving is the soft delete (its own confirm), and only
+ * an Admin's `POST /restore/` leaves it.
+ */
+export const WORKING_STATUSES: ApplicantStatus[] = ["active", "dormant"];
 
 export const STATUS_LABELS: Record<ApplicantStatus, string> = {
   active: "Active",
@@ -28,6 +38,43 @@ export const STATUS_COLORS: Record<ApplicantStatus, string> = {
   dormant: "yellow",
   archived: "gray",
 };
+
+/** Display order for the family relationship picker; grandparents feed WODA letters. */
+export const FAMILY_RELATIONSHIP_OPTIONS: {
+  value: FamilyRelationship;
+  label: string;
+}[] = [
+  { value: "father", label: "Father" },
+  { value: "mother", label: "Mother" },
+  { value: "grandfather", label: "Grandfather" },
+  { value: "grandmother", label: "Grandmother" },
+  { value: "spouse", label: "Spouse" },
+  { value: "sibling", label: "Sibling" },
+  { value: "child", label: "Child" },
+  { value: "guardian", label: "Guardian" },
+  { value: "other", label: "Other" },
+];
+
+/** An unknown future value renders as its raw string. */
+export function familyRelationshipLabel(value: string): string {
+  return (
+    FAMILY_RELATIONSHIP_OPTIONS.find((option) => option.value === value)
+      ?.label ?? value
+  );
+}
+
+export const COMPLETION_STATUS_LABELS: Record<
+  EducationCompletionStatus,
+  string
+> = {
+  completed: "Completed",
+  ongoing: "Ongoing",
+};
+
+/** `display_name`, falling back to the username — never a blank chip. */
+export function userBriefLabel(user: UserBrief): string {
+  return user.display_name.trim() || user.username;
+}
 
 /**
  * The one place an applicant's name is turned into display text. `full_name` is

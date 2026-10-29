@@ -6,11 +6,20 @@ import type { DataTableShellTab } from "@peppermint/admin";
 import { ModalPaper } from "@peppermint/ui";
 import { RequireLeadAccess } from "@/components/RequireLeadAccess";
 import { useCapabilities } from "@/config/access";
+import { useCurrentUser } from "@/modules/admin/authenticate/_shared/useCurrentUser";
 import { useCountries } from "@/modules/admin/institutions/institutions.hooks";
+import { useApplicantAuthority } from "../../applicants.access";
 import { listApplicants } from "../../applicants.api";
+import { useAssignableStaff } from "../../applicants.hooks";
 import { applicantsQueryKeys } from "../../applicants.queryKeys";
 import type { Applicant } from "../../applicants.types";
 import { getApplicantsColumns } from "./applicants.columns";
+
+/** The two `?assigned_to=` literals every reader may filter by. */
+const BASE_ASSIGNEE_FILTERS = [
+  { value: "me", label: "Me" },
+  { value: "none", label: "Unassigned" },
+];
 
 /**
  * How many country tabs the toolbar will render. The catalogue is a curated
@@ -39,11 +48,31 @@ const MAX_COUNTRY_TABS = 8;
 function ApplicantsListContent() {
   const router = useRouter();
   const { applicantCreate } = useCapabilities();
+  const { assignAnyone } = useApplicantAuthority();
+  const { user } = useCurrentUser();
   const { data: countries } = useCountries();
+  // Admin only: a Lead Manager cannot list accounts. Fails soft — without it
+  // the filter still offers Me / Unassigned.
+  const { data: staff } = useAssignableStaff(assignAnyone);
+
+  // People by name for an Admin. The list `GET /auth/users/` returns covers
+  // Lead Managers only (contract gap §9) — a fellow Admin's caseload is not
+  // filterable by name, which is why "Me" is always the first choice.
+  const assigneeFilterOptions = [
+    ...BASE_ASSIGNEE_FILTERS,
+    ...(staff ?? [])
+      .filter((person) => person.id !== user?.id)
+      .map((person) => ({
+        value: person.id,
+        label: person.display_name.trim() || person.username,
+      })),
+  ];
 
   const columns = getApplicantsColumns({
     onViewDetails: (applicant) =>
       router.push(`/admin/applicants/${applicant.id}`),
+    currentUserId: user?.id ?? null,
+    assigneeFilterOptions,
   });
 
   // Only countries the consultancy currently sends people to — a retired

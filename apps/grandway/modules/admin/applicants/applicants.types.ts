@@ -1,3 +1,12 @@
+import type {
+  AcademicScoreType,
+  LanguageTestPayload,
+  LanguageTestType,
+  QualificationLevel,
+  YearCalendar,
+} from "@/components/academic";
+import type { NoteCategory } from "@/components/notes-panel";
+
 /** `docs/backend/applicants/INTEGRATION.md` §5. */
 export type ApplicantStatus = "active" | "dormant" | "archived";
 
@@ -24,7 +33,12 @@ export type FamilyRelationship =
   | "sibling"
   | "child"
   | "guardian"
+  | "grandfather"
+  | "grandmother"
   | "other";
+
+/** `Education.completion_status` — an `ongoing` record carries no `completion_year`. */
+export type EducationCompletionStatus = "completed" | "ongoing";
 
 export type HistoryActorType =
   | "superadmin"
@@ -41,7 +55,16 @@ export type HistoryAction =
   | "applicant_passport_changed"
   | "applicant_family_changed"
   | "applicant_emergency_contact_changed"
-  | "applicant_status_changed";
+  | "applicant_status_changed"
+  | "applicant_restored"
+  | "applicant_note_added"
+  | "applicant_note_updated"
+  | "applicant_note_deleted"
+  | "applicant_notes_imported"
+  | "applicant_education_changed"
+  | "applicant_language_tests_changed"
+  | "applicant_assigned"
+  | "applicant_unassigned";
 
 /** Never sent by a client. */
 export interface BsDate {
@@ -98,6 +121,51 @@ export interface FamilyMember {
   full_name?: string;
   occupation?: string;
   contact_number?: string;
+  /** Free text, ≤50 — feeds the ward-office (WODA) letters. */
+  citizenship_no?: string;
+}
+
+/**
+ * One education record (INTEGRATION.md §4). Years are bare years **in
+ * `year_calendar`** — a BS year spans two AD years, so the calendar is part of
+ * the value. Returned newest `completion_year` first, `ongoing` records first.
+ */
+export interface Education {
+  id: string;
+  level: QualificationLevel;
+  /** The programme or stream ("BBS", "Science"). */
+  qualification: string;
+  institution: string;
+  country: string;
+  completion_status: EducationCompletionStatus;
+  /** Decimal string (`"3.45"`) or `null`. */
+  score: string | null;
+  score_type: AcademicScoreType | "";
+  /** How the score reads ("GPA (4.0)", "First Division") — a label, not validated. */
+  grading_system: string;
+  start_year: number | null;
+  completion_year: number | null;
+  year_calendar: YearCalendar | "";
+  /** Set on the record carried over from a converted lead. Read-only. */
+  source_lead_id: string | null;
+}
+
+/** One language-test result — the same shape as a lead certificate. */
+export interface ApplicantLanguageTest {
+  id: string;
+  test_type: LanguageTestType;
+  overall_score: string | null;
+  listening_score: string | null;
+  reading_score: string | null;
+  writing_score: string | null;
+  speaking_score: string | null;
+  test_date: string | null;
+  test_date_bs: BsDate | null;
+  certificate_number: string;
+  expiry_date: string | null;
+  expiry_date_bs: BsDate | null;
+  /** Set on a test carried over from a converted lead's certificates. Read-only. */
+  source_lead_id: string | null;
 }
 
 /** `relationship` here is free text — deliberately not the `FamilyRelationship` enum. */
@@ -151,6 +219,12 @@ export interface Applicant {
   status: ApplicantStatus;
   creation_source: CreationSource;
   created_by: UserBrief;
+  /**
+   * The one staff member notified about this file, or `null`. **Routing only —
+   * never access control**: every Admin and Lead Manager reads and edits every
+   * applicant whoever it names. Set only through `POST /assign/`.
+   */
+  assigned_to: UserBrief | null;
   contact_numbers: ApplicantContactNumber[];
   /** Derived at read time from the person's journeys — never stored, never written. */
   destinations: ApplicantDestination[];
@@ -158,12 +232,20 @@ export interface Applicant {
   updated_at: string;
 }
 
-/** Returned by retrieve, create, update, and the status-change action. */
+/** Returned by retrieve, create, update, and the status/restore/assign actions. */
 export interface ApplicantDetail extends Applicant {
+  /** Free text, ≤50. Withheld from the audit log (`<changed>`). */
+  citizenship_no: string;
+  /** Free text, ≤100. */
+  citizenship_issue_district: string;
+  /** Free text, ≤50. Withheld from the audit log (`<changed>`). */
+  national_id_no: string;
   addresses: ApplicantAddress[];
   passport: PassportDetail | null;
   family_members: FamilyMember[];
   emergency_contacts: EmergencyContact[];
+  educations: Education[];
+  language_tests: ApplicantLanguageTest[];
   /** Read through the reverse accessor — `null` for a directly created applicant. */
   originating_lead_id: string | null;
 }
@@ -186,11 +268,30 @@ export interface HistoryEntry {
   created_at_bs: BsDate;
 }
 
+/**
+ * `GET /applicants/<id>/notes/` row — a lead note's shape plus
+ * `source_lead_id` (set on notes copied over from the converted lead).
+ */
+export interface ApplicantNote {
+  id: string;
+  category: NoteCategory;
+  body: string;
+  noted_at: string;
+  noted_at_bs: BsDate | null;
+  is_backdated: boolean;
+  source_lead_id: string | null;
+  author: UserBrief;
+  updated_by: UserBrief | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // ── Write payloads ──────────────────────────────────────────────────────────
 //
-// `status`/`creation_source`/`created_by` are never accepted from a client on
-// any endpoint (INTEGRATION.md §3/§7) — deliberately absent from every payload
-// type below, not just omitted by convention.
+// `status`/`creation_source`/`created_by`/`assigned_to` are never accepted by
+// create/update (INTEGRATION.md §3/§7) — deliberately absent from those payload
+// types, not just omitted by convention. Status and assignment move only through
+// their own actions below.
 
 export interface ContactNumberInput {
   id?: string;
@@ -225,6 +326,27 @@ export interface FamilyMemberInput {
   full_name?: string;
   occupation?: string;
   contact_number?: string;
+  citizenship_no?: string;
+}
+
+/**
+ * One `educations[]` entry. `score` + `score_type` travel together (both set
+ * or both blank); `year_calendar` is required whenever a year is given; an
+ * `ongoing` record has no `completion_year`. `id`/`source_lead_id` are never
+ * sent — the list replaces wholesale and `source_lead_id` is not writable.
+ */
+export interface EducationInput {
+  level: QualificationLevel;
+  qualification: string;
+  institution: string;
+  country: string;
+  completion_status: EducationCompletionStatus;
+  score: number | null;
+  score_type: AcademicScoreType | "";
+  grading_system: string;
+  start_year: number | null;
+  completion_year: number | null;
+  year_calendar: YearCalendar | "";
 }
 
 export interface EmergencyContactInput {
@@ -249,15 +371,38 @@ export interface ApplicantCreatePayload {
   gender?: Gender | "";
   nationality?: string;
   email?: string;
+  citizenship_no?: string;
+  citizenship_issue_district?: string;
+  national_id_no?: string;
   contact_numbers: ContactNumberInput[];
   addresses?: AddressInput[];
   passport?: PassportInput;
   family_members?: FamilyMemberInput[];
   emergency_contacts?: EmergencyContactInput[];
+  /**
+   * Replaced wholesale; `[]` clears; **omit to leave untouched**. Resending a
+   * record carried over from a lead drops its `source_lead_id`, so the form
+   * only sends this when the list actually changed.
+   */
+  educations?: EducationInput[];
+  /** Same replace/omit rules as `educations`. */
+  language_tests?: LanguageTestPayload[];
 }
 
 export type ApplicantUpdatePayload = Partial<ApplicantCreatePayload>;
 
+/** `POST /status/` — can archive, but can no longer leave `archived` (409). */
 export interface StatusChangePayload {
   status: ApplicantStatus;
+}
+
+/** `POST /restore/` — Admin only; returns the pre-archive status. */
+export interface RestorePayload {
+  /** Optional, ≤2000 characters. */
+  reason?: string;
+}
+
+/** `POST /assign/` — the key is required; `null` clears. No `me` shorthand here. */
+export interface AssignPayload {
+  assigned_to: string | null;
 }
