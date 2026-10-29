@@ -65,7 +65,7 @@ export const certificateSchema = z
     ),
     course_hours_per_day: optionalNumber.refine(
       (v) => v !== "" && v > 0 && v <= 24,
-      "Enter the class hours per day (up to 24)",
+      "Enter the hours per class (up to 24)",
     ),
     date_of_admission: requiredDate("admission date"),
     date_of_completion: z.string().nullable(),

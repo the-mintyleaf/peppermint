@@ -170,32 +170,23 @@ export function CertificateCourseSection({
         disabled={disabled}
         {...form.getInputProps("course_books")}
       />
-      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-        <NumberInput
-          label="Course length in days (optional)"
-          placeholder="150"
-          min={0}
-          max={1000}
-          allowDecimal={false}
-          hideControls
-          disabled={disabled}
-          {...form.getInputProps("course_total_days")}
-        />
-        <NumberInput
-          label="Class hours per day"
-          placeholder="2"
-          min={0}
-          max={24}
-          decimalScale={1}
-          hideControls
-          required
-          description={
-            totalHours > 0 ? `${totalHours} hours in total` : undefined
-          }
-          disabled={disabled}
-          {...form.getInputProps("course_hours_per_day")}
-        />
-      </SimpleGrid>
+      {/* Hours per class sits beside the attendance table (it drives the
+          attendance maths); the total here reads it from there. */}
+      <NumberInput
+        label="Course length in days (optional)"
+        placeholder="150"
+        min={0}
+        max={1000}
+        allowDecimal={false}
+        hideControls
+        description={
+          totalHours > 0
+            ? `${totalHours} hours in total, at the hours per class set under Attendance`
+            : undefined
+        }
+        disabled={disabled}
+        {...form.getInputProps("course_total_days")}
+      />
     </FormSection>
   );
 }

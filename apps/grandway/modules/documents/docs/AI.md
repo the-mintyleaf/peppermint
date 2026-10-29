@@ -158,6 +158,7 @@ and on every PATCH with content, snake_case keys; a refusal is 400
   `form.validate()` first and opens the first tab (General before Attendance)
   holding an error; a `DOCUMENTS_CONTENT_INVALID` refusal opens the tab of the
   first marked field. Unplaceable refusals and the prefill notice sit above the tabs.
+- **Hours per class sits with attendance.** It is `course_hours_per_day` (printed as hours per day), shown beside Start month / Number of months because class hours = days held × hours per class; an error on it marks the Attendance tab.
 - **Attendance is a month range.** A start month and a number of months (1–12)
   generate consecutive rows across year ends. Changing them keeps the days and
   hours of months still in range, adds empty rows, and asks before removing rows

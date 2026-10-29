@@ -10,6 +10,7 @@ export const CERTIFICATE_TABS: readonly CertificateTab[] = [
 /** Top-level form fields shown on "Attendance & grades"; everything else is General. */
 const ATTENDANCE_TAB_FIELDS = new Set<string>([
   "attendance",
+  "course_hours_per_day",
   ...CERTIFICATE_SKILLS,
 ]);
 

@@ -5,6 +5,7 @@ import {
   Alert,
   List,
   MonthPickerInput,
+  NumberInput,
   Select,
   SimpleGrid,
   Stack,
@@ -58,7 +59,7 @@ export function CertificateAttendanceField({
   return (
     <FormSection
       title="Attendance"
-      description="Pick the first month and how many months the course ran, then type the days held and hours attended for each. Class hours, absent hours and the percentage are worked out from the hours per day."
+      description="Pick the first month and how many months the course ran, then type the days held and hours attended for each. Class hours (days held × hours per class), absent hours and the percentage are worked out for you."
     >
       <AttendanceRangeControls
         range={range}
@@ -140,7 +141,7 @@ function AttendanceRangeControls({
   };
 
   return (
-    <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+    <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="sm">
       <MonthPickerInput
         label="Start month"
         placeholder="Pick a month"
@@ -166,6 +167,20 @@ function AttendanceRangeControls({
         description={
           lastMonth ? `Through ${formatMonth(lastMonth)}` : undefined
         }
+      />
+      {/* Stored as `course_hours_per_day` — the same figure the certificate
+          prints as hours per day; it is what turns days held into class hours. */}
+      <NumberInput
+        label="Hours per class"
+        placeholder="2"
+        min={0}
+        max={24}
+        decimalScale={1}
+        hideControls
+        required
+        description="Class hours = days held × this"
+        disabled={disabled}
+        {...form.getInputProps("course_hours_per_day")}
       />
     </SimpleGrid>
   );
