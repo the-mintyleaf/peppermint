@@ -72,6 +72,8 @@ export function WodaConfigBar({
   // the panel's keys from.
   const savedContentRef = useRef<WodaContent | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Which save is the newest sent, so an older one's outcome can't undo it.
+  const saveSeqRef = useRef(0);
   const [refusal, setRefusal] = useState<string | null>(null);
 
   const persistNow = useCallback(() => {
@@ -81,16 +83,35 @@ export function WodaConfigBar({
     pendingRef.current = {};
     savedContentRef.current = null;
     const savedFor = docIdRef.current;
+    const seq = ++saveSeqRef.current;
     const saving = onPersistRef.current?.(
       withWodaReferenceChange(contentRef.current, change),
     );
     if (!(saving instanceof Promise)) return;
     saving.then(
-      () => setRefusal(null),
+      () => {
+        setRefusal(null);
+        // The save's reply rewrites the cache with what was sent. Anything typed
+        // while it was in flight is still pending: put it back on top, or the
+        // input would snap back and lose those characters.
+        if (
+          docIdRef.current === savedFor &&
+          Object.keys(pendingRef.current).length > 0
+        ) {
+          onUpdateRef.current(
+            withWodaReferenceChange(contentRef.current, pendingRef.current),
+          );
+        }
+      },
       (error: unknown) => {
-        // Only undo the preview of the document this change was made on; keep
-        // any change made since, which is still waiting to save.
-        if (saved && docIdRef.current === savedFor) {
+        // Only undo the preview of the document this change was made on, and
+        // only if no later save has been sent — that one carries this change
+        // too and may have succeeded. Keep any change still waiting to save.
+        if (
+          saved &&
+          docIdRef.current === savedFor &&
+          seq === saveSeqRef.current
+        ) {
           onUpdateRef.current(
             withWodaReferenceChange(
               restoreWodaReference(contentRef.current, saved),
