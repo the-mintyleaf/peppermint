@@ -20,8 +20,10 @@ import { fetchDocuments } from "../../documents.queries";
 import { FAMILY_LABELS } from "../../documents.labels";
 import { getDocumentsColumns } from "./documents.columns";
 
-// Omitting `status` returns archived documents too (`INTEGRATION.md` §7), so the default
-// "All" tab shows everything; the status tabs narrow, and "Standalone" filters by owner.
+// The backend hides archived documents unless asked (§7, since 1.2.0); `fetchDocuments`
+// asks (`include_archived=true`), so "All" still shows everything and "Standalone"
+// includes removed standalone documents. The status tabs narrow by `status`, which
+// takes precedence over that flag.
 const FULL_TABS: DataTableShellTab[] = [
   { label: "All", icon: FilesIcon },
   { label: "Drafts", icon: PencilSimpleIcon, filter: { status: "draft" } },

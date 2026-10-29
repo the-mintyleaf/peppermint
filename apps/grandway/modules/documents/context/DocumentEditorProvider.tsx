@@ -29,10 +29,15 @@ import {
 import { DocumentUnavailable } from "../components/DocumentUnavailable";
 import { useSignatures } from "../hooks/useSignatures";
 import { getDefaultDocumentContent } from "../utils/defaultDocumentContent";
-import { getDefaultLabel } from "../documentTypeConfig";
+import { getDefaultLabel, getTemplateVersion } from "../documentTypeConfig";
 import { findBankPartner } from "../utils/documentTypeMenu";
+import { describeContentSaveError } from "../utils/contentFieldErrors";
 import { confirmLeaveWithUnsavedChanges } from "../hooks/useUnsavedChangesGuard";
-import { isEditableStatus, isLiveDocument } from "../documents.status";
+import {
+  STATUS_META,
+  isEditableStatus,
+  isLiveDocument,
+} from "../documents.status";
 import type {
   DocumentEditorContextValue,
   DocumentReadOnlyReason,
@@ -114,6 +119,8 @@ export function DocumentEditorProvider({
     queryKey: scopeKey,
     queryFn: async (): Promise<Document[]> => {
       if (applicantId) {
+        // Archived included — the pages list's Archived group (and Restore) is
+        // built from these; the backend hides them unless asked since 1.2.0.
         const items = await documentsApi.listByApplicant(applicantId);
         // Filter BEFORE the detail fetches: this both hides the pages and avoids
         // issuing N requests that a scoped viewer would be refused anyway.
@@ -154,12 +161,20 @@ export function DocumentEditorProvider({
   // that prints a portrait reads it from `studentFullData`, so this is the one
   // place the editor fetches it.
   const photograph = useApplicantPhotograph(applicantId);
+  // `null` only once the lookup has settled on "no photograph" — a certificate
+  // saved while it is still loading keeps the id it already had.
+  const photoFileId =
+    photograph.file?.id ?? (photograph.isMissing ? null : undefined);
   const studentFullData = useMemo(
     () =>
       summaryQuery.data
-        ? { ...summaryQuery.data, photoUrl: photograph.url ?? undefined }
+        ? {
+            ...summaryQuery.data,
+            photoUrl: photograph.url ?? undefined,
+            photoFileId,
+          }
         : null,
-    [summaryQuery.data, photograph.url],
+    [summaryQuery.data, photograph.url, photoFileId],
   );
 
   const { data: signatures = [] } = useSignatures();
@@ -220,9 +235,11 @@ export function DocumentEditorProvider({
       setHasPendingEdits(false);
     },
     onError: (error) => {
+      // A certificate body the backend refuses names its fields; the open form
+      // marks them, but the Customizations panel has no form, so say them here.
       notifications.show({
         title: "Could not save changes",
-        message: getApiErrorMessage(error),
+        message: describeContentSaveError(error),
         color: "red",
       });
     },
@@ -238,6 +255,20 @@ export function DocumentEditorProvider({
       updateMutation.mutate({ id: documentId, content });
     },
     [updateMutation, canEdit],
+  );
+
+  // The same save, awaitable: rejects with the API error so the form that asked
+  // for it can stay open and mark the refused fields. The toast still fires.
+  const { mutateAsync: updateContentAsync } = updateMutation;
+  const saveDocumentContent = useCallback(
+    async (documentId: string, content: DocumentContent) => {
+      if (!canEdit) return;
+      const doc = documentsRef.current.find((d) => d.id === documentId);
+      if (!doc) return;
+      setHasPendingEdits(true);
+      await updateContentAsync({ id: documentId, content });
+    },
+    [updateContentAsync, canEdit],
   );
 
   // Render-only content update (bank Customizations panel): reflect in the local cache so the
@@ -267,11 +298,13 @@ export function DocumentEditorProvider({
     onError: (error) => {
       notifications.show({
         title: "Failed to add page",
-        message: getApiErrorMessage(error),
+        message: describeContentSaveError(error),
         color: "red",
       });
     },
   });
+  const { mutate: createDocument, mutateAsync: createDocumentAsync } =
+    createMutation;
 
   const familyForType = useCallback((type: DocumentType) => {
     if (type.startsWith("bank-"))
@@ -287,29 +320,33 @@ export function DocumentEditorProvider({
   const quickCreateDocument = useCallback(
     (type: DocumentType) => {
       if (!canEdit || !applicantId) return;
-      createMutation.mutate({
+      createDocument({
         applicantId,
         family: familyForType(type),
         templateKey: type,
         label: getDefaultLabel(type),
         content: getDefaultDocumentContent(type),
+        templateVersion: getTemplateVersion(type),
       });
     },
-    [createMutation, applicantId, familyForType, canEdit],
+    [createDocument, applicantId, familyForType, canEdit],
   );
 
+  // Resolves once the page exists; rejects with the API error so a create form
+  // can stay open on a refused body (see `DocumentFormProps.onSubmit`).
   const createDocumentWithContent = useCallback(
-    (type: DocumentType, content: DocumentContent, label?: string) => {
+    async (type: DocumentType, content: DocumentContent, label?: string) => {
       if (!canEdit || !applicantId) return;
-      createMutation.mutate({
+      await createDocumentAsync({
         applicantId,
         family: familyForType(type),
         templateKey: type,
         label: label ?? getDefaultLabel(type),
         content,
+        templateVersion: getTemplateVersion(type),
       });
     },
-    [createMutation, applicantId, familyForType, canEdit],
+    [createDocumentAsync, applicantId, familyForType, canEdit],
   );
 
   const addDocumentToList = useCallback(
@@ -463,9 +500,13 @@ export function DocumentEditorProvider({
     onSuccess: (restored) => {
       restored.forEach((doc) => writeDocumentToCache(doc));
       invalidateDerivedViews();
+      // Restore returns each document to the status it had when removed, so
+      // say which — a Ready certificate coming back as Ready is not obvious.
       notifications.show({
         title: "Document restored",
-        message: restored.map((d) => d.label).join(" & "),
+        message: restored
+          .map((d) => `${d.label} is back as ${STATUS_META[d.status].label}`)
+          .join("; "),
         color: "green",
       });
     },
@@ -598,6 +639,8 @@ export function DocumentEditorProvider({
     editFieldsModalOpen,
     setEditFieldsModalOpen: setEditFieldsModalOpenGuarded,
     updateDocumentContent,
+    saveDocumentContent,
+    isSavingContent: updateMutation.isPending,
     updateDocumentContentLocal,
     addDocumentToList,
     quickCreateDocument,

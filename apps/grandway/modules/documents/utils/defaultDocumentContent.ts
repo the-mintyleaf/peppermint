@@ -291,16 +291,14 @@ const bankBaseDefaults = (slugKey: string): BankContent => ({
 
 export function getDefaultDocumentContent(type: DocumentType): DocumentContent {
   if (type === "student-certificate") {
+    // Only the backend-validated keys (`documents/INTEGRATION.md` §7). The form
+    // normally supplies the whole body; this is the quick-create fallback.
     const today = new Date().toISOString().split("T")[0];
     return {
       issue: today,
-      issueDate: today,
-      studyType: 0,
-      instructorId: null,
-      directorId: null,
-      studentName: "",
-      program: "",
-      nationality: "",
+      study_type: 0,
+      instructor_id: null,
+      director_id: null,
     } satisfies CertificateContent;
   }
 

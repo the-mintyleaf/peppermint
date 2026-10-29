@@ -13,7 +13,8 @@ import {
 } from "@peppermint/ui";
 import { useFormInstance } from "@peppermint/admin";
 import { FormSection } from "@/components/FormSection";
-import { CERTIFICATE_GRADES } from "./certificateForm.utils";
+import { toCertificateGender } from "./certificateContent";
+import { CERTIFICATE_GRADES, MAX_TEXTBOOKS } from "./certificateForm.utils";
 import type {
   CertificateFormValues,
   CertificateSectionProps,
@@ -22,6 +23,12 @@ import type {
 
 const GRADE_OPTIONS = CERTIFICATE_GRADES.map((g) => ({ value: g, label: g }));
 
+const GENDER_OPTIONS = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+  { value: "other", label: "Other" },
+];
+
 const SKILLS = [
   { name: "grammar", label: "Grammar" },
   { name: "listening", label: "Listening" },
@@ -29,6 +36,11 @@ const SKILLS = [
   { name: "reading", label: "Reading" },
   { name: "composition", label: "Composition" },
 ] as const;
+
+/** A `SegmentedControl` has no error slot; its wrapper carries the message. */
+function fieldError(value: unknown): string | undefined {
+  return typeof value === "string" && value ? value : undefined;
+}
 
 export function CertificateStudentSection({
   disabled,
@@ -42,6 +54,7 @@ export function CertificateStudentSection({
           placeholder="Sita"
           autoComplete="given-name"
           required
+          maxLength={150}
           disabled={disabled}
           {...form.getInputProps("firstname")}
         />
@@ -49,6 +62,7 @@ export function CertificateStudentSection({
           label="Middle name (optional)"
           placeholder="Kumari"
           autoComplete="additional-name"
+          maxLength={150}
           disabled={disabled}
           {...form.getInputProps("middlename")}
         />
@@ -57,6 +71,7 @@ export function CertificateStudentSection({
           placeholder="Shrestha"
           autoComplete="family-name"
           required
+          maxLength={150}
           disabled={disabled}
           {...form.getInputProps("lastname")}
         />
@@ -70,16 +85,20 @@ export function CertificateStudentSection({
           disabled={disabled}
           {...form.getInputProps("date_of_birth")}
         />
-        <Input.Wrapper label="Gender" required>
+        <Input.Wrapper
+          label="Gender"
+          required
+          error={fieldError(form.errors.gender)}
+        >
           <SegmentedControl
             fullWidth
             mt={4}
             aria-label="Gender"
-            data={["Male", "Female"]}
+            data={GENDER_OPTIONS}
             disabled={disabled}
             value={form.values.gender}
             onChange={(v) =>
-              form.setFieldValue("gender", v === "Female" ? "Female" : "Male")
+              form.setFieldValue("gender", toCertificateGender(v))
             }
           />
         </Input.Wrapper>
@@ -89,6 +108,7 @@ export function CertificateStudentSection({
         placeholder="Bagbazar, Kathmandu"
         autoComplete="street-address"
         required
+        maxLength={300}
         disabled={disabled}
         {...form.getInputProps("address")}
       />
@@ -101,8 +121,8 @@ export function CertificateCourseSection({
 }: CertificateSectionProps) {
   const { form } = useFormInstance<CertificateFormValues>();
   const totalHours =
-    (Number(form.values.course_days) || 0) *
-    (Number(form.values.coursehour) || 0);
+    (Number(form.values.course_total_days) || 0) *
+    (Number(form.values.course_hours_per_day) || 0);
   return (
     <FormSection title="Course">
       <Grid gap="sm">
@@ -111,6 +131,7 @@ export function CertificateCourseSection({
             label="Course name"
             placeholder="Japanese Language Course"
             required
+            maxLength={150}
             disabled={disabled}
             {...form.getInputProps("course_name")}
           />
@@ -120,6 +141,7 @@ export function CertificateCourseSection({
             label="Target level"
             placeholder="N5"
             required
+            maxLength={50}
             disabled={disabled}
             {...form.getInputProps("course_level")}
           />
@@ -127,20 +149,22 @@ export function CertificateCourseSection({
       </Grid>
       <TagsInput
         label="Textbooks (optional)"
-        description="Press Enter after each title."
+        description={`Press Enter after each title. Up to ${MAX_TEXTBOOKS}.`}
         placeholder="Minna no Nihongo I"
+        maxTags={MAX_TEXTBOOKS}
         disabled={disabled}
-        {...form.getInputProps("textbooks")}
+        {...form.getInputProps("course_books")}
       />
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
         <NumberInput
           label="Course length in days (optional)"
           placeholder="150"
           min={0}
+          max={1000}
           allowDecimal={false}
           hideControls
           disabled={disabled}
-          {...form.getInputProps("course_days")}
+          {...form.getInputProps("course_total_days")}
         />
         <NumberInput
           label="Class hours per day"
@@ -154,7 +178,7 @@ export function CertificateCourseSection({
             totalHours > 0 ? `${totalHours} hours in total` : undefined
           }
           disabled={disabled}
-          {...form.getInputProps("coursehour")}
+          {...form.getInputProps("course_hours_per_day")}
         />
       </SimpleGrid>
     </FormSection>
@@ -179,6 +203,7 @@ export function CertificateDatesSection({ disabled }: CertificateSectionProps) {
           placeholder="2026-07-15"
           valueFormat="YYYY-MM-DD"
           clearable
+          minDate={form.values.date_of_admission ?? undefined}
           disabled={disabled}
           {...form.getInputProps("date_of_completion")}
         />
@@ -190,7 +215,10 @@ export function CertificateDatesSection({ disabled }: CertificateSectionProps) {
           {...form.getInputProps("issue")}
         />
       </SimpleGrid>
-      <Input.Wrapper label="Study status">
+      <Input.Wrapper
+        label="Study status"
+        error={fieldError(form.errors.study_type)}
+      >
         <SegmentedControl
           fullWidth
           mt={4}
@@ -200,9 +228,9 @@ export function CertificateDatesSection({ disabled }: CertificateSectionProps) {
             { value: "1", label: "Completed" },
           ]}
           disabled={disabled}
-          value={form.values.studyType}
+          value={form.values.study_type}
           onChange={(v) =>
-            form.setFieldValue("studyType", v === "1" ? "1" : "0")
+            form.setFieldValue("study_type", v === "1" ? "1" : "0")
           }
         />
       </Input.Wrapper>
@@ -221,7 +249,11 @@ export function CertificateGradesSection({
     >
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
         {SKILLS.map((skill) => (
-          <Input.Wrapper key={skill.name} label={skill.label}>
+          <Input.Wrapper
+            key={skill.name}
+            label={skill.label}
+            error={fieldError(form.errors[skill.name])}
+          >
             <SegmentedControl
               fullWidth
               mt={4}
@@ -255,8 +287,9 @@ export function CertificateSignatorySection({
           label="Instructor"
           placeholder="Pick a signatory"
           data={signatureOptions}
-          value={form.values.instructorId ?? ""}
-          onChange={(v) => form.setFieldValue("instructorId", v || null)}
+          value={form.values.instructor_id ?? ""}
+          onChange={(v) => form.setFieldValue("instructor_id", v || null)}
+          error={fieldError(form.errors.instructor_id)}
           searchable
           disabled={disabled}
         />
@@ -264,8 +297,9 @@ export function CertificateSignatorySection({
           label="Managing director"
           placeholder="Pick a signatory"
           data={signatureOptions}
-          value={form.values.directorId ?? ""}
-          onChange={(v) => form.setFieldValue("directorId", v || null)}
+          value={form.values.director_id ?? ""}
+          onChange={(v) => form.setFieldValue("director_id", v || null)}
+          error={fieldError(form.errors.director_id)}
           searchable
           disabled={disabled}
         />
@@ -275,16 +309,18 @@ export function CertificateSignatorySection({
           label="Branch address (optional)"
           description="Printed under the head office line."
           placeholder="Branch Office : Butwal, Rupandehi"
+          maxLength={150}
           disabled={disabled}
-          {...form.getInputProps("customBranch")}
+          {...form.getInputProps("branch_name")}
         />
         <TextInput
           label="Branch phone (optional)"
           description="Printed after “Branch :” in the contact block."
           placeholder="071-123456"
           inputMode="tel"
+          maxLength={50}
           disabled={disabled}
-          {...form.getInputProps("customBranchNo")}
+          {...form.getInputProps("branch_no")}
         />
       </SimpleGrid>
     </FormSection>

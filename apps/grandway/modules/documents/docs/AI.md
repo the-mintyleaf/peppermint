@@ -17,8 +17,9 @@ for an applicant workspace or a standalone document.
 (`/admin/documents`, `/admin/documents/all`, `ApplicantDocumentsPanel`), a
 separate module.
 
-Backend: `/api/v1/documents/` + `/api/v1/document-history/`. Contracts:
-`docs/backend/documents/`, `docs/backend/document-history/`.
+Backend: `/api/v1/documents/` (incl. `prefill/<applicant_id>/`) +
+`/api/v1/document-history/`. Contracts: `docs/backend/documents/` (v1.5.0),
+`docs/backend/document-history/`.
 
 ## Module type
 
@@ -71,6 +72,16 @@ certificate and its statement are removed and restored together
 (`findBankPartner` in `utils/documentTypeMenu.ts`, matched on reason and archive time). Restore is disabled while a live document of
 the same one-per-student type exists, so it can never leave two.
 
+- **The backend list hides archived documents unless asked** (since 1.2.0).
+  `documentsApi.listByApplicant` sends `include_archived=true` — the Archived
+  group, the applicant panel and the list-row button all need them, and they
+  share one cache entry. `documentsApi.list` takes `includeArchived`.
+- **Restore returns the status the document had when removed** (`draft` or
+  `ready`; `draft` for anything removed before 2026-10-29); the toast says which.
+  Restore stays **one click** — `documentsApi.restore(id, reason?)` accepts the
+  optional reason, the toolbar does not ask for it (the removal already carries
+  a mandatory one, and restore is itself reversible).
+
 Modals follow one of three patterns: a context flag (`EditFieldsModal`,
 `CreateDocumentModal`), local `useState` in the page (the two panels), or a fully
 imperative `@peppermint/admin` modal (`openReasonConfirmModal` for archive).
@@ -78,7 +89,17 @@ imperative `@peppermint/admin` modal (`openReasonConfirmModal` for archive).
 ## The template seam
 
 `documentTypeConfig.ts` is the registry: `type → { label, Form, Template,
-ConfigBar?, formModalSize? }`.
+ConfigBar?, formModalSize?, templateVersion? }`.
+
+- **`templateVersion`** is sent as `template_version` on **create only**
+  (`getTemplateVersion`). Every Woda letter is created as `"2"`; everything else
+  takes the backend's `"1"`. `Document.templateVersion` is mapped but **no
+  template branches on it yet** — older Woda content is recognised by its shape
+  (see WODA letters), which is what keeps it rendering.
+- **A form's `onSubmit` returns the save's promise.** `EditFieldsModal` and
+  `CreateDocumentModal` close only when it resolves; on a refusal the provider
+  toasts and the modal stays open with the operator's edits. Forms may ignore
+  the promise; the certificate form awaits it to mark server field errors.
 
 - **`Template`** renders the document. Templates live in `@/components/templates/`
   and are **pure presentational components** — they receive resolved data and
@@ -100,6 +121,63 @@ Anything that must survive a reload or a print needs `onPersist`.
 > persisting ConfigBar keeps a `contentRef` and merges at flush time, with an
 > unmount flush so a debounced save is not lost when the panel closes or the
 > document switches.
+
+## Student certificate content
+
+**The one body the backend validates** (`documents/INTEGRATION.md` §7): on create
+and on every PATCH with content, snake_case keys; a refusal is 400
+`DOCUMENTS_CONTENT_INVALID` with `error.details.fields` keyed by path
+(`marking[2].present`). Folder: `document-types/student-certificate/`.
+
+| File                       | Role                                                                                                                     |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `certificateContent.ts`    | **Pure.** `normalizeCertificateContent` (read either era) / `toStoredCertificateContent` (write the validated keys only) |
+| `certificateForm.utils.ts` | Zod schema mirroring the backend rules, content ↔ form values, `serverPathToFormPath`                                    |
+| `CertificateForm.tsx`      | Form; seeds a NEW certificate from the prefill; marks server refusals                                                    |
+| `CertificateConfigBar.tsx` | Customizations: issue date, signatories, study status — same keys                                                        |
+| `CertificateTemplate.tsx`  | Adapter → `StudentCertificateData` (`@/context/DocumentContext`)                                                         |
+| `useCertificatePhoto.ts`   | Resolves `photo_media_id` to a URL, reusing the editor's current photo                                                   |
+
+- **Read both, write only the new.** Certificates saved before 2026-10-29 use
+  the template's old keys (`gender: "Male"`, top-level grades, `coursehour`,
+  `studyType`, `instructorId`/`directorId`, `customBranch`/`customBranchNo`,
+  `batch.course.*`, `issueDate`, `studentName`, `program`). Every reader goes
+  through `normalizeCertificateContent`, so they open, preview and print
+  unchanged; the next save from the form **or** the Customizations panel rewrites
+  them under the new keys and drops the old ones (`LEGACY_CERTIFICATE_KEYS`).
+  `gender: "Male"` would now be refused, so a legacy body is never sent back.
+- **Every printed field is entered in the certificate's own form or its
+  Customizations panel.** Nothing needs filling in on the applicant's profile.
+  Keep it that way — the prefill only seeds editable fields.
+- **Prefill seeds a NEW certificate only**: name parts, date of birth, gender,
+  address (current, else permanent, `formatted`), `photo_media_id`.
+  `FormWrapper` reads `initial` once, so the form waits for the prefill to
+  settle; a failed prefill opens it empty with a notice.
+- **Photograph.** The photo field edits the applicant's photograph; the save
+  stores whichever is current as `photo_media_id` (`resolvePhotoMediaId`). The
+  template prints the stored one — reusing the editor's resolved URL when it is
+  the current photo, fetching its own bytes only when pinned to an older one.
+  No `photo_media_id` (older certificates) → stored `image`, else current photo.
+- **Server field errors land on the open form.** `saveDocumentContent` /
+  `createDocumentWithContent` reject after the provider's toast; the form maps
+  each path (`marking[i].*` → `attendance.i.*`, `grades.x` → `x`,
+  `course_books[i]` → `course_books`, others by name) with `form.setErrors`, and
+  lists the unplaceable ones (`photo_media_id`) in an alert above the fields.
+  The form's `finalSubmitFn` returns `ok: true` on purpose — `ok: false` would
+  add a second, generic toast.
+- **Customizations refusals** have no form to mark: the toast names the fields
+  (`describeContentSaveError`, `utils/contentFieldErrors.ts`). A certificate
+  whose stored photograph was archived after saving is refused on its next
+  content save; opening Edit fields and saving re-pins the current photo.
+
+## Prefill
+
+`useDocumentPrefill(applicantId, { enabled })` (`hooks/useDocumentPrefill.ts`,
+exported from the barrel) → `GET /documents/prefill/<applicant_id>/`, mapped to
+camelCase `DocumentPrefill` (`documentPrefill.types.ts`). Key
+`documentPrefillKey(id)`, outside the documents tree. `staleTime: 0` (read when
+a form opens), no retry. Used today by the certificate form; **not yet wired
+into the Woda letters**.
 
 ## WODA letters
 
@@ -124,6 +202,8 @@ Ward-office letters, in two **sets** (`WODA_CATEGORIES` in
   live in `utils/wodaCommonSections.ts`; the Japan and English birth and
   relationship forms are one schema each, parameterised by legal basis
   (`utils/wodaDefaults.ts`).
+- **New letters are created with `template_version: "2"`** (registry
+  `templateVersion`); letters created before keep `"1"`. Nothing branches on it.
 - **Old content keeps rendering.** The relationship letter still prints the
   single `extra_relation` relative when a document has no `relatives` list,
   and a blank occupation note or family paragraph prints the standard wording.

@@ -126,8 +126,8 @@ export function DocToolbar({
     openReasonConfirmModal({
       title: "Remove document",
       description: isBankPair
-        ? "The bank certificate and its statement are removed together. Both move to Archived in the pages list, keep their print history, and can be restored."
-        : "It moves to Archived in the pages list, keeps its print history, and can be restored. You can then create a new one of the same kind.",
+        ? "The bank certificate and its statement are removed together. Both move to Archived in the pages list, keep their print history, and can be restored with the status they have now."
+        : "It moves to Archived in the pages list, keeps its print history, and can be restored with the status it has now. You can then create a new one of the same kind.",
       confirmLabel: "Remove",
       confirmColor: "red",
       reasonLabel: "Reason",

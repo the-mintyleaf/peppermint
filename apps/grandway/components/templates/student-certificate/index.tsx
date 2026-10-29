@@ -20,7 +20,6 @@ import {
   type StudentCertificateData,
   type CertificateMarkEntry,
 } from "@/context/DocumentContext";
-import { StudentCertMissingBanner } from "./MissingBanner";
 const leafImage = { src: "/documents/assets/leaf.svg" };
 const grandwayLogo = { src: "/img/grandway_icon.png" };
 
@@ -29,23 +28,35 @@ const EMPTY_CERT: StudentCertificateData = {
   middlename: "",
   lastname: "",
   date_of_birth: "",
-  gender: "Male",
+  gender: "",
   address: "",
   date_of_admission: "",
   date_of_completion: "",
   issue: "",
-  coursehour: 0,
-  grammar: "A",
-  listening: "A",
-  conversation: "A",
-  reading: "A",
-  composition: "A",
-  studyType: 0,
-  batch: {
-    course: { name: "", level: "", total_days: 0, books: [] },
-    instructor: [],
+  course_name: "",
+  course_level: "",
+  course_books: [],
+  course_total_days: 0,
+  course_hours_per_day: 0,
+  grades: {
+    grammar: "A",
+    listening: "A",
+    conversation: "A",
+    reading: "A",
+    composition: "A",
   },
+  study_type: 0,
+  image: "",
+  branch_name: "",
+  branch_no: "",
   marking: [],
+};
+
+/** Japanese + English gender line. `""` prints a blank, never a guessed 女. */
+const GENDER_LABELS: Record<string, { jp: string; en: string }> = {
+  male: { jp: "男", en: "Male" },
+  female: { jp: "女", en: "Female" },
+  other: { jp: "その他", en: "Other" },
 };
 
 function GradeBox({ grade, value }: { grade: string; value: string }) {
@@ -137,7 +148,8 @@ export function TemplateStudentCertificate({
   const totalDays = marking.reduce((s, m) => s + (m.total_days || 0), 0);
   const totalPresent = marking.reduce((s, m) => s + (m.present || 0), 0);
 
-  const totalClassHours = totalDays * d.coursehour;
+  const totalClassHours = totalDays * d.course_hours_per_day;
+  const gender = GENDER_LABELS[d.gender];
   const totalPresentHours = totalPresent;
   const overallAttendancePct =
     totalClassHours > 0
@@ -252,9 +264,9 @@ export function TemplateStudentCertificate({
               <Text fz={10} c="dimmed">
                 Head Office : Bagbazar, Kathmandu, Nepal
               </Text>
-              {d.customBranch && (
+              {d.branch_name && (
                 <Text fz={10} c="dimmed">
-                  {d.customBranch}
+                  {d.branch_name}
                 </Text>
               )}
             </Stack>
@@ -267,10 +279,10 @@ export function TemplateStudentCertificate({
               info@grandwayeducation.com
               <br />
               01-5927205 (+977 1 5927205)
-              {d.customBranchNo && (
+              {d.branch_no && (
                 <>
                   <br />
-                  Branch : {d.customBranchNo}
+                  Branch : {d.branch_no}
                 </>
               )}
             </Text>
@@ -310,8 +322,8 @@ export function TemplateStudentCertificate({
               </Grid.Col>
               <Grid.Col span={6}>
                 <Text fz={10}>
-                  <b>性別 (Gender)：{d.gender === "Male" ? "男" : "女"}</b> (
-                  {d.gender})
+                  <b>性別 (Gender)：{gender?.jp ?? ""}</b>
+                  {gender ? ` (${gender.en})` : ""}
                 </Text>
               </Grid.Col>
               <Grid.Col span={12}>
@@ -331,13 +343,12 @@ export function TemplateStudentCertificate({
               </Grid.Col>
               <Grid.Col span={12}>
                 <Text fz={10}>
-                  <b>コース名(Course name) :</b> {d.batch?.course?.name ?? ""}
+                  <b>コース名(Course name) :</b> {d.course_name}
                 </Text>
               </Grid.Col>
               <Grid.Col span={12}>
                 <Text fz={10}>
-                  <b>使用教材(Textbook) : </b>{" "}
-                  {d.batch?.course?.books?.map((b) => b.name).join(", ") ?? ""}
+                  <b>使用教材(Textbook) : </b> {d.course_books.join(", ")}
                 </Text>
               </Grid.Col>
               <Grid.Col span={12}>
@@ -345,10 +356,10 @@ export function TemplateStudentCertificate({
                   履修内容：文法(Grammar)、会話(Conversation)、聴解(Listening)、読解(Reading)、作文(Composition)
                   <br />
                   コース時間(Total Course Hour) :{" "}
-                  {(d.batch?.course?.total_days ?? 0) * d.coursehour} Hours (
-                  {d.coursehour} Hours per Day)
+                  {d.course_total_days * d.course_hours_per_day} Hours (
+                  {d.course_hours_per_day} Hours per Day)
                   <br />
-                  目標レベル(Target level) : {d.batch?.course?.level ?? ""}
+                  目標レベル(Target level) : {d.course_level}
                 </Text>
               </Grid.Col>
             </Grid>
@@ -485,7 +496,7 @@ export function TemplateStudentCertificate({
               <Table.Td>
                 <Group gap={4}>
                   {grades.map((g) => (
-                    <GradeBox key={g} grade={g} value={d.grammar} />
+                    <GradeBox key={g} grade={g} value={d.grades.grammar} />
                   ))}
                 </Group>
               </Table.Td>
@@ -497,7 +508,7 @@ export function TemplateStudentCertificate({
               <Table.Td>
                 <Group gap={4}>
                   {grades.map((g) => (
-                    <GradeBox key={g} grade={g} value={d.listening} />
+                    <GradeBox key={g} grade={g} value={d.grades.listening} />
                   ))}
                 </Group>
               </Table.Td>
@@ -512,7 +523,7 @@ export function TemplateStudentCertificate({
               <Table.Td>
                 <Group gap={4}>
                   {grades.map((g) => (
-                    <GradeBox key={g} grade={g} value={d.conversation} />
+                    <GradeBox key={g} grade={g} value={d.grades.conversation} />
                   ))}
                 </Group>
               </Table.Td>
@@ -524,7 +535,7 @@ export function TemplateStudentCertificate({
               <Table.Td>
                 <Group gap={4}>
                   {grades.map((g) => (
-                    <GradeBox key={g} grade={g} value={d.reading} />
+                    <GradeBox key={g} grade={g} value={d.grades.reading} />
                   ))}
                 </Group>
               </Table.Td>
@@ -539,7 +550,7 @@ export function TemplateStudentCertificate({
               <Table.Td>
                 <Group gap={4}>
                   {grades.map((g) => (
-                    <GradeBox key={g} grade={g} value={d.composition} />
+                    <GradeBox key={g} grade={g} value={d.grades.composition} />
                   ))}
                 </Group>
               </Table.Td>
@@ -570,7 +581,7 @@ export function TemplateStudentCertificate({
               上記の通り、当校で
               <span
                 style={
-                  d.studyType === 0
+                  d.study_type === 0
                     ? {
                         padding: 5,
                         borderRadius: 999,
@@ -585,7 +596,7 @@ export function TemplateStudentCertificate({
               ・
               <span
                 style={
-                  d.studyType === 1
+                  d.study_type === 1
                     ? {
                         padding: 5,
                         borderRadius: 999,

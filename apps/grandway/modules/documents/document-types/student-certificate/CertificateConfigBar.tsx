@@ -5,10 +5,30 @@ import { Alert, Stack, Select, DateInput, Text } from "@peppermint/ui";
 import { useDraftSignatoryCount } from "./useDraftSignatoryCount";
 import { useDocumentEditor } from "../../context";
 import { certificateSignatureOptions } from "./certificateSignatureOptions";
+import {
+  normalizeCertificateContent,
+  toStoredCertificateContent,
+  type CertificateFields,
+} from "./certificateContent";
 import type {
   DocumentConfigBarProps,
   CertificateContent,
 } from "../../documents.types";
+
+/**
+ * Applies a panel change to the freshest content, in the validated key set. An
+ * older certificate is rewritten under the new keys by its first change here —
+ * sending its legacy body back (`gender: "Male"`) would now be refused.
+ */
+function applyPatch(
+  content: CertificateContent,
+  patch: Partial<CertificateFields>,
+): CertificateContent {
+  return toStoredCertificateContent(
+    { ...normalizeCertificateContent(content), ...patch },
+    content,
+  );
+}
 
 const PERSIST_DEBOUNCE_MS = 400;
 
@@ -36,6 +56,7 @@ export function CertificateConfigBar({
 }: DocumentConfigBarProps) {
   const { markUnsavedChanges } = useDocumentEditor();
   const content = doc.content as CertificateContent;
+  const fields = normalizeCertificateContent(content);
 
   // Latest content / persist target, read at flush time (not during render) —
   // same pattern, and same reasons, as `CvEuropassConfigBar`.
@@ -46,7 +67,7 @@ export function CertificateConfigBar({
   // eslint-disable-next-line react-hooks/refs
   onPersistRef.current = onPersist;
 
-  const pendingRef = useRef<Partial<CertificateContent>>({});
+  const pendingRef = useRef<Partial<CertificateFields>>({});
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Persist from the FRESHEST content plus every field changed inside the
@@ -56,7 +77,7 @@ export function CertificateConfigBar({
     if (Object.keys(pendingRef.current).length === 0) return;
     const patch = pendingRef.current;
     pendingRef.current = {};
-    onPersistRef.current?.({ ...contentRef.current, ...patch });
+    onPersistRef.current?.(applyPatch(contentRef.current, patch));
   }, []);
 
   const schedulePersist = useCallback(() => {
@@ -82,10 +103,10 @@ export function CertificateConfigBar({
   }, [persistNow]);
 
   const handleChange = useCallback(
-    (patch: Partial<CertificateContent>) => {
+    (patch: Partial<CertificateFields>) => {
       markUnsavedChanges();
       pendingRef.current = { ...pendingRef.current, ...patch };
-      onUpdate({ ...contentRef.current, ...pendingRef.current });
+      onUpdate(applyPatch(contentRef.current, pendingRef.current));
       schedulePersist();
     },
     [markUnsavedChanges, onUpdate, schedulePersist],
@@ -100,10 +121,8 @@ export function CertificateConfigBar({
         label="Issue Date"
         valueFormat="YYYY-MM-DD"
         clearable
-        value={content.issue ?? content.issueDate ?? ""}
-        onChange={(value) =>
-          handleChange({ issue: value ?? "", issueDate: value ?? "" })
-        }
+        value={fields.issue || null}
+        onChange={(value) => handleChange({ issue: value ?? "" })}
         disabled={disabled}
         styles={inputStyles}
       />
@@ -112,8 +131,8 @@ export function CertificateConfigBar({
         label="Instructor"
         placeholder="Select instructor"
         data={signatureOptions}
-        value={content.instructorId ?? ""}
-        onChange={(v) => handleChange({ instructorId: v || null })}
+        value={fields.instructor_id ?? ""}
+        onChange={(v) => handleChange({ instructor_id: v || null })}
         searchable
         clearable
         disabled={disabled}
@@ -124,8 +143,8 @@ export function CertificateConfigBar({
         label="Managing Director"
         placeholder="Select director"
         data={signatureOptions}
-        value={content.directorId ?? ""}
-        onChange={(v) => handleChange({ directorId: v || null })}
+        value={fields.director_id ?? ""}
+        onChange={(v) => handleChange({ director_id: v || null })}
         searchable
         clearable
         disabled={disabled}
@@ -139,8 +158,8 @@ export function CertificateConfigBar({
           { value: "0", label: "Currently Studying (履修している)" },
           { value: "1", label: "Completed (履修した)" },
         ]}
-        value={String(content.studyType)}
-        onChange={(v) => handleChange({ studyType: v === "1" ? 1 : 0 })}
+        value={String(fields.study_type)}
+        onChange={(v) => handleChange({ study_type: v === "1" ? 1 : 0 })}
         disabled={disabled}
         styles={inputStyles}
       />

@@ -87,7 +87,11 @@ function toShellResults(
     label: hit.title || "Untitled",
     // Opaque display text, rendered as-is and never parsed.
     description: hit.subtitle || undefined,
-    hint: matchHint(hit.matched_on),
+    // The shell's only status slot. An archived document hit says so first,
+    // so it never reads as a live document.
+    hint: hit.is_archived
+      ? ["Archived", matchHint(hit.matched_on)].filter(Boolean).join(" · ")
+      : matchHint(hit.matched_on),
     icon,
     href: hitHref(hit.entity_type, hit.id, hit.title),
   }));

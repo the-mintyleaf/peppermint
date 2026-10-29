@@ -378,6 +378,12 @@ const wodaRegistry = Object.fromEntries(
       label: variant.label,
       uniquePerStudent: false,
       requiresStudent: false,
+      // New Woda letters are authored against the 2026-10 layouts (the ward
+      // office's current wording, and the English Country set). Older letters keep
+      // their stored "1" and still render, because the templates recognise the
+      // older content by its shape (`relatives` absent, blank wording fields) —
+      // nothing branches on the version itself yet.
+      templateVersion: "2",
       ...wodaComponents[variant.slug],
     },
   ]),
@@ -511,4 +517,13 @@ export function getDocumentTypeConfig(type: DocumentType): DocumentTypeConfig {
 
 export function getDefaultLabel(type: DocumentType): string {
   return documentTypeRegistry[type]?.label ?? type;
+}
+
+/**
+ * The `template_version` to create a document of this type with, or `undefined`
+ * to take the backend's `"1"`. Only for **create** — an existing document keeps
+ * the version it was authored for.
+ */
+export function getTemplateVersion(type: DocumentType): string | undefined {
+  return documentTypeRegistry[type]?.templateVersion;
 }

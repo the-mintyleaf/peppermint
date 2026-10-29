@@ -11,9 +11,11 @@ import { fetchWorkspaces } from "../../documents.queries";
 import { getWorkspacesColumns } from "./workspaces.columns";
 
 /**
- * The primary Documents surface: one row per applicant with live documents, linking into
- * that applicant's editor workspace. Standalone and archived documents are excluded here
- * (`documents/INTEGRATION.md` §4) — they live in the All documents worklist.
+ * The primary Documents surface: one row per applicant who has any documents, with live
+ * and archived counted separately (`documents/INTEGRATION.md` §4). An applicant whose
+ * documents are all archived still has a row (0 live) and still opens — the editor's
+ * Archived group is where they are restored. Standalone documents are excluded here;
+ * they live in the All documents worklist.
  */
 function DocumentWorkspacesContent() {
   return (
@@ -29,7 +31,7 @@ function DocumentWorkspacesContent() {
         name: "document-workspace",
         label: "Documents",
         description:
-          "Applicants with live document work — open a workspace to edit",
+          "Applicants with document work — open a workspace to edit or restore",
       }}
       disableActions
       disableCreateButton
@@ -45,7 +47,7 @@ function DocumentWorkspacesContent() {
 
 /**
  * Gated on `documentWorkspaces`, which is narrower than the right to read a
- * document. Each row's `document_count` is computed server-side across every family
+ * document. Each row's counts are computed server-side across every family
  * (there is no `family` param on `/workspaces/`), so a reader who is not shown the
  * bank families would see a count that cannot match what opens — and the count
  * itself would disclose that bank documents exist. Those readers get

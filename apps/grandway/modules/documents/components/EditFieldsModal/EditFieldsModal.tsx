@@ -11,13 +11,18 @@ import type { DocumentContent } from "../../documents.types";
  * `change_reason` (the audit log records the edit as a marker, and `content` replaces
  * wholesale), so this is a plain fields form — each document type's `Form` owns its own
  * submit control. Blank fields simply save the current content unchanged.
+ *
+ * The modal closes when the save **succeeds**, not when it is sent: a refused save
+ * leaves the operator's edits on screen (and lets the certificate form mark the
+ * fields the backend refused) instead of throwing them away behind a toast.
  */
 export function EditFieldsModal() {
   const {
     activeDocument,
     editFieldsModalOpen,
     setEditFieldsModalOpen,
-    updateDocumentContent,
+    saveDocumentContent,
+    isSavingContent,
     studentFullData,
     signatures,
     canEdit,
@@ -41,8 +46,14 @@ export function EditFieldsModal() {
   const Form = config.Form;
 
   const handleSubmit = (content: DocumentContent) => {
-    updateDocumentContent(activeDocument.id, content);
-    setEditFieldsModalOpen(false);
+    const saving = saveDocumentContent(activeDocument.id, content);
+    // The rejection is handled here (stay open — the provider already toasted);
+    // the promise itself goes back to forms that want to mark field errors.
+    saving.then(
+      () => setEditFieldsModalOpen(false),
+      () => undefined,
+    );
+    return saving;
   };
 
   return (
@@ -61,7 +72,7 @@ export function EditFieldsModal() {
           signatures={signatures}
           onSubmit={handleSubmit}
           onModalSizeChange={setFormSize}
-          isLoading={false}
+          isLoading={isSavingContent}
         />
       )}
     </Modal>

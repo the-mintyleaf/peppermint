@@ -5,6 +5,7 @@ import { Button, Text, dayjs } from "@peppermint/ui";
 import type { DataTableShellColumn } from "@peppermint/admin";
 import { UserIcon } from "@phosphor-icons/react/dist/csr/User";
 import { FilesIcon } from "@phosphor-icons/react/dist/csr/Files";
+import { ArchiveIcon } from "@phosphor-icons/react/dist/csr/Archive";
 import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/csr/ArrowRight";
 import type { DocumentWorkspaceSummary } from "@/modules/documents";
@@ -26,7 +27,26 @@ export function getWorkspacesColumns(): DataTableShellColumn<DocumentWorkspaceSu
       accessor: "documentCount",
       title: "Documents",
       icon: FilesIcon,
-      render: (row) => <Text size="xs">{row.documentCount}</Text>,
+      // Live documents only (draft + ready). A row can read 0 — every document
+      // removed — and still opens: the editor's Archived group restores them.
+      render: (row) => (
+        <Text size="xs" c={row.documentCount === 0 ? "dimmed" : undefined}>
+          {row.documentCount === 0 ? "None live" : row.documentCount}
+        </Text>
+      ),
+    },
+    {
+      accessor: "archivedCount",
+      title: "Archived",
+      icon: ArchiveIcon,
+      render: (row) =>
+        row.archivedCount > 0 ? (
+          <Text size="xs">{row.archivedCount}</Text>
+        ) : (
+          <Text size="xs" c="dimmed">
+            —
+          </Text>
+        ),
     },
     {
       accessor: "lastUpdated",
@@ -54,7 +74,11 @@ export function getWorkspacesColumns(): DataTableShellColumn<DocumentWorkspaceSu
           size="compact-xs"
           variant="light"
           rightSection={<ArrowRightIcon size={12} aria-hidden />}
-          aria-label={`Open ${row.applicantName}'s document workspace`}
+          aria-label={
+            row.documentCount === 0
+              ? `Open ${row.applicantName}'s document workspace to restore archived documents`
+              : `Open ${row.applicantName}'s document workspace`
+          }
         >
           Open
         </Button>

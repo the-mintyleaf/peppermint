@@ -13,6 +13,19 @@ export { DocumentEditorProvider, useDocumentEditor } from "./context";
 export { useDocumentActions } from "./hooks/useDocumentActions";
 export { useDocumentHistory } from "./hooks/useDocumentHistory";
 export { useSignatures } from "./hooks/useSignatures";
+export {
+  useDocumentPrefill,
+  type UseDocumentPrefillOptions,
+} from "./hooks/useDocumentPrefill";
+export type {
+  DocumentPrefill,
+  PrefillAddress,
+  PrefillApplicant,
+  PrefillEducation,
+  PrefillGender,
+  PrefillLanguageTest,
+  PrefillRelative,
+} from "./documentPrefill.types";
 
 // Shared engine surface consumed by the admin-scoped Documents module + panels.
 export { documentsApi } from "./documents.api";
@@ -36,8 +49,13 @@ export {
   documentHistoryKey,
   documentsByApplicantKey,
   documentsByApplicantPrefix,
+  documentPrefillKey,
 } from "./documents.queryKeys";
-export { documentTypeList, getDocumentTypeConfig } from "./documentTypeConfig";
+export {
+  documentTypeList,
+  getDocumentTypeConfig,
+  getTemplateVersion,
+} from "./documentTypeConfig";
 export {
   STATUS_META,
   getNextStatusAction,

@@ -76,6 +76,12 @@ export interface RenderSignature {
   signature_image: string;
 }
 
+/**
+ * One attendance row. Stored rows use `month: "YYYY-MM"`; a number (or a bare
+ * `"3"`) is how the oldest certificates stored it and is only ever read.
+ * `class_hr`, `present` and `absent` are all **hours** (`present + absent ≤
+ * class_hr`, `documents/INTEGRATION.md` §7).
+ */
 export interface CertificateMarkEntry {
   month: string | number;
   total_days?: number;
@@ -85,32 +91,86 @@ export interface CertificateMarkEntry {
   attendance_percentage?: number | string;
 }
 
+export type CertificateGender = "male" | "female" | "other" | "";
+export type CertificateGradeValue = "A" | "B" | "C" | "D" | "";
+export type CertificateSkill =
+  | "grammar"
+  | "listening"
+  | "conversation"
+  | "reading"
+  | "composition";
+
+/**
+ * A `student-certificate` body. **The backend validates this one** (§7, snake_case
+ * keys) on create and on every PATCH carrying content — a bad value is 400
+ * `DOCUMENTS_CONTENT_INVALID` with `details.fields` keyed by path.
+ *
+ * The first block is the validated key set and is the only thing ever written.
+ * The second block is what certificates saved before 2026-10-29 used: read by
+ * `normalizeCertificateContent` so those documents still open and print, and
+ * stripped on the next save (`toStoredCertificateContent`). `gender: "Male"` from
+ * that era is now rejected, which is why it is never sent back as-is.
+ */
 export interface CertificateContent {
-  issueDate?: string;
-  issue?: string;
-  studyType: 0 | 1;
-  instructorId: string | null;
-  directorId: string | null;
-  studentName?: string;
-  program?: string;
-  nationality?: string;
   firstname?: string;
   middlename?: string;
   lastname?: string;
   date_of_birth?: string;
   gender?: string;
   address?: string;
+  course_name?: string;
+  course_level?: string;
+  course_books?: string[];
+  course_total_days?: number | null;
+  course_hours_per_day?: number | string | null;
   date_of_admission?: string;
   date_of_completion?: string;
-  coursehour?: number;
-  grammar?: string;
-  listening?: string;
-  conversation?: string;
-  reading?: string;
-  composition?: string;
+  issue?: string;
+  marking?: CertificateMarkEntry[];
+  grades?: Partial<Record<CertificateSkill, string>>;
+  study_type?: 0 | 1;
+  photo_media_id?: string | null;
+  instructor_id?: string | null;
+  director_id?: string | null;
+  branch_name?: string;
+  branch_no?: string;
+  /** Frontend-only portrait URL override; unvalidated, carried over untouched. */
   image?: string;
+  details?: Record<string, unknown>;
+  headerProps?: Record<string, unknown>;
+
+  // ── Legacy keys (read only — never written) ───────────────────────────────
+  /** @deprecated → `issue` */
+  issueDate?: string;
+  /** @deprecated → `study_type` */
+  studyType?: 0 | 1;
+  /** @deprecated → `instructor_id` */
+  instructorId?: string | null;
+  /** @deprecated → `director_id` */
+  directorId?: string | null;
+  /** @deprecated → split into `firstname`/`middlename`/`lastname` */
+  studentName?: string;
+  /** @deprecated → `course_name` */
+  program?: string;
+  /** @deprecated — never printed */
+  nationality?: string;
+  /** @deprecated → `course_hours_per_day` */
+  coursehour?: number;
+  /** @deprecated → `grades.grammar` (same for the other four skills) */
+  grammar?: string;
+  /** @deprecated → `grades.listening` */
+  listening?: string;
+  /** @deprecated → `grades.conversation` */
+  conversation?: string;
+  /** @deprecated → `grades.reading` */
+  reading?: string;
+  /** @deprecated → `grades.composition` */
+  composition?: string;
+  /** @deprecated → `branch_name` */
   customBranch?: string;
+  /** @deprecated → `branch_no` */
   customBranchNo?: string;
+  /** @deprecated → `course_name`/`course_level`/`course_total_days`/`course_books` */
   batch?: {
     course?: {
       name?: string;
@@ -120,9 +180,6 @@ export interface CertificateContent {
     };
     instructor?: unknown[];
   };
-  marking?: CertificateMarkEntry[];
-  details?: Record<string, unknown>;
-  headerProps?: Record<string, unknown>;
 }
 
 export interface CvContent {
@@ -361,6 +418,13 @@ export interface Document {
   templateKey: string;
   label: string;
   content: DocumentContent;
+  /**
+   * The layout version the document was authored for — an opaque label, default
+   * `"1"` (`documents/INTEGRATION.md` §4). New Woda letters are created as `"2"`
+   * (`getTemplateVersion`). No template branches on it yet: older content is
+   * recognised by its shape, which is what keeps pre-version documents rendering.
+   */
+  templateVersion: string;
   status: DocumentStatus;
   notes: string;
   /** `false` once archived — `PATCH`/status then 409 (`DOCUMENT_NOT_EDITABLE`). */
@@ -391,11 +455,17 @@ export interface DocumentListItem {
   updatedAt: string;
 }
 
-/** One row per applicant with live (non-archived, non-standalone) documents. */
+/**
+ * One row per applicant with **any** applicant-owned documents (standalone are
+ * excluded). `documentCount` counts live ones (`draft`/`ready`), `archivedCount`
+ * removed ones — so an applicant whose documents are all archived still has a row,
+ * with `documentCount: 0`.
+ */
 export interface DocumentWorkspaceSummary {
   applicantId: string;
   applicantName: string;
   documentCount: number;
+  archivedCount: number;
   lastUpdated: string;
 }
 
@@ -433,13 +503,16 @@ export interface CreateDocumentInput {
   templateKey: string;
   label: string;
   content?: DocumentContent;
+  /** `^[A-Za-z0-9._-]{1,20}$`; omitted → backend default `"1"`. */
+  templateVersion?: string;
   notes?: string;
 }
 
 export interface UpdateDocumentInput {
-  /** Only these four are accepted — anything else 400s the whole request. */
+  /** Only these five are accepted — anything else 400s the whole request. */
   label?: string;
   content?: DocumentContent;
+  templateVersion?: string;
   standalonePurpose?: string;
   notes?: string;
 }
@@ -470,6 +543,12 @@ export interface StudentFullData {
    * after any reload.
    */
   photoUrl?: string;
+  /**
+   * The `uploaded_files` id behind `photoUrl` — what a certificate stores as
+   * `content.photo_media_id`. `null` once the lookup settled and the applicant has
+   * no photograph; `undefined` while unknown (loading, failed, or standalone).
+   */
+  photoFileId?: string | null;
   summary?: string;
   skills?: string;
   experience?: string;
@@ -480,7 +559,14 @@ export interface DocumentFormProps {
   studentFullData?: StudentFullData | null;
   initialContent?: DocumentContent;
   signatures?: Signature[];
-  onSubmit: (values: DocumentContent) => void;
+  /**
+   * Hands the content to the editor, which saves it. The returned promise settles
+   * with the save: it **rejects** with the API error when the backend refuses it.
+   * A form that can place server field errors (the student certificate, whose
+   * content the backend validates) awaits it; the rest may ignore it — the editor
+   * reports the failure and keeps the modal open either way.
+   */
+  onSubmit: (values: DocumentContent) => void | Promise<void>;
   isLoading?: boolean;
   /**
    * Lets a form widen or narrow the modal it sits in — a tabbed form needs a different
@@ -530,4 +616,9 @@ export interface DocumentTypeConfig {
   ConfigBar?: ComponentType<DocumentConfigBarProps>;
   /** Overrides the Edit-fields modal width for form-heavy types. Defaults to `"xl"`. */
   formModalSize?: string | number;
+  /**
+   * `template_version` sent when a document of this type is **created**. Omitted →
+   * the backend's `"1"`. Existing documents keep the version they were created with.
+   */
+  templateVersion?: string;
 }

@@ -12,14 +12,15 @@ import { useFormInstance } from "@peppermint/admin";
 import { Plus as PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { Trash as TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import { FormSection } from "@/components/FormSection";
-import { attendancePercent, classHoursFor } from "./certificateForm.utils";
+import {
+  MAX_ATTENDANCE_MONTHS as MAX_MONTHS,
+  attendancePercent,
+  classHoursFor,
+} from "./certificateForm.utils";
 import type {
   CertificateFormValues,
   CertificateSectionProps,
 } from "./CertificateForm.types";
-
-/** The template prints a twelve-month table, so more rows than that never print. */
-const MAX_MONTHS = 12;
 
 /**
  * One row per month the student attended. Only the days held and the hours
@@ -73,7 +74,10 @@ export function CertificateAttendanceField({
             </Table.Thead>
             <Table.Tbody>
               {rows.map((row, i) => {
-                const classHours = classHoursFor(row, form.values.coursehour);
+                const classHours = classHoursFor(
+                  row,
+                  form.values.course_hours_per_day,
+                );
                 const present = Number(row.present) || 0;
                 return (
                   <Table.Tr key={form.key(`attendance.${i}`)}>

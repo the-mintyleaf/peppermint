@@ -106,6 +106,21 @@ export const ERROR_MESSAGES: Record<string, string> = {
   APPLICANTS_ASSIGNMENT_FORBIDDEN:
     "Someone else holds this applicant. Ask an Admin to reassign it.",
 
+  // Documents
+  DOCUMENTS_ACTOR_FORBIDDEN: "Only an Admin can work with documents.",
+  DOCUMENTS_DOCUMENT_NOT_FOUND: "That document couldn't be found.",
+  DOCUMENTS_APPLICANT_NOT_FOUND: "That applicant couldn't be found.",
+  DOCUMENTS_CONTENT_INVALID:
+    "This document's content couldn't be saved. Check its fields and try again.",
+  DOCUMENTS_CONTENT_TOO_LARGE: "This document is too large to save.",
+  DOCUMENTS_DOCUMENT_NOT_EDITABLE:
+    "This document is archived. Restore it before editing.",
+  DOCUMENTS_DOCUMENT_NOT_ARCHIVED: "This document is already live.",
+  DOCUMENTS_DOCUMENT_ALREADY_ARCHIVED:
+    "This document has already been removed.",
+  DOCUMENTS_ARCHIVE_REASON_REQUIRED:
+    "Give a reason for removing this document.",
+
   // Applicant journeys
   JOURNEYS_ACTOR_FORBIDDEN: "Your authority level may not perform this action.",
   JOURNEYS_JOURNEY_NOT_FOUND: "Journey not found.",
