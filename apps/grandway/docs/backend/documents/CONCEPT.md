@@ -1,157 +1,303 @@
-# CONCEPT — Documents
+# DOCUMENTS — Grandway
 
-Grounding file, adapted from `.backend/concepts/documents.txt`. Freeform prose —
-the formal contract lives in `INTEGRATION.md`.
-
-> **V1 built (2026-07-24).** Where the build departed from the original concept
-> the departure is authoritative: access is **Admin-only including reads** (the
-> concept's "Admin or Lead Manager" is superseded), the status enum is
-> `draft`/`ready`/`archived`, and printing lives in a separate `document_history`
-> module — there is no print endpoint here.
+> **Status: V1 built (2026-07-24).** The Document working record is implemented
+> and documented in `backend/documents/docs/`. Four of the eight open questions
+> below are settled; see "Open questions".
+>
+> **CORRECTION to flow 1 — access is Admin-only.** Flow 1 below says "An Admin
+> or Lead Manager opens an applicant record". That is no longer accurate. The
+> project owner has since ruled that **Lead Managers have no access to
+> documents at all — not even read**. Documents are the only module in Grandway
+> a Lead Manager cannot see, because a single record may carry a bank statement
+> with an account number, balance, and full transaction history. Read every
+> "Admin or Lead Manager" in this file as "Admin". The reasoning is in
+> `backend/documents/docs/SECURITY.md` §1.
+>
+> **Two flows in this document are not deliverable.** Flow 3's print-snapshot
+> step needs `document_history`, and the certificate templates' signatory
+> selection needs `document_templates`. **Neither app has a concept file, so
+> neither could be built** (CLAUDE.md §36 requires one first). Supporting-file
+> attachment in flow 2 likewise waits on `uploaded_files`. The document
+> workspace saves and archives; it does not print.
+>
+> The rest of this document is the original concept, kept as authored. Where the
+> build departed from it, the departure is recorded in
+> `backend/documents/docs/DATA_CONTRACT.md` — "Deliberate Deviations", not by
+> editing the prose here. The flow-binding layer for the frontend is
+> `concepts/documents_flows.md`.
 
 ## Purpose
 
-The Documents module owns Grandway's editable document state. It keeps the
-current working record for a document: who it belongs to, what kind of document
-it is, which template family it uses, what data has been entered, and what state
-it is in. **The frontend renders the document and computes every display-only
-value; the backend stores the persisted source data.** A consultancy does not
-work with documents as one static file — it works with draft data,
-template-driven rendering, frontend-computed presentation values, supporting
-files, revisions, and history.
+The Documents module owns Grandway's editable document state.
+
+It keeps the current working record for a document: who it belongs to, what
+kind of document it is, which template family it uses, what data has been
+entered, and what state it is currently in. The frontend renders the document
+and computes display-only values; the backend stores the persisted source data
+and the immutable snapshot of what was used at print/save time.
+
+The module exists because a consultancy does not work with documents as one
+static file. It works with draft data, template-driven rendering, frontend-
+computed presentation values, print snapshots, supporting files, revisions,
+and final history.
 
 ## Relationship to other records
 
-A document is not an uploaded file, a template, or a print snapshot. The document
-record is the editable business object — identity, ownership, status, template
-association, and input data. The immutable copy created at print/save time lives
-in `document_history`; the template definition and versioning live in
-`document_templates`; supporting files live in `uploaded_files`. The backend is
-the source of truth for saved document _state_, not the rendering engine for the
-final visual layout.
+A document is not the same thing as an uploaded file, a document template, or a
+print snapshot.
 
-Documents may be **applicant-owned** or **standalone**. Applicant-owned documents
-are part of a person's file and stay attached to that applicant. Standalone
-documents have no applicant but must still carry an explicit purpose — the owner
-reference is nullable only when a clearly documented operational purpose stands
-in its place. Exactly one of the two is present on every record.
+The document record is the editable business object. It stores the document's
+identity, ownership, status, template association, and input data. When the
+document is printed or formally saved, the resulting immutable copy belongs to
+the document history app, not here. The template definition and versioning live
+in the document templates app. Supporting files are managed separately in the
+uploaded files app. The backend is not the rendering engine for the final
+visual layout; it is the source of truth for the saved document state that the
+frontend turns into a rendered page.
 
-## Actors
+Documents may be applicant-owned or standalone.
 
-**Admin only.** Documents are the single most sensitive material in Grandway — a
-record may carry a bank statement with an account number, opening balance, and
-full transaction history, a passport-derived declaration, or a family financial
-affidavit. The project owner ruled that **Lead Managers have no access at all,
-not even read** — the only module in Grandway a Lead Manager cannot see.
-Superadmin is refused too. This is the strictest access model in the project and
-supersedes the original concept's "Admin or Lead Manager" phrasing.
+Applicant-owned documents are part of a person's file and should stay attached
+to that applicant record. Standalone documents still need explicit ownership and
+purpose even when no applicant directly owns them.
+
+The current frontend model treats the owner reference as nullable for standalone
+documents. That is fine only when the record has another explicit business owner
+or a clearly documented operational purpose.
 
 ## Core entities
 
-- **Document** — the editable record staff work on: owner, document type, label,
-  template link, status, notes, and the saved input data used to render or
-  complete it.
-- **Document type** — the stable class of the document (letter, form,
-  declaration, certificate family). The backend owns a stable six-value `family`
-  enum — `student`, `woda`, `lor`, `moi`, `bank_statement`, `bank_certificate` —
-  and stores the concrete slug as a format-validated `template_key` string that
-  must agree with the family. Bank documents are two families because a statement
-  and a certificate have different content shapes and screens.
-- **Document input data (`content`)** — the structured source data entered into
-  the workspace, stored **verbatim**. The backend recomputes no client-side
-  presentation values. Bank documents are the clearest example: running balances,
-  debit/credit totals, closing balance, auto interest and tax rows, and
-  amount-in-words are all derived in the frontend at render and are never the
-  canonical editable source.
-- **Standalone document** — a document not directly owned by an applicant; its
-  owner/purpose must still be explicit.
-- **Template association** — the link to the approved template family/version.
-- **Supporting file reference** — a pointer to an `uploaded_files` file used while
-  preparing the document; the file lives there, documents only reference it.
-- **Signature reference** — signatory records for certificate templates, stored in
-  `document_templates`, referenced by id from `content` where needed.
-- **Print snapshot** — the immutable copy created at print/save time; captured and
-  stored by `document_history`, not here.
+Document
 
-## Lifecycle
+The editable record staff work on. It should hold the document's owner,
+document type, label, template link, status, notes, and the saved input data
+used to render or complete the document.
 
-A document is **created** with an owner (applicant or standalone purpose), a
-family + template, a label, and initial status `draft`. Staff **work on the
-data** in the workspace — entering source fields, saving the working copy while
-the frontend continues to generate the rendered presentation from stored state
-(derived values are never treated as ordinary editable data; a later template
-change leaves saved input intact). A document is **marked ready** when finished.
-It may be **archived** (retired with a mandatory reason) when no longer current —
-the record and history remain, the workspace goes read-only — and later
-**restored** for further work, always returning to `draft`. **Review and print**
-is delegated to `document_history`: the workspace renders the final presentation
-and that app captures the immutable snapshot; a reopened document creates a new
-working version without rewriting the old snapshot. **Nothing is ever deleted** —
-a document that should not have existed is archived, not erased.
+Document type
 
-## History
+The category or template family the document belongs to, such as a letter,
+form, declaration, or certificate family. It is the stable class of the
+document, not the rendered instance.
 
-Records created, information changed, status changed, archived (with reason), and
-restored — never silently rewritten or removed. A **body change is redacted to a
-`<changed>` marker**: the audit log records _that_ the body changed and who
-changed it, never what it said, because the body may hold account numbers and
-transaction histories and the audit store is separate and widely readable. A
-previous body therefore cannot be reconstructed from history.
+The current frontend taxonomy uses 42 concrete document slugs:
+
+* Student: `student-certificate`, `student-cv`, `student-cv-standard`,
+  `student-cv-extended`
+* WODA: `woda-address`, `woda-dob`, `woda-fiscal`, `woda-income`,
+  `woda-migration`, `woda-occupation`, `woda-relationship`, `woda-surname`,
+  `woda-tax-clearance`, `woda-agriculture-income`,
+  `woda-affidavit-financial`
+* LOR: `lor-janajagriti`, `lor-bageshwari-chief`, `lor-bageshwari-hod`,
+  `lor-shiva`, `lor-kcmit`, `lor-tri-chandra`, `lor-monastic`, `lor-om-health`,
+  `lor-atlantic`, `lor-model-technical`, `lor-nepalgunj`
+* MOI: `moi-global-college`, `moi-janajagriti`, `moi-vinayak`, `moi-reliance`,
+  `moi-bheri-nursing`
+* Bank certificates/statements:
+  `bank-bigyalaxmi-certificate`, `bank-bigyalaxmi-statement`,
+  `bank-birendranagar-certificate`, `bank-birendranagar-statement`,
+  `bank-himchuli-certificate`, `bank-himchuli-statement`,
+  `bank-janautthan-certificate`, `bank-janautthan-statement`,
+  `bank-karnali-certificate`, `bank-karnali-statement`,
+  `bank-mata-bageshwori-certificate`, `bank-mata-bageshwori-statement`,
+  `bank-narayan-certificate`, `bank-narayan-statement`,
+  `bank-shahabhagi-certificate`, `bank-shahabhagi-statement`,
+  `bank-sumnima-certificate`, `bank-sumnima-statement`,
+  `bank-tribeni-certificate`, `bank-tribeni-statement`,
+  `bank-vyas-certificate`, `bank-vyas-statement`
+
+Document input data
+
+The structured data entered into the document workspace. This is the source data
+used to prepare the document, not the final visual output.
+
+For the current frontend implementation, the backend should store this input
+shape verbatim and not recompute client-side presentation values.
+
+Bank documents are the clearest example:
+
+* running balances are derived in the frontend from the transaction rows
+* debit and credit totals are derived in the frontend
+* closing balance is derived in the frontend
+* auto interest and tax rows are derived in the frontend
+* amount-in-words is derived in the frontend
+
+Those values may appear in the rendered document and print snapshot, but they
+are not the canonical editable source data.
+
+Standalone document
+
+A document that is not directly owned by an applicant. Its owner and purpose
+must still be explicit so staff can account for why it exists.
+
+Template association
+
+The link from a document to the approved template family or version that should
+be used to present it.
+
+Supporting file reference
+
+A pointer to an uploaded file that was used while preparing the document. The
+file itself lives in the uploaded files app; documents only reference it.
+
+Signature reference
+
+The frontend document forms also use signatory records for certificate
+templates. These are stored separately in the document templates domain and are
+referenced by id from the document content where needed.
+
+Print snapshot
+
+The immutable copy created at print time or formal save time. It captures the
+input data, template context, and any render-time metadata needed to reproduce
+what the frontend showed at that moment.
+
+## Key user flows
+
+1. Create a document: An Admin or Lead Manager opens an applicant record or a
+   standalone document workspace -> chooses a document type and template -> the
+   system creates an editable document record with ownership, label, and initial
+   status.
+   - If the document belongs to an applicant, that applicant remains the
+     authoritative owner.
+   - If the document is standalone, the record must still say who owns or
+     commissioned it.
+
+2. Work on document data: A staff user edits the document workspace -> enters or
+   updates the source data -> attaches supporting files when needed -> saves the
+   record -> the working copy updates, while the frontend continues to generate
+   the rendered presentation from the stored state.
+   - Derived presentation values must not be treated as ordinary editable data.
+   - If a template changes later, the saved input data should remain intact.
+
+3. Review and print: A staff user marks the document ready -> the workspace
+   renders the final presentation in the frontend -> the system captures a
+   print snapshot in the document history app -> later edits create a new
+   working version without rewriting the old snapshot.
+   - A previously printed document may still be reopened for correction, but the
+     old snapshot must remain historically visible.
+
+4. Retire and restore: A document is no longer current -> staff archive or
+   otherwise retire it -> the record remains available for history and audit ->
+   if needed, an Admin can restore it for further work.
+   - No historical document should disappear just because it is no longer active.
 
 ## UI screens & wireframe notes
 
-- **Documents landing table** — one row per applicant with **live** document work:
-  name, document count, last-updated. Excludes standalone and all-archived
-  applicants. Answers "who has live work", not "who has documents". Standalone
-  documents need their own tab.
-- **Document List** — a searchable worklist across all documents: columns label,
-  owner, document type, template, status, last updated. Filters for owner, status,
-  type (`family`), and template family; search matches **label only**.
-- **Applicant Detail → Documents panel** — the primary entry point for
-  applicant-owned documents. **Hidden entirely for a Lead Manager** — never shown
-  read-only or empty.
-- **Standalone Documents list** — a separate operational list for internal
-  forms/letters that belong to no applicant.
-- **Document Workspace** — the main editing surface: header, ownership, type,
-  template link, status, source-data form, supporting files, and save actions,
-  plus a **live client-side preview** rendered from the current input data. Goes
-  read-only when archived.
-- **Print Preview / History handoff** — a review screen for final presentation and
-  snapshot capture — **backed by `document_history`, not by any endpoint here.**
+Document List
+
+Shows all documents in a searchable worklist. Columns should include label,
+owner, document type, template, status, and last updated date. Filters should
+allow narrowing by owner, status, type, and template family. Primary action:
+create document.
+
+Applicant Detail → Documents panel
+
+The primary entry point for applicant-owned documents. Shows the applicant's
+document list, current status, and quick actions to open, continue, print, or
+retire a document.
+
+Standalone Documents list
+
+A separate operational list for documents that are not attached to an applicant.
+Useful for internal forms, letters, or other business records that still need a
+document workflow.
+
+Document Workspace
+
+The main editing surface. Shows the document header, ownership, type, template
+link, current status, source-data form, supporting files, and save actions. It
+should also render the live preview from the current input data so staff see
+what the frontend will produce.
+
+Print Preview / History handoff
+
+A review screen for final presentation and submission to document history.
+Should show the rendered document, key derived display values, print metadata,
+and the action that captures the immutable snapshot.
 
 ## Constraints / Out of scope
 
-No template authoring or versioning (that is `document_templates`); no immutable
-snapshot storage (that is `document_history`); no uploaded-file storage or
-verification (that is `uploaded_files`); no applicant self-service portal; no
-automatic rewriting of historical snapshots when source data or template changes;
-no deletion that erases history — retire, archive, or restore instead; no full
-word processor or rich editor in V1; no e-signature workflow; no backend-side
-rendering engine for the final layout. Send input fields only — never derived
-values.
+* No template authoring or version management. That belongs in document
+  templates.
+* No immutable historical snapshot storage. That belongs in document history.
+* No uploaded-file storage or verification workflow. That belongs in uploaded
+  files.
+* No applicant self-service document portal.
+* No automatic rewriting of historical print snapshots when the source data or
+  template changes.
+* No document deletion that erases history. Retire, archive, or restore instead.
+* No full word processor or rich document editor in V1.
+* No e-signature workflow unless explicitly added later.
+* No backend-side rendering engine for the final layout unless that becomes a
+  separately approved requirement.
 
 ## Open questions
 
-Settled in V1: the frontend slugs are **not** the canonical types (the six-value
-`family` enum is, with the slug a validated `template_key` string); the status
-enum is `draft`/`ready`/`archived` (`active` dropped, `printed` and `submitted`
-excluded); Lead Managers see **none**; the backend stores input verbatim and
-computes nothing.
+Settled in V1 (2026-07-24):
+
+* **Are the frontend slugs the canonical types, or template keys?** Template
+  keys. The backend owns a stable six-value `family` enum — `student`, `woda`,
+  `lor`, `moi`, `bank_statement`, `bank_certificate` — and stores the slug as a
+  format-validated string that must agree with the family. Onboarding a new bank
+  partner is a row, not a migration, and the slug registry moves to
+  `document_templates` additively when that app ships. Bank documents are two
+  families rather than one because a statement and a certificate have different
+  content shapes and different screens.
+* **Which status enum?** `draft`, `ready`, `archived`. `active` was dropped as a
+  synonym for `draft`. **`printed` was deliberately excluded**: nothing in this
+  deployment can set it, because print snapshots belong to the unbuilt
+  `document_history`. A status no code writes is a lie in the schema, and adding
+  it later — derived from snapshot existence — is additive. The frontend's
+  `submitted` maps to `ready`; nothing in Grandway submits a document anywhere.
+* **Should Lead Managers see all documents, or only an assigned scope?**
+  Neither — **they see none.** See the correction at the top of this file.
+* **Which fields are source data, and which are computed at render?** Exactly as
+  the frontend contract states: the backend stores the input fields verbatim and
+  computes nothing. Running balances, debit and credit totals, closing balance,
+  the automatic interest and tax rows, and amount-in-words are all derived in
+  the workspace at render time and are never persisted. The backend also does
+  not *strip* a derived value if one is sent — it cannot, without knowing all 42
+  shapes — so a stored derived value must never be read back as truth.
+
+Settled 2026-10-29 (frontend request, updates.md §6 and §7.1):
+
+* **Does "remove" hide a document?** Yes. Archive stays the only removal, but
+  archived documents are left out of the default document list; they are
+  listed on request (`status=archived`, `include_archived=true`) and counted
+  separately on the landing table, so flow 4's "no historical document should
+  disappear" still holds — nothing is deleted, only filtered.
+* **Where does a restored document land?** In the status it had when it was
+  archived. Archiving is how staff remove a document, and restoring is undoing
+  that; the earlier always-draft rule demoted finished documents.
+* **Does the backend validate any template's content?** One:
+  `student-certificate`. Its form now covers every printed field and the
+  frontend specified the keys (snake_case) and asked for them to be checked,
+  including that the printed photo is that applicant's own photograph. The
+  check is lenient — nothing required, unknown keys kept — and the body is
+  still stored exactly as sent. Every other template stays opaque.
+* **Is the template layout version stored?** Yes, per document
+  (`template_version`, default "1"), because the frontend renders old
+  documents with the layout they were authored for (Woda letters moved to
+  layout 2). A print snapshot still records what was printed in its own
+  render context.
 
 Still open:
 
-- Should standalone documents have their own lifecycle, or live in the workspace
-  only? V1 gives them a `?standalone=true` filter but no separate lifecycle, and
-  excludes them from the workspaces landing table.
-- Should generated PDF files be retained alongside document data and snapshots?
-  Unanswerable until `document_history` and `uploaded_files` mature.
-- Can one document reference multiple supporting files, or only a primary one?
-  V1 references none directly.
-- What is the final canonical set of template families? The six cover the current
-  slugs, but nothing validates a slug against a real template — a typo matching
-  the family prefix is accepted until `document_templates` provides a registry.
-- Should a document's previous body be recoverable? Today it is not: the audit log
-  redacts the body and there is no versioning; editing loses previous contents
-  until a print snapshot exists.
-- Should `content` be searchable? V1 searches labels only; full-text search over
+* Should standalone documents have their own list and lifecycle, or live inside
+  the workspace only? V1 gives them a filter (`?standalone=true`) but no
+  separate lifecycle, and they are excluded from the workspaces landing table
+  because they have no applicant to group under.
+* Should final generated PDF files be retained in addition to document data and
+  print snapshots? Unanswerable until `document_history` and `uploaded_files`
+  exist.
+* Can one document reference multiple supporting files, or only a primary one?
+  Waits on `uploaded_files`; V1 references none.
+* What is the final canonical set of template families for V1? The six families
+  cover the current 42 slugs, but nothing validates a slug against a real
+  template — a typo matching the family prefix is accepted until
+  `document_templates` provides a registry.
+* Should a document's previous body be recoverable? Today it is not: the audit
+  log deliberately redacts the body, and there is no versioning. Editing a
+  document loses its previous contents irrecoverably until print snapshots exist.
+* Should `content` be searchable? V1 searches labels only; full-text search over
   personal financial data needs its own decision.

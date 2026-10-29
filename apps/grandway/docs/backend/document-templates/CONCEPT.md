@@ -1,171 +1,241 @@
-# CONCEPT — Document Templates
-
-Grounding file, adapted from `.backend/concepts/document_templates.txt` (with the
-concept's own "Correction notes" applied — see below). Freeform prose; the formal
-contract lives in `INTEGRATION.md`.
-
-**Synced: 2026-09-10 (backend v1.2.0).** The 2026-07-25 sync described a signatory
-whose signature was an external link and stated there was no upload. **That is no
-longer true** — signature images are now uploaded to the file ledger. Every
-statement to the contrary has been corrected below.
-
-> **What the concept asked for and what was built diverge deliberately.** The
-> original concept describes a versioned template-definition store with sections,
-> field hints, signature slots, and previews. **None of that was built**, because
-> the frontend called exactly one endpoint in this domain
-> (`GET /signatories/?status=active`) and carried no template-definition model at
-> all — its ~53 slugs are a hardcoded TypeScript union and its content shapes are
-> compiled-in types. What exists is the **Signatory record** in full plus a **thin
-> template catalogue** (key, family, label, display order, status). This file
-> describes what was built; the un-built parts are flagged.
+# DOCUMENT TEMPLATES — Grandway
 
 ## Purpose
 
-Document Templates owns the controlled configuration the documents workspace
-depends on: the library of **signatory records** certificate documents point at,
-and a **catalogue of template slugs** the document picker offers. It does not
-store document bodies — it stores the names, signatures, and slug metadata that
-tell the frontend what is _offerable_. The templates themselves are frontend
-code; this module never describes how a document renders.
+The Document Templates module owns the controlled template definitions that the
+documents workspace and history layer depend on.
+
+It keeps the library of template keys, families, versions, signatory records,
+and activation state that describe how a document should be presented. This is
+the configuration layer above the editable `documents` app and the immutable
+`document_history` app. It does not store document bodies; it stores the rules
+and assets that tell the frontend how to render them.
+
+The module exists so Grandway can keep template-driven documents consistent
+without hardcoding every form, letter, or bank layout into the frontend.
 
 ## Relationship to other records
 
 A template is not a document, and it is not a snapshot.
 
-- `documents` stores the current editable record and the chosen `template_key`.
-- `document_history` freezes the exact template context used when a snapshot was
-  created — the template key, version string, and resolved signatories go into
-  each snapshot's `render_context`, so a snapshot reproduces itself **without
-  reading this module at all**.
-- `document_templates` owns the signatory library and the slug catalogue that the
-  document workspace's picker draws from.
+`documents` stores the current editable record and the chosen template key.
+`document_history` freezes the exact template context that was used when a
+snapshot was created. `document_templates` owns the canonical template
+definitions, versioning, and signatory metadata that both apps rely on.
 
-**The module holds no foreign key to `documents` in either direction, and is
-consulted by neither.** It publishes two libraries that clients are trusted to
-use — nothing validates the reference.
+The frontend still renders the final document. This app supplies the template
+metadata that the frontend consumes: family, slug, version, labels, signature
+slots, activation state, and any other template-specific presentation hints.
 
 ## Core entities
 
-**Signatory record** — a stored person-and-signature record a certificate may
-name. A signatory is **not** a system user and implies **no** login access. It
-exists so certificate-style documents can point at an approved `name`, `title`,
-`role`, and signature image. Fields: `name`, `title`, `role` (free text),
-`signature_image_url`, activation `status`.
+Template family
 
-**Signature asset** — the image for a signatory, which can arrive **two ways**:
+The broad document class a template belongs to. The current project uses six
+families:
 
-- **An uploaded file** (`signature_file`) — real bytes, posted to
-  `POST /signatories/<id>/signature/` and stored in the `uploaded_files` ledger
-  owned by the signatory. PNG/JPG/JPEG/WEBP only, 10 MB max, checked on both the
-  extension and the leading bytes.
-- **An external URL** (`signature_image_url`) — a plain link this API stores
-  verbatim, never fetches, and never validates beyond well-formedness. Retained
-  for backward compatibility and still honoured.
+* `student`
+* `woda`
+* `lor`
+* `moi`
+* `bank_statement`
+* `bank_certificate`
 
-**An uploaded file always wins when both are present**, and the server says which
-one did in `signature_source` (`"uploaded"` / `"url"` / `"none"`). Read that field;
-do not re-derive the rule from `signature_file` being non-null — part of the
-judgement is invisible to a client, because an archived or superseded file stops
-counting and looks identical from the payload.
+Template key
 
-Removing a signature is **archiving its file** (`POST /api/v1/files/<file_id>/archive/`
-on the file module). There is no removal endpoint here.
+The concrete template identifier used by the frontend and by `documents`. The
+current registry is slug-based and concrete, e.g. `student-cv-extended`,
+`woda-address`, `lor-kcmit`, `moi-vinayak`, `bank-vyas-statement`.
 
-**Template key** — the concrete slug the frontend and `documents` use, e.g.
-`student-cv-extended`, `woda-address`, `lor-kcmit`, `moi-vinayak`,
-`bank-vyas-statement`. Unique and immutable once created.
+Template definition
 
-**Template family** — the broad document class a template belongs to. Six
-families: `student`, `woda`, `lor`, `moi`, `bank_statement`, `bank_certificate`.
-The vocabulary is imported from `documents`, so a seventh can appear with no
-change here — treat it as an open string.
+The structured metadata for one template key and version. It should describe
+the template's family, label, version, status, field hints, section order,
+signature slots, and any render-specific metadata needed by the frontend.
 
-**Activation state** — whether a template or signatory is `draft`, `active`, or
-`inactive`. Every record is created `draft`; only `active` entries are offered
-for new work; `inactive` (retired) entries remain readable for history but are
-not offered.
+Template version
 
-## Not built (deliberately)
+An immutable published revision of a template definition. Once a version has
+been used by a document or history snapshot, it should remain available for
+historical reproduction even if a newer version is later published.
 
-The following core entities and screens from the original concept **have no
-backing endpoint** and none is planned:
+Signatory record
 
-- **Template definition / version chain** — no sections, field hints, signature
-  slots, layout, or versioning. The templates are frontend code.
-- **Template Editor** — backed only for `label`, `description`, `family`, and
-  `display_order`. There is no structural editing.
-- **Template Detail / Version History** — the detail read exists; there is no
-  version chain, so no history to show.
-- **Template Preview** — nothing renderable is returned.
+A stored person-and-signature record that may be referenced by templates. A
+signatory is not a system user and does not imply login access. It exists so
+certificate-style documents can point at an approved name, title, and signature
+image.
 
-Building any of these would mean inventing a schema no consumer reads and
-guaranteeing drift from the templates that actually render.
+Signature asset
+
+The image or image reference used for a signatory. In V1 this can be a stored
+path or URL-like value; the important thing is that it is stable enough for the
+frontend and history snapshot to reference later.
+
+Activation state
+
+Whether a template or signatory is draft, active, or inactive. Active entries
+may be used by the document workspace; inactive ones remain visible for history
+and old snapshots but should not be offered for new work.
 
 ## Key user flows
 
-1. **Add a certificate signer** — an Admin creates a signatory (`draft`), uploads
-   their signature image, then activates it so certificates can name them. The
-   upload targets an existing signatory, so the record must be created first.
-2. **Fill the instructor/director selects** — the document workspace loads
-   `?status=active` signatories and stores the chosen **ids** in the document
-   body. This is the one call the frontend makes into this module.
-3. **Retire a signer** — mark them `inactive`. They vanish from the picker but
-   every document naming them still renders their name, and they stay retrievable
-   by id forever.
-4. **Register / retire a template slug** — add a slug the frontend already
-   supports to the catalogue (does not make it renderable), or retire a bank
-   partner so the picker stops offering it without a frontend deploy.
+1. Author a template: An Admin creates a new template key -> chooses the family
+   -> adds the label, sections, signature slots, and any render hints -> saves
+   a draft definition.
+   - The template key should stay stable across the life of the template family.
+   - A new bank or document variant should be added as a row, not a migration,
+     when possible.
 
-## Permissions
+2. Publish a version: An Admin reviews a draft template -> publishes it as an
+   active version -> the document workspace can now use it for new documents.
+   - Publishing should not mutate historical versions already used in documents
+     or snapshots.
+   - If a template must change materially, create a new version rather than
+     editing the published one in place.
 
-**Admin only — reads included.** A `lead_manager` and a `superadmin` are both
-refused with 403 on **every** route. This module holds **no applicant data at
-all** — the rule is inherited from its consumer (a Lead Manager cannot open a
-document workspace, so a signatory picker is a screen they can never reach), not
-from the sensitivity of what it stores. **Hide these screens** for a Lead
-Manager rather than rendering them read-only.
+3. Maintain signatories: An Admin adds or updates a signatory -> uploads or
+   updates the signature asset -> marks the signatory active or inactive -> the
+   certificate templates can point at the correct signer.
+   - A signatory may be kept inactive but still visible for old snapshots and
+     historical records.
 
-## No deletion
+4. Retire a template: A template is no longer used for new documents -> an
+   Admin marks it inactive -> the template remains available for old document
+   history, but it is no longer offered in new pickers.
+   - Retirement must not break old document records that already point at the
+     template key.
 
-Never deleted. There is no `DELETE` on any route. Retirement is a status change;
-a retired record stays retrievable by id so old documents and snapshots keep
-resolving.
+## UI screens & wireframe notes
+
+Template Catalog
+
+The main management list. Shows template family, key, label, version, and
+activation state. Filters should allow narrowing by family and active/inactive
+status. Primary action: create template.
+
+Template Detail / Version History
+
+Shows one template key with its version chain, activation history, and
+associated signatory slots. This is where an Admin can inspect which version is
+active and which older versions remain available for historical reproduction.
+
+Template Editor
+
+A structured form for editing template metadata. It should expose the pieces
+the frontend needs to render documents consistently: section order, labels,
+field hints, signature slots, and any family-specific notes.
+
+Signatory Library
+
+The management screen for signatory records. Shows the signer's name, role,
+title, signature asset, and active state. Primary action: add or update signer.
+
+Template Preview
+
+A read-only preview of how the template is expected to render in the frontend.
+This is not the document body itself; it is a visual check on the template
+configuration.
 
 ## Constraints / Out of scope
 
-No editable document body or per-document data; no immutable print-snapshot
-storage (that is `document_history`); no **byte storage of its own** — signature
-uploads are delegated wholly to `uploaded_files`, and this module reimplements
-none of that validation; no document workflow state; no signatory as a system
-actor; no backend rendering engine; no deletion of history; and no Lead Manager
-access.
-
-## Two consequences worth designing around
-
-**Signature bytes are Admin-only and audited.** `signatory` is one of
-`uploaded_files`' admin-only owner types, so a Lead Manager gets 404 on a signature
-file rather than 403. The download route is the project's only audited read and
-forbids caching — **fetch each signature once per session and hold the object URL**,
-or every render writes audit events.
-
-**Replacing a signature rewrites the past.** `document_history` freezes a
-signatory's `id`, `name`, and `role` into a snapshot, and **never the image**, so a
-reprint resolves the signature live. Replacing a director's signature changes what
-every historical certificate renders, beside a frozen historical name. The backend
-calls this a known non-repudiation weakness; freezing the image at print time is a
-client decision this API will not make.
+* No editable document body or per-document source data.
+* No immutable print snapshot storage. That belongs in `document_history`.
+* No file storage or attachment workflow. That belongs elsewhere.
+* No document workflow state such as draft/ready/archived for a concrete
+  document record.
+* No signatory as a system actor. A signatory is just a stored person/signature
+  record.
+* No backend-side rendering engine for the final document layout.
+* No deletion of published template history. Inactive versions should remain
+  available for old records.
+* No Lead Manager maintenance access in V1 if the rest of the document stack is
+  Admin-only, which is the current direction.
 
 ## Open questions
 
-- **Is the real slug count 42 or 53?** The frontend contract heads its list "42
-  slugs" and then lists 53; the seed loads ~42. If 42 is right, ~eleven seeded
-  rows would name templates the frontend cannot render, and the picker would
-  offer them. **Unresolved.**
-- **Should `documents` enforce the catalogue?** Today a `template_key` absent
-  from it, or retired, is still accepted. Enforcing would narrow a shipped
-  endpoint's accepted input and add a runtime dependency — deferred.
-- **Should `documents` validate signatory ids?** Same shape, harder — it would
-  mean parsing `content` per template shape, which that app refuses to do.
-- **Should a template ever be renderable-but-not-offerable, or vice versa?** The
-  catalogue and the frontend's union are maintained independently, so either can
-  hold a slug the other lacks, with nothing reporting the mismatch.
+The module was built on 2026-07-24, and the answers below were settled by
+examining what the frontend actually consumes. The resolutions are recorded
+inline; the reasoning for each is in
+backend/document_templates/docs/DATA_CONTRACT.md under "Deliberate Deviations".
+The concept text above is left as originally written.
+
+* Should published template versions be immutable rows, or can a draft be
+  promoted in place once it is approved?
+  -> RESOLVED (neither): there is no version chain at all. See the correction
+     note below.
+
+* Should the 42 frontend document slugs remain the backend canonical registry,
+  or should the backend normalize some of them into broader template families
+  with the slug as a label?
+  -> RESOLVED: both, as they already were. The six families stay a backend enum
+     (owned by the documents app and imported here); the slug stays a validated
+     string and is now catalogued as a row. Note the count: that list contains
+     53 slugs, not 42 — see the correction note below.
+
+* Should template previews be stored or generated on demand?
+  -> RESOLVED (neither): no preview is built. A preview would have to render a
+     template, and the templates are frontend code.
+
+* Should signature images be stored as path/URL references, or as file records
+  once the file layer exists?
+  -> RESOLVED (2026-07-24): a URL reference, exactly as this document's
+     "Signature asset" section permits. uploaded_files does not exist, and a file
+     record needs a full CLAUDE.md §14 contract. Additively replaceable later.
+     Fourth deferral of this kind in the project, after the applicant photograph,
+     offer attachments, and the client logo.
+  -> SUPERSEDED (2026-09-10): both. The condition the first resolution named --
+     "once the file layer exists" -- was met when uploaded_files shipped on
+     2026-07-24, and "additively replaceable later" is exactly how it was
+     replaced. A Signatory is now that module's sixth owner type, and
+     signatory.upload_signature stores a real image against it with the full §14
+     contract applied. The URL reference was KEPT, not removed: repointing it
+     would have been a breaking change to a shipped response shape, and a
+     signatory with no uploaded file still renders from it. A signature_source
+     field on the API says which of the two is in force.
+
+     Three of the four deferrals this was grouped with are still open -- the
+     applicant photograph, offer attachments, and the client logo. What made this
+     one solvable first is that a signatory renders exactly ONE signature, which
+     is what justifies a reverse pointer from the record to the file. An
+     applicant has many files and no single "the photograph", so that one still
+     has nowhere to point; see concepts/applicants_flows.md.
+
+* Should one template key have multiple active versions during a migration, or
+  only one active version at a time?
+  -> MOOT: there are no versions. A template key is one row with one status.
+
+## Correction notes
+
+* **The version chain, section metadata, field hints, signature slots, and
+  preview were deliberately not built.** The frontend's own contract
+  (frontend_data-contract.md, frontend_api-used.md) makes exactly one call into
+  this domain — GET /signatures?active=true — and carries no template-definition
+  model at all. Its 53 slugs are a hardcoded TypeScript union and its content
+  shapes are compiled-in types. Building the rest would mean inventing a schema
+  no consumer reads, which CLAUDE.md §32 forbids and which would drift from the
+  templates that actually render.
+
+  The consequence for this document: the **Template Editor**, **Template Detail
+  / Version History**, and **Template Preview** screens under "UI screens &
+  wireframe notes" have no backing endpoints, and the "Template definition" and
+  "Template version" core entities are not modelled. What was built is the
+  **Signatory record** and **Signature asset** entities in full, plus a thin
+  template catalogue carrying key, family, label, display order, and activation
+  state.
+
+* **The concept's historical-reproduction requirement is already met without a
+  version chain.** "Once a version has been used by a document or history
+  snapshot, it should remain available for historical reproduction" — the
+  document_history app freezes the template key, version string, and resolved
+  signatories into every snapshot's render_context, so a snapshot reproduces
+  itself without reading this module at all.
+
+* **The catalogue is advisory.** The documents app does not consult it: a
+  template key absent from the catalogue, or present but retired, is still
+  accepted when creating a document. Enforcing it would narrow a shipped
+  endpoint's accepted input and needs its own decision.
+
+* **Access is Admin only, reads included** — as the Constraints section
+  anticipated. Note this module holds no applicant data at all; the rule is
+  inherited from its consumer, not from the sensitivity of what it stores.

@@ -1,127 +1,302 @@
 # FLOWS — Document History
 
 **Owner app:** `document_history`
-**Synced:** 2026-07-25, adapted from `.backend/concepts/document_history_flows.md`
-**Purpose:** Connects `CONCEPT.md`'s product intent to the callable endpoints in `INTEGRATION.md`.
-
-> Screen names are quoted from the backend's own `concepts/document_history.txt` →
-> "UI screens & wireframe notes." Every route here is document- or
-> snapshot-scoped: there is no route callable before a `documents` document
-> exists, and create/edit of the document itself is the `documents` module's job.
+**Updated:** 2026-10-29
+**Purpose:** The user-flow binding layer for this app — connects the product intent in
+`concepts/document_history.txt` to the callable endpoints in
+`backend/document_history/docs/INTEGRATION.md`.
+Authored and updated by the backend author in the same commit as any endpoint change (CLAUDE.md §36).
 
 > **Five things govern every flow below.**
 >
-> 1. **Admin only** — a Lead Manager (and a superadmin) cannot open any of these
->    screens. Not read-only, not empty: **hidden**. Same rule as `documents`,
->    because a snapshot holds the same bank statement the working document does.
-> 2. **You never send a document body.** The capture request has no `content`
->    field — the backend reads the committed document row itself. **Save the
->    workspace before printing**; an unsaved edit is not what gets frozen.
-> 3. **Send computed values in `render_context`, not in `content`.** Running
->    balances, totals, closing balance, and amount-in-words go under
->    `render_context.computed`. This is the one place in Grandway a derived value
->    is stored on purpose.
-> 4. **Nothing here can be edited or deleted** — no `PUT`, `PATCH`, or `DELETE` on
->    any route. A mistaken snapshot is corrected by capturing a new one.
-> 5. **A reprint does not grow the version chain.** If the timeline grows while
->    the chain stays still, that is correct — do not treat it as a bug.
+> 1. **Admin only — a Lead Manager cannot open any of these screens.** Not read-only, not empty:
+>    **hidden**. The same rule as `documents`, for the same reason: a snapshot holds the same bank
+>    statement the working document does.
+> 2. **You never send a document body.** The capture request has no `content` field. The backend
+>    reads the committed document row itself. **Save the workspace before printing** — an unsaved
+>    edit is not what gets frozen.
+> 3. **Send the computed values in `render_context`, not in `content`.** The running balances,
+>    totals, closing balance, and amount-in-words that `documents` forbids you from persisting are
+>    exactly what you *must* freeze here. This is the one place in Grandway where a derived value is
+>    stored on purpose.
+> 4. **Nothing here can be edited or deleted.** There is no `PUT`, `PATCH`, or `DELETE` on any route.
+>    A mistaken snapshot is corrected by capturing a new one, never by fixing the old one.
+> 5. **A reprint does not grow the version chain.** If the timeline grows while the chain stays
+>    still, that is correct behaviour — do not treat it as a bug.
 
 ---
 
 ## Flow: Capture a print snapshot
 
-**Actor:** Admin · **Entry point:** Document Workspace (from `documents`) → Print
+- **Actor:** Admin
+- **Goal:** Freeze what the document looks like right now, so it stays recoverable after later edits.
+- **Entry point:** Document Workspace (from `concepts/documents.txt`) → Print
 
-1. **Document Workspace** loads the body → `GET /api/v1/documents/<document_id>/` (`documents.document.read`, **cross-app: `documents`**) — gives `content`, `label`, `family`, `template_key`.
-2. **Document Workspace** saves any pending edits → `PATCH /api/v1/documents/<document_id>/` (`documents.document.update`, **cross-app: `documents`**) — **not optional in practice.** Capture reads the _committed_ row under a lock; a workspace with unsaved changes freezes the old body and the user is not told.
-3. **Print Preview** renders locally, computing every derived value. No endpoint — the frontend is the rendering engine; the backend has never computed a balance.
-4. **Print Preview** prints or saves to history → `POST /api/v1/document-history/documents/<document_id>/snapshots/` (`document_history.snapshot.capture`) with `render_context` carrying the computed values, template version, and resolved signatories → **201** with the `Snapshot` detail shape, `version_number` = _n_.
-   - **No status precondition** — an archived document may be captured; a freeze changes nothing. **Nothing in `documents` changes** — not `status`, not `updated_at`. Creates the snapshot _and_ its `capture` event in one transaction, plus a `snapshot_captured` audit event.
-   - **Do not compute `version_number` client-side** — the server allocates it under a row lock; two people printing at once get _n_ and _n+1_.
-   - `DOCUMENT_HISTORY_RENDER_CONTEXT_TOO_LARGE` → context over 256 KiB (realistically a very long bank statement); trim per-row derived values rather than failing the print.
-   - `DOCUMENT_HISTORY_RENDER_CONTEXT_INVALID` → an array or scalar was sent; a client bug.
-   - `DOCUMENT_HISTORY_DOCUMENT_NOT_FOUND` → the document id is wrong.
-   - `403` → the user is not an Admin; the whole feature must be hidden from them, not merely error out.
-5. The print button does **not** disable afterwards — printing twice is legitimate and produces two versions.
+**Steps:**
+
+1. **Document Workspace** — load the body →
+   `GET /api/v1/documents/<document_id>/` (`documents.document.read`) **(cross-app: `documents`)**
+   - **Requires state:** the document.
+   - **Side effects:** none.
+
+2. **Document Workspace** — save any pending edits →
+   `PATCH /api/v1/documents/<document_id>/` (`documents.document.update`) **(cross-app: `documents`)**
+   - **Requires state:** the document must not be archived.
+   - **Side effects:** appends `document_updated` in `documents`.
+   - **This step is not optional in practice.** Capture reads the *committed* row under a lock. A
+     workspace with unsaved changes will freeze the old body and the user will not be told.
+
+3. **Print Preview** — render locally, computing every derived value.
+   - No endpoint. The frontend is the rendering engine; the backend has never computed a balance.
+
+4. **Print Preview** — print or save to history →
+   `POST /api/v1/document-history/documents/<document_id>/snapshots/`
+   (`document_history.snapshot.capture`)
+   - **Requires state:** the document. **No status precondition** — an archived document may be
+     captured, because a freeze changes nothing.
+   - **Side effects:** creates the snapshot **and** its `capture` print event in one transaction;
+     appends `snapshot_captured` to the audit log. **Nothing in `documents` changes** — not the
+     status, not `updated_at`.
+   - **Put the computed values under `render_context`.** Everything the renderer calculated, plus the
+     template version and the resolved signatories.
+   - **Do not compute `version_number` client-side.** The server allocates it under a row lock;
+     two people printing at once get *n* and *n+1*.
+   - *Failure — `DOCUMENT_HISTORY_RENDER_CONTEXT_TOO_LARGE`:* the context exceeds 256 KiB. Realistically
+     only a very long bank statement. Trim per-row derived values rather than failing the print.
+   - *Failure — `DOCUMENT_HISTORY_RENDER_CONTEXT_INVALID`:* an array or scalar was sent. A client bug.
+   - *Failure — `DOCUMENT_HISTORY_DOCUMENT_NOT_FOUND`:* the document id is wrong.
+
+5. **Document Workspace** — the print button does **not** need to disable afterwards. Printing twice
+   is legitimate and produces two versions.
+
+---
 
 ## Flow: Review a document's history
 
-**Actor:** Admin · **Entry point:** Document History Timeline
+- **Actor:** Admin
+- **Goal:** See everything that was ever issued from this document, and inspect one issue in full.
+- **Entry point:** Document History Timeline
 
-1. **Document History Timeline** loads the chronological list → `GET /api/v1/document-history/documents/<document_id>/timeline/` (`document_history.print_event.list`). **Show `event_type` on every row** — distinguishing an original capture from a reprint or recovery is the screen's stated purpose. Rows carry `version_number` and `label` inline; no per-row fetch is needed.
-   - A document never printed returns an **empty list**, not a 404 — render an empty state.
-   - `DOCUMENT_HISTORY_DOCUMENT_NOT_FOUND` → the document itself does not exist; a genuine 404, distinct from the empty list.
-2. **Document History Timeline** filters to originals only → `GET .../timeline/?event_type=capture`.
-   - `VALIDATION_ERROR` on `event_type` → only `capture`, `reprint`, `recovery` exist; an unrecognised value is **rejected, not ignored**. No comma list.
-3. **Document History Timeline** — the version list beside the timeline → `GET /api/v1/document-history/documents/<document_id>/snapshots/` (`document_history.snapshot.list`). Rows omit `content` and `render_context` — do not try to render a preview from a list row.
-4. **Snapshot Detail** opens one frozen record → `GET /api/v1/document-history/snapshots/<snapshot_id>/` (`document_history.snapshot.read`). **Render the snapshot's own `label` and `render_context.computed`, never the document's current values** — reaching back to the live document defeats the module. **Read-only, permanently** — there is no edit endpoint.
+**Steps:**
+
+1. **Document History Timeline** — load the chronological list →
+   `GET /api/v1/document-history/documents/<document_id>/timeline/`
+   (`document_history.print_event.list`)
+   - **Requires state:** the document.
+   - **Side effects:** none.
+   - **Show `event_type` on every row.** Distinguishing an original capture from a reprint or a
+     recovery is the screen's stated purpose in `concepts/document_history.txt`.
+   - Rows carry `version_number` and `label` inline — no per-row fetch is needed to render them.
+   - A document that has never been printed returns an **empty list**, not a 404. Render an empty
+     state, not an error.
+   - *Failure — `DOCUMENT_HISTORY_DOCUMENT_NOT_FOUND`:* the document itself does not exist. This is a
+     genuine 404, distinct from the empty list above.
+
+2. **Document History Timeline** — filter to originals only →
+   `GET /api/v1/document-history/documents/<document_id>/timeline/?event_type=capture`
+   - *Failure — `VALIDATION_ERROR` on `event_type`:* only `capture`, `reprint`, and `recovery` exist.
+     An unrecognised value is **rejected, not ignored** — do not send a free-text filter.
+
+3. **Document History Timeline** — the version list beside the timeline →
+   `GET /api/v1/document-history/documents/<document_id>/snapshots/`
+   (`document_history.snapshot.list`)
+   - **Requires state:** the document.
+   - **Side effects:** none.
+   - Rows omit `content` and `render_context`. Do not try to render a preview from a list row.
+
+4. **Snapshot Detail** — open one frozen record →
+   `GET /api/v1/document-history/snapshots/<snapshot_id>/` (`document_history.snapshot.read`)
+   - **Requires state:** the snapshot.
+   - **Side effects:** none.
+   - **Render the snapshot's own `label` and `render_context.computed`, never the document's current
+     values.** Reaching back to the live document here would defeat the entire module.
+   - This screen is **read-only, permanently**. There is no edit affordance to hide behind a
+     permission — there is no endpoint at all.
+
+---
 
 ## Flow: Compare two versions
 
-**Actor:** Admin · **Entry point:** Compare Snapshots
+- **Actor:** Admin
+- **Goal:** Understand what changed between two issues of the same document.
+- **Entry point:** Compare Snapshots
 
-1. **Document History Timeline** picks two versions → `GET /api/v1/document-history/documents/<document_id>/snapshots/` (`document_history.snapshot.list`).
-2. **Compare Snapshots** fetches both, **as two separate calls** → `GET /api/v1/document-history/snapshots/<id_a>/` and `GET .../snapshots/<id_b>/` (`document_history.snapshot.read`). **There is no compare endpoint** — diff `content` and `render_context.computed` client-side. Two snapshots may legitimately carry different `label` values — a rename between prints is exactly what this screen exists to surface.
+**Steps:**
+
+1. **Document History Timeline** — pick two versions →
+   `GET /api/v1/document-history/documents/<document_id>/snapshots/`
+   (`document_history.snapshot.list`)
+   - **Requires state:** the document.
+   - **Side effects:** none.
+
+2. **Compare Snapshots** — fetch both, **as two separate calls** →
+   `GET /api/v1/document-history/snapshots/<id_a>/` and
+   `GET /api/v1/document-history/snapshots/<id_b>/` (`document_history.snapshot.read`)
+   - **Requires state:** both snapshots.
+   - **Side effects:** none.
+   - **There is no compare endpoint.** The backend computes, returns, and stores no diff. Diff
+     `content` and `render_context.computed` client-side.
+   - Two snapshots of the same document may legitimately carry different `label` values — a rename
+     between prints is exactly the kind of change this screen exists to surface.
+
+---
 
 ## Flow: Recover a prior version into the workspace
 
-**Actor:** Admin · **Entry point:** Snapshot Detail → Recover
+- **Actor:** Admin
+- **Goal:** Put an older body back into the working document without losing the historical record.
+- **Entry point:** Snapshot Detail → Recover
 
-1. **Snapshot Detail** shows what is about to be restored → `GET /api/v1/document-history/snapshots/<snapshot_id>/` (`document_history.snapshot.read`).
-2. **Recover Snapshot Dialog** confirms → `POST /api/v1/document-history/snapshots/<snapshot_id>/recover/` (`document_history.snapshot.recover`) → **200** with the updated **`Document`** (the `documents` detail shape, **not** a snapshot). Re-render the workspace from it directly — no follow-up fetch.
-   - Writes `label` and `content` into the working document (**cross-app write into `documents`**); creates a `recovery` print event; appends **two** audit events, one per app. **The snapshot is not altered and no new snapshot is created.**
-   - **Warn the user what is _not_ restored:** `notes` and `status` stay as they are. A note written after the print survives; a document marked `ready` stays `ready`.
-   - `DOCUMENT_HISTORY_DOCUMENT_NOT_EDITABLE` (409) → **the document is archived, not the snapshot** (snapshots have no lifecycle). Use `is_editable` on the document to grey the Recover button _before_ calling, rather than discovering the 409 after.
-   - **A no-op recovery is not an error** — if the body already matches, nothing changes in `documents` and `updated_at` does not move, but the recovery _is_ recorded. Do not report failure. There is no concurrency control — two Admins recovering into one document is last-write-wins; treat the returned document as authoritative.
-3. **Document Workspace** — if step 2 returned 409, restore the document first → `POST /api/v1/documents/<document_id>/restore/` (`documents.document.restore`, **cross-app: `documents`**) → returns it to `draft` and clears archive fields. Then retry step 2.
-4. **Document Workspace** — capture again to freeze the recovered state → `POST /api/v1/document-history/documents/<document_id>/snapshots/`. Optional, but this is how the recovered body enters the chain as version _n+1_. A recovery on its own leaves the chain untouched.
+**Steps:**
+
+1. **Snapshot Detail** — show the user what they are about to restore →
+   `GET /api/v1/document-history/snapshots/<snapshot_id>/` (`document_history.snapshot.read`)
+   - **Requires state:** the snapshot.
+   - **Side effects:** none.
+
+2. **Recover Snapshot Dialog** — confirm →
+   `POST /api/v1/document-history/snapshots/<snapshot_id>/recover/`
+   (`document_history.snapshot.recover`)
+   - **Requires state:** the snapshot, and the target document **must not be archived**. This is the
+     only endpoint in the module with a state precondition.
+   - **Side effects:** writes `label` and `content` into the working document **(cross-app write into
+     `documents`)**; creates a `recovery` print event; appends **two** audit events, one in each app.
+     **The snapshot is not altered and no new snapshot is created.**
+   - **The response is the updated `Document`, not the snapshot.** Re-render the workspace from it
+     directly — no follow-up fetch.
+   - **Warn the user what is *not* restored:** `notes` and `status` stay as they are. A note written
+     after the print survives; a document marked `ready` stays `ready`.
+   - *Failure — `DOCUMENT_HISTORY_DOCUMENT_NOT_EDITABLE` (409):* **the document is archived, not the
+     snapshot.** Snapshots have no lifecycle. Offer the restore action below and retry.
+   - **A no-op recovery is not an error.** If the body already matches, nothing changes in `documents`
+     and `updated_at` does not move — but the recovery *is* recorded. Do not report failure.
+
+3. **Document Workspace** — if step 2 returned 409, restore the document first →
+   `POST /api/v1/documents/<document_id>/restore/` (`documents.document.restore`)
+   **(cross-app: `documents`)**
+   - **Requires state:** the document must be archived.
+   - **Side effects:** returns it to the status it held before archiving (`draft` for documents
+     archived before 2026-10-29) and clears the archive fields.
+   - Then retry step 2.
+
+4. **Document Workspace** — capture again to freeze the recovered state →
+   `POST /api/v1/document-history/documents/<document_id>/snapshots/`
+   (`document_history.snapshot.capture`)
+   - Optional, but this is how the recovered body enters the chain as version *n+1*. A recovery on
+     its own leaves the chain untouched.
+
+---
 
 ## Flow: Reprint an earlier issue
 
-**Actor:** Admin · **Entry point:** Snapshot Detail → Reprint
+- **Actor:** Admin
+- **Goal:** Produce another copy of something already issued, and record that it happened.
+- **Entry point:** Snapshot Detail → Reprint
 
-1. **Snapshot Detail** loads the frozen record → `GET /api/v1/document-history/snapshots/<snapshot_id>/` (`document_history.snapshot.read`).
-2. **Print Preview** renders from **the snapshot's own** `content` and `render_context` — never re-render from the live document. The point of a reprint is to reproduce what was issued.
-3. **Snapshot Detail** records the reprint → `POST /api/v1/document-history/snapshots/<snapshot_id>/reprint/` (`document_history.print_event.reprint`) → **201** with a `PrintEvent`.
-   - **No status precondition** — a snapshot of an archived document may be reprinted; reprinting writes nothing to the document. Creates one `reprint` event and **no new snapshot**, plus a `snapshot_reprinted` audit event.
-   - `DOCUMENT_HISTORY_SNAPSHOT_NOT_FOUND` → the snapshot id is wrong.
+**Steps:**
+
+1. **Snapshot Detail** — load the frozen record →
+   `GET /api/v1/document-history/snapshots/<snapshot_id>/` (`document_history.snapshot.read`)
+   - **Requires state:** the snapshot.
+   - **Side effects:** none.
+
+2. **Print Preview** — render from **the snapshot's own** `content` and `render_context`.
+   - Never re-render from the live document. The point of a reprint is to reproduce what was issued.
+
+3. **Snapshot Detail** — record the reprint →
+   `POST /api/v1/document-history/snapshots/<snapshot_id>/reprint/`
+   (`document_history.print_event.reprint`)
+   - **Requires state:** the snapshot. **No status precondition** — a snapshot of an archived
+     document may be reprinted, because reprinting writes nothing to the document.
+   - **Side effects:** creates one `reprint` print event; appends `snapshot_reprinted`. **No new
+     snapshot**, and nothing in `documents` changes.
+   - *Failure — `DOCUMENT_HISTORY_SNAPSHOT_NOT_FOUND`:* the snapshot id is wrong.
 
 ---
 
 ## Endpoint coverage
 
-| Policy key                             | Method / path                                                      | Used by flow(s)                            | Notes                                             |
-| -------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------ | ------------------------------------------------- |
-| `document_history.snapshot.capture`    | `POST /api/v1/document-history/documents/<document_id>/snapshots/` | Capture a print snapshot; Recover (step 4) | Send `render_context`, never `content`. → 201     |
-| `document_history.snapshot.list`       | `GET /api/v1/document-history/documents/<document_id>/snapshots/`  | Review history; Compare                    | Omits both JSON columns. `?fiscal_year=`          |
-| `document_history.snapshot.read`       | `GET /api/v1/document-history/snapshots/<snapshot_id>/`            | Review history; Compare; Recover; Reprint  | **The only endpoint returning a frozen body**     |
-| `document_history.print_event.list`    | `GET /api/v1/document-history/documents/<document_id>/timeline/`   | Review history                             | `?event_type=`, `?fiscal_year=`. Empty list ≠ 404 |
-| `document_history.print_event.reprint` | `POST /api/v1/document-history/snapshots/<snapshot_id>/reprint/`   | Reprint                                    | Writes an event, never a snapshot. → 201          |
-| `document_history.snapshot.recover`    | `POST /api/v1/document-history/snapshots/<snapshot_id>/recover/`   | Recover                                    | **Writes into `documents`.** Returns a `Document` |
+| `permission_key` | `METHOD /path` | Used by flow(s) | Notes |
+|------------------|----------------|-----------------|-------|
+| `document_history.snapshot.capture` | `POST /api/v1/document-history/documents/<document_id>/snapshots/` | Capture a print snapshot; Recover (step 4) | Send `render_context`, never `content` |
+| `document_history.snapshot.list` | `GET /api/v1/document-history/documents/<document_id>/snapshots/` | Review history; Compare | Omits both JSON columns. `?fiscal_year=` |
+| `document_history.snapshot.read` | `GET /api/v1/document-history/snapshots/<snapshot_id>/` | Review history; Compare; Recover; Reprint | **The only endpoint returning a frozen body** |
+| `document_history.print_event.list` | `GET /api/v1/document-history/documents/<document_id>/timeline/` | Review history | `?event_type=`, `?fiscal_year=` |
+| `document_history.print_event.reprint` | `POST /api/v1/document-history/snapshots/<snapshot_id>/reprint/` | Reprint | Writes an event, never a snapshot |
+| `document_history.snapshot.recover` | `POST /api/v1/document-history/snapshots/<snapshot_id>/recover/` | Recover | **Writes into `documents`.** Returns a `Document` |
 
 **Screens from `concepts/document_history.txt`, and whether they are backed:**
 
-- **Document History Timeline** — backed by `print_event.list` (event rows) and `snapshot.list` (version list). Both per-document.
+- **Document History Timeline** — backed by `print_event.list` for the event rows and
+  `snapshot.list` for the version list. Both are per-document.
 - **Snapshot Detail** — backed by `snapshot.read`. Read-only, with no edit endpoint to hide.
 - **Compare Snapshots** — backed by **two** `snapshot.read` calls. No compare endpoint exists.
-- **Recover Snapshot Dialog** — backed by `snapshot.recover`, which performs the restore rather than returning a payload for the client to apply.
+- **Recover Snapshot Dialog** — backed by `snapshot.recover`, which performs the restore rather than
+  returning a payload for the client to apply.
 
 **Not backed, and deliberately so:**
 
-- **Any generated-file link _in a snapshot payload_.** A snapshot has no file field. `uploaded_files` (shipped 2026-07-24) accepts a snapshot as an owner — a client that generates a PDF may store it (`POST /api/v1/files/` with `snapshot=<id>`, `category=generated_document`, `upload_source=system_generated`; found via `GET /api/v1/files/?snapshot=<id>`) — but **nothing in this module knows the file exists.** A "download the saved PDF" control is shippable only if your own client uploaded that PDF.
-- **Any cross-document view** — "everything printed this month", "all snapshots of family `bank_statement`". Both list endpoints require a document id.
-- **A signatory picker** is not this app's to provide, but one exists — `GET /api/v1/document-templates/signatories/?status=active` (`document_templates.signatory.list`, **cross-app**). Ids you freeze into `render_context.signatories` resolve against it; a retired signatory stays retrievable forever so old snapshots keep working. **Keep freezing the name and role alongside the id** — this app validates nothing inside `render_context`.
+- **Any generated-file link *in a snapshot payload*.** A snapshot still has no file field.
+  `uploaded_files` shipped on 2026-07-24 and a snapshot **is** one of its five owner types, so a
+  client that generates a PDF may store it — `POST /api/v1/files/` with `snapshot=<snapshot_id>`,
+  `category=generated_document`, `upload_source=system_generated` (`uploaded_files.file.upload`,
+  cross-app: `uploaded_files`) — and find it again with `GET /api/v1/files/?snapshot=<snapshot_id>`
+  (`uploaded_files.file.list`, cross-app: `uploaded_files`).
+  **Nothing in this module knows the file exists.** A "download the saved PDF" control on a history
+  row is therefore shippable only if your own client uploaded that PDF in the first place; the
+  backend neither generates nor tracks one.
+- **Any cross-document view** — "everything printed this month", "all snapshots of family
+  `bank_statement`". Both list endpoints require a document id.
+- **A signatory picker** is not this app's to provide, but one now exists —
+  `GET /api/v1/document-templates/signatories/?status=active`
+  (`document_templates.signatory.list`) **(cross-app: `document_templates`)**. The ids you freeze
+  into `render_context.signatories` resolve against it, and a retired signatory stays retrievable
+  forever precisely so old snapshots keep working.
+  - **Keep freezing the name and role alongside the id.** This app validates nothing inside
+    `render_context`, and an id alone would leave a snapshot dependent on a lookup that may return a
+    since-renamed record — which is exactly what freezing exists to prevent.
+  - **The signature *image* is not frozen, and a reprint therefore renders the current one.** Since
+    2026-09-10 a signatory can carry a real uploaded signature, and a reprint resolves it live
+    through `document_templates.signatory.read` and `uploaded_files.file.download`
+    **(cross-app: `uploaded_files`)**. Replace a director's signature and every historical reprint
+    shows the new image beside the old frozen name. **This is a real divergence, not a bug** — the
+    snapshot records the name that was issued, while the image tracks the signatory record — but it
+    will read as one if unannounced. If byte-identical reprints matter for a document class, freeze
+    the image on your side at print time; nothing in this app or `document_templates` will do it,
+    and `render_context.signatories[]` has no file field to put one in.
 
 ## Cross-app dependencies
 
-- **This app references (outbound):** `documents.document.read`/`.update` (the workspace load and save preceding a capture) and `documents.document.restore` (the recovery-409 path). The backend additionally holds `PROTECT` FKs to `documents.Document` and performs the recovery write through that app's own update service — see `INTEGRATION.md` §2.
-- **Referenced by other apps (inbound):** `concepts/documents_flows.md` — its "Review and print" flow delegates here rather than restating these steps.
+- **This app references (outbound):** `documents.document.read` and `documents.document.update`
+  (the workspace load and save preceding a capture), and `documents.document.restore` (the recovery
+  409 recovery path). The backend additionally holds `PROTECT` FKs to `documents.Document` and
+  performs the recovery write through that app's own update service — see
+  `backend/document_history/docs/INTEGRATION.md` §2.
+- **Referenced by other apps (inbound):** `concepts/documents_flows.md` — its "Review and print"
+  flow delegates here rather than restating these steps.
 
-**Note the asymmetry with `documents`.** That app depends on this one for nothing and works with no snapshot in the system. This one is useless without it: every route is document- or snapshot-scoped, and there is no route callable before a document exists.
+**Note the asymmetry with `documents`.** That app depends on this one for nothing and works with no
+snapshot in the system. This one is useless without it: every route is document- or snapshot-scoped,
+and there is no route you can call before a document exists.
+
+When an endpoint here is added, changed, or deprecated, grep `concepts/*_flows.md` for its
+`permission_key` and update every referencing flow in the same commit (the CLAUDE.md §36 ripple rule) —
+not just this file.
 
 ## Open questions
 
-- Should the timeline gain a document-family or date-range view for Admin review? Deferred; both list endpoints are per-document. `audit`'s event list (`?app=document_history`) is the nearest substitute and returns audit events, not snapshots.
-- Should generated PDFs be retained? Now answerable and still unanswered — `uploaded_files` accepts a snapshot owner and a `generated_document` category, so retention is a product decision. Still absent: any _automatic_ retention and any reverse pointer from a snapshot to an uploaded file.
-- **Nothing enforces the `content` / `render_context` split.** A client that puts a computed closing balance in the body will have it frozen there, and no endpoint flags it. The convention is load-bearing for the frontend and invisible to the backend.
-- **`render_context` has no schema and no version gate.** If the client's shape changes, older snapshots keep the old one and nothing migrates or warns. `template_version` is the conventional place to record which shape a snapshot uses; the backend does not read it.
+- **Should the timeline gain a document-family or date-range view for Admin review?**
+  `concepts/document_history.txt` asks this; it is deferred, and both list endpoints are per-document
+  today. The `audit` module's event list (`?app=document_history`) is the nearest substitute and
+  returns audit events, not snapshots.
+- **Should generated PDFs be retained?** Now answerable and still unanswered. `uploaded_files`
+  exists, carries a `generated_document` category, and accepts a snapshot as an owner — so retention
+  is a product decision rather than a missing capability. What is still absent is any *automatic*
+  retention: nothing on the backend generates a PDF, and a snapshot payload has no reverse pointer to
+  one that was uploaded.
+- **Nothing enforces the `content` / `render_context` split.** A client that puts a computed closing
+  balance inside the document body will have it frozen there, and no endpoint will flag it. The
+  convention is load-bearing for the frontend and invisible to the backend.
+- **`render_context` has no schema and no version gate.** If the client's shape changes, older
+  snapshots keep the old one and nothing migrates or warns. `template_version` is the conventional
+  place to record which shape a snapshot uses; the backend does not read it.
