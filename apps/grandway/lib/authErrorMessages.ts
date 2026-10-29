@@ -120,6 +120,16 @@ export const ERROR_MESSAGES: Record<string, string> = {
     "This document has already been removed.",
   DOCUMENTS_ARCHIVE_REASON_REQUIRED:
     "Give a reason for removing this document.",
+  DOCUMENTS_OWNER_REQUIRED:
+    "A document needs an applicant or a standalone purpose.",
+  DOCUMENTS_OWNERSHIP_IMMUTABLE:
+    "A document's applicant and type can't be changed after it is created.",
+  DOCUMENTS_STATUS_IMMUTABLE:
+    "Status can't be changed by editing. Use the status actions instead.",
+  DOCUMENTS_STATUS_INVALID_TRANSITION:
+    "That status change isn't allowed from the document's current status.",
+  DOCUMENTS_TEMPLATE_KEY_INVALID:
+    "That template doesn't match the document type.",
 
   // Applicant journeys
   JOURNEYS_ACTOR_FORBIDDEN: "Your authority level may not perform this action.",
