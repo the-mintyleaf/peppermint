@@ -6,7 +6,6 @@ import {
   Badge,
   Group,
   Input,
-  NumberInput,
   Paper,
   SegmentedControl,
   Select,
@@ -19,6 +18,7 @@ import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
 import {
   ACADEMIC_SCORE_RANGE,
   ACADEMIC_SCORE_TYPE_OPTIONS,
+  DraftNumberInput,
   QUALIFICATION_LEVEL_OPTIONS,
   YEAR_CALENDAR_OPTIONS,
   qualificationLevelLabel,
@@ -37,13 +37,6 @@ import type {
 const STATUS_DATA = (
   Object.keys(COMPLETION_STATUS_LABELS) as EducationCompletionStatus[]
 ).map((value) => ({ value, label: COMPLETION_STATUS_LABELS[value] }));
-
-/** Mantine's NumberInput emits `""` when cleared; the row holds `number | null`. */
-function toNumber(value: number | string): number | null {
-  if (typeof value === "number") return value;
-  const parsed = Number(value);
-  return value.trim() !== "" && Number.isFinite(parsed) ? parsed : null;
-}
 
 /** What it was, where, and whether it's finished — the facts a marksheet leads with. */
 function EducationBasics({ base, row }: EducationRowSectionProps) {
@@ -133,7 +126,7 @@ function EducationScoreFields({ base, row }: EducationRowSectionProps) {
         {...form.getInputProps(`${base}.score_type`)}
         onChange={changeType}
       />
-      <NumberInput
+      <DraftNumberInput
         label="Score"
         description={range ? `${range.min}–${range.max}` : "Pick a type first"}
         placeholder={row.score_type === "percentage" ? "78.5" : "3.45"}
@@ -147,10 +140,8 @@ function EducationScoreFields({ base, row }: EducationRowSectionProps) {
         inputMode="decimal"
         disabled={!range}
         {...form.getInputProps(`${base}.score`)}
-        value={row.score ?? ""}
-        onChange={(value) =>
-          form.setFieldValue(`${base}.score`, toNumber(value))
-        }
+        value={row.score}
+        onNumberChange={(value) => form.setFieldValue(`${base}.score`, value)}
       />
       <TextInput
         label="Grading system"
@@ -185,7 +176,7 @@ function EducationYearFields({ base, row }: EducationRowSectionProps) {
     field: "start_year" | "completion_year",
     label: string,
   ) => (
-    <NumberInput
+    <DraftNumberInput
       label={label}
       description={hint}
       placeholder={calendar === "ad" ? "2020" : "2077"}
@@ -196,10 +187,8 @@ function EducationYearFields({ base, row }: EducationRowSectionProps) {
       hideControls
       inputMode="numeric"
       {...form.getInputProps(`${base}.${field}`)}
-      value={row[field] ?? ""}
-      onChange={(value) =>
-        form.setFieldValue(`${base}.${field}`, toNumber(value))
-      }
+      value={row[field]}
+      onNumberChange={(value) => form.setFieldValue(`${base}.${field}`, value)}
     />
   );
 

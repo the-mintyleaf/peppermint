@@ -5,7 +5,6 @@ import {
   Badge,
   DateInput,
   Group,
-  NumberInput,
   Paper,
   Select,
   SimpleGrid,
@@ -24,6 +23,7 @@ import {
   describeScoreRule,
   languageTestTypeLabel,
 } from "../../../academic.labels";
+import { DraftNumberInput } from "../../../DraftNumberInput";
 import { nepalTodayIso } from "../../../languageTest.schema";
 import type {
   LanguageTestScoreField,
@@ -32,13 +32,6 @@ import type {
 import type { LanguageTestRowProps } from "./LanguageTestRow.types";
 
 const DATE_DISPLAY = "D MMM YYYY";
-
-/** Mantine's NumberInput emits `""` when cleared; the row holds `number | null`. */
-function toScore(value: number | string): number | null {
-  if (typeof value === "number") return value;
-  const parsed = Number(value);
-  return value.trim() !== "" && Number.isFinite(parsed) ? parsed : null;
-}
 
 function dayAfter(date: string | null): string | undefined {
   return date ? dayjs(date).add(1, "day").format("YYYY-MM-DD") : undefined;
@@ -76,8 +69,10 @@ export function LanguageTestRow({
     }
   };
 
+  // `DraftNumberInput` keeps partial text ("6.") on screen while typing — a
+  // plain controlled NumberInput fed the parsed number would collapse it.
   const scoreInput = (field: LanguageTestScoreField, label: string) => (
-    <NumberInput
+    <DraftNumberInput
       key={field}
       label={label}
       placeholder={rule?.example}
@@ -90,10 +85,8 @@ export function LanguageTestRow({
       inputMode="decimal"
       disabled={disabled || !rule}
       {...form.getInputProps(`${base}.${field}`)}
-      value={row[field] ?? ""}
-      onChange={(value) =>
-        form.setFieldValue(`${base}.${field}`, toScore(value))
-      }
+      value={row[field]}
+      onNumberChange={(value) => form.setFieldValue(`${base}.${field}`, value)}
     />
   );
 

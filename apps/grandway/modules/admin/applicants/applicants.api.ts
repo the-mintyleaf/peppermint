@@ -128,14 +128,28 @@ export async function deleteApplicantNote(
  * The people an Admin can pick as assignee. **There is no picker endpoint in
  * this module** (INTEGRATION.md §9): the nearest list is `GET /auth/users/`,
  * which shows an Admin the tier they manage — Lead Managers — and never fellow
- * Admins. One page of 100 (the backend max); deactivated accounts are dropped
- * because `POST /assign/` refuses them (`APPLICANTS_ASSIGNEE_INVALID`).
+ * Admins. The endpoint takes no filters (authenticate INTEGRATION.md §3), so
+ * every page is read at the backend max of 100 until `meta.next` is `null`;
+ * deactivated accounts are dropped afterwards because `POST /assign/` refuses
+ * them (`APPLICANTS_ASSIGNEE_INVALID`). `MAX_STAFF_PAGES` is only a runaway
+ * guard (5,000 accounts) against a `next` that never ends.
  */
+const STAFF_PAGE_SIZE = 100;
+const MAX_STAFF_PAGES = 50;
+
 export async function fetchAssignableStaff(): Promise<User[]> {
-  const { data } = await api.get<{ data: User[] }>("/api/v1/auth/users/", {
-    params: { page: 1, page_size: 100 },
-  });
-  const users = Array.isArray(data.data) ? data.data : [];
+  const users: User[] = [];
+  for (let page = 1; page <= MAX_STAFF_PAGES; page += 1) {
+    const { data } = await api.get<{
+      data: User[];
+      meta?: { next?: string | null };
+    }>("/api/v1/auth/users/", {
+      params: { page, page_size: STAFF_PAGE_SIZE },
+    });
+    const rows = Array.isArray(data.data) ? data.data : [];
+    users.push(...rows);
+    if (!data.meta?.next || rows.length === 0) break;
+  }
   return users.filter((user) => user.is_active);
 }
 

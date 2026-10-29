@@ -309,9 +309,29 @@ function firstMessage(value: unknown): string | null {
   return typeof first === "string" ? first : null;
 }
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+/**
+ * The form section each sent `addresses[i]` came from. The payload drops a
+ * blank section, so index `i` is the i-th *non-blank* one, in the order
+ * `toApplicantPayload` builds them (permanent, then current).
+ */
+function sentAddressSections(values: ApplicantFormValues): string[] {
+  const sections: [string, AddressSectionValues][] = [
+    ["permanent_address", values.permanent_address],
+    ["current_address", values.current_address],
+  ];
+  return sections
+    .filter(([, section]) => !isBlankAddress(section))
+    .map(([key]) => key);
+}
+
 /** DRF-style `details` (`{ field: [msg] }`, nested per list row) → form paths. */
 function detailsToFormErrors(
   details: Record<string, unknown>,
+  values: ApplicantFormValues,
 ): Record<string, string> {
   const errors: Record<string, string> = {};
   for (const key of SCALAR_FIELDS) {
@@ -322,18 +342,30 @@ function detailsToFormErrors(
     const rows = details[key];
     if (!Array.isArray(rows)) continue;
     rows.forEach((row, index) => {
-      if (!row || typeof row !== "object" || Array.isArray(row)) return;
+      if (!isPlainObject(row)) return;
       for (const [field, value] of Object.entries(row)) {
         const message = firstMessage(value);
         if (message) errors[`${key}.${index}.${field}`] = message;
       }
     });
   }
+  // Addresses are a list on the wire but two fixed sections in the form.
+  const addressRows = details.addresses;
+  if (Array.isArray(addressRows)) {
+    const sections = sentAddressSections(values);
+    addressRows.forEach((row, index) => {
+      const section = sections[index];
+      if (!section || !isPlainObject(row)) return;
+      for (const [field, value] of Object.entries(row)) {
+        const message = firstMessage(value);
+        if (message) errors[`${section}.${field}`] = message;
+      }
+    });
+  }
   const passport = details.passport;
-  if (passport && typeof passport === "object" && !Array.isArray(passport)) {
-    const fields = passport as Record<string, unknown>;
+  if (isPlainObject(passport)) {
     for (const field of PASSPORT_FIELDS) {
-      const message = firstMessage(fields[field]);
+      const message = firstMessage(passport[field]);
       if (message) errors[field] = message;
     }
   }
@@ -363,6 +395,7 @@ function firstStepFor(paths: string[]): number | null {
 export function applyServerErrors(
   form: FieldErrorTarget,
   error: unknown,
+  values: ApplicantFormValues,
 ): number | null {
   applyApiFieldErrors(form, error, { apiPath: "educations" });
   applyApiFieldErrors(form, error, { apiPath: "language_tests" });
@@ -376,7 +409,7 @@ export function applyServerErrors(
     );
 
   const { details } = getApiError(error);
-  const nested = details ? detailsToFormErrors(details) : {};
+  const nested = details ? detailsToFormErrors(details, values) : {};
   if (Object.keys(nested).length > 0) {
     form.setErrors((current) => ({ ...current, ...nested }));
   }

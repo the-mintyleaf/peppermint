@@ -203,17 +203,22 @@ export const familyEmergencySchema = z.object({
 });
 
 /**
- * `FormWrapper`'s `validation` prop is declared `ZodTypeAny[]` (not
- * `(ZodTypeAny | undefined)[]`), so a step with no schema (addresses, step
- * index 1) can't be written as an array-literal hole — it has to be a real
- * sparse-array hole via index assignment instead. `Array.prototype.filter`
- * (used internally to compose the full-form validator) skips holes exactly
- * like it would skip an explicit `undefined`.
+ * Addresses have no rules, but the step still gets a (permissive) schema: now
+ * that `STEP_FIELDS` lists its fields, a schema-less step would make
+ * `FormWrapper` fall back to validating the WHOLE form on Next — lighting up
+ * errors on steps the user hasn't reached yet. Validation only reads issues,
+ * never the parsed output, so an empty object schema is enough.
  */
-export const STEP_VALIDATION: ZodTypeAny[] = [identitySchema];
-STEP_VALIDATION[2] = documentsSchema;
-STEP_VALIDATION[3] = educationTestsSchema;
-STEP_VALIDATION[4] = familyEmergencySchema;
+const addressesSchema = z.object({});
+
+/** One schema per step, in step order (`FormWrapper`'s `validation`). */
+export const STEP_VALIDATION: ZodTypeAny[] = [
+  identitySchema,
+  addressesSchema,
+  documentsSchema,
+  educationTestsSchema,
+  familyEmergencySchema,
+];
 
 /** Top-level form keys per step — gates Next and locates a server error's step. */
 export const STEP_FIELDS: string[][] = [
@@ -226,7 +231,9 @@ export const STEP_FIELDS: string[][] = [
     "email",
     "contact_numbers",
   ],
-  [], // addresses — fully optional, no gate on Next
+  // Addresses — fully optional (its schema is empty, so Next never blocks);
+  // listed so a server address error can name this step.
+  ["permanent_address", "current_address"],
   [
     "citizenship_no",
     "citizenship_issue_district",

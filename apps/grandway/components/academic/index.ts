@@ -1,3 +1,5 @@
+export { DraftNumberInput } from "./DraftNumberInput";
+export type { DraftNumberInputProps } from "./DraftNumberInput";
 export { LanguageTestsField } from "./LanguageTestsField";
 export type { LanguageTestsFieldProps } from "./LanguageTestsField";
 

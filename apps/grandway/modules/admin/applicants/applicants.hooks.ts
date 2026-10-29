@@ -50,14 +50,27 @@ export function useApplicantList(params?: QueryParams, enabled = true) {
   });
 }
 
-/** Full detail for the detail page and the edit form's prefill — always the real fetch. */
-export function useApplicantDetail(applicantId: string | null) {
+/**
+ * Full detail for the detail page and the edit form's prefill — always the
+ * real fetch, never a list row.
+ *
+ * `fresh: true` (the edit form) refetches on every mount even when a cached
+ * copy exists; the caller waits for `isFetchedAfterMount` before seeding. The
+ * form freezes its starting values and replaces lists wholesale, so seeding
+ * from a stale cache could delete a colleague's newer education, test or
+ * family record on save.
+ */
+export function useApplicantDetail(
+  applicantId: string | null,
+  { fresh = false }: { fresh?: boolean } = {},
+) {
   return useQuery({
     queryKey: applicantId
       ? applicantsQueryKeys.detail(applicantId)
       : ["applicants", "detail", "none"],
     queryFn: () => getApplicant(applicantId as string),
     enabled: applicantId !== null,
+    ...(fresh ? { refetchOnMount: "always" as const } : {}),
   });
 }
 
@@ -85,7 +98,8 @@ function invalidateKeysFor(applicantId: string) {
 /**
  * A 409 on an action means the record moved under us (archived or restored in
  * another tab). Refetch so the controls follow the real state — the error
- * toast has already said what happened.
+ * toast has already said what happened. A 400 `APPLICANTS_ASSIGNEE_INVALID`
+ * refreshes the assignee picker instead.
  */
 function useRefetchOnConflict(applicantId: string) {
   const queryClient = useQueryClient();
@@ -99,6 +113,11 @@ function useRefetchOnConflict(applicantId: string) {
       invalidateKeysFor(applicantId).forEach((queryKey) => {
         void queryClient.invalidateQueries({ queryKey });
       });
+    }
+    // The picked person was deactivated (or is otherwise ineligible) since the
+    // picker loaded — the contract's instruction is to refresh the picker.
+    if (code === "APPLICANTS_ASSIGNEE_INVALID") {
+      void queryClient.invalidateQueries({ queryKey: assignableStaffKey });
     }
   };
 }

@@ -178,7 +178,7 @@ function useServerErrorBridge(bridgeRef: RefObject<ServerErrorBridge | null>) {
   useEffect(() => {
     bridgeRef.current = {
       show: (error) => {
-        const step = applyServerErrors(form, error);
+        const step = applyServerErrors(form, error, form.values);
         if (step !== null) handleStepGo(step);
       },
     };

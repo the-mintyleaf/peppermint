@@ -68,8 +68,14 @@ grandfather/grandmother). Only full name + one contact number are required.
 - Server field errors: pages' `onSubmit` **rejects** on a failed save; `ApplicantForm`
   catches it and `applyServerErrors` maps `details.fields`
   (`educations[i].field`, via academic's `applyApiFieldErrors`) and DRF-style
-  `details` onto fields, then jumps to the first step with an error. The mutation's
-  toast is the only notification.
+  `details` onto fields (`addresses[i]` → the i-th non-blank address section), then
+  jumps to the first step with an error. The mutation's toast is the only
+  notification.
+- **The edit page seeds only from a fresh fetch** (`useApplicantDetail(id, { fresh:
+true })`, waits for `isFetchedAfterMount`): the form freezes `initial` and lists
+  replace wholesale, so a stale cache could delete a colleague's newer record.
+- Decimal / year inputs use academic's `DraftNumberInput` (keeps "3." while typing);
+  never feed a parsed number straight back into a controlled `NumberInput`.
 
 ## Detail page
 
@@ -83,7 +89,8 @@ Reminders* / **Alerts** (`ApplicantAlertsPanel`, `?applicant_id=`) / History
 
 Server state only (React Query). Keys: `applicantsQueryKeys`; `applicantHistoryKey(id)`
 and `applicantNotesKey(id)` are both under `detail(id)`, so a detail invalidation
-refreshes them. `assignableStaffKey` = the Admin picker list.
+refreshes them. `assignableStaffKey` = the Admin picker list (every page of
+`/auth/users/`, active only; invalidated on `APPLICANTS_ASSIGNEE_INVALID`).
 
 ## Access rules (this app)
 

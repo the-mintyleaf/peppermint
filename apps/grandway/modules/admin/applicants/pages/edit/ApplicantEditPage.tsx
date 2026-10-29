@@ -21,7 +21,8 @@ import { useSaveApplicantPhotograph } from "../../photograph";
 /**
  * Open to both Admin and Lead Manager (`docs/backend/applicants/CONCEPT.md`
  * — either "may... view/edit any applicant"). Always the real detail fetch,
- * never a trimmed list row — same rationale as `LeadDetailDrawer`. A 404 is
+ * never a trimmed list row — same rationale as `LeadDetailDrawer` — and a
+ * fresh one, never the cached copy (`fresh: true`, see below). A 404 is
  * always genuine here (unlike leads, there's no ownership to hide,
  * `INTEGRATION.md` §3), so it renders as a plain not-found, never
  * "access denied".
@@ -31,11 +32,11 @@ function ApplicantEditPageContent() {
   const router = useRouter();
   const {
     data: applicant,
-    isLoading,
     isError,
+    isFetchedAfterMount,
     error,
     refetch,
-  } = useApplicantDetail(id);
+  } = useApplicantDetail(id, { fresh: true });
   const mutation = useUpdateApplicant(id);
   // Whether this replaces an existing photograph or uploads the first one is
   // decided inside the mutation, against the cache as it stands when Save is
@@ -45,7 +46,12 @@ function ApplicantEditPageContent() {
   const notFound =
     isError && getApiError(error).code === "APPLICANTS_APPLICANT_NOT_FOUND";
 
-  if (isLoading) {
+  // Wait for THIS mount's fetch, even when a cached copy exists: the form
+  // freezes its starting values and replaces lists (family, education, tests)
+  // wholesale, so seeding from a stale cache could silently delete a record a
+  // colleague added since. An error during the refetch falls through to the
+  // error state below rather than editing the stale copy.
+  if (!isFetchedAfterMount && !isError) {
     return (
       <ModalPaper withBorder>
         <Center h={300}>
