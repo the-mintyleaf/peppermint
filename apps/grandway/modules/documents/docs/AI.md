@@ -140,15 +140,33 @@ and on every PATCH with content, snake_case keys; a refusal is 400
 `DOCUMENTS_CONTENT_INVALID` with `error.details.fields` keyed by path
 (`marking[2].present`). Folder: `document-types/student-certificate/`.
 
-| File                       | Role                                                                                                                     |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `certificateContent.ts`    | **Pure.** `normalizeCertificateContent` (read either era) / `toStoredCertificateContent` (write the validated keys only) |
-| `certificateForm.utils.ts` | Zod schema mirroring the backend rules, content ↔ form values, `serverPathToFormPath`                                    |
-| `CertificateForm.tsx`      | Form; seeds a NEW certificate from the prefill; marks server refusals                                                    |
-| `CertificateConfigBar.tsx` | Customizations: issue date, signatories, study status — writes only those keys (`withCertificatePanelChange`)            |
-| `CertificateTemplate.tsx`  | Adapter → `StudentCertificateData` (`@/context/DocumentContext`)                                                         |
-| `useCertificatePhoto.ts`   | Resolves `photo_media_id` to a URL, reusing the editor's current photo                                                   |
+| File                             | Role                                                                                                                                        |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `certificateContent.ts`          | **Pure.** `normalizeCertificateContent` (read either era) / `toStoredCertificateContent` (write the validated keys only)                    |
+| `certificateForm.utils.ts`       | Zod schema mirroring the backend rules, content ↔ form values, `serverPathToFormPath`; `applyServerFieldErrors` returns placed and unplaced |
+| `CertificateFormTabs.tsx`        | The form's two tabs (General details · Attendance & grades), both kept mounted; error-count badge per tab                                   |
+| `certificateTabs.ts`             | **Pure.** Field path → tab; error counts per tab; first tab with an error                                                                   |
+| `CertificateAttendanceField.tsx` | Start month + number of months → the month rows; asks before removing months that hold data                                                 |
+| `attendanceRange.ts`             | **Pure.** Month-range maths: generate, read back, plan a resize (keeps typed data), year rollover                                           |
+| `CertificateForm.tsx`            | Form; seeds a NEW certificate from the prefill; marks server refusals                                                                       |
+| `CertificateConfigBar.tsx`       | Customizations: issue date, signatories, study status — writes only those keys (`withCertificatePanelChange`)                               |
+| `CertificateTemplate.tsx`        | Adapter → `StudentCertificateData` (`@/context/DocumentContext`)                                                                            |
+| `useCertificatePhoto.ts`         | Resolves `photo_media_id` to a URL, reusing the editor's current photo                                                                      |
 
+- **Two tabs, one form.** One `FormWrapper` and one Save. Both panels stay
+  mounted (`keepMounted`), so switching tabs keeps every typed value. Save runs
+  `form.validate()` first and opens the first tab (General before Attendance)
+  holding an error; a `DOCUMENTS_CONTENT_INVALID` refusal opens the tab of the
+  first marked field. Unplaceable refusals and the prefill notice sit above the tabs.
+- **Attendance is a month range.** A start month and a number of months (1–12)
+  generate consecutive rows across year ends. Changing them keeps the days and
+  hours of months still in range, adds empty rows, and asks before removing rows
+  that hold data. A table that forms no unbroken run (older certificates: gaps,
+  repeats, an unreadable month) shows as saved with a note and per-row month
+  pickers until a range is picked.
+- **Clipboard:** the free-text fields (name parts, address, course name and
+  level, branch name and phone) use `bindClipboardFields(form, { family:
+"certificate" })`; the sticky header button comes from `DocumentFormModal`.
 - **Read both, write only the new.** Certificates saved before 2026-10-29 use
   the template's old keys (`gender: "Male"`, top-level grades, `coursehour`,
   `studyType`, `instructorId`/`directorId`, `customBranch`/`customBranchNo`,

@@ -13,6 +13,7 @@ import {
 } from "@peppermint/ui";
 import { useFormInstance } from "@peppermint/admin";
 import { FormSection } from "@/components/FormSection";
+import { bindClipboardFields } from "@/modules/admin/clipboard";
 import { toCertificateGender } from "./certificateContent";
 import { CERTIFICATE_GRADES, MAX_TEXTBOOKS } from "./certificateForm.utils";
 import type {
@@ -46,6 +47,10 @@ export function CertificateStudentSection({
   disabled,
 }: CertificateSectionProps) {
   const { form } = useFormInstance<CertificateFormValues>();
+  const clip = bindClipboardFields(form, {
+    family: "certificate",
+    disabled,
+  });
   return (
     <FormSection title="Student">
       <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="sm">
@@ -57,6 +62,7 @@ export function CertificateStudentSection({
           maxLength={150}
           disabled={disabled}
           {...form.getInputProps("firstname")}
+          {...clip("firstname", "First name")}
         />
         <TextInput
           label="Middle name (optional)"
@@ -65,6 +71,7 @@ export function CertificateStudentSection({
           maxLength={150}
           disabled={disabled}
           {...form.getInputProps("middlename")}
+          {...clip("middlename", "Middle name")}
         />
         <TextInput
           label="Last name"
@@ -74,6 +81,7 @@ export function CertificateStudentSection({
           maxLength={150}
           disabled={disabled}
           {...form.getInputProps("lastname")}
+          {...clip("lastname", "Last name")}
         />
       </SimpleGrid>
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
@@ -111,6 +119,7 @@ export function CertificateStudentSection({
         maxLength={300}
         disabled={disabled}
         {...form.getInputProps("address")}
+        {...clip("address", "Current address")}
       />
     </FormSection>
   );
@@ -120,6 +129,10 @@ export function CertificateCourseSection({
   disabled,
 }: CertificateSectionProps) {
   const { form } = useFormInstance<CertificateFormValues>();
+  const clip = bindClipboardFields(form, {
+    family: "certificate",
+    disabled,
+  });
   const totalHours =
     (Number(form.values.course_total_days) || 0) *
     (Number(form.values.course_hours_per_day) || 0);
@@ -134,6 +147,7 @@ export function CertificateCourseSection({
             maxLength={150}
             disabled={disabled}
             {...form.getInputProps("course_name")}
+            {...clip("course_name", "Course name")}
           />
         </Grid.Col>
         <Grid.Col span={{ base: 12, sm: 4 }}>
@@ -144,6 +158,7 @@ export function CertificateCourseSection({
             maxLength={50}
             disabled={disabled}
             {...form.getInputProps("course_level")}
+            {...clip("course_level", "Target level")}
           />
         </Grid.Col>
       </Grid>
@@ -280,6 +295,10 @@ export function CertificateSignatorySection({
   signatureOptions,
 }: CertificateSignatorySectionProps) {
   const { form } = useFormInstance<CertificateFormValues>();
+  const clip = bindClipboardFields(form, {
+    family: "certificate",
+    disabled,
+  });
   return (
     <FormSection title="Signatories and branch">
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
@@ -312,6 +331,7 @@ export function CertificateSignatorySection({
           maxLength={150}
           disabled={disabled}
           {...form.getInputProps("branch_name")}
+          {...clip("branch_name", "Branch address")}
         />
         <TextInput
           label="Branch phone (optional)"
@@ -321,6 +341,7 @@ export function CertificateSignatorySection({
           maxLength={50}
           disabled={disabled}
           {...form.getInputProps("branch_no")}
+          {...clip("branch_no", "Branch phone")}
         />
       </SimpleGrid>
     </FormSection>
