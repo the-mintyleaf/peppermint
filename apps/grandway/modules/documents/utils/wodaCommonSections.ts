@@ -317,10 +317,13 @@ export function spokespersonSection(): WodaSection {
     description:
       "The ward official who signs and is contactable for the document.",
     fields: [
+      // The same ward official signs for many applicants — each field offers
+      // the operator's saved snippets.
       {
         name: "spokesperson_name",
         label: "Name",
         placeholder: "Ram Lakhan Tharu",
+        clipboardKey: "ward.spokesperson.name",
       },
       {
         name: "spokesperson_post",
@@ -328,6 +331,7 @@ export function spokespersonSection(): WodaSection {
         placeholder: "Ward Chairman",
         defaultValue: WODA_DEFAULT_SIGNER_POST,
         half: true,
+        clipboardKey: "ward.spokesperson.post",
       },
       {
         name: "spokesperson_contact",
@@ -335,6 +339,7 @@ export function spokespersonSection(): WodaSection {
         placeholder: "9801234567",
         half: true,
         optional: true,
+        clipboardKey: "ward.spokesperson.contact",
       },
     ],
   };

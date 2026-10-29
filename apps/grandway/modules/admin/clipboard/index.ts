@@ -1,8 +1,8 @@
 export { ClipboardDrawer } from "./drawer";
 export type { ClipboardDrawerProps } from "./drawer";
 
-// Field-level helper for document forms (not attached to any form yet): a button +
-// popover, and the hook underneath it for a custom UI.
+// Field-level helper for document forms (attached by `WodaForm` via `clipboardKey`
+// and by the bank certificate form): a button + popover, and the hook underneath it.
 export { ClipboardFieldSuggest } from "./_shared/ClipboardFieldSuggest";
 export type { ClipboardFieldSuggestProps } from "./_shared/ClipboardFieldSuggest";
 export { useClipboardSuggestions } from "./clipboard.hooks";

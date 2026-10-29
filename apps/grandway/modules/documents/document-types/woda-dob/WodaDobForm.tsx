@@ -1,7 +1,6 @@
 "use client";
 
-import { WodaForm } from "../../components/WodaForm";
-import type { DocumentFormProps } from "../../documents.types";
+import { createSchemaForm } from "../../components/WodaForm";
 import type { WodaFormSchema } from "../../utils/wodaFormSchema";
 import {
   applicantSection,
@@ -54,6 +53,6 @@ export function birthVerificationSchema(legalBasis: string): WodaFormSchema {
 
 const schema = birthVerificationSchema(WODA_LEGAL_BASIS.japanBirth);
 
-export function WodaDobForm(props: DocumentFormProps) {
-  return <WodaForm schema={schema} {...props} />;
-}
+export const WodaDobForm = createSchemaForm(schema, {
+  displayName: "WodaDobForm",
+});

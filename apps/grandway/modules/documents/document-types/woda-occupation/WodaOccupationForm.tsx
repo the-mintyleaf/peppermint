@@ -1,7 +1,6 @@
 "use client";
 
-import { WodaForm } from "../../components/WodaForm";
-import type { DocumentFormProps } from "../../documents.types";
+import { createSchemaForm } from "../../components/WodaForm";
 import type { WodaFormSchema } from "../../utils/wodaFormSchema";
 import {
   applicantSection,
@@ -27,6 +26,7 @@ const schema: WodaFormSchema = {
           placeholder: "farmer",
           defaultValue: "farmer",
           half: true,
+          clipboardKey: "guardian.occupation",
         },
         {
           name: "occupation_activity",
@@ -81,6 +81,6 @@ const schema: WodaFormSchema = {
   ],
 };
 
-export function WodaOccupationForm(props: DocumentFormProps) {
-  return <WodaForm schema={schema} {...props} />;
-}
+export const WodaOccupationForm = createSchemaForm(schema, {
+  displayName: "WodaOccupationForm",
+});

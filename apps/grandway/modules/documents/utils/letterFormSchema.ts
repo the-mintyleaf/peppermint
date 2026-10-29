@@ -301,6 +301,8 @@ const LOR_FIELDS: LetterField[] = [
     required: true,
     half: true,
     always: true,
+    // One school's recommender signs for many applicants.
+    clipboardKey: "institution.recommender.name",
   },
   {
     section: "Recommender",
@@ -308,6 +310,7 @@ const LOR_FIELDS: LetterField[] = [
     label: "Title / position",
     placeholder: "Principal",
     always: true,
+    clipboardKey: "institution.recommender.title",
   },
   {
     section: "Recommender",
@@ -542,6 +545,7 @@ const MOI_FIELDS: LetterField[] = [
     placeholder: "Amba Datt Joshi",
     required: true,
     always: true,
+    clipboardKey: "institution.signatory.name",
   },
   {
     section: "Signatory",

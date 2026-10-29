@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import type { SignatorySource } from "@/modules/admin/signatures";
 import type { DocumentType } from "./documentTypeDefinitions";
+import type { WodaFormSchema } from "./utils/wodaFormSchema";
 
 export type { DocumentType } from "./documentTypeDefinitions";
 
@@ -623,4 +624,10 @@ export interface DocumentTypeConfig {
    * the backend's `"1"`. Existing documents keep the version they were created with.
    */
   templateVersion?: string;
+  /**
+   * The schema of a `WodaForm`-rendered form (the Woda, LOR and MOI letters). Its
+   * presence makes a quick-created document of this type seed from the applicant
+   * prefill, into the fields this schema shows (`utils/prefillDocumentContent.ts`).
+   */
+  formSchema?: WodaFormSchema;
 }

@@ -29,6 +29,7 @@ import {
 import { DocumentUnavailable } from "../components/DocumentUnavailable";
 import { useSignatures } from "../hooks/useSignatures";
 import { getDefaultDocumentContent } from "../utils/defaultDocumentContent";
+import { seededDefaultContent } from "./quickCreateContent";
 import { getDefaultLabel, getTemplateVersion } from "../documentTypeConfig";
 import { findBankPartner } from "../utils/documentTypeMenu";
 import { describeContentSaveError } from "../utils/contentFieldErrors";
@@ -323,8 +324,7 @@ export function DocumentEditorProvider({
       });
     },
   });
-  const { mutate: createDocument, mutateAsync: createDocumentAsync } =
-    createMutation;
+  const { mutateAsync: createDocumentAsync } = createMutation;
 
   const familyForType = useCallback((type: DocumentType) => {
     if (type.startsWith("bank-"))
@@ -337,19 +337,66 @@ export function DocumentEditorProvider({
     return "student" as const;
   }, []);
 
-  const quickCreateDocument = useCallback(
-    (type: DocumentType) => {
-      if (!canEdit || !applicantId) return;
-      createDocument({
-        applicantId,
+  // Quick-create (the Woda, LOR and MOI letters have no create form): the new
+  // letter's default content is seeded from the applicant file HERE, once, at
+  // creation — the only moment that is unambiguously "new". An existing letter
+  // is never re-seeded. A failed prefill still creates the letter, unseeded.
+  const quickCreateMutation = useMutation({
+    mutationFn: async ({
+      type,
+      applicant,
+    }: {
+      type: DocumentType;
+      applicant: string;
+    }) => {
+      const { content, prefillFailed } = await seededDefaultContent(
+        queryClient,
+        type,
+        applicant,
+      );
+      const doc = await documentsApi.create({
+        applicantId: applicant,
         family: familyForType(type),
         templateKey: type,
         label: getDefaultLabel(type),
-        content: getDefaultDocumentContent(type),
+        content,
         templateVersion: getTemplateVersion(type),
       });
+      return { doc, prefillFailed };
     },
-    [createDocument, applicantId, familyForType, canEdit],
+    onSuccess: ({ doc, prefillFailed }) => {
+      appendDocumentToCache(doc);
+      invalidateDerivedViews();
+      notifications.show({
+        title: "Page added",
+        message: doc.label,
+        color: "green",
+      });
+      if (prefillFailed) {
+        notifications.show({
+          title: "Applicant details not filled in",
+          message:
+            "Couldn't load the applicant's details, so the letter starts blank. Type them in Edit fields.",
+          color: "yellow",
+        });
+      }
+    },
+    onError: (error) => {
+      notifications.show({
+        title: "Failed to add page",
+        message: describeContentSaveError(error),
+        color: "red",
+      });
+    },
+  });
+  const { mutate: quickCreate } = quickCreateMutation;
+
+  const quickCreateDocument = useCallback(
+    (type: DocumentType) => {
+      if (!canEdit || !applicantId) return;
+      quickCreate({ type, applicant: applicantId });
+    },
+    [quickCreate, applicantId, canEdit],
   );
 
   // Resolves once the page exists; rejects with the API error so a create form
@@ -679,7 +726,9 @@ export function DocumentEditorProvider({
     createDocumentWithContent,
     createBankPair,
     isCreatingDocument:
-      createMutation.isPending || createBankPairMutation.isPending,
+      createMutation.isPending ||
+      quickCreateMutation.isPending ||
+      createBankPairMutation.isPending,
     setDocumentStatus,
     archiveActiveDocument,
     restoreActiveDocument,

@@ -89,7 +89,7 @@ imperative `@peppermint/admin` modal (`openReasonConfirmModal` for archive).
 ## The template seam
 
 `documentTypeConfig.ts` is the registry: `type → { label, Form, Template,
-ConfigBar?, formModalSize?, templateVersion? }`.
+ConfigBar?, formModalSize?, templateVersion?, formSchema? }`.
 
 - **`templateVersion`** is sent as `template_version` on **create only**
   (`getTemplateVersion`). Every Woda letter is created as `"2"`; everything else
@@ -193,8 +193,49 @@ and on every PATCH with content, snake_case keys; a refusal is 400
 exported from the barrel) → `GET /documents/prefill/<applicant_id>/`, mapped to
 camelCase `DocumentPrefill` (`documentPrefill.types.ts`). Key
 `documentPrefillKey(id)`, outside the documents tree. No cache (`gcTime: 0`,
-`refetchOnMount: "always"`) — seed only once `isFetchedAfterMount`; no retry. Used today by the certificate form; **not yet wired
-into the Woda letters**.
+`refetchOnMount: "always"`) — seed only once `isFetchedAfterMount`; no retry.
+`fetchDocumentPrefill(queryClient, id)` in the same file is the imperative read
+(`fetchQuery`, same options) for flows with no form to mount.
+
+Two consumers, one per creation path:
+
+| Path                                       | Seeded where                                          | File                                                                |
+| ------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------- |
+| Create modal (`student-certificate`)       | the form, before `FormWrapper` mounts                 | `document-types/student-certificate/CertificateForm.tsx`            |
+| Quick-create (every Woda, LOR, MOI letter) | the **default content, at creation**, in the provider | `context/quickCreateContent.ts` → `utils/prefillDocumentContent.ts` |
+
+- **Why quick-create seeds at creation, not on first Edit fields.** These
+  letters have no create form — "Add page" POSTs `getDefaultDocumentContent`
+  straight away. Creation is the only moment that is unambiguously "new";
+  "never edited" has no reliable marker (letters made before this change look
+  identical), so seeding on a first edit would re-seed old letters. The page
+  also previews with the applicant's details from its first render.
+- **The gate is `DocumentTypeConfig.formSchema`.** `createSchemaForm(schema)`
+  (`components/WodaForm`) builds every Woda/LOR/MOI form and attaches its
+  schema; the registry exposes it. No schema (bank pair, CVs, certificate) → no
+  prefill read; a schema with no seedable field (`woda-agriculture-income`) →
+  no read either (`schemaUsesPrefill`) — it carries identity numbers.
+- **`seedContentFromPrefill` (pure) rules:** only keys the letter's form shows
+  or its default content holds; only into blank values (defaults such as legal
+  basis, institution constants, stock relations are never overwritten); a
+  `null` relative/address leaves the field as it was. A seeded parent or
+  grandparent name brings its honorific's form default ("Mr."/"Mrs.") when blank.
+  Gender: `male`/`female` set `applicant_gender`, `student_pronoun`,
+  `student_kinship`, and the honorific — "Mr." for a man; a woman keeps a female
+  honorific she has, else "Ms." (marital status is not on the file); `other`,
+  `undisclosed` and blank change nothing. Addresses are written the ward-office
+  way, `municipality-ward, district` (`wardAddress`, falling back to `formatted`);
+  Woda letters use the **permanent** address only; LOR/MOI `student_address`
+  falls back to the current one. B.S. dates as `YYYY/MM/DD`. The affidavit's
+  sponsor and three signers are named only while their relation still reads
+  Grandfather / Grandmother / Father / Mother.
+- **Failure:** the letter is still created, unseeded, with one yellow notice
+  ("Applicant details not filled in"). The "Add page" button is disabled for the
+  whole read + create (`isCreatingDocument`).
+- **Not seeded:** place of birth, citizenship issue district, occupation, the
+  relatives table, `parent_citizenship_no`, the agriculture landowner — no
+  unambiguous source. The CV forms are untouched (names come from the applicant
+  summary at render).
 
 ## WODA letters
 
@@ -218,7 +259,20 @@ Ward-office letters, in two **sets** (`WODA_CATEGORIES` in
 - **Forms are schemas**, rendered by `components/WodaForm`. Shared sections
   live in `utils/wodaCommonSections.ts`; the Japan and English birth and
   relationship forms are one schema each, parameterised by legal basis
-  (`utils/wodaDefaults.ts`).
+  (`utils/wodaDefaults.ts`). Each type's form is
+  `createSchemaForm(schema, { displayName })` — it carries the schema for the
+  registry's `formSchema` (see Prefill). LOR/MOI use the same factory through
+  `utils/sharedForms.tsx` + `utils/letterFormSchema.ts`.
+- **Clipboard suggestions** (`@/modules/admin/clipboard`): a schema field with
+  `clipboardKey` (text/textarea) gets `ClipboardFieldSuggest` as its right
+  section, inserting via `form.setFieldValue`. Given only to values retyped
+  across applicants — spokesperson name/post/contact (`spokespersonSection`),
+  tax-clearance contact office, occupation title, the affidavit's institution
+  and ward chairman, LOR recommender name/title, MOI signatory name; plus the
+  bank certificate's spokesperson name/post (hand-built form). Never on the
+  applicant's own details. A new key must be registered in
+  `modules/admin/clipboard/clipboard.fieldKeys.ts`. The modal sits at Mantine's
+  default 200 and the popover at 300, so no `popoverZIndex` is passed.
 - **New letters are created with `template_version: "2"`** (registry
   `templateVersion`); letters created before keep `"1"`. Nothing branches on it.
 - **Old content keeps rendering.** The relationship letter still prints the

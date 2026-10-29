@@ -1,7 +1,6 @@
 "use client";
 
-import { WodaForm } from "../../components/WodaForm";
-import type { DocumentFormProps } from "../../documents.types";
+import { createSchemaForm } from "../../components/WodaForm";
 import type { WodaFormSchema } from "../../utils/wodaFormSchema";
 import {
   applicantSection,
@@ -45,6 +44,6 @@ const schema: WodaFormSchema = {
   ],
 };
 
-export function WodaSurnameForm(props: DocumentFormProps) {
-  return <WodaForm schema={schema} {...props} />;
-}
+export const WodaSurnameForm = createSchemaForm(schema, {
+  displayName: "WodaSurnameForm",
+});

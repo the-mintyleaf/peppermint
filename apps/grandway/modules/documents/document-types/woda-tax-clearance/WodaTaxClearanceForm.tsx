@@ -1,7 +1,6 @@
 "use client";
 
-import { WodaForm } from "../../components/WodaForm";
-import type { DocumentFormProps } from "../../documents.types";
+import { createSchemaForm } from "../../components/WodaForm";
 import type { WodaFormSchema } from "../../utils/wodaFormSchema";
 import {
   applicantSection,
@@ -40,6 +39,7 @@ const schema: WodaFormSchema = {
           description: 'Printed as "contact us at Office of …".',
           placeholder: "Rapti Sonari Rural Municipality",
           half: true,
+          clipboardKey: "ward.office.name",
         },
       ],
     },
@@ -47,6 +47,6 @@ const schema: WodaFormSchema = {
   ],
 };
 
-export function WodaTaxClearanceForm(props: DocumentFormProps) {
-  return <WodaForm schema={schema} {...props} />;
-}
+export const WodaTaxClearanceForm = createSchemaForm(schema, {
+  displayName: "WodaTaxClearanceForm",
+});

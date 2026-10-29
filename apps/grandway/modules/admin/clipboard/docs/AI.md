@@ -55,10 +55,7 @@ reads another account's clipboard. `must_change_password` / MFA enrolment do not
   `navigator.clipboard.writeText` succeeds.
 - Categories list is a bare array (api-client unwraps it; no `meta.count`), ≤50.
   Deleting a category keeps its entries (uncategorised) — confirm copy says how many.
-- **`field_key` vocabulary is ours.** Backend checks only `^[a-z0-9_]+(\.[a-z0-9_]+)*$`
-  (≤100). Register keys in `clipboard.fieldKeys.ts`; the Save form shows the human name
-  ("Father's name") behind a disclosure, never the dotted key. Unregistered keys on an
-  existing entry are preserved in the select and shown raw.
+- **`field_key` vocabulary is ours.** Backend checks only `^[a-z0-9_]+(\.[a-z0-9_]+)*$` (≤100). Register keys in `clipboard.fieldKeys.ts`; the Save form shows the human name behind a disclosure, never the dotted key. Unregistered keys on an existing entry are preserved in the select and shown raw. Attached today (documents module): `ward.spokesperson.{name,post,contact}` (Woda spokesperson section; `name` also on the affidavit's ward chairman), `ward.office.name` (tax-clearance contact office), `guardian.occupation`, `study.institution.{name,location}` (affidavit), `institution.recommender.{name,title}` (LOR), `institution.signatory.name` (MOI), `bank.spokesperson.{name,post}` (bank certificate). Woda/LOR/MOI attach via `clipboardKey` on a `WodaField`. `bank.name`, `bank.address`, `ward.office.address` and the applicant/parent keys attach to no field (the prefill fills applicant values) and are kept for saved snippets.
 - Suggestions are fetched on demand (popover open), one page of 10 — never per keystroke.
 
 ## Drawer (one drawer, three screens)
@@ -79,14 +76,15 @@ module resolver covers them either way.
 
 ## Common edit targets
 
-| Task                        | Files                                                    |
-| --------------------------- | -------------------------------------------------------- |
-| Add a field key             | clipboard.fieldKeys.ts                                   |
-| Drawer chrome / screens     | drawer/ClipboardDrawer/ClipboardDrawer.tsx               |
-| List, filters, limit notice | \_shared/ClipboardBrowser/ClipboardBrowser.tsx           |
-| Save/edit form              | \_shared/ClipboardEntryForm/ClipboardEntryForm.tsx       |
-| Category CRUD               | \_shared/CategoryManager/CategoryManager.tsx             |
-| Attach to a document field  | \_shared/ClipboardFieldSuggest/ClipboardFieldSuggest.tsx |
+| Task                          | Files                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------- |
+| Add a field key               | clipboard.fieldKeys.ts                                                             |
+| Document forms that attach it | modules/documents/components/WodaForm/WodaForm.tsx, components/BankCertificateForm |
+| Drawer chrome / screens       | drawer/ClipboardDrawer/ClipboardDrawer.tsx                                         |
+| List, filters, limit notice   | \_shared/ClipboardBrowser/ClipboardBrowser.tsx                                     |
+| Save/edit form                | \_shared/ClipboardEntryForm/ClipboardEntryForm.tsx                                 |
+| Category CRUD                 | \_shared/CategoryManager/CategoryManager.tsx                                       |
+| Attach to a document field    | \_shared/ClipboardFieldSuggest/ClipboardFieldSuggest.tsx                           |
 
 ## Do not do
 

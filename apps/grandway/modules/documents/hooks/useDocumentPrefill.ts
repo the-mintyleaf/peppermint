@@ -1,9 +1,27 @@
 "use client";
 
-import { useQuery } from "@peppermint/ui";
+import { useQuery, type QueryClient } from "@peppermint/ui";
 import { documentsApi } from "../documents.api";
 import { documentPrefillKey } from "../documents.queryKeys";
 import type { DocumentPrefill } from "../documentPrefill.types";
+
+/**
+ * The same read, imperatively — for the quick-create flow, which has no form to
+ * mount. Always a fresh request (`staleTime: 0`), nothing kept (`gcTime: 0`),
+ * no retry. Rejects on failure; the caller creates the letter unseeded.
+ */
+export function fetchDocumentPrefill(
+  queryClient: QueryClient,
+  applicantId: string,
+): Promise<DocumentPrefill> {
+  return queryClient.fetchQuery({
+    queryKey: documentPrefillKey(applicantId),
+    queryFn: () => documentsApi.getPrefill(applicantId),
+    staleTime: 0,
+    gcTime: 0,
+    retry: false,
+  });
+}
 
 export interface UseDocumentPrefillOptions {
   /** Defaults to `true`. Pass `false` when the form is editing, not creating. */
