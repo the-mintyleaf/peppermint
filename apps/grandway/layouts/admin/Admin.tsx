@@ -14,6 +14,7 @@ import { useLogout } from "@/modules/admin/authenticate/_shared/useLogout";
 import { AccountSettingsModal } from "@/modules/admin/authenticate/account-settings";
 import { useNotificationSummary } from "@/modules/admin/notifications/notifications.hooks";
 import { NotificationDrawer } from "@/modules/admin/notifications/drawer";
+import { ClipboardDrawer } from "@/modules/admin/clipboard/drawer";
 import { searchEverything } from "@/modules/admin/global-search";
 import { hasAccessToken } from "@/lib/authTokens";
 import { getApiErrorMessage } from "@/lib/authErrorMessages";
@@ -32,6 +33,7 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
   const { mutate: logoutMutate } = useLogout();
   const [settingsOpened, settingsHandlers] = useDisclosure(false);
   const [notificationsOpened, notificationsHandlers] = useDisclosure(false);
+  const [clipboardOpened, clipboardHandlers] = useDisclosure(false);
 
   // A `superadmin` gets `NOTIFICATIONS_ACTOR_FORBIDDEN` on every endpoint, so
   // polling for one would just be a 403 every 30 seconds.
@@ -95,6 +97,7 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
         canAccessNotifications: caps.notifications,
         unreadNotificationCount: notificationSummary?.unread,
         onNotificationsClick: notificationsHandlers.open,
+        onClipboardClick: clipboardHandlers.open,
       }),
       linkComponent: Link,
       onNavigate: (href: string) => router.push(href),
@@ -145,6 +148,7 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
       authorityType,
       notificationSummary?.unread,
       notificationsHandlers.open,
+      clipboardHandlers.open,
       searchAccess,
       logoutMutate,
       settingsHandlers.open,
@@ -172,6 +176,11 @@ export function LayoutAdmin({ children }: { children: ReactNode }) {
           onClose={notificationsHandlers.close}
         />
       )}
+      {/* Every signed-in account has a clipboard — superadmin included. */}
+      <ClipboardDrawer
+        opened={clipboardOpened}
+        onClose={clipboardHandlers.close}
+      />
     </AdminShell>
   );
 }
