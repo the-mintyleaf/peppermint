@@ -136,7 +136,10 @@ function NoteFields({
       event.preventDefault();
       void handleSubmit();
     } else if (event.key === "Escape") {
+      // Keep Escape here: the panel lives in drawers and modals, which would
+      // otherwise close on it and drop the draft before the discard check.
       event.preventDefault();
+      event.stopPropagation();
       onCancel();
     }
   };
@@ -156,6 +159,7 @@ function NoteFields({
         autoFocus
         disabled={isLoading}
         onKeyDown={handleKeyDown}
+        data-mantine-stop-propagation
         {...form.getInputProps("body")}
       />
       <Group gap="sm" align="flex-end" wrap="wrap" px="xs">

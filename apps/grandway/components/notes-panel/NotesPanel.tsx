@@ -149,8 +149,10 @@ export function NotesPanel<TNote extends NotesPanelNote>({
       confirmLabel: "Delete note",
       confirmColor: "red",
       onConfirm: async () => {
-        await deleteNote.mutateAsync(note.id);
+        // Step back first: the delete invalidates the list, and refetching a
+        // page that no longer exists would flash an error.
         if (lastOnPage) setPage(page - 1);
+        await deleteNote.mutateAsync(note.id);
         if (editingId === note.id) setEditingId(null);
       },
     });

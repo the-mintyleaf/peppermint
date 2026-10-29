@@ -211,6 +211,7 @@ export function useUpdatePreferences() {
  * `is_read`/`read_at` should refresh too.
  */
 export function useMarkAllRead() {
+  const queryClient = useQueryClient();
   return useAppMutation<BulkReadResult, NotificationCategory[] | undefined>({
     mutationFn: async (categories) => {
       if (!categories || categories.length === 0) return markAllRead();
@@ -225,5 +226,13 @@ export function useMarkAllRead() {
         : `Marked ${data.marked_read} notification${data.marked_read === 1 ? "" : "s"} as read.`,
     errorTitle: "Couldn't mark all as read",
     invalidateKeys: [notificationQueryKeys.all, summaryKey()],
+    // A grouped tab sends one call per category; if one fails the others have
+    // still cleared on the server, so the badges must refresh either way.
+    onError: () => {
+      void queryClient.invalidateQueries({
+        queryKey: notificationQueryKeys.all,
+      });
+      void queryClient.invalidateQueries({ queryKey: summaryKey() });
+    },
   });
 }

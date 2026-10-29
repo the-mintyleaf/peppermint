@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { Button, Group, Stack, Text, TextInput } from "@peppermint/ui";
 import { BookmarkSimpleIcon } from "@phosphor-icons/react/dist/csr/BookmarkSimple";
-import { CLIPBOARD_LABEL_MAX } from "../../../clipboard.constants";
+import {
+  CLIPBOARD_LABEL_MAX,
+  CLIPBOARD_TEXT_MAX,
+} from "../../../clipboard.constants";
 import { useCreateClipboardEntry } from "../../../clipboard.hooks";
 import type { ClipboardSaveValueProps } from "../ClipboardFieldSuggest.types";
 
@@ -36,9 +39,12 @@ export function SaveFieldValue({
     setAsking(true);
   };
 
+  const tooLong = text.length > CLIPBOARD_TEXT_MAX;
+
   const save = () => {
     const name = label.trim();
-    if (!name) return;
+    // Enter can fire again while the first save is in flight.
+    if (!name || tooLong || create.isPending) return;
     create.mutate(
       { label: name, text, field_key: fieldKey },
       {
@@ -80,6 +86,12 @@ export function SaveFieldValue({
       <Text size="xs" c="dimmed" lineClamp={2}>
         {text}
       </Text>
+      {tooLong ? (
+        <Text size="xs" c="red">
+          Too long to save: a snippet holds up to {CLIPBOARD_TEXT_MAX}{" "}
+          characters.
+        </Text>
+      ) : null}
       <Group justify="flex-end" gap="xs">
         <Button
           variant="subtle"
@@ -94,7 +106,7 @@ export function SaveFieldValue({
           size="compact-sm"
           onClick={save}
           loading={create.isPending}
-          disabled={!label.trim()}
+          disabled={!label.trim() || tooLong}
         >
           Save
         </Button>
