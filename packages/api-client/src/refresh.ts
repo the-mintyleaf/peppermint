@@ -17,9 +17,9 @@ export interface RefreshTransport {
  * The result of one refresh attempt.
  * - `ok`: new tokens (`refresh` is `null` when none was issued in the body — a
  *   cookie transport, or a concurrent-refresh grace answer).
- * - `rejected`: the credential is definitively unusable — the session is over.
- * - `unavailable`: rate-limited, server error, or network failure — the session may
- *   be intact, so the caller must not sign the user out.
+ * - `rejected`: a JSON auth refusal — the credential is unusable, the session is over.
+ * - `unavailable`: anything else (rate limit, 5xx, network, proxy/portal answers) —
+ *   the session may be intact, so the caller must not sign the user out.
  */
 export type RefreshOutcome =
   | {
@@ -31,6 +31,7 @@ export type RefreshOutcome =
   | { kind: "rejected"; info: AuthFailureInfo }
   | { kind: "unavailable"; rateLimited: boolean; retryAfterMs: number | null };
 
+const MIN_BACKOFF_MS = 1_000;
 const MAX_BACKOFF_MS = 30_000;
 
 type JsonObject = Record<string, unknown>;
@@ -109,6 +110,22 @@ function tokensFrom(payload: JsonObject | null, t: RefreshTransport) {
   };
 }
 
+/**
+ * A definitive refusal is a JSON auth error from the refresh endpoint itself: a 401
+ * with an error code, or a 403 with an `AUTH_*` code. Anything else (408, a proxy or
+ * WAF 403/404/405, a captive-portal HTML page) says nothing about the session.
+ */
+function isAuthRefusal(status: number, info: AuthFailureInfo): boolean {
+  if (!info.code) return false;
+  return status === 401 || (status === 403 && info.code.startsWith("AUTH_"));
+}
+
+const UNAVAILABLE = {
+  kind: "unavailable",
+  rateLimited: false,
+  retryAfterMs: null,
+} as const satisfies RefreshOutcome;
+
 /** One refresh POST, classified. Uses raw `fetch` so no interceptor can recurse. */
 export async function sendRefresh(
   t: RefreshTransport,
@@ -125,30 +142,25 @@ export async function sendRefresh(
   try {
     res = await fetch(t.url, init);
   } catch {
-    return { kind: "unavailable", rateLimited: false, retryAfterMs: null };
+    return UNAVAILABLE;
   }
 
   if (res.status === 429) {
     const retryAfterMs = parseRetryAfter(res.headers.get("Retry-After"));
     return { kind: "unavailable", rateLimited: true, retryAfterMs };
   }
-  if (res.status >= 500) {
-    return { kind: "unavailable", rateLimited: false, retryAfterMs: null };
-  }
 
   const payload = await readJson(res);
   if (!res.ok) {
-    return { kind: "rejected", info: failureInfo(res.status, payload) };
+    const info = failureInfo(res.status, payload);
+    return isAuthRefusal(res.status, info)
+      ? { kind: "rejected", info }
+      : UNAVAILABLE;
   }
 
+  // A 2xx that isn't a token answer (non-JSON, captive portal) is not a refusal.
   const { access, refresh, expiresAt } = tokensFrom(payload, t);
-  if (!access) {
-    return {
-      kind: "rejected",
-      info: { status: res.status, code: null, reason: null },
-    };
-  }
-  return { kind: "ok", access, refresh, expiresAt };
+  return access ? { kind: "ok", access, refresh, expiresAt } : UNAVAILABLE;
 }
 
 const sleep = (ms: number) =>
@@ -156,12 +168,15 @@ const sleep = (ms: number) =>
 
 /**
  * {@link sendRefresh}, retrying a rate-limited (429) answer with exponential backoff
- * (honouring `Retry-After` when readable). A 429 means the session is intact, so an
- * exhausted retry budget still comes back `unavailable`, never `rejected`.
+ * (honouring `Retry-After` when readable, never less than 1 s). A 429 means the
+ * session is intact, so an exhausted retry budget still comes back `unavailable`,
+ * never `rejected`. `onRateLimited` fires on the first 429 so a waiting request can
+ * fail fast while the retries continue in the background.
  */
 export async function sendRefreshWithBackoff(
   t: RefreshTransport,
   maxRateLimitRetries: number,
+  onRateLimited?: (outcome: RefreshOutcome) => void,
 ): Promise<RefreshOutcome> {
   let outcome = await sendRefresh(t);
   for (
@@ -171,8 +186,10 @@ export async function sendRefreshWithBackoff(
     outcome.rateLimited;
     attempt++
   ) {
+    onRateLimited?.(outcome);
     const backoff = Math.min(1000 * 2 ** attempt, MAX_BACKOFF_MS);
-    await sleep(Math.min(outcome.retryAfterMs ?? backoff, MAX_BACKOFF_MS));
+    const wait = outcome.retryAfterMs ?? backoff;
+    await sleep(Math.min(Math.max(wait, MIN_BACKOFF_MS), MAX_BACKOFF_MS));
     outcome = await sendRefresh(t);
   }
   return outcome;

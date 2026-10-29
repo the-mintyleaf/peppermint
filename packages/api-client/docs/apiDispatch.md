@@ -91,30 +91,48 @@ the package root.
 
 ## Interceptor behaviour
 
-**Request:** re-syncs the proactive timer from storage (this is how a login in the
-same tab is picked up). If the stored access token is already past its stored expiry,
-it refreshes first rather than spend a 401 round trip. Then it reads
-`localStorage[accessTokenKey]` and sets `Authorization: Bearer <token>` (skipped during
-SSR).
+**Request:** the Bearer token and credentials go **only** to the API origin (the
+origin `baseURL` resolves to, or the page's origin without a `baseURL`). An absolute
+URL on any other origin is sent with no `Authorization` header and
+`withCredentials: false`. For API requests it then re-syncs the proactive timer from
+storage (this is how a login in the same tab is picked up). If the stored access token
+is already past its stored expiry, it refreshes first rather than spend a 401 round
+trip. Finally it reads `localStorage[accessTokenKey]` and sets
+`Authorization: Bearer <token>` (skipped during SSR).
 
 **Response (success):** if the body is a `{ success: true, data, meta? }` envelope,
 it is unwrapped — paginated lists (a `meta.count` number) keep `{ data, meta }` so
 consumers can read both the rows and the total; everything else unwraps to `data`.
 
 **Response (401):** any 401 on a request that carried a Bearer token, whatever its
-`error.code`, is refresh-then-retry-once. A 401 on a request with no Bearer token
-(login, refresh, public endpoints) or on a `skipRefreshPaths` match is passed straight
-to the caller. If the stored token already differs from the one the request carried
-(another request or tab refreshed), the request is just retried. Otherwise one
+`error.code`, is refresh-then-retry-once. These are passed straight to the caller with
+no refresh:
+
+- a 401 on a request with no Bearer token (login, refresh, public endpoints);
+- a 401 on a `skipRefreshPaths` match;
+- a 401 that arrives after the stored access token was cleared (a deliberate logout,
+  or an earlier refusal). Refreshing then would redirect twice or bring a signed-out
+  session back.
+
+If the stored token already differs from the one the request carried (another
+request or tab refreshed), the request is just retried. Otherwise one
 **single-flight** refresh runs per instance, and every concurrent 401 awaits it. A
 per-request `_retry` guard prevents loops. Refresh outcomes:
 
-| Refresh answer                        | Effect                                                                                  |
-| ------------------------------------- | --------------------------------------------------------------------------------------- |
-| 2xx with an access token              | Tokens + expiry stored, timer rescheduled, waiting requests retried.                    |
-| 429                                   | Backoff + retry up to `maxRateLimitRetries`; then the request rejects. **No sign-out.** |
-| 5xx or network failure                | The request rejects. **No sign-out.**                                                   |
-| Any other 4xx, or 2xx without a token | `onAuthFailure(info)` once, the timer stops, and waiting requests reject.               |
+| Refresh answer                                                                                                 | Effect                                                                                                                                                                                   |
+| -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2xx with an access token                                                                                       | Tokens + expiry stored, timer rescheduled, waiting requests retried.                                                                                                                     |
+| 429                                                                                                            | The waiting request fails fast. In the background, backoff + retry up to `maxRateLimitRetries` (exponential from 1 s; `Retry-After` honoured but never under 1 s). **No sign-out.**      |
+| Anything else that is not a JSON auth refusal: 5xx, network, 408, proxy/WAF 403/404/405, HTML or non-token 2xx | The request rejects. **No sign-out.**                                                                                                                                                    |
+| JSON auth refusal: 401 with an `error.code`, or 403 with an `AUTH_*` code                                      | `onAuthFailure(info)` and the timer stops. Fires **at most once per session**: re-armed only by a successful refresh or a new login (a different stored token). Waiting requests reject. |
+
+A round that ends neither ok nor refused starts a **cooldown** (30 s, doubling per
+round up to 5 min, reset by success or a new login). During it, refreshes are not
+sent, so a throttled credential (10/min server-side) can recover.
+
+A refresh that finishes after the stored token was cleared writes nothing back. One
+superseded by another tab or a new login neither overwrites the newer token nor signs
+that newer session out.
 
 **Proactive refresh:** when an expiry is stored, a timer fires `refreshLeadTimeMs`
 (minus up to 5 s jitter) before it, through the same single-flight. Tabs share
@@ -122,9 +140,18 @@ per-request `_retry` guard prevents loops. Refresh outcomes:
 reschedule. A tab whose timer fires also re-checks the stored expiry, and if another
 tab moved it, follows that instead of refreshing. A timer that runs late (a throttled
 background tab, a machine waking from sleep) is re-checked on `visibilitychange` and
-on the next request. A proactive refresh that comes back unavailable retries after
-15 s. Proactive refreshes in one tab are at least 30 s apart, which prevents a loop
-when the client clock runs ahead of the server's.
+on the next request.
+
+Every refresh attempt is recorded in storage (`<accessTokenKey>_refresh_attempt_at`).
+Proactive and pre-flight refreshes wait at least 30 s after the last attempt **from
+any tab**, which prevents a loop or tab-to-tab ping-pong when the client clock runs
+ahead of the server's. They also respect the cooldown. A proactive refresh that comes
+back unavailable retries after `max(15 s, cooldown)`.
+
+**Storage failures:** `localStorage` reads and writes never throw. A failed write
+(quota, Safari private mode, `SecurityError`) is kept in memory for the current tab,
+and the failure is logged once with `console.warn`. If localStorage later changes
+underneath it (the app cleared it, or another tab wrote it), localStorage wins again.
 
 ## Notes
 
