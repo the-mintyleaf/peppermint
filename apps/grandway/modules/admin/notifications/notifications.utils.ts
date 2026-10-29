@@ -163,7 +163,7 @@ export function resolveNotificationLinkLabel(
  * Added 2026-10-29:
  * - `lead_created`/`lead_restored` → the lead board with that lead's drawer
  *   open, `/admin/lead-management?lead=<id>` (leads have no detail route; the
- *   board must read `?lead=` — see docs/AI.md "Known risk"). `lead_deleted`
+ *   board opens the drawer from `?lead=`). `lead_deleted`
  *   cannot open the lead (it is gone from the board) → the board itself.
  * - `lead_converted` → the NEW applicant (`applicant_id`), not the lead.
  * - `applicant_status_changed`/`applicant_restored`/`applicant_assigned`/

@@ -192,10 +192,6 @@ stage, test type, document family); each fragment drops if its key is missing.
 
 ## Known risk / unverified
 
-- **`/admin/lead-management?lead=<id>` is not read by the lead board yet** — the board
-  only honours `?q=`. Until `LeadManagementBoard` opens `LeadDetailDrawer` from `?lead=`,
-  those links land on the plain board (harmless, not a 404). Fix lives in lead-management.
-
 - `resolveNotificationLink`'s `/admin/checklists/<id>` path (for `missing_documents`
   and the `checklist`-shaped `assignment_received`) assumes the checklists module
   (built concurrently by a sibling agent) exposes a detail route at that exact
