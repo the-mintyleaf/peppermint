@@ -38,7 +38,7 @@ interface DocumentCustomizationsProps {
   ConfigBar: ComponentType<DocumentConfigBarProps> | undefined;
   document: Document | null;
   onUpdate: (content: DocumentContent) => void;
-  onPersist: (content: DocumentContent) => void;
+  onPersist: (content: DocumentContent) => void | Promise<void>;
   editable: boolean;
   /** Why editing is off, so the panel names the right reason. */
   readOnlyReason: DocumentReadOnlyReason;
@@ -101,7 +101,7 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
     printableContentRef,
     signatures,
     updateDocumentContentLocal,
-    updateDocumentContent,
+    saveDocumentContent,
   } = useDocumentEditor();
 
   const { snapshots, isLoading, loadSnapshotPreview, recover, isRecovering } =
@@ -130,13 +130,17 @@ export function HistorySidebar({ onClose }: HistorySidebarProps) {
 
   // Persisting update: config bars whose choices should survive reload/print (e.g. the
   // Europass CV appearance) call this to PATCH the content to the backend.
+  // Returns the save so a bar can react to a refusal (the certificate panel
+  // reverts its preview); the catch keeps bars that ignore it from leaking an
+  // unhandled rejection — the provider has already toasted.
   const handlePersist = useCallback(
     (content: DocumentContent) => {
-      if (activeDocument) {
-        updateDocumentContent(activeDocument.id, content);
-      }
+      if (!activeDocument) return;
+      const saving = saveDocumentContent(activeDocument.id, content);
+      saving.catch(() => undefined);
+      return saving;
     },
-    [activeDocument, updateDocumentContent],
+    [activeDocument, saveDocumentContent],
   );
 
   // Selecting a snapshot fetches its frozen body so it can preview in place of the live doc.

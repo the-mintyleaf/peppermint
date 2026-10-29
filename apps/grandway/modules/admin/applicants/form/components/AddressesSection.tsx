@@ -8,7 +8,7 @@ import type { ApplicantFormValues } from "../ApplicantForm.types";
  * Two independent, fully optional sections — permanent and current address.
  * Mapped to the `addresses[]` array at submit time (`address_type:
  * "permanent"|"current"`), including an entry only if any of its fields are
- * filled (`ApplicantForm.tsx`'s `toApplicantPayload`).
+ * filled (`ApplicantForm.utils.ts`'s `toApplicantPayload`).
  */
 function AddressFields({
   prefix,

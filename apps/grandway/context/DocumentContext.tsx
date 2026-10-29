@@ -23,42 +23,43 @@ export interface CertificateMarkEntry {
 }
 
 /**
- * Resolved student-certificate content. The string/number fields are required (the template
- * passes them to `formatDate`, grade comparisons and arithmetic without guarding). `batch`,
- * `image`, `customBranch` and `customBranchNo` are optional — the certificate form does not
- * emit `batch`, so the template guards every access (`d.batch?.course?…`) and renders blank
- * when it is absent.
+ * Resolved student-certificate data, in the backend's validated key names
+ * (`documents/INTEGRATION.md` §7). Every field is already resolved — the adapter
+ * (`modules/documents/document-types/student-certificate/CertificateTemplate.tsx`)
+ * reads both the current keys and the ones certificates were saved under before
+ * 2026-10-29, so the template never sees the legacy shape. `image` is the resolved
+ * portrait URL, or `""` for the grey placeholder box.
  */
 export interface StudentCertificateData {
   firstname: string;
   middlename: string;
   lastname: string;
   date_of_birth: string;
+  /** `male` | `female` | `other` | `""`. */
   gender: string;
   address: string;
   date_of_admission: string;
   date_of_completion: string;
   issue: string;
-  coursehour: number;
-  grammar: string;
-  listening: string;
-  conversation: string;
-  reading: string;
-  composition: string;
-  studyType: 0 | 1;
-  image?: string;
-  customBranch?: string;
-  customBranchNo?: string;
-  batch?: {
-    course?: {
-      name?: string;
-      level?: string;
-      total_days?: number;
-      books?: Array<{ name: string }>;
-    };
-    instructor?: unknown[];
+  course_name: string;
+  course_level: string;
+  course_books: string[];
+  /** `0` when not given. */
+  course_total_days: number;
+  /** `0` when not given. */
+  course_hours_per_day: number;
+  grades: {
+    grammar: string;
+    listening: string;
+    conversation: string;
+    reading: string;
+    composition: string;
   };
-  marking?: CertificateMarkEntry[];
+  study_type: 0 | 1;
+  image: string;
+  branch_name: string;
+  branch_no: string;
+  marking: CertificateMarkEntry[];
 }
 
 /** Loose bag of bank statement/certificate fields read through `FormHandler`. */

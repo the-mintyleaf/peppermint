@@ -47,6 +47,12 @@ export interface SearchHit {
   /** An **API** path, `{id}` already filled in. Never navigate to this. */
   detail_path: string;
   detail_permission_key: string;
+  /**
+   * `document` hits only. Search does not apply the documents list's
+   * hide-archived default, so it flags them instead (`documents/INTEGRATION.md`
+   * §9) — a hit must show it rather than read as live.
+   */
+  is_archived?: boolean;
 }
 
 /** One type's slice of the answer (§4). Empty buckets ARE returned. */

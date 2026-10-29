@@ -30,9 +30,9 @@ const REQUIRED_FIELDS: RequiredField[] = [
   { label: "Address", check: (d) => !!d?.address },
   { label: "Date of Admission", check: (d) => !!d?.date_of_admission },
   { label: "Issue Date", check: (d) => !!d?.issue },
-  { label: "Course Hours", check: (d) => !!d?.coursehour },
-  { label: "Course Name", check: (d) => !!d?.batch?.course?.name },
-  { label: "Course Level", check: (d) => !!d?.batch?.course?.level },
+  { label: "Course Hours", check: (d) => !!d?.course_hours_per_day },
+  { label: "Course Name", check: (d) => !!d?.course_name },
+  { label: "Course Level", check: (d) => !!d?.course_level },
 ];
 
 export function StudentCertMissingBanner() {

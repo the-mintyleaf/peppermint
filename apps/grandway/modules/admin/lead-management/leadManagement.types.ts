@@ -1,3 +1,12 @@
+import type {
+  AcademicScoreType,
+  LanguageTestPayload,
+  LanguageTestType,
+  QualificationLevel,
+  YearCalendar,
+} from "@/components/academic";
+import type { NoteCategory } from "@/components/notes-panel";
+
 /** The 8 lead stages (`docs/backend/lead-management/INTEGRATION.md` §5). */
 export type LeadStage =
   | "new"
@@ -58,14 +67,13 @@ export type HistoryActorType =
   | "system"
   | "ai";
 
+/** `INTEGRATION.md` §4 `BsDate` — never sent, only the value of a `<field>_bs` key. */
 export interface BsDate {
   year: number;
   month: number;
   day: number;
-  month_name_en: string;
-  month_name_np: string;
-  display_en: string;
-  display_np: string;
+  month_name: string;
+  display: string;
 }
 
 export interface UserBrief {
@@ -102,6 +110,12 @@ export interface ContactNumber {
   is_primary: boolean;
 }
 
+/**
+ * `highest_qualification` is the FREE-TEXT programme or stream ("BBS",
+ * "Science"); `highest_qualification_level` is the enum level. The two pairs —
+ * `academic_score` + `academic_score_type`, `pass_year` + `pass_year_calendar`
+ * — always travel together (`LEADS_STUDY_INTEREST_INVALID` otherwise).
+ */
 export interface StudyInterest {
   interested_countries: string[];
   study_level: StudyLevel | "";
@@ -111,8 +125,36 @@ export interface StudyInterest {
   budget_currency: string;
   scholarship_interest: boolean;
   highest_qualification: string;
+  highest_qualification_level: QualificationLevel | "";
+  /** Decimal string (`"3.45"`) or `null`. */
+  academic_score: string | null;
+  academic_score_type: AcademicScoreType | "";
+  pass_year: number | null;
+  pass_year_calendar: YearCalendar | "";
   language_test_status: LanguageTestStatus | "";
   interest_notes: string;
+}
+
+/**
+ * One of the lead's `language_certificates[]` (≤ `LEAD_CERTIFICATE_LIMIT`).
+ * Becomes an applicant `LanguageTest` at conversion, field for field. Scores
+ * are decimal strings with one place, or `null`.
+ */
+export interface LanguageCertificate {
+  id: string;
+  test_type: LanguageTestType;
+  overall_score: string | null;
+  listening_score: string | null;
+  reading_score: string | null;
+  writing_score: string | null;
+  speaking_score: string | null;
+  test_date: string | null;
+  test_date_bs: BsDate | null;
+  certificate_number: string;
+  expiry_date: string | null;
+  expiry_date_bs: BsDate | null;
+  created_at: string;
+  updated_at: string;
 }
 
 /** `GET /leads/` row shape — trimmed relative to detail (no `study_interest`/lifecycle fields). */
@@ -136,6 +178,7 @@ export interface Lead {
 /** Returned by retrieve, create, update, and every lifecycle action. */
 export interface LeadDetail extends Lead {
   study_interest: StudyInterest | null;
+  language_certificates: LanguageCertificate[];
   last_followed_up_by: UserBrief | null;
   lost_reason: LossReason | null;
   lost_detail: string;
@@ -150,6 +193,16 @@ export interface LeadDetail extends Lead {
   converted_applicant_id: string | null;
   /** Populated together with `converted_at`/`converted_by`; never cleared, not even by reopen. */
   converted_journey_id: string | null;
+  /**
+   * Soft delete (Admin only). `null` on every lead a Lead Manager can see —
+   * only an Admin ever receives a lead with `deleted_at` set (`?deleted=true`,
+   * a retrieve by id, or the delete response). Not the same as `lost`.
+   */
+  deleted_at: string | null;
+  deleted_at_bs: BsDate | null;
+  deleted_by: UserBrief | null;
+  /** `""` unless deleted. */
+  delete_reason: string;
 }
 
 /** `POST /leads/<id>/convert/` response — empty request body. */
@@ -159,11 +212,23 @@ export interface ConvertLeadResponse {
   journey_id: string;
 }
 
+/**
+ * `noted_at` is when it happened (user-set, may be backdated); `created_at`
+ * is when it was saved. Structurally satisfies `NotesPanelNote`, so the shared
+ * `NotesPanel` renders it unmapped. `category` may gain values later (e.g.
+ * `call`) — rendered as the raw string.
+ */
 export interface LeadNote {
   id: string;
+  category: NoteCategory;
   body: string;
+  noted_at: string;
+  noted_at_bs: BsDate | null;
+  is_backdated: boolean;
   author: UserBrief;
+  updated_by: UserBrief | null;
   created_at: string;
+  updated_at: string;
 }
 
 export type HistoryAction =
@@ -177,6 +242,10 @@ export type HistoryAction =
   | "lead_marked_lost"
   | "lead_reopened"
   | "lead_note_added"
+  | "lead_note_updated"
+  | "lead_note_deleted"
+  | "lead_deleted"
+  | "lead_restored"
   | "lead_source_created"
   | "lead_source_updated"
   | "loss_reason_created"
@@ -234,11 +303,22 @@ export interface StudyInterestInput {
   budget_currency?: string;
   scholarship_interest?: boolean;
   highest_qualification?: string;
+  highest_qualification_level?: QualificationLevel | "";
+  /** Sent together with `academic_score_type` — both set, or both blank. */
+  academic_score?: number | null;
+  academic_score_type?: AcademicScoreType | "";
+  /** Sent together with `pass_year_calendar` — both set, or both blank. */
+  pass_year?: number | null;
+  pass_year_calendar?: YearCalendar | "";
   language_test_status?: LanguageTestStatus | "";
   interest_notes?: string;
 }
 
-/** `stage` is deliberately absent — not writable via create/update (INTEGRATION.md §7). */
+/**
+ * `stage` is deliberately absent — not writable via create/update (INTEGRATION.md §7).
+ * `language_certificates` REPLACES the whole set (`[]` clears it; omitting the
+ * key leaves it untouched), like `contact_numbers`. At most 10.
+ */
 export interface LeadCreatePayload {
   full_name: string;
   email?: string;
@@ -247,6 +327,7 @@ export interface LeadCreatePayload {
   source_detail?: string;
   contact_numbers: ContactNumberInput[];
   study_interest?: StudyInterestInput;
+  language_certificates?: LanguageTestPayload[];
 }
 
 export type LeadUpdatePayload = Partial<LeadCreatePayload>;
@@ -270,8 +351,28 @@ export interface ReopenPayload {
   stage?: SelectableLeadStage;
 }
 
-export interface LeadNoteCreatePayload {
-  body: string;
+/** `DELETE /leads/<id>/` JSON body — required, ≤ `LEAD_DELETE_REASON_MAX`. */
+export interface DeleteLeadPayload {
+  reason: string;
+}
+
+/** `POST /leads/<id>/restore/` — optional reason, ≤ `LEAD_RESTORE_REASON_MAX`. */
+export interface RestoreLeadPayload {
+  reason?: string;
+}
+
+export const LEAD_DELETE_REASON_MAX = 500;
+export const LEAD_RESTORE_REASON_MAX = 2000;
+
+/**
+ * Server-side list filters (`GET /leads/`). The board's in-memory category
+ * tabs can't apply these — the list shape carries neither the study interest
+ * nor the certificates — so they scope the aggregate fetch instead.
+ */
+export interface LeadListFilters {
+  highestQualificationLevel?: QualificationLevel;
+  languageTestStatus?: LanguageTestStatus;
+  languageTestType?: LanguageTestType;
 }
 
 /**

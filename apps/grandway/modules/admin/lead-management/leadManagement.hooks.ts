@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import {
   keepPreviousData,
   useMutation,
@@ -8,15 +8,20 @@ import {
   useQueryClient,
 } from "@peppermint/ui";
 import { useAppMutation } from "@peppermint/admin";
+import type { NotesAdapter } from "@/components/notes-panel";
+import { getApiError, getApiErrorMessage } from "@/lib/authErrorMessages";
 import {
   changeLeadStage,
   convertLead,
   createLeadNote,
   createLeadSource,
   createLossReason,
+  deleteLead,
+  deleteLeadNote,
   fetchAllLeads,
   fetchAllLeadSources,
   fetchAllLossReasons,
+  fetchDeletedLeads,
   fetchLeadHistory,
   fetchLeadNotes,
   fetchLeadSources,
@@ -25,11 +30,15 @@ import {
   markLeadLost,
   recordLeadFollowUp,
   reopenLead,
+  restoreLead,
+  updateLeadNote,
   updateLeadSource,
   updateLossReason,
 } from "./leadManagement.api";
 import { emptyCategoryCounts, toLeadBoardRow } from "./leadCategory.utils";
+import { isStaleLeadError } from "./leadErrors.utils";
 import {
+  deletedLeadsKey,
   leadHistoryKey,
   leadManagementQueryKeys,
   leadNotesKey,
@@ -41,7 +50,9 @@ import type {
   FollowUpPayload,
   LeadBoardRow,
   LeadCategory,
-  LeadNoteCreatePayload,
+  LeadDetail,
+  LeadListFilters,
+  LeadNote,
   MarkLostPayload,
   ReferenceEntry,
   ReferenceEntryCreatePayload,
@@ -75,9 +86,11 @@ export interface UseLeadBoardDataResult {
  */
 function makeLeadBoardQueryFn(
   fiscalYear: string | null,
+  filters: LeadListFilters,
 ): () => Promise<LeadBoardQueryResult> {
   return async () => {
     const { data, meta } = await fetchAllLeads({
+      ...filters,
       fiscalYear: fiscalYear ?? undefined,
     });
     const rows: LeadBoardRow[] = data.map((lead) => toLeadBoardRow(lead));
@@ -85,25 +98,60 @@ function makeLeadBoardQueryFn(
   };
 }
 
+const NO_FILTERS: LeadListFilters = {};
+
 /**
  * The single fetch behind the whole board — categorizes the caller's full
- * in-scope lead set once per fiscal-year scope. The board hands `queryFn`
- * straight to `ModalTableShell` as its `queryGetFn`, and the 4 category tabs
- * use the shell's own `tabs[].filter` mechanism — the same pattern already
- * used by Users/SecurityEvents lists elsewhere in the repo.
+ * in-scope lead set once per (fiscal year + server filter) scope. The board
+ * hands `queryFn` straight to `ModalTableShell` as its `queryGetFn`, and the 4
+ * category tabs use the shell's own `tabs[].filter` mechanism — the same
+ * pattern already used by Users/SecurityEvents lists elsewhere in the repo.
+ *
+ * `filters` (qualification level, test status, test type) are SERVER filters:
+ * the list shape carries neither the study interest nor the certificates, so
+ * the shell's in-memory filtering could never apply them.
  */
-export function useLeadBoardData(fiscalYear: string | null) {
-  // No-fiscal-year is encoded by array *length*, not a sentinel string value
-  // — a user typing "all" into the fiscal-year field must not collide with
-  // the unscoped key and silently serve the wrong cached scope.
-  const boardQueryKey = useMemo(
+export function useLeadBoardData(
+  fiscalYear: string | null,
+  filters: LeadListFilters = NO_FILTERS,
+) {
+  const { highestQualificationLevel, languageTestStatus, languageTestType } =
+    filters;
+  // The unscoped board is exactly `lists()`; any scope adds ONE serialized
+  // segment (the shell's `queryKey` is `readonly string[]`, so no objects).
+  // Serializing as JSON keeps a user typing "all" into the fiscal-year field
+  // from colliding with the unscoped key and serving the wrong cached scope.
+  const boardQueryKey = useMemo(() => {
+    const scope = {
+      fiscalYear: fiscalYear ?? undefined,
+      highestQualificationLevel,
+      languageTestStatus,
+      languageTestType,
+    };
+    const scoped = Object.values(scope).some(Boolean);
+    return scoped
+      ? ([...leadManagementQueryKeys.lists(), JSON.stringify(scope)] as const)
+      : leadManagementQueryKeys.lists();
+  }, [
+    fiscalYear,
+    highestQualificationLevel,
+    languageTestStatus,
+    languageTestType,
+  ]);
+  const queryFn = useMemo(
     () =>
-      fiscalYear
-        ? ([...leadManagementQueryKeys.lists(), fiscalYear] as const)
-        : leadManagementQueryKeys.lists(),
-    [fiscalYear],
+      makeLeadBoardQueryFn(fiscalYear, {
+        highestQualificationLevel,
+        languageTestStatus,
+        languageTestType,
+      }),
+    [
+      fiscalYear,
+      highestQualificationLevel,
+      languageTestStatus,
+      languageTestType,
+    ],
   );
-  const queryFn = useMemo(() => makeLeadBoardQueryFn(fiscalYear), [fiscalYear]);
 
   const query = useQuery({
     queryKey: boardQueryKey,
@@ -258,16 +306,6 @@ export function useLeadDetail(leadId: string | null) {
   });
 }
 
-export function useLeadNotes(leadId: string | null) {
-  return useQuery({
-    queryKey: leadId
-      ? leadNotesKey(leadId)
-      : ["lead-management.leads", "notes", "none"],
-    queryFn: () => fetchLeadNotes(leadId as string),
-    enabled: leadId !== null,
-  });
-}
-
 export function useLeadHistory(leadId: string | null) {
   return useQuery({
     queryKey: leadId
@@ -293,39 +331,79 @@ function invalidateKeysFor(leadId: string) {
   ];
 }
 
+/**
+ * Refetch one lead and the board (`lists()` — every scope, the dashboard's
+ * and the Deleted-leads view included). Used after delete/restore, after a
+ * lead create/edit, and whenever a write is refused as stale.
+ */
+export function useRefreshLead() {
+  const queryClient = useQueryClient();
+  return useCallback(
+    (leadId: string) => {
+      invalidateKeysFor(leadId).forEach((queryKey) => {
+        void queryClient.invalidateQueries({ queryKey });
+      });
+    },
+    [queryClient],
+  );
+}
+
+/**
+ * `onError` for every lead write: on a stale-lead 409 (`isStaleLeadError` —
+ * deleted / not deleted / already converted) refetch the lead and the board,
+ * since `useAppMutation` only invalidates on success.
+ */
+export function useRefreshOnStaleLead() {
+  const refreshLead = useRefreshLead();
+  return useCallback(
+    (error: unknown, leadId: string) => {
+      if (isStaleLeadError(error)) refreshLead(leadId);
+    },
+    [refreshLead],
+  );
+}
+
 export function useChangeLeadStage(leadId: string) {
+  const refreshOnStale = useRefreshOnStaleLead();
   return useAppMutation<unknown, StageChangePayload>({
     mutationFn: (body) => changeLeadStage(leadId, body),
     successMessage: "Stage updated.",
     errorTitle: "Couldn't update stage",
     invalidateKeys: invalidateKeysFor(leadId),
+    onError: (error) => refreshOnStale(error, leadId),
   });
 }
 
 export function useRecordLeadFollowUp(leadId: string) {
+  const refreshOnStale = useRefreshOnStaleLead();
   return useAppMutation<unknown, FollowUpPayload>({
     mutationFn: (body) => recordLeadFollowUp(leadId, body),
     successMessage: "Follow-up recorded.",
     errorTitle: "Couldn't record follow-up",
     invalidateKeys: invalidateKeysFor(leadId),
+    onError: (error) => refreshOnStale(error, leadId),
   });
 }
 
 export function useMarkLeadLost(leadId: string) {
+  const refreshOnStale = useRefreshOnStaleLead();
   return useAppMutation<unknown, MarkLostPayload>({
     mutationFn: (body) => markLeadLost(leadId, body),
     successMessage: "Lead marked as lost.",
     errorTitle: "Couldn't mark lead as lost",
     invalidateKeys: invalidateKeysFor(leadId),
+    onError: (error) => refreshOnStale(error, leadId),
   });
 }
 
 export function useReopenLead(leadId: string) {
+  const refreshOnStale = useRefreshOnStaleLead();
   return useAppMutation<unknown, ReopenPayload>({
     mutationFn: (body) => reopenLead(leadId, body),
     successMessage: "Lead reopened.",
     errorTitle: "Couldn't reopen lead",
     invalidateKeys: invalidateKeysFor(leadId),
+    onError: (error) => refreshOnStale(error, leadId),
   });
 }
 
@@ -340,28 +418,106 @@ export function useReopenLead(leadId: string) {
  * decisions to the caller instead.
  */
 export function useConvertLead(leadId: string) {
-  const queryClient = useQueryClient();
+  const refreshLead = useRefreshLead();
+  const refreshOnStale = useRefreshOnStaleLead();
   return useMutation<ConvertLeadResponse, unknown, void>({
     mutationFn: () => convertLead(leadId),
-    onSuccess: () => {
-      invalidateKeysFor(leadId).forEach((queryKey) => {
-        void queryClient.invalidateQueries({ queryKey });
-      });
-    },
+    onSuccess: () => refreshLead(leadId),
+    // Hook-level, so it runs alongside the caller's own `onError` (the
+    // already-converted redirect) — the board/dashboard catch up either way.
+    onError: (error) => refreshOnStale(error, leadId),
   });
 }
 
-export function useCreateLeadNote(leadId: string) {
-  return useAppMutation<unknown, LeadNoteCreatePayload>({
-    mutationFn: (body) => createLeadNote(leadId, body),
-    successMessage: "Note added.",
-    errorTitle: "Couldn't add note",
-    // Deliberately narrower than `invalidateKeysFor` — a note changes no
-    // board-visible field (category, counts, `last_followed_up_at`), so
-    // invalidating `lists()` here would trigger the board's full
-    // up-to-10-page aggregate refetch for data that didn't change.
-    // `detail(leadId)` alone still refreshes the open Notes tab (prefix
-    // match, see `invalidateKeysFor`'s comment).
-    invalidateKeys: [leadManagementQueryKeys.detail(leadId)],
+/**
+ * Admin-only soft delete. The id travels with the mutate call (not bound at
+ * hook time) because the same hook serves the board's row menu and the
+ * drawer. Invalidates `lists()` — the board AND the Deleted-leads view — and
+ * the lead's detail, so an open drawer flips to its deleted state.
+ */
+export function useDeleteLead() {
+  const refreshLead = useRefreshLead();
+  const refreshOnStale = useRefreshOnStaleLead();
+  return useAppMutation<LeadDetail, { id: string; reason: string }>({
+    mutationFn: ({ id, reason }) => deleteLead(id, { reason }),
+    successTitle: "Lead deleted",
+    successMessage: "An Admin can restore it from Deleted leads.",
+    errorTitle: "Couldn't delete lead",
+    // The shared copy for these codes is written for other actions; on a
+    // delete they mean "someone got there first" / "this is an applicant's
+    // origin record" (also covers converted-then-reopened leads, which look
+    // active in the board's list shape).
+    getErrorMessage: (error) => {
+      const { code } = getApiError(error);
+      if (code === "LEADS_LEAD_DELETED") {
+        return "Someone already deleted this lead — the board has been refreshed.";
+      }
+      if (code === "LEADS_LEAD_ALREADY_CONVERTED") {
+        return "A lead that was converted can't be deleted — it is the applicant's origin record.";
+      }
+      return getApiErrorMessage(error);
+    },
+    // `invalidateKeys` is static; these keys depend on the variables' id.
+    onSuccess: (_data, { id }) => refreshLead(id),
+    onError: (error, { id }) => refreshOnStale(error, id),
   });
+}
+
+/** Admin-only restore — see `useDeleteLead` for why the id rides the variables. */
+export function useRestoreLead() {
+  const refreshLead = useRefreshLead();
+  const refreshOnStale = useRefreshOnStaleLead();
+  return useAppMutation<LeadDetail, { id: string; reason?: string }>({
+    mutationFn: ({ id, reason }) => restoreLead(id, reason ? { reason } : {}),
+    successTitle: "Lead restored",
+    successMessage: "It is back on the board, exactly as it was.",
+    errorTitle: "Couldn't restore lead",
+    getErrorMessage: (error) =>
+      getApiError(error).code === "LEADS_LEAD_NOT_DELETED"
+        ? "This lead was already restored — the board has been refreshed."
+        : getApiErrorMessage(error),
+    onSuccess: (_data, { id }) => refreshLead(id),
+    onError: (error, { id }) => refreshOnStale(error, id),
+  });
+}
+
+/**
+ * Admin "Deleted leads" view — `?deleted=true`, paginated server-side.
+ * `enabled` is the caller's Admin gate: a Lead Manager gets 403 here, so the
+ * query must never fire for one.
+ */
+export function useDeletedLeads(
+  page: number,
+  pageSize: number,
+  enabled: boolean,
+) {
+  return useQuery({
+    queryKey: deletedLeadsKey(page, pageSize),
+    queryFn: () => fetchDeletedLeads(page, pageSize),
+    enabled,
+    placeholderData: keepPreviousData,
+  });
+}
+
+/**
+ * The `NotesPanel` adapter for one lead. Memoized on the id so the panel's
+ * query key and callbacks stay referentially stable across renders.
+ *
+ * Note writes invalidate the notes base (the panel does that) plus the
+ * History tab — every write appends `lead_note_*` there. Deliberately NOT
+ * `lists()`: a note changes no board-visible field, and invalidating it would
+ * trigger the board's up-to-10-page aggregate refetch for nothing.
+ */
+export function useLeadNotesAdapter(leadId: string): NotesAdapter<LeadNote> {
+  return useMemo<NotesAdapter<LeadNote>>(
+    () => ({
+      queryKey: leadNotesKey(leadId),
+      list: (params) => fetchLeadNotes(leadId, params),
+      create: (payload) => createLeadNote(leadId, payload),
+      update: (noteId, payload) => updateLeadNote(leadId, noteId, payload),
+      remove: (noteId) => deleteLeadNote(leadId, noteId),
+      invalidateKeys: [leadHistoryKey(leadId)],
+    }),
+    [leadId],
+  );
 }

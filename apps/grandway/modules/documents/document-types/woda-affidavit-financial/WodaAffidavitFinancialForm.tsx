@@ -1,7 +1,6 @@
 "use client";
 
-import { WodaForm } from "../../components/WodaForm";
-import type { DocumentFormProps } from "../../documents.types";
+import { createSchemaForm } from "../../components/WodaForm";
 import type { WodaFormSchema } from "../../utils/wodaFormSchema";
 import {
   documentSection,
@@ -181,12 +180,14 @@ const schema: WodaFormSchema = {
           label: "Institution",
           placeholder: "University of Example",
           half: true,
+          clipboardKey: "study.institution.name",
         },
         {
           name: "institution_location",
           label: "Institution location",
           placeholder: "Sydney, Australia",
           half: true,
+          clipboardKey: "study.institution.location",
         },
       ],
     },
@@ -260,6 +261,7 @@ const schema: WodaFormSchema = {
           label: "Chairman name",
           placeholder: "Krishna Prasad Adhikari",
           half: true,
+          clipboardKey: "ward.spokesperson.name",
         },
         {
           name: "chairman_date",
@@ -272,6 +274,6 @@ const schema: WodaFormSchema = {
   ],
 };
 
-export function WodaAffidavitFinancialForm(props: DocumentFormProps) {
-  return <WodaForm schema={schema} {...props} />;
-}
+export const WodaAffidavitFinancialForm = createSchemaForm(schema, {
+  displayName: "WodaAffidavitFinancialForm",
+});

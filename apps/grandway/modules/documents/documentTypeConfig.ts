@@ -1,5 +1,6 @@
 import type { DocumentType, DocumentTypeConfig } from "./documents.types";
 import { UnavailableTemplate } from "./components/UnavailableTemplate";
+import type { SchemaFormComponent } from "./components/WodaForm";
 import {
   WODA_VARIANTS,
   BANK_INSTITUTIONS,
@@ -196,7 +197,9 @@ import {
 
 const wodaComponents: Record<
   (typeof WODA_VARIANTS)[number]["slug"],
-  Pick<DocumentTypeConfig, "Form" | "Template" | "formModalSize">
+  Pick<DocumentTypeConfig, "Template" | "formModalSize"> & {
+    Form: SchemaFormComponent;
+  }
 > = {
   "woda-address": { Form: WodaAddressForm, Template: WodaAddressTemplate },
   "woda-dob": { Form: WodaDobForm, Template: WodaDobTemplate },
@@ -329,7 +332,7 @@ const moiFormMap = {
 };
 
 const moiRegistry = Object.fromEntries(
-  MOI_INSTITUTIONS.map((inst) => [
+  MOI_INSTITUTIONS.map((inst): [string, DocumentTypeConfig] => [
     inst.slug,
     {
       type: inst.slug,
@@ -337,6 +340,7 @@ const moiRegistry = Object.fromEntries(
       uniquePerStudent: false,
       requiresStudent: false,
       Form: moiFormMap[inst.slug],
+      formSchema: moiFormMap[inst.slug].formSchema,
       Template: MoiTemplate,
     },
   ]),
@@ -357,7 +361,7 @@ const lorFormMap = {
 };
 
 const lorRegistry = Object.fromEntries(
-  LOR_INSTITUTIONS.map((inst) => [
+  LOR_INSTITUTIONS.map((inst): [string, DocumentTypeConfig] => [
     inst.slug,
     {
       type: inst.slug,
@@ -365,20 +369,28 @@ const lorRegistry = Object.fromEntries(
       uniquePerStudent: false,
       requiresStudent: false,
       Form: lorFormMap[inst.slug],
+      formSchema: lorFormMap[inst.slug].formSchema,
       Template: LorTemplate,
     },
   ]),
 ) as Record<(typeof LOR_INSTITUTIONS)[number]["slug"], DocumentTypeConfig>;
 
 const wodaRegistry = Object.fromEntries(
-  WODA_VARIANTS.map((variant) => [
+  WODA_VARIANTS.map((variant): [string, DocumentTypeConfig] => [
     variant.slug,
     {
       type: variant.slug,
       label: variant.label,
       uniquePerStudent: false,
       requiresStudent: false,
+      // New Woda letters are authored against the 2026-10 layouts (the ward
+      // office's current wording, and the English Country set). Older letters keep
+      // their stored "1" and still render, because the templates recognise the
+      // older content by its shape (`relatives` absent, blank wording fields) —
+      // nothing branches on the version itself yet.
+      templateVersion: "2",
       ...wodaComponents[variant.slug],
+      formSchema: wodaComponents[variant.slug].Form.formSchema,
     },
   ]),
 ) as Record<(typeof WODA_VARIANTS)[number]["slug"], DocumentTypeConfig>;
@@ -511,4 +523,13 @@ export function getDocumentTypeConfig(type: DocumentType): DocumentTypeConfig {
 
 export function getDefaultLabel(type: DocumentType): string {
   return documentTypeRegistry[type]?.label ?? type;
+}
+
+/**
+ * The `template_version` to create a document of this type with, or `undefined`
+ * to take the backend's `"1"`. Only for **create** — an existing document keeps
+ * the version it was authored for.
+ */
+export function getTemplateVersion(type: DocumentType): string | undefined {
+  return documentTypeRegistry[type]?.templateVersion;
 }

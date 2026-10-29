@@ -1,2 +1,10 @@
 export { LeadForm } from "./LeadForm";
-export type { LeadFormValues, StudyInterestFormValues } from "./LeadForm.types";
+export {
+  LeadFormSubmitErrorContext,
+  useLeadFormSubmitErrorChannel,
+} from "./LeadForm.context";
+export type {
+  LeadFormSubmitError,
+  LeadFormValues,
+  StudyInterestFormValues,
+} from "./LeadForm.types";

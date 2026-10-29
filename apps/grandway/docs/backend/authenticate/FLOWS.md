@@ -1,7 +1,7 @@
 # FLOWS — Authenticate
 
 **Owner app:** `authenticate`
-**Updated:** 2026-07-22
+**Updated:** 2026-10-29
 **Purpose:** The user-flow binding layer for this app — connects the product intent in
 `concepts/authenticate.txt` to the callable endpoints in `backend/authenticate/docs/INTEGRATION.md`.
 Authored and updated by the backend author in the same commit as any endpoint change (CLAUDE.md §36).
@@ -19,7 +19,7 @@ Authored and updated by the backend author in the same commit as any endpoint ch
 1. **Login screen** — submit username + password + the device's stored `device_id` →
    `POST /api/v1/auth/login/` (`authenticate.session.login`)
    - **Requires state:** the account exists and is active; the `(username, ip)` pair is not locked; fewer than 3 active devices unless reusing an existing `device_id`.
-   - **Side effects:** creates a session (replacing this device's prior session if any); sets `last_login`; issues an access token + refresh credential (cookie in prod, body in dev).
+   - **Side effects:** creates a session (replacing this device's prior session if any); sets `last_login`; issues an access token (with `access_expires_at`) + refresh credential (cookie in prod — persists across browser restarts — body in dev).
    - _Failure — `AUTH_CREDENTIALS_INVALID`:_ inline non-specific "invalid username or password" under the form (never reveal which field or that the account is locked).
    - _Failure — `AUTH_DEVICE_LIMIT_REACHED`:_ blocking dialog — "You're signed in on the maximum number of devices"; offer to continue to the Session management screen.
 2. **Current-user load** — after login, hydrate the signed-in user →
@@ -57,12 +57,13 @@ Authored and updated by the backend author in the same commit as any endpoint ch
 
 **Steps:**
 
-1. **Any authenticated screen** — when a protected call returns 401, silently rotate →
+1. **Any authenticated screen** — shortly before `access_expires_at`, or when any protected call returns 401 (`AUTHENTICATION_FAILED` for an expired token, or `AUTHENTICATION_REQUIRED`), silently rotate and retry the call once →
    `POST /api/v1/auth/refresh/` (`authenticate.session.refresh`)
    - **Requires state:** a currently-active session whose refresh credential the client holds (cookie in prod; stored token in dev); not past idle (12h) / absolute (7d) limits.
-   - **Side effects:** issues a new access token and rotates the refresh credential; the old refresh token is retired.
-   - _Failure — `AUTH_REFRESH_INVALID`:_ redirect to the Login screen.
-   - _Failure — `AUTH_REFRESH_REUSED`:_ the device family was revoked (possible token theft) — redirect to the Login screen and surface a "you were signed out for security" notice.
+   - **Side effects:** issues a new access token and rotates the refresh credential; the old refresh token is retired. Other tabs or requests refreshing at the same moment also succeed (grace window, 30 s) and receive an access token without a new refresh credential.
+   - _Failure — `RATE_LIMIT_EXCEEDED`:_ back off and retry; the session is intact — do not sign out.
+   - _Failure — `AUTH_REFRESH_INVALID`:_ redirect to the Login screen; word the notice from `error.details.reason` — `replaced_same_device` → "signed out because this account signed in again on this device"; `expired` → "your session expired"; `password_change`/`blocked`/`admin_revoked` → "you were signed out"; otherwise a generic notice.
+   - _Failure — `AUTH_REFRESH_REUSED`:_ the device family was revoked (an old token replayed more than 30 s after rotation — possible token theft) — redirect to the Login screen and surface a "you were signed out for security" notice.
 2. **Any authenticated screen** — sign out →
    `POST /api/v1/auth/logout/` (`authenticate.session.logout`)
    - **Requires state:** a valid access token.
@@ -154,41 +155,134 @@ Authored and updated by the backend author in the same commit as any endpoint ch
    `GET /api/v1/auth/sessions/` (`authenticate.session.list`).
 2. **My sessions screen** — revoke one, all-others, or all →
    `POST /api/v1/auth/sessions/revoke/` (`authenticate.session.revoke`) with `{ session_id }` or `{ others_only: true }` or empty.
-   - **Side effects:** selected sessions end; revoking the current one requires re-login.
+   - **Side effects:** selected sessions end. `{ others_only: true }` or another device's `session_id` keeps this device signed in; empty, or this device's own `session_id`, ends the current session and requires re-login (the refresh cookie is cleared only then).
    - _Failure — `AUTH_SESSION_NOT_FOUND`:_ the `session_id` isn't yours.
+
+## Flow: Save and reuse a snippet
+
+- **Actor:** Any signed-in user — Superadmin, Admin, or Lead Manager (each has their own clipboard)
+- **Goal:** Save a value typed often, then find and copy it later.
+- **Entry point:** Clipboard panel
+
+**Steps:**
+
+1. **Clipboard panel** — load the caller's snippets, most-used first →
+   `GET /api/v1/auth/me/clipboard/` (`authenticate.clipboard_entry.list`), optionally `?search=`
+   - **Requires state:** a valid access token. Any authority; never another person's snippets.
+   - **Side effects:** none.
+   - _Failure — `VALIDATION_ERROR`:_ a malformed filter — a client bug; drop the filter.
+2. **Save snippet form** — submit label + text (optionally field key and category) →
+   `POST /api/v1/auth/me/clipboard/` (`authenticate.clipboard_entry.create`)
+   - **Requires state:** fewer than 200 snippets; a `category`, if sent, is one of the caller's own.
+   - **Side effects:** snippet stored; audit event with the id and field key only — never the label or text.
+   - _Failure — `AUTH_CLIPBOARD_LIMIT_REACHED`:_ "Your clipboard is full (200)" — offer to delete old snippets.
+   - _Failure — `AUTH_CLIPBOARD_CATEGORY_INVALID`:_ the category was deleted — refetch the categories and re-pick.
+   - _Failure — `VALIDATION_ERROR`:_ inline errors from `error.details` (blank or too-long label/text, malformed field key).
+3. **Clipboard panel** — the user copies a snippet; after the copy succeeds →
+   `POST /api/v1/auth/me/clipboard/<entry_id>/use/` (`authenticate.clipboard_entry.use`)
+   - **Requires state:** the snippet is the caller's.
+   - **Side effects:** `usage_count` +1 and `last_used_at` set, so it ranks higher; not audited.
+   - _Failure — `AUTH_CLIPBOARD_ENTRY_NOT_FOUND`:_ deleted elsewhere — drop it from the list silently.
+4. **Clipboard panel** — edit or remove →
+   `PATCH /api/v1/auth/me/clipboard/<entry_id>/` (`authenticate.clipboard_entry.update`) or
+   `DELETE /api/v1/auth/me/clipboard/<entry_id>/` (`authenticate.clipboard_entry.delete`)
+   - **Requires state:** the snippet is the caller's.
+   - **Side effects:** update audited (changed field names only); delete is permanent and audited.
+   - _Failure — `AUTH_CLIPBOARD_ENTRY_NOT_FOUND`:_ already gone — refetch the list.
+
+## Flow: Fill a document form field from the clipboard
+
+- **Actor:** Any signed-in user filling a document form (in practice an Admin, since document forms are Admin-only — see `concepts/documents_flows.md`)
+- **Goal:** Fill one form field from a saved snippet instead of retyping it.
+- **Entry point:** Any document form field the frontend has given a field key (e.g. `father.name`)
+
+**Steps:**
+
+1. **Document form field** — on focus, fetch suggestions for that field →
+   `GET /api/v1/auth/me/clipboard/?field_key=father.name` (`authenticate.clipboard_entry.list`); several keys may be comma-separated
+   - **Requires state:** a valid access token; the field key is in the frontend's agreed vocabulary (lowercase dotted words).
+   - **Side effects:** none.
+   - Empty result: offer "Save this value to my clipboard" →
+     `POST /api/v1/auth/me/clipboard/` (`authenticate.clipboard_entry.create`) with the same `field_key`.
+2. **Suggestion dropdown** — the user picks one; the frontend copies or inserts its `text` into the field (no API call).
+3. **Suggestion dropdown** — record the pick →
+   `POST /api/v1/auth/me/clipboard/<entry_id>/use/` (`authenticate.clipboard_entry.use`)
+   - **Side effects:** the pick ranks first next time; not audited.
+   - _Failure — `AUTH_CLIPBOARD_ENTRY_NOT_FOUND`:_ ignore — the value is already in the field.
+
+## Flow: Organise snippets into categories
+
+- **Actor:** Any signed-in user
+- **Goal:** Group snippets and filter the clipboard by group.
+- **Entry point:** Clipboard panel → Categories
+
+**Steps:**
+
+1. **Categories list** — load the caller's categories (bare list, by name) →
+   `GET /api/v1/auth/me/clipboard/categories/` (`authenticate.clipboard_category.list`)
+   - **Requires state:** a valid access token.
+   - **Side effects:** none.
+2. **New category** — submit a name →
+   `POST /api/v1/auth/me/clipboard/categories/` (`authenticate.clipboard_category.create`)
+   - **Requires state:** fewer than 50 categories; the name is not already used (ignoring case).
+   - **Side effects:** category created; audited by id only.
+   - _Failure — `AUTH_CLIPBOARD_CATEGORY_NAME_TAKEN`:_ inline error on the name field (`error.details.name`).
+   - _Failure — `AUTH_CLIPBOARD_CATEGORY_LIMIT_REACHED`:_ "You have 50 categories" — offer to delete one.
+3. **Snippet edit** — file a snippet in it →
+   `PATCH /api/v1/auth/me/clipboard/<entry_id>/` (`authenticate.clipboard_entry.update`) with `{ category: <category_id> }` (`null` to take it out)
+   - _Failure — `AUTH_CLIPBOARD_CATEGORY_INVALID`:_ the category no longer exists — refetch step 1.
+4. **Clipboard panel** — filter →
+   `GET /api/v1/auth/me/clipboard/?category=<category_id>` (`authenticate.clipboard_entry.list`), or `?category=none` for uncategorized snippets.
+5. **Categories list** — rename →
+   `PATCH /api/v1/auth/me/clipboard/categories/<category_id>/` (`authenticate.clipboard_category.update`)
+   - _Failure — `AUTH_CLIPBOARD_CATEGORY_NAME_TAKEN`:_ another category already has that name.
+   - _Failure — `AUTH_CLIPBOARD_CATEGORY_NOT_FOUND`:_ deleted elsewhere — refetch step 1.
+6. **Categories list** — delete →
+   `DELETE /api/v1/auth/me/clipboard/categories/<category_id>/` (`authenticate.clipboard_category.delete`)
+   - **Side effects:** the category goes; **its snippets stay**, uncategorized — show "n snippets moved to Uncategorized" from `data.entries_uncategorized`.
+   - _Failure — `AUTH_CLIPBOARD_CATEGORY_NOT_FOUND`:_ already gone — refetch step 1.
 
 ---
 
 ## Endpoint coverage
 
-| `permission_key`                    | `METHOD /path`                                  | Used by flow(s)                               | Notes                                                |
-| ----------------------------------- | ----------------------------------------------- | --------------------------------------------- | ---------------------------------------------------- |
-| `authenticate.session.login`        | `POST /api/v1/auth/login/`                      | Sign in; First login; Stay signed in          | Public                                               |
-| `authenticate.session.refresh`      | `POST /api/v1/auth/refresh/`                    | Stay signed in and sign out                   | Public (credential is the refresh token)             |
-| `authenticate.session.logout`       | `POST /api/v1/auth/logout/`                     | Stay signed in and sign out                   |                                                      |
-| `authenticate.user.me`              | `GET /api/v1/auth/me/`                          | Sign in and load the current user             |                                                      |
-| `authenticate.user.change_password` | `POST /api/v1/auth/password/change/`            | First login — forced password change          | Also used for voluntary change; revokes all sessions |
-| `authenticate.mfa.enroll`           | `POST /api/v1/auth/mfa/enroll/`                 | Enroll MFA; Superadmin mandatory MFA          | Returns secret + otpauth URL once                    |
-| `authenticate.mfa.verify`           | `POST /api/v1/auth/mfa/verify/`                 | Enroll MFA; Superadmin mandatory MFA          | Activates MFA                                        |
-| `authenticate.mfa.disable`          | `POST /api/v1/auth/mfa/disable/`                | Disable MFA                                   | Not permitted for superadmin; revokes all sessions   |
-| `authenticate.user.list`            | `GET /api/v1/auth/users/`                       | Provision a subordinate; Manage a subordinate | Paginated; scoped to managed tier                    |
-| `authenticate.user.create`          | `POST /api/v1/auth/users/`                      | Provision a subordinate                       | Returns temp password once                           |
-| `authenticate.user.read`            | `GET /api/v1/auth/users/<id>/`                  | Manage a subordinate                          |                                                      |
-| `authenticate.user.update`          | `PATCH /api/v1/auth/users/<id>/`                | Manage a subordinate                          | Profile fields only                                  |
-| `authenticate.user.block`           | `POST /api/v1/auth/users/<id>/block/`           | Recover/secure a subordinate                  | Revokes all sessions                                 |
-| `authenticate.user.restore`         | `POST /api/v1/auth/users/<id>/restore/`         | Recover/secure a subordinate                  |                                                      |
-| `authenticate.user.reset_password`  | `POST /api/v1/auth/users/<id>/reset-password/`  | Recover/secure a subordinate                  | Temp password once; revokes sessions                 |
-| `authenticate.user.reset_mfa`       | `POST /api/v1/auth/users/<id>/reset-mfa/`       | Recover/secure a subordinate                  | Removes MFA; revokes sessions                        |
-| `authenticate.user.list_sessions`   | `GET /api/v1/auth/users/<id>/sessions/`         | Review a subordinate                          |                                                      |
-| `authenticate.user.revoke_sessions` | `POST /api/v1/auth/users/<id>/sessions/revoke/` | Review a subordinate                          | One or all                                           |
-| `authenticate.user.list_events`     | `GET /api/v1/auth/users/<id>/events/`           | Review a subordinate                          | Paginated; auth-activity review                      |
-| `authenticate.session.list`         | `GET /api/v1/auth/sessions/`                    | Manage my own devices                         |                                                      |
-| `authenticate.session.revoke`       | `POST /api/v1/auth/sessions/revoke/`            | Manage my own devices                         | One / others / all                                   |
+| `permission_key`                         | `METHOD /path`                                               | Used by flow(s)                                                            | Notes                                                                                      |
+| ---------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `authenticate.session.login`             | `POST /api/v1/auth/login/`                                   | Sign in; First login; Stay signed in                                       | Public                                                                                     |
+| `authenticate.session.refresh`           | `POST /api/v1/auth/refresh/`                                 | Stay signed in and sign out                                                | Public (credential is the refresh token)                                                   |
+| `authenticate.session.logout`            | `POST /api/v1/auth/logout/`                                  | Stay signed in and sign out                                                |                                                                                            |
+| `authenticate.user.me`                   | `GET /api/v1/auth/me/`                                       | Sign in and load the current user                                          |                                                                                            |
+| `authenticate.user.change_password`      | `POST /api/v1/auth/password/change/`                         | First login — forced password change                                       | Also used for voluntary change; revokes all sessions                                       |
+| `authenticate.mfa.enroll`                | `POST /api/v1/auth/mfa/enroll/`                              | Enroll MFA; Superadmin mandatory MFA                                       | Returns secret + otpauth URL once                                                          |
+| `authenticate.mfa.verify`                | `POST /api/v1/auth/mfa/verify/`                              | Enroll MFA; Superadmin mandatory MFA                                       | Activates MFA                                                                              |
+| `authenticate.mfa.disable`               | `POST /api/v1/auth/mfa/disable/`                             | Disable MFA                                                                | Not permitted for superadmin; revokes all sessions                                         |
+| `authenticate.user.list`                 | `GET /api/v1/auth/users/`                                    | Provision a subordinate; Manage a subordinate                              | Paginated; scoped to managed tier                                                          |
+| `authenticate.user.create`               | `POST /api/v1/auth/users/`                                   | Provision a subordinate                                                    | Returns temp password once                                                                 |
+| `authenticate.user.read`                 | `GET /api/v1/auth/users/<id>/`                               | Manage a subordinate                                                       |                                                                                            |
+| `authenticate.user.update`               | `PATCH /api/v1/auth/users/<id>/`                             | Manage a subordinate                                                       | Profile fields only                                                                        |
+| `authenticate.user.block`                | `POST /api/v1/auth/users/<id>/block/`                        | Recover/secure a subordinate                                               | Revokes all sessions                                                                       |
+| `authenticate.user.restore`              | `POST /api/v1/auth/users/<id>/restore/`                      | Recover/secure a subordinate                                               |                                                                                            |
+| `authenticate.user.reset_password`       | `POST /api/v1/auth/users/<id>/reset-password/`               | Recover/secure a subordinate                                               | Temp password once; revokes sessions                                                       |
+| `authenticate.user.reset_mfa`            | `POST /api/v1/auth/users/<id>/reset-mfa/`                    | Recover/secure a subordinate                                               | Removes MFA; revokes sessions                                                              |
+| `authenticate.user.list_sessions`        | `GET /api/v1/auth/users/<id>/sessions/`                      | Review a subordinate                                                       |                                                                                            |
+| `authenticate.user.revoke_sessions`      | `POST /api/v1/auth/users/<id>/sessions/revoke/`              | Review a subordinate                                                       | One or all                                                                                 |
+| `authenticate.user.list_events`          | `GET /api/v1/auth/users/<id>/events/`                        | Review a subordinate                                                       | Paginated; auth-activity review                                                            |
+| `authenticate.session.list`              | `GET /api/v1/auth/sessions/`                                 | Manage my own devices                                                      |                                                                                            |
+| `authenticate.session.revoke`            | `POST /api/v1/auth/sessions/revoke/`                         | Manage my own devices                                                      | One / others / all                                                                         |
+| `authenticate.clipboard_entry.list`      | `GET /api/v1/auth/me/clipboard/`                             | Save and reuse a snippet; Fill a document form field; Organise snippets    | Paginated; own only; `?field_key=a,b`, `?category=<id>\|none`, `?search=`; most-used first |
+| `authenticate.clipboard_entry.create`    | `POST /api/v1/auth/me/clipboard/`                            | Save and reuse a snippet; Fill a document form field (empty-result branch) | 201; max 200 per account                                                                   |
+| `authenticate.clipboard_entry.update`    | `PATCH /api/v1/auth/me/clipboard/<entry_id>/`                | Save and reuse a snippet; Organise snippets                                | Any subset; `category: null` uncategorizes                                                 |
+| `authenticate.clipboard_entry.delete`    | `DELETE /api/v1/auth/me/clipboard/<entry_id>/`               | Save and reuse a snippet                                                   | Hard delete; `{ deleted: true }`                                                           |
+| `authenticate.clipboard_entry.use`       | `POST /api/v1/auth/me/clipboard/<entry_id>/use/`             | Save and reuse a snippet; Fill a document form field                       | Ranking signal; not audited                                                                |
+| `authenticate.clipboard_category.list`   | `GET /api/v1/auth/me/clipboard/categories/`                  | Organise snippets                                                          | Bare list (≤50), by name; `entry_count`                                                    |
+| `authenticate.clipboard_category.create` | `POST /api/v1/auth/me/clipboard/categories/`                 | Organise snippets                                                          | 201; max 50; name unique ignoring case                                                     |
+| `authenticate.clipboard_category.update` | `PATCH /api/v1/auth/me/clipboard/categories/<category_id>/`  | Organise snippets                                                          | Rename only                                                                                |
+| `authenticate.clipboard_category.delete` | `DELETE /api/v1/auth/me/clipboard/categories/<category_id>/` | Organise snippets                                                          | Entries kept, uncategorized; `entries_uncategorized`                                       |
 
 ## Cross-app dependencies
 
 - **This app references (outbound):** none
-- **Referenced by other apps (inbound):** none yet — future apps will depend on a valid session (access token) issued here, but no other app's flow file references these endpoints today.
+- **Referenced by other apps (inbound):** `concepts/documents_flows.md` — its applicant-document flow has an optional step that suggests clipboard snippets for a form field (`authenticate.clipboard_entry.list` with `?field_key=`, then `authenticate.clipboard_entry.use`). Every app's flows also depend on a valid session issued here.
 
 When an endpoint here is added, changed, or deprecated, grep `concepts/*_flows.md` for its
 `permission_key` and update every referencing flow in the same commit (the CLAUDE.md §36 ripple rule) —

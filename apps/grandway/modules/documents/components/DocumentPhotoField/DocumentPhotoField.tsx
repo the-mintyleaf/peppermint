@@ -21,6 +21,7 @@ import type { DocumentPhotoFieldProps } from "./DocumentPhotoField.types";
 export function DocumentPhotoField({
   applicantId,
   name,
+  caption,
 }: DocumentPhotoFieldProps) {
   if (!applicantId) {
     return (
@@ -45,8 +46,8 @@ export function DocumentPhotoField({
         mode="immediate"
       />
       <Text size="xs" c="dimmed">
-        This is the applicant&apos;s photograph — changing it here updates their
-        profile and every other document that shows it.
+        {caption ??
+          "This is the applicant's photograph — changing it here updates their profile and every other document that shows it."}
       </Text>
     </Stack>
   );

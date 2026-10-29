@@ -1,152 +1,182 @@
-# CONCEPT — Document History
-
-Grounding file, adapted from `.backend/concepts/document_history.txt`. Freeform
-prose — the formal contract lives in `INTEGRATION.md`.
+# DOCUMENT HISTORY — Grandway
 
 ## Purpose
 
-Document History owns Grandway's immutable document snapshots. It records what a
-document looked like at a specific moment, who captured that state, and why. The
-`documents` app is the editable working record; `document_history` is the frozen
-record of what was printed, saved to history, or later reprinted. This is the
-layer that makes a document's previous state recoverable without turning the
-working record into a version-control system.
+The Document History module owns Grandway's immutable document snapshots.
 
-The module exists because document work in Grandway is not just "edit and save."
+It records what a document looked like at a specific moment in time, who
+captured that state, and why. The `documents` app is the editable working
+record; `document_history` is the frozen record of what was printed, saved to
+history, or later reprinted. This is the layer that makes a document's previous
+state recoverable without turning the working record into a version-control
+system.
+
+The module exists because document work in Grandway is not just "edit and save".
 Staff need to know what was shown at print time, what was issued, and which
 version of a document a client or institution actually received.
 
 ## Relationship to other records
 
-A print snapshot is not the same thing as a document. The `documents` app owns
-the current editable body: identity, ownership, template association, status,
-and source data. `document_history` owns the immutable copies of that body plus
-the render-time context needed to reproduce what the frontend showed. It must
-never rewrite the working document, and the working document must never silently
-rewrite history.
+A print snapshot is not the same thing as a document.
 
-`document_templates` supplies the template family, version, and signatory
-metadata used when a snapshot was produced — the ids frozen into a snapshot's
-render context now resolve against it, though this module depends on it in
-neither direction. `uploaded_files` may hold generated PDFs and can be referenced
-from the file's side once a client stores one; the snapshot itself remains the
-authoritative historical record even if no file is retained.
+The `documents` app owns the current editable body: identity, ownership,
+template association, status, and source data. `document_history` owns the
+immutable copies of that body plus the render-time context needed to reproduce
+what the frontend showed at that moment. It must never rewrite the working
+document, and the working document must never silently rewrite history.
+
+`document_templates` supplies the template family, template version, and any
+signatory metadata used by the frontend when the snapshot was produced.
+`uploaded_files` may eventually hold generated PDFs or exported files and can be
+referenced from history when that is implemented. The snapshot itself remains
+the authoritative historical record even if no file is retained.
 
 ## Core entities
 
-**Print snapshot** — the immutable copy of a document at print or
-save-to-history time: document id, family, template key, label, source data
-(`content`), frontend render context, and the metadata needed to understand
-exactly what was issued. Snapshots are append-only and never edited in place.
+Print snapshot
 
-**Print event** — the action that produced or reused a snapshot: who triggered
-the print, save, reprint, or recovery, when, and what kind of capture it was. A
-document may have many print events over time.
+The immutable copy of a document at print or save-to-history time. It should
+capture the document id, family, template key, label, source data, frontend
+render context, and any metadata needed to understand exactly what was issued.
+Snapshots are append-only and never edited in place.
 
-**Version chain** — the ordered series of snapshots for one document. Each new
-print or saved history entry creates a new point in the chain; older entries
-remain visible and unchanged. A reprint or recovery does **not** grow the chain.
+Print event
 
-**Recovery payload** — the data returned when staff recover a previous snapshot
-into the working document. This is not a rewrite of the historical record; it is
-a source of truth the `documents` app uses to write a new working state. In this
-module the recovery is a direct endpoint, not a payload the client re-applies —
-it writes the frozen `label` and `content` forward through the documents app's
-own update service and returns the updated `Document`.
+The action that produced a snapshot. This records who triggered the print or
+history save, when it happened, and what kind of capture it was. A document may
+have many print events over time.
 
-**Generated file reference** — an optional pointer to a generated PDF, named as a
-core entity in the source concept but **deliberately not built here**. A snapshot
-has no file field; if a PDF is retained it lives in `uploaded_files`, and only
-that module knows it exists.
+Version chain
 
-## The content / render-context split
+The ordered series of snapshots for one document. Each new print or saved
+history entry creates a new point in the chain; older entries remain visible and
+unchanged.
 
-A snapshot freezes two things. `content` is the input fields — exactly what
-`documents` stores, copied byte-for-byte from the committed row. `render_context`
-is everything the frontend calculated or resolved at render time: the running
-balances, totals, closing balance, and amount-in-words under
-`render_context.computed`, plus the template version and the resolved
-signatories. This is the one place in Grandway where a derived value is stored on
-purpose — the values `documents` forbids you from persisting are exactly what you
-must freeze here.
+Generated file reference
 
-The split is load-bearing for reliable recovery and is a **convention the backend
-does not enforce**: a client that puts a computed closing balance in `content`
-will have it frozen there silently. No markup or rendered HTML is stored — it is
-unbounded, duplicates data already held, and would be an injection liability if
-anything served it back.
+An optional pointer to a generated PDF or other exported artifact if the system
+decides to retain one. The file itself, if stored, lives elsewhere; history only
+keeps the reference and the fact that it existed.
 
-## Key user flows (product intent)
+Recovery payload
 
-1. **Capture a snapshot** — an Admin reviews the rendered document, prints or
-   saves it to history, and the module stores an immutable snapshot of the
-   current committed state including render context. Frontend-computed values are
-   frozen, not recomputed later.
-2. **Review history** — an Admin opens a document's timeline, sees every snapshot
-   and print event in order, and opens one snapshot to inspect what was issued.
-   The timeline distinguishes reprints and recoveries from original captures.
-3. **Recover a prior version** — an Admin selects an older snapshot and recovers
-   it; the module writes the frozen body forward into `documents`, creating a new
-   working state without altering the snapshot.
-4. **Reprint the same issue** — an Admin reuses a past snapshot; the module
-   records a new print event linked to the same lineage and the frontend
-   regenerates output from the saved snapshot context. A reprint is new activity,
-   not a body rewrite.
+The data returned when staff choose to recover a previous snapshot into the
+working document. This is not a rewrite of the historical record. It is a
+source of truth for the documents app to create a new working state from.
+
+## Key user flows
+
+1. Capture a snapshot: An Admin opens a document in the frontend -> reviews the
+   rendered document -> prints or saves it to history -> `document_history`
+   stores an immutable snapshot of the current state, including the render-time
+   context.
+   - If the document contains frontend-computed values, those values are frozen
+     as part of the snapshot rather than recomputed later.
+   - If a generated file is produced, the snapshot may keep a reference to it.
+
+2. Review history: An Admin opens a document's history timeline -> sees every
+   snapshot and print event in order -> opens one snapshot to inspect what was
+   issued at that time.
+   - The timeline should make reprints and recoveries easy to distinguish from
+     original first captures.
+
+3. Recover a prior version: An Admin selects an older snapshot -> asks the
+   system to recover it -> `document_history` returns the frozen payload needed
+   to restore the document workspace in `documents`.
+   - The historical snapshot is not altered by recovery.
+   - The recovery should create a new working state in `documents`, not mutate
+     the old snapshot.
+
+4. Reprint the same issue: An Admin reuses a past snapshot -> the system records
+   a new print event linked to the same historical document lineage -> the
+   frontend can regenerate the output from the saved snapshot context.
+   - A reprint is new activity, not a new body rewrite.
 
 ## UI screens & wireframe notes
 
-**Document History Timeline** — the main history view, opened from the documents
-workspace. A chronological list of snapshots and print events for one document.
-Each row shows time, actor, `event_type`, and a short label or version marker.
-Distinguishing an original capture from a reprint or recovery is the screen's
-stated purpose.
+Document History Timeline
 
-**Snapshot Detail** — one frozen snapshot in full: document identity, template
-context, rendered metadata, source data, and any generated-file reference. This
-is **read-only, permanently** — there is no edit endpoint to hide behind a
-permission. Render the snapshot's own `label` and `render_context.computed`,
-never the document's current values.
+The main history view, usually opened from the documents workspace. Shows the
+chronological list of snapshots and print events for one document, newest or
+oldest first depending on the review mode. Each row should show time, actor,
+event type, and a short label or version marker.
 
-**Compare Snapshots** — a side-by-side view of two historical versions of the
-same document, backed by two snapshot fetches and a client-side diff. There is no
-compare endpoint.
+Snapshot Detail
 
-**Recover Snapshot Dialog** — a focused confirmation step that returns a prior
-snapshot to the documents workspace as the starting point for a new working
-version.
+Shows one frozen snapshot in full: document identity, template context, rendered
+metadata, source data, and any generated-file reference. This is read-only.
 
-## Permissions
+Compare Snapshots
 
-**Admin only — reads included.** A Lead Manager and a superadmin receive 403 on
-every route here, including `GET`. The panel must be **hidden** for a Lead
-Manager, not rendered read-only or shown empty — a snapshot holds the same bank
-statement the working document does. This matches the `documents` module, which
-this one inherits its access rule from; it publishes no security decision of its
-own.
+A side-by-side view of two historical versions of the same document. Useful for
+understanding what changed between prints or revisions.
+
+Recover Snapshot Dialog
+
+A focused confirmation step that returns a prior snapshot to the documents
+workspace as the starting point for a new working version.
 
 ## Constraints / Out of scope
 
-No editing of existing snapshots, no deletion of historical snapshots, no
-replacement of the live document workspace, no template authoring or rendering
-engine, no recomputation of display-only values once a snapshot is stored, and no
-assumption that a generated PDF must exist (the snapshot is the record, the file
-is optional). The history timeline is per-document only — there is no
-document-family or cross-document view.
+- No editing of existing snapshots.
+- No deletion of historical snapshots.
+- No replacement of the live document workspace.
+- No template authoring or rendering engine.
+- No recomputation of display-only values from current data once the snapshot is
+  stored.
+- No Lead Manager access if the project keeps document data restricted to Admins
+  only, which is the current direction of the documents app.
+- No assumption that a generated PDF must exist; the snapshot is the record,
+  the file is optional.
 
 ## Open questions
 
-- Should the timeline gain a document-family or date-range view for Admin review?
-  Deferred; both list endpoints are per-document today. `audit`'s event list
-  (`?app=document_history`) is the nearest substitute and returns audit events,
-  not snapshots.
-- Should generated PDFs be retained? Now answerable and still unanswered:
-  `uploaded_files` exists, carries a `generated_document` category, and accepts a
-  snapshot as an owner — retention is a product decision, not a missing
-  capability. What is still absent is any _automatic_ retention and any reverse
-  pointer from a snapshot to an uploaded file.
-- What exact fields must be frozen per document family for reliable recovery
-  stays open by design — the backend freezes the whole body verbatim rather than
-  a per-family list. The unresolved half is that nothing enforces the
-  `content` / `render_context` split.
-- `render_context` has no schema and no version gate — if the client's shape
-  changes, older snapshots keep the old one and nothing migrates or warns.
+Four of the five below were settled with the project owner before the module was
+built on 2026-07-24. The resolutions are recorded inline; the reasoning for each
+is in backend/document_history/docs/DATA_CONTRACT.md under "Deliberate
+Deviations". The concept text above is left as originally written.
+
+- Should the stored snapshot include the full rendered HTML/markup, or only the
+  source data plus enough render metadata to reproduce it?
+  -> RESOLVED: source data plus render context. The backend copies the document
+  body verbatim; the frontend supplies a render_context holding the values it
+  computed, the template version, and the signatory metadata. No markup is
+  stored: it is unbounded, duplicates data held twice already, and would be
+  an injection liability if anything ever served it back.
+
+- Should generated PDFs be retained by default, or only when a user explicitly
+  chooses to keep one?
+  -> RESOLVED (deferred): neither, for now. There is no file field at all,
+  because uploaded_files does not exist and any reference stored today would
+  be an opaque string nothing can resolve. Adding it later is additive. The
+  "Generated file reference" entity above is therefore not built.
+
+- Should the history timeline be per-document only, or also support a wider
+  document-family view for Admin review?
+  -> RESOLVED: per-document only. Both list endpoints require a document id.
+  A wider view is additive and was not built (CLAUDE.md §32).
+
+- What exact fields must be frozen in the snapshot for each document family so
+  recovery is reliable?
+  -> STILL OPEN, and deliberately so. The backend freezes the whole body
+  verbatim rather than a per-family field list, for the same reason the
+  documents app does not validate content: 42 template shapes, all open. The
+  unresolved half is that **nothing enforces the split** between input fields
+  (content) and computed values (render_context) — a client that puts a
+  closing balance in the body will have it frozen there silently. That
+  convention is load-bearing for recovery and invisible to the backend.
+
+- Should the history app expose a direct restore endpoint, or only a recovery
+  payload for the documents app to consume?
+  -> RESOLVED: a direct recover endpoint. A payload-only design makes recovery
+  two client calls that can fail between, and the resulting write would not
+  be attributable to a recovery at all. The endpoint writes through the
+  documents app's own update service, so that app's archive lock, size cap,
+  and redacted audit event still apply.
+
+## Correction notes
+
+- **Access is Admin only, reads included.** The Constraints section above says
+  "No Lead Manager access if the project keeps document data restricted to
+  Admins only, which is the current direction of the documents app." It does,
+  so that is what was built. A Lead Manager receives 403 on every route here.

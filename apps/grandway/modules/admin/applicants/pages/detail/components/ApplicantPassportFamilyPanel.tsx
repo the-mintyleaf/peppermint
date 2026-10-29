@@ -8,6 +8,7 @@ import {
   ProfilePanelHeader,
   ProfileSection,
 } from "@/components/profile";
+import { familyRelationshipLabel } from "../../../applicants.labels";
 import type { ApplicantDetail } from "../../../applicants.types";
 
 /**
@@ -145,10 +146,14 @@ export function ApplicantPassportFamilyPanel({
               <PersonRow
                 key={member.id ?? `${member.relationship}:${member.full_name}`}
                 name={member.full_name || "Unnamed"}
-                relationship={member.relationship}
-                facts={[member.occupation, member.contact_number].filter(
-                  (f): f is string => Boolean(f),
-                )}
+                relationship={familyRelationshipLabel(member.relationship)}
+                facts={[
+                  member.occupation,
+                  member.contact_number,
+                  member.citizenship_no
+                    ? `Citizenship ${member.citizenship_no}`
+                    : null,
+                ].filter((f): f is string => Boolean(f))}
               />
             ))}
           </ProfileList>

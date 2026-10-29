@@ -1,139 +1,361 @@
 # FLOWS — Documents
 
 **Owner app:** `documents`
-**Synced:** 2026-07-25, adapted from `.backend/concepts/documents_flows.md`
-**Purpose:** Connects `CONCEPT.md`'s product intent to the callable endpoints in `INTEGRATION.md`.
+**Updated:** 2026-10-29
+**Purpose:** The user-flow binding layer for this app — connects the product intent in
+`concepts/documents.txt` to the callable endpoints in `backend/documents/docs/INTEGRATION.md`.
+Authored and updated by the backend author in the same commit as any endpoint change (CLAUDE.md §36).
 
-> **Five rules govern every flow below.**
+> **Five things govern every flow below.**
 >
-> 1. **Admin only — a Lead Manager cannot open any of these screens.** Not
->    read-only, not empty: **hidden**. This is the only module in Grandway a Lead
->    Manager cannot see at all. An empty documents panel would assert "this
->    applicant has no documents", which is false. Any non-Admin receives 403
->    `DOCUMENTS_ACTOR_FORBIDDEN` on every route, reads included.
-> 2. **The frontend computes; the backend stores.** Send input fields only. Never
->    send a running balance, debit/credit total, closing balance, interest/tax
->    row, or amount-in-words — the backend stores it and hands the stale value
->    back forever.
-> 3. **`content` replaces, it does not merge.** Every save sends the complete
->    body; a partial `content` silently discards every key it omits. The single
->    most likely integration mistake in this module.
-> 4. **There is no delete.** The delete button becomes "Archive" (mandatory
->    reason). Printing lives in a different module (`document_history`, a
->    different base path) — there is no print endpoint here.
-> 5. **An archived document is frozen.** The workspace must go read-only; any save
->    returns 409.
+> 1. **Admin only — a Lead Manager cannot open any of these screens.** Not read-only, not empty:
+>    **hidden**. This is the only module in Grandway a Lead Manager cannot see at all, and it
+>    overrides the "Admin or Lead Manager" phrasing in `concepts/documents.txt` flow 1. An empty
+>    documents panel would assert "this applicant has no documents", which is false and worse than
+>    no panel.
+> 2. **The frontend computes; the backend stores.** Send input fields only. Never send a running
+>    balance, a debit/credit total, a closing balance, an interest or tax row, or an
+>    amount-in-words — the backend stores whatever it is given and will hand a stale value back
+>    forever.
+> 3. **`content` replaces, it does not merge.** Every save sends the complete body. A partial
+>    `content` payload silently discards every key it omits. This is the single most likely
+>    integration mistake in this module.
+> 4. **There is no delete.** The delete button becomes "Archive" (with a mandatory reason).
+>    **Printing lives in a different module** — `document_history`, at a different base path. There is
+>    no print endpoint under `/api/v1/documents/` and there will not be one.
+> 5. **An archived document is frozen.** The workspace must go read-only; any save returns 409.
 
 ---
 
 ## Flow: Create and work on an applicant's document
 
-**Actor:** Admin · **Entry point:** Applicant Detail → Documents panel
+- **Actor:** Admin
+- **Goal:** Get from an applicant's file to a completed, ready document.
+- **Entry point:** Applicant Detail → Documents panel
 
-1. **Documents panel** loads what exists → `GET /api/v1/documents/?applicant=<applicant_id>` (`documents.document.list`, **cross-app: `applicants`**).
-   - **Hide this entire panel for a Lead Manager** — they receive 403 `DOCUMENTS_ACTOR_FORBIDDEN`.
-   - Rows carry `label`, `family`, `template_key`, `status`, `updated_at` — but **not `content`**.
-   - **Pass `status=draft` or `status=ready` for a live panel** — omitting `status` includes archived documents by design.
-2. **New Document Form** — choose a template and open the record → `POST /api/v1/documents/` (`documents.document.create`). Only `applicant` and `family`/`template_key`/`label` are required; created at `status: draft`, `content: {}`.
-   - **Send `family` and `template_key` together from one picker** — they are cross-validated. Populate that picker from `GET /api/v1/document-templates/templates/?status=active` (**cross-app: `document_templates`**); deriving the family from the slug client-side keeps them in step.
-   - **This app does not check the catalogue** — a slug absent or retired is still accepted. The picker is the only guard.
-   - `DOCUMENTS_TEMPLATE_KEY_INVALID` → the two came from different pickers (a UI bug, not user error).
-   - `VALIDATION_ERROR` on `template_key` → the slug is malformed (uppercase, spaces, underscores). Slugs are lowercase ASCII with single hyphens.
-   - `DOCUMENTS_APPLICANT_NOT_FOUND` → the applicant id is wrong; re-select the person.
-3. **Document Workspace** loads the body → `GET /api/v1/documents/<document_id>/` (`documents.document.read`).
+**Steps:**
+
+1. **Applicant Detail → Documents panel** — load what exists →
+   `GET /api/v1/documents/?applicant=<applicant_id>` (`documents.document.list`)
+   - **Requires state:** the applicant being viewed.
+   - **Side effects:** none.
+   - **Hide this entire panel for a Lead Manager.** They receive 403 `DOCUMENTS_ACTOR_FORBIDDEN`.
+   - Rows carry `label`, `family`, `template_key`, `status`, and `updated_at` — but **not `content`**.
+     A worklist of twenty bank statements would otherwise carry a megabyte of transaction rows.
+   - **The default list is the live panel** — archived (removed) documents are hidden. Offer a
+     "Show removed" toggle that adds `include_archived=true`, or a "Removed" tab with
+     `status=archived`, so they can be restored.
+
+2. **New Document Form** — choose a template, fill it from the applicant's file, and open the record →
+   first `GET /api/v1/documents/prefill/<applicant_id>/` (`documents.prefill.read`) — names (split
+   from the full name), citizenship and national ID, addresses, parents and grandparents, education,
+   language tests, and the current photo id. Map those onto the template's content keys and let the
+   user correct them (a `null` parent or address means the applicant file lacks it — prompt to type
+   it). Then →
+   `POST /api/v1/documents/` (`documents.document.create`)
+   - **Requires state:** an existing applicant. **Nothing about their status is checked** — a
+     document may be created against a dormant or archived applicant.
+   - **Side effects:** appends `document_created` to the audit log. Nothing outside this module
+     changes.
+   - **Send `family` and `template_key` together, from one picker.** They are cross-validated: a
+     `bank-vyas-statement` slug under family `lor` is refused. Deriving the family from the slug
+     client-side is the reliable way to keep them in step.
+   - **Populate that picker from
+     `GET /api/v1/document-templates/templates/?status=active`**
+     (`document_templates.template.list`) **(cross-app: `document_templates`)** — each row carries
+     both `key` and `family`, already grouped and ordered, so sending them from one row keeps them in
+     step by construction.
+   - **This app does not check the catalogue.** A slug absent from it, or present but retired, is
+     still accepted here. **The picker is the only guard** — there is no server-side one.
+   - _Failure — `DOCUMENTS_TEMPLATE_KEY_INVALID`:_ the two came from different pickers. A UI bug,
+     not user error.
+   - _Failure — `VALIDATION_ERROR` on `template_key`:_ the slug is malformed — uppercase, spaces, or
+     underscores. Slugs are lowercase ASCII with single hyphens.
+   - **`content` is optional here** and defaults to `{}`. The workspace opens before anything is
+     typed into it.
+   - **Send `template_version`** — the layout the form renders (`"2"` for a new Woda letter). It
+     defaults to `"1"`, the layout every older document was authored for.
+
+3. **Document Workspace** — load the body →
+   `GET /api/v1/documents/<document_id>/` (`documents.document.read`)
+   - **Requires state:** the document.
+   - **Side effects:** none.
    - This is the **only** endpoint that returns `content`. Render the live preview from it.
    - **Render `label`, never `template_key`,** to the user — the slug is a machine key.
-4. **Document Workspace** save → `PATCH /api/v1/documents/<document_id>/` (`documents.document.update`).
-   - **Send the complete `content`** — it is replaced wholesale. Send only the top-level fields the user changed (`label`, `content`, `standalone_purpose`, `notes`).
-   - Do **not** send `status`, `applicant`, `family`, or `template_key` — this module **rejects** immutable fields rather than dropping them. Do not reuse a read-modify-write-the-whole-object form from the catalogue screens.
-   - `DOCUMENTS_OWNERSHIP_IMMUTABLE` / `DOCUMENTS_STATUS_IMMUTABLE` → strip those keys before submitting; `details` names each offending field.
-   - `DOCUMENTS_CONTENT_TOO_LARGE` → body exceeds 256 KiB; show it against the transactions table, not as a form-level error.
-   - `DOCUMENTS_DOCUMENT_NOT_EDITABLE` (409) → the document was archived, probably by someone else. Refetch and switch to read-only.
-   - **A no-op save writes no history event** — a UI showing "saved, history updated" after an unchanged submit is lying.
-5. **Document Workspace** mark it finished → `POST /api/v1/documents/<document_id>/status/` (`documents.document.change_status`) with `ready`. Accepts `draft`/`ready` only; sending `archived` fails serializer validation.
-6. **Print** — save first, then `POST /api/v1/document-history/documents/<document_id>/snapshots/` (**cross-app: `document_history`**). Capture reads the _committed_ row, so step 4 must have completed. Full sequence in that app's flows.
+
+3a. **Document Workspace → any form field (optional)** — suggest a clipboard snippet for the field →
+`GET /api/v1/auth/me/clipboard/?field_key=<key>` (`authenticate.clipboard_entry.list`)
+**(cross-app: `authenticate`)**, where `<key>` is the frontend's own name for the field
+(`father.name`, `ward.spokesperson.name`); comma-separate several keys. After the user copies a
+suggestion into the field →
+`POST /api/v1/auth/me/clipboard/<entry_id>/use/` (`authenticate.clipboard_entry.use`)
+**(cross-app: `authenticate`)** so it ranks first next time.
+
+- **Requires state:** a valid access token. The clipboard is the **caller's own** — every
+  authority has one; there is no shared or applicant-scoped clipboard, so nothing about the
+  applicant is looked up here.
+- **Side effects:** `use` bumps the snippet's `usage_count`; nothing in this module changes. The
+  value only reaches the document when step 4 saves it.
+- An empty result means nothing is saved for that key — offer "save to my clipboard"
+  (`authenticate.clipboard_entry.create`, same `field_key`). Full flow in
+  `concepts/authenticate_flows.md` → "Fill a document form field from the clipboard".
+
+4. **Document Workspace** — save →
+   `PATCH /api/v1/documents/<document_id>/` (`documents.document.update`)
+   - **Requires state:** the document must not be archived.
+   - **Side effects:** appends `document_updated`. **The body is redacted from the event** — the
+     history records that `content` changed, never what it said.
+   - **Send the complete `content`.** It is replaced wholesale.
+   - **Send only the fields the user changed at the top level.** Including `status`, `applicant`,
+     `family`, or `template_key` fails the whole request — this module rejects immutable fields
+     rather than dropping them, unlike `institutions`. Do not reuse a read-modify-write-the-whole-object
+     form component from the catalogue screens.
+   - _Failure — `DOCUMENTS_OWNERSHIP_IMMUTABLE` / `DOCUMENTS_STATUS_IMMUTABLE`:_ strip those keys
+     before submitting; `details` names each offending field.
+   - _Failure — `DOCUMENTS_CONTENT_INVALID` (student certificate only):_ a field breaks the
+     certificate rules (a date order, attendance hours over class hours, a grade outside A–D, a photo
+     that is not this applicant's photograph). `error.details.fields` maps each content path — e.g.
+     `marking[2].present` — to a message; mark those inputs. Other templates never return this for
+     their keys.
+   - _Failure — `DOCUMENTS_CONTENT_TOO_LARGE`:_ the body exceeds 256 KiB. Realistically only a very
+     long bank statement. Show it against the transactions table, not as a form-level error.
+   - _Failure — `DOCUMENTS_DOCUMENT_NOT_EDITABLE` (409):_ the document was archived, probably by
+     someone else. Refetch and switch the workspace to read-only.
+   - **A no-op save writes no history event.** A UI showing "saved, history updated" after an
+     unchanged submit will be lying.
+
+5. **Document Workspace** — mark it finished →
+   `POST /api/v1/documents/<document_id>/status/` (`documents.document.change_status`)
+   - **Requires state:** the document must not be archived.
+   - **Side effects:** appends `document_status_changed`. Moving to `ready` also sends the other Admins a `document_ready` notification — never a Lead Manager, never the caller **(cross-app: `notifications`)**.
+   - Accepts `draft` and `ready` **only**. Sending `archived` fails serializer validation — archiving
+     is its own action because it demands a reason.
+
+6. **Print** — save first, then
+   `POST /api/v1/document-history/documents/<document_id>/snapshots/`
+   (`document_history.snapshot.capture`) **(cross-app: `document_history`)**. Capture reads the
+   _committed_ row, so step 4 must have completed. Full sequence in
+   `concepts/document_history_flows.md` → "Capture a print snapshot".
+
+---
 
 ## Flow: Create a standalone document
 
-**Actor:** Admin · **Entry point:** Standalone Documents list
+- **Actor:** Admin
+- **Goal:** Prepare an internal letter or form that belongs to no applicant.
+- **Entry point:** Standalone Documents list
 
-1. **Standalone Documents list** → `GET /api/v1/documents/?standalone=true` (`documents.document.list`). The only way to reach standalone documents as a set — they are **absent from the workspaces landing table**, which groups by applicant.
-2. **New Document Form** — create with a purpose instead of an owner → `POST /api/v1/documents/` (`documents.document.create`). **Send `standalone_purpose` and omit `applicant`** — the API enforces exactly one of the two. No prerequisite record at all.
-   - `DOCUMENTS_OWNER_REQUIRED` → neither was given. Make the purpose field mandatory on the standalone branch of the form.
-3. **Work it forward** — identical to steps 3–5 above.
-   - **One extra rule:** `standalone_purpose` cannot be cleared later — the ownership check re-runs on every save, so blanking it returns `DOCUMENTS_OWNER_REQUIRED`.
+**Steps:**
 
-## Flow: Retire a document and bring it back
+1. **Standalone Documents list** →
+   `GET /api/v1/documents/?standalone=true` (`documents.document.list`)
+   - **Requires state:** nothing.
+   - **Side effects:** none.
+   - This is the only way to reach standalone documents as a set. **They are absent from
+     `documents.document.list_workspaces`**, which groups by applicant.
 
-**Actor:** Admin · **Entry point:** Document Workspace → Archive
+2. **New Document Form** — create with a purpose instead of an owner →
+   `POST /api/v1/documents/` (`documents.document.create`)
+   - **Requires state:** nothing at all. This is the only creation path in the module with no
+     prerequisite record.
+   - **Side effects:** appends `document_created`.
+   - **Send `standalone_purpose` and omit `applicant`.** The concept requires that a standalone
+     document "must still say who owns or commissioned it", and the API enforces it: exactly one of
+     the two must be present.
+   - _Failure — `DOCUMENTS_OWNER_REQUIRED`:_ neither was given. Make the purpose field mandatory on
+     the standalone branch of the form.
 
-1. **Archive dialog** → `POST /api/v1/documents/<document_id>/archive/` (`documents.document.archive`) with a reason. Sets `status: archived`, `archive_reason`, `archived_at`, `archived_by`; appends `document_archived`. **The document stays in the list.**
-   - **The reason input is mandatory** — enforce it before submit. **Label the button "Archive", not "Delete"**, and say the record is kept.
-   - `DOCUMENTS_ARCHIVE_REASON_REQUIRED` → a whitespace-only reason reached the server.
-   - `DOCUMENTS_DOCUMENT_ALREADY_ARCHIVED` (409) → refetch; someone else archived it.
-2. **Workspace goes read-only.** `is_editable` is now `false`; every `PATCH` and status change returns 409 until step 3. A UI that leaves the form live will produce nothing but failed saves.
-3. **Restore** → `POST /api/v1/documents/<document_id>/restore/` (`documents.document.restore`). Appends `document_restored`; clears the three archive fields. **It returns to `draft`, never to `ready`** — even if it was `ready` when archived.
-   - `DOCUMENTS_DOCUMENT_NOT_ARCHIVED` (409) → it was already active; refresh and hide the button.
-4. **History panel** → `GET /api/v1/documents/<document_id>/history/` (`documents.document.list_history`, **cross-app: `audit`**). `document_archived` and its reason survive the restore — but a **body change shows only a `<changed>` marker**; you cannot show a diff or offer "revert to previous version".
+3. **Work it forward** — identical to steps 3–5 of the applicant flow.
+   - **One extra rule:** `standalone_purpose` cannot be cleared later. The ownership check re-runs on
+     every save against the resulting record, so blanking it returns `DOCUMENTS_OWNER_REQUIRED`.
+
+---
+
+## Flow: Remove a document and bring it back
+
+- **Actor:** Admin
+- **Goal:** Remove a document from the applicant's list without losing it, and undo that.
+- **Entry point:** Document Workspace → Archive
+
+**Steps:**
+
+1. **Archive dialog** →
+   `POST /api/v1/documents/<document_id>/archive/` (`documents.document.archive`)
+   - **Requires state:** the document must not already be archived.
+   - **Side effects:** appends `document_archived` with the reason; sets `status`, `archive_reason`,
+     `archived_at`, `archived_by`, and remembers the current status for restore. **The document
+     leaves the default list** — it is listed by `status=archived` / `include_archived=true` and
+     counted in the landing table's `archived_count`. Allowed from `draft` and `ready` alike.
+   - **The reason input is mandatory** — enforce it before submit. Archived documents are kept
+     forever, so why one is archived must be answerable from the record.
+   - _Failure — `DOCUMENTS_ARCHIVE_REASON_REQUIRED`:_ a whitespace-only reason reached the server.
+   - _Failure — `DOCUMENTS_DOCUMENT_ALREADY_ARCHIVED` (409):_ refetch; someone else archived it.
+   - **"Delete" or "Remove" is fine as a label** — the UI may call it that, as long as the
+     confirmation says the record is kept and can be restored.
+
+2. **Workspace goes read-only.** `is_editable` is now `false`. Every `PATCH` and status change
+   returns 409 until step 3. A UI that leaves the form live will produce nothing but failed saves.
+
+3. **Removed list → Restore** — find it with `GET /api/v1/documents/?applicant=<id>&status=archived`
+   (`documents.document.list`), then →
+   `POST /api/v1/documents/<document_id>/restore/` (`documents.document.restore`), optionally with
+   `{ "reason": "..." }`
+   - **Requires state:** the document must be archived.
+   - **Side effects:** appends `document_restored` (with the reason, if given); clears the three
+     archive fields. The document reappears in the default list.
+   - **It returns to the status it had** — a `ready` document comes back `ready`. Documents removed
+     before 2026-10-29 come back `draft`.
+   - _Failure — `DOCUMENTS_DOCUMENT_NOT_ARCHIVED` (409):_ it was already active.
+
+4. **History panel** — the archiving is still there →
+   `GET /api/v1/documents/<document_id>/history/` (`documents.document.list_history`)
+   - **Requires state:** the document.
+   - **Side effects:** none.
+   - `document_archived` and its reason survive the restore. **But a body change shows only a
+     `<changed>` marker** — you cannot show a diff of what the document said, and you cannot offer
+     "revert to previous version". Nothing stores it.
+
+---
 
 ## Flow: The documents landing table
 
-**Actor:** Admin · **Entry point:** Documents (top-level nav)
+- **Actor:** Admin
+- **Goal:** See whose files have live document work, without opening each applicant.
+- **Entry point:** Documents (top-level nav)
 
-1. **Documents landing** → `GET /api/v1/documents/workspaces/` (`documents.document.list_workspaces`). One row per applicant with live documents: `applicant_id`, `applicant_name`, `document_count`, `last_updated`. Returns an empty array when nobody has live work.
-   - **Archived documents are excluded from the count**, and an applicant whose documents are _all_ archived does not appear — the table answers "who has live work".
-   - **Standalone documents are absent entirely** — they need their own tab, fed by `?standalone=true`.
-   - Note the **trailing slash** — `workspaces/` is a literal segment, not a document id.
-2. **Row click** → `GET /api/v1/documents/?applicant=<applicant_id>` — continues into the applicant flow above.
+**Steps:**
+
+1. **Documents landing** →
+   `GET /api/v1/documents/workspaces/` (`documents.document.list_workspaces`)
+   - **Requires state:** nothing. Returns an empty array when no applicant has any documents.
+   - **Side effects:** none.
+   - One row per applicant: `applicant_id`, `applicant_name`, `document_count`, `archived_count`,
+     `last_updated`.
+   - **`document_count` counts live documents; `archived_count` removed ones.** An applicant whose
+     documents are all removed still has a row with `document_count: 0` — show the removed count so
+     they can be found and restored.
+   - **Standalone documents are absent entirely** — they need their own tab, fed by
+     `?standalone=true`.
+   - Note the **trailing slash**: `workspaces/` is a literal segment, not a document id.
+
+2. **Row click** →
+   `GET /api/v1/documents/?applicant=<applicant_id>` (`documents.document.list`)
+   - Continues into the applicant flow above.
+
+---
 
 ## Flow: Review and print — delegated to `document_history`
 
-Not one step of this lives here. What a client of _this_ module needs to know:
+`concepts/documents.txt` flow 3 ends with "the system captures a print snapshot in the document
+history app". **That app now exists**, so the flow is deliverable — but not one step of it lives in
+this file. See **`concepts/document_history_flows.md` → "Capture a print snapshot"**, which begins
+where this app's workspace flow ends.
 
-- **The print button posts to a different base path** — `/api/v1/document-history/`, not `/api/v1/documents/`. There is no print endpoint here and there will not be one.
-- **Save before printing.** Capture reads the _committed_ row, so sequence step 4 of the applicant flow before the capture, always.
-- **Printing changes nothing here** — no status moves, `updated_at` does not shift, and no field reports that a snapshot exists. "Has this been printed?" is a question for `document_history.snapshot.list`.
-- **A recovery can rewrite a document behind your back.** `document_history.snapshot.recover` writes `label` and `content` into the working record and surfaces here as an ordinary `document_updated` event. Refetch the workspace after one.
-- **Signatory selection is backed** — `GET /api/v1/document-templates/signatories/?status=active` (**cross-app: `document_templates`**). Put the chosen record's `id` into `content.instructorId` / `content.directorId`. **The ids are still unvalidated on save — your dropdown is the only guard.**
-- **Supporting files are backed, but not from here** — `POST /api/v1/files/` with `document=<id>` and `GET /api/v1/files/?document=<id>&is_archived=false` (**cross-app: `uploaded_files`**). A document payload carries no file reference of any kind; the attachments panel is a second call the screen joins itself. A "download the saved PDF" link is not shippable — nothing generates or stores that PDF automatically.
+What a client of _this_ module needs to know about it:
+
+- **The print button posts to a different base path**, `/api/v1/document-history/`, not to
+  `/api/v1/documents/`. There is no print endpoint under this app and there will not be one.
+- **Save before printing.** Capture reads the _committed_ document row, so an unsaved workspace
+  freezes the old body and nobody is told. Sequence step 4 of the applicant flow above before the
+  capture, always.
+- **Printing changes nothing here.** No status moves, `updated_at` does not shift, and no field on
+  the `Document` resource reports that a snapshot exists. "Has this been printed?" is a question for
+  `document_history.snapshot.list`.
+- **A recovery can rewrite a document behind your back.** `document_history.snapshot.recover` writes
+  `label` and `content` into the working record and surfaces here as an ordinary `document_updated`
+  history event. Refetch the workspace after one rather than trusting a cached copy.
+
+One related gap is now backed, and one still is not:
+
+- **Signatory selection is backed** —
+  `GET /api/v1/document-templates/signatories/?status=active`
+  (`document_templates.signatory.list`) **(cross-app: `document_templates`)**. Each row now carries
+  `signature_source` and, when it is `"uploaded"`, a `signature_file` object — so the picker can show
+  a real signature preview rather than a name alone. Rendering it is an authenticated `fetch` of
+  `signature_file.download_path` (`uploaded_files.file.download`, **cross-app: `uploaded_files`**)
+  turned into a blob URL, **never an `<img src>`** against that path; see
+  `concepts/document_templates_flows.md` → "Render a signature into a certificate". Populate the
+  instructor and director dropdowns from it and put the chosen record's `id` into
+  `content.instructorId` / `content.directorId`. See
+  `concepts/document_templates_flows.md` → "Fill the instructor and director selects".
+  - **The ids are still unvalidated on save.** This app stores `content` as an opaque body and does
+    not look inside it, so a typo, a stale id, or the id of a `draft` signatory are all accepted
+    silently. **Your dropdown is the only guard.**
+- **Supporting files are backed now, but not from here.** Flow 2's "attaches supporting files when
+  needed" is buildable: `uploaded_files` shipped on 2026-07-24, and a document is one of its five
+  owner types. **The calls are that app's, not this one's** — `POST /api/v1/files/` with
+  `document=<document_id>` (`uploaded_files.file.upload`, cross-app: `uploaded_files`) and
+  `GET /api/v1/files/?document=<document_id>&is_archived=false` (`uploaded_files.file.list`,
+  cross-app: `uploaded_files`). See `concepts/uploaded_files_flows.md`.
+  - **A document payload carries no file reference of any kind** — no count, no ids. The attachments
+    panel is a second call the screen joins itself.
+  - A generated PDF may likewise be stored against a **snapshot**, not against the document — see
+    `concepts/document_history_flows.md`.
+
+**A file-attach control is now shippable; a "download the saved PDF" link on a history row is not**,
+because nothing generates or stores that PDF automatically — a client that produces one must upload
+it itself. The signatory dropdown must be backed by the real endpoint rather than hardcoded data.
 
 ---
 
 ## Endpoint coverage
 
-| Policy key                           | Method / path                          | Used by flow(s)                                     | Notes                                                                                                                 |
-| ------------------------------------ | -------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `documents.document.list`            | `GET /api/v1/documents/`               | Applicant panel; Standalone list; Landing row click | Omits `content`. `?applicant=`, `?standalone=`, `?status=`, `?family=`, `?template_key=`, `?search=`, `?fiscal_year=` |
-| `documents.document.create`          | `POST /api/v1/documents/`              | Create applicant document; Create standalone        | `family` + `template_key` cross-validated                                                                             |
-| `documents.document.list_workspaces` | `GET /api/v1/documents/workspaces/`    | Documents landing table                             | Excludes standalone and archived                                                                                      |
-| `documents.document.read`            | `GET /api/v1/documents/<id>/`          | Document Workspace                                  | **The only endpoint returning `content`**                                                                             |
-| `documents.document.update`          | `PATCH /api/v1/documents/<id>/`        | Document Workspace save                             | `content` replaces wholesale; immutable fields rejected                                                               |
-| `documents.document.change_status`   | `POST /api/v1/documents/<id>/status/`  | Mark ready                                          | `draft` / `ready` only                                                                                                |
-| `documents.document.archive`         | `POST /api/v1/documents/<id>/archive/` | Retire                                              | Reason mandatory. **This is the delete button**                                                                       |
-| `documents.document.restore`         | `POST /api/v1/documents/<id>/restore/` | Retire → restore                                    | Always returns to `draft`                                                                                             |
-| `documents.document.list_history`    | `GET /api/v1/documents/<id>/history/`  | Retire (step 4); Workspace history panel            | Body changes shown as a marker only                                                                                   |
+| `permission_key`                     | `METHOD /path`                                  | Used by flow(s)                                                                         | Notes                                                                                                                                                   |
+| ------------------------------------ | ----------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `documents.document.list`            | `GET /api/v1/documents/`                        | Applicant document panel; Standalone list; Landing row click; Remove → restore (step 3) | Omits `content`. Hides archived unless `?status=archived` / `?include_archived=true`. `?applicant=`, `?standalone=`, `?status=`, `?family=`, `?search=` |
+| `documents.document.create`          | `POST /api/v1/documents/`                       | Create applicant document; Create standalone                                            | `family` + `template_key` cross-validated; `template_version`; `student-certificate` content validated                                                  |
+| `documents.document.list_workspaces` | `GET /api/v1/documents/workspaces/`             | Documents landing table                                                                 | Excludes standalone; archived counted in `archived_count`                                                                                               |
+| `documents.document.read`            | `GET /api/v1/documents/<document_id>/`          | Document Workspace                                                                      | **The only endpoint returning `content`**                                                                                                               |
+| `documents.document.update`          | `PATCH /api/v1/documents/<document_id>/`        | Document Workspace save                                                                 | `content` replaces wholesale; immutable fields rejected; `student-certificate` content validated                                                        |
+| `documents.document.change_status`   | `POST /api/v1/documents/<document_id>/status/`  | Mark ready                                                                              | `draft` / `ready` only; `ready` notifies the other Admins                                                                                               |
+| `documents.document.archive`         | `POST /api/v1/documents/<document_id>/archive/` | Remove                                                                                  | Reason mandatory. **This is the delete button**                                                                                                         |
+| `documents.document.restore`         | `POST /api/v1/documents/<document_id>/restore/` | Remove → restore                                                                        | Returns to the pre-archive status; optional `reason`                                                                                                    |
+| `documents.document.list_history`    | `GET /api/v1/documents/<document_id>/history/`  | Remove (step 4); Workspace history panel                                                | Body changes shown as a marker only                                                                                                                     |
+| `documents.prefill.read`             | `GET /api/v1/documents/prefill/<applicant_id>/` | Create and work on an applicant's document (step 2)                                     | Admin only; read-only; no `name_native`/`honorific`                                                                                                     |
 
 **Screens from `concepts/documents.txt`, and whether they are backed:**
 
-- **Documents landing table** — backed by `workspaces/`; excludes standalone and archived.
-- **Document List** — backed. Filters for owner, status, type, and template family all exist (`?family=` for family, `?template_key=` per-slug).
+- **Document List** — backed. Filters for owner, status, type, and template family all exist;
+  "template family" is `?family=`, and per-slug filtering is `?template_key=`.
 - **Applicant Detail → Documents panel** — backed via `?applicant=`. **Admin-only; hide for Lead Managers.**
 - **Standalone Documents list** — backed via `?standalone=true`.
-- **Document Workspace** — backed for header, source-data form, and save. **Its supporting-files section has no endpoint here** (use `uploaded_files`); its live preview is entirely client-side by design.
-- **Print Preview / History handoff** — **backed by `document_history`**, not by any endpoint in this app.
+- **Document Workspace** — backed for the header, source-data form, and save actions. **Its
+  supporting-files section has no endpoint**, and its live preview is entirely client-side by design.
+- **Print Preview / History handoff** — **backed, by `document_history`.** Not by any endpoint in
+  this app. See `concepts/document_history_flows.md`.
 
 ## Cross-app dependencies
 
-- **References (outbound):** `applicants.applicant.read` to resolve/label the person before creating a document; `document_templates.template.list` for the New Document type picker and `document_templates.signatory.list` for the instructor/director dropdowns (both **advisory** — this app validates neither the `template_key` nor the signatory ids); `uploaded_files.file.upload`/`.file.list` for the attachments panel (one-way — this app returns no file references). History reads from `audit`. All flows require an `authenticate` session.
-- **Referenced by other apps (inbound):** `document_history` — its capture flow calls `documents.document.read`/`.update`, and its recovery flow writes a frozen `label`/`content` into a document through this app's update service (surfacing here as `document_updated`).
+- **This app references (outbound):** `applicants.applicant.read` — a client resolves the applicant
+  whose file it is working in before creating a document. The backend also holds a nullable FK and
+  calls `applicants.selectors.get_applicant_by_id` on create; see
+  `backend/documents/docs/INTEGRATION.md` §2.
+- **Referenced by other apps (inbound):** `concepts/document_history_flows.md` — its capture flow
+  calls `documents.document.read` and `documents.document.update`, and its recovery flow calls
+  `documents.document.restore` on the 409 path. That app also **writes** to this one: its
+  `document_history.snapshot.recover` endpoint pushes a frozen `label` and `content` into a document
+  through this app's own update service.
+- **This app also references (outbound, new):** `document_templates.template.list` for the New
+  Document type picker and `document_templates.signatory.list` for the instructor and director
+  dropdowns. Both are **advisory** — this app validates neither the `template_key` nor the signatory
+  ids against them. See `concepts/document_templates_flows.md`.
+- **This app also references (outbound, new 2026-07-24):** `uploaded_files.file.upload`,
+  `uploaded_files.file.list`, and — since 2026-09-10, for rendering a signatory's signature into a
+  certificate — `uploaded_files.file.download` for the Document Workspace attachments panel — see
+  `concepts/uploaded_files_flows.md`. The coupling is one-way: this app returns no file references,
+  so the panel is always a separate call.
+- **This app also references (outbound, new 2026-10-29):** `authenticate.clipboard_entry.list` and
+  `authenticate.clipboard_entry.use` — the optional clipboard suggestions in the applicant-document
+  flow (step 3a). Client-side only; this module's backend never calls `authenticate` for it. See
+  `concepts/authenticate_flows.md`.
+- **Blocked on (not yet existing):** nothing. `document_history`, `document_templates`, and
+  `uploaded_files` have all shipped, and their flow files complete the frontend handoff for
+  printing, for the template and signatory pickers, and for attachments.
 
-**Note the access asymmetry with `applicants`.** An applicant is readable by any Admin or Lead Manager, but their documents are Admin-only. A Lead Manager's applicant file view is legitimately incomplete — that is the intent, not a bug to route around.
+**Note the access asymmetry with `applicants`.** An applicant is readable by any Admin or Lead
+Manager, but their documents are Admin-only. A Lead Manager's applicant file view is legitimately
+incomplete — that is the intent, not a bug to route around.
 
-## Open questions
-
-- Should standalone documents have their own lifecycle, or live in the workspace only? V1: a `?standalone=true` filter but no separate lifecycle; excluded from the landing table.
-- Should generated PDFs be retained alongside document data and snapshots? Unanswerable until `document_history`/`uploaded_files` mature.
-- Can one document reference multiple supporting files, or only a primary one? V1 references none directly.
-- Nothing validates a `template_key` against a real template — a typo matching the family prefix is accepted until `document_templates` provides an enforced registry.
-- A document's previous body is not recoverable unless a print snapshot captured it — no field history, no versioning, body redacted from the audit log.
-- Should `content` be searchable? V1 searches `label` only.
+When an endpoint here is added, changed, or deprecated, grep `concepts/*_flows.md` for its
+`permission_key` and update every referencing flow in the same commit (the CLAUDE.md §36 ripple rule) —
+not just this file.

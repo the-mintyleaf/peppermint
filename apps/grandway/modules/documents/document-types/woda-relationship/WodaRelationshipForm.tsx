@@ -1,7 +1,6 @@
 "use client";
 
-import { WodaForm } from "../../components/WodaForm";
-import type { DocumentFormProps } from "../../documents.types";
+import { createSchemaForm } from "../../components/WodaForm";
 import type { WodaFormSchema } from "../../utils/wodaFormSchema";
 import {
   applicantSection,
@@ -68,6 +67,6 @@ export function relationshipSchema(legalBasis: string): WodaFormSchema {
 
 const schema = relationshipSchema(WODA_LEGAL_BASIS.japanRelationship);
 
-export function WodaRelationshipForm(props: DocumentFormProps) {
-  return <WodaForm schema={schema} {...props} />;
-}
+export const WodaRelationshipForm = createSchemaForm(schema, {
+  displayName: "WodaRelationshipForm",
+});

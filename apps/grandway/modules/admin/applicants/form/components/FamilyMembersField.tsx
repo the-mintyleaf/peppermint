@@ -14,32 +14,28 @@ import {
 } from "@peppermint/ui";
 import { PlusIcon } from "@phosphor-icons/react/dist/csr/Plus";
 import { TrashIcon } from "@phosphor-icons/react/dist/csr/Trash";
+import { FAMILY_RELATIONSHIP_OPTIONS } from "../../applicants.labels";
 import type {
   ApplicantFormValues,
   FamilyMemberFormRow,
 } from "../ApplicantForm.types";
-
-const RELATIONSHIP_OPTIONS = [
-  { value: "father", label: "Father" },
-  { value: "mother", label: "Mother" },
-  { value: "spouse", label: "Spouse" },
-  { value: "sibling", label: "Sibling" },
-  { value: "child", label: "Child" },
-  { value: "guardian", label: "Guardian" },
-  { value: "other", label: "Other" },
-];
 
 const EMPTY_ROW: FamilyMemberFormRow = {
   relationship: "",
   full_name: "",
   occupation: "",
   contact_number: "",
+  citizenship_no: "",
 };
 
 /**
  * Whole-set-replace on submit, fully optional overall — a row, once added,
- * requires `relationship` + `full_name` (step-4 schema in `ApplicantForm.tsx`).
- * One name field: the backend went English-only in DATA_CONTRACT v1.3.0.
+ * requires `relationship` + `full_name` (`familyEmergencySchema`). One name
+ * field: the backend went English-only in DATA_CONTRACT v1.3.0.
+ *
+ * Grandparents and each member's citizenship number exist for the ward-office
+ * (WODA) letters, which name the family line — so the relationship list puts
+ * them straight after the parents.
  */
 export function FamilyMembersField() {
   const { form } = useFormInstance<ApplicantFormValues>();
@@ -70,33 +66,44 @@ export function FamilyMembersField() {
         ) : (
           rows.map((_, index) => (
             <Grid key={index} align="flex-end">
-              <Grid.Col span={{ base: 12, sm: 3 }}>
+              <Grid.Col span={{ base: 12, sm: 4, lg: 2 }}>
                 <Select
                   label="Relationship"
-                  data={RELATIONSHIP_OPTIONS}
+                  data={FAMILY_RELATIONSHIP_OPTIONS}
                   {...form.getInputProps(
                     `family_members.${index}.relationship`,
                   )}
                 />
               </Grid.Col>
-              <Grid.Col span={{ base: 12, sm: 3 }}>
+              <Grid.Col span={{ base: 12, sm: 8, lg: 3 }}>
                 <TextInput
                   label="Full name"
                   required
                   {...form.getInputProps(`family_members.${index}.full_name`)}
                 />
               </Grid.Col>
-              <Grid.Col span={{ base: 12, sm: 2 }}>
+              <Grid.Col span={{ base: 12, sm: 4, lg: 2 }}>
                 <TextInput
                   label="Occupation"
                   {...form.getInputProps(`family_members.${index}.occupation`)}
                 />
               </Grid.Col>
-              <Grid.Col span={{ base: 10, sm: 3 }}>
+              <Grid.Col span={{ base: 12, sm: 4, lg: 2 }}>
                 <TextInput
                   label="Contact number"
+                  type="tel"
                   {...form.getInputProps(
                     `family_members.${index}.contact_number`,
+                  )}
+                />
+              </Grid.Col>
+              <Grid.Col span={{ base: 10, sm: 3, lg: 2 }}>
+                <TextInput
+                  label="Citizenship no."
+                  placeholder="27-01-50-00001"
+                  maxLength={50}
+                  {...form.getInputProps(
+                    `family_members.${index}.citizenship_no`,
                   )}
                 />
               </Grid.Col>

@@ -97,6 +97,8 @@ export interface AccountCreateResult {
 
 export interface LoginTokens {
   access: string;
+  /** ISO 8601 UTC — when `access` expires; the api-client refreshes shortly before it. */
+  access_expires_at?: string;
   refresh?: string;
   must_change_password: boolean;
   mfa_enrollment_required: boolean;

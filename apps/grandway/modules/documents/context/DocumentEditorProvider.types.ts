@@ -91,6 +91,21 @@ export interface DocumentEditorContextValue {
    */
   updateDocumentContent: (documentId: string, content: DocumentContent) => void;
   /**
+   * The same save as `updateDocumentContent`, awaitable. Resolves once saved;
+   * **rejects with the API error** (after the usual toast) so the form that asked
+   * can stay open and mark refused fields — a `student-certificate` body is
+   * validated server-side (400 `DOCUMENTS_CONTENT_INVALID`, `details.fields`).
+   * It also rejects (with a toast) when nothing was sent — a reader, or a
+   * document no longer in the editor — so it never resolves without saving.
+   * Callers that ignore the result must still attach a rejection handler.
+   */
+  saveDocumentContent: (
+    documentId: string,
+    content: DocumentContent,
+  ) => Promise<void>;
+  /** A content save is in flight (from either channel). */
+  isSavingContent: boolean;
+  /**
    * Render-only content update: writes to the local query cache so the preview/print reflect
    * the change, but never persists. Used by the bank Customizations panel (print-layout tweaks).
    */
@@ -100,11 +115,17 @@ export interface DocumentEditorContextValue {
   ) => void;
   addDocumentToList: (doc: Document) => void;
   quickCreateDocument: (type: DocumentType) => void;
+  /**
+   * Creates a page from a form's content (with the type's `template_version`).
+   * Resolves once created; rejects with the API error after the toast, so the
+   * create form can stay open on a refused body. Also rejects (with a toast)
+   * for a reader or outside an applicant workspace — never resolves for a no-op.
+   */
   createDocumentWithContent: (
     type: DocumentType,
     content: DocumentContent,
     label?: string,
-  ) => void;
+  ) => Promise<void>;
   /** Creates a bank's certificate + statement together (they live as a pair). */
   createBankPair: (slugKey: string) => void;
   isCreatingDocument: boolean;
@@ -112,7 +133,12 @@ export interface DocumentEditorContextValue {
   setDocumentStatus: (value: DocumentStatusValue) => void;
   /** Archive the active document with a mandatory reason (the "delete" affordance). */
   archiveActiveDocument: (reason: string) => void;
-  /** Restore the active (archived) document — always returns to `draft`. */
+  /**
+   * Restore the active (archived) document, with its bank partner if it has one.
+   * It comes back with the status it had when removed (`draft` or `ready`;
+   * `draft` for anything removed before 2026-10-29). One click — the optional
+   * restore reason the API accepts is not asked for.
+   */
   restoreActiveDocument: () => void;
   isRunningStatusAction: boolean;
   isPrintingAll: boolean;

@@ -13,7 +13,10 @@ export interface PagedResult<T> {
   meta: { total: number } & Record<string, unknown>;
 }
 
-/** `GET /api/v1/documents/workspaces/` — one row per applicant with live documents. */
+/**
+ * `GET /api/v1/documents/workspaces/` — one row per applicant with any documents
+ * (`documentCount` live, `archivedCount` removed).
+ */
 export async function fetchWorkspaces(
   params?: QueryParams,
 ): Promise<PagedResult<DocumentWorkspaceSummary>> {
@@ -24,7 +27,15 @@ export async function fetchWorkspaces(
   return { data: res.data, meta: { total: res.total } };
 }
 
-/** `GET /api/v1/documents/` — the all-documents worklist (filters + standalone toggle). */
+/**
+ * `GET /api/v1/documents/` — the all-documents worklist (filters + standalone toggle).
+ *
+ * Always sends `include_archived=true`: since 1.2.0 the backend hides archived
+ * documents unless asked, but this worklist has its own Archived tab, a Status
+ * column that shows the Archived badge, and is where a global-search document hit
+ * lands — an archived hit has to be findable here. The flag is ignored whenever a
+ * `status` filter (a status tab or column filter) is applied.
+ */
 export async function fetchDocuments(
   params?: QueryParams,
 ): Promise<PagedResult<DocumentListItem>> {
@@ -34,6 +45,7 @@ export async function fetchDocuments(
     page: params?.page,
     pageSize: params?.pageSize,
     search: params?.search,
+    includeArchived: true,
     status: (filters.status as DocumentStatus | undefined) || undefined,
     family: (filters.family as DocumentFamily | undefined) || undefined,
     templateKey: (filters.template_key as string | undefined) || undefined,

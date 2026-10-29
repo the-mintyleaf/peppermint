@@ -52,6 +52,14 @@ export const documentHistoryKey = (id: string) =>
 // that query — a second key here would have been a second cache entry for the
 // same rows, and the signature manager's invalidations would never reach it.
 
+/**
+ * An applicant's document prefill (`GET /documents/prefill/<id>/`). Outside
+ * `documentQueryKeys.all` on purpose: it is the applicant file, not a document, so
+ * no document write should refetch it.
+ */
+export const documentPrefillKey = (applicantId: string) =>
+  ["documents", "prefill", applicantId] as const;
+
 /** Active template catalogue for the create-document template picker. */
 export const documentTemplateCatalogKey = () =>
   ["documents", "template-catalog", "active"] as const;

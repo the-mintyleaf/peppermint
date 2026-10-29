@@ -62,7 +62,7 @@ function Fields({ phase, onPhaseChange }: SignInPanelProps) {
     mutationFn: login,
     onSuccess: (data) => {
       setErrorMessage(null);
-      storeAuthTokens(data.access, data.refresh);
+      storeAuthTokens(data.access, data.refresh, data.access_expires_at);
       onPhaseChange("redirecting");
       const destination = data.must_change_password
         ? "/password-change"

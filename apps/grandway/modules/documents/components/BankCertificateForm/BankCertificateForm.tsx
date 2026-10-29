@@ -13,6 +13,10 @@ import {
   useForm,
 } from "@peppermint/ui";
 import { FormSection } from "@/components/FormSection";
+import {
+  ClipboardFieldSuggest,
+  fieldKeyLabel,
+} from "@/modules/admin/clipboard";
 import type {
   BankCertificateContent,
   DocumentFormProps,
@@ -54,6 +58,27 @@ export function BankCertificateForm({
   const balance = Number(values.statement_total_balance ?? 0) || 0;
   const usdRate = Number(values.statement_usdrate ?? 0) || 0;
   const usdAmount = usdRate > 0 ? balance / usdRate : 0;
+
+  // The saved-snippets button as a text input's right section; inserts through the form.
+  const clipboardSection = (
+    name: "statement_spokesperson" | "statement_spokesperson_post",
+    fieldKey: string,
+  ) => {
+    const current = values[name];
+    return {
+      rightSection: (
+        <ClipboardFieldSuggest
+          fieldKey={fieldKey}
+          value={typeof current === "string" ? current : ""}
+          fieldLabel={fieldKeyLabel(fieldKey)}
+          onInsert={(text) => form.setFieldValue(name, text)}
+          disabled={isLoading}
+          size="sm"
+        />
+      ),
+      rightSectionPointerEvents: "all" as const,
+    };
+  };
 
   return (
     <form onSubmit={form.onSubmit((v) => onSubmit(v as never))}>
@@ -159,17 +184,26 @@ export function BankCertificateForm({
         </FormSection>
 
         <FormSection title="Signatory">
+          {/* The bank's signing officer is the same for many applicants. */}
           <Group grow>
             <TextInput
               label="Spokesperson name"
               placeholder="Hari Prasad Sharma"
               {...form.getInputProps("statement_spokesperson")}
+              {...clipboardSection(
+                "statement_spokesperson",
+                "bank.spokesperson.name",
+              )}
               disabled={isLoading}
             />
             <TextInput
               label="Spokesperson post / designation"
               placeholder="Branch Manager"
               {...form.getInputProps("statement_spokesperson_post")}
+              {...clipboardSection(
+                "statement_spokesperson_post",
+                "bank.spokesperson.post",
+              )}
               disabled={isLoading}
             />
           </Group>

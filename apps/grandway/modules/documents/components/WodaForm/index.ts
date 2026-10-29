@@ -1,3 +1,7 @@
-export { WodaForm } from "./WodaForm";
-export type { WodaFormProps } from "./WodaForm.types";
+export { WodaForm, createSchemaForm } from "./WodaForm";
+export type {
+  CreateSchemaFormOptions,
+  SchemaFormComponent,
+  WodaFormProps,
+} from "./WodaForm.types";
 export { OccupationsField } from "./OccupationsField";

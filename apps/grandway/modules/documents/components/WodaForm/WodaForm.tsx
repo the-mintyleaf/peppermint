@@ -16,10 +16,22 @@ import {
   useForm,
 } from "@peppermint/ui";
 import { FormSection } from "@/components/FormSection";
-import type { DocumentContent } from "../../documents.types";
-import type { WodaField, WodaSelectOption } from "../../utils/wodaFormSchema";
+import {
+  ClipboardFieldSuggest,
+  fieldKeyLabel,
+} from "@/modules/admin/clipboard";
+import type { DocumentContent, DocumentFormProps } from "../../documents.types";
+import type {
+  WodaField,
+  WodaFormSchema,
+  WodaSelectOption,
+} from "../../utils/wodaFormSchema";
 import { OccupationsField } from "./OccupationsField";
-import type { WodaFormProps } from "./WodaForm.types";
+import type {
+  CreateSchemaFormOptions,
+  SchemaFormComponent,
+  WodaFormProps,
+} from "./WodaForm.types";
 
 type WodaFormValues = Record<string, unknown>;
 
@@ -191,6 +203,29 @@ export function WodaForm(props: WodaFormProps) {
     ),
   });
 
+  // The saved-snippets button, as the input's right section. Only fields whose
+  // schema names a `clipboardKey` get one — it inserts through the form, so the
+  // value is dirty-tracked and validated like typed text.
+  const clipboardSection = (field: WodaField, disabled?: boolean) => {
+    const fieldKey = field.clipboardKey;
+    if (!fieldKey) return {};
+    const current = form.values[field.name];
+    return {
+      rightSection: (
+        <ClipboardFieldSuggest
+          fieldKey={fieldKey}
+          value={typeof current === "string" ? current : ""}
+          fieldLabel={fieldKeyLabel(fieldKey)}
+          onInsert={(text) => form.setFieldValue(field.name, text)}
+          disabled={disabled}
+          size="sm"
+        />
+      ),
+      // Mantine sections ignore the pointer by default; this one is a button.
+      rightSectionPointerEvents: "all" as const,
+    };
+  };
+
   const renderControl = (field: WodaField): ReactNode => {
     const disabled = isLoading;
     const label = fieldLabel(field);
@@ -207,6 +242,7 @@ export function WodaForm(props: WodaFormProps) {
             required={field.required}
             disabled={disabled}
             {...form.getInputProps(field.name)}
+            {...clipboardSection(field, disabled)}
           />
         );
       case "number":
@@ -317,6 +353,7 @@ export function WodaForm(props: WodaFormProps) {
             required={field.required}
             disabled={disabled}
             {...form.getInputProps(field.name)}
+            {...clipboardSection(field, disabled)}
           />
         );
     }
@@ -384,4 +421,27 @@ export function WodaForm(props: WodaFormProps) {
       </Stack>
     </form>
   );
+}
+
+/**
+ * A document type's form: `WodaForm` over one fixed schema, with that schema
+ * attached as `formSchema` so the registry can expose it to the quick-create
+ * prefill (`DocumentTypeConfig.formSchema`).
+ */
+export function createSchemaForm(
+  schema: WodaFormSchema,
+  { displayName, transformSubmit }: CreateSchemaFormOptions,
+): SchemaFormComponent {
+  function SchemaForm({ onSubmit, ...props }: DocumentFormProps) {
+    return (
+      <WodaForm
+        schema={schema}
+        onSubmit={(content) =>
+          onSubmit(transformSubmit ? transformSubmit(content) : content)
+        }
+        {...props}
+      />
+    );
+  }
+  return Object.assign(SchemaForm, { displayName, formSchema: schema });
 }

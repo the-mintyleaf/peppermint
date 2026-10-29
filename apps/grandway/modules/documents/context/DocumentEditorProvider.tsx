@@ -29,10 +29,16 @@ import {
 import { DocumentUnavailable } from "../components/DocumentUnavailable";
 import { useSignatures } from "../hooks/useSignatures";
 import { getDefaultDocumentContent } from "../utils/defaultDocumentContent";
-import { getDefaultLabel } from "../documentTypeConfig";
+import { seededDefaultContent } from "./quickCreateContent";
+import { getDefaultLabel, getTemplateVersion } from "../documentTypeConfig";
 import { findBankPartner } from "../utils/documentTypeMenu";
+import { describeContentSaveError } from "../utils/contentFieldErrors";
 import { confirmLeaveWithUnsavedChanges } from "../hooks/useUnsavedChangesGuard";
-import { isEditableStatus, isLiveDocument } from "../documents.status";
+import {
+  STATUS_META,
+  isEditableStatus,
+  isLiveDocument,
+} from "../documents.status";
 import type {
   DocumentEditorContextValue,
   DocumentReadOnlyReason,
@@ -47,6 +53,15 @@ import type {
 const DocumentEditorContext = createContext<DocumentEditorContextValue | null>(
   null,
 );
+
+/**
+ * A save or create the editor refuses before calling the API: say why, then
+ * reject, so the caller's "close on success" never fires for a no-op.
+ */
+function refuseLocally(title: string, message: string): never {
+  notifications.show({ title, message, color: "red" });
+  throw new Error(message);
+}
 
 export function useDocumentEditor() {
   const ctx = useContext(DocumentEditorContext);
@@ -114,6 +129,8 @@ export function DocumentEditorProvider({
     queryKey: scopeKey,
     queryFn: async (): Promise<Document[]> => {
       if (applicantId) {
+        // Archived included — the pages list's Archived group (and Restore) is
+        // built from these; the backend hides them unless asked since 1.2.0.
         const items = await documentsApi.listByApplicant(applicantId);
         // Filter BEFORE the detail fetches: this both hides the pages and avoids
         // issuing N requests that a scoped viewer would be refused anyway.
@@ -154,12 +171,20 @@ export function DocumentEditorProvider({
   // that prints a portrait reads it from `studentFullData`, so this is the one
   // place the editor fetches it.
   const photograph = useApplicantPhotograph(applicantId);
+  // `null` only once the lookup has settled on "no photograph" — a certificate
+  // saved while it is still loading keeps the id it already had.
+  const photoFileId =
+    photograph.file?.id ?? (photograph.isMissing ? null : undefined);
   const studentFullData = useMemo(
     () =>
       summaryQuery.data
-        ? { ...summaryQuery.data, photoUrl: photograph.url ?? undefined }
+        ? {
+            ...summaryQuery.data,
+            photoUrl: photograph.url ?? undefined,
+            photoFileId,
+          }
         : null,
-    [summaryQuery.data, photograph.url],
+    [summaryQuery.data, photograph.url, photoFileId],
   );
 
   const { data: signatures = [] } = useSignatures();
@@ -220,9 +245,11 @@ export function DocumentEditorProvider({
       setHasPendingEdits(false);
     },
     onError: (error) => {
+      // A certificate body the backend refuses names its fields; the open form
+      // marks them, but the Customizations panel has no form, so say them here.
       notifications.show({
         title: "Could not save changes",
-        message: getApiErrorMessage(error),
+        message: describeContentSaveError(error),
         color: "red",
       });
     },
@@ -238,6 +265,31 @@ export function DocumentEditorProvider({
       updateMutation.mutate({ id: documentId, content });
     },
     [updateMutation, canEdit],
+  );
+
+  // The same save, awaitable: rejects with the API error so the form that asked
+  // for it can stay open and mark the refused fields. The toast still fires.
+  const { mutateAsync: updateContentAsync } = updateMutation;
+  const saveDocumentContent = useCallback(
+    async (documentId: string, content: DocumentContent) => {
+      // Never resolve without saving — a caller closes its modal on success.
+      if (!canEdit) {
+        refuseLocally(
+          "Could not save changes",
+          "You have view-only access to documents.",
+        );
+      }
+      const doc = documentsRef.current.find((d) => d.id === documentId);
+      if (!doc) {
+        refuseLocally(
+          "Could not save changes",
+          "This document is no longer in the editor. Reload the page and try again.",
+        );
+      }
+      setHasPendingEdits(true);
+      await updateContentAsync({ id: documentId, content });
+    },
+    [updateContentAsync, canEdit],
   );
 
   // Render-only content update (bank Customizations panel): reflect in the local cache so the
@@ -267,11 +319,12 @@ export function DocumentEditorProvider({
     onError: (error) => {
       notifications.show({
         title: "Failed to add page",
-        message: getApiErrorMessage(error),
+        message: describeContentSaveError(error),
         color: "red",
       });
     },
   });
+  const { mutateAsync: createDocumentAsync } = createMutation;
 
   const familyForType = useCallback((type: DocumentType) => {
     if (type.startsWith("bank-"))
@@ -284,32 +337,95 @@ export function DocumentEditorProvider({
     return "student" as const;
   }, []);
 
-  const quickCreateDocument = useCallback(
-    (type: DocumentType) => {
-      if (!canEdit || !applicantId) return;
-      createMutation.mutate({
-        applicantId,
+  // Quick-create (the Woda, LOR and MOI letters have no create form): the new
+  // letter's default content is seeded from the applicant file HERE, once, at
+  // creation — the only moment that is unambiguously "new". An existing letter
+  // is never re-seeded. A failed prefill still creates the letter, unseeded.
+  const quickCreateMutation = useMutation({
+    mutationFn: async ({
+      type,
+      applicant,
+    }: {
+      type: DocumentType;
+      applicant: string;
+    }) => {
+      const { content, prefillFailed } = await seededDefaultContent(
+        queryClient,
+        type,
+        applicant,
+      );
+      const doc = await documentsApi.create({
+        applicantId: applicant,
         family: familyForType(type),
         templateKey: type,
         label: getDefaultLabel(type),
-        content: getDefaultDocumentContent(type),
+        content,
+        templateVersion: getTemplateVersion(type),
+      });
+      return { doc, prefillFailed };
+    },
+    onSuccess: ({ doc, prefillFailed }) => {
+      appendDocumentToCache(doc);
+      invalidateDerivedViews();
+      notifications.show({
+        title: "Page added",
+        message: doc.label,
+        color: "green",
+      });
+      if (prefillFailed) {
+        notifications.show({
+          title: "Applicant details not filled in",
+          message:
+            "Couldn't load the applicant's details, so the letter starts blank. Type them in Edit fields.",
+          color: "yellow",
+        });
+      }
+    },
+    onError: (error) => {
+      notifications.show({
+        title: "Failed to add page",
+        message: describeContentSaveError(error),
+        color: "red",
       });
     },
-    [createMutation, applicantId, familyForType, canEdit],
+  });
+  const { mutate: quickCreate } = quickCreateMutation;
+
+  const quickCreateDocument = useCallback(
+    (type: DocumentType) => {
+      if (!canEdit || !applicantId) return;
+      quickCreate({ type, applicant: applicantId });
+    },
+    [quickCreate, applicantId, canEdit],
   );
 
+  // Resolves once the page exists; rejects with the API error so a create form
+  // can stay open on a refused body (see `DocumentFormProps.onSubmit`).
   const createDocumentWithContent = useCallback(
-    (type: DocumentType, content: DocumentContent, label?: string) => {
-      if (!canEdit || !applicantId) return;
-      createMutation.mutate({
+    async (type: DocumentType, content: DocumentContent, label?: string) => {
+      // Never resolve without creating — the create modal closes on success.
+      if (!canEdit) {
+        refuseLocally(
+          "Failed to add page",
+          "You have view-only access to documents.",
+        );
+      }
+      if (!applicantId) {
+        refuseLocally(
+          "Failed to add page",
+          "Pages can only be added inside an applicant's workspace.",
+        );
+      }
+      await createDocumentAsync({
         applicantId,
         family: familyForType(type),
         templateKey: type,
         label: label ?? getDefaultLabel(type),
         content,
+        templateVersion: getTemplateVersion(type),
       });
     },
-    [createMutation, applicantId, familyForType, canEdit],
+    [createDocumentAsync, applicantId, familyForType, canEdit],
   );
 
   const addDocumentToList = useCallback(
@@ -463,9 +579,13 @@ export function DocumentEditorProvider({
     onSuccess: (restored) => {
       restored.forEach((doc) => writeDocumentToCache(doc));
       invalidateDerivedViews();
+      // Restore returns each document to the status it had when removed, so
+      // say which — a Ready certificate coming back as Ready is not obvious.
       notifications.show({
         title: "Document restored",
-        message: restored.map((d) => d.label).join(" & "),
+        message: restored
+          .map((d) => `${d.label} is back as ${STATUS_META[d.status].label}`)
+          .join("; "),
         color: "green",
       });
     },
@@ -598,13 +718,17 @@ export function DocumentEditorProvider({
     editFieldsModalOpen,
     setEditFieldsModalOpen: setEditFieldsModalOpenGuarded,
     updateDocumentContent,
+    saveDocumentContent,
+    isSavingContent: updateMutation.isPending,
     updateDocumentContentLocal,
     addDocumentToList,
     quickCreateDocument,
     createDocumentWithContent,
     createBankPair,
     isCreatingDocument:
-      createMutation.isPending || createBankPairMutation.isPending,
+      createMutation.isPending ||
+      quickCreateMutation.isPending ||
+      createBankPairMutation.isPending,
     setDocumentStatus,
     archiveActiveDocument,
     restoreActiveDocument,

@@ -22,6 +22,7 @@ import { FileTextIcon } from "@phosphor-icons/react/dist/csr/FileText";
 import { ListChecksIcon } from "@phosphor-icons/react/dist/csr/ListChecks";
 import { FileMagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/FileMagnifyingGlass";
 import { BellIcon } from "@phosphor-icons/react/dist/csr/Bell";
+import { ClipboardIcon } from "@phosphor-icons/react/dist/csr/Clipboard";
 import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
 
 export interface BuildAdminConfigOptions {
@@ -57,6 +58,8 @@ export interface BuildAdminConfigOptions {
   unreadNotificationCount?: number;
   /** Opens the notifications drawer — the bell has no route to navigate to. */
   onNotificationsClick?: () => void;
+  /** Opens the personal clipboard drawer. Every authority has one, so it is never gated. */
+  onClipboardClick?: () => void;
 }
 
 /**
@@ -99,6 +102,7 @@ export function buildAdminConfig(
     canAccessNotifications,
     unreadNotificationCount,
     onNotificationsClick,
+    onClipboardClick,
   } = options;
 
   // The Placement dashboard is now the `/admin` home itself (it replaced the old
@@ -351,24 +355,40 @@ export function buildAdminConfig(
       href: "/admin",
     },
     mainNav,
-    additional: canAccessNotifications
-      ? [
-          {
-            id: "notifications",
-            icon: BellIcon,
-            label: "Notifications",
-            // Opens a drawer rather than navigating — the inbox is a glance-and-clear
-            // surface, so it never takes the user off the screen they are working on.
-            onClick: onNotificationsClick,
-            // Capped so a very active feed doesn't overflow the sidebar's
-            // small icon-corner indicator.
-            badge: unreadNotificationCount
-              ? unreadNotificationCount > 99
-                ? "99+"
-                : String(unreadNotificationCount)
-              : undefined,
-          },
-        ]
-      : undefined,
+    additional: [
+      // Every account has a personal clipboard — superadmin included — so it is
+      // not gated on a capability (`authenticate/INTEGRATION.md`, personal clipboard).
+      ...(onClipboardClick
+        ? [
+            {
+              id: "clipboard",
+              icon: ClipboardIcon,
+              label: "Clipboard",
+              // A drawer, like the bell: snippets are copied into whatever
+              // screen the user is already on.
+              onClick: onClipboardClick,
+            },
+          ]
+        : []),
+      ...(canAccessNotifications
+        ? [
+            {
+              id: "notifications",
+              icon: BellIcon,
+              label: "Notifications",
+              // Opens a drawer rather than navigating — the inbox is a glance-and-clear
+              // surface, so it never takes the user off the screen they are working on.
+              onClick: onNotificationsClick,
+              // Capped so a very active feed doesn't overflow the sidebar's
+              // small icon-corner indicator.
+              badge: unreadNotificationCount
+                ? unreadNotificationCount > 99
+                  ? "99+"
+                  : String(unreadNotificationCount)
+                : undefined,
+            },
+          ]
+        : []),
+    ],
   };
 }

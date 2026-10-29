@@ -35,11 +35,14 @@ export function CreateDocumentModal() {
     }
   }, [createModalOpen, createModalType, config, closeCreateModal]);
 
+  // Closes on success only: a refused body keeps the form (and what was typed)
+  // open, and the certificate form marks the refused fields from the rejection.
   const handleSubmit = useCallback(
     (content: DocumentContent) => {
       if (!createModalType) return;
-      createDocumentWithContent(createModalType, content);
-      closeCreateModal();
+      const creating = createDocumentWithContent(createModalType, content);
+      creating.then(closeCreateModal, () => undefined);
+      return creating;
     },
     [createModalType, createDocumentWithContent, closeCreateModal],
   );

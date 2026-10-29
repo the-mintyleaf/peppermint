@@ -4,20 +4,11 @@ import { useFormInstance } from "@peppermint/admin";
 import { Alert, DateInput, Fieldset, Grid, TextInput } from "@peppermint/ui";
 import { WarningIcon } from "@phosphor-icons/react/dist/csr/Warning";
 import type { ApplicantFormValues } from "../ApplicantForm.types";
+import { isBlankPassport } from "../ApplicantForm.utils";
 
 export interface PassportSectionProps {
   /** True when this applicant already had a passport on file at load time. */
   hadExistingPassport: boolean;
-}
-
-function isBlank(values: ApplicantFormValues): boolean {
-  return (
-    !values.passport_number.trim() &&
-    !values.issuing_country.trim() &&
-    !values.place_of_issue.trim() &&
-    !values.issued_date &&
-    !values.expiry_date
-  );
 }
 
 /**
@@ -36,7 +27,8 @@ function isBlank(values: ApplicantFormValues): boolean {
  */
 export function PassportSection({ hadExistingPassport }: PassportSectionProps) {
   const { form } = useFormInstance<ApplicantFormValues>();
-  const showCannotRemoveWarning = hadExistingPassport && isBlank(form.values);
+  const showCannotRemoveWarning =
+    hadExistingPassport && isBlankPassport(form.values);
   return (
     <Fieldset legend="Passport (optional)">
       {showCannotRemoveWarning ? (

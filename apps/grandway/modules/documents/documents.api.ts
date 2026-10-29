@@ -13,6 +13,12 @@ import type {
   StudentFullData,
   UpdateDocumentInput,
 } from "./documents.types";
+import type {
+  DocumentPrefill,
+  PrefillAddress,
+  PrefillGender,
+  PrefillRelative,
+} from "./documentPrefill.types";
 
 // ── Backend wire shapes (snake_case) ────────────────────────────────────────
 
@@ -26,6 +32,7 @@ interface RawDocumentDetail {
   template_key: string;
   label: string;
   content: DocumentContent;
+  template_version: string;
   status: Document["status"];
   notes: string;
   is_editable: boolean;
@@ -58,7 +65,75 @@ interface RawWorkspace {
   applicant_id: string;
   applicant_name: string;
   document_count: number;
+  archived_count: number;
   last_updated: string;
+}
+
+interface RawPrefillAddress {
+  province: string;
+  district: string;
+  municipality: string;
+  ward_no: string;
+  tole: string;
+  formatted: string;
+}
+
+interface RawPrefillRelative {
+  name: string;
+  citizenship_no: string;
+  occupation: string;
+}
+
+interface RawPrefill {
+  applicant: {
+    first_name: string;
+    middle_name: string;
+    last_name: string;
+    full_name: string;
+    gender: PrefillGender;
+    date_of_birth: string | null;
+    date_of_birth_bs: BsDate | null;
+    nationality: string;
+    citizenship_no: string;
+    citizenship_issue_district: string;
+    national_id_no: string;
+    passport_no: string;
+    permanent_address: RawPrefillAddress | null;
+    current_address: RawPrefillAddress | null;
+    primary_email: string;
+    primary_phone: string;
+  };
+  father: RawPrefillRelative | null;
+  mother: RawPrefillRelative | null;
+  grandfather: RawPrefillRelative | null;
+  grandmother: RawPrefillRelative | null;
+  educations: Array<{
+    level: string;
+    qualification: string;
+    institution: string;
+    country: string;
+    completion_status: string;
+    score: string | null;
+    score_type: string;
+    grading_system: string;
+    start_year: number | null;
+    completion_year: number | null;
+    year_calendar: string;
+  }>;
+  language_tests: Array<{
+    test_type: string;
+    overall_score: string | null;
+    listening_score: string | null;
+    reading_score: string | null;
+    writing_score: string | null;
+    speaking_score: string | null;
+    test_date: string | null;
+    test_date_bs: BsDate | null;
+    certificate_number: string;
+    expiry_date: string | null;
+    expiry_date_bs: BsDate | null;
+  }>;
+  photo_media_id: string | null;
 }
 
 interface RawHistoryEvent {
@@ -120,6 +195,8 @@ function mapDocument(raw: RawDocumentDetail): Document {
     templateKey: raw.template_key,
     label: raw.label,
     content: raw.content,
+    // Every record carries one since 1.2.0; the fallback is the backend's own default.
+    templateVersion: raw.template_version || "1",
     status: raw.status,
     notes: raw.notes,
     isEditable: raw.is_editable,
@@ -156,7 +233,88 @@ function mapWorkspace(raw: RawWorkspace): DocumentWorkspaceSummary {
     applicantId: raw.applicant_id,
     applicantName: raw.applicant_name,
     documentCount: raw.document_count,
+    archivedCount: raw.archived_count ?? 0,
     lastUpdated: raw.last_updated,
+  };
+}
+
+function mapPrefillAddress(
+  raw: RawPrefillAddress | null | undefined,
+): PrefillAddress | null {
+  if (!raw) return null;
+  return {
+    province: raw.province ?? "",
+    district: raw.district ?? "",
+    municipality: raw.municipality ?? "",
+    wardNo: raw.ward_no ?? "",
+    tole: raw.tole ?? "",
+    formatted: raw.formatted ?? "",
+  };
+}
+
+function mapPrefillRelative(
+  raw: RawPrefillRelative | null | undefined,
+): PrefillRelative | null {
+  if (!raw) return null;
+  return {
+    name: raw.name ?? "",
+    citizenshipNo: raw.citizenship_no ?? "",
+    occupation: raw.occupation ?? "",
+  };
+}
+
+function mapPrefill(raw: RawPrefill): DocumentPrefill {
+  const a = raw.applicant;
+  return {
+    applicant: {
+      firstName: a.first_name ?? "",
+      middleName: a.middle_name ?? "",
+      lastName: a.last_name ?? "",
+      fullName: a.full_name ?? "",
+      gender: a.gender ?? "",
+      dateOfBirth: a.date_of_birth ?? null,
+      dateOfBirthBs: a.date_of_birth_bs ?? null,
+      nationality: a.nationality ?? "",
+      citizenshipNo: a.citizenship_no ?? "",
+      citizenshipIssueDistrict: a.citizenship_issue_district ?? "",
+      nationalIdNo: a.national_id_no ?? "",
+      passportNo: a.passport_no ?? "",
+      permanentAddress: mapPrefillAddress(a.permanent_address),
+      currentAddress: mapPrefillAddress(a.current_address),
+      primaryEmail: a.primary_email ?? "",
+      primaryPhone: a.primary_phone ?? "",
+    },
+    father: mapPrefillRelative(raw.father),
+    mother: mapPrefillRelative(raw.mother),
+    grandfather: mapPrefillRelative(raw.grandfather),
+    grandmother: mapPrefillRelative(raw.grandmother),
+    educations: (raw.educations ?? []).map((e) => ({
+      level: e.level,
+      qualification: e.qualification,
+      institution: e.institution,
+      country: e.country,
+      completionStatus: e.completion_status,
+      score: e.score ?? null,
+      scoreType: e.score_type,
+      gradingSystem: e.grading_system,
+      startYear: e.start_year ?? null,
+      completionYear: e.completion_year ?? null,
+      yearCalendar: e.year_calendar,
+    })),
+    languageTests: (raw.language_tests ?? []).map((t) => ({
+      testType: t.test_type,
+      overallScore: t.overall_score ?? null,
+      listeningScore: t.listening_score ?? null,
+      readingScore: t.reading_score ?? null,
+      writingScore: t.writing_score ?? null,
+      speakingScore: t.speaking_score ?? null,
+      testDate: t.test_date ?? null,
+      testDateBs: t.test_date_bs ?? null,
+      certificateNumber: t.certificate_number ?? "",
+      expiryDate: t.expiry_date ?? null,
+      expiryDateBs: t.expiry_date_bs ?? null,
+    })),
+    photoMediaId: raw.photo_media_id ?? null,
   };
 }
 
@@ -182,6 +340,11 @@ export interface DocumentListParams {
   applicant?: string;
   standalone?: boolean;
   status?: Document["status"];
+  /**
+   * Since 1.2.0 the list **hides archived documents unless asked** (§7). `true`
+   * returns every status; ignored by the backend when `status` is given.
+   */
+  includeArchived?: boolean;
   family?: DocumentFamily;
   templateKey?: string;
   search?: string;
@@ -201,6 +364,7 @@ function toListServerParams(
   if (typeof params.standalone === "boolean")
     out.standalone = params.standalone;
   if (params.status) out.status = params.status;
+  else if (params.includeArchived) out.include_archived = true;
   if (params.family) out.family = params.family;
   if (params.templateKey) out.template_key = params.templateKey;
   if (params.search) out.search = params.search;
@@ -220,16 +384,20 @@ function toCreateBody(input: CreateDocumentInput): Record<string, unknown> {
   else if (input.standalonePurpose)
     body.standalone_purpose = input.standalonePurpose;
   if (input.content) body.content = input.content;
+  if (input.templateVersion) body.template_version = input.templateVersion;
   if (input.notes !== undefined) body.notes = input.notes;
   return body;
 }
 
 function toUpdateBody(input: UpdateDocumentInput): Record<string, unknown> {
-  // Only label/content/standalone_purpose/notes are accepted — anything else 400s the
-  // whole request. `content` replaces WHOLESALE (not merged): callers send the complete body.
+  // Only label/content/template_version/standalone_purpose/notes are accepted — anything
+  // else 400s the whole request. `content` replaces WHOLESALE (not merged): callers send
+  // the complete body.
   const body: Record<string, unknown> = {};
   if (input.label !== undefined) body.label = input.label;
   if (input.content !== undefined) body.content = input.content;
+  if (input.templateVersion !== undefined)
+    body.template_version = input.templateVersion;
   if (input.standalonePurpose !== undefined)
     body.standalone_purpose = input.standalonePurpose;
   if (input.notes !== undefined) body.notes = input.notes;
@@ -250,11 +418,24 @@ export const documentsApi = {
     return { data: data.data.map(mapListItem), total: data.meta.count };
   },
 
-  /** `GET /api/v1/documents/?applicant=<id>` — a single applicant's document workspace. */
+  /**
+   * `GET /api/v1/documents/?applicant=<id>&include_archived=true` — a single
+   * applicant's documents, **archived included**. Since 1.2.0 the list hides
+   * archived documents by default; every caller of this one needs them — the
+   * editor's Archived group (Restore), the applicant panel's Archived badges, and
+   * the list-row button's "has documents" check, which share one cache entry.
+   */
   async listByApplicant(applicantId: string): Promise<DocumentListItem[]> {
     const { data } = await api.get<ListEnvelope<RawDocumentListItem>>(
       "/api/v1/documents/",
-      { params: { applicant: applicantId, page: 1, page_size: 100 } },
+      {
+        params: {
+          applicant: applicantId,
+          include_archived: true,
+          page: 1,
+          page_size: 100,
+        },
+      },
     );
     return data.data.map(mapListItem);
   },
@@ -306,16 +487,36 @@ export const documentsApi = {
     return mapDocument(data);
   },
 
-  /** `POST /api/v1/documents/<id>/restore/` — always returns to `draft`. */
-  async restore(id: string): Promise<Document> {
+  /**
+   * `POST /api/v1/documents/<id>/restore/` — returns the document to the status it
+   * held when archived (`draft` or `ready`; `draft` for anything archived before
+   * 2026-10-29). `reason` is optional (≤2000) and lands on the history event.
+   */
+  async restore(id: string, reason?: string): Promise<Document> {
+    const trimmed = reason?.trim();
     const { data } = await api.post<RawDocumentDetail>(
       `/api/v1/documents/${id}/restore/`,
-      {},
+      trimmed ? { reason: trimmed } : {},
     );
     return mapDocument(data);
   },
 
-  /** `GET /api/v1/documents/workspaces/` — one row per applicant with live docs. */
+  /**
+   * `GET /api/v1/documents/prefill/<applicant_id>/` — the applicant file shaped for
+   * document forms. Admin only, writes nothing. 404 `DOCUMENTS_APPLICANT_NOT_FOUND`
+   * for an unknown applicant.
+   */
+  async getPrefill(applicantId: string): Promise<DocumentPrefill> {
+    const { data } = await api.get<RawPrefill>(
+      `/api/v1/documents/prefill/${applicantId}/`,
+    );
+    return mapPrefill(data);
+  },
+
+  /**
+   * `GET /api/v1/documents/workspaces/` — one row per applicant with any documents;
+   * live and archived counted separately.
+   */
   async listWorkspaces(
     page = 1,
     pageSize = 100,

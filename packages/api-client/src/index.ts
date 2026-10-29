@@ -1,66 +1,25 @@
 import axios from "axios";
-import type { AxiosInstance, InternalAxiosRequestConfig } from "axios";
+import type {
+  AxiosError,
+  AxiosInstance,
+  InternalAxiosRequestConfig,
+} from "axios";
 
-/**
- * Configuration for {@link configureApiClient}.
- *
- * Every field except the resulting instance is optional; sensible Peppermint
- * defaults are applied. Token keys are parameterized so an app can consolidate
- * onto a single key set without touching this package.
- */
-export interface ApiClientConfig {
-  /** Base URL for all requests (e.g. `process.env.NEXT_PUBLIC_API_URL`). */
-  baseURL?: string;
-  /** `localStorage` key holding the access token. Defaults to `"access_token"`. */
-  accessTokenKey?: string;
-  /** `localStorage` key holding the refresh token. Defaults to `"refresh_token"`. */
-  refreshTokenKey?: string;
-  /**
-   * Endpoint POSTed to refresh the access token on a 401. Absolute URLs are used
-   * as-is; a leading-slash path is resolved against `baseURL`.
-   * Defaults to `"/api/v1/auth/refresh/"`.
-   */
-  refreshEndpoint?: string;
-  /**
-   * Called when refresh fails (no refresh token, or the refresh request itself
-   * fails). Defaults to clearing tokens and redirecting to `"/"`.
-   */
-  onAuthFailure?: () => void;
-  /** Extra default headers merged onto every request. */
-  headers?: Record<string, string>;
-  /**
-   * How the access token is refreshed on a 401.
-   * - `"body"` (default): POST `{ refresh: <localStorage refresh token> }`; the response
-   *   carries new `access`/`refresh` tokens (the historical Peppermint behavior).
-   * - `"cookie"`: POST with **no body** and `credentials: "include"` so an HttpOnly
-   *   refresh cookie is sent; a double-submit CSRF header is added from `csrfCookieName`.
-   *   No refresh token is read from or written to localStorage.
-   */
-  refreshMode?: "body" | "cookie";
-  /**
-   * Send credentials (cookies) with same-instance requests and the refresh call.
-   * Implied `true` when `refreshMode` is `"cookie"`.
-   */
-  withCredentials?: boolean;
-  /**
-   * Name of the JS-readable CSRF cookie whose value is echoed in the refresh
-   * request's CSRF header (cookie refresh mode). Defaults to `"csrftoken"`.
-   */
-  csrfCookieName?: string;
-  /** Header the CSRF cookie value is sent under. Defaults to `"X-CSRFToken"`. */
-  csrfHeaderName?: string;
-  /**
-   * Field on the (unwrapped) refresh response holding the new access token.
-   * Defaults to `"access"`; backends that return `access_token` set that here.
-   */
-  accessResponseField?: string;
-}
+import { createRefreshSession } from "./session";
+import type { RefreshSession } from "./session";
+import { readStorage, removeStorage } from "./storage";
+import type { ApiClientConfig, AuthFailureInfo } from "./types";
+
+export type { ApiClientConfig, AuthFailureInfo, RefreshMode } from "./types";
 
 const DEFAULT_ACCESS_TOKEN_KEY = "access_token";
 const DEFAULT_REFRESH_TOKEN_KEY = "refresh_token";
+const DEFAULT_ACCESS_EXPIRES_AT_KEY = "access_expires_at";
 const DEFAULT_REFRESH_ENDPOINT = "/api/v1/auth/refresh/";
 const DEFAULT_CSRF_COOKIE_NAME = "csrftoken";
 const DEFAULT_CSRF_HEADER_NAME = "X-CSRFToken";
+const DEFAULT_REFRESH_LEAD_TIME_MS = 60_000;
+const DEFAULT_MAX_RATE_LIMIT_RETRIES = 3;
 
 type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
@@ -85,111 +44,85 @@ function hasNumericCount(meta: unknown): meta is { count: number } {
   );
 }
 
-function readToken(key: string): string | null {
-  return typeof window !== "undefined"
-    ? window.localStorage.getItem(key)
+function bearerOf(config: InternalAxiosRequestConfig): string | null {
+  const header = config.headers?.Authorization;
+  return typeof header === "string" && header.startsWith("Bearer ")
+    ? header.slice("Bearer ".length)
     : null;
 }
 
-/**
- * Read a browser cookie's **raw** value by name (client-only; `null` on the server).
- * The value is intentionally not URL-decoded: it is echoed verbatim into the
- * double-submit CSRF header so it matches the raw cookie the backend compares, and
- * a bare `%` in a token would otherwise make `decodeURIComponent` throw.
- */
-function readCookie(name: string): string | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie.match(
-    new RegExp(
-      `(?:^|;\\s*)${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}=([^;]*)`,
-    ),
-  );
-  return match ? match[1] : null;
+function matchesAny(url: string | undefined, paths: string[]): boolean {
+  return paths.some((path) => (url ?? "").includes(path));
+}
+
+function defaultAuthFailure(keys: string[]): (info: AuthFailureInfo) => void {
+  return () => {
+    if (typeof window === "undefined") return;
+    keys.forEach(removeStorage);
+    window.location.href = "/";
+  };
 }
 
 /**
- * Create a configured Axios instance for a Peppermint app. Call once at app boot
- * (e.g. in `src/lib/api.ts`) and export the returned instance.
- *
- * The instance:
- * - injects `Authorization: Bearer <accessToken>` from `localStorage` on every request,
- * - unwraps the `{ success, data, meta }` envelope (paginated lists keep `{ data, meta }`,
- *   everything else unwraps to `data`),
- * - transparently refreshes the access token once on a 401, serializing concurrent
- *   refreshes and guarding against retry loops, and calls `onAuthFailure` if refresh fails.
- *
- * Refresh transport is configurable via `refreshMode`: the default `"body"` posts a
- * localStorage refresh token, while `"cookie"` posts no body with `credentials: "include"`
- * (HttpOnly refresh cookie) plus a double-submit CSRF header — for backends like grandway
- * that keep the refresh token in a cookie and return `access_token`.
+ * Should this failed response be answered with refresh-then-retry-once? Only a 401
+ * on a request that actually carried a Bearer token. A 401 on a request that never
+ * carried one (login, refresh, any public endpoint) is a business answer for the
+ * caller — wrong credentials, MFA required — and refreshing there would end in a
+ * doomed refresh + hard redirect that stomps on the caller's own error handling.
  */
-export function configureApiClient(
-  config: ApiClientConfig = {},
-): AxiosInstance {
-  const {
-    baseURL,
-    accessTokenKey = DEFAULT_ACCESS_TOKEN_KEY,
-    refreshTokenKey = DEFAULT_REFRESH_TOKEN_KEY,
-    refreshEndpoint = DEFAULT_REFRESH_ENDPOINT,
-    headers,
-    onAuthFailure,
-    refreshMode = "body",
-    csrfCookieName = DEFAULT_CSRF_COOKIE_NAME,
-    csrfHeaderName = DEFAULT_CSRF_HEADER_NAME,
-    accessResponseField = "access",
-  } = config;
-
-  // Cookie refresh needs credentials on every request so the refresh cookie is sent.
-  const withCredentials = config.withCredentials ?? refreshMode === "cookie";
-
-  const instance = axios.create({
-    baseURL,
-    withCredentials,
-    headers: { "Content-Type": "application/json", ...headers },
-  });
-
-  const refreshUrl = refreshEndpoint.startsWith("http")
-    ? refreshEndpoint
-    : `${baseURL ?? ""}${refreshEndpoint}`;
-
-  const handleAuthFailure =
-    onAuthFailure ??
-    (() => {
-      if (typeof window === "undefined") return;
-      window.localStorage.removeItem(accessTokenKey);
-      window.localStorage.removeItem(refreshTokenKey);
-      window.location.href = "/";
-    });
-
-  // Refresh coordination — per-instance so multiple clients never clash.
-  // Followers park their settle handlers here while the leader refreshes.
-  interface QueuedRequest {
-    resolve: (value: unknown) => void;
-    reject: (reason: unknown) => void;
-    config: RetryableConfig;
+function wantsRefresh(
+  error: AxiosError,
+  skipRefreshPaths: string[],
+): error is AxiosError & { config: RetryableConfig } {
+  const original = error.config as RetryableConfig | undefined;
+  if (error.response?.status !== 401 || !original || original._retry) {
+    return false;
   }
-  let isRefreshing = false;
-  let refreshQueue: QueuedRequest[] = [];
+  return !!bearerOf(original) && !matchesAny(original.url, skipRefreshPaths);
+}
 
-  const resolveQueue = (newToken: string) => {
-    const queued = refreshQueue;
-    refreshQueue = [];
-    queued.forEach(({ resolve, config }) => {
-      config.headers.Authorization = `Bearer ${newToken}`;
-      resolve(instance(config));
-    });
-  };
+/**
+ * Origin a request resolves to (`baseURL` + `url`, relative to the page), or `null`
+ * when it can't be resolved (SSR without an absolute `baseURL`).
+ */
+function originOf(href: string | undefined): string | null {
+  try {
+    const page =
+      typeof window !== "undefined" ? window.location.href : undefined;
+    return new URL(href ?? "", page).origin;
+  } catch {
+    return null;
+  }
+}
 
-  // On refresh failure, reject parked requests instead of leaving them hanging
-  // forever (they would otherwise never settle).
-  const rejectQueue = (reason: unknown) => {
-    const queued = refreshQueue;
-    refreshQueue = [];
-    queued.forEach(({ reject }) => reject(reason));
-  };
+function installInterceptors(
+  instance: AxiosInstance,
+  session: RefreshSession,
+  baseURL: string | undefined,
+  accessTokenKey: string,
+  skipRefreshPaths: string[],
+) {
+  instance.interceptors.request.use(async (req: RetryableConfig) => {
+    // The Bearer token and credentials belong to the API only — never to an
+    // absolute URL on another origin (a CDN, a signed upload URL, a third party).
+    const apiOrigin = originOf(baseURL);
+    if (apiOrigin === null || originOf(instance.getUri(req)) !== apiOrigin) {
+      req.headers.delete("Authorization");
+      req.withCredentials = false;
+      return req;
+    }
 
-  instance.interceptors.request.use((req: InternalAxiosRequestConfig) => {
-    const token = readToken(accessTokenKey);
+    session.sync();
+    // The stored access token is already past its expiry (frozen timers, a woken
+    // laptop) — refresh first rather than spend a guaranteed 401 round trip.
+    if (!matchesAny(req.url, skipRefreshPaths) && session.isAccessExpired()) {
+      const outcome = await session.refresh({ failFast: true });
+      // Already signed out: don't let this request's 401 start a second refresh.
+      if (outcome.kind === "rejected" || outcome.kind === "signed_out") {
+        req._retry = true;
+      }
+    }
+    const token = readStorage(accessTokenKey);
     if (token) req.headers.Authorization = `Bearer ${token}`;
     return req;
   });
@@ -206,105 +139,118 @@ export function configureApiClient(
       }
       return response;
     },
-    async (error) => {
-      const original = error.config as RetryableConfig | undefined;
+    async (error: AxiosError) => {
+      if (!wantsRefresh(error, skipRefreshPaths)) return Promise.reject(error);
 
-      if (error.response?.status !== 401 || !original || original._retry) {
-        return Promise.reject(error);
-      }
-
-      // A 401 on a request that never carried a Bearer token in the first place
-      // (login, refresh, or any other public endpoint) is a normal business
-      // response for the caller to handle — wrong credentials, MFA required,
-      // an expired refresh credential — not a signal that an access token needs
-      // refreshing. Treating it as one here means every such response also
-      // triggers a doomed refresh attempt (no session exists to refresh) that
-      // ends in `handleAuthFailure()`'s hard redirect, stomping on whatever the
-      // caller's own error handling just did (e.g. showing an MFA prompt).
-      if (!original.headers?.Authorization) {
-        return Promise.reject(error);
-      }
-
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          refreshQueue.push({ resolve, reject, config: original });
-        });
-      }
-
+      const original = error.config;
       original._retry = true;
-      isRefreshing = true;
 
-      try {
-        let res: Response;
+      // Tokens were cleared while this request was in flight (deliberate logout,
+      // or an earlier refusal already signed out): never refresh — that would
+      // redirect a second time or resurrect the session.
+      const current = readStorage(accessTokenKey);
+      if (!current) return Promise.reject(error);
 
-        if (refreshMode === "cookie") {
-          // Cookie mode: the refresh token rides in an HttpOnly cookie, so send no
-          // body and include credentials; echo the JS-readable CSRF cookie in the
-          // double-submit header the backend expects.
-          const csrf = readCookie(csrfCookieName);
-          const refreshHeaders: Record<string, string> = {
-            "Content-Type": "application/json",
-          };
-          if (csrf) refreshHeaders[csrfHeaderName] = csrf;
+      // Another request (or another tab) already refreshed since this one was sent —
+      // just retry with the current token.
+      if (current !== bearerOf(original)) return instance(original);
 
-          // Raw fetch (not the instance) so this call skips the interceptors above.
-          res = await fetch(refreshUrl, {
-            method: "POST",
-            headers: refreshHeaders,
-            credentials: "include",
-          });
-        } else {
-          const refreshToken = readToken(refreshTokenKey);
-          if (!refreshToken) throw new Error("No refresh token");
+      // Any 401 — `AUTHENTICATION_FAILED` (expired/revoked) or
+      // `AUTHENTICATION_REQUIRED` — is refresh-then-retry-once. The request
+      // interceptor re-injects the new token on the retry. A rate-limited refresh
+      // fails this request fast; its retries continue in the background.
+      const outcome = await session.refresh({ failFast: true });
+      if (outcome.kind === "ok") return instance(original);
 
-          // Raw fetch (not the instance) so this call skips the interceptors above.
-          res = await fetch(refreshUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ refresh: refreshToken }),
-            ...(withCredentials ? { credentials: "include" } : {}),
-          });
-        }
-        if (!res.ok) throw new Error("Refresh failed");
-
-        // Accept the nested envelope `{ data: { <field>, refresh } }` only when it
-        // carries a token; otherwise fall back to a flat `{ <field>, refresh }`.
-        const payload = (await res.json()) as Record<string, unknown> | null;
-        const nested = payload?.data as Record<string, unknown> | undefined;
-        const tokens =
-          nested && typeof nested[accessResponseField] === "string"
-            ? nested
-            : ((payload ?? {}) as Record<string, unknown>);
-
-        const access = tokens[accessResponseField];
-        if (typeof access !== "string" || !access) {
-          throw new Error("Refresh response missing access token");
-        }
-        const refresh = tokens.refresh;
-
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem(accessTokenKey, access);
-          // Cookie mode never persists a refresh token client-side.
-          if (
-            refreshMode !== "cookie" &&
-            typeof refresh === "string" &&
-            refresh
-          )
-            window.localStorage.setItem(refreshTokenKey, refresh);
-        }
-
-        resolveQueue(access);
-        original.headers.Authorization = `Bearer ${access}`;
-        return instance(original);
-      } catch {
-        rejectQueue(error);
-        handleAuthFailure();
-        return Promise.reject(error);
-      } finally {
-        isRefreshing = false;
-      }
+      // Superseded by another tab's refresh or a new login meanwhile — use that.
+      const after = readStorage(accessTokenKey);
+      if (after && after !== current) return instance(original);
+      return Promise.reject(error);
     },
   );
+}
 
+/**
+ * Create a configured Axios instance for a Peppermint app. Call once at app boot
+ * (e.g. in `src/lib/api.ts`) and export the returned instance.
+ *
+ * The instance:
+ * - injects `Authorization: Bearer <accessToken>` from `localStorage` on every request,
+ * - unwraps the `{ success, data, meta }` envelope (paginated lists keep `{ data, meta }`,
+ *   everything else unwraps to `data`),
+ * - on any 401 to a Bearer-authenticated request, refreshes once (single-flight per
+ *   instance) and retries the request once,
+ * - refreshes proactively `refreshLeadTimeMs` before the stored access expiry,
+ * - backs off on a rate-limited refresh and never signs out for it (or for a 5xx /
+ *   network failure); calls `onAuthFailure(info)` only on a definitive refusal.
+ *
+ * Refresh transport is configurable via `refreshMode` (`"body"` | `"cookie"` |
+ * `"auto"`) — see {@link ApiClientConfig}.
+ */
+export function configureApiClient(
+  config: ApiClientConfig = {},
+): AxiosInstance {
+  const {
+    baseURL,
+    accessTokenKey = DEFAULT_ACCESS_TOKEN_KEY,
+    refreshTokenKey = DEFAULT_REFRESH_TOKEN_KEY,
+    accessExpiresAtKey = DEFAULT_ACCESS_EXPIRES_AT_KEY,
+    refreshEndpoint = DEFAULT_REFRESH_ENDPOINT,
+    headers,
+    onAuthFailure,
+    refreshMode = "body",
+    csrfCookieName = DEFAULT_CSRF_COOKIE_NAME,
+    csrfHeaderName = DEFAULT_CSRF_HEADER_NAME,
+    accessResponseField = "access",
+    expiresAtResponseField = "access_expires_at",
+    proactiveRefresh = true,
+    refreshLeadTimeMs = DEFAULT_REFRESH_LEAD_TIME_MS,
+    skipRefreshPaths = [],
+    maxRateLimitRetries = DEFAULT_MAX_RATE_LIMIT_RETRIES,
+  } = config;
+
+  // A refresh cookie is only stored from a credentialed login response and only
+  // sent on a credentialed refresh, so cookie-capable modes imply credentials.
+  const withCredentials =
+    config.withCredentials ??
+    (refreshMode === "cookie" || refreshMode === "auto");
+
+  const instance = axios.create({
+    baseURL,
+    withCredentials,
+    headers: { "Content-Type": "application/json", ...headers },
+  });
+
+  const session = createRefreshSession({
+    transport: {
+      url: refreshEndpoint.startsWith("http")
+        ? refreshEndpoint
+        : `${baseURL ?? ""}${refreshEndpoint}`,
+      mode: refreshMode,
+      withCredentials,
+      refreshTokenKey,
+      csrfCookieName,
+      csrfHeaderName,
+      accessResponseField,
+      expiresAtResponseField,
+    },
+    accessTokenKey,
+    refreshTokenKey,
+    accessExpiresAtKey,
+    proactive: proactiveRefresh,
+    leadTimeMs: refreshLeadTimeMs,
+    maxRateLimitRetries,
+    onAuthFailure:
+      onAuthFailure ??
+      defaultAuthFailure([accessTokenKey, refreshTokenKey, accessExpiresAtKey]),
+  });
+
+  installInterceptors(
+    instance,
+    session,
+    baseURL,
+    accessTokenKey,
+    skipRefreshPaths,
+  );
   return instance;
 }

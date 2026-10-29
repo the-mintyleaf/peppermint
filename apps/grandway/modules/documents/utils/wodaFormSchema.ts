@@ -58,6 +58,14 @@ export interface WodaField {
   reveals?: string;
   /** Seed for the field when neither `initialContent` nor a control default applies. */
   defaultValue?: unknown;
+  /**
+   * `text` / `textarea` only: the personal-clipboard `field_key` (registered in
+   * `modules/admin/clipboard/clipboard.fieldKeys.ts`). Renders the saved-snippets
+   * button in the input's right section. Give it only to values staff retype
+   * across applicants (ward official, contact office) — never to the applicant's
+   * own details, which the prefill fills.
+   */
+  clipboardKey?: string;
   // number-only options
   min?: number;
   max?: number;

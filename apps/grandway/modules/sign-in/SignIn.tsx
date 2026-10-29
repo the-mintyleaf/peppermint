@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ActionIcon,
+  Alert,
   Center,
   Container,
   Loader,
@@ -17,7 +18,9 @@ import {
 } from "@peppermint/ui";
 import { MoonIcon } from "@phosphor-icons/react/dist/csr/Moon";
 import { SunIcon } from "@phosphor-icons/react/dist/csr/Sun";
+import { SignOutIcon } from "@phosphor-icons/react/dist/csr/SignOut";
 import { hasAccessToken } from "@/lib/authTokens";
+import { useSignOutNotice } from "./SignIn.hooks";
 import { SignInPanel } from "./components/SignInPanel";
 import type { SignInPhase } from "./components/SignInPanel";
 
@@ -36,6 +39,7 @@ export function ModuleSignIn() {
   const { setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme("light");
   const isDark = computedColorScheme === "dark";
+  const signOutNotice = useSignOutNotice();
 
   useEffect(() => {
     if (hasAccessToken()) {
@@ -95,6 +99,18 @@ export function ModuleSignIn() {
                         : "Don't have an account? Ask your administrator to create one."}
                     </Text>
                   </Stack>
+
+                  {signOutNotice && phase === "credentials" ? (
+                    <Alert
+                      role="status"
+                      color="yellow"
+                      variant="light"
+                      title="You've been signed out"
+                      icon={<SignOutIcon size={18} aria-hidden />}
+                    >
+                      {signOutNotice}
+                    </Alert>
+                  ) : null}
 
                   <SignInPanel phase={phase} onPhaseChange={setPhase} />
                 </Stack>

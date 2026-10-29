@@ -101,6 +101,27 @@ export function ApplicantOverviewPanel({
 
       <Divider />
 
+      {/* The numbers the ward-office (WODA) letters print. Free text, not
+          format-checked by the backend — shown exactly as entered. */}
+      <ProfileSection title="Identity numbers">
+        <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="sm" verticalSpacing="sm">
+          <ProfileField
+            label="Citizenship no."
+            value={applicant.citizenship_no || null}
+          />
+          <ProfileField
+            label="Issued in"
+            value={applicant.citizenship_issue_district || null}
+          />
+          <ProfileField
+            label="National ID no."
+            value={applicant.national_id_no || null}
+          />
+        </SimpleGrid>
+      </ProfileSection>
+
+      <Divider />
+
       <ProfileSection title="Contact">
         <Stack gap="sm">
           <ProfileField label="Email" value={applicant.email} />

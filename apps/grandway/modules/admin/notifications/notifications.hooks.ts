@@ -1,21 +1,30 @@
 "use client";
 
-import { useQueries, useQuery } from "@peppermint/ui";
+import { useQueries, useQuery, useQueryClient } from "@peppermint/ui";
 import { useAppMutation } from "@peppermint/admin";
 import type { QueryParams } from "@peppermint/admin";
 import {
   dismissNotification,
+  fetchPreferences,
   fetchSummary,
   listNotifications,
   markAllRead,
   markNotificationRead,
   markNotificationUnread,
+  updatePreferences,
 } from "./notifications.api";
-import { notificationQueryKeys, summaryKey } from "./notifications.queryKeys";
+import {
+  notificationQueryKeys,
+  preferencesKey,
+  summaryKey,
+} from "./notifications.queryKeys";
 import type {
   BulkReadResult,
   Notification,
+  NotificationCategory,
   NotificationListFilters,
+  NotificationPreferences,
+  NotificationPreferencesUpdate,
   NotificationSummaryParams,
 } from "./notifications.types";
 
@@ -150,20 +159,80 @@ export function useDismiss(id: string) {
 }
 
 /**
- * `POST /read-all/` — clears every unread row on the caller's feed, including
- * dismissed/resolved ones; `active` does not change (§4, §7). Invalidates the
- * whole `notifications.notifications` prefix (not just `lists()`) since a
- * mounted detail/history read of a specific row's `is_read`/`read_at` should
- * refresh too.
+ * Every alert about one applicant's record — `?applicant_id=`, no `status`
+ * (the full history, active + dismissed + resolved). Misses alerts raised
+ * before 2026-10-29 (their `applicant_id` is null) and anything past the
+ * 90-day retention window. Newest first, one generous page.
+ */
+export function useApplicantNotifications(applicantId: string) {
+  return useNotificationList({ applicant_id: applicantId, page_size: 50 });
+}
+
+/** The caller's own preferences. Not polled — only changes when this user changes it. */
+export function useNotificationPreferences(enabled = true) {
+  return useQuery({
+    queryKey: preferencesKey(),
+    queryFn: fetchPreferences,
+    enabled,
+  });
+}
+
+/**
+ * `PATCH /preferences/` — partial. The response is the FULL set after the
+ * change, written straight into the cache so the switches re-render from what
+ * the server says, not from what was sent. No list/summary invalidation: a
+ * change only affects alerts created from now on (§7), so no existing count or
+ * row moves.
+ */
+export function useUpdatePreferences() {
+  const queryClient = useQueryClient();
+  return useAppMutation<NotificationPreferences, NotificationPreferencesUpdate>(
+    {
+      mutationFn: updatePreferences,
+      errorTitle: "Couldn't save notification settings",
+      onSuccess: (data) => {
+        queryClient.setQueryData(preferencesKey(), data);
+      },
+    },
+  );
+}
+
+/**
+ * `POST /read-all/` — clears unread rows on the caller's feed, including
+ * dismissed/resolved ones; `active` does not change (§4, §7).
+ *
+ * Variable is the tab's categories: empty/omitted → one unfiltered call
+ * ("All"); otherwise ONE call per category (a comma list is a 400), run in
+ * parallel and summed. Callers pass the tab's whole group (not just categories
+ * the 30s-old summary says are unread), so a stale count can't skip a clear.
+ *
+ * Invalidates the whole `notifications.notifications` prefix (not just
+ * `lists()`) since a mounted detail/history read of a specific row's
+ * `is_read`/`read_at` should refresh too.
  */
 export function useMarkAllRead() {
-  return useAppMutation<BulkReadResult, void>({
-    mutationFn: markAllRead,
+  const queryClient = useQueryClient();
+  return useAppMutation<BulkReadResult, NotificationCategory[] | undefined>({
+    mutationFn: async (categories) => {
+      if (!categories || categories.length === 0) return markAllRead();
+      const results = await Promise.all(categories.map((c) => markAllRead(c)));
+      return {
+        marked_read: results.reduce((sum, r) => sum + r.marked_read, 0),
+      };
+    },
     successMessage: (data) =>
       data.marked_read === 0
         ? "Nothing to mark as read."
         : `Marked ${data.marked_read} notification${data.marked_read === 1 ? "" : "s"} as read.`,
     errorTitle: "Couldn't mark all as read",
     invalidateKeys: [notificationQueryKeys.all, summaryKey()],
+    // A grouped tab sends one call per category; if one fails the others have
+    // still cleared on the server, so the badges must refresh either way.
+    onError: () => {
+      void queryClient.invalidateQueries({
+        queryKey: notificationQueryKeys.all,
+      });
+      void queryClient.invalidateQueries({ queryKey: summaryKey() });
+    },
   });
 }
