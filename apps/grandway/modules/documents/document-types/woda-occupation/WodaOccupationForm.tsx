@@ -4,7 +4,6 @@ import { createSchemaForm } from "../../components/WodaForm";
 import type { WodaFormSchema } from "../../utils/wodaFormSchema";
 import {
   applicantSection,
-  documentSection,
   earningGuardianField,
   parentsSection,
   spokespersonSection,
@@ -12,7 +11,6 @@ import {
 
 const schema: WodaFormSchema = {
   sections: [
-    documentSection(),
     applicantSection({ address: true }),
     parentsSection(),
     {

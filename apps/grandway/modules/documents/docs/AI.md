@@ -106,7 +106,17 @@ ConfigBar?, formModalSize?, templateVersion?, formSchema? }`.
   never fetch.
 - **`Form`** is the create/edit field set, shown in a modal.
 - **`ConfigBar`** is the **Customizations** panel in the right rail. Optional; a
-  type without one shows "No Customizations for this Document".
+  type without one shows "No Customizations for this Document". When the
+  document is read-only (`isActiveDocumentEditable`) `HistorySidebar` shows the
+  `readOnlyReason` copy instead of mounting the bar.
+
+| ConfigBar              | Types                 | Channel                  | Writes                                                           |
+| ---------------------- | --------------------- | ------------------------ | ---------------------------------------------------------------- |
+| `BankConfigBar`        | every `bank-*`        | `onUpdate` only          | `headerProps` padding (render-only)                              |
+| `CvEuropassConfigBar`  | `student-cv-europass` | `onUpdate` + `onPersist` | `appearance`                                                     |
+| `CertificateConfigBar` | `student-certificate` | `onUpdate` + `onPersist` | see Student certificate content                                  |
+| `WodaConfigBar`        | every `woda-*`        | `onUpdate` + `onPersist` | `show_refno`, `wodadoc_refno`, `show_dispatch_no`, `dispatch_no` |
+
 - **Adapters** (`utils/createTemplateAdapter.tsx`, and per-type files like
   `document-types/student-certificate/CertificateTemplate.tsx`) sit between the
   two, resolving `document.content` into the shape a template wants.
@@ -256,6 +266,24 @@ Ward-office letters, in two **sets** (`WODA_CATEGORIES` in
   `WodaTable`, `WodaPhotoGrid`, `WodaFiscalPeriods`, `WodaSignatureBlock`) and
   the pure helpers in `wodaFormat.ts`. The two sets differ in wording and
   table shape, not in parts.
+- **Reference and dispatch numbers are Customizations, not Edit fields**
+  (`document-types/woda-config-bar/`). `WodaConfigBar` has a "Print reference
+  no." and a "Print dispatch no." switch, each revealing its number. It writes
+  only the keys changed (of `show_refno`, `wodadoc_refno`, `show_dispatch_no`,
+  `dispatch_no`) onto the stored body — never migrates anything else — previews
+  via `onUpdate`, saves debounced via `onPersist` with an unmount flush, and on
+  a refused save puts just those keys back (`restoreWodaReference`) and says so.
+  - **The switch reads what prints.** Its state is `isWodaLineShown` — the
+    template's own rule: a stored flag wins; a letter saved without flags prints
+    a number that has text. Toggling writes that one flag; editing a number also
+    pins its flag on, so clearing the text cannot hide the input mid-edit. An
+    untouched unset flag stays unset, so opening the panel never changes the
+    printout.
+  - The edit forms no longer show these fields. `WodaForm` merges every
+    `initialContent` key over the schema defaults and submits them back, so an
+    Edit-fields save keeps them. New letters seed both flags `false` and both
+    numbers `""` (`utils/defaultDocumentContent.ts`); the prefill never touches
+    them.
 - **Forms are schemas**, rendered by `components/WodaForm`. Shared sections
   live in `utils/wodaCommonSections.ts`; the Japan and English birth and
   relationship forms are one schema each, parameterised by legal basis

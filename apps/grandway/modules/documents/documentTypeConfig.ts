@@ -84,6 +84,7 @@ import {
   WodaEnglishIncomeTemplate,
 } from "./document-types/woda-english-income";
 import { BankConfigBar } from "./document-types/bank-config-bar";
+import { WodaConfigBar } from "./document-types/woda-config-bar";
 import {
   MoiGlobalCollege,
   MoiJanajagriti,
@@ -391,6 +392,9 @@ const wodaRegistry = Object.fromEntries(
       templateVersion: "2",
       ...wodaComponents[variant.slug],
       formSchema: wodaComponents[variant.slug].Form.formSchema,
+      // Which numbers print under the letterhead — a print choice, so it is a
+      // Customizations setting rather than an Edit-fields one.
+      ConfigBar: WodaConfigBar,
     },
   ]),
 ) as Record<(typeof WODA_VARIANTS)[number]["slug"], DocumentTypeConfig>;

@@ -3,7 +3,6 @@
 import { createSchemaForm } from "../../components/WodaForm";
 import type { WodaFormSchema } from "../../utils/wodaFormSchema";
 import {
-  documentSection,
   honorificField,
   nameField,
   RELATIONS,
@@ -12,7 +11,6 @@ import {
 
 const schema: WodaFormSchema = {
   sections: [
-    documentSection(),
     {
       title: "Landowner",
       description: "The person who owns the farmland.",

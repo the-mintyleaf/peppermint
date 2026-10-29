@@ -141,22 +141,6 @@ function comboboxData(options: (string | WodaSelectOption)[] = []): string[] {
   return options.map((opt) => (typeof opt === "string" ? opt : opt.value));
 }
 
-function hasText(value: unknown): boolean {
-  return typeof value === "string" && value.trim() !== "";
-}
-
-/** Names of fields whose revealing switch is currently off. */
-function hiddenFieldNames(
-  fields: WodaField[],
-  values: WodaFormValues,
-): Set<string> {
-  return new Set(
-    fields
-      .filter((field) => field.reveals && !values[field.name])
-      .map((field) => field.reveals as string),
-  );
-}
-
 function fieldLabel(field: WodaField): string {
   return field.optional ? `${field.label} (optional)` : field.label;
 }
@@ -177,16 +161,12 @@ export function WodaForm(props: WodaFormProps) {
     for (const field of fields) values[field.name] = emptyValue(field);
     const saved = (initialContent ?? {}) as WodaFormValues;
     const existing = schema.migrate ? schema.migrate(saved) : saved;
-    // Preserve any passthrough keys (details, headerProps, …) not owned by the schema.
+    // Preserve any passthrough keys not owned by the schema (headerProps, and the
+    // reference/dispatch numbers the Customizations panel edits) — the submit
+    // sends them back unchanged, so an Edit-fields save never drops them.
     Object.assign(values, existing);
     for (const field of fields) {
       values[field.name] = coerceValue(field, values[field.name]);
-    }
-    // A switch saved before it existed starts on when its field already has a value.
-    for (const field of fields) {
-      if (field.reveals && typeof existing[field.name] !== "boolean") {
-        values[field.name] = hasText(values[field.reveals]);
-      }
     }
     return values;
     // initialContent is read once at mount, matching the sibling document forms.
@@ -361,15 +341,12 @@ export function WodaForm(props: WodaFormProps) {
 
   // Greedily group consecutive half-width (pairs) or third-width (triples)
   // fields onto one responsive row.
-  const hidden = hiddenFieldNames(fields, form.values);
-
   const rowSpan = (field: WodaField): number => {
     if (field.third) return 3;
     return field.half ? 2 : 1;
   };
 
-  const renderFields = (allFields: WodaField[]): ReactNode[] => {
-    const sectionFields = allFields.filter((field) => !hidden.has(field.name));
+  const renderFields = (sectionFields: WodaField[]): ReactNode[] => {
     const rows: ReactNode[] = [];
     for (let i = 0; i < sectionFields.length; i += 1) {
       const field = sectionFields[i];

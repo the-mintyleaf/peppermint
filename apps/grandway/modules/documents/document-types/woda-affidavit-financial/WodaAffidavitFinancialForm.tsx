@@ -2,11 +2,7 @@
 
 import { createSchemaForm } from "../../components/WodaForm";
 import type { WodaFormSchema } from "../../utils/wodaFormSchema";
-import {
-  documentSection,
-  HONORIFICS,
-  RELATIONS,
-} from "../../utils/wodaCommonSections";
+import { HONORIFICS, RELATIONS } from "../../utils/wodaCommonSections";
 
 const COURSE_LEVELS = ["Bachelor", "Master", "PhD", "Diploma", "PCL"];
 
@@ -23,7 +19,6 @@ const PRONOUN_OPTIONS = [
 const schema: WodaFormSchema = {
   submitLabel: "Create Document",
   sections: [
-    documentSection(),
     {
       title: "Sponsor",
       fields: [

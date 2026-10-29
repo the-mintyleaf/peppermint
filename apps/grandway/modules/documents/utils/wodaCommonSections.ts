@@ -1,8 +1,11 @@
 /**
  * Shared field/section builders for the WODA form schemas. Keeps the common blocks
- * (document meta, applicant identity, parents, spokesperson) consistent across every
- * variant while letting each variant append its own document-specific section. Labels,
- * descriptions and placeholders here are written for a Nepali ward-office operator.
+ * (applicant identity, parents, spokesperson) consistent across every variant while
+ * letting each variant append its own document-specific section. Labels, descriptions
+ * and placeholders here are written for a Nepali ward-office operator.
+ *
+ * The reference and dispatch numbers are not here: they and their print switches
+ * live in the letter's Customizations panel (`document-types/woda-config-bar`).
  */
 
 import type { WodaField, WodaSection } from "./wodaFormSchema";
@@ -64,46 +67,6 @@ export function nameField(
     half: true,
     required: opts.required,
     placeholder: opts.placeholder ?? "Ram Bahadur Shrestha",
-  };
-}
-
-/**
- * Reference and dispatch numbers, each behind its own print switch. Neither is
- * printed unless switched on, and there is no issue date — the ward office dates
- * and stamps the letter itself.
- */
-export function documentSection(): WodaSection {
-  return {
-    title: "Document",
-    description: "Choose which numbers print under the letterhead.",
-    fields: [
-      {
-        name: "show_refno",
-        label: "Print reference no.",
-        control: "switch",
-        reveals: "wodadoc_refno",
-        half: true,
-      },
-      {
-        name: "show_dispatch_no",
-        label: "Print dispatch no.",
-        control: "switch",
-        reveals: "dispatch_no",
-        half: true,
-      },
-      {
-        name: "wodadoc_refno",
-        label: "Reference no.",
-        placeholder: "079/80-1234",
-        half: true,
-      },
-      {
-        name: "dispatch_no",
-        label: "Dispatch no.",
-        placeholder: "512",
-        half: true,
-      },
-    ],
   };
 }
 
